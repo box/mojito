@@ -1,12 +1,11 @@
 package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
-import com.box.l10n.mojito.cli.command.RepositoryStatusChecker;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
+import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
@@ -45,7 +44,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Base class for CLI integration tests. Creates an in-memory instance of tomcat
@@ -89,8 +90,6 @@ public class CLITestBase extends IOTestBase {
 
     @Autowired
     protected RepositoryClient repositoryClient;
-
-    RepositoryStatusChecker repositoryStatusChecker = new RepositoryStatusChecker();
 
     @Autowired
     AssetRepository assetRepository;
@@ -213,7 +212,24 @@ public class CLITestBase extends IOTestBase {
     protected void waitForRepositoryToHaveStringsForTranslations(Long repositoryId) throws InterruptedException {
         waitForCondition("wait for repository stats to show forTranslationCount > 0 before exporting a drop", () -> {
             com.box.l10n.mojito.rest.entity.Repository repository = repositoryClient.getRepositoryById(repositoryId);
-            return repositoryStatusChecker.hasStringsForTranslationsForExportableLocales(repository);
+
+            Set<String> tagsForTranslation = repository.getRepositoryLocales().stream()
+                    .filter(RepositoryLocale::isToBeFullyTranslated).map(RepositoryLocale::getLocale)
+                    .map(com.box.l10n.mojito.rest.entity.Locale::getBcp47Tag).collect(Collectors.toSet());
+
+            RepositoryStatistic repositoryStatistic = repository.getRepositoryStatistic();
+
+            if (repositoryStatistic == null) {
+                return false;
+            }
+
+            return repositoryStatistic.getRepositoryLocaleStatistics().stream()
+                    .anyMatch(repositoryLocaleStatistic -> {
+                        String localeTag = repositoryLocaleStatistic.getLocale().getBcp47Tag();
+                        Long forTranslationCount = repositoryLocaleStatistic.getForTranslationCount();
+
+                        return tagsForTranslation.contains(localeTag) && forTranslationCount > 0L;
+                    });
         });
     }
 
