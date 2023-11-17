@@ -30,3 +30,4 @@ release.properties
 /docs/_site/
 /.java-version
 /node_modules/
+/tmp/
