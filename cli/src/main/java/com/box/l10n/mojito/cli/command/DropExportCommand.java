@@ -161,7 +161,7 @@ public class DropExportCommand extends Command {
         return bcp47tags;
     }
     
-    protected boolean shouldCreateDrop(Repository repository) throws CommandException {
+    private boolean shouldCreateDrop(Repository repository) throws CommandException {
         boolean createDrop = false;
         Set<String> bcp47TagsForTranslation = Sets.newHashSet(getBcp47TagsForExport(repository));
         RepositoryStatistic repoStat = repository.getRepositoryStatistic();
