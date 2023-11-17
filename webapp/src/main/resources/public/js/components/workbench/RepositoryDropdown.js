@@ -95,18 +95,24 @@ let RepositoryDropDown = createReactClass({
      *
      * @param repository the repository that was selected
      */
-    onRepositorySelected(repository) {
+    onRepositorySelected(repository, event) {
 
         this.forceDropdownOpen = true;
 
         let id = repository.id;
 
-        let newSelectedRepoIds = this.state.selectedRepoIds.slice();
+        let newSelectedRepoIds = null;
 
-        if (repository.selected) {
-            _.pull(newSelectedRepoIds, id);
+        if (event.shiftKey) {
+            newSelectedRepoIds = [id];
         } else {
-            newSelectedRepoIds.push(id);
+            newSelectedRepoIds = this.state.selectedRepoIds.slice();
+
+            if (repository.selected) {
+                _.pull(newSelectedRepoIds, id);
+            } else {
+                newSelectedRepoIds.push(id);
+            }
         }
 
         this.searchParamChanged(newSelectedRepoIds);
