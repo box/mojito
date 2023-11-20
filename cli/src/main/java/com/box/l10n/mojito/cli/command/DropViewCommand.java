@@ -112,12 +112,12 @@ public class DropViewCommand extends Command {
             jsonDrops.add(jsonDrop);
         }
 
-        consoleWriter.a(jsonDrops.toJSONString()).print();
+        consoleWriter.a(jsonDrops.toJSONString()).println();
     }
 
     private void writeCsv(Map<Long, Drop> drops) {
         StringBuilder csv = new StringBuilder();
-        csv.append("id,name,importStatus");
+        csv.append("id,name,importStatus").append(System.getProperty("line.separator"));
 
         for (Drop drop : drops.values()) {
             csv.append(drop.getId()).append(",").append(drop.getName());
@@ -129,9 +129,10 @@ public class DropViewCommand extends Command {
             } else {
                 csv.append(",").append(drop.getLastImportedDate());
             }
+            csv.append(System.getProperty("line.separator"));
         }
 
-        consoleWriter.a(csv.toString());
+        consoleWriter.a(csv.toString()).println();
     }
 
     private void writeHumanReadable(Map<Long, Drop> drops) {
