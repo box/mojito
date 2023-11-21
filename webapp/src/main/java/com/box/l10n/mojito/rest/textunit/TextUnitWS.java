@@ -172,6 +172,38 @@ public class TextUnitWS {
     return search;
   }
 
+  @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/search")
+  @ResponseStatus(HttpStatus.OK)
+  public List<TextUnitDTO> getTextUnitsWithPost(@RequestBody TextUnitSearchBody textUnitSearchBody)
+      throws InvalidTextUnitSearchParameterException {
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        queryParamsToTextUnitSearcherParameters(
+            textUnitSearchBody.getRepositoryIds(),
+            textUnitSearchBody.getRepositoryNames(),
+            textUnitSearchBody.getTmTextUnitIds(),
+            textUnitSearchBody.getName(),
+            textUnitSearchBody.getSource(),
+            textUnitSearchBody.getTarget(),
+            textUnitSearchBody.getAssetPath(),
+            textUnitSearchBody.getPluralFormOther(),
+            textUnitSearchBody.isPluralFormFiltered(),
+            textUnitSearchBody.isPluralFormExcluded(),
+            textUnitSearchBody.getLocaleTags(),
+            textUnitSearchBody.getUsedFilter(),
+            textUnitSearchBody.getStatusFilter(),
+            textUnitSearchBody.getDoNotTranslateFilter(),
+            textUnitSearchBody.getTmTextUnitCreatedBefore(),
+            textUnitSearchBody.getTmTextUnitCreatedAfter(),
+            textUnitSearchBody.getBranchId(),
+            textUnitSearchBody.getSearchType());
+    textUnitSearcherParameters.setLimit(textUnitSearchBody.getLimit());
+    textUnitSearcherParameters.setOffset(textUnitSearchBody.getOffset());
+    List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+
+    return search;
+  }
+
   @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/count")
   @ResponseStatus(HttpStatus.OK)
   public TextUnitAndWordCount getTextUnitsCount(

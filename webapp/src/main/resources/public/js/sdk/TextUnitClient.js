@@ -10,13 +10,14 @@ class TextUnitClient extends BaseClient {
     /**
      * Gets the text units that matches the searcher parameters.
      *
+     * Uses an HTTP POST to suppor larger number of parameters
+     *
      * @param {TextUnitSearcherParameters} textUnitSearcherParameters
      *
      * @returns {Promise.<TextUnit[]|err>} a promise that retuns an array of text units
      */
     getTextUnits(textUnitSearcherParameters) {
-
-        let promise = this.get(this.getUrl(), textUnitSearcherParameters.getParams());
+        let promise = this.post(this.getUrl() + '/search', textUnitSearcherParameters.getParams());
 
         return promise.then(function (result) {
             return TextUnit.toTextUnits(result);
