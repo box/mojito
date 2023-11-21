@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,165 +93,66 @@ public class TextUnitWS {
    * <p>It uses a filter logic. The dataset will be filtered down as more criteria are specified
    * (search for specific locales, string name|target|source, etc).
    *
-   * @param repositoryIds mandatory if repositoryNames not provided
-   * @param repositoryNames mandatory if repositoryIds not provided
-   * @param name optional
-   * @param source optional
-   * @param target optional
-   * @param assetPath optional
-   * @param pluralFormOther optional
-   * @param pluralFormFiltered optional
-   * @param searchType optional, default is EXACT match
-   * @param localeTags optional
-   * @param usedFilter optional
-   * @param statusFilter optional
-   * @param doNotTranslateFilter optional
-   * @param tmTextUnitCreatedBefore optional
-   * @param tmTextUnitCreatedAfter optional
-   * @param limit optional, default 10
-   * @param offset optional, default 0
-   * @return the TextUnits that matches the search parameters
+   * <p>Either repositoryIds, repositoryNames or tmTextUnitIds must be provided in the query
+   * parameters
+   *
    * @throws InvalidTextUnitSearchParameterException
    */
   @RequestMapping(method = RequestMethod.GET, value = "/api/textunits")
   @ResponseStatus(HttpStatus.OK)
-  public List<TextUnitDTO> getTextUnits(
-      @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
-      @RequestParam(value = "repositoryNames[]", required = false)
-          ArrayList<String> repositoryNames,
-      @RequestParam(value = "tmTextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
-      @RequestParam(value = "name", required = false) String name,
-      @RequestParam(value = "source", required = false) String source,
-      @RequestParam(value = "target", required = false) String target,
-      @RequestParam(value = "assetPath", required = false) String assetPath,
-      @RequestParam(value = "pluralFormOther", required = false) String pluralFormOther,
-      @RequestParam(value = "pluralFormFiltered", required = false, defaultValue = "true")
-          boolean pluralFormFiltered,
-      @RequestParam(value = "pluralFormExcluded", required = false, defaultValue = "false")
-          boolean pluralFormExcluded,
-      @RequestParam(value = "searchType", required = false, defaultValue = "EXACT")
-          SearchType searchType,
-      @RequestParam(value = "localeTags[]", required = false) ArrayList<String> localeTags,
-      @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
-      @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
-      @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
-      @RequestParam(value = "tmTextUnitCreatedBefore", required = false)
-          DateTime tmTextUnitCreatedBefore,
-      @RequestParam(value = "tmTextUnitCreatedAfter", required = false)
-          DateTime tmTextUnitCreatedAfter,
-      @RequestParam(value = "branchId", required = false) Long branchId,
-      @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
-      @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset)
+  public List<TextUnitDTO> getTextUnitsWithGet(TextUnitSearchBody textUnitSearchBody)
       throws InvalidTextUnitSearchParameterException {
 
-    TextUnitSearcherParameters textUnitSearcherParameters =
-        queryParamsToTextUnitSearcherParameters(
-            repositoryIds,
-            repositoryNames,
-            tmTextUnitIds,
-            name,
-            source,
-            target,
-            assetPath,
-            pluralFormOther,
-            pluralFormFiltered,
-            pluralFormExcluded,
-            localeTags,
-            usedFilter,
-            statusFilter,
-            doNotTranslateFilter,
-            tmTextUnitCreatedBefore,
-            tmTextUnitCreatedAfter,
-            branchId,
-            searchType);
-    textUnitSearcherParameters.setLimit(limit);
-    textUnitSearcherParameters.setOffset(offset);
-    List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
-
-    return search;
+    return getTextUnits(textUnitSearchBody);
   }
 
+  /**
+   * Same as the GET version {@link #getTextUnitsWithGet(TextUnitSearchBody)} but support queries
+   * with larger parameters for list of repositories, locales, etc.
+   *
+   * <p>This entry point is now used by Mojito Frontend. Keeping the GET implementation for other
+   * integrations.
+   */
   @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/search")
   @ResponseStatus(HttpStatus.OK)
   public List<TextUnitDTO> getTextUnitsWithPost(@RequestBody TextUnitSearchBody textUnitSearchBody)
       throws InvalidTextUnitSearchParameterException {
 
-    TextUnitSearcherParameters textUnitSearcherParameters =
-        queryParamsToTextUnitSearcherParameters(
-            textUnitSearchBody.getRepositoryIds(),
-            textUnitSearchBody.getRepositoryNames(),
-            textUnitSearchBody.getTmTextUnitIds(),
-            textUnitSearchBody.getName(),
-            textUnitSearchBody.getSource(),
-            textUnitSearchBody.getTarget(),
-            textUnitSearchBody.getAssetPath(),
-            textUnitSearchBody.getPluralFormOther(),
-            textUnitSearchBody.isPluralFormFiltered(),
-            textUnitSearchBody.isPluralFormExcluded(),
-            textUnitSearchBody.getLocaleTags(),
-            textUnitSearchBody.getUsedFilter(),
-            textUnitSearchBody.getStatusFilter(),
-            textUnitSearchBody.getDoNotTranslateFilter(),
-            textUnitSearchBody.getTmTextUnitCreatedBefore(),
-            textUnitSearchBody.getTmTextUnitCreatedAfter(),
-            textUnitSearchBody.getBranchId(),
-            textUnitSearchBody.getSearchType());
-    textUnitSearcherParameters.setLimit(textUnitSearchBody.getLimit());
-    textUnitSearcherParameters.setOffset(textUnitSearchBody.getOffset());
-    List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+    return getTextUnits(textUnitSearchBody);
+  }
 
+  private List<TextUnitDTO> getTextUnits(TextUnitSearchBody textUnitSearchBody)
+      throws InvalidTextUnitSearchParameterException {
+    checkMandatoryParamatersForSearch(textUnitSearchBody);
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        textUnitSearchBodyToTextUnitSearcherParameters(textUnitSearchBody);
+    applySharedSearchAndCountParameters(textUnitSearcherParameters);
+
+    List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
     return search;
   }
 
+  void applySharedSearchAndCountParameters(TextUnitSearcherParameters textUnitSearcherParameters) {
+    textUnitSearcherParameters.setRootLocaleExcluded(false);
+  }
+
+  /**
+   * Return the total count of text units that a {@link #getTextUnitsWithGet(TextUnitSearchBody)}
+   * search with the same parameters would return.
+   */
   @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/count")
   @ResponseStatus(HttpStatus.OK)
-  public TextUnitAndWordCount getTextUnitsCount(
-      @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
-      @RequestParam(value = "repositoryNames[]", required = false)
-          ArrayList<String> repositoryNames,
-      @RequestParam(value = "tmTextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
-      @RequestParam(value = "name", required = false) String name,
-      @RequestParam(value = "source", required = false) String source,
-      @RequestParam(value = "target", required = false) String target,
-      @RequestParam(value = "assetPath", required = false) String assetPath,
-      @RequestParam(value = "pluralFormOther", required = false) String pluralFormOther,
-      @RequestParam(value = "pluralFormFiltered", required = false, defaultValue = "true")
-          boolean pluralFormFiltered,
-      @RequestParam(value = "pluralFormExcluded", required = false, defaultValue = "false")
-          boolean pluralFormExcluded,
-      @RequestParam(value = "searchType", required = false, defaultValue = "EXACT")
-          SearchType searchType,
-      @RequestParam(value = "localeTags[]", required = false) ArrayList<String> localeTags,
-      @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
-      @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
-      @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
-      @RequestParam(value = "tmTextUnitCreatedBefore", required = false)
-          DateTime tmTextUnitCreatedBefore,
-      @RequestParam(value = "tmTextUnitCreatedAfter", required = false)
-          DateTime tmTextUnitCreatedAfter,
-      @RequestParam(value = "branchId", required = false) Long branchId)
+  public TextUnitAndWordCount getTextUnitsCount(TextUnitSearchBody textUnitSearchBody)
       throws InvalidTextUnitSearchParameterException {
 
+    checkMandatoryParamatersForSearch(textUnitSearchBody);
+
+    textUnitSearchBody.setLimit(null); // reset default value to count
+
     TextUnitSearcherParameters textUnitSearcherParameters =
-        queryParamsToTextUnitSearcherParameters(
-            repositoryIds,
-            repositoryNames,
-            tmTextUnitIds,
-            name,
-            source,
-            target,
-            assetPath,
-            pluralFormOther,
-            pluralFormFiltered,
-            pluralFormExcluded,
-            localeTags,
-            usedFilter,
-            statusFilter,
-            doNotTranslateFilter,
-            tmTextUnitCreatedBefore,
-            tmTextUnitCreatedAfter,
-            branchId,
-            searchType);
+        textUnitSearchBodyToTextUnitSearcherParameters(textUnitSearchBody);
+    applySharedSearchAndCountParameters(textUnitSearcherParameters);
 
     TextUnitAndWordCount countTextUnitAndWordCount =
         textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
@@ -279,55 +179,46 @@ public class TextUnitWS {
     return tmHistoryService.findHistory(tmTextUnitId, locale.getId());
   }
 
-  TextUnitSearcherParameters queryParamsToTextUnitSearcherParameters(
-      ArrayList<Long> repositoryIds,
-      ArrayList<String> repositoryNames,
-      ArrayList<Long> tmTextUnitIds,
-      String name,
-      String source,
-      String target,
-      String assetPath,
-      String pluralFormOther,
-      boolean pluralFormFiltered,
-      boolean pluralFormExcluded,
-      ArrayList<String> localeTags,
-      UsedFilter usedFilter,
-      StatusFilter statusFilter,
-      Boolean doNotTranslateFilter,
-      DateTime tmTextUnitCreatedBefore,
-      DateTime tmTextUnitCreatedAfter,
-      Long branchId,
-      SearchType searchType)
+  void checkMandatoryParamatersForSearch(TextUnitSearchBody textUnitSearchBody)
       throws InvalidTextUnitSearchParameterException {
-
-    if (CollectionUtils.isEmpty(repositoryIds)
-        && CollectionUtils.isEmpty(repositoryNames)
-        && CollectionUtils.isEmpty(tmTextUnitIds)) {
+    if (CollectionUtils.isEmpty(textUnitSearchBody.getRepositoryIds())
+        && CollectionUtils.isEmpty(textUnitSearchBody.getRepositoryNames())
+        && CollectionUtils.isEmpty(textUnitSearchBody.getTmTextUnitIds())) {
       throw new InvalidTextUnitSearchParameterException(
           "repositoryIds[], repositoryNames[] or tmTextUnitIds[] must be provided");
     }
+  }
+
+  TextUnitSearcherParameters textUnitSearchBodyToTextUnitSearcherParameters(
+      TextUnitSearchBody textUnitSearchBody) throws InvalidTextUnitSearchParameterException {
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-    textUnitSearcherParameters.setRepositoryIds(repositoryIds);
-    textUnitSearcherParameters.setRepositoryNames(repositoryNames);
-    textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
-    textUnitSearcherParameters.setName(name);
-    textUnitSearcherParameters.setSource(emptyOrString(source, searchType));
-    textUnitSearcherParameters.setTarget(emptyOrString(target, searchType));
-    textUnitSearcherParameters.setAssetPath(assetPath);
-    textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
-    textUnitSearcherParameters.setPluralFormsFiltered(pluralFormFiltered);
-    textUnitSearcherParameters.setPluralFormsExcluded(pluralFormExcluded);
-    textUnitSearcherParameters.setSearchType(searchType);
-    textUnitSearcherParameters.setRootLocaleExcluded(false);
-    textUnitSearcherParameters.setLocaleTags(localeTags);
-    textUnitSearcherParameters.setUsedFilter(usedFilter);
-    textUnitSearcherParameters.setStatusFilter(statusFilter);
-    textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);
-    textUnitSearcherParameters.setTmTextUnitCreatedBefore(tmTextUnitCreatedBefore);
-    textUnitSearcherParameters.setTmTextUnitCreatedAfter(tmTextUnitCreatedAfter);
-    textUnitSearcherParameters.setBranchId(branchId);
+    textUnitSearcherParameters.setRepositoryIds(textUnitSearchBody.getRepositoryIds());
+    textUnitSearcherParameters.setRepositoryNames(textUnitSearchBody.getRepositoryNames());
+    textUnitSearcherParameters.setTmTextUnitIds(textUnitSearchBody.getTmTextUnitIds());
+    textUnitSearcherParameters.setName(textUnitSearchBody.getName());
+    textUnitSearcherParameters.setSource(
+        emptyOrString(textUnitSearchBody.getSource(), textUnitSearchBody.searchType));
+    textUnitSearcherParameters.setTarget(
+        emptyOrString(textUnitSearchBody.getTarget(), textUnitSearchBody.searchType));
+    textUnitSearcherParameters.setAssetPath(textUnitSearchBody.getAssetPath());
+    textUnitSearcherParameters.setPluralFormOther(textUnitSearchBody.getPluralFormOther());
+    textUnitSearcherParameters.setPluralFormsFiltered(textUnitSearchBody.isPluralFormFiltered());
+    textUnitSearcherParameters.setPluralFormsExcluded(textUnitSearchBody.isPluralFormExcluded());
+    textUnitSearcherParameters.setSearchType(textUnitSearchBody.getSearchType());
+    textUnitSearcherParameters.setLocaleTags(textUnitSearchBody.getLocaleTags());
+    textUnitSearcherParameters.setUsedFilter(textUnitSearchBody.getUsedFilter());
+    textUnitSearcherParameters.setStatusFilter(textUnitSearchBody.getStatusFilter());
+    textUnitSearcherParameters.setDoNotTranslateFilter(
+        textUnitSearchBody.getDoNotTranslateFilter());
+    textUnitSearcherParameters.setTmTextUnitCreatedBefore(
+        textUnitSearchBody.getTmTextUnitCreatedBefore());
+    textUnitSearcherParameters.setTmTextUnitCreatedAfter(
+        textUnitSearchBody.getTmTextUnitCreatedAfter());
+    textUnitSearcherParameters.setBranchId(textUnitSearchBody.getBranchId());
+    textUnitSearcherParameters.setLimit(textUnitSearchBody.getLimit());
+    textUnitSearcherParameters.setOffset(textUnitSearchBody.getOffset());
 
     return textUnitSearcherParameters;
   }
