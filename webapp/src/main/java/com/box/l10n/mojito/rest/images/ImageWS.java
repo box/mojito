@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.service.image.ImageService;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
@@ -70,7 +71,22 @@ public class ImageWS {
         (String)
             httpServletRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 
-    return path.substring(PATH_PREFIX.length());
+    return urlDecode(path.substring(PATH_PREFIX.length()));
+  }
+
+  /**
+   * Best effort approach to url decode a string. If it fails, the original string is returned.
+   *
+   * @param encodedString
+   * @return url decoded string (or original string if it fails)
+   */
+  private String urlDecode(String encodedString) {
+    try {
+      return URLDecoder.decode(encodedString, "UTF-8");
+    } catch (Exception e) {
+      logger.warn("Could not decode string: {}, returning encoded string", encodedString, e);
+      return encodedString;
+    }
   }
 
   /**
