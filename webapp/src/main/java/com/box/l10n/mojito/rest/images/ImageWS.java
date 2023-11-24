@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.service.image.ImageService;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
@@ -70,7 +71,9 @@ public class ImageWS {
         (String)
             httpServletRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 
-    return path.substring(PATH_PREFIX.length());
+    String imageName = path.substring(PATH_PREFIX.length());
+    imageName = URLDecoder.decode(imageName);
+    return imageName;
   }
 
   /**
