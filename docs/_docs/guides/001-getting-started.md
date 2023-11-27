@@ -6,7 +6,7 @@ permalink: /docs/guides/getting-started/
 ---
 
 For this guide, we use [Brew](http://brew.sh/) to install {{ site.mojito_green }} Webapp and CLI (`Java 1.8` is required).
-
+test
 ### Setup and install
 
     brew tap box/mojito
