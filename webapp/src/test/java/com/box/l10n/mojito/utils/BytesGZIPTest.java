@@ -12,7 +12,7 @@ public class BytesGZIPTest {
   static final byte[] DECOMPRESSED = STR.getBytes(StandardCharsets.UTF_8);
   static final byte[] COMPRESSED =
       new byte[] {
-        31, -117, 8, 0, 0, 0, 0, 0, 0, 0, 43, -50, -49, 77, 85, 40, 46, 41, -54, -52, 75, 87, 40,
+        31, -117, 8, 0, 0, 0, 0, 0, 0, -1, 43, -50, -49, 77, 85, 40, 46, 41, -54, -52, 75, 87, 40,
         -55, 87, 72, -50, -49, 45, 40, 74, 45, 46, 6, 0, -35, -34, 126, -63, 23, 0, 0, 0
       };
 
