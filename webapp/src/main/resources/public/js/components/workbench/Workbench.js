@@ -15,7 +15,6 @@ import GitBlameActions from "../../actions/workbench/GitBlameActions";
 import ScreenshotViewerModal from "../screenshots/ScreenshotViewerModal";
 import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
 import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
-import UrlHelper from "../../utils/UrlHelper";
 import TranslationHistoryStore from "../../stores/workbench/TranslationHistoryStore";
 import TranslationHistoryModal from "./TranslationHistoryModal";
 import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
@@ -26,34 +25,6 @@ import ShareSearchParamsButton from "./ShareSearchParamsButton";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
-    mixins: [FluxyMixin],
-
-    statics: {
-        storeListeners: {
-            "onGitBlameStoreUpdated": GitBlameStore,
-            "onTranslationHistoryStoreUpdated": TranslationHistoryStore
-        }
-    },
-
-    onGitBlameStoreUpdated(store) {
-        this.setState({"isShowGitBlameModal": store.show});
-    },
-
-    onTranslationHistoryStoreUpdated(store) {
-        this.setState({"isShowTranslationHistoryModal": store.show});
-    },
-
-    /**
-     * Create query string given SearchParams
-     *
-     * @param searchParams
-     * @return {*}
-     */
-    buildQuery: function (searchParams) {
-        let cloneParam = _.clone(searchParams);
-        delete cloneParam["changedParam"];
-        return UrlHelper.toQueryString(cloneParam);
-    },
 
     render: function () {
         return (
