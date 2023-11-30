@@ -23,6 +23,7 @@ import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.GenerateLocalizedAssetJob;
+import com.box.l10n.mojito.service.tm.GenerateMultiLocalizedAssetJob;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -241,6 +242,46 @@ public class AssetWS {
     PollableFuture<LocalizedAssetBody> localizedAssetBodyPollableFuture =
         quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     return localizedAssetBodyPollableFuture.getPollableTask();
+  }
+
+  /**
+   * Localizes the payload content with translations of a given {@link Asset} in parallel.
+   *
+   * @param assetId
+   * @param multiLocalizedAssetBody
+   * @return
+   */
+  @RequestMapping(value = "/api/assets/{assetId}/localized/parallel", method = RequestMethod.POST)
+  public PollableTask getLocalizedAssetForContentParallel(
+      @PathVariable("assetId") long assetId,
+      @RequestBody MultiLocalizedAssetBody multiLocalizedAssetBody) {
+
+    if (multiLocalizedAssetBody.getAssetId() == null) {
+      multiLocalizedAssetBody.setAssetId(assetId);
+    }
+
+    multiLocalizedAssetBody.setSchedulerName(schedulerName);
+
+    Asset asset = assetRepository.getOne(assetId);
+    meterRegistry
+        .counter(
+            "assetWS.getLocalizedAssetForContentParallel",
+            Tags.of(
+                "repositoryId",
+                asset.getRepository().getId().toString(),
+                "repositoryName",
+                asset.getRepository().getName()))
+        .increment();
+
+    QuartzJobInfo<MultiLocalizedAssetBody, MultiLocalizedAssetBody> quartzJobInfo =
+        QuartzJobInfo.newBuilder(GenerateMultiLocalizedAssetJob.class)
+            .withInlineInput(false)
+            .withInput(multiLocalizedAssetBody)
+            .withScheduler(multiLocalizedAssetBody.getSchedulerName())
+            .build();
+    PollableFuture<MultiLocalizedAssetBody> multiLocalizedAssetBodyPollableFuture =
+        quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+    return multiLocalizedAssetBodyPollableFuture.getPollableTask();
   }
 
   /**

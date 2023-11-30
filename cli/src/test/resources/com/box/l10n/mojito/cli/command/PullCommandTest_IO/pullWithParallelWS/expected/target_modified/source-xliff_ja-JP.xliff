@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions" version="1.2">
+ <file original="" source-language="en" datatype="x-undefined" target-language="ja-JP">
+  <body>
+   <trans-unit id="" resname="100_character_description_" datatype="php">
+    <source>100 character description:</source>
+   <target xml:lang="ja-JP">100文字の説明:</target>
+</trans-unit>
+   <trans-unit id="" resname="15_min_duration" datatype="x-javascript+php">
+    <source>15 min</source>
+    <target xml:lang="ja-JP">15分</target>
+<note>File lock dialog duration</note>
+   </trans-unit>
+   <trans-unit id="" resname="1_hour_duration" datatype="x-javascript+php">
+    <source>1 hour</source>
+    <target xml:lang="ja-JP">1時間</target>
+<note>File lock dialog duration</note>
+   </trans-unit>
+   <trans-unit id="" resname="1_month_duration" datatype="x-javascript+php">
+    <source>1 month</source>
+    <target xml:lang="ja-JP">1か月</target>
+<note>File lock dialog duration</note>
+   </trans-unit>
+   <trans-unit id="" resname="something_new" datatype="x-javascript+php">
+    <source>Something new</source>
+   <target xml:lang="ja-JP">Something new</target>
+</trans-unit>
+  </body>
+ </file>
+</xliff>

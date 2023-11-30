@@ -5,15 +5,20 @@ import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Locale;
+import com.box.l10n.mojito.rest.entity.LocaleInfo;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
+import com.box.l10n.mojito.rest.entity.MultiLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.rest.entity.XliffExportBody;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -99,6 +104,64 @@ public class AssetClient extends BaseClient {
 
     return authenticatedRestTemplate.postForObject(
         uriBuilder.toUriString(), localizedAssetBody, LocalizedAssetBody.class);
+  }
+
+  public PollableTask getLocalizedAssetForContentParallel(
+      Long assetId,
+      String content,
+      List<RepositoryLocale> locales,
+      Map<RepositoryLocale, List<String>> localeIdToOutputTagsMap,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      LocalizedAssetBody.Status status,
+      LocalizedAssetBody.InheritanceMode inheritanceMode,
+      String pullRunName) {
+    logger.debug("Getting localized assets with asset id = {}", assetId);
+
+    UriComponentsBuilder uriBuilder =
+        UriComponentsBuilder.fromPath(getBasePathForResource(assetId, "localized", "parallel"));
+
+    List<LocaleInfo> localeInfos =
+        locales.stream()
+            .map(locale -> mapRepoLocaleToLocaleInfos(locale, localeIdToOutputTagsMap))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+    MultiLocalizedAssetBody multiLocalizedAssetBody = new MultiLocalizedAssetBody();
+    multiLocalizedAssetBody.setAssetId(assetId);
+    multiLocalizedAssetBody.setSourceContent(content);
+    multiLocalizedAssetBody.setLocaleInfos(localeInfos);
+    multiLocalizedAssetBody.setGenerateLocalizedAssetJobIds(new HashMap<>());
+    multiLocalizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
+    multiLocalizedAssetBody.setFilterOptions(filterOptions);
+    multiLocalizedAssetBody.setInheritanceMode(inheritanceMode);
+    multiLocalizedAssetBody.setStatus(status);
+    multiLocalizedAssetBody.setPullRunName(pullRunName);
+
+    PollableTask pollableTask =
+        authenticatedRestTemplate.postForObject(
+            uriBuilder.toUriString(), multiLocalizedAssetBody, PollableTask.class);
+
+    return pollableTask;
+  }
+
+  private static List<LocaleInfo> mapRepoLocaleToLocaleInfos(
+      RepositoryLocale locale, Map<RepositoryLocale, List<String>> repoLocaleToOutputTagsMap) {
+    List<LocaleInfo> localeInfos = new ArrayList<>();
+    if (repoLocaleToOutputTagsMap.containsKey(locale)) {
+      for (String outputTag : repoLocaleToOutputTagsMap.get(locale)) {
+        LocaleInfo localeInfo = new LocaleInfo();
+        localeInfo.setLocaleId(locale.getLocale().getId());
+        localeInfo.setOutputBcp47tag(outputTag);
+        localeInfos.add(localeInfo);
+      }
+    } else {
+      LocaleInfo localeInfo = new LocaleInfo();
+      localeInfo.setLocaleId(locale.getLocale().getId());
+      localeInfos.add(localeInfo);
+    }
+
+    return localeInfos;
   }
 
   public PollableTask getLocalizedAssetForContentAsync(

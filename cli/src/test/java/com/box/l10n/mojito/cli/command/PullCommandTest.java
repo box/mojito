@@ -165,6 +165,54 @@ public class PullCommandTest extends CLITestBase {
   }
 
   @Test
+  public void pullWithParallelWS() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    Asset asset2 =
+        assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
+    importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
+    importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "--async-ws");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source_modified").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target_modified").getAbsolutePath(),
+            "--parallel");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void pullWithDuplicatedTextUnits() throws Exception {
 
     Repository repository = createTestRepoUsingRepoService();
@@ -474,6 +522,40 @@ public class PullCommandTest extends CLITestBase {
   }
 
   @Test
+  public void localeMappingParallel() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "-lm",
+            "fr:fr-FR,fr-FR:fr-FR,ja:ja-JP",
+            "--parallel");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void assetMapping() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
 
@@ -501,6 +583,39 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-am",
             "mapping-xliff.xliff:source-xliff.xliff");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void assetMappingParallel() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("mapping").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "-am",
+            "mapping-xliff.xliff:source-xliff.xliff",
+            "--parallel");
 
     checkExpectedGeneratedResources();
   }
@@ -1747,6 +1862,71 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target_fully_translated").getAbsolutePath(),
             "--fully-translated");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void pullFullyTranslatedParallel() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+    repositoryService.addRepositoryLocale(repository, "en-AU", null, false);
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "--parallel");
+
+    waitForCondition(
+        "repo stats must be updated - wait for jp to be fully translated and others to be untranslated",
+        () -> {
+          com.box.l10n.mojito.rest.entity.Repository repo =
+              repositoryClient.getRepositoryById(repository.getId());
+          RepositoryStatistic repositoryStatistic = repo.getRepositoryStatistic();
+
+          boolean statsReady =
+              repositoryStatistic.getRepositoryLocaleStatistics().stream()
+                  .allMatch(
+                      repositoryLocaleStatistic -> {
+                        if ("ja-JP".equals(repositoryLocaleStatistic.getLocale().getBcp47Tag())) {
+                          return repositoryLocaleStatistic.getForTranslationCount() == 0;
+                        } else {
+                          return repositoryLocaleStatistic.getForTranslationCount() > 0;
+                        }
+                      });
+
+          return !repositoryStatistic.getRepositoryLocaleStatistics().isEmpty() && statsReady;
+        });
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target_fully_translated").getAbsolutePath(),
+            "--fully-translated",
+            "--parallel");
 
     checkExpectedGeneratedResources();
   }

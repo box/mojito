@@ -286,6 +286,15 @@ public class CommandHelper {
     }
   }
 
+  public void waitForPollableTaskSilencedOutput(Long pollableId) throws CommandException {
+
+    try {
+      pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, null);
+    } catch (PollableTaskException e) {
+      throw new CommandException(e.getMessage(), e.getCause());
+    }
+  }
+
   /**
    * Gets the repository locales sorted so that parent are before child locales.
    *
