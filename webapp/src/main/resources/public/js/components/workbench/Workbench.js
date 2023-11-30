@@ -8,8 +8,6 @@ import RepositoryDropDown from "./RepositoryDropdown";
 import SearchResults from "./SearchResults";
 import StatusDropdown from "./StatusDropdown";
 import SearchText from "./SearchText";
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import LocationHistory from "../../utils/LocationHistory";
 import AltContainer from "alt-container";
 import GitBlameStore from "../../stores/workbench/GitBlameStore";
 import GitBlameInfoModal from "./GitBlameInfoModal";
@@ -21,6 +19,10 @@ import UrlHelper from "../../utils/UrlHelper";
 import TranslationHistoryStore from "../../stores/workbench/TranslationHistoryStore";
 import TranslationHistoryModal from "./TranslationHistoryModal";
 import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
+import ShareSearchParamsModalStore from "../../stores/workbench/ShareSearchParamsModalStore";
+import ShareSearchParamsModal from "./ShareSearchParamsModal";
+import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions";
+import ShareSearchParamsButton from "./ShareSearchParamsButton";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -28,19 +30,9 @@ let Workbench = createReactClass({
 
     statics: {
         storeListeners: {
-            "onSearchParamsStoreChanged": SearchParamsStore,
             "onGitBlameStoreUpdated": GitBlameStore,
             "onTranslationHistoryStoreUpdated": TranslationHistoryStore
         }
-    },
-
-    /**
-     * Handler for SearchParamsStore changes
-     *
-     * @param {object} searchParams The SearchParamsStore state
-     */
-    onSearchParamsStoreChanged: function (searchParams) {
-        this.updateLocationForSearchParam(searchParams);
     },
 
     onGitBlameStoreUpdated(store) {
@@ -49,26 +41,6 @@ let Workbench = createReactClass({
 
     onTranslationHistoryStoreUpdated(store) {
         this.setState({"isShowTranslationHistoryModal": store.show});
-    },
-
-    /**
-     * Updates the browser location based to reflect search
-     *
-     * If the URL is only workbench replace the state (to reflect the search param) else if the query has changed
-     * push a new state to keep track of the change param modification.
-     *
-     * @param {object} searchParams The SearchParamsStore state
-     */
-    updateLocationForSearchParam(searchParams) {
-        LocationHistory.updateLocation(this.props.router, "/workbench", searchParams);
-    },
-
-    /**
-     * @param {string} queryString Starts with ?
-     * @return boolean
-     */
-    isCurrentQueryEqual: function (queryString) {
-        return queryString === window.location.search;
     },
 
     /**
@@ -92,7 +64,8 @@ let Workbench = createReactClass({
                 </div>
 
                 <SearchText />
-                <StatusDropdown />
+                <StatusDropdown/>
+                <ShareSearchParamsButton onClick={ShareSearchParamsModalActions.open}/>
 
                 <div className="mtl mbl">
                     <SearchResults />
@@ -123,6 +96,16 @@ let Workbench = createReactClass({
                 <AltContainer store={TranslationHistoryStore}>
                     <TranslationHistoryModal onCloseModal={TranslationHistoryActions.close}
                                              onChangeOpenTmTextUnitVariant={TranslationHistoryActions.changeOpenTmTextUnitVariant}/>
+                </AltContainer>
+
+                <AltContainer store={ShareSearchParamsModalStore}>
+                    <ShareSearchParamsModal
+                        onCancel={ShareSearchParamsModalActions.close}
+                        onCopy={(url) => {
+                            navigator.clipboard.writeText(url)
+                                .then(ShareSearchParamsModalActions.close)
+                                .catch(err => ShareSearchParamsModalActions.setError(ShareSearchParamsModalStore.ERROR_TYPES.COPY_TO_CLIPBOARD));
+                        }}/>
                 </AltContainer>
             </div>
         );

@@ -46,6 +46,7 @@ import BranchesPageActions from "./actions/branches/BranchesPageActions";
 import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
 import enMessages from '../../properties/en.properties';
 import GoogleAnalytics from "./utils/GoogleAnalytics";
+import ShareSearchParamsModalActions from "./actions/workbench/ShareSearchParamsModalActions";
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
@@ -110,9 +111,7 @@ function startApp(messages) {
                             <Route path="project-requests" component={Drops}/>
                             <Route path="branches" component={BranchesPage}
                                    onEnter={onEnterBranches}
-                                   onLeave={() => {
-                                       BranchesPageActions.resetBranchesSearchParams();
-                                   }} />
+                                   onLeave={BranchesPageActions.resetBranchesSearchParams}/>
                             <Route path="screenshots" component={ScreenshotsPage}
                                    onEnter={onEnterScreenshots}
                                    onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
@@ -186,7 +185,7 @@ function startApp(messages) {
 function onLeaveWorkbench() {
     setTimeout(() => {
         WorkbenchActions.searchParamsChanged({
-            "changedParam": SearchConstants.UPDATE_ALL
+            "changedParam": SearchConstants.UPDATE_ALL_LOCATION_UPDATE
         });
     }, 1);
 }
@@ -219,7 +218,25 @@ function onEnterRoot() {
 function loadBasedOnLocation(location) {
 
     if (location.pathname === '/workbench' && location.action === 'POP') {
-        WorkbenchActions.searchParamsChanged(SearchParamsStore.convertQueryToSearchParams(location.query));
+
+        if (location.query['link']) {
+            // Open the workbench from new deeplinks
+            // Uses UPDATE_ALL_LOCATION_UPDATE set in SearchParamStore::onGetSearchParamsSuccess
+            let linkUUID = location.query['link'];
+            ShareSearchParamsModalActions.getSearchParams(linkUUID);
+        } else if (location.state != null) {
+            // POP with state is typically back / forward browser buttons
+            // Since the store state is restored from the location state, no need to update or push the location
+            // on store change, see onSearchParamsStoreChanged()
+            const searchParams = location.state.searchParams;
+            searchParams["changedParam"] = SearchConstants.UPDATE_ALL_LOCATION_NONE;
+            WorkbenchActions.searchParamsChanged(searchParams);
+        } else if (location.query != null) {
+            // loading for URL with query param. Old deeplink kept for compatiblity
+            // Use UPDATE_ALL_LOCATION_UPDATE set in SearchParamsStore.convertQueryToSearchParams
+            const searchParams = SearchParamsStore.convertQueryToSearchParams(location.query)
+            WorkbenchActions.searchParamsChanged(searchParams);
+        }
     }
 
     if (location.pathname === '/screenshots' && location.action === 'POP') {
@@ -247,6 +264,26 @@ function onBranchesHistoryStoreChange() {
 }
 
 BranchesHistoryStore.listen(() => onBranchesHistoryStoreChange());
+
+
+function onSearchParamsStoreChanged() {
+    const workbenchPathname = '/workbench';
+
+    if (window.location.pathname === UrlHelper.getUrlWithContextPath(workbenchPathname)) {
+        const searchParamCopy = {...SearchParamsStore.getState()};
+
+        if (searchParamCopy["changedParam"] !== SearchConstants.UPDATE_ALL_LOCATION_NONE) {
+
+            if (searchParamCopy["changedParam"] === SearchConstants.UPDATE_ALL_LOCATION_UPDATE) {
+                browserHistory.replace({pathname: workbenchPathname, state: {"searchParams": searchParamCopy}});
+            } else {
+                browserHistory.push({pathname: workbenchPathname, state: {"searchParams": searchParamCopy}});
+            }
+        }
+    }
+}
+
+SearchParamsStore.listen(() => onSearchParamsStoreChanged())
 
 /**
  * Listen to history changes, when doing a POP for the workbench, initialize

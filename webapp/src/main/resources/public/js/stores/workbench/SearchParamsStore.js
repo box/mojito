@@ -7,6 +7,7 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import RepositoryActions from "../../actions/RepositoryActions";
 
 import RepositoryStore from "../RepositoryStore";
+import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions";
 
 class SearchParamsStore {
 
@@ -15,6 +16,7 @@ class SearchParamsStore {
         this.setDefaultParameters();
         this.bindActions(WorkbenchActions);
         this.bindActions(RepositoryActions);
+        this.bindActions(ShareSearchParamsModalActions);
     }
 
     /**
@@ -67,7 +69,7 @@ class SearchParamsStore {
         }
 
         let converted = {
-            "changedParam": SearchConstants.UPDATE_ALL,
+            "changedParam": SearchConstants.UPDATE_ALL_LOCATION_UPDATE,
             "repoIds": typeof repoIds !== "undefined" ? repoIds : null,
             "repoNames": typeof repoNames !== "undefined" ? repoNames : null,
             "bcp47Tags": typeof bcp47Tags !== "undefined" ? bcp47Tags : null,
@@ -148,6 +150,8 @@ class SearchParamsStore {
                 break;
 
             case SearchConstants.UPDATE_ALL:
+            case SearchConstants.UPDATE_ALL_LOCATION_UPDATE:
+            case SearchConstants.UPDATE_ALL_LOCATION_NONE:
 
                 this.setDefaultParameters();
                 this.updateAllParameters(paramData);
@@ -171,6 +175,11 @@ class SearchParamsStore {
         this.updatePageOffset();
 
         this.changedParam = paramData.changedParam;
+    }
+
+    onGetSearchParamsSuccess(result) {
+        result.searchParams["changedParam"] = SearchConstants.UPDATE_ALL_LOCATION_UPDATE;
+        this.onSearchParamsChanged(result.searchParams);
     }
 
     /**

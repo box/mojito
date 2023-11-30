@@ -50,8 +50,7 @@ class Header extends React.Component {
      */
     updateSearchParamsForDefaultView = () => {
         WorkbenchActions.searchParamsChanged({
-            "changedParam": SearchConstants.UPDATE_ALL,
-            "doNotTranslate": true
+            "changedParam": SearchConstants.UPDATE_ALL_LOCATION_NONE
         });
     };
 

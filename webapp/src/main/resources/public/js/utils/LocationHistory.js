@@ -40,7 +40,7 @@ class LocationHistory {
      */
     buildQuery(params) {
         let cloneParam = _.clone(params);
-        delete cloneParam["changedParam"];
+        delete cloneParam["changedParam"]; // this is workbench specific
         return UrlHelper.toQueryString(cloneParam);
     }
 };
