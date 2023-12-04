@@ -46,6 +46,9 @@ public class PullCommandParallel extends PullCommand {
     this.sourceDirectoryParam = pullCommand.sourceDirectoryParam;
     this.targetDirectoryParam = pullCommand.targetDirectoryParam;
     this.onlyIfFullyTranslated = pullCommand.onlyIfFullyTranslated;
+    this.pullRunName = pullCommand.pullRunName;
+    this.recordPullRun = pullCommand.recordPullRun;
+    this.isParallel = pullCommand.isParallel;
   }
 
   public void pull() throws CommandException {
