@@ -29,7 +29,7 @@ public class ClobStorageWS {
 
   @RequestMapping(method = RequestMethod.POST, value = "/api/clobstorage")
   @ResponseStatus(HttpStatus.OK)
-  public UUID post(@RequestBody String content) throws InvalidTextUnitSearchParameterException {
+  public UUID postClob(@RequestBody String content) throws InvalidTextUnitSearchParameterException {
 
     final UUID uuid = UUID.randomUUID();
 
@@ -44,7 +44,7 @@ public class ClobStorageWS {
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/clobstorage/{uuid}")
   @ResponseStatus(HttpStatus.OK)
-  public String getTextUnitsSeargetchParams(@PathVariable(value = "uuid") UUID uuid)
+  public String getClob(@PathVariable(value = "uuid") UUID uuid)
       throws InvalidTextUnitSearchParameterException {
     return structuredBlobStorage
         .getString(StructuredBlobStorage.Prefix.CLOB_STORAGE_WS, uuid.toString())
