@@ -31,3 +31,4 @@ release.properties
 /.java-version
 /node_modules/
 /tmp/
+/local/

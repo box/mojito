@@ -1,3 +1,13 @@
+# Add private config, deployment code, etc. for easy access
+
+The local/ is excluded from Git. It can be used to seem like to private config, deployment code, etc.
+
+```shell
+cd local/
+ln -s ~/.l10n/config
+ln -s ~/code/mojito-deploy/
+```
+
 ## Simplest way to get everything to work quickly (but slower that intellij incremental update)
 
 https://www.jetbrains.com/help/idea/delegate-build-and-run-actions-to-maven.html
