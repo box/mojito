@@ -9,5 +9,6 @@ services:
     volumes:
       - ..:/mnt/mojito
       - ~/.m2:/root/.m2
-    command: mvn install -DskipTests
+    command: mvn clean install -DskipTests
+    #command:  mvn test -P'!frontend' -Dtest=MultiBranchStateServiceTest -DfailIfNoTests=false
 
