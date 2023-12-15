@@ -62,3 +62,41 @@ and in webapp.pom
             <!-- Needed for intellij to setup processor properly, not needed with maven only -->
             <scope>provided</scope>
         </dependency>
+
+
+# HSQL server for debugging test
+
+Start an HSQL Server:
+
+```shell
+java -cp ~/.m2/repository/org/hsqldb/hsqldb/2.5.2/hsqldb-2.5.2.jar org.hsqldb.server.Server --database.0 file:~/tmp/hsqldb/mojito --dbname.0 mojito
+```
+
+It should run on `9001`
+
+```shell
+[Server@506e1b77]: 2023-12-15 00:09:46.887 HSQLDB server 2.6.0 is online on port 9001
+```
+
+Then use following properties:
+
+```properties
+spring.datasource.url=jdbc:hsqldb:hsql://localhost:9001/mojito
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.defer-datasource-initialization=false
+spring.sql.init.mode=always
+spring.sql.init.data-locations=classpath:/db/hsql/data.sql
+```
+
+For quick plain SQL query debugging 
+
+```java
+
+@Autowired JdbcTemplate jdbcTemplate;
+
+jdbcTemplate.queryForList(
+  "select unix_timestamp(), unix_timestamp(mblob.created_date), current_timestamp, mblob.* from mblob ")
+  .forEach(System.out::println);
+```
+
+
