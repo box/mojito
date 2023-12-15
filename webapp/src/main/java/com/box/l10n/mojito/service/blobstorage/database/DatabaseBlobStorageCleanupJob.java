@@ -7,8 +7,10 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 
 @DisallowConcurrentExecution
+@Profile("!disablescheduling")
 public class DatabaseBlobStorageCleanupJob implements Job {
 
   static Logger logger = LoggerFactory.getLogger(DatabaseBlobStorageCleanupJob.class);
