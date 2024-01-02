@@ -4,11 +4,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import java.time.ZonedDateTime;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
   public void finishAllPollableTasks() {
     List<PollableTask> pollableTasks = pollableTaskRepository.findAll();
     for (PollableTask pollableTask : pollableTasks) {
-      pollableTask.setFinishedDate(new DateTime());
+      pollableTask.setFinishedDate(JSR310Migration.newDateTimeEmptyCtor());
     }
     pollableTaskRepository.saveAll(pollableTasks);
   }
@@ -59,7 +60,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
 
   @Transactional
   private PollableTask setPollableTaskCreatedDateInPast(PollableTask pollableTask) {
-    DateTime pastCreatedDate = (pollableTask.getCreatedDate()).minusHours(2);
+    ZonedDateTime pastCreatedDate = (pollableTask.getCreatedDate()).minusHours(2);
     pollableTask.setCreatedDate(pastCreatedDate);
     pollableTaskRepository.save(pollableTask);
 

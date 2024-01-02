@@ -3,12 +3,13 @@ package com.box.l10n.mojito.cli.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.quartz.QuartzService;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -46,12 +47,12 @@ public class QuartzJobsDeleteCommandTest extends CLITestBase {
 
     quartzPollableTaskScheduler.scheduleJob(
         QuartzJobInfo.newBuilder(AJob.class)
-            .withTriggerStartDate(DateTime.now().plus(100000).toDate())
+            .withTriggerStartDate(JSR310Migration.dateTimePlusAsDate(ZonedDateTime.now(), 100000))
             .withUniqueId(testJobName1)
             .build());
     quartzPollableTaskScheduler.scheduleJob(
         QuartzJobInfo.newBuilder(AJob.class)
-            .withTriggerStartDate(DateTime.now().plus(100000).toDate())
+            .withTriggerStartDate(JSR310Migration.dateTimePlusAsDate(ZonedDateTime.now(), 100000))
             .withUniqueId(testJobName2)
             .build());
 

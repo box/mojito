@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import java.time.ZonedDateTime;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +28,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,9 +169,9 @@ public class TMTextUnitStatisticService {
                               stat1.getLastDayUsageCount() + stat2.getLastDayUsageCount());
                           stat1.setLastPeriodUsageCount(
                               stat1.getLastPeriodUsageCount() + stat2.getLastPeriodUsageCount());
-                          DateTime stat1date = stat1.getLastSeenDate();
-                          DateTime stat2date = stat2.getLastSeenDate();
-                          DateTime maxDate =
+                          ZonedDateTime stat1date = stat1.getLastSeenDate();
+                          ZonedDateTime stat2date = stat2.getLastSeenDate();
+                          ZonedDateTime maxDate =
                               stat1date.compareTo(stat2date) >= 0 ? stat1date : stat2date;
                           stat1.setLastSeenDate(maxDate);
 

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.quartz;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.pollableTask.ExceptionHolder;
@@ -64,7 +65,8 @@ public abstract class QuartzPollableJob<I, O> implements Job {
     meterRegistry
         .timer("QuartzPollableJob.currentPollableTask.timeFromScheduledToExecution", metricTags)
         .record(
-            System.currentTimeMillis() - currentPollableTask.getCreatedDate().getMillis(),
+            System.currentTimeMillis()
+                - JSR310Migration.getMillis(currentPollableTask.getCreatedDate()),
             TimeUnit.MILLISECONDS);
 
     ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
@@ -103,8 +105,8 @@ public abstract class QuartzPollableJob<I, O> implements Job {
       meterRegistry
           .timer("QuartzPollableJob.currentPollableTask.timeFromScheduledToFinish", metricTags)
           .record(
-              currentPollableTask.getFinishedDate().getMillis()
-                  - currentPollableTask.getCreatedDate().getMillis(),
+              JSR310Migration.getMillis(currentPollableTask.getFinishedDate())
+                  - JSR310Migration.getMillis(currentPollableTask.getCreatedDate()),
               TimeUnit.MILLISECONDS);
 
       executeSample.stop(

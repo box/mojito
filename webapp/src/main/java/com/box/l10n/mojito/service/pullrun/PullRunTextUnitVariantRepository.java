@@ -4,7 +4,7 @@ import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PullRunAsset;
 import com.box.l10n.mojito.entity.PullRunTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -48,5 +48,5 @@ public interface PullRunTextUnitVariantRepository
               + "  limit :batchSize "
               + ") todelete on todelete.id = pull_run_text_unit_variant.id")
   int deleteAllByPullRunWithCreatedDateBefore(
-      @Param("beforeDate") Timestamp beforeDate, @Param("batchSize") int batchSize);
+      @Param("beforeDate") ZonedDateTime beforeDate, @Param("batchSize") int batchSize);
 }

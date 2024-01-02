@@ -3,7 +3,7 @@ package com.box.l10n.mojito.nativecriteria;
 import com.github.pnowy.nc.core.NativeQuery;
 import com.github.pnowy.nc.core.expressions.NativeExp;
 import com.github.pnowy.nc.utils.Strings;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 
 /** @author jeanaurambault */
 public class NativeDateGteExp implements NativeExp {
@@ -14,13 +14,13 @@ public class NativeDateGteExp implements NativeExp {
   private String varName;
 
   /** Compared value. */
-  private DateTime value;
+  private ZonedDateTime value;
 
   /**
    * @param columnName the column name
    * @param value the value
    */
-  public NativeDateGteExp(String columnName, DateTime value) {
+  public NativeDateGteExp(String columnName, ZonedDateTime value) {
     if (Strings.isBlank(columnName)) throw new IllegalStateException("columnName is null!");
     if (value == null) throw new IllegalStateException("value is null!");
 

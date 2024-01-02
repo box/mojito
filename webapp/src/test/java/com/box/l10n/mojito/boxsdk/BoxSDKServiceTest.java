@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.test.category.BoxSDKTest;
 import com.box.sdk.BoxComment;
@@ -14,6 +15,7 @@ import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
 import com.box.sdk.BoxSharedLink;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,7 +26,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -227,7 +228,7 @@ public class BoxSDKServiceTest extends WSTestBase {
 
     BoxFolder rootFolder = boxSDKService.getRootFolder();
 
-    DateTime dateTime = new DateTime();
+    ZonedDateTime dateTime = JSR310Migration.newDateTimeEmptyCtor();
     dateTime = dateTime.minusDays(1);
 
     boxSDKService.deleteFolderContentOlderThan(rootFolder.getID(), dateTime);

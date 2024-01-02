@@ -2,7 +2,7 @@ package com.box.l10n.mojito.service.pushrun;
 
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -35,5 +35,5 @@ public interface PushRunRepository extends JpaRepository<PushRun, Long> {
   @Query(
       nativeQuery = true,
       value = "delete pr " + "from push_run pr " + "where pr.created_date < :beforeDate ")
-  void deleteAllByCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
+  void deleteAllByCreatedDateBefore(@Param("beforeDate") ZonedDateTime beforeDate);
 }

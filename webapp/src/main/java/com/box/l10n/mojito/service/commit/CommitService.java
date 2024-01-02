@@ -4,6 +4,7 @@ import static com.box.l10n.mojito.rest.commit.CommitSpecification.*;
 import static com.box.l10n.mojito.specification.Specifications.distinct;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Commit;
 import com.box.l10n.mojito.entity.CommitToPullRun;
 import com.box.l10n.mojito.entity.CommitToPushRun;
@@ -18,9 +19,9 @@ import com.box.l10n.mojito.service.pullrun.PullRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -108,7 +109,7 @@ public class CommitService {
       String commitName,
       String authorEmail,
       String authorName,
-      DateTime sourceCreationDate)
+      ZonedDateTime sourceCreationDate)
       throws SaveCommitMismatchedExistingDataException {
     Commit commit = new Commit();
 
@@ -129,9 +130,12 @@ public class CommitService {
       }
 
       // Remove milliseconds when comparing as the dates are not stored with sub-second precision.
-      DateTime existingCreationDateWithoutMs = commit.getSourceCreationDate().withMillisOfSecond(0);
-      DateTime sourceCreationDateWithoutMs = sourceCreationDate.withMillisOfSecond(0);
-      if (existingCreationDateWithoutMs.getMillis() != sourceCreationDateWithoutMs.getMillis()) {
+      ZonedDateTime existingCreationDateWithoutMs =
+          JSR310Migration.dateTimeWithMillisOfSeconds(commit.getSourceCreationDate(), 0);
+      ZonedDateTime sourceCreationDateWithoutMs =
+          JSR310Migration.dateTimeWithMillisOfSeconds(sourceCreationDate, 0);
+      if (JSR310Migration.getMillis(existingCreationDateWithoutMs)
+          != JSR310Migration.getMillis(sourceCreationDateWithoutMs)) {
         throw new SaveCommitMismatchedExistingDataException(
             "sourceCreationDate",
             commit.getSourceCreationDate().toString(),
@@ -143,6 +147,8 @@ public class CommitService {
       commit.setAuthorEmail(authorEmail);
       commit.setAuthorName(authorName);
       commit.setSourceCreationDate(sourceCreationDate);
+
+      System.out.printf("setSourceCreationDate: %s%n", commit.getSourceCreationDate());
 
       commit = commitRepository.save(commit);
     }

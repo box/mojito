@@ -5,6 +5,7 @@ import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.service.blobstorage.BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.google.common.base.Preconditions;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -103,10 +104,10 @@ public class DatabaseBlobStorage implements BlobStorage {
     int deletedCount;
     do {
       PageRequest pageable = PageRequest.of(0, 500);
-      List<Long> expired = mBlobRepository.findExpiredBlobIds(pageable);
+      List<Long> expired = mBlobRepository.findExpiredBlobIdsWithNow(ZonedDateTime.now(), pageable);
       if (!expired.isEmpty()) {
         deletedCount = mBlobRepository.deleteByIds(expired);
-        logger.debug("Number of Mbob deleted: {}", deletedCount);
+        logger.debug("Number of Mblob deleted: {}", deletedCount);
       } else {
         logger.debug("Nothing to delete");
         deletedCount = 0;

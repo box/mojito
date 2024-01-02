@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Entity that describes a Commit entry. This entity mirrors:
@@ -12,7 +12,7 @@ import org.joda.time.DateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CommitToPullRun {
   protected Long id;
-  protected DateTime createdDate;
+  protected ZonedDateTime createdDate;
 
   public Long getId() {
     return id;
@@ -22,11 +22,11 @@ public class CommitToPullRun {
     this.id = id;
   }
 
-  public DateTime getCreatedDate() {
+  public ZonedDateTime getCreatedDate() {
     return createdDate;
   }
 
-  public void setCreatedDate(DateTime createdDate) {
+  public void setCreatedDate(ZonedDateTime createdDate) {
     this.createdDate = createdDate;
   }
 }

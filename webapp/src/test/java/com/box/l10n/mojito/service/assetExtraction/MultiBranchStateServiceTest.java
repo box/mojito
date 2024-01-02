@@ -5,6 +5,7 @@ import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBra
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.localtm.merger.Branch;
 import com.box.l10n.mojito.localtm.merger.BranchData;
@@ -16,9 +17,10 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
-import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,16 +97,31 @@ public class MultiBranchStateServiceTest extends ServiceTestBase {
               expectedMultiBranchState.getBranches().stream()
                   .map(b -> b.withCreatedAt(roundDateTimeToSecond(b.getCreatedAt())))
                   .collect(ImmutableSet.toImmutableSet()));
+    } else {
+      expectedMultiBranchState =
+          expectedMultiBranchState.withBranchStateTextUnits(
+              expectedMultiBranchState.getBranchStateTextUnits().stream()
+                  .map(
+                      bstu ->
+                          bstu.withCreatedDate(
+                              bstu.getCreatedDate().truncatedTo(ChronoUnit.MICROS)))
+                  .collect(ImmutableList.toImmutableList()));
+
+      expectedMultiBranchState =
+          expectedMultiBranchState.withBranches(
+              expectedMultiBranchState.getBranches().stream()
+                  .map(b -> b.withCreatedAt(b.getCreatedAt().truncatedTo(ChronoUnit.MICROS)))
+                  .collect(ImmutableSet.toImmutableSet()));
     }
     return expectedMultiBranchState;
   }
 
-  DateTime roundDateTimeToSecond(DateTime dateTime) {
+  ZonedDateTime roundDateTimeToSecond(ZonedDateTime dateTime) {
 
-    if (dateTime.getMillisOfSecond() > 500) {
-      dateTime = dateTime.withMillisOfSecond(0).plusSeconds(1);
+    if (JSR310Migration.dateTimeGetMillisOfSecond(dateTime) > 500) {
+      dateTime = JSR310Migration.dateTimeWithMillisOfSeconds(dateTime, 0).plusSeconds(1);
     } else {
-      dateTime = dateTime.withMillisOfSecond(0);
+      dateTime = JSR310Migration.dateTimeWithMillisOfSeconds(dateTime, 0);
     }
 
     return dateTime;

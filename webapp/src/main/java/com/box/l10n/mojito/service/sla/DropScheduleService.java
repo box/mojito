@@ -1,11 +1,12 @@
 package com.box.l10n.mojito.service.sla;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.collect.Sets;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,20 +22,22 @@ public class DropScheduleService {
 
   @Autowired DateTimeUtils dateTimeUtils;
 
-  public DateTime getLastDropCreatedDate() {
-    DateTime now = dateTimeUtils.now(dropScheduleConfig.getTimezone());
-    DateTime lastDropDueDate = getLastDropDueDate(now);
+  public ZonedDateTime getLastDropCreatedDate() {
+    ZonedDateTime now = dateTimeUtils.now(dropScheduleConfig.getTimezone());
+    ZonedDateTime lastDropDueDate = getLastDropDueDate(now);
     return getDropCreatedDate(lastDropDueDate);
   }
 
-  DateTime getDropCreatedDate(DateTime dropDueDate) {
+  ZonedDateTime getDropCreatedDate(ZonedDateTime dropDueDate) {
 
-    DateTime dropCreatedDate = dropDueDate.withTime(dropScheduleConfig.getCreatedLocalTime());
+    ZonedDateTime dropCreatedDate =
+        JSR310Migration.dateTimeWithLocalTime(
+            dropDueDate, dropScheduleConfig.getCreatedLocalTime());
 
-    Integer dropDueDateDay = dropDueDate.getDayOfWeek();
+    Integer dropDueDateDay = JSR310Migration.dateTimeGetDayOfWeek(dropDueDate);
     Integer dropStartDateDay = getDueDayToStartDay().get(dropDueDateDay);
 
-    dropCreatedDate = dropCreatedDate.withDayOfWeek(dropStartDateDay);
+    dropCreatedDate = JSR310Migration.dateTimeWithDayOfWeek(dropCreatedDate, dropStartDateDay);
 
     if (dropStartDateDay > dropDueDateDay) {
       dropCreatedDate = dropCreatedDate.minusWeeks(1);
@@ -43,17 +46,19 @@ public class DropScheduleService {
     return dropCreatedDate;
   }
 
-  DateTime getLastDropDueDate(DateTime before) {
+  ZonedDateTime getLastDropDueDate(ZonedDateTime before) {
 
-    DateTime lastDropDueDate = null;
+    ZonedDateTime lastDropDueDate = null;
 
     HashSet<Integer> dropDueDaysSet = Sets.newHashSet(dropScheduleConfig.getDueDays());
 
     for (int daysToSubstract = 0; daysToSubstract <= 7; daysToSubstract++) {
-      DateTime candidate =
-          before.minusDays(daysToSubstract).withTime(dropScheduleConfig.getDueLocalTime());
+      ZonedDateTime candidate =
+          JSR310Migration.dateTimeWithLocalTime(
+              before.minusDays(daysToSubstract), dropScheduleConfig.getDueLocalTime());
 
-      if (dropDueDaysSet.contains(candidate.getDayOfWeek()) && !candidate.isAfter(before)) {
+      if (dropDueDaysSet.contains(candidate.getDayOfWeek().getValue())
+          && !candidate.isAfter(before)) {
         lastDropDueDate = candidate;
         break;
       }

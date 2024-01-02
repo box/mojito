@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.pullrun;
 
 import com.box.l10n.mojito.entity.PullRun;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -46,5 +46,5 @@ public interface PullRunRepository extends JpaRepository<PullRun, Long> {
   @Query(
       nativeQuery = true,
       value = "delete pr " + "from pull_run pr " + "where pr.created_date < :beforeDate ")
-  void deleteAllByCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
+  void deleteAllByCreatedDateBefore(@Param("beforeDate") ZonedDateTime beforeDate);
 }

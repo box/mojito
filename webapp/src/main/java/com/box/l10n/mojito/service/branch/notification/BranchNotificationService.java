@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch.notification;
 import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
@@ -19,12 +20,12 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -165,7 +166,7 @@ public class BranchNotificationService {
    * @param notifierId
    */
   void scheduleMissingScreenshotNotificationsForBranch(Branch branch, String notifierId) {
-    Date date = DateTime.now().plusMinutes(30).toDate();
+    Date date = JSR310Migration.dateTimeToDate(ZonedDateTime.now().plusMinutes(30));
 
     BranchNotificationMissingScreenshotsJobInput branchNotificationMissingScreenshotsJobInput =
         new BranchNotificationMissingScreenshotsJobInput();

@@ -4,7 +4,7 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.PushRunAsset;
 import com.box.l10n.mojito.entity.PushRunAssetTmTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnit;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,5 +45,5 @@ public interface PushRunAssetTmTextUnitRepository
               + "  limit :batchSize "
               + ") todelete on todelete.id = push_run_asset_tm_text_unit.id")
   int deleteAllByPushRunWithCreatedDateBefore(
-      @Param("beforeDate") Timestamp beforeDate, @Param("batchSize") int batchSize);
+      @Param("beforeDate") ZonedDateTime beforeDate, @Param("batchSize") int batchSize);
 }

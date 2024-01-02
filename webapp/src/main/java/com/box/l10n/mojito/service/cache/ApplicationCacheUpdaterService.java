@@ -5,10 +5,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import com.box.l10n.mojito.entity.ApplicationCache;
 import com.box.l10n.mojito.entity.ApplicationCacheType;
 import com.box.l10n.mojito.service.DBUtils;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -56,7 +56,7 @@ public class ApplicationCacheUpdaterService {
       Optional<ApplicationCache> existingEntry =
           applicationCacheRepository.findByApplicationCacheTypeAndKeyMD5(
               applicationCacheType, keyMD5);
-      DateTime currentSqlTimestamp = getCurrentSqlTimestamp();
+      ZonedDateTime currentSqlTimestamp = getCurrentSqlTimestampHSQL();
 
       ApplicationCache applicationCache;
 
@@ -104,7 +104,7 @@ public class ApplicationCacheUpdaterService {
           applicationCacheRepository.findByApplicationCacheTypeAndKeyMD5(
               applicationCacheType, keyMD5);
       ApplicationCache applicationCache;
-      DateTime currentSqlTimestamp = getCurrentSqlTimestamp();
+      ZonedDateTime currentSqlTimestamp = getCurrentSqlTimestampHSQL();
 
       if (existingEntry.isPresent()) {
         applicationCache = existingEntry.get();
@@ -118,20 +118,9 @@ public class ApplicationCacheUpdaterService {
     }
   }
 
-  private DateTime getCurrentSqlTimestamp() {
-    DateTime currentTimestamp;
-
-    try {
-      currentTimestamp =
-          new DateTime(
-              entityManager
-                  .createNativeQuery(
-                      "SELECT TOP 1 CURRENT_TIMESTAMP FROM INFORMATION_SCHEMA.TABLES")
-                  .getSingleResult());
-    } catch (Exception ex) {
-      logger.error("Could not retrieve current timestamp from the SQL DB", ex);
-      currentTimestamp = DateTime.now();
-    }
-    return currentTimestamp;
+  ZonedDateTime getCurrentSqlTimestampHSQL() {
+    // there used to be a HSQL specific SQL query, see git history but last I tried it, the code was
+    // not working. So just keeping the old fallback.
+    return ZonedDateTime.now();
   }
 }

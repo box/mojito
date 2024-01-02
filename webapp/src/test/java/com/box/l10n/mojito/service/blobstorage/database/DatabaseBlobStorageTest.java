@@ -7,7 +7,7 @@ import com.box.l10n.mojito.entity.MBlob;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.blobstorage.BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.BlobStorageTestShared;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,20 +77,22 @@ public class DatabaseBlobStorageTest extends ServiceTestBase implements BlobStor
   @Test
   public void testCleanup() {
 
-    DateTime now = DateTime.now();
-    MBlob notExperied = new MBlob();
-    notExperied.setCreatedDate(now);
-    notExperied.setExpireAfterSeconds(1000);
-    notExperied = mBlobRepository.save(notExperied);
+    ZonedDateTime now = ZonedDateTime.now();
+    MBlob notExpired = new MBlob();
+    notExpired.setCreatedDate(now);
+    notExpired.setExpireAfterSeconds(1000);
+    notExpired.setName("not-expired");
+    notExpired = mBlobRepository.save(notExpired);
 
-    MBlob experied = new MBlob();
-    experied.setCreatedDate(now.minusDays(1));
-    experied.setExpireAfterSeconds(1000);
-    experied = mBlobRepository.save(experied);
+    MBlob expired = new MBlob();
+    expired.setCreatedDate(now.minusDays(1));
+    expired.setExpireAfterSeconds(1000);
+    expired.setName("expired");
+    expired = mBlobRepository.save(expired);
 
     databaseBlobStorage.deleteExpired();
 
-    assertNull(mBlobRepository.findById(experied.getId()).orElse(null));
-    assertNotNull(mBlobRepository.findById(notExperied.getId()).orElse(null));
+    assertNull(mBlobRepository.findById(expired.getId()).orElse(null));
+    assertNotNull(mBlobRepository.findById(notExpired.getId()).orElse(null));
   }
 }

@@ -1,8 +1,9 @@
 package com.box.l10n.mojito.service.sla.email;
 
-import org.joda.time.Period;
+import com.box.l10n.mojito.JSR310Migration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.threeten.extra.PeriodDuration;
 
 /** @author jeanaurambault */
 @Configuration
@@ -18,7 +19,7 @@ public class SlaCheckerEmailConfig {
    *
    * <p>The config property is a value in milliseconds.
    */
-  Period periodBetweenEmail = new Period(1, 0, 0, 0);
+  PeriodDuration periodBetweenEmail = JSR310Migration.newPeriodCtorWithHMSM(1, 0, 0, 0);
 
   public String getFrom() {
     return from;
@@ -36,11 +37,11 @@ public class SlaCheckerEmailConfig {
     this.to = to;
   }
 
-  public Period getPeriodBetweenEmail() {
+  public PeriodDuration getPeriodBetweenEmail() {
     return periodBetweenEmail;
   }
 
-  public void setPeriodBetweenEmail(Period periodBetweenEmail) {
+  public void setPeriodBetweenEmail(PeriodDuration periodBetweenEmail) {
     this.periodBetweenEmail = periodBetweenEmail;
   }
 }

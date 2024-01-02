@@ -3,8 +3,8 @@ package com.box.l10n.mojito.rest.textunit;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import org.joda.time.DateTime;
 
 class TextUnitSearchBody {
   ArrayList<Long> repositoryIds;
@@ -22,8 +22,8 @@ class TextUnitSearchBody {
   UsedFilter usedFilter;
   StatusFilter statusFilter;
   Boolean doNotTranslateFilter;
-  DateTime tmTextUnitCreatedBefore;
-  DateTime tmTextUnitCreatedAfter;
+  ZonedDateTime tmTextUnitCreatedBefore;
+  ZonedDateTime tmTextUnitCreatedAfter;
   Long branchId;
   Integer limit = 10;
   Integer offset = 0;
@@ -148,19 +148,19 @@ class TextUnitSearchBody {
     this.doNotTranslateFilter = doNotTranslateFilter;
   }
 
-  public DateTime getTmTextUnitCreatedBefore() {
+  public ZonedDateTime getTmTextUnitCreatedBefore() {
     return tmTextUnitCreatedBefore;
   }
 
-  public void setTmTextUnitCreatedBefore(DateTime tmTextUnitCreatedBefore) {
+  public void setTmTextUnitCreatedBefore(ZonedDateTime tmTextUnitCreatedBefore) {
     this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
   }
 
-  public DateTime getTmTextUnitCreatedAfter() {
+  public ZonedDateTime getTmTextUnitCreatedAfter() {
     return tmTextUnitCreatedAfter;
   }
 
-  public void setTmTextUnitCreatedAfter(DateTime tmTextUnitCreatedAfter) {
+  public void setTmTextUnitCreatedAfter(ZonedDateTime tmTextUnitCreatedAfter) {
     this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
   }
 

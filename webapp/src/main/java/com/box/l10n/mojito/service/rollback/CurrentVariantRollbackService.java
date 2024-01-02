@@ -1,9 +1,11 @@
 package com.box.l10n.mojito.service.rollback;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant_;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.google.common.base.Preconditions;
+import java.time.ZonedDateTime;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -15,7 +17,6 @@ import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.AuditQuery;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class CurrentVariantRollbackService {
    * @param tmId ID of the TM the {@link TMTextUnitCurrentVariant}s to be rolled back should belong
    *     to
    */
-  public void rollbackCurrentVariantsFromTMToDate(DateTime rollbackDateTime, Long tmId) {
+  public void rollbackCurrentVariantsFromTMToDate(ZonedDateTime rollbackDateTime, Long tmId) {
     rollbackCurrentVariantsFromTMToDate(
         rollbackDateTime, tmId, new CurrentVariantRollbackParameters());
   }
@@ -58,7 +59,7 @@ public class CurrentVariantRollbackService {
    */
   @Transactional
   public void rollbackCurrentVariantsFromTMToDate(
-      DateTime rollbackDateTime, Long tmId, CurrentVariantRollbackParameters extraParameters) {
+      ZonedDateTime rollbackDateTime, Long tmId, CurrentVariantRollbackParameters extraParameters) {
 
     Preconditions.checkNotNull(extraParameters, "Extra parameters should not be null");
 
@@ -138,7 +139,7 @@ public class CurrentVariantRollbackService {
    * @param extraParameters Extra parameters to filter what to rollback
    */
   protected void addCurrentVariantsAsOfRollbackDate(
-      DateTime rollbackDateTime, Long tmId, CurrentVariantRollbackParameters extraParameters) {
+      ZonedDateTime rollbackDateTime, Long tmId, CurrentVariantRollbackParameters extraParameters) {
 
     logger.debug("Adding back TMTextUnitCurrentVariants as of {}", rollbackDateTime);
 
@@ -160,12 +161,13 @@ public class CurrentVariantRollbackService {
    * @return The insert audit query
    */
   protected AuditQuery buildInsertAuditQuery(
-      DateTime rollbackDateTime, Long tmId, CurrentVariantRollbackParameters extraParameters) {
+      ZonedDateTime rollbackDateTime, Long tmId, CurrentVariantRollbackParameters extraParameters) {
 
     logger.trace("Building the insert tmTextUnitCurrentVariants audit query");
 
     AuditReader auditReader = AuditReaderFactory.get(entityManager);
-    Number revNumberAtDate = auditReader.getRevisionNumberForDate(rollbackDateTime.toDate());
+    Number revNumberAtDate =
+        auditReader.getRevisionNumberForDate(JSR310Migration.dateTimeToDate(rollbackDateTime));
 
     AuditQuery auditQuery =
         auditReader

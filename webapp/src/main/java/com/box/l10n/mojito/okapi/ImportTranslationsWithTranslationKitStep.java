@@ -6,12 +6,12 @@ import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.service.translationkit.TranslationKitExportedImportedAndCurrentTUV;
 import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Objects;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.StartSubDocument;
 import net.sf.okapi.common.resource.TextContainer;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +116,7 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
       TMTextUnit tmTextUnit,
       TextContainer target,
       TMTextUnitVariant.Status status,
-      DateTime createdDate) {
+      ZonedDateTime createdDate) {
     TMTextUnitVariant importTextUnit =
         super.importTextUnit(tmTextUnit, target, status, createdDate);
     translationKitService.markTranslationKitTextUnitAsImported(translationKit, importTextUnit);

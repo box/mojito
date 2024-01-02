@@ -3,9 +3,9 @@ package com.box.l10n.mojito.rest.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import org.joda.time.DateTime;
 
 /**
  * Entity that describes a PushRun. This entity mirrors: com.box.l10n.mojito.entity.PushRunAsset
@@ -15,7 +15,7 @@ import org.joda.time.DateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PushRunAsset {
   protected Long id;
-  protected DateTime createdDate;
+  protected ZonedDateTime createdDate;
 
   @JsonBackReference private PushRun pushRun;
 

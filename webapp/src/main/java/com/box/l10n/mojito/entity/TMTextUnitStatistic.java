@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.entity;
 
+import java.time.ZonedDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -8,8 +9,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
 
 /** @author garion */
 @Entity
@@ -37,8 +36,7 @@ public class TMTextUnitStatistic extends AuditableEntity {
   private Double lastPeriodUsageCount = 0d;
 
   @Column(name = "last_seen_date")
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  private DateTime lastSeenDate;
+  private ZonedDateTime lastSeenDate;
 
   public TMTextUnit getTMTextUnit() {
     return tmTextUnit;
@@ -64,11 +62,11 @@ public class TMTextUnitStatistic extends AuditableEntity {
     this.lastPeriodUsageCount = lastPeriodUsageCount;
   }
 
-  public DateTime getLastSeenDate() {
+  public ZonedDateTime getLastSeenDate() {
     return lastSeenDate;
   }
 
-  public void setLastSeenDate(DateTime lastSeenDate) {
+  public void setLastSeenDate(ZonedDateTime lastSeenDate) {
     this.lastSeenDate = lastSeenDate;
   }
 }

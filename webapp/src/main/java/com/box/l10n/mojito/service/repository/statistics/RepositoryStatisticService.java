@@ -28,10 +28,10 @@ import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
 import com.google.common.collect.ImmutableList;
 import com.ibm.icu.text.PluralRules;
 import com.ibm.icu.util.ULocale;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.function.ToLongFunction;
 import javax.persistence.EntityManager;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,7 +120,7 @@ public class RepositoryStatisticService {
         newRepositoryStatistics.getOoslaTextUnitWordCount());
 
     // TODO(P1) This should be updated by spring but it's not, needs review
-    repositoryStatistic.setLastModifiedDate(DateTime.now());
+    repositoryStatistic.setLastModifiedDate(ZonedDateTime.now());
 
     repositoryStatisticRepository.save(repositoryStatistic);
 
@@ -462,7 +462,7 @@ public class RepositoryStatisticService {
   }
 
   TextUnitAndWordCount getUntranslatedTextUnitsCountBeforeCreatedDate(
-      Long repositoryId, DateTime createdBefore) {
+      Long repositoryId, ZonedDateTime createdBefore) {
     logger.debug(
         "Get untranslated text unit for repository id: {} and before date: {}",
         repositoryId,
@@ -481,7 +481,7 @@ public class RepositoryStatisticService {
       Long repositoryId, RepositoryStatistic repositoryStatistic) {
     if (computeOutOfSla) {
       logger.debug("Update repository statistic with out of SLA statistics");
-      DateTime lastDropCreatedDate = dropScheduleService.getLastDropCreatedDate();
+      ZonedDateTime lastDropCreatedDate = dropScheduleService.getLastDropCreatedDate();
       TextUnitAndWordCount countTextUnitAndWordCount =
           getUntranslatedTextUnitsCountBeforeCreatedDate(repositoryId, lastDropCreatedDate);
       repositoryStatistic.setOoslaTextUnitCount(countTextUnitAndWordCount.getTextUnitCount());

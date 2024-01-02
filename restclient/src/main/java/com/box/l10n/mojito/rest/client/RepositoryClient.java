@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.client;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
@@ -10,6 +11,7 @@ import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -223,7 +224,7 @@ public class RepositoryClient extends BaseClient {
       Boolean deleted,
       Boolean translated,
       boolean includeNullBranch,
-      DateTime createdBefore) {
+      ZonedDateTime createdBefore) {
     Map<String, String> filterParams = new HashMap<>();
 
     if (branchName != null) {
@@ -239,7 +240,7 @@ public class RepositoryClient extends BaseClient {
     }
 
     if (createdBefore != null) {
-      filterParams.put("createdBefore", String.valueOf(createdBefore.getMillis()));
+      filterParams.put("createdBefore", String.valueOf(JSR310Migration.getMillis(createdBefore)));
     }
 
     List<Branch> branches =

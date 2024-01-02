@@ -203,7 +203,13 @@ public class MultiBranchStateMerger {
                           return idx == -1 ? Integer.MAX_VALUE : idx;
                         })
                     .thenComparing(
-                        Branch::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                        // Comparing with instant. if applying default comparator the logic fails
+                        // when TZ are different, even if pointing to the same instant
+                        branch ->
+                            branch.getCreatedAt() == null
+                                ? null
+                                : branch.getCreatedAt().toInstant(),
+                        Comparator.nullsLast(Comparator.naturalOrder()))
                     .thenComparing(
                         Branch::getName, Comparator.nullsLast(Comparator.naturalOrder())))
             .collect(ImmutableSet.toImmutableSet());

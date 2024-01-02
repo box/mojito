@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.client;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
@@ -11,9 +12,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.joda.time.format.PeriodFormat;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,14 +66,17 @@ public class VirtualAssetPerformanceTest {
 
     logger.debug("virtual asset id: {}", virtualAsset.getId());
 
-    DateTime start = DateTime.now();
+    long start = System.currentTimeMillis();
     //        createSourceStrings(virtualAsset);
     //        importTranslations(repository, virtualAsset);
 
     pullSourceString(virtualAsset, repository);
 
     pullTranslations(virtualAsset, repository);
-    logger.debug("total: {}", PeriodFormat.getDefault().print(new Period(start, DateTime.now())));
+
+    long end = System.currentTimeMillis();
+
+    logger.debug("total: {}", JSR310Migration.toWordBasedDuration(start, end));
   }
 
   private void pullSourceString(VirtualAsset virtualAsset, Repository repository) {
@@ -89,8 +90,7 @@ public class VirtualAssetPerformanceTest {
                   virtualAssetClient.getLocalizedTextUnits(
                       virtualAsset.getId(), rl.getLocale().getId(), "REMOVE_UNTRANSLATED");
               long end = System.currentTimeMillis();
-              logger.debug(
-                  "file generation: {}", PeriodFormat.getDefault().print(new Period(start, end)));
+              logger.debug("file generation: {}", JSR310Migration.toWordBasedDuration(start, end));
 
               //                    ObjectMapper objectMapper = new ObjectMapper();
               //                    objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -113,8 +113,7 @@ public class VirtualAssetPerformanceTest {
                   virtualAssetClient.getLocalizedTextUnits(
                       virtualAsset.getId(), rl.getLocale().getId(), "REMOVE_UNTRANSLATED");
               long end = System.currentTimeMillis();
-              logger.debug(
-                  "file generation: {}", PeriodFormat.getDefault().print(new Period(start, end)));
+              logger.debug("file generation: {}", JSR310Migration.toWordBasedDuration(start, end));
 
               //                    ObjectMapper objectMapper = new ObjectMapper();
               //                    objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -184,7 +183,7 @@ public class VirtualAssetPerformanceTest {
   }
 
   String getElapsedTime(PollableTask pollableTask) {
-    Period period = new Period(pollableTask.getCreatedDate(), pollableTask.getFinishedDate());
-    return PeriodFormat.getDefault().print(period);
+    return JSR310Migration.toWordBasedDuration(
+        pollableTask.getCreatedDate(), pollableTask.getFinishedDate());
   }
 }

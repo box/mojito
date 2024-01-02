@@ -5,6 +5,7 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Entity;
@@ -16,8 +17,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -61,8 +60,7 @@ public class RepositoryStatistic extends AuditableEntity {
   private Long ooslaTextUnitWordCount = 0L;
 
   @JsonView(View.RepositorySummary.class)
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  private DateTime ooslaCreatedBefore;
+  private ZonedDateTime ooslaCreatedBefore;
 
   /** The number of text unit without comments */
   private Long uncommentedTextUnitCount = 0L;
@@ -186,11 +184,11 @@ public class RepositoryStatistic extends AuditableEntity {
     this.ooslaTextUnitWordCount = ooslaTextUnitWordCount;
   }
 
-  public DateTime getOoslaCreatedBefore() {
+  public ZonedDateTime getOoslaCreatedBefore() {
     return ooslaCreatedBefore;
   }
 
-  public void setOoslaCreatedBefore(DateTime ooslaCreatedBefore) {
+  public void setOoslaCreatedBefore(ZonedDateTime ooslaCreatedBefore) {
     this.ooslaCreatedBefore = ooslaCreatedBefore;
   }
 

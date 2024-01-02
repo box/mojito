@@ -28,10 +28,10 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import org.assertj.core.api.Assertions;
-import org.joda.time.DateTime;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1951,7 +1951,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
 
     logger.debug("Initial push");
     getL10nJCommander()
@@ -2025,7 +2025,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
     getL10nJCommander()
         .run(
             "commit-to-pull-run",
@@ -2106,7 +2106,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
 
     logger.debug("Initial push");
     getL10nJCommander()
@@ -2152,7 +2152,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
 
     getL10nJCommander()
         .run(
@@ -2220,7 +2220,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
     getL10nJCommander()
         .run(
             "commit-to-pull-run",
@@ -2290,7 +2290,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
     getL10nJCommander()
         .run(
             "commit-to-pull-run",
@@ -2357,7 +2357,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
 
     getL10nJCommander()
         .run(
@@ -2427,7 +2427,7 @@ public class PullCommandTest extends CLITestBase {
             "--author-name",
             "coder",
             "--creation-date",
-            DateTime.now().toString());
+            ZonedDateTime.now().toString());
     getL10nJCommander()
         .run(
             "commit-to-pull-run",

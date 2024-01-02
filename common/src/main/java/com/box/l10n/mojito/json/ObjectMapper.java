@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -21,20 +21,25 @@ import java.nio.file.Path;
 public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
 
   public ObjectMapper() {
-    JodaModule jodaModule = new JodaModule();
-    registerJodaModule();
+    registerJavaTimeModule();
     registerGuavaModule();
   }
 
   public ObjectMapper(ObjectMapper objectMapper) {
     super(objectMapper);
-    registerJodaModule();
+    registerJavaTimeModule();
     registerGuavaModule();
   }
 
-  private final void registerJodaModule() {
-    JodaModule jodaModule = new JodaModule();
-    registerModule(jodaModule);
+  private final void registerJavaTimeModule() {
+    JavaTimeModule javaTimeModule = new JavaTimeModule();
+    registerModule(javaTimeModule);
+
+    // To keep backward compatibility with the Joda output, disable write/reading nano seconds with
+    // Java time and ZonedDateTime
+    // also see {@link com.box.l10n.mojito.Application#mappingJackson2HttpMessageConverter}
+    disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+    disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
   }
 
   private final void registerGuavaModule() {

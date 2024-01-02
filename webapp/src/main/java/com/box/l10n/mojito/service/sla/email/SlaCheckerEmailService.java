@@ -6,11 +6,11 @@ import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.box.l10n.mojito.utils.ServerConfig;
 import com.ibm.icu.text.MessageFormat;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.mail.internet.MimeMessage;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +49,8 @@ public class SlaCheckerEmailService {
     sendEmail(incidentId, getOpenIncidentEmailContent(incidentId, ooslaRepositories));
   }
 
-  public boolean shouldResendEmail(DateTime previousEmailDateTime) {
-    DateTime now = dateTimeUtils.now();
+  public boolean shouldResendEmail(ZonedDateTime previousEmailDateTime) {
+    ZonedDateTime now = dateTimeUtils.now();
     return previousEmailDateTime.isBefore(now.minus(slaCheckerEmailConfig.getPeriodBetweenEmail()));
   }
 

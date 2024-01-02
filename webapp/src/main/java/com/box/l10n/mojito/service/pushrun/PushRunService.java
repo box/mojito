@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.pushrun;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.PushRunAsset;
@@ -7,17 +8,13 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.commit.CommitToPushRunRepository;
 import com.google.common.collect.Lists;
-import java.sql.Timestamp;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -115,10 +112,11 @@ public class PushRunService {
       pushRunAssetTmTextUnitRepository.deleteByPushRunAsset(pushRunAsset);
     }
 
-    Instant now = Instant.now();
+    ZonedDateTime createdTime = ZonedDateTime.now();
     PushRunAsset finalPushRunAsset = pushRunAsset;
     Lists.partition(textUnitIds, BATCH_SIZE)
-        .forEach(textUnitIdsBatch -> saveTextUnits(finalPushRunAsset, textUnitIdsBatch, now));
+        .forEach(
+            textUnitIdsBatch -> saveTextUnits(finalPushRunAsset, textUnitIdsBatch, createdTime));
   }
 
   /** Retrieves the list of TextUnits associated with a PushRun. */
@@ -126,14 +124,15 @@ public class PushRunService {
     return pushRunAssetTmTextUnitRepository.findByPushRun(pushRun, pageable);
   }
 
-  void saveTextUnits(PushRunAsset pushRunAsset, List<Long> textUnitIds, Instant now) {
-    String createdTime = Timestamp.valueOf(LocalDateTime.ofInstant(now, ZoneOffset.UTC)).toString();
+  void saveTextUnits(PushRunAsset pushRunAsset, List<Long> textUnitIds, ZonedDateTime createdTime) {
     String sql =
         "insert into push_run_asset_tm_text_unit(push_run_asset_id, tm_text_unit_id, created_date) values"
             + textUnitIds.stream()
                 .map(
                     tuId ->
-                        String.format("(%s, %s, '%s') ", pushRunAsset.getId(), tuId, createdTime))
+                        String.format(
+                            "(%s, %s, '%s') ",
+                            pushRunAsset.getId(), tuId, JSR310Migration.toRawSQL(createdTime)))
                 .collect(Collectors.joining(","));
 
     jdbcTemplate.update(sql);
@@ -147,21 +146,21 @@ public class PushRunService {
   }
 
   public void deleteAllPushEntitiesOlderThan(Duration retentionDuration) {
-    DateTime beforeDate = DateTime.now().minusSeconds((int) retentionDuration.getSeconds());
-    Timestamp sqlBeforeDate = new Timestamp(beforeDate.toDate().getTime());
+    ZonedDateTime beforeDate =
+        ZonedDateTime.now().minusSeconds((int) retentionDuration.getSeconds());
 
     int batchNumber = 1;
     int deleteCount;
     do {
       deleteCount =
           pushRunAssetTmTextUnitRepository.deleteAllByPushRunWithCreatedDateBefore(
-              sqlBeforeDate, DELETE_BATCH_SIZE);
+              beforeDate, DELETE_BATCH_SIZE);
       logger.debug(
           "Deleted {} pushRunAssetTmTextUnit rows in batch: {}", deleteCount, batchNumber++);
     } while (deleteCount == DELETE_BATCH_SIZE);
 
-    pushRunAssetRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
-    commitToPushRunRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
-    pushRunRepository.deleteAllByCreatedDateBefore(sqlBeforeDate);
+    pushRunAssetRepository.deleteAllByPushRunWithCreatedDateBefore(beforeDate);
+    commitToPushRunRepository.deleteAllByPushRunWithCreatedDateBefore(beforeDate);
+    pushRunRepository.deleteAllByCreatedDateBefore(beforeDate);
   }
 }

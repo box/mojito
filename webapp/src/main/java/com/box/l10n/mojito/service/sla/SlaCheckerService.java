@@ -6,9 +6,9 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.utils.DateTimeUtils;
+import java.time.ZonedDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +92,7 @@ public class SlaCheckerService {
   @Transactional
   void closeIncidents() {
     logger.debug("Close incidents (there should be only one)");
-    DateTime closedDate = dateTimeUtils.now();
+    ZonedDateTime closedDate = dateTimeUtils.now();
     List<SlaIncident> findByIsNullClosedDate = slaIncidentRepository.findByClosedDateIsNull();
     for (SlaIncident ooSLAIncident : findByIsNullClosedDate) {
       ooSLAIncident.setClosedDate(closedDate);

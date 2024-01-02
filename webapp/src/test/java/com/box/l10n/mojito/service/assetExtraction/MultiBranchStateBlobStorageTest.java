@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.assetExtraction;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.localtm.merger.Branch;
 import com.box.l10n.mojito.localtm.merger.BranchData;
 import com.box.l10n.mojito.localtm.merger.BranchStateTextUnit;
@@ -10,8 +11,11 @@ import com.box.l10n.mojito.localtm.merger.MultiBranchState;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Comparator;
 import java.util.Optional;
-import org.joda.time.DateTime;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
@@ -35,7 +39,11 @@ public class MultiBranchStateBlobStorageTest extends ServiceTestBase {
             assetExtractionId, version);
     Assertions.assertFalse(multiBranchStateForAssetExtractionId.isPresent());
 
-    Branch branchTest = Branch.builder().name("test").createdAt(new DateTime()).build();
+    Branch branchTest =
+        Branch.builder()
+            .name("test")
+            .createdAt(JSR310Migration.newDateTimeEmptyCtor().withNano(0))
+            .build();
     MultiBranchState multiBranchState =
         MultiBranchState.builder()
             .branches(ImmutableSet.of(branchTest))
@@ -57,7 +65,17 @@ public class MultiBranchStateBlobStorageTest extends ServiceTestBase {
     multiBranchStateForAssetExtractionId =
         multiBranchStateBlobStorage.getMultiBranchStateForAssetExtractionId(
             assetExtractionId, version);
+
+    // Must compare on instant here, else the order may be wrong because of
+    // the timezones.
+    RecursiveComparisonConfiguration recursiveComparisonConfiguration =
+        RecursiveComparisonConfiguration.builder()
+            .withComparatorForType(
+                Comparator.comparing(ChronoZonedDateTime::toInstant), ZonedDateTime.class)
+            .build();
+
     assertThat(multiBranchStateForAssetExtractionId.get())
-        .isEqualToComparingFieldByField(multiBranchState);
+        .usingRecursiveComparison(recursiveComparisonConfiguration)
+        .isEqualTo(multiBranchState);
   }
 }

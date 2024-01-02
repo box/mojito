@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
@@ -58,7 +59,6 @@ import net.sf.okapi.common.resource.TextUnit;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.proxy.HibernateProxy;
-import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -1009,7 +1009,7 @@ public class TMServiceTest extends ServiceTestBase {
             null,
             TMTextUnitVariant.Status.REVIEW_NEEDED,
             true,
-            new DateTime());
+            JSR310Migration.newDateTimeEmptyCtor());
 
     TMTextUnitVariant variant3 =
         tmService.addCurrentTMTextUnitVariant(

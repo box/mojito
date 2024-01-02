@@ -3,9 +3,8 @@ package com.box.l10n.mojito.service.pullrun;
 import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.commit.CommitToPullRunRepository;
-import java.sql.Timestamp;
 import java.time.Duration;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,21 +45,21 @@ public class PullRunService {
   }
 
   public void deleteAllPullEntitiesOlderThan(Duration retentionDuration) {
-    DateTime beforeDate = DateTime.now().minusSeconds((int) retentionDuration.getSeconds());
-    Timestamp sqlBeforeDate = new Timestamp(beforeDate.toDate().getTime());
+    ZonedDateTime beforeDate =
+        ZonedDateTime.now().minusSeconds((int) retentionDuration.getSeconds());
 
     int batchNumber = 1;
     int deleteCount;
     do {
       deleteCount =
           pullRunTextUnitVariantRepository.deleteAllByPullRunWithCreatedDateBefore(
-              sqlBeforeDate, DELETE_BATCH_SIZE);
+              beforeDate, DELETE_BATCH_SIZE);
       logger.debug(
           "Deleted {} pullRunTextUnitVariant rows in batch: {}", deleteCount, batchNumber++);
     } while (deleteCount == DELETE_BATCH_SIZE);
 
-    pullRunAssetRepository.deleteAllByPullRunWithCreatedDateBefore(sqlBeforeDate);
-    commitToPullRunRepository.deleteAllByPullRunWithCreatedDateBefore(sqlBeforeDate);
-    pullRunRepository.deleteAllByCreatedDateBefore(sqlBeforeDate);
+    pullRunAssetRepository.deleteAllByPullRunWithCreatedDateBefore(beforeDate);
+    commitToPullRunRepository.deleteAllByPullRunWithCreatedDateBefore(beforeDate);
+    pullRunRepository.deleteAllByCreatedDateBefore(beforeDate);
   }
 }

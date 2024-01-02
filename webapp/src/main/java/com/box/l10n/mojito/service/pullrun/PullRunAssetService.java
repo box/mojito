@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.pullrun;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PullRunAsset;
@@ -7,10 +8,8 @@ import com.box.l10n.mojito.entity.Repository;
 import com.google.common.collect.Lists;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -77,7 +76,7 @@ public class PullRunAssetService {
       Long localeId,
       List<Long> uniqueTmTextUnitVariantIds,
       Instant now) {
-    String createdTime = Timestamp.valueOf(LocalDateTime.ofInstant(now, ZoneOffset.UTC)).toString();
+    ZonedDateTime createdTime = ZonedDateTime.now();
     String sql =
         "insert into pull_run_text_unit_variant(pull_run_asset_id, locale_id, tm_text_unit_variant_id, created_date) values "
             + uniqueTmTextUnitVariantIds.stream()
@@ -85,7 +84,10 @@ public class PullRunAssetService {
                     tuvId ->
                         String.format(
                             "(%s, %s, %s, '%s') ",
-                            pullRunAsset.getId(), localeId, tuvId, createdTime))
+                            pullRunAsset.getId(),
+                            localeId,
+                            tuvId,
+                            JSR310Migration.toRawSQL(createdTime)))
                 .collect(Collectors.joining(","));
     jdbcTemplate.update(sql);
   }

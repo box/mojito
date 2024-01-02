@@ -4,6 +4,7 @@ import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
@@ -40,6 +41,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import java.time.ZonedDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +50,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -215,7 +216,7 @@ public class TextUnitBatchImporterService {
   @Transactional
   void importTextUnitsOfLocaleAndAsset(
       Locale locale, Asset asset, List<TextUnitForBatchMatcherImport> textUnitsToImport) {
-    DateTime importTime = new DateTime();
+    ZonedDateTime importTime = JSR310Migration.newDateTimeEmptyCtor();
     logger.debug(
         "Start import text units for asset: {} and locale: {}",
         asset.getPath(),

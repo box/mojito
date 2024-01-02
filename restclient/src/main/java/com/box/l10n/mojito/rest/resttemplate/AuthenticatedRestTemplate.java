@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.resttemplate;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.URI;
@@ -112,7 +113,6 @@ public class AuthenticatedRestTemplate {
         mappingJackson2HttpMessageConverter.setSupportedMediaTypes(
             Arrays.asList(MediaType.APPLICATION_JSON));
 
-        // This helps with joda deserialize of joda date time string
         logger.debug("Creating custom jackson2 objectmapper with serialization inclusion changes");
         Jackson2ObjectMapperFactoryBean jackson2ObjectMapperFactoryBean =
             new Jackson2ObjectMapperFactoryBean();
@@ -121,7 +121,12 @@ public class AuthenticatedRestTemplate {
 
         ObjectMapper objectMapper = jackson2ObjectMapperFactoryBean.getObject();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
+        // To keep backward compatibility with the Joda output, disable write/reading nano seconds
+        // with
+        // Java time and ZonedDateTime
+        // also see {@link com.box.l10n.mojito.json.ObjectMapper}
+        objectMapper.disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+        objectMapper.disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
         mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper);
       }
 

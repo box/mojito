@@ -2,16 +2,17 @@ package com.box.l10n.mojito.localtm.merger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
 public class AssetExtractorTextUnitsToMultiBranchStateConverterTest {
@@ -32,7 +33,10 @@ public class AssetExtractorTextUnitsToMultiBranchStateConverterTest {
             .collect(Collectors.toList());
 
     Branch branch1 =
-        Branch.builder().name("branch1").createdAt(new DateTime(2020, 7, 14, 0, 0)).build();
+        Branch.builder()
+            .name("branch1")
+            .createdAt(JSR310Migration.newDateTimeCtor(2020, 7, 14, 0, 0))
+            .build();
 
     AssetExtractorTextUnitsToMultiBranchStateConverter
         assetExtractorTextUnitsToMultiBranchStateConverter =
@@ -70,17 +74,21 @@ public class AssetExtractorTextUnitsToMultiBranchStateConverterTest {
     assetExtractorTextUnit.setPluralFormOther("name_other");
     assetExtractorTextUnit.setUsages(Sets.newHashSet("location1", "location2"));
 
-    DateTime createdDate = new DateTime(2020, 7, 15, 0, 0);
+    ZonedDateTime createdDate = JSR310Migration.newDateTimeCtor(2020, 7, 15, 0, 0);
 
     Branch branch =
-        Branch.builder().name("branch1").createdAt(new DateTime(2020, 7, 14, 0, 0)).build();
+        Branch.builder()
+            .name("branch1")
+            .createdAt(JSR310Migration.newDateTimeCtor(2020, 7, 14, 0, 0))
+            .build();
 
     BranchStateTextUnit branchStateTextUnit =
         assetExtractorTextUnitsToMultiBranchStateConverter.convertToBranchStateTextUnit(
             assetExtractorTextUnit, branch, createdDate);
 
     assertThat(branchStateTextUnit)
-        .isEqualToComparingFieldByField(
+        .usingRecursiveComparison()
+        .isEqualTo(
             BranchStateTextUnit.builder()
                 .name("name_one")
                 .source("source")

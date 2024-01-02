@@ -4,7 +4,7 @@ import com.box.l10n.mojito.rest.entity.Commit;
 import com.box.l10n.mojito.rest.entity.CommitBody;
 import com.box.l10n.mojito.rest.entity.CommitToPullRunBody;
 import com.box.l10n.mojito.rest.entity.CommitToPushRunBody;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 import org.springframework.stereotype.Component;
 
 /** @author garion */
@@ -24,7 +24,7 @@ public class CommitClient extends BaseClient {
       Long repositoryId,
       String authorName,
       String authorEmail,
-      DateTime sourceCreationDate) {
+      ZonedDateTime sourceCreationDate) {
     CommitBody commitBody = new CommitBody();
     commitBody.setCommitName(commitHash);
     commitBody.setRepositoryId(repositoryId);

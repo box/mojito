@@ -2,6 +2,7 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonView;
+import java.time.ZonedDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -9,8 +10,6 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
 
 /** @author jeanaurambault */
 @Entity
@@ -32,20 +31,16 @@ public class BranchNotification extends BaseEntity {
   private Branch branch;
 
   @Column(name = "new_msg_sent_at")
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  DateTime newMsgSentAt;
+  ZonedDateTime newMsgSentAt;
 
   @Column(name = "updated_msg_sent_at")
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  DateTime updatedMsgSentAt;
+  ZonedDateTime updatedMsgSentAt;
 
   @Column(name = "screenshot_missing_msg_sent_at")
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  DateTime screenshotMissingMsgSentAt;
+  ZonedDateTime screenshotMissingMsgSentAt;
 
   @Column(name = "translated_msg_sent_at")
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  DateTime translatedMsgSentAt;
+  ZonedDateTime translatedMsgSentAt;
 
   @Column(name = "content_md5")
   String contentMD5;
@@ -67,35 +62,35 @@ public class BranchNotification extends BaseEntity {
     this.branch = branch;
   }
 
-  public DateTime getNewMsgSentAt() {
+  public ZonedDateTime getNewMsgSentAt() {
     return newMsgSentAt;
   }
 
-  public void setNewMsgSentAt(DateTime newMsgSentAt) {
+  public void setNewMsgSentAt(ZonedDateTime newMsgSentAt) {
     this.newMsgSentAt = newMsgSentAt;
   }
 
-  public DateTime getUpdatedMsgSentAt() {
+  public ZonedDateTime getUpdatedMsgSentAt() {
     return updatedMsgSentAt;
   }
 
-  public void setUpdatedMsgSentAt(DateTime updatedMsgSentAt) {
+  public void setUpdatedMsgSentAt(ZonedDateTime updatedMsgSentAt) {
     this.updatedMsgSentAt = updatedMsgSentAt;
   }
 
-  public DateTime getScreenshotMissingMsgSentAt() {
+  public ZonedDateTime getScreenshotMissingMsgSentAt() {
     return screenshotMissingMsgSentAt;
   }
 
-  public void setScreenshotMissingMsgSentAt(DateTime screenshotMissingMsgSentAt) {
+  public void setScreenshotMissingMsgSentAt(ZonedDateTime screenshotMissingMsgSentAt) {
     this.screenshotMissingMsgSentAt = screenshotMissingMsgSentAt;
   }
 
-  public DateTime getTranslatedMsgSentAt() {
+  public ZonedDateTime getTranslatedMsgSentAt() {
     return translatedMsgSentAt;
   }
 
-  public void setTranslatedMsgSentAt(DateTime translatedMsgSentAt) {
+  public void setTranslatedMsgSentAt(ZonedDateTime translatedMsgSentAt) {
     this.translatedMsgSentAt = translatedMsgSentAt;
   }
 

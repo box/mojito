@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileFinder;
 import com.box.l10n.mojito.cli.filefinder.FileFinderException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,8 +37,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.fusesource.jansi.Ansi;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -350,10 +350,10 @@ public class CommandHelper {
    * @param condition
    * @return
    */
-  DateTime getLastWeekDateIfTrue(boolean condition) {
-    DateTime dateTime = null;
+  ZonedDateTime getLastWeekDateIfTrue(boolean condition) {
+    ZonedDateTime dateTime = null;
     if (condition) {
-      dateTime = DateTime.now(DateTimeZone.UTC).minusWeeks(1);
+      dateTime = JSR310Migration.dateTimeNowInUTC().minusWeeks(1);
     }
     return dateTime;
   }

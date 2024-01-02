@@ -5,6 +5,7 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import java.time.ZonedDateTime;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -17,8 +18,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -72,9 +71,8 @@ public class Drop extends AuditableEntity {
    * the status only in one place
    */
   @Column(name = "last_imported_date")
-  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
   @JsonView(View.DropSummary.class)
-  protected DateTime lastImportedDate;
+  protected ZonedDateTime lastImportedDate;
 
   /**
    * To mark a Drop as canceled so it can be hidden in a dashboard. This shouldn't prevent to
@@ -145,11 +143,11 @@ public class Drop extends AuditableEntity {
     this.dropExporterConfig = dropExporterConfig;
   }
 
-  public DateTime getLastImportedDate() {
+  public ZonedDateTime getLastImportedDate() {
     return lastImportedDate;
   }
 
-  public void setLastImportedDate(DateTime lastImportedDate) {
+  public void setLastImportedDate(ZonedDateTime lastImportedDate) {
     this.lastImportedDate = lastImportedDate;
   }
 

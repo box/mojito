@@ -3,9 +3,9 @@ package com.box.l10n.mojito.localtm.merger;
 import com.box.l10n.mojito.immutables.NoPrefixNoBuiltinContainer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableMap;
+import java.time.ZonedDateTime;
 import javax.annotation.Nullable;
 import org.immutables.value.Value;
-import org.joda.time.DateTime;
 
 @Value.Immutable
 @NoPrefixNoBuiltinContainer
@@ -22,7 +22,7 @@ public abstract class AbstractBranchStateTextUnit {
   public abstract String getMd5();
 
   @Nullable
-  public abstract DateTime getCreatedDate();
+  public abstract ZonedDateTime getCreatedDate();
 
   @Nullable
   public abstract String getName();

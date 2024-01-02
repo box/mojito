@@ -8,12 +8,12 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.service.branch.BranchRepository;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -114,13 +114,13 @@ public class BranchDeleteCommandTest extends CLITestBase {
 
     com.box.l10n.mojito.entity.Branch master =
         branchRepository.findByNameAndRepository("master", repository);
-    master.setCreatedDate(DateTime.now().minusDays(14));
+    master.setCreatedDate(ZonedDateTime.now().minusDays(14));
     branchRepository.save(master);
 
     checkBranches(
         "There should be only master that is older than a week",
         repository,
-        DateTime.now().minusDays(7),
+        ZonedDateTime.now().minusDays(7),
         null,
         "master");
 
@@ -163,7 +163,7 @@ public class BranchDeleteCommandTest extends CLITestBase {
   void checkBranches(
       String message,
       Repository repository,
-      DateTime createdBefore,
+      ZonedDateTime createdBefore,
       Boolean translated,
       String... branchNames) {
 

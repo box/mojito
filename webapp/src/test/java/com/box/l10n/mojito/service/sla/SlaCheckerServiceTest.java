@@ -9,16 +9,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.SlaIncident;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService;
 import com.box.l10n.mojito.utils.DateTimeUtils;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -159,7 +160,7 @@ public class SlaCheckerServiceTest {
     List<SlaIncident> incidentIn = Arrays.asList(mock(SlaIncident.class), mock(SlaIncident.class));
     List<SlaIncident> incidentOut = Arrays.asList(mock(SlaIncident.class), mock(SlaIncident.class));
 
-    DateTime now = new DateTime();
+    ZonedDateTime now = JSR310Migration.newDateTimeEmptyCtor();
     doReturn(now).when(dateTimeUtils).now();
 
     doReturn(incidentIn).when(slaIncidentRepository).findByClosedDateIsNull();
@@ -189,7 +190,7 @@ public class SlaCheckerServiceTest {
   }
 
   SlaIncident getSlaIncidentForTest() {
-    DateTime createDate = new DateTime();
+    ZonedDateTime createDate = JSR310Migration.newDateTimeEmptyCtor();
     SlaIncident openIncident = new SlaIncident();
     openIncident.setId(1212L);
     openIncident.setCreatedDate(createDate);

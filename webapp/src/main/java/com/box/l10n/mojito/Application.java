@@ -3,7 +3,11 @@ package com.box.l10n.mojito;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.xml.XmlParsingConfiguration;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -13,6 +17,7 @@ import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
+import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
@@ -31,7 +36,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       QuartzAutoConfiguration.class, // We integrated with Quartz before spring supported it
     })
 @EnableSpringConfigured
-@EnableJpaAuditing
+@EnableJpaAuditing(dateTimeProviderRef = "zonedDateTimeProvider")
 @EnableJpaRepositories
 @EnableScheduling
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
@@ -83,6 +88,13 @@ public class Application {
     Jackson2ObjectMapperFactoryBean jomfb = new Jackson2ObjectMapperFactoryBean();
     jomfb.setAutoDetectFields(false);
     jomfb.setIndentOutput(shouldIndentJacksonOutput);
+
+    // To keep backward compatibility with the Joda output, disable write/reading nano seconds with
+    // Java time and ZonedDateTime
+    // also see {@link com.box.l10n.mojito.json.ObjectMapper}
+    jomfb.setFeaturesToDisable(
+        SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS,
+        DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
     jomfb.afterPropertiesSet();
 
     mjhmc.setObjectMapper(jomfb.getObject());
@@ -114,5 +126,14 @@ public class Application {
     template.setThrowLastExceptionOnExhausted(true);
 
     return template;
+  }
+
+  /**
+   * Default is {@link org.springframework.data.auditing.CurrentDateTimeProvider} but does not work
+   * with ZonedDateTime
+   */
+  @Bean(name = "zonedDateTimeProvider")
+  public DateTimeProvider dateTimeProvider() {
+    return () -> Optional.of(ZonedDateTime.now());
   }
 }

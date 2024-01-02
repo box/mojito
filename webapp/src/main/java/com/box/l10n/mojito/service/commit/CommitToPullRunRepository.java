@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.commit;
 
 import com.box.l10n.mojito.entity.CommitToPullRun;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,5 +24,5 @@ public interface CommitToPullRunRepository extends JpaRepository<CommitToPullRun
               + "from pull_run pr "
               + "join commit_to_pull_run ctpr on ctpr.pull_run_id = pr.id "
               + "where pr.created_date < :beforeDate ")
-  void deleteAllByPullRunWithCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
+  void deleteAllByPullRunWithCreatedDateBefore(@Param("beforeDate") ZonedDateTime beforeDate);
 }

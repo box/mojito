@@ -24,6 +24,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import java.io.File;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.joda.time.DateTime;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -459,7 +459,7 @@ public class PushCommandTest extends CLITestBase {
     String commitHash = "ABC123";
     Commit commit =
         commitService.getOrCreateCommit(
-            repository, commitHash, "authorEmail", "authorName", DateTime.now());
+            repository, commitHash, "authorEmail", "authorName", ZonedDateTime.now());
     assertNull(
         commitRepository
             .findById(commit.getId())

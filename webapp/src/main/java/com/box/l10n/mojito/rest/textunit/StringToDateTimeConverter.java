@@ -1,23 +1,24 @@
 package com.box.l10n.mojito.rest.textunit;
 
-import org.joda.time.DateTime;
+import com.box.l10n.mojito.JSR310Migration;
+import java.time.ZonedDateTime;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 /**
- * Converts a {@link String} into {@link DateTime}. The string can either be a number of
+ * Converts a {@link String} into {@link ZonedDateTime}. The string can either be a number of
  * milliseconds from 1970-01-01T00:00:00Z or any format recognized by {@link
- * DateTime#DateTime(java.lang.Object) }
+ * ZonedDateTime#ZonedDateTime(java.lang.Object) }
  *
  * @author jeanaurambault
  */
 @Component
-public class StringToDateTimeConverter implements Converter<String, DateTime> {
+public class StringToDateTimeConverter implements Converter<String, ZonedDateTime> {
 
   @Override
-  public DateTime convert(String source) {
+  public ZonedDateTime convert(String source) {
 
-    DateTime converted = null;
+    ZonedDateTime converted = null;
 
     if (source != null) {
       Object instant;
@@ -27,7 +28,7 @@ public class StringToDateTimeConverter implements Converter<String, DateTime> {
       } catch (NumberFormatException nfe) {
         instant = source;
       }
-      converted = new DateTime(instant);
+      converted = JSR310Migration.newDateTimeCtorWithLongAndString(instant);
     }
 
     return converted;

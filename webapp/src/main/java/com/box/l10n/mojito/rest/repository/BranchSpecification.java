@@ -6,13 +6,13 @@ import com.box.l10n.mojito.entity.BranchStatistic_;
 import com.box.l10n.mojito.entity.Branch_;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.specification.SingleParamSpecification;
+import java.time.ZonedDateTime;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.joda.time.DateTime;
 
 /** @author jeanaurambault */
 public class BranchSpecification {
@@ -47,7 +47,7 @@ public class BranchSpecification {
     };
   }
 
-  public static SingleParamSpecification<Branch> createdBefore(final DateTime createdBefore) {
+  public static SingleParamSpecification<Branch> createdBefore(final ZonedDateTime createdBefore) {
     return new SingleParamSpecification<Branch>(createdBefore) {
       @Override
       public Predicate toPredicate(

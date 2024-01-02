@@ -10,9 +10,9 @@ import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -67,7 +67,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -88,7 +88,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime creationTime = DateTime.now();
+    ZonedDateTime creationTime = ZonedDateTime.now();
     Commit commit1 =
         commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, creationTime);
@@ -107,9 +107,9 @@ public class CommitServiceTest extends ServiceTestBase {
     String authorEmail = "authorEmail";
     String authorName = "authorName";
     commitService.getOrCreateCommit(
-        repository, commitName, authorEmail, authorName, DateTime.now());
+        repository, commitName, authorEmail, authorName, ZonedDateTime.now());
     commitService.getOrCreateCommit(
-        repository, commitName, authorEmail, authorName, DateTime.now().plusHours(3));
+        repository, commitName, authorEmail, authorName, ZonedDateTime.now().plusHours(3));
   }
 
   @Test
@@ -119,8 +119,8 @@ public class CommitServiceTest extends ServiceTestBase {
     Repository repositoryB =
         repositoryService.createRepository(testIdWatcher.getEntityName("repository") + 'B');
 
-    commitService.getOrCreateCommit(repositoryA, "n1", "ae1", "an1", DateTime.now());
-    commitService.getOrCreateCommit(repositoryB, "n1", "ae2", "an2", DateTime.now());
+    commitService.getOrCreateCommit(repositoryA, "n1", "ae1", "an1", ZonedDateTime.now());
+    commitService.getOrCreateCommit(repositoryB, "n1", "ae2", "an2", ZonedDateTime.now());
   }
 
   @Test
@@ -131,7 +131,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -163,7 +163,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitNameB = "commitNameB";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommitA =
         commitService.getOrCreateCommit(
@@ -208,7 +208,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitNameB = "commitNameB";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommitA =
         commitService.getOrCreateCommit(
@@ -252,7 +252,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -284,7 +284,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitNameB = "commitNameB";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommitA =
         commitService.getOrCreateCommit(
@@ -329,7 +329,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitNameB = "commitNameB";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommitA =
         commitService.getOrCreateCommit(
@@ -373,7 +373,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -399,7 +399,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -426,7 +426,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(
@@ -452,7 +452,7 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime sourceCreationTime = DateTime.now();
+    ZonedDateTime sourceCreationTime = ZonedDateTime.now();
 
     Commit createdCommit =
         commitService.getOrCreateCommit(

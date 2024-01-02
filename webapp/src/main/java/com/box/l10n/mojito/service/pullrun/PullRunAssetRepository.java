@@ -3,7 +3,7 @@ package com.box.l10n.mojito.service.pullrun;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PullRunAsset;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,5 +32,5 @@ public interface PullRunAssetRepository extends JpaRepository<PullRunAsset, Long
               + "from pull_run pr "
               + "join pull_run_asset pra on pra.pull_run_id = pr.id "
               + "where pr.created_date < :beforeDate ")
-  void deleteAllByPullRunWithCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
+  void deleteAllByPullRunWithCreatedDateBefore(@Param("beforeDate") ZonedDateTime beforeDate);
 }

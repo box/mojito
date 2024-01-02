@@ -18,13 +18,13 @@ import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -501,9 +501,9 @@ public class TextUnitSearcherTest extends ServiceTestBase {
   @Test
   public void testCreatedDate() throws Exception {
 
-    DateTime now = DateTime.now();
-    DateTime secondsBefore = now.minusSeconds(2);
-    DateTime secondsAfter = now.plusSeconds(2);
+    ZonedDateTime now = ZonedDateTime.now();
+    ZonedDateTime secondsBefore = now.minusSeconds(2);
+    ZonedDateTime secondsAfter = now.plusSeconds(2);
 
     TMTestData tmTestData = new TMTestData(testIdWatcher);
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();

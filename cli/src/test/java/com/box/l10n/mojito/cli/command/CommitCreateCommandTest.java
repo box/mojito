@@ -2,18 +2,19 @@ package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.Commit;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.commit.CommitService;
 import com.google.common.collect.Streams;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.joda.time.DateTime;
 import org.junit.Assume;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class CommitCreateCommandTest extends CLITestBase {
     String commitHash = "ABC123";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime creationDate = DateTime.now();
+    ZonedDateTime creationDate = ZonedDateTime.now();
 
     L10nJCommander l10nJCommander = getL10nJCommander();
     l10nJCommander.run(
@@ -65,9 +66,10 @@ public class CommitCreateCommandTest extends CLITestBase {
     assertEquals(commitHash, createdCommit.getName());
     assertEquals(authorEmail, createdCommit.getAuthorEmail());
     assertEquals(authorName, createdCommit.getAuthorName());
+    // That test seems brittle because of different rounding / truncating?
     assertEquals(
-        creationDate.withMillisOfSecond(0).getMillis(),
-        createdCommit.getSourceCreationDate().withMillisOfSecond(0).getMillis());
+        JSR310Migration.dateTimeWith0MillisAsMillis(creationDate),
+        JSR310Migration.dateTimeWith0MillisAsMillis(createdCommit.getSourceCreationDate()));
   }
 
   @Test
@@ -77,7 +79,7 @@ public class CommitCreateCommandTest extends CLITestBase {
     String commitHash = "ABC456";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    DateTime creationDate = DateTime.now();
+    ZonedDateTime creationDate = ZonedDateTime.now();
 
     L10nJCommander l10nJCommanderFirstRun = getL10nJCommander();
     l10nJCommanderFirstRun.run(
@@ -128,8 +130,8 @@ public class CommitCreateCommandTest extends CLITestBase {
     assertEquals(authorEmail, createdCommit.getAuthorEmail());
     assertEquals(authorName, createdCommit.getAuthorName());
     assertEquals(
-        creationDate.withMillisOfSecond(0).getMillis(),
-        createdCommit.getSourceCreationDate().withMillisOfSecond(0).getMillis());
+        JSR310Migration.dateTimeWith0MillisAsMillis(creationDate),
+        JSR310Migration.dateTimeWith0MillisAsMillis(createdCommit.getSourceCreationDate()));
   }
 
   @Test
@@ -153,7 +155,7 @@ public class CommitCreateCommandTest extends CLITestBase {
     assertEquals("Jean Aurambault", commit.getAuthorName());
     assertEquals("aurambaj@users.noreply.github.com", commit.getAuthorEmail());
     assertEquals(
-        DateTime.parse("2022-09-20T10:55:39.000-07:00").toInstant(),
+        ZonedDateTime.parse("2022-09-20T10:55:39.000-07:00").toInstant(),
         commit.getSourceCreationDate().toInstant());
   }
 

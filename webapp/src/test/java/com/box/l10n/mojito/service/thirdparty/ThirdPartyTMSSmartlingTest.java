@@ -68,6 +68,7 @@ import com.google.common.primitives.Ints;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,7 +78,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.xml.parsers.ParserConfigurationException;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1228,7 +1228,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     }
 
     for (int i = 0; i < textUnits; i++) {
-      DateTime now = DateTime.now();
+      ZonedDateTime now = ZonedDateTime.now();
       String name = "plural_message" + i;
       String content = "Plural Message Test #" + i;
       String comment = "Plural Comment" + i;
@@ -1355,7 +1355,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     int textUnits = 3;
 
     for (int i = 0; i < textUnits; i++) {
-      DateTime now = DateTime.now();
+      ZonedDateTime now = ZonedDateTime.now();
       String name = "plural_message" + i;
       String content = "Plural Message Test #" + i;
       String comment = "Plural Comment" + i;
@@ -1502,7 +1502,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     Map<Integer, Integer> pluralSizes = ImmutableMap.of(0, 3, 1, 3, 2, 3, 3, 3, 4, 2);
 
     for (int i = 0; i < pluralUnits; i++) {
-      DateTime now = DateTime.now();
+      ZonedDateTime now = ZonedDateTime.now();
       String name = "plural_message" + i;
       String content = "Plural Message Test #" + i;
       String comment = "Plural Comment" + i;

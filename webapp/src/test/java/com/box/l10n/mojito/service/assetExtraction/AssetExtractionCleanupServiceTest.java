@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.assetExtraction;
 
 import static org.junit.Assert.assertEquals;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
@@ -16,7 +17,6 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.Arrays;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +111,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
     Asset asset = createOrUpdateAssetAndWaitUntilProcessingEnds(repository, assetPath, 0, null);
     PollableTask pollableTask = new PollableTask();
     pollableTask.setName("fortest");
-    pollableTask.setFinishedDate(new DateTime());
+    pollableTask.setFinishedDate(JSR310Migration.newDateTimeEmptyCtor());
     pollableTaskRepository.save(pollableTask);
     AssetExtraction createAssetExtraction =
         assetExtractionService.createAssetExtraction(asset, pollableTask);

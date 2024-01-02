@@ -5,7 +5,7 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 /**
  * Result of {@link TMService#addTMTextUnitCurrentVariantWithResult(java.lang.Long, java.lang.Long,
  * java.lang.String, java.lang.String, com.box.l10n.mojito.entity.TMTextUnitVariant.Status, boolean,
- * org.joda.time.DateTime) }
+ * java.time.ZonedDateTime) }
  *
  * @author jeanaurambault
  */

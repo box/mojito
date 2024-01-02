@@ -24,8 +24,8 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
+import java.time.ZonedDateTime;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -236,7 +236,7 @@ public class RepositoryWS {
       @RequestParam(value = "name", required = false) String branchName,
       @RequestParam(value = "deleted", required = false) Boolean deleted,
       @RequestParam(value = "translated", required = false) Boolean translated,
-      @RequestParam(value = "createdBefore", required = false) DateTime createdBefore)
+      @RequestParam(value = "createdBefore", required = false) ZonedDateTime createdBefore)
       throws RepositoryWithIdNotFoundException {
     ResponseEntity<Repository> result;
     Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
