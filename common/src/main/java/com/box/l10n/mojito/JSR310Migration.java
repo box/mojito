@@ -3,6 +3,7 @@ package com.box.l10n.mojito;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
@@ -36,18 +37,25 @@ public class JSR310Migration {
   }
 
   public static ZonedDateTime newDateTimeCtorWithLongAndString(Object instant) {
-
+    ZonedDateTime zonedDateTime;
     if (instant instanceof Long) {
-      return newDateTimeCtorWithEpochMilli((long) instant);
+      zonedDateTime = newDateTimeCtorWithEpochMilli((long) instant);
     } else if (instant instanceof String) {
+      String instantAsStr = (String) instant;
       try {
-        return ZonedDateTime.parse((String) instant);
+        zonedDateTime = ZonedDateTime.parse(instantAsStr);
       } catch (DateTimeParseException dateTimeParseException) {
-        return LocalDateTime.parse((String) instant).atZone(ZoneId.systemDefault());
+        try {
+          zonedDateTime = LocalDateTime.parse(instantAsStr).atZone(ZoneId.systemDefault());
+        } catch (DateTimeParseException dateTimeParseException2) {
+          zonedDateTime = LocalDate.parse(instantAsStr).atStartOfDay(ZoneId.systemDefault());
+        }
       }
     } else {
       throw new IllegalStateException();
     }
+
+    return zonedDateTime;
   }
 
   public static ZonedDateTime newDateTimeCtorWithEpochMilli(long value) {

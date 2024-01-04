@@ -173,6 +173,12 @@ public class JSR310MigrationTest {
                 .toInstant()
                 .toEpochMilli());
 
+    Assertions.assertThat(newDateTimeCtorWithLongAndStringOld("2018-05-09").toInstant().getMillis())
+        .isEqualTo(
+            JSR310Migration.newDateTimeCtorWithLongAndString("2018-05-09")
+                .toInstant()
+                .toEpochMilli());
+
     Assert.assertThrows(
         IllegalStateException.class,
         () -> JSR310Migration.newDateTimeCtorWithLongAndString(new Date()));

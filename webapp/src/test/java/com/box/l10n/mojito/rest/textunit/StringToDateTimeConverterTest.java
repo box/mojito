@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.test.JSR310MigrationForTesting;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -89,6 +90,16 @@ public class StringToDateTimeConverterTest {
     StringToDateTimeConverter instance = new StringToDateTimeConverter();
     ZonedDateTime expResult =
         JSR310Migration.newDateTimeCtorWithISO8601Str("2018-05-10T00:34:55.000Z");
+    ZonedDateTime result = instance.convert(source);
+    JSR310MigrationForTesting.junitAssertEquals(expResult, result);
+  }
+
+  @Test
+  public void testConvertDateOnly() {
+    String source = "2018-05-09";
+    StringToDateTimeConverter instance = new StringToDateTimeConverter();
+    ZonedDateTime expResult =
+        LocalDateTime.parse("2018-05-09T00:00:00").atZone(ZoneId.systemDefault());
     ZonedDateTime result = instance.convert(source);
     JSR310MigrationForTesting.junitAssertEquals(expResult, result);
   }
