@@ -9,6 +9,8 @@ public class RepositoryLocaleStatistic {
     private Locale locale;
     private Long forTranslationCount = 0L;
 
+    private Long forTranslationWordCount = 0L;
+
     public Locale getLocale() {
         return locale;
     }
@@ -23,6 +25,14 @@ public class RepositoryLocaleStatistic {
 
     public void setForTranslationCount(Long forTranslationCount) {
         this.forTranslationCount = forTranslationCount;
+    }
+
+    public Long getForTranslationWordCount() {
+        return forTranslationWordCount;
+    }
+
+    public void setForTranslationWordCount(Long forTranslationWordCount) {
+        this.forTranslationWordCount = forTranslationWordCount;
     }
 
 }
