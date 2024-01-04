@@ -82,6 +82,27 @@ public class DropExportCommandTest extends CLITestBase {
     }
 
     @Test
+    public void exportZeroWords() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        // there should be a single string for translation, but with 0 words in it
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+
+        Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
+
+        getL10nJCommander().run("drop-export", "-r", repository.getName());
+
+        Page<Drop> findAllAfter = dropClient.getDrops(repository.getId(), null, null, null);
+
+        // drop export command should not trigger an export when there are 0 words for translation
+        assertEquals("A Drop should not have been added", findAllBefore.getTotalElements(), findAllAfter.getTotalElements());
+    }
+
+    @Test
     public void exportSelectFullyTranslatedLocales() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
