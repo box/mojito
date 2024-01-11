@@ -89,13 +89,24 @@ public class ExtractionDiffService {
                 assetExtractionDiff ->
                     ExtractionDiffStatistics.builder()
                         .added(assetExtractionDiff.getAddedTextunits().size())
+                        .addedStrings(
+                            assetExtractionDiff.getAddedTextunits().stream()
+                                .map(AssetExtractorTextUnit::getSource)
+                                .collect(Collectors.toList()))
                         .removed(assetExtractionDiff.getRemovedTextunits().size())
+                        .removedStrings(
+                            assetExtractionDiff.getRemovedTextunits().stream()
+                                .map(AssetExtractorTextUnit::getSource)
+                                .collect(Collectors.toList()))
                         .build())
             .reduce(
                 extractionDiffStatistics,
                 (c1, c2) ->
                     c1.withAdded(c1.getAdded() + c2.getAdded())
-                        .withRemoved(c1.getRemoved() + c2.getRemoved()));
+                        .withRemoved(c1.getRemoved() + c2.getRemoved())
+                        .withAddedStrings(joinLists(c1.getAddedStrings(), c2.getAddedStrings()))
+                        .withRemovedStrings(
+                            joinLists(c1.getRemovedStrings(), c2.getRemovedStrings())));
 
     return extractionDiffStatistics;
   }
@@ -245,5 +256,16 @@ public class ExtractionDiffService {
               extractionPaths.getExtractionName());
       throw new MissingExtractionDirectoryExcpetion(msg);
     }
+  }
+
+  protected <T> List<T> joinLists(List<T> list1, List<T> list2) {
+    List<T> joinedList = new ArrayList<>();
+    if (list1 != null && list1.size() > 0) {
+      joinedList.addAll(list1);
+    }
+    if (list2 != null && list2.size() > 0) {
+      joinedList.addAll(list2);
+    }
+    return joinedList;
   }
 }

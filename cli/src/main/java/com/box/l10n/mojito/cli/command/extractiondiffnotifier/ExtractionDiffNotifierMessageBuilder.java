@@ -1,16 +1,20 @@
 package com.box.l10n.mojito.cli.command.extractiondiffnotifier;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
+
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.thirdpartynotification.Icons;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.ibm.icu.text.MessageFormat;
+import io.jsonwebtoken.lang.Collections;
+import java.util.List;
 
 public class ExtractionDiffNotifierMessageBuilder {
 
   public static final String BASE_MESSAGE_TEMPLATE =
-      "{icon} {removedCount, plural, one{# string removed} other{# strings removed}} and {addedCount, plural, one{# string added} other{# strings added}} (from {totalBase} to {totalCurrent})";
+      "{icon} {removedCount, plural, one{# string removed} other{# strings removed}} and {addedCount, plural, one{# string added} other{# strings added}} (from {totalBase} to {totalCurrent}){removedStrings}{addedStrings}";
   public static final MessageFormat BASE_MESSAGE_MESSAGE_FORMAT =
       new MessageFormat(BASE_MESSAGE_TEMPLATE);
 
@@ -45,11 +49,19 @@ public class ExtractionDiffNotifierMessageBuilder {
 
   private ImmutableMap<String, Object> getBaseMessageMap(
       ExtractionDiffStatistics extractionDiffStatistics) {
+    String addedStrings =
+        getStringsListAsFormattedString(
+            extractionDiffStatistics.getAddedStrings(), "Strings added:");
+    String removedStrings =
+        getStringsListAsFormattedString(
+            extractionDiffStatistics.getRemovedStrings(), "Strings removed:");
     ImmutableMap<String, Object> messageParamMap =
         ImmutableMap.<String, Object>builder()
             .put("icon", getIcon(extractionDiffStatistics).toString())
             .put("addedCount", extractionDiffStatistics.getAdded())
+            .put("removedStrings", removedStrings)
             .put("removedCount", extractionDiffStatistics.getRemoved())
+            .put("addedStrings", addedStrings)
             .put("totalBase", extractionDiffStatistics.getBase())
             .put("totalCurrent", extractionDiffStatistics.getCurrent())
             .build();
@@ -89,5 +101,16 @@ public class ExtractionDiffNotifierMessageBuilder {
       messageSeverityLevel = MessageSeverityLevel.ERROR;
     }
     return messageSeverityLevel;
+  }
+
+  public static String getStringsListAsFormattedString(List<String> list, String header) {
+    return Collections.isEmpty(list)
+        ? ""
+        : System.lineSeparator()
+            + System.lineSeparator()
+            + header
+            + System.lineSeparator()
+            + BULLET_POINT
+            + String.join(System.lineSeparator() + BULLET_POINT, list);
   }
 }

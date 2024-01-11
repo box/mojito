@@ -8,6 +8,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.github.GithubClient;
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 
 public class ExtractionDiffNotifierGithub implements ExtractionDiffNotifier {
@@ -39,6 +40,12 @@ public class ExtractionDiffNotifierGithub implements ExtractionDiffNotifier {
 
   @Override
   public String sendDiffStatistics(ExtractionDiffStatistics extractionDiffStatistics) {
+
+    // Removing added/removed strings from github notification
+    extractionDiffStatistics =
+        extractionDiffStatistics
+            .withAddedStrings(new ArrayList<>())
+            .withRemovedStrings(new ArrayList<>());
 
     String message = extractionDiffNotifierMessageBuilder.getMessage(extractionDiffStatistics);
     githubClient.addCommentToPR(repository, prNumber, message);

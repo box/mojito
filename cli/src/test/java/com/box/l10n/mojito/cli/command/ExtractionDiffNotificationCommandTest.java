@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifierMessageBuilder.getStringsListAsFormattedString;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,6 +21,7 @@ import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.box.l10n.mojito.slack.request.Message;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -147,21 +149,37 @@ public class ExtractionDiffNotificationCommandTest extends CLITestBase {
         "--console-message-template",
         "Console -- {baseMessage}");
 
+    String stringsRemoved =
+        getStringsListAsFormattedString(
+            List.of("1 hour", "1 month", "1 day", "1 hour", "1 month"), "Strings removed:");
+    String stringsAdded =
+        getStringsListAsFormattedString(List.of("1 hour update", "1 day update"), "Strings added:");
+
     verify(mockDifferentialRevision, times(1))
         .addComment(
             "{objectId}",
-            "⚠️ 5 strings removed and 2 strings added (from 10 to 7) in diff: ${DIFF_ID}. Check [[https://build.org/${BUILD_NUMBER}|build]] for extraction details.");
+            "⚠️ 5 strings removed and 2 strings added (from 10 to 7)"
+                + stringsRemoved
+                + stringsAdded
+                + " in diff: ${DIFF_ID}. Check [[https://build.org/${BUILD_NUMBER}|build]] for extraction details.");
     assertTrue(
         outputCapture
             .toString()
-            .contains("Console -- ⚠️ 5 strings removed and 2 strings added (from 10 to 7)"));
+            .contains(
+                "Console -- ⚠️ 5 strings removed and 2 strings added (from 10 to 7)"
+                    + stringsRemoved
+                    + stringsAdded));
     checkExpectedGeneratedResources();
 
     ArgumentCaptor<Message> slackMessageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
     verify(mockSlackClient).sendInstantMessage(slackMessageArgumentCaptor.capture());
     Assertions.assertThat(slackMessageArgumentCaptor.getValue().getAttachments().get(0).getText())
-        .isEqualTo("⚠️ 5 strings removed and 2 strings added (from 10 to 7)");
+        .isEqualTo(
+            "⚠️ 5 strings removed and 2 strings added (from 10 to 7)"
+                + stringsRemoved
+                + stringsAdded);
 
+    //  GitHub's notification does not contain the added/removed strings
     verify(mockGithubClient)
         .addCommentToPR(
             "testrepository",
