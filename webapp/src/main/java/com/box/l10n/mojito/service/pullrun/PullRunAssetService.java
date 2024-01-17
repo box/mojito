@@ -8,7 +8,6 @@ import com.box.l10n.mojito.entity.Repository;
 import com.google.common.collect.Lists;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -48,9 +47,11 @@ public class PullRunAssetService {
         .orElseGet(() -> createPullRunAsset(pullRun, asset));
   }
 
-  @Transactional
   public void replaceTextUnitVariants(
-      PullRunAsset pullRunAsset, Long localeId, List<Long> uniqueTmTextUnitVariantIds) {
+      PullRunAsset pullRunAsset,
+      Long localeId,
+      List<Long> uniqueTmTextUnitVariantIds,
+      String outputBcp47Tag) {
     Repository repository = pullRunAsset.getPullRun().getRepository();
     meterRegistry
         .timer(
@@ -58,36 +59,46 @@ public class PullRunAssetService {
             Tags.of("repositoryId", Objects.toString(repository.getId())))
         .record(
             () -> {
-              Instant now = Instant.now();
-              jdbcTemplate.update(
-                  "delete from pull_run_text_unit_variant where pull_run_asset_id = ? and locale_id = ?",
-                  pullRunAsset.getId(),
-                  localeId);
+              deleteExistingVariants(pullRunAsset, localeId, outputBcp47Tag);
               Lists.partition(uniqueTmTextUnitVariantIds, BATCH_SIZE)
                   .forEach(
                       tuvIdsBatch ->
                           saveTextUnitVariantsMultiRowBatch(
-                              pullRunAsset, localeId, tuvIdsBatch, now));
+                              pullRunAsset, localeId, tuvIdsBatch, outputBcp47Tag));
             });
   }
 
+  @Transactional
+  void deleteExistingVariants(PullRunAsset pullRunAsset, Long localeId, String outputBcp47Tag) {
+    // Delete and insert steps split into two transactions to avoid deadlocks occurring
+    jdbcTemplate.update(
+        "delete from pull_run_text_unit_variant where pull_run_asset_id = ? and locale_id = ? and output_bcp47_tag = ?",
+        pullRunAsset.getId(),
+        localeId,
+        outputBcp47Tag);
+  }
+
+  @Transactional
   void saveTextUnitVariantsMultiRowBatch(
       PullRunAsset pullRunAsset,
       Long localeId,
       List<Long> uniqueTmTextUnitVariantIds,
-      Instant now) {
+      String outputBcp47Tag) {
+
     ZonedDateTime createdTime = ZonedDateTime.now();
+
     String sql =
-        "insert into pull_run_text_unit_variant(pull_run_asset_id, locale_id, tm_text_unit_variant_id, created_date) values "
+        "insert into pull_run_text_unit_variant(pull_run_asset_id, locale_id, tm_text_unit_variant_id, created_date, output_bcp47_tag) values "
             + uniqueTmTextUnitVariantIds.stream()
                 .map(
                     tuvId ->
                         String.format(
-                            "(%s, %s, %s, '%s') ",
+                            "(%s, %s, %s, '%s', '%s') ",
                             pullRunAsset.getId(),
                             localeId,
                             tuvId,
-                            JSR310Migration.toRawSQL(createdTime)))
+                            JSR310Migration.toRawSQL(createdTime),
+                            outputBcp47Tag))
                 .collect(Collectors.joining(","));
     jdbcTemplate.update(sql);
   }

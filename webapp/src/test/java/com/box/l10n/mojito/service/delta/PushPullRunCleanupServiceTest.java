@@ -144,7 +144,7 @@ public class PushPullRunCleanupServiceTest extends ServiceTestBase {
             tmTextUnit1.getId(), frFR.getId(), "le hello_world 2");
 
     pullRunAssetService.replaceTextUnitVariants(
-        pullRunAsset, frFR.getId(), Arrays.asList(tuv1.getId(), tuv2.getId()));
+        pullRunAsset, frFR.getId(), Arrays.asList(tuv1.getId(), tuv2.getId()), "fr-FR");
     List<TMTextUnitVariant> recordedVariants =
         pullRunTextUnitVariantRepository.findByPullRun(pullRun, Pageable.unpaged());
     Assert.assertEquals(2, recordedVariants.size());
