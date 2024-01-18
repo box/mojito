@@ -43,7 +43,6 @@ import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
-import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -144,9 +143,6 @@ public class TMService {
   @Autowired PullRunService pullRunService;
 
   @Autowired PullRunAssetService pullRunAssetService;
-
-  @Autowired
-  DataIntegrityViolationExceptionRetryTemplate dataIntegrityViolationExceptionRetryTemplate;
 
   @Value("${l10n.tmService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
@@ -1049,27 +1045,18 @@ public class TMService {
             asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
 
     if (replaceUsedTmTextUnitVariantIds) {
-      dataIntegrityViolationExceptionRetryTemplate.execute(
-          context -> {
-            replaceUsedTmTextUnitVariantIds(
-                asset,
-                pullRunName,
-                repositoryLocale.getLocale(),
-                translateStep.getUsedTmTextUnitVariantIds(),
-                outputBcp47tag);
-            return null;
-          });
+      replaceUsedTmTextUnitVariantIds(
+          asset,
+          pullRunName,
+          repositoryLocale.getLocale(),
+          translateStep.getUsedTmTextUnitVariantIds());
     }
 
     return generateLocalizedBase;
   }
 
   void replaceUsedTmTextUnitVariantIds(
-      Asset asset,
-      String pullRunName,
-      Locale locale,
-      List<Long> usedTmTextUnitVariantIds,
-      String outputBcp47tag) {
+      Asset asset, String pullRunName, Locale locale, List<Long> usedTmTextUnitVariantIds) {
     logger.debug(
         "Replace used TmTextUnitVariantIds for pull run name: {} and locale: {}",
         pullRunName,
@@ -1079,7 +1066,7 @@ public class TMService {
     List<Long> uniqueUsedTmTextUnitVariantIds =
         usedTmTextUnitVariantIds.stream().distinct().collect(Collectors.toList());
     pullRunAssetService.replaceTextUnitVariants(
-        pullRunAsset, locale.getId(), uniqueUsedTmTextUnitVariantIds, outputBcp47tag);
+        pullRunAsset, locale.getId(), uniqueUsedTmTextUnitVariantIds);
   }
 
   /**

@@ -3,7 +3,6 @@ package com.box.l10n.mojito.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.Basic;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
@@ -26,8 +25,8 @@ import org.hibernate.annotations.BatchSize;
     name = "pull_run_text_unit_variant",
     indexes = {
       @Index(
-          name = "UK__PULL_RUN_TEXT_UNIT_VARIANT__LOCALE_ID__PRA_ID__TUV_ID__TAG",
-          columnList = "pull_run_asset_id, locale_id, output_bcp47_tag, tm_text_unit_variant_id",
+          name = "UK__PULL_RUN_TEXT_UNIT_VARIANT__PRA_ID__TUV_ID__LOCALE_ID",
+          columnList = "pull_run_asset_id, tm_text_unit_variant_id, locale_id",
           unique = true)
     })
 @BatchSize(size = 1000)
@@ -53,9 +52,6 @@ public class PullRunTextUnitVariant extends SettableAuditableEntity {
       foreignKey = @ForeignKey(name = "FK__PULL_RUN_TEXT_UNIT_VARIANT__TM_TEXT_UNIT_VARIANT_ID"))
   private TMTextUnitVariant tmTextUnitVariant;
 
-  @Column(name = "output_bcp47_tag", length = 10)
-  private String outputBcp47Tag;
-
   public PullRunAsset getPullRunAsset() {
     return pullRunAsset;
   }
@@ -70,13 +66,5 @@ public class PullRunTextUnitVariant extends SettableAuditableEntity {
 
   public void setTmTextUnitVariant(TMTextUnitVariant tmTextUnitVariant) {
     this.tmTextUnitVariant = tmTextUnitVariant;
-  }
-
-  public String getOutputBcp47Tag() {
-    return outputBcp47Tag;
-  }
-
-  public void setOutputBcp47Tag(String outputBcp47Tag) {
-    this.outputBcp47Tag = outputBcp47Tag;
   }
 }
