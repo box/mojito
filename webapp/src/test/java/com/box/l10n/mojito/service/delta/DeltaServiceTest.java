@@ -647,6 +647,7 @@ public class DeltaServiceTest extends ServiceTestBase {
                 Collectors.mapping(TMTextUnitVariant::getId, Collectors.toList())))
         .forEach(
             (localeId, perLocale) ->
-                pullRunAssetService.replaceTextUnitVariants(pullRunAsset, localeId, perLocale));
+                pullRunAssetService.replaceTextUnitVariants(
+                    pullRunAsset, localeId, perLocale, "test"));
   }
 }

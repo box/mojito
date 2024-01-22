@@ -1,0 +1,3 @@
+ALTER TABLE pull_run_text_unit_variant ADD COLUMN output_bcp47_tag VARCHAR(20);
+ALTER TABLE pull_run_text_unit_variant ADD CONSTRAINT UK__PULL_RUN_TEXT_UNIT_VARIANT__LOCALE_ID__PRA_ID__TUV_ID__TAG UNIQUE (pull_run_asset_id, locale_id, tm_text_unit_variant_id, output_bcp47_tag);
+ALTER TABLE pull_run_text_unit_variant DROP INDEX UK__PULL_RUN_TEXT_UNIT_VARIANT__LOCALE_ID__PRA_ID__TUV_ID;
