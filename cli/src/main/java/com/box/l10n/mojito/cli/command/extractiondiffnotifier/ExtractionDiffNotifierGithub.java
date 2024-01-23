@@ -67,6 +67,12 @@ public class ExtractionDiffNotifierGithub implements ExtractionDiffNotifier {
         logger.debug("Set 'translation-required' early to avoid lag in the server setting it");
         updatePRLabel(githubClient, repository, prNumber, TRANSLATIONS_REQUIRED);
       }
+    } else if (extractionDiffStatistics.getRemoved() > 0
+        && githubClient.isLabelAppliedToPR(
+            repository, prNumber, TRANSLATIONS_REQUIRED.toString())) {
+      logger.debug(
+          "Remove 'translations-required' label if it exists since there are no new strings added");
+      githubClient.removeLabelFromPR(repository, prNumber, TRANSLATIONS_REQUIRED.toString());
     }
     return message;
   }

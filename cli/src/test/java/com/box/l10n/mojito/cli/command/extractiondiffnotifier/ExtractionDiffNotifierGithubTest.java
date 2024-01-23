@@ -108,4 +108,27 @@ public class ExtractionDiffNotifierGithubTest {
     verify(mockGithubClient, times(1))
         .removeLabelFromPR(repository, prNumber, TRANSLATIONS_REQUIRED.toString());
   }
+
+  @Test
+  public void clearTranslationsRequiredLabelIfStringsOnlyRemoved() {
+    GithubClient mockGithubClient = mock(GithubClient.class);
+
+    String repository = "repository";
+    int prNumber = 1;
+    when(mockGithubClient.isLabelAppliedToPR(repository, 1, TRANSLATIONS_REQUIRED.toString()))
+        .thenReturn(true);
+    ExtractionDiffNotifierGithub extractionDiffNotifierGithub =
+        new ExtractionDiffNotifierGithub(
+            new ExtractionDiffNotifierMessageBuilder("{baseMessage}"),
+            mockGithubClient,
+            repository,
+            prNumber);
+
+    final String msg =
+        extractionDiffNotifierGithub.sendDiffStatistics(
+            ExtractionDiffStatistics.builder().removed(1).build());
+
+    verify(mockGithubClient, times(1))
+        .removeLabelFromPR(repository, prNumber, TRANSLATIONS_REQUIRED.toString());
+  }
 }
