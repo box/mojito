@@ -24,6 +24,9 @@ public interface PullRunTextUnitVariantRepository
   List<PullRunTextUnitVariant> findByTmTextUnitVariant_TmTextUnitIdAndLocaleId(
       Long tmTextUnitId, Long localeId);
 
+  List<PullRunTextUnitVariant> findByPullRunAssetIdAndLocaleIdAndOutputBcp47Tag(
+      Long pullRunAssetId, Long localeId, String outputBcp47Tag);
+
   @Query(
       "select prtuv.tmTextUnitVariant from PullRunTextUnitVariant prtuv "
           + "inner join prtuv.pullRunAsset pra "
