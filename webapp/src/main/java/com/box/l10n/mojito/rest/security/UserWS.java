@@ -14,7 +14,10 @@ import com.box.l10n.mojito.service.security.user.UserService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,11 +47,14 @@ public class UserWS {
    * @return
    */
   @RequestMapping(value = "/api/users", method = RequestMethod.GET)
-  public List<User> getUsers(@RequestParam(value = "username", required = false) String username) {
-    List<User> users =
+  public Page<User> getUsers(
+          @RequestParam(value = "username", required = false) String username,
+          @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable
+  ) {
+    Page<User> users =
         userRepository.findAll(
             where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)),
-            Sort.by(Sort.Direction.ASC, "username"));
+            pageable);
     return users;
   }
 
