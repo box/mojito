@@ -1,10 +1,14 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
 import com.google.common.collect.Sets;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.ReplayProcessor;
 
@@ -24,25 +28,34 @@ public class RepositoryStatisticsUpdatedReactor {
 
   ReplayProcessor<Long> replayProcessor;
 
+  @Autowired MeterRegistry meterRegistry;
+
+  @Value("${l10n.repositoryStatisticsUpdatedReactor.bufferDuration:PT1S}")
+  Duration bufferDuration;
+
   @Autowired
   public RepositoryStatisticsUpdatedReactor(
       RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler) {
-    this(repositoryStatisticsJobScheduler, Duration.ofSeconds(1));
-  }
-
-  RepositoryStatisticsUpdatedReactor(
-      RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler, Duration duration) {
     this.repositoryStatisticsJobScheduler = repositoryStatisticsJobScheduler;
-    createProcessor(duration);
   }
 
-  void createProcessor(Duration duration) {
+  @PostConstruct
+  public void init() {
+    createProcessor();
+  }
+
+  void createProcessor() {
     replayProcessor = ReplayProcessor.create();
     replayProcessor
-        .buffer(duration)
+        .buffer(bufferDuration)
         .subscribe(
             repositoryIds -> {
               for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
+                meterRegistry
+                    .counter(
+                        "repositoryStatisticsUpdatedReactor.scheduleRepoStatsJob",
+                        Tags.of("repositoryId", String.valueOf(repositoryId)))
+                    .increment();
                 repositoryStatisticsJobScheduler.schedule(repositoryId);
               }
             });
