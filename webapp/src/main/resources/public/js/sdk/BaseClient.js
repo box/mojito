@@ -133,6 +133,19 @@ class BaseClient {
         });
     }
 
+    patch(url, data) {
+        return fetch(url, {
+            method: 'PATCH',
+            compress: false, // workaround for node-fetch, see this file header
+            credentials: 'include',
+            body: JSON.stringify(data),
+            headers: this.getHeaders(),
+            follow: 0
+        }).then(response => {
+            this.handleUnauthenticatedResponse(response);
+        });
+    }
+
     delete(url) {
         return fetch(url, {
             method: 'delete',

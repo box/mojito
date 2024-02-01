@@ -15,6 +15,7 @@ import Repositories from "./components/repositories/Repositories";
 import BranchesPage from "./components/branches/BranchesPage";
 import Drops from "./components/drops/Drops";
 import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
+import UserManagement from "./components/users/UserManagement";
 import Settings from "./components/settings/Settings";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
 import RepositoryActions from "./actions/RepositoryActions";
@@ -47,6 +48,7 @@ import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
 import enMessages from '../../properties/en.properties';
 import GoogleAnalytics from "./utils/GoogleAnalytics";
 import ShareSearchParamsModalActions from "./actions/workbench/ShareSearchParamsModalActions";
+import AuthorityService from "./utils/AuthorityService";
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
@@ -116,6 +118,7 @@ function startApp(messages) {
                                    onEnter={onEnterScreenshots}
                                    onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
                             <Route path="settings" component={Settings}/>
+                            {AuthorityService.hasPermissionsForUserManagement() && <Route path="user-management" component={UserManagement}/>}
                             <IndexRoute component={Repositories}/>
                         </Route>
                         <Route path="login" component={Login}></Route>

@@ -1,13 +1,11 @@
 package com.box.l10n.mojito.react;
 
+import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.security.CsrfTokenController;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.IllformedLocaleException;
-import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
+import com.box.l10n.mojito.security.Role;
+import com.box.l10n.mojito.service.security.user.AuthorityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,12 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.IllformedLocaleException;
+import java.util.Locale;
 
 /**
  * The controller used to serve the React application.
@@ -51,6 +55,8 @@ public class ReactAppController {
 
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
+  @Autowired AuthorityRepository authorityRepository;
+
   @Value("${server.contextPath:}")
   String contextPath = "";
 
@@ -63,7 +69,8 @@ public class ReactAppController {
     "workbench",
     "branches",
     "settings",
-    "screenshots"
+    "screenshots",
+    "user-management"
   })
   @ResponseBody
   ModelAndView getIndex(
@@ -103,6 +110,13 @@ public class ReactAppController {
               reactUser.setGivenName(currentAuditor.getGivenName());
               reactUser.setSurname(currentAuditor.getSurname());
               reactUser.setCommonName(currentAuditor.getCommonName());
+
+              Role role = Role.USER;
+              Authority authority = authorityRepository.findByUser(currentAuditor);
+              if (authority != null) {
+                role = Role.valueOf(authority.getAuthority().replace("ROLE_", ""));
+              }
+              reactUser.setRole(role);
               return reactUser;
             })
         .orElse(new ReactUser());
