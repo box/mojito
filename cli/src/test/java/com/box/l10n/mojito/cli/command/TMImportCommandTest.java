@@ -34,7 +34,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class TMImportCommandTest extends CLITestBase {
 
   /** logger */

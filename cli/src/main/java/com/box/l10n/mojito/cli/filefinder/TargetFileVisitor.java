@@ -16,7 +16,9 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 class TargetFileVisitor extends SimpleFileVisitor<Path> {
 
   /** logger */

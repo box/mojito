@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/** @author emagalindan */
+/**
+ * @author emagalindan
+ */
 @Configurable
 public class MacStringsdictFilterKey extends XMLFilter {
 

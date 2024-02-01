@@ -12,7 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ActiveDirectoryAuthenticationProviderConfigurerTest {
 
   @Test

@@ -5,7 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface ForTest {

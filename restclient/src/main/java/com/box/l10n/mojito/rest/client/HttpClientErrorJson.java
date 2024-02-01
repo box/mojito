@@ -2,7 +2,9 @@ package com.box.l10n.mojito.rest.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HttpClientErrorJson {
 

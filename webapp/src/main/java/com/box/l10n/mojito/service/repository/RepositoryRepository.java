@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @RepositoryRestResource(exported = false)
 public interface RepositoryRepository
     extends JpaRepository<Repository, Long>, JpaSpecificationExecutor<Repository> {

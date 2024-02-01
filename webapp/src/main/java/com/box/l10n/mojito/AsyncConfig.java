@@ -10,7 +10,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Configuration
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 public class AsyncConfig extends AsyncConfigurerSupport {

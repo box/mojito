@@ -11,7 +11,9 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 import com.box.l10n.mojito.cli.filefinder.FilePattern;
 import com.box.l10n.mojito.cli.filefinder.locale.POLocaleType;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class POFileType extends FileType {
 
   public POFileType() {

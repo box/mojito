@@ -29,7 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @Component
 public class WSTestDataFactory {
 
@@ -104,7 +106,9 @@ public class WSTestDataFactory {
     return repository;
   }
 
-  /** @return The content of the test asset */
+  /**
+   * @return The content of the test asset
+   */
   public String getTestSourceAssetContent() {
     List<TextUnit> textUnits = new ArrayList<>();
     textUnits.add(xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit", null));

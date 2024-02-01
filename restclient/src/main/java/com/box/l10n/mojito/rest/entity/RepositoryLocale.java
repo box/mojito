@@ -3,7 +3,9 @@ package com.box.l10n.mojito.rest.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Comparator;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class RepositoryLocale {
 
   private Long id;

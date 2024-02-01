@@ -9,7 +9,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

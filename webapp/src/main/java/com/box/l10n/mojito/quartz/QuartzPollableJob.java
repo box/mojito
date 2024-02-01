@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public abstract class QuartzPollableJob<I, O> implements Job {
 
   public static final String POLLABLE_TASK_ID = "pollableTaskId";

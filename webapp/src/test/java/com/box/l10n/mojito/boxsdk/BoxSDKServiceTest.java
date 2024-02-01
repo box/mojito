@@ -33,7 +33,9 @@ import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 // TODO(spring2)(later) Instruction to create the Box app has changed and I couldn't get it to run
 // quickly.
 // Since this is not blocker for most needs moving on, keep the note here for the record. still it

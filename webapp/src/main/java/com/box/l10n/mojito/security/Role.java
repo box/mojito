@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.security;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public enum Role {
   /** Project Manager */
   PM("PM"),

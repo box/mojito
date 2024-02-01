@@ -20,7 +20,9 @@ import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Profile("!disablescheduling")
 @Configuration
 @Component

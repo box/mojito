@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.Test;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class POFilterTest {
 
   @Test

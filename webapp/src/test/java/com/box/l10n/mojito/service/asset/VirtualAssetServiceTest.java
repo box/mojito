@@ -25,7 +25,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class VirtualAssetServiceTest extends ServiceTestBase {
 
   /** logger */

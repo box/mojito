@@ -112,42 +112,58 @@ public class RepositoryStatistic extends AuditableEntity {
     return super.getId();
   }
 
-  /** @return the usedTextUnitCount */
+  /**
+   * @return the usedTextUnitCount
+   */
   public Long getUsedTextUnitCount() {
     return usedTextUnitCount;
   }
 
-  /** @param usedTextUnitCount the usedTextUnitCount to set */
+  /**
+   * @param usedTextUnitCount the usedTextUnitCount to set
+   */
   public void setUsedTextUnitCount(Long usedTextUnitCount) {
     this.usedTextUnitCount = usedTextUnitCount;
   }
 
-  /** @return the usedTextUnitWordCount */
+  /**
+   * @return the usedTextUnitWordCount
+   */
   public Long getUsedTextUnitWordCount() {
     return usedTextUnitWordCount;
   }
 
-  /** @param usedTextUnitWordCount the usedTextUnitWordCount to set */
+  /**
+   * @param usedTextUnitWordCount the usedTextUnitWordCount to set
+   */
   public void setUsedTextUnitWordCount(Long usedTextUnitWordCount) {
     this.usedTextUnitWordCount = usedTextUnitWordCount;
   }
 
-  /** @return the unusedTextUnitCount */
+  /**
+   * @return the unusedTextUnitCount
+   */
   public Long getUnusedTextUnitCount() {
     return unusedTextUnitCount;
   }
 
-  /** @param unusedTextUnitCount the unusedTextUnitCount to set */
+  /**
+   * @param unusedTextUnitCount the unusedTextUnitCount to set
+   */
   public void setUnusedTextUnitCount(Long unusedTextUnitCount) {
     this.unusedTextUnitCount = unusedTextUnitCount;
   }
 
-  /** @return the unusedTextUnitWordCount */
+  /**
+   * @return the unusedTextUnitWordCount
+   */
   public Long getUnusedTextUnitWordCount() {
     return unusedTextUnitWordCount;
   }
 
-  /** @param unusedTextUnitWordCount the unusedTextUnitWordCount to set */
+  /**
+   * @param unusedTextUnitWordCount the unusedTextUnitWordCount to set
+   */
   public void setUnusedTextUnitWordCount(Long unusedTextUnitWordCount) {
     this.unusedTextUnitWordCount = unusedTextUnitWordCount;
   }
@@ -192,23 +208,31 @@ public class RepositoryStatistic extends AuditableEntity {
     this.ooslaCreatedBefore = ooslaCreatedBefore;
   }
 
-  /** @return the repositoryLocaleStatistics */
+  /**
+   * @return the repositoryLocaleStatistics
+   */
   public Set<RepositoryLocaleStatistic> getRepositoryLocaleStatistics() {
     return repositoryLocaleStatistics;
   }
 
-  /** @param repositoryLocaleStatistics the repositoryLocaleStatistics to set */
+  /**
+   * @param repositoryLocaleStatistics the repositoryLocaleStatistics to set
+   */
   public void setRepositoryLocaleStatistics(
       Set<RepositoryLocaleStatistic> repositoryLocaleStatistics) {
     this.repositoryLocaleStatistics = repositoryLocaleStatistics;
   }
 
-  /** @return the uncommentedTextUnitCount */
+  /**
+   * @return the uncommentedTextUnitCount
+   */
   public Long getUncommentedTextUnitCount() {
     return uncommentedTextUnitCount;
   }
 
-  /** @param uncommentedTextUnitCount the uncommentedTextUnitCount to set */
+  /**
+   * @param uncommentedTextUnitCount the uncommentedTextUnitCount to set
+   */
   public void setUncommentedTextUnitCount(Long uncommentedTextUnitCount) {
     this.uncommentedTextUnitCount = uncommentedTextUnitCount;
   }

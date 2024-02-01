@@ -4,7 +4,9 @@ import com.box.l10n.mojito.service.delta.DeltaType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class TextUnitVariantDeltaDTO implements TextUnitVariantDelta {
   @JsonIgnore Long textUnitVariantId;
   String textUnitName;

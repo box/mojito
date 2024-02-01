@@ -4,7 +4,9 @@ import java.text.BreakIterator;
 import java.util.Locale;
 import org.springframework.stereotype.Component;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Component
 public class WordCountService {
 

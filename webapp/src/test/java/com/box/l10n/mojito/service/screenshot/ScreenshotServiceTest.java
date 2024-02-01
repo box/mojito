@@ -29,7 +29,9 @@ import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class ScreenshotServiceTest extends ServiceTestBase {
 
   /** logger */

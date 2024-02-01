@@ -98,9 +98,7 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private void pollForLocalizedFiles() {
-    pollableTaskIdToFileMatchMap
-        .entrySet()
-        .parallelStream()
+    pollableTaskIdToFileMatchMap.entrySet().parallelStream()
         .forEach(
             entry -> {
               commandHelper.waitForPollableTaskSilencedOutput(entry.getKey());

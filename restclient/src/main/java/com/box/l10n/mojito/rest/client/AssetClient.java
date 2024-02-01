@@ -26,7 +26,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class AssetClient extends BaseClient {
 

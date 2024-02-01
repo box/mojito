@@ -5,7 +5,9 @@ import static org.junit.Assert.*;
 import java.util.regex.Pattern;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class Bcp47LocaleTypeTest {
 
   @Test

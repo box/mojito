@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.tm;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class UpdateTMWithXLIFFResult {
 
   /** Imported XLIFF that has been enriched with meta information during the import process. */

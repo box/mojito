@@ -205,8 +205,11 @@ public class GithubClient {
   public boolean isLabelAppliedToPR(String repository, int prNumber, String labelName) {
     String repoFullPath = getRepositoryPath(repository);
     try {
-      return getGithubClient(repository).getRepository(repoFullPath).getPullRequest(prNumber)
-          .getLabels().stream()
+      return getGithubClient(repository)
+          .getRepository(repoFullPath)
+          .getPullRequest(prNumber)
+          .getLabels()
+          .stream()
           .anyMatch(ghLabel -> ghLabel.getName().equals(labelName));
     } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
       String message =

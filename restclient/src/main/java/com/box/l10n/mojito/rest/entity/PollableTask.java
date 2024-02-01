@@ -6,7 +6,9 @@ import java.time.ZonedDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PollableTask {
 

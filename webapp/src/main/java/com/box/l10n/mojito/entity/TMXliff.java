@@ -9,7 +9,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 @Entity
 @Table(name = "tm_xliff")
 public class TMXliff extends AuditableEntity {

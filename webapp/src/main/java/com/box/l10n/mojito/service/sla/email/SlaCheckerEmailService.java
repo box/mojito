@@ -18,7 +18,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Component
 public class SlaCheckerEmailService {
 

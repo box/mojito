@@ -20,7 +20,9 @@ import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Configuration
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 public class CachingConfig extends CachingConfigurerSupport {

@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.okapi;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public enum InheritanceMode {
 
   /** If there is no translation the text unit should be removed */

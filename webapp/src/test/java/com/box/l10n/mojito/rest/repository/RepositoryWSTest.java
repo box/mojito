@@ -30,7 +30,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.HttpClientErrorException;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class RepositoryWSTest extends WSTestBase {
 
   /** logger */

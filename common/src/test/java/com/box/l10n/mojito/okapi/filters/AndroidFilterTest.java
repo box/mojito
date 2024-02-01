@@ -9,7 +9,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class AndroidFilterTest {
 
   static Logger logger = LoggerFactory.getLogger(AndroidFilterTest.class);

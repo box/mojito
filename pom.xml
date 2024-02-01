@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -31,8 +31,7 @@
         <aspectj-maven-plugin.group-id>dev.aspectj</aspectj-maven-plugin.group-id>
         <auto-value.version>1.7.4</auto-value.version>
         <immutables-value.version>2.8.2</immutables-value.version>
-        <!-- google-java-format 1.7 is the last version that supports JVM 8 -->
-        <plugin.version.google-java-format>1.7</plugin.version.google-java-format>
+        <plugin.version.google-java-format>1.15.0</plugin.version.google-java-format>
         <jjwt.version>0.10.5</jjwt.version>
         <github.api.version>1.313</github.api.version>
         <icu4j.version>64.2</icu4j.version>

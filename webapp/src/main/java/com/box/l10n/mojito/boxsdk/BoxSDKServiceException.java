@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.boxsdk;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class BoxSDKServiceException extends Exception {
 
   public BoxSDKServiceException(String message) {

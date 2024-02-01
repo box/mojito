@@ -7,7 +7,9 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class NativeInExpFix implements NativeExp {
 
   private static final Logger log = LoggerFactory.getLogger(NativeInExpFix.class);

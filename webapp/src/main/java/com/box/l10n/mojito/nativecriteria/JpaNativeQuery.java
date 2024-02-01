@@ -9,7 +9,9 @@ import java.util.List;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class JpaNativeQuery implements NativeQuery {
 
   Query query;

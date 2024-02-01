@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.Writer;
 import org.junit.Test;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class MustacheLambdaOddTest {
 
   @Test

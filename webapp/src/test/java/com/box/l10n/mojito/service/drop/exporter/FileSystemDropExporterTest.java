@@ -19,7 +19,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class FileSystemDropExporterTest extends ServiceTestBase {
 
   static Logger logger = LoggerFactory.getLogger(FileSystemDropExporterTest.class);

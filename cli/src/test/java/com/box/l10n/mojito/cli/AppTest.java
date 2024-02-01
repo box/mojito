@@ -2,7 +2,9 @@ package com.box.l10n.mojito.cli;
 
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AppTest extends CLITestBase {
 
   @Test

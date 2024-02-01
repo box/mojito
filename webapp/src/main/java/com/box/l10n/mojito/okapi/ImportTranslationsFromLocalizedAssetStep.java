@@ -22,7 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Configurable
 public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTranslationsStep {
 

@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.entity;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class RepositoryLocaleStatistic {
 
   private Locale locale;

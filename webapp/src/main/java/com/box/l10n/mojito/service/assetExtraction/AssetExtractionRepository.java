@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @RepositoryRestResource(exported = false)
 public interface AssetExtractionRepository extends JpaRepository<AssetExtraction, Long> {
 

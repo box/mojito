@@ -12,7 +12,9 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 import com.box.l10n.mojito.cli.filefinder.locale.AndroidLocaleType;
 import java.util.regex.Pattern;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AndroidStringsFileType extends FileType {
 
   public AndroidStringsFileType() {

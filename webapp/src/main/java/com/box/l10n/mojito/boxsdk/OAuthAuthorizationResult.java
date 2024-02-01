@@ -3,7 +3,9 @@ package com.box.l10n.mojito.boxsdk;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuthAuthorizationResult {
 

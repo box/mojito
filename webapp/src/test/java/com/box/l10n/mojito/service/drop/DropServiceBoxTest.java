@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Ignore("won't work without @DirtiesContext which makes the build to slow")
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Component
 public class CliClient extends BaseClient {
 

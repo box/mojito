@@ -11,7 +11,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedBy;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Entity
 @Table(name = "groups")
 public class Group extends AuditableEntity {

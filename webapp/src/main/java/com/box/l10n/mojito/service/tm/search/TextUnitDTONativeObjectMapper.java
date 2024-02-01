@@ -8,7 +8,9 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.github.pnowy.nc.core.CriteriaResult;
 import com.github.pnowy.nc.core.mappers.NativeObjectMapper;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUnitDTO> {
 
   @Override

@@ -3,7 +3,9 @@ package com.box.l10n.mojito.cli.filefinder.locale;
 import com.google.common.base.Strings;
 import java.util.Locale;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AndroidLocaleType extends LocaleType {
 
   @Override

@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @Service
 public class AssetExtractionCleanupService {
 

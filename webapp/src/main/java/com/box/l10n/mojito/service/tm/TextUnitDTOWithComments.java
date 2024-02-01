@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class TextUnitDTOWithComments extends TextUnitDTO {
 
   private List<TMTextUnitVariantComment> tmTextUnitVariantComments = new ArrayList<>();

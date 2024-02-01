@@ -8,7 +8,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
 

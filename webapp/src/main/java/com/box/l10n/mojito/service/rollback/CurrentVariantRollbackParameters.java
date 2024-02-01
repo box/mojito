@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.rollback;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class CurrentVariantRollbackParameters {
 
   /** List of {@link com.box.l10n.mojito.entity.Locale#id}s */

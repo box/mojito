@@ -17,7 +17,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Component;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 @Component
 public class SparseBranchStatisticRepositoryImpl implements SparseBranchStatisticRepository {
   @Autowired EntityManager entityManager;

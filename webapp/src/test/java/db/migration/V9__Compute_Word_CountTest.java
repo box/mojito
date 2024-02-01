@@ -6,7 +6,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Ignore("Test database migration")
 public class V9__Compute_Word_CountTest extends ServiceTestBase {
 

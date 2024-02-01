@@ -22,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Component
 public class BoxSDKService {
 

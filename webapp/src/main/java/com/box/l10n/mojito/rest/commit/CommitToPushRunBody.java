@@ -3,7 +3,9 @@ package com.box.l10n.mojito.rest.commit;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class CommitToPushRunBody {
 
   /** {@link Repository#id} */

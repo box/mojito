@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.asset;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import java.util.List;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ImportTextUnitJobInput {
 
   boolean integrityCheckSkipped;

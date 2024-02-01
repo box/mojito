@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @RepositoryRestResource(exported = false)
 public interface BranchRepository
     extends JpaRepository<Branch, Long>, JpaSpecificationExecutor<Branch> {

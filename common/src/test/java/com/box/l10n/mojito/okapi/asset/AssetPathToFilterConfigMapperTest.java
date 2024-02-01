@@ -6,7 +6,9 @@ import com.box.l10n.mojito.okapi.filters.*;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
 import org.junit.Test;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class AssetPathToFilterConfigMapperTest {
 
   @Test

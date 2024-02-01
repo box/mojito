@@ -3,7 +3,9 @@ package com.box.l10n.mojito.nativecriteria;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class NativeColumnEqExpTest {
 
   @Test

@@ -9,7 +9,9 @@ import org.junit.Test;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AsyncConfigTest extends ServiceTestBase {
 
   @Test

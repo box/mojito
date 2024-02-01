@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.entity;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class VirtualAssetTextUnit {
 
   String name;

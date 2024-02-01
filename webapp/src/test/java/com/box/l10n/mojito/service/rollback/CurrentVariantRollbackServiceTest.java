@@ -28,7 +28,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class CurrentVariantRollbackServiceTest extends ServiceTestBase {
 
   @Autowired TMService tmService;

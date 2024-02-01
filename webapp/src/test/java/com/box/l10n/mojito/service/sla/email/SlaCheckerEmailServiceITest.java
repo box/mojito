@@ -13,7 +13,9 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class SlaCheckerEmailServiceITest extends ServiceTestBase {
 
   @Autowired SlaCheckerEmailService slaCheckerEmailService;

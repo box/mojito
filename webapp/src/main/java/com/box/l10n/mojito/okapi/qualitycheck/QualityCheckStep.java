@@ -17,7 +17,9 @@ import net.sf.okapi.lib.verification.Issue;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class QualityCheckStep extends net.sf.okapi.steps.qualitycheck.QualityCheckStep {
 
   /** logger */

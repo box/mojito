@@ -9,7 +9,9 @@ import net.sf.okapi.filters.regex.RegexFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 @Configurable
 public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
 

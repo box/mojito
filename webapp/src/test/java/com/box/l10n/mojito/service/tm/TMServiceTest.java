@@ -67,7 +67,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TMServiceTest extends ServiceTestBase {
 
   /** logger */

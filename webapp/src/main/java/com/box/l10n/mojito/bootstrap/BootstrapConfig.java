@@ -3,7 +3,9 @@ package com.box.l10n.mojito.bootstrap;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Component
 @ConfigurationProperties("l10n.bootstrap")
 public class BootstrapConfig {

@@ -9,7 +9,9 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.UNDERSCORE;
 
 import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleType;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public abstract class LocaleInNameFileType extends FileType {
 
   public LocaleInNameFileType() {

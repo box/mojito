@@ -18,7 +18,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Component
 @Scope("prototype")
 @Parameters(

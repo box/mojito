@@ -18,7 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.AssertionErrors;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class ExtractionDiffCommandTest extends CLITestBase {
 
   /** logger */

@@ -3,7 +3,9 @@ package com.box.l10n.mojito.nativecriteria;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hibernate.annotations.common.util.StringHelper;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class VarGenerator {
 
   static AtomicInteger idGenerator = new AtomicInteger();

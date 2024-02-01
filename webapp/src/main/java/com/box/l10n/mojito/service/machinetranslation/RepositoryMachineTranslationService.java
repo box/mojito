@@ -109,7 +109,8 @@ public class RepositoryMachineTranslationService {
 
                                 textUnitDTOStreamFor1Translation =
                                     sourceToTextUnitDTOs
-                                        .getOrDefault(sourceText, Collections.emptyList()).stream()
+                                        .getOrDefault(sourceText, Collections.emptyList())
+                                        .stream()
                                         .map(
                                             textUnitDTO -> {
                                               textUnitDTO.setTarget(translationDTO.getText());

@@ -31,7 +31,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
 
   @Autowired RepositoryService repositoryService;

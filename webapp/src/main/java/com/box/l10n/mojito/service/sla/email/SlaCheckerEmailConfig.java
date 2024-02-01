@@ -5,7 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.threeten.extra.PeriodDuration;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Configuration
 @ConfigurationProperties(prefix = "l10n.sla-checker.email")
 public class SlaCheckerEmailConfig {

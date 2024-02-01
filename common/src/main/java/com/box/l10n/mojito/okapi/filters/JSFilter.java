@@ -34,7 +34,9 @@ import net.sf.okapi.filters.properties.Parameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 @Configurable
 public class JSFilter extends AbstractFilter {
 

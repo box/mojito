@@ -23,7 +23,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class PushRunServiceTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();

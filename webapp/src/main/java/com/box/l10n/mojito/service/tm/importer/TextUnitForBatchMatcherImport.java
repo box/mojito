@@ -10,7 +10,9 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
 
   Repository repository;

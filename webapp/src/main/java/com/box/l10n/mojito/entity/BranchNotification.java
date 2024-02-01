@@ -11,7 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Entity
 @Table(
     name = "branch_notification",

@@ -10,7 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @RunWith(SpringRunner.class)
 @ComponentScan(
     basePackageClasses = {

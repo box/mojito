@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.drop.exporter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.Date;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @JsonPropertyOrder(alphabetic = true)
 public class FileSystemDropExporterConfig {
 

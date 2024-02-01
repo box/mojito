@@ -34,7 +34,9 @@ import org.slf4j.Logger;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class SlaCheckerEmailServiceTest {
 

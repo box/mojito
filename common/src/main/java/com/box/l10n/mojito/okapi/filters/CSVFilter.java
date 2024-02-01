@@ -6,7 +6,9 @@ import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.filters.table.csv.CommaSeparatedValuesFilter;
 import org.springframework.util.StringUtils;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class CSVFilter extends CommaSeparatedValuesFilter {
 
   public static final String FILTER_NAME = "okf_table_csv@mojito";

@@ -14,7 +14,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Entity
 @Table(
     name = "asset_text_unit_to_tm_text_unit",

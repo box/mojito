@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.filefinder.locale;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public abstract class LocaleType {
 
   public static final String DEFAULT_LOCALE = "en";

@@ -8,7 +8,9 @@ import net.sf.okapi.filters.xliff.XLIFFFilter;
 import net.sf.okapi.filters.xliff.XLIFFSkeletonWriter;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 @Configurable
 public class XcodeXliffFilter extends XLIFFFilter {
 

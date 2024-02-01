@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.repository;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class RepositoryNameAlreadyUsedException extends Exception {
 
   public RepositoryNameAlreadyUsedException(String message) {

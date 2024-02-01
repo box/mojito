@@ -38,7 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Component
 public class ThirdPartyService {
 
@@ -327,7 +329,8 @@ public class ThirdPartyService {
                             ? ImmutableList.of(t.getTmTextUnitId())
                             : textUnitBatchMatcher
                                 .matchByNameAndPluralPrefix(notMappedTextUnitDTOs, pluralSeparator)
-                                .apply(t).stream()
+                                .apply(t)
+                                .stream()
                                 .map(TextUnitDTO::getTmTextUnitId)
                                 .collect(ImmutableList.toImmutableList())));
 

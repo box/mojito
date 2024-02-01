@@ -3,7 +3,9 @@ package com.box.l10n.mojito.boxsdk;
 import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityRepository;
 import org.springframework.stereotype.Component;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class BoxSDKServiceConfigProvider {
 

@@ -11,7 +11,9 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Entity
 @Table(name = "sla_incident")
 public class SlaIncident extends AuditableEntity {

@@ -23,7 +23,9 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
   /** logger */

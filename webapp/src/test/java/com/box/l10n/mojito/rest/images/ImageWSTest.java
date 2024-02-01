@@ -5,7 +5,9 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class ImageWSTest {
 
   @Test

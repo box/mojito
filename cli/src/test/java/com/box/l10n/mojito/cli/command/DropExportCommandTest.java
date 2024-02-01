@@ -16,7 +16,9 @@ import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class DropExportCommandTest extends CLITestBase {
 
   @Autowired TMImportService tmImport;

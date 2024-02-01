@@ -11,7 +11,9 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class CommandDirectoriesTest extends IOTestBase {
 
   @Test

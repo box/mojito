@@ -11,7 +11,9 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class PollableTaskWSTest extends WSTestBase {
 
   @Autowired PollableTaskService pollableTaskService;

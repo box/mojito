@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Set;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SourceAsset {
 

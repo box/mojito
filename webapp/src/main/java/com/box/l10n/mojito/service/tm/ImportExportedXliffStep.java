@@ -32,7 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.StopWatch;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Configurable
 public class ImportExportedXliffStep extends BasePipelineStep {
 

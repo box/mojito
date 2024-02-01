@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.client.exception;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class LocaleNotFoundException extends ResourceNotFoundException {
   public LocaleNotFoundException(String message, Throwable cause) {
     super(message, cause);

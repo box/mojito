@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.thirdparty;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import java.util.List;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ThirdPartySyncJobConfig {
 
   String cron;

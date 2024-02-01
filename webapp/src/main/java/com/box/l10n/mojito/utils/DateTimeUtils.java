@@ -5,7 +5,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.springframework.stereotype.Component;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Component
 public class DateTimeUtils {
 

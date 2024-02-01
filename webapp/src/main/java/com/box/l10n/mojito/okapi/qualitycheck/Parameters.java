@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.okapi.qualitycheck;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class Parameters extends net.sf.okapi.lib.verification.Parameters {
 
   /** Disables all checks done by the Quality Checker */

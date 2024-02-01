@@ -71,7 +71,8 @@ public class BranchDeleteCommandTest extends CLITestBase {
         "b1, b2, b3, b4 should become untranslated when stats are computed",
         () -> {
           List<String> branches =
-              repositoryClient.getBranches(repository.getId(), null, null, null, false, true, null)
+              repositoryClient
+                  .getBranches(repository.getId(), null, null, null, false, true, null)
                   .stream()
                   .map(Branch::getName)
                   .sorted()
@@ -94,14 +95,16 @@ public class BranchDeleteCommandTest extends CLITestBase {
         "All b4 translated other branches should still not be translated",
         () -> {
           List<String> branchesTranslated =
-              repositoryClient.getBranches(repository.getId(), null, null, null, true, false, null)
+              repositoryClient
+                  .getBranches(repository.getId(), null, null, null, true, false, null)
                   .stream()
                   .map(Branch::getName)
                   .sorted()
                   .collect(Collectors.toList());
 
           List<String> branchesUntransaslted =
-              repositoryClient.getBranches(repository.getId(), null, null, null, false, false, null)
+              repositoryClient
+                  .getBranches(repository.getId(), null, null, null, false, false, null)
                   .stream()
                   .map(Branch::getName)
                   .sorted()

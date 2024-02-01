@@ -28,7 +28,9 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @EnableWebSecurity
 // TOOD(spring2) we don't use method level security, do we? remove?
 @EnableGlobalMethodSecurity(securedEnabled = true, mode = AdviceMode.ASPECTJ)

@@ -38,7 +38,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class PushCommandTest extends CLITestBase {
 
   /** logger */

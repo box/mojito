@@ -15,7 +15,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface MsgArg {
 
-  /** @return parameter name */
+  /**
+   * @return parameter name
+   */
   String name();
   /**
    * @return an optional access on the annotated object (for example getId() to get the id of the

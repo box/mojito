@@ -8,7 +8,9 @@ import net.sf.okapi.filters.yaml.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author loliveiramontedonio */
+/**
+ * @author loliveiramontedonio
+ */
 public class YamlFilter extends net.sf.okapi.filters.yaml.YamlFilter {
 
   /** logger */

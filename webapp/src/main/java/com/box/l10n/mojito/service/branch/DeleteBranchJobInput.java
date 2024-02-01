@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.branch;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class DeleteBranchJobInput {
   long repositoryId;
   long branchId;

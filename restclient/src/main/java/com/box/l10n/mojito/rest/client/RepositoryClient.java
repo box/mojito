@@ -26,7 +26,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class RepositoryClient extends BaseClient {
 

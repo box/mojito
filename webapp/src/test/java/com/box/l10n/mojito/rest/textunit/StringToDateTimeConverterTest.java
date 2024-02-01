@@ -11,7 +11,9 @@ import java.time.ZonedDateTime;
 import org.junit.Assume;
 import org.junit.Test;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class StringToDateTimeConverterTest {
 
   @Test

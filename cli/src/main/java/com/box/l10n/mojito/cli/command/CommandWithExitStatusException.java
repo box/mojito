@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.command;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class CommandWithExitStatusException extends CommandException {
 
   int exitCode = 0;

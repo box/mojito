@@ -5,7 +5,9 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.base.Splitter;
 import java.util.Map;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AssetMappingConverter implements IStringConverter<Map<String, String>> {
 
   @Override

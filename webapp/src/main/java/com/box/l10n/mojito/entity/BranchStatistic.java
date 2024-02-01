@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Entity
 @Table(
     name = "branch_statistic",

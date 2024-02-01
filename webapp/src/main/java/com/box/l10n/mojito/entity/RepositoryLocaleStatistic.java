@@ -111,62 +111,86 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     return super.getId();
   }
 
-  /** @return the repositoryStatistic */
+  /**
+   * @return the repositoryStatistic
+   */
   public RepositoryStatistic getRepositoryStatistic() {
     return repositoryStatistic;
   }
 
-  /** @param repositoryStatistic the repositoryStatistic to set */
+  /**
+   * @param repositoryStatistic the repositoryStatistic to set
+   */
   public void setRepositoryStatistic(RepositoryStatistic repositoryStatistic) {
     this.repositoryStatistic = repositoryStatistic;
   }
 
-  /** @return the locale */
+  /**
+   * @return the locale
+   */
   public Locale getLocale() {
     return locale;
   }
 
-  /** @param locale the locale to set */
+  /**
+   * @param locale the locale to set
+   */
   public void setLocale(Locale locale) {
     this.locale = locale;
   }
 
-  /** @return the translatedCount */
+  /**
+   * @return the translatedCount
+   */
   public Long getTranslatedCount() {
     return translatedCount;
   }
 
-  /** @param translatedCount the translatedCount to set */
+  /**
+   * @param translatedCount the translatedCount to set
+   */
   public void setTranslatedCount(Long translatedCount) {
     this.translatedCount = translatedCount;
   }
 
-  /** @return the reviewNeededCount */
+  /**
+   * @return the reviewNeededCount
+   */
   public Long getReviewNeededCount() {
     return reviewNeededCount;
   }
 
-  /** @param reviewNeededCount the reviewNeededCount to set */
+  /**
+   * @param reviewNeededCount the reviewNeededCount to set
+   */
   public void setReviewNeededCount(Long reviewNeededCount) {
     this.reviewNeededCount = reviewNeededCount;
   }
 
-  /** @return the includeInFileCount */
+  /**
+   * @return the includeInFileCount
+   */
   public Long getIncludeInFileCount() {
     return includeInFileCount;
   }
 
-  /** @param includeInFileCount the includeInFileCount to set */
+  /**
+   * @param includeInFileCount the includeInFileCount to set
+   */
   public void setIncludeInFileCount(Long includeInFileCount) {
     this.includeInFileCount = includeInFileCount;
   }
 
-  /** @return the translationNeededCount */
+  /**
+   * @return the translationNeededCount
+   */
   public Long getTranslationNeededCount() {
     return translationNeededCount;
   }
 
-  /** @param translationNeededCount the translationNeededCount to set */
+  /**
+   * @param translationNeededCount the translationNeededCount to set
+   */
   public void setTranslationNeededCount(Long translationNeededCount) {
     this.translationNeededCount = translationNeededCount;
   }

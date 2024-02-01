@@ -4,7 +4,9 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.mustache.MustacheBaseContext;
 import java.util.List;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class OpenIncidentContext extends MustacheBaseContext {
 
   Long incidentId;

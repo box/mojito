@@ -6,7 +6,9 @@ import com.google.common.base.Splitter;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TmTextUnitMappingConverter implements IStringConverter<Map<Long, Long>> {
 
   @Override

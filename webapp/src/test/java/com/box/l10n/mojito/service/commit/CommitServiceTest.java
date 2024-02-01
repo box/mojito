@@ -18,7 +18,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class CommitServiceTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();

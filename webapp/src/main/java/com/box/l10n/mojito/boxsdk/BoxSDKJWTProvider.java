@@ -5,7 +5,9 @@ import com.box.sdk.EncryptionAlgorithm;
 import com.box.sdk.JWTEncryptionPreferences;
 import org.springframework.stereotype.Component;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class BoxSDKJWTProvider {
 

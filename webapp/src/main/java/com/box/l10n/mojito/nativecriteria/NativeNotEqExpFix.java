@@ -4,7 +4,9 @@ import com.github.pnowy.nc.core.NativeQuery;
 import com.github.pnowy.nc.core.expressions.NativeExp;
 import com.github.pnowy.nc.utils.Strings;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class NativeNotEqExpFix implements NativeExp {
   private String columnName;
   private String varName;

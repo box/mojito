@@ -717,7 +717,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     if (options.getPushTranslationBranchName() != null) {
       filterTmTextUnitIds =
           assetTextUnitToTMTextUnitRepository
-              .findByBranchName(options.getPushTranslationBranchName()).stream()
+              .findByBranchName(options.getPushTranslationBranchName())
+              .stream()
               .collect(Collectors.toSet());
     }
     return filterTmTextUnitIds;

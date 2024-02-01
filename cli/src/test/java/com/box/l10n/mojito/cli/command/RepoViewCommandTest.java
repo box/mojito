@@ -10,7 +10,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class RepoViewCommandTest extends CLITestBase {
 
   /** logger */

@@ -10,7 +10,9 @@ import java.util.regex.Matcher;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class XtbFileTypeTest {
 
   @Test

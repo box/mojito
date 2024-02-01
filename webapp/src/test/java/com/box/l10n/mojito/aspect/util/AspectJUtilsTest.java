@@ -10,7 +10,9 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AspectJUtilsTest {
 
   AspectJUtils aspectJUtils = new AspectJUtils();

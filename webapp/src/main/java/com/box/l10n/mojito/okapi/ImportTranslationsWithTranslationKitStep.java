@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Configurable
 public class ImportTranslationsWithTranslationKitStep extends ImportTranslationsByIdStep {
 

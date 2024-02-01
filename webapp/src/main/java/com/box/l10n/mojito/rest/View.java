@@ -33,21 +33,29 @@ public class View {
   /** This is used to show the branch statistics */
   public interface BranchStatistic extends BranchSummary, TmTextUnitSummary, Pageable {}
   /** This is used to show git blame information */
-  public interface GitBlame extends IdAndName {};
+  public interface GitBlame extends IdAndName {}
+  ;
   /** This is used to show git bame information with usages */
-  public interface GitBlameWithUsage extends GitBlame, BranchSummary {};
+  public interface GitBlameWithUsage extends GitBlame, BranchSummary {}
+  ;
   /** This is used to restrict screenshot information returned */
-  public interface Screenshots extends IdAndName, TmTextUnitSummary {};
+  public interface Screenshots extends IdAndName, TmTextUnitSummary {}
+  ;
   /** This is used to restrict the fields returned from a translation history query */
-  public interface TranslationHistorySummary extends IdAndNameAndCreated, LocaleSummary {};
+  public interface TranslationHistorySummary extends IdAndNameAndCreated, LocaleSummary {}
+  ;
   /** This is used to show the LastModifiedDate from Auditable entities */
-  public interface Modified {};
+  public interface Modified {}
+  ;
   /** This is used to restrict Commit information returned */
-  public interface Commit extends IdAndNameAndCreated, Modified, Pageable {};
+  public interface Commit extends IdAndNameAndCreated, Modified, Pageable {}
+  ;
 
   /** This is used to provide more detailed information about a commit */
-  public interface CommitDetailed extends Commit {};
+  public interface CommitDetailed extends Commit {}
+  ;
 
   /** This is used to provide information about a PushRun */
-  public interface PushRun extends IdAndNameAndCreated {};
+  public interface PushRun extends IdAndNameAndCreated {}
+  ;
 }

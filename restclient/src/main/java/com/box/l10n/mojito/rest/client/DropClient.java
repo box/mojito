@@ -16,7 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Component
 public class DropClient extends BaseClient {
 

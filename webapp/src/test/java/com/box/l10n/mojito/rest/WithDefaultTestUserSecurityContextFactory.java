@@ -14,7 +14,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.stereotype.Component;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class WithDefaultTestUserSecurityContextFactory
     implements WithSecurityContextFactory<WithDefaultTestUser> {

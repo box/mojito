@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public abstract class BaseClient {
 
   /** logger */

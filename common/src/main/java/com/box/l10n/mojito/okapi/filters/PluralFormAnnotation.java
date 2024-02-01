@@ -2,7 +2,9 @@ package com.box.l10n.mojito.okapi.filters;
 
 import net.sf.okapi.common.annotation.IAnnotation;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class PluralFormAnnotation implements IAnnotation {
 
   String name;

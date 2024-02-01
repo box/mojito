@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class StreamUtilTest {
 
   @Test

@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.command.param;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class Param {
 
   public static final String BRANCH_LONG = "--branch";

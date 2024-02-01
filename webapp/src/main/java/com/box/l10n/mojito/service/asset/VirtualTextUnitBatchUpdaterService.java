@@ -35,7 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author aurambaj */
+/**
+ * @author aurambaj
+ */
 @Component
 public class VirtualTextUnitBatchUpdaterService {
 

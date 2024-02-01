@@ -5,7 +5,9 @@ import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
 import java.util.List;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class LocalizedAssetBody {
 
   /** Asset id */

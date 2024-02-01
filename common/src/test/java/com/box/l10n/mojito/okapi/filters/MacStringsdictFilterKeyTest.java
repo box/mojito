@@ -10,7 +10,9 @@ import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.junit.Test;
 
-/** @author emagalindan */
+/**
+ * @author emagalindan
+ */
 public class MacStringsdictFilterKeyTest {
 
   @Test

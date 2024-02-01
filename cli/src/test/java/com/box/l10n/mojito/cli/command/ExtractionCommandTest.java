@@ -6,7 +6,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class ExtractionCommandTest extends CLITestBase {
 
   /** logger */

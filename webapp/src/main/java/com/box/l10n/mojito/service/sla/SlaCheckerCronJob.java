@@ -19,7 +19,9 @@ import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Component;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Profile("!disablescheduling")
 @ConditionalOnProperty(value = "l10n.sla-checker.incident-check.cron")
 @Configuration

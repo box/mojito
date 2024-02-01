@@ -7,7 +7,9 @@ import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.TextUnit;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TextUnitDTOAnnotationsTest {
 
   @Test

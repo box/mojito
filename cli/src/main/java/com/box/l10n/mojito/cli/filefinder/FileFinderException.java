@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.filefinder;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class FileFinderException extends Exception {
 
   public FileFinderException(String message) {

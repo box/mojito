@@ -4,7 +4,9 @@ import com.ibm.icu.text.MessageFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class EntityWithIdNotFoundException extends Exception {
 

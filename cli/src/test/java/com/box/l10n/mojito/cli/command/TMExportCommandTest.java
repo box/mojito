@@ -9,7 +9,9 @@ import com.box.l10n.mojito.test.XliffUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TMExportCommandTest extends CLITestBase {
 
   @Autowired RepositoryClient repositoryClient;

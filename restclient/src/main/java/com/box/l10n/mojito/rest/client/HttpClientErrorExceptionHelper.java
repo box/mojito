@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @Component
 public class HttpClientErrorExceptionHelper {
 

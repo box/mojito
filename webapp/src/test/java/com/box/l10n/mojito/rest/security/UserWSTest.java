@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class UserWSTest extends WSTestBase {
 
   /** logger */

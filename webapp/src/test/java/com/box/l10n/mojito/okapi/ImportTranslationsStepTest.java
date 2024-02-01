@@ -8,7 +8,9 @@ import net.sf.okapi.common.resource.TextContainer;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ImportTranslationsStepTest {
 
   @Test

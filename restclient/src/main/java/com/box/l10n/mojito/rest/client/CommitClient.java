@@ -7,7 +7,9 @@ import com.box.l10n.mojito.rest.entity.CommitToPushRunBody;
 import java.time.ZonedDateTime;
 import org.springframework.stereotype.Component;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 @Component
 public class CommitClient extends BaseClient {
   @Override

@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ImportLocalizedAssetBody {
 
   /** bcp47 tag of the locale content */

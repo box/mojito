@@ -13,7 +13,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Repository
 public interface MBlobRepository
     extends JpaRepository<MBlob, Long>, JpaSpecificationExecutor<MBlob> {

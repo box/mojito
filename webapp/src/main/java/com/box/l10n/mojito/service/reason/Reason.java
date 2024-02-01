@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.reason;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public enum Reason {
   COMPILATION_FAILED(ReasonGroup.INTEGRITY_CHECK),
   PLACEHOLDER_MISMATCH(ReasonGroup.INTEGRITY_CHECK),

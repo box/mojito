@@ -9,7 +9,9 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.PATH_SEPERATOR;
 
 import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleTargetNotSourceType;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class ReswFileType extends FileType {
 
   public ReswFileType() {

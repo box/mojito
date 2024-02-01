@@ -10,7 +10,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @RepositoryRestResource(exported = false)
 public interface ScreenshotRepository
     extends JpaRepository<Screenshot, Long>, JpaSpecificationExecutor<Screenshot> {

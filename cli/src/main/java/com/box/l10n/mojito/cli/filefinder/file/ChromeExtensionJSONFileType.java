@@ -12,7 +12,9 @@ import com.box.l10n.mojito.cli.filefinder.locale.ChromeExtJsonLocaleType;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class ChromeExtensionJSONFileType extends FileType {
 
   public ChromeExtensionJSONFileType() {

@@ -43,7 +43,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.OutputCaptureRule;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class DropImportCommandTest extends CLITestBase {
 
   /** logger */

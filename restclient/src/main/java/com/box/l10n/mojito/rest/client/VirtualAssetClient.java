@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class VirtualAssetClient extends BaseClient {
 

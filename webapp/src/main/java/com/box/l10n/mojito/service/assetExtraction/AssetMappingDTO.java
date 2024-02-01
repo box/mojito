@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class AssetMappingDTO {
 
   private Long assetExtractionId;

@@ -15,7 +15,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedBy;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Entity
 @Table(
     name = "asset_text_unit",

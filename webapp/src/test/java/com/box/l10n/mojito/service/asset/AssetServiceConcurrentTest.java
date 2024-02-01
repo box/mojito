@@ -37,7 +37,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author aloison, jyi */
+/**
+ * @author aloison, jyi
+ */
 public class AssetServiceConcurrentTest extends ServiceTestBase {
 
   /** logger */

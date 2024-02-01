@@ -8,7 +8,9 @@ import net.sf.okapi.common.annotation.ITSLQIAnnotations;
 import net.sf.okapi.common.annotation.IssueAnnotation;
 import net.sf.okapi.common.resource.TextContainer;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class IssueWithReasonAnnotation {
 
   protected static final String LOC_QUALITY_ISSUE_REASON = "locQualityIssueReason";

@@ -3,7 +3,9 @@ package com.box.l10n.mojito.rest.commit;
 import com.box.l10n.mojito.entity.Repository;
 import java.util.List;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class CommitListWithRepositoryIdBody {
 
   /** The candidate commit names to search. */

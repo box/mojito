@@ -17,7 +17,9 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.SetJoin;
 import org.springframework.data.jpa.domain.Specification;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class AssetSpecification {
 
   /**

@@ -19,7 +19,9 @@ import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Component;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 @Profile("!disablescheduling")
 @Configuration
 @Component

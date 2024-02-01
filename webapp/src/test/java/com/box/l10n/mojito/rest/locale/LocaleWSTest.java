@@ -13,7 +13,9 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class LocaleWSTest extends WSTestBase {
 
   @Autowired LocaleClient localeClient;

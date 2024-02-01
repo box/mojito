@@ -222,7 +222,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     return sessionId != null && sessionId.equals(latestSessionIdForLatestCsrfToken);
   }
 
-  /** @return null if no sesson id cookie is found */
+  /**
+   * @return null if no sesson id cookie is found
+   */
   protected String getAuthenticationSessionIdFromCookieStore() {
     List<Cookie> cookies = cookieStore.getCookies();
     for (Cookie cookie : cookies) {

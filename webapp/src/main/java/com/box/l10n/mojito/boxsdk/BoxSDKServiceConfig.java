@@ -1,11 +1,17 @@
 package com.box.l10n.mojito.boxsdk;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public interface BoxSDKServiceConfig {
-  /** @return The Client ID of the API Key */
+  /**
+   * @return The Client ID of the API Key
+   */
   String getClientId();
 
-  /** @return The Client Secret of the API Key */
+  /**
+   * @return The Client Secret of the API Key
+   */
   String getClientSecret();
 
   /**
@@ -20,10 +26,14 @@ public interface BoxSDKServiceConfig {
    */
   String getPrivateKey();
 
-  /** @return The password for the Private Key if any */
+  /**
+   * @return The password for the Private Key if any
+   */
   String getPrivateKeyPassword();
 
-  /** @return The Enterprise ID granted access to the API key */
+  /**
+   * @return The Enterprise ID granted access to the API key
+   */
   String getEnterpriseId();
 
   /**
@@ -40,6 +50,8 @@ public interface BoxSDKServiceConfig {
    */
   String getRootFolderId();
 
-  /** @return The folder ID to contain all the drops */
+  /**
+   * @return The folder ID to contain all the drops
+   */
   String getDropsFolderId();
 }

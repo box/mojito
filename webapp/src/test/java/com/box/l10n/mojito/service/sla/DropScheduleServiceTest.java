@@ -16,7 +16,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class DropScheduleServiceTest {
 

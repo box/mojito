@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Service
 public class LocaleService {
 
@@ -16,7 +18,9 @@ public class LocaleService {
 
   @Autowired LocaleRepository localeRepository;
 
-  /** @return Map BCP47 => Locale. The map will be cached. */
+  /**
+   * @return Map BCP47 => Locale. The map will be cached.
+   */
   @Cacheable("locales")
   private Map<String, Locale> getLocalesBcp47TagMap() {
 
@@ -32,7 +36,9 @@ public class LocaleService {
     return localesMap;
   }
 
-  /** @return Map ID => Locale. The map will be cached. */
+  /**
+   * @return Map ID => Locale. The map will be cached.
+   */
   @Cacheable("locales")
   private Map<Long, Locale> getLocalesIdMap() {
 

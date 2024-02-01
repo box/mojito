@@ -23,7 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Service
 public class BoxSDKServiceConfigEntityService {
 
@@ -39,7 +41,9 @@ public class BoxSDKServiceConfigEntityService {
 
   @Autowired BoxSDKAppUserService boxSDKAppUserService;
 
-  /** @return */
+  /**
+   * @return
+   */
   public BoxSDKServiceConfigEntity getBoxSDKServiceConfigEntity() {
     return boxSDKServiceConfigEntityRepository.findFirstByOrderByIdAsc();
   }
@@ -237,7 +241,9 @@ public class BoxSDKServiceConfigEntityService {
     }
   }
 
-  /** @param boxSDKServiceConfig */
+  /**
+   * @param boxSDKServiceConfig
+   */
   @Pollable(message = "Validate Config Values")
   private void validateConfig(
       BoxSDKServiceConfigEntity boxSDKServiceConfig, @ParentTask PollableTask parentTask) {

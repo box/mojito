@@ -2,7 +2,9 @@ package com.box.l10n.mojito.okapi.filters;
 
 import net.sf.okapi.common.encoder.EncoderContext;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class JSEncoder extends SimpleEncoder {
 
   @Override

@@ -8,7 +8,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import org.junit.Test;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class LocalTimeConverterTest {
 
   @Test

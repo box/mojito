@@ -10,7 +10,9 @@ import org.junit.Test;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class CachingConfigTest extends ServiceTestBase {
 
   int i = 0;

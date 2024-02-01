@@ -4,7 +4,9 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class TieredCacheTest {
   public final String TEST_CACHE_NAME = "tieredCache";
   public final String KEY = "key";

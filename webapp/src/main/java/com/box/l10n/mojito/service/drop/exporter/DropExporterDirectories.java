@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.drop.exporter;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class DropExporterDirectories {
 
   /** Names of folders inside the main drop folder */

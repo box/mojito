@@ -23,7 +23,9 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.web.client.RestTemplate;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessTokenProvider {
 
   static Logger logger =

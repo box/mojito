@@ -13,7 +13,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class TMTextUnitIntegrityCheckService {
   /** logger */

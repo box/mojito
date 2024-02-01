@@ -2,7 +2,9 @@ package com.box.l10n.mojito.service.asset;
 
 import java.util.Set;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class DeleteAssetsOfBranchJobInput {
   Set<Long> assetIds;
   long branchId;

@@ -2,7 +2,9 @@ package com.box.l10n.mojito.rest.drop;
 
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ImportXliffBody {
 
   /** repository in which to import the XILFF */

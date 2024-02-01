@@ -26,7 +26,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(

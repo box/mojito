@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.boxsdk;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class MojitoAppUserInfo {
 
   String rootFolderId;

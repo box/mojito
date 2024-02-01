@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class AbstractLeveragerTest {
 
   private AbstractLeverager getLeveragingImpl() {

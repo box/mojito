@@ -4,7 +4,9 @@ import java.lang.reflect.Method;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @Configurable
 public class CustomKeyGenerator extends SimpleKeyGenerator {
 

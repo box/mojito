@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.filefinder.locale;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class Bcp47LocaleType extends LocaleType {
 
   @Override

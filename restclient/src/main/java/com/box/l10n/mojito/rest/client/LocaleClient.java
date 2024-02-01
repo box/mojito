@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class LocaleClient extends BaseClient {
 

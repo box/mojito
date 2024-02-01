@@ -6,7 +6,9 @@ import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.filters.xliff.Parameters;
 import net.sf.okapi.filters.xliff.XLIFFSkeletonWriter;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class XcodeXliffSkeletonWriter extends XLIFFSkeletonWriter {
 
   public XcodeXliffSkeletonWriter(Parameters params) {

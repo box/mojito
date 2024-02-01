@@ -2,7 +2,9 @@ package com.box.l10n.mojito.smartling;
 
 import org.springframework.security.oauth2.client.resource.BaseOAuth2ProtectedResourceDetails;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class SmartlingOAuth2ProtectedResourceDetails extends BaseOAuth2ProtectedResourceDetails {
   String refreshUri;
 

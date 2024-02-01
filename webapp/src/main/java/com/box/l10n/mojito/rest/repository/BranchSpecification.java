@@ -14,7 +14,9 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class BranchSpecification {
 
   public static SingleParamSpecification<Branch> nameEquals(final String name) {

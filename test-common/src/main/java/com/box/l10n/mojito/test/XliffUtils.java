@@ -2,7 +2,9 @@ package com.box.l10n.mojito.test;
 
 import com.google.common.base.Function;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class XliffUtils {
 
   /**

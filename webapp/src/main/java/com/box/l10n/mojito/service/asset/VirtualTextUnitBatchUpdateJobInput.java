@@ -2,7 +2,9 @@ package com.box.l10n.mojito.service.asset;
 
 import java.util.List;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class VirtualTextUnitBatchUpdateJobInput {
   long assetId;
   List<VirtualAssetTextUnit> virtualAssetTextUnits;

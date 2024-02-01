@@ -6,7 +6,9 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.json.JsonValidator;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class JsonValidatorTest {
 
   JsonValidator jsonValidator = new JsonValidator();

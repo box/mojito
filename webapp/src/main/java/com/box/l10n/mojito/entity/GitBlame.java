@@ -10,7 +10,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Entity
 @Table(
     name = "git_blame",

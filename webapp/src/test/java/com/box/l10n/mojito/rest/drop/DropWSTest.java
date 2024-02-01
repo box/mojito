@@ -25,7 +25,9 @@ import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 public class DropWSTest extends WSTestBase {
 
   /** logger */

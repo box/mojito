@@ -2,7 +2,9 @@ package com.box.l10n.mojito.cli.filefinder.locale;
 
 import java.util.Locale;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class PropertiesJavaLocaleType extends LocaleType {
 
   @Override

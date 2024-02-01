@@ -10,7 +10,9 @@ import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import org.springframework.stereotype.Component;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @Component
 public class XliffDataFactory {
 

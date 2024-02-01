@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.drop;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ImportDropException extends Exception {
 
   public ImportDropException(String message) {

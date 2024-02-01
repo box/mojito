@@ -2,7 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.rest.ThirdPartySyncAction;
 
-/** @author sdemyanenko */
+/**
+ * @author sdemyanenko
+ */
 public class ThirdPartySyncActionsConverter extends EnumConverter<ThirdPartySyncAction> {
 
   @Override

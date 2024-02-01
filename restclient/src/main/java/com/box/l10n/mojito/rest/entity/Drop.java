@@ -2,7 +2,9 @@ package com.box.l10n.mojito.rest.entity;
 
 import java.time.ZonedDateTime;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class Drop {
 
   Long id;

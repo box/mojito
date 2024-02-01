@@ -151,8 +151,11 @@ public class BranchStatisticService {
                                 lastSuccessfulAssetExtraction.getId(),
                                 lastSuccessfulAssetExtraction.getVersion());
 
-                        return lastSuccessfulAssetExtraction.getAsset().getRepository()
-                            .getRepositoryLocales().stream()
+                        return lastSuccessfulAssetExtraction
+                            .getAsset()
+                            .getRepository()
+                            .getRepositoryLocales()
+                            .stream()
                             .filter(
                                 rl -> rl.getParentLocale() != null && rl.isToBeFullyTranslated())
                             .flatMap(
@@ -188,7 +191,8 @@ public class BranchStatisticService {
                             .stream()
                             .flatMap(
                                 longForTranslationCountForTmTextUnitIdImmutableMap ->
-                                    longForTranslationCountForTmTextUnitIdImmutableMap.values()
+                                    longForTranslationCountForTmTextUnitIdImmutableMap
+                                        .values()
                                         .stream());
                       })
                   .collect(toMapBranchNameToTranslationCountForTextUnitId());

@@ -6,7 +6,9 @@ import net.sf.okapi.common.resource.TextContainer;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TMTextUnitVariantCommentAnnotationsTest {
 
   @Test

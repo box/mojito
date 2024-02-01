@@ -3,7 +3,9 @@ package com.box.l10n.mojito.aspect;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @JsonPropertyOrder(alphabetic = true)
 public class JsonRawStringAspectNotAnnotated {
 

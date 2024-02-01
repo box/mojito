@@ -26,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class BoxDropExporterTest extends ServiceTestBase {
 
   static Logger logger = LoggerFactory.getLogger(DropExporterService.class);

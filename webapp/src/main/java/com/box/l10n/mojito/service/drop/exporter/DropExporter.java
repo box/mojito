@@ -33,7 +33,9 @@ import com.box.l10n.mojito.service.drop.importer.DropImporter;
  */
 public interface DropExporter {
 
-  /** @return the {@link DropExporterType} implemented by this instance. */
+  /**
+   * @return the {@link DropExporterType} implemented by this instance.
+   */
   DropExporterType getDropExporterType();
 
   /**

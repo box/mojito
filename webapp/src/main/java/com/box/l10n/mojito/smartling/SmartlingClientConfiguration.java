@@ -21,7 +21,9 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Configuration
 @EnableOAuth2Client
 @ConfigurationProperties("l10n.smartling")

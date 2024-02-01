@@ -11,7 +11,9 @@ import org.fusesource.jansi.Ansi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public abstract class RepoCommand extends Command {
 
   protected static final String INTEGRITY_CHECK_LONG_PARAM = "--integrity-check";

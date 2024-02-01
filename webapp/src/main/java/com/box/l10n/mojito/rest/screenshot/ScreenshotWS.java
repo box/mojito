@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @RestController
 public class ScreenshotWS {
 

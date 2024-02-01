@@ -932,7 +932,9 @@ public class TMService {
     return updateReport;
   }
 
-  /** @return A {@code QualityCheckStep} that will only perform the needed checks */
+  /**
+   * @return A {@code QualityCheckStep} that will only perform the needed checks
+   */
   private QualityCheckStep getConfiguredQualityStep() {
 
     Parameters parameters = new Parameters();

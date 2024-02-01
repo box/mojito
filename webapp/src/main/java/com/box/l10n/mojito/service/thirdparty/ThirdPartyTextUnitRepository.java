@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 @RepositoryRestResource(exported = false)
 public interface ThirdPartyTextUnitRepository
     extends JpaRepository<ThirdPartyTextUnit, Long>, JpaSpecificationExecutor<ThirdPartyTextUnit> {

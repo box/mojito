@@ -21,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class CommitCreateCommandTest extends CLITestBase {
 
   @Autowired CommitService commitService;

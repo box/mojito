@@ -15,7 +15,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class TMTextUnitVariantCommentServiceTest extends ServiceTestBase {
 
   @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;

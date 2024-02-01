@@ -16,7 +16,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 @Entity
 @Table(
     name = "commit",

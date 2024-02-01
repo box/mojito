@@ -9,7 +9,9 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 
 import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleTargetNotSourceType;
 
-/** @author jyi */
+/**
+ * @author jyi
+ */
 public class XtbFileType extends FileType {
 
   public XtbFileType() {

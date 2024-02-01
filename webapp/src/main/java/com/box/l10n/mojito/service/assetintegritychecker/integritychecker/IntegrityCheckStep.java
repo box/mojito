@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/** @author aloison */
+/**
+ * @author aloison
+ */
 @Configurable
 public class IntegrityCheckStep extends BasePipelineStep {
 

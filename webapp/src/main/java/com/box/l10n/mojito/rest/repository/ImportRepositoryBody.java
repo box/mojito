@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.repository;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ImportRepositoryBody {
 
   String xliffContent;

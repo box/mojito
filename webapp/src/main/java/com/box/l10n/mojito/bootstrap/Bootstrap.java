@@ -14,7 +14,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 

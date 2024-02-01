@@ -6,7 +6,9 @@ import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileTypes;
 import java.util.Arrays;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class FileTypeConverter implements IStringConverter<FileType> {
 
   @Override

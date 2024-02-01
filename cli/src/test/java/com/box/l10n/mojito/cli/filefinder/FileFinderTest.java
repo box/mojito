@@ -15,7 +15,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class FileFinderTest extends IOTestBase {
 
   /** logger */

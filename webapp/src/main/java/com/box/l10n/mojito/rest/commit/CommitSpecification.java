@@ -20,7 +20,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 public class CommitSpecification {
 
   /**

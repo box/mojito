@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.tm;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class TextUnitIdMd5DTO {
   private Long id;
   private String md5;

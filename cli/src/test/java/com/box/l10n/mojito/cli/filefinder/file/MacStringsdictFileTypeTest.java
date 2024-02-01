@@ -11,7 +11,9 @@ import java.util.regex.Matcher;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** @author emagalindan */
+/**
+ * @author emagalindan
+ */
 public class MacStringsdictFileTypeTest {
 
   @Test

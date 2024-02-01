@@ -11,7 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.OutputCaptureRule;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class ConsoleWriterTest {
 
   /** logger */

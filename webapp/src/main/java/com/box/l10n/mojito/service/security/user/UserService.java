@@ -16,7 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Component
 public class UserService {
 
@@ -153,7 +155,9 @@ public class UserService {
     return rolePrefix + roleName;
   }
 
-  /** @return The System User */
+  /**
+   * @return The System User
+   */
   public User findSystemUser() {
     return userRepository.findByUsername(SYSTEM_USERNAME);
   }

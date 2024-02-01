@@ -18,7 +18,9 @@ import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class UserDetailsContextMapperImplTest {
 

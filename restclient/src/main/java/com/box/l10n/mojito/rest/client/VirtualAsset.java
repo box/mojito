@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.client;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class VirtualAsset {
 
   Long id;

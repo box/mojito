@@ -8,13 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Service
 public class PluralFormService {
 
   @Autowired PluralFormRepository pluralFormRepository;
 
-  /** @return Map "plural_form" => PluralForm. The map will be cached. */
+  /**
+   * @return Map "plural_form" => PluralForm. The map will be cached.
+   */
   @Cacheable("pluralForms")
   private Map<String, PluralForm> getPluralFormMap() {
     Map<String, PluralForm> pluralFormsMap = new HashMap<>();
@@ -27,7 +31,9 @@ public class PluralFormService {
     return pluralFormsMap;
   }
 
-  /** @return Map ID => PluralForm. The map will be cached. */
+  /**
+   * @return Map ID => PluralForm. The map will be cached.
+   */
   @Cacheable("pluralForms")
   private Map<Long, PluralForm> getPluralFormIdMap() {
     Map<Long, PluralForm> pluralFormsMap = new HashMap<>();

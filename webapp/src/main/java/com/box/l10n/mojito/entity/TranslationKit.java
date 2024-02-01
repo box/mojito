@@ -23,7 +23,9 @@ import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
 import org.springframework.data.annotation.CreatedBy;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @SqlResultSetMapping(
     name = "TranslationKit.exportedAndCurrentTuvs",
     classes = {

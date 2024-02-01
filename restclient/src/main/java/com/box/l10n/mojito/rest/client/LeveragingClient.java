@@ -6,7 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @Component
 public class LeveragingClient extends BaseClient {
 

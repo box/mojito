@@ -2,7 +2,9 @@ package com.box.l10n.mojito.boxsdk;
 
 import com.box.sdk.BoxFile;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class BoxFileWithContent {
 
   BoxFile boxFile;

@@ -5,7 +5,9 @@ import com.github.pnowy.nc.core.expressions.NativeExp;
 import com.github.pnowy.nc.utils.Strings;
 import java.time.ZonedDateTime;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class NativeDateLteExp implements NativeExp {
   /** Column name. */
   private String columnName;

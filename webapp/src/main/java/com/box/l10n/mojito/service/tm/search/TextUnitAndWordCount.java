@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.tm.search;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class TextUnitAndWordCount {
 
   long textUnitCount;

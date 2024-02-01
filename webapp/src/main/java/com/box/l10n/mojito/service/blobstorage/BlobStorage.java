@@ -24,7 +24,8 @@ public interface BlobStorage {
 
   default void put(String name, String content) {
     put(name, content, Retention.PERMANENT);
-  };
+  }
+  ;
 
   default void put(String name, String content, Retention retention) {
     put(name, content.getBytes(StandardCharsets.UTF_8), retention);

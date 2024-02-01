@@ -23,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class LeveragingCommandTest extends CLITestBase {
 
   /** logger */
@@ -357,7 +359,8 @@ public class LeveragingCommandTest extends CLITestBase {
             "branch1");
 
     List<String> targetTranslations =
-        tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository)
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesOrderByContent(targetRepository)
             .stream()
             .sorted(
                 Comparator.comparing(

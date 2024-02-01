@@ -1,13 +1,17 @@
 package com.box.l10n.mojito.rest.textunit;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 public class TMTextUnitIntegrityCheckResult {
 
   private Boolean checkResult;
 
   private String failureDetail;
 
-  /** @return True if the check passes. False if it fails. */
+  /**
+   * @return True if the check passes. False if it fails.
+   */
   public Boolean getCheckResult() {
     return checkResult;
   }
@@ -21,12 +25,16 @@ public class TMTextUnitIntegrityCheckResult {
     this.checkResult = checkResult;
   }
 
-  /** @return Detail description of the result */
+  /**
+   * @return Detail description of the result
+   */
   public String getFailureDetail() {
     return failureDetail;
   }
 
-  /** @param failureDetail */
+  /**
+   * @param failureDetail
+   */
   public void setFailureDetail(String failureDetail) {
     this.failureDetail = failureDetail;
   }

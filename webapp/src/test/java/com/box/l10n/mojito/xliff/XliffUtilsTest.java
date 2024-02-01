@@ -5,7 +5,9 @@ import static org.junit.Assert.*;
 import javax.xml.xpath.XPathExpressionException;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class XliffUtilsTest {
 
   @Test

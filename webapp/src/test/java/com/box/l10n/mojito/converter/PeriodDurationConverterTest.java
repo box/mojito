@@ -6,7 +6,9 @@ import com.box.l10n.mojito.JSR310Migration;
 import org.junit.Test;
 import org.threeten.extra.PeriodDuration;
 
-/** @author jeanaurambault */
+/**
+ * @author jeanaurambault
+ */
 public class PeriodDurationConverterTest {
 
   @Test

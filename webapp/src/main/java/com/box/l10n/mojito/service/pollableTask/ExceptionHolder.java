@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.NONE,
     getterVisibility = JsonAutoDetect.Visibility.NONE,

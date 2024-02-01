@@ -10,7 +10,9 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 import com.box.l10n.mojito.cli.filefinder.locale.CVSAdobeMagentoLocaleType;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class CSVAdobeMagentoFileType extends LocaleAsFileNameType {
 
   public CSVAdobeMagentoFileType() {

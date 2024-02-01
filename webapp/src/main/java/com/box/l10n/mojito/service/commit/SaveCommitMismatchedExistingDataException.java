@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.commit;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/** @author garion */
+/**
+ * @author garion
+ */
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class SaveCommitMismatchedExistingDataException extends Exception {
 

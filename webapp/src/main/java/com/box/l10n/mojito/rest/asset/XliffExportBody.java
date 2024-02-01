@@ -2,7 +2,9 @@ package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.PollableTask;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class XliffExportBody {
 
   Long tmXliffId;

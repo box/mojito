@@ -12,7 +12,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class BoxAPIConnectionProviderTest {
 

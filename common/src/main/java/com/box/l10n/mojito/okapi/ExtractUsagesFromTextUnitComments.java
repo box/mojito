@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** @author emagalindan */
+/**
+ * @author emagalindan
+ */
 @Component
 public class ExtractUsagesFromTextUnitComments {
 
@@ -53,7 +55,9 @@ public class ExtractUsagesFromTextUnitComments {
     return locations;
   }
 
-  /** @param textUnit used to remove usages from comments */
+  /**
+   * @param textUnit used to remove usages from comments
+   */
   void removeUsagesFromTextUnitComment(TextUnit textUnit) {
     String comment = textUnitUtils.getNote(textUnit);
     Pattern pattern = Pattern.compile(USAGES_PATTERN);

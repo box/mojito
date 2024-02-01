@@ -9,7 +9,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedBy;
 
-/** @author wyau */
+/**
+ * @author wyau
+ */
 @Entity
 @Table(name = "translation_kit_text_unit")
 public class TranslationKitTextUnit extends AuditableEntity {

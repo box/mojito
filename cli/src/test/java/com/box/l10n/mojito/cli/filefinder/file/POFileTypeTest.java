@@ -11,7 +11,9 @@ import java.util.regex.Matcher;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** @author jaurambault */
+/**
+ * @author jaurambault
+ */
 public class POFileTypeTest {
 
   @Test
