@@ -39,20 +39,6 @@ public interface PullRunRepository extends JpaRepository<PullRun, Long> {
       nativeQuery = true,
       value =
           """
-          delete pr, pra, prattu
-          from pull_run pr
-          join pull_run_asset pra on pra.pull_run_id = pr.id
-          join pull_run_text_unit_variant prtuv on prtuv.pull_run_asset_id = pra.id
-          where DATE_ADD(pr.created_date, INTERVAL :retentionDurationInSeconds second) < NOW()
-          """)
-  void deleteOlderThan(@Param("retentionDurationInSeconds") long retentionDurationInSeconds);
-
-  @Transactional
-  @Modifying
-  @Query(
-      nativeQuery = true,
-      value =
-          """
           delete pr
           from pull_run pr
           where pr.created_date < :beforeDate
