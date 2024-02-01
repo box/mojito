@@ -85,15 +85,15 @@ public class UserService {
       String commonName,
       boolean partiallyCreated) {
 
-    if (!StringUtils.isEmpty(givenName)) {
+    if (givenName != null) {
       user.setGivenName(givenName);
     }
 
-    if (!StringUtils.isEmpty(surname)) {
+    if (surname != null) {
       user.setSurname(surname);
     }
 
-    if (!StringUtils.isEmpty(commonName)) {
+    if (commonName != null) {
       user.setCommonName(commonName);
     }
 
