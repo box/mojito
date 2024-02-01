@@ -22,11 +22,13 @@ public interface PushRunRepository extends JpaRepository<PushRun, Long> {
 
   @Query(
       value =
-          "select p from PushRun p "
-              + "join CommitToPushRun cpr on cpr.pushRun = p "
-              + "join Commit c on c = cpr.commit "
-              + "where c.name in :commitNames and c.repository.id = :repositoryId "
-              + "and p.repository.id = :repositoryId order by p.createdDate desc ")
+          """
+          select p from PushRun p
+          join CommitToPushRun cpr on cpr.pushRun = p
+          join Commit c on c = cpr.commit
+          where c.name in :commitNames and c.repository.id = :repositoryId
+          and p.repository.id = :repositoryId order by p.createdDate desc
+          """)
   List<PushRun> findLatestByCommitNames(
       @Param("commitNames") List<String> commitNames,
       @Param("repositoryId") Long repositoryId,
@@ -36,6 +38,11 @@ public interface PushRunRepository extends JpaRepository<PushRun, Long> {
   @Modifying
   @Query(
       nativeQuery = true,
-      value = "delete pr " + "from push_run pr " + "where pr.created_date < :beforeDate ")
+      value =
+          """
+          delete pr
+          from push_run pr
+          where pr.created_date < :beforeDate
+          """)
   void deleteAllByCreatedDateBefore(@Param("beforeDate") ZonedDateTime beforeDate);
 }

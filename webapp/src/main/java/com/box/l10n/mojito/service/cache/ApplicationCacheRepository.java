@@ -17,9 +17,11 @@ public interface ApplicationCacheRepository extends JpaRepository<ApplicationCac
 
   @Query(
       value =
-          "select ac from ApplicationCache ac "
-              + "where ac.applicationCacheType = :applicationCacheType and ac.keyMD5 = :keyMD5 "
-              + "and (ac.expiryDate is null or ac.expiryDate > CURRENT_TIMESTAMP)")
+          """
+          select ac from ApplicationCache ac
+          where ac.applicationCacheType = :applicationCacheType and ac.keyMD5 = :keyMD5
+          and (ac.expiryDate is null or ac.expiryDate > CURRENT_TIMESTAMP)
+          """)
   Optional<ApplicationCache> findByIdAndNotExpired(
       @Param("applicationCacheType") ApplicationCacheType applicationCacheType,
       @Param("keyMD5") String keyMD5);
@@ -34,7 +36,11 @@ public interface ApplicationCacheRepository extends JpaRepository<ApplicationCac
 
   @Modifying
   @Query(
-      value = "delete from ApplicationCache ac " + "where ac.applicationCacheType.id = :cacheId ")
+      value =
+          """
+          delete from ApplicationCache ac
+          where ac.applicationCacheType.id = :cacheId
+          """)
   void clearCache(@Param("cacheId") short cacheId);
 
   @Modifying

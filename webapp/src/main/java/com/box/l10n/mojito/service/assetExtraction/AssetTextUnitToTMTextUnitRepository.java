@@ -25,34 +25,44 @@ public interface AssetTextUnitToTMTextUnitRepository
   void deleteByAssetTextUnitIdIn(List<Long> assetTextUnitIds);
 
   @Query(
-      "select atuttu.tmTextUnit.id from AssetTextUnitToTMTextUnit atuttu "
-          + "inner join atuttu.assetExtraction ae "
-          + "inner join ae.assetExtractionByBranches aec "
-          + "where aec.branch = ?1")
+      """
+      select atuttu.tmTextUnit.id from AssetTextUnitToTMTextUnit atuttu
+      inner join atuttu.assetExtraction ae
+      inner join ae.assetExtractionByBranches aec
+      where aec.branch = ?1
+      """)
   List<Long> findByBranch(Branch branch);
 
   @Query(
-      "select atuttu.tmTextUnit.id from AssetTextUnitToTMTextUnit atuttu "
-          + "inner join atuttu.assetExtraction ae "
-          + "inner join ae.assetExtractionByBranches aec "
-          + "where aec.branch.name = ?1")
+      """
+      select atuttu.tmTextUnit.id from AssetTextUnitToTMTextUnit atuttu
+      inner join atuttu.assetExtraction ae
+      inner join ae.assetExtractionByBranches aec
+      where aec.branch.name = ?1
+      """)
   List<Long> findByBranchName(String branchName);
 
   @Query(
-      "select atuttu.tmTextUnit.id "
-          + "from AssetTextUnitToTMTextUnit atuttu "
-          + "where atuttu.assetExtraction.id = ?1")
+      """
+      select atuttu.tmTextUnit.id
+      from AssetTextUnitToTMTextUnit atuttu
+      where atuttu.assetExtraction.id = ?1
+      """)
   Set<Long> findTmTextUnitIdsByAssetExtractionId(Long assetExtractionId);
 
   @Query(
-      "select atuttu.tmTextUnit.id "
-          + "from AssetTextUnitToTMTextUnit atuttu "
-          + "where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.doNotTranslate = true")
+      """
+      select atuttu.tmTextUnit.id
+      from AssetTextUnitToTMTextUnit atuttu
+      where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.doNotTranslate = true
+      """)
   Set<Long> getTmTextUnitIdsOfDoNotTranslateUnitsByAssetExtractionId(Long assetExtractionId);
 
   @Query(
-      "select atuttu.tmTextUnit.id "
-          + "from AssetTextUnitToTMTextUnit atuttu "
-          + "where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.id = ?2")
+      """
+      select atuttu.tmTextUnit.id
+      from AssetTextUnitToTMTextUnit atuttu
+      where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.id = ?2
+      """)
   Optional<Long> findTmTextUnitId(long assetExtractionId, long assetTextUnitId);
 }

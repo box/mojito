@@ -30,9 +30,11 @@ public interface PullRunTextUnitVariantRepository
       Long pullRunAssetId, Long localeId, String outputBcp47Tag);
 
   @Query(
-      "select prtuv.tmTextUnitVariant from PullRunTextUnitVariant prtuv "
-          + "inner join prtuv.pullRunAsset pra "
-          + "inner join pra.pullRun pr where pr = :pullRun")
+      """
+      select prtuv.tmTextUnitVariant from PullRunTextUnitVariant prtuv
+      inner join prtuv.pullRunAsset pra
+      inner join pra.pullRun pr where pr = :pullRun
+      """)
   List<TMTextUnitVariant> findByPullRun(@Param("pullRun") PullRun pullRun, Pageable pageable);
 
   @Transactional
@@ -43,15 +45,17 @@ public interface PullRunTextUnitVariantRepository
   @Query(
       nativeQuery = true,
       value =
-          "delete pull_run_text_unit_variant "
-              + "from pull_run_text_unit_variant "
-              + "join (select prtuv.id as id "
-              + "  from pull_run pr "
-              + "  join pull_run_asset pra on pra.pull_run_id = pr.id "
-              + "  join pull_run_text_unit_variant prtuv on prtuv.pull_run_asset_id = pra.id "
-              + "  where pr.created_date < :beforeDate "
-              + "  limit :batchSize "
-              + ") todelete on todelete.id = pull_run_text_unit_variant.id")
+          """
+          delete pull_run_text_unit_variant
+          from pull_run_text_unit_variant
+          join (select prtuv.id as id
+            from pull_run pr
+            join pull_run_asset pra on pra.pull_run_id = pr.id
+            join pull_run_text_unit_variant prtuv on prtuv.pull_run_asset_id = pra.id
+            where pr.created_date < :beforeDate
+            limit :batchSize
+          ) todelete on todelete.id = pull_run_text_unit_variant.id
+          """)
   int deleteAllByPullRunWithCreatedDateBefore(
       @Param("beforeDate") ZonedDateTime beforeDate, @Param("batchSize") int batchSize);
 }

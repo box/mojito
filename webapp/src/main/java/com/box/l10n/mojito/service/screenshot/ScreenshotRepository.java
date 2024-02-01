@@ -22,11 +22,13 @@ public interface ScreenshotRepository
 
   @Query(
       value =
-          "select s from #{#entityName} s "
-              + "inner join s.screenshotRun sr "
-              + "inner join sr.repository r "
-              + "left join  s.thirdPartyScreenshots tps "
-              + "where r = ?1 and r.manualScreenshotRun = sr and tps is null")
+          """
+          select s from #{#entityName} s
+          inner join s.screenshotRun sr
+          inner join sr.repository r
+          left join  s.thirdPartyScreenshots tps
+          where r = ?1 and r.manualScreenshotRun = sr and tps is null
+          """)
   List<Screenshot> findUnmappedScreenshots(Repository repository);
 
   void deleteById(Long screenshotId);

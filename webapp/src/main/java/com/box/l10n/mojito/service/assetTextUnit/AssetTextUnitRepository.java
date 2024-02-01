@@ -21,7 +21,11 @@ public interface AssetTextUnitRepository
   List<AssetTextUnit> findByAssetExtractionId(long assetExtractionId);
 
   @Query(
-      "select new com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitIdToMd5(atu.id, atu.md5) from #{#entityName} atu where atu.assetExtraction = ?1")
+      """
+      select new com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitIdToMd5(atu.id, atu.md5)
+      from #{#entityName} atu
+      where atu.assetExtraction = ?1
+      """)
   List<AssetTextUnitIdToMd5> findMd5ByAssetExtraction(AssetExtraction assetExtraction);
 
   /**
@@ -43,8 +47,12 @@ public interface AssetTextUnitRepository
   @Query(
       nativeQuery = true,
       value =
-          "select atu.* from asset_text_unit atu left join asset_text_unit_to_tm_text_unit map on map.asset_text_unit_id = atu.id "
-              + "where map.asset_text_unit_id is NULL and atu.asset_extraction_id = ?1")
+          """
+          select atu.*
+          from asset_text_unit atu
+          left join asset_text_unit_to_tm_text_unit map on map.asset_text_unit_id = atu.id
+          where map.asset_text_unit_id is NULL and atu.asset_extraction_id = ?1
+          """)
   List<AssetTextUnit> getUnmappedAssetTextUnits(Long assetExtractionId);
 
   @Transactional

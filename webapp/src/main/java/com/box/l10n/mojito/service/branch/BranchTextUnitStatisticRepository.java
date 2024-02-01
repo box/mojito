@@ -19,19 +19,31 @@ public interface BranchTextUnitStatisticRepository
 
   BranchTextUnitStatistic getByBranchStatisticIdAndTmTextUnitId(long id, long tmTextUnitId);
 
-  @Query("select btus.tmTextUnit.id from #{#entityName} btus where btus.branchStatistic.id = ?1")
+  @Query(
+      """
+      select btus.tmTextUnit.id
+      from #{#entityName} btus
+      where btus.branchStatistic.id = ?1
+      """)
   List<Long> findTmTextUnitIds(long branchStatisticId);
 
   @Query(
-      "select count(btus.tmTextUnit.id) from #{#entityName} btus where btus.branchStatistic.branch.id = ?1")
+      """
+      select count(btus.tmTextUnit.id)
+      from #{#entityName} btus
+      where btus.branchStatistic.branch.id = ?1
+      """)
   long countTmTextUnitIds(long branchId);
 
   @Transactional
   int deleteByBranchStatisticBranchIdAndTmTextUnitIdIn(long branchId, Set<Long> ids);
 
   @Query(
-      "select new com.box.l10n.mojito.service.branch.BranchTextUnitStatisticWithCounts(btus.id, btus.branchStatistic.id, btus.tmTextUnit.id, btus.forTranslationCount, btus.totalCount) "
-          + "from #{#entityName} btus where btus.branchStatistic.id = ?1 and btus.tmTextUnit.id in ?2")
+      """
+      select new com.box.l10n.mojito.service.branch.BranchTextUnitStatisticWithCounts(btus.id, btus.branchStatistic.id, btus.tmTextUnit.id, btus.forTranslationCount, btus.totalCount)
+      from #{#entityName} btus
+      where btus.branchStatistic.id = ?1 and btus.tmTextUnit.id in ?2
+      """)
   List<BranchTextUnitStatisticWithCounts> getByBranchStatisticIdAndTmTextUnitIdIn(
       long branchStatisticId, List<Long> tmTextUnitIds);
 }

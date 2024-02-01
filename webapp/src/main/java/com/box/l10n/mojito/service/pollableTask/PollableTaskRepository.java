@@ -25,8 +25,10 @@ public interface PollableTaskRepository extends JpaRepository<PollableTask, Long
    * <p>This does not show if test are running in UTC like on CI
    */
   @Query(
-      "select pt from #{#entityName} pt "
-          + "where pt.finishedDate is null "
-          + "and (unix_timestamp(pt.createdDate) + pt.timeout) < unix_timestamp(:now)")
+      """
+      select pt from #{#entityName} pt
+      where pt.finishedDate is null
+      and (unix_timestamp(pt.createdDate) + pt.timeout) < unix_timestamp(:now)
+      """)
   List<PollableTask> findZombiePollableTasks(@Param("now") ZonedDateTime now, Pageable pageable);
 }

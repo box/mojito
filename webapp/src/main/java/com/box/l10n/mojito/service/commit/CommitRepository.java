@@ -20,9 +20,11 @@ public interface CommitRepository
 
   @Query(
       value =
-          "select c from Commit c "
-              + "where c.name in :commitNames and c.repository.id = :repositoryId "
-              + "and c.commitToPushRun.pushRun.repository.id = :repositoryId order by c.commitToPushRun.createdDate desc ")
+          """
+          select c from Commit c
+          where c.name in :commitNames and c.repository.id = :repositoryId
+          and c.commitToPushRun.pushRun.repository.id = :repositoryId order by c.commitToPushRun.createdDate desc
+          """)
   List<Commit> findLatestPushedCommits(
       @Param("commitNames") List<String> commitNames,
       @Param("repositoryId") Long repositoryId,
@@ -30,9 +32,11 @@ public interface CommitRepository
 
   @Query(
       value =
-          "select c from Commit c "
-              + "where c.name in :commitNames and c.repository.id = :repositoryId "
-              + "and c.commitToPullRun.pullRun.repository.id = :repositoryId order by c.commitToPullRun.createdDate desc ")
+          """
+          select c from Commit c
+          where c.name in :commitNames and c.repository.id = :repositoryId
+          and c.commitToPullRun.pullRun.repository.id = :repositoryId order by c.commitToPullRun.createdDate desc
+          """)
   List<Commit> findLatestPulledCommits(
       @Param("commitNames") List<String> commitNames,
       @Param("repositoryId") Long repositoryId,

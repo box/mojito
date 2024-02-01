@@ -17,12 +17,14 @@ public interface AssetExtractionRepository extends JpaRepository<AssetExtraction
   List<AssetExtraction> findByAsset(Asset asset);
 
   @Query(
-      "select ae.id from #{#entityName} ae "
-          + "inner join ae.asset a "
-          + "inner join ae.pollableTask pt "
-          + "left outer join ae.assetExtractionByBranches aea "
-          + "where aea.id is null "
-          + "and  ae != a.lastSuccessfulAssetExtraction "
-          + "and pt.finishedDate is not null")
+      """
+      select ae.id from #{#entityName} ae
+      inner join ae.asset a
+      inner join ae.pollableTask pt
+      left outer join ae.assetExtractionByBranches aea
+      where aea.id is null
+        and ae != a.lastSuccessfulAssetExtraction
+        and pt.finishedDate is not null
+        """)
   List<Long> findFinishedAndOldAssetExtractions(Pageable pageable);
 }

@@ -29,8 +29,10 @@ public interface MBlobRepository
    * <p>This does not show if test are running in UTC like on CI
    */
   @Query(
-      "select mb.id from #{#entityName} mb "
-          + "where (unix_timestamp(mb.createdDate) + mb.expireAfterSeconds) < unix_timestamp(:now)")
+      """
+      select mb.id from #{#entityName} mb
+      where (unix_timestamp(mb.createdDate) + mb.expireAfterSeconds) < unix_timestamp(:now)
+      """)
   List<Long> findExpiredBlobIdsWithNow(@Param("now") ZonedDateTime now, Pageable pageable);
 
   @Transactional

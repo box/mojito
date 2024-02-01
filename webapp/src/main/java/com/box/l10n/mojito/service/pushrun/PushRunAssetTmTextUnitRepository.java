@@ -27,9 +27,11 @@ public interface PushRunAssetTmTextUnitRepository
   List<PushRunAssetTmTextUnit> findByPushRunAsset(PushRunAsset pushRunAsset, Pageable pageable);
 
   @Query(
-      "select prattu.tmTextUnit from PushRunAssetTmTextUnit prattu "
-          + "inner join prattu.pushRunAsset pra "
-          + "inner join pra.pushRun pr where pr = :pushRun")
+      """
+      select prattu.tmTextUnit from PushRunAssetTmTextUnit prattu
+      inner join prattu.pushRunAsset pra
+      inner join pra.pushRun pr where pr = :pushRun
+      """)
   List<TMTextUnit> findByPushRun(@Param("pushRun") PushRun pushRun, Pageable pageable);
 
   @Transactional
@@ -37,15 +39,17 @@ public interface PushRunAssetTmTextUnitRepository
   @Query(
       nativeQuery = true,
       value =
-          "delete push_run_asset_tm_text_unit "
-              + "from push_run_asset_tm_text_unit "
-              + "join (select prattu.id as id "
-              + "  from push_run pr "
-              + "  join push_run_asset pra on pra.push_run_id = pr.id "
-              + "  join push_run_asset_tm_text_unit prattu on prattu.push_run_asset_id = pra.id "
-              + "  where pr.created_date < :beforeDate "
-              + "  limit :batchSize "
-              + ") todelete on todelete.id = push_run_asset_tm_text_unit.id")
+          """
+          delete push_run_asset_tm_text_unit
+          from push_run_asset_tm_text_unit
+            join (select prattu.id as id
+              from push_run pr
+                join push_run_asset pra on pra.push_run_id = pr.id
+                join push_run_asset_tm_text_unit prattu on prattu.push_run_asset_id = pra.id
+              where pr.created_date < :beforeDate
+              limit :batchSize
+            ) todelete on todelete.id = push_run_asset_tm_text_unit.id
+          """)
   int deleteAllByPushRunWithCreatedDateBefore(
       @Param("beforeDate") ZonedDateTime beforeDate, @Param("batchSize") int batchSize);
 }

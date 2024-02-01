@@ -20,7 +20,10 @@ public interface TMTextUnitCurrentVariantRepository
   List<TMTextUnitCurrentVariant> findByTmTextUnit_Tm_IdAndLocale_Id(Long tmId, Long localeId);
 
   @Query(
-      "select new com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantDTO(ttucv.tmTextUnit.id, ttucv.tmTextUnitVariant.id) "
-          + "from #{#entityName} ttucv where ttucv.asset.id = ?1 and ttucv.locale.id = ?2")
+      """
+      select new com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantDTO(ttucv.tmTextUnit.id, ttucv.tmTextUnitVariant.id)
+      from #{#entityName} ttucv
+      where ttucv.asset.id = ?1 and ttucv.locale.id = ?2
+      """)
   List<TMTextUnitCurrentVariantDTO> findByAsset_idAndLocale_Id(Long assetId, Long localeId);
 }

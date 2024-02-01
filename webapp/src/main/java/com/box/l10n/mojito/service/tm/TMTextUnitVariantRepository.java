@@ -43,24 +43,26 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
    */
   @Query(
       value =
-          "select distinct new com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO("
-              + "   tuv.id, "
-              + "   tu.name, "
-              + "   tuv.locale.bcp47Tag,"
-              + "   tuv.content, "
-              + "   'UNKNOWN') "
-              + "from TMTextUnitVariant tuv "
-              + "inner join TMTextUnitCurrentVariant tucv on tucv.tmTextUnitVariant = tuv "
-              + "inner join TMTextUnit tu on tu = tucv.tmTextUnit "
-              + "inner join AssetTextUnitToTMTextUnit map on map.tmTextUnit = tu "
-              + "inner join Asset a on a = tu.asset and a.lastSuccessfulAssetExtraction = map.assetExtraction "
-              + "where a.repository = :repository "
-              + "and a.deleted = false "
-              + "and tuv.locale in :locales "
-              + "and tuv.includedInLocalizedFile = true "
-              + "and tucv.lastModifiedDate >= :fromDate "
-              + "and tucv.lastModifiedDate < :toDate "
-              + "order by tuv.id asc ")
+          """
+          select distinct new com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO(
+             tuv.id,
+             tu.name,
+             tuv.locale.bcp47Tag,
+             tuv.content,
+             'UNKNOWN')
+          from TMTextUnitVariant tuv
+          inner join TMTextUnitCurrentVariant tucv on tucv.tmTextUnitVariant = tuv
+          inner join TMTextUnit tu on tu = tucv.tmTextUnit
+          inner join AssetTextUnitToTMTextUnit map on map.tmTextUnit = tu
+          inner join Asset a on a = tu.asset and a.lastSuccessfulAssetExtraction = map.assetExtraction
+          where a.repository = :repository
+          and a.deleted = false
+          and tuv.locale in :locales
+          and tuv.includedInLocalizedFile = true
+          and tucv.lastModifiedDate >= :fromDate
+          and tucv.lastModifiedDate < :toDate
+          order by tuv.id asc
+          """)
   Page<TextUnitVariantDeltaDTO> findAllUsedForRepositoryAndLocalesInDateRange(
       @Param("repository") Repository repository,
       @Param("locales") List<Locale> locales,
@@ -86,45 +88,46 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
   @Query(
       nativeQuery = true,
       value =
-          "select distinct base_tu.name as textUnitName, "
-              + "   l.bcp47_tag as bcp47Tag, "
-              + "   latest_tuv.content as content, "
-              + "   case "
-              + "      when previous_tuv.id is null then 'NEW_TRANSLATION' "
-              + "      else 'UPDATED_TRANSLATION' "
-              + "   end as deltaType "
-              + "from tm_text_unit_variant latest_tuv "
-              + "inner join tm_text_unit_current_variant base_tucv on base_tucv.tm_text_unit_variant_id = latest_tuv.id "
-              + "inner join tm_text_unit base_tu on base_tu.id = base_tucv.tm_text_unit_id "
-              + "inner join push_run_asset_tm_text_unit prattu on prattu.tm_text_unit_id = base_tu.id "
-              + "inner join push_run_asset pra on pra.id = prattu.push_run_asset_id "
-              + "inner join push_run pr on pr.id = pra.push_run_id and pr.id in :pushRunIds "
-              + "inner join asset a on a.id = base_tu.asset_id "
-              + "inner join repository r on r.id = a.repository_id and r.id = :repositoryId "
-              + "inner join locale l on l.id = latest_tuv.locale_id and l.id in :localeIds "
-              + "left outer join ( "
-              + "   select distinct previous_tuv.id, "
-              + "                   previous_tuv.content_md5, "
-              + "                   a.id as asset_id, "
-              + "                   l.id as locale_id, "
-              + "                   tu.id as text_unit_id "
-              + "   from tm_text_unit_variant previous_tuv "
-              + "       inner join pull_run_text_unit_variant prtuv on prtuv.tm_text_unit_variant_id = previous_tuv.id "
-              + "       inner join pull_run_asset pra on pra.id = prtuv.pull_run_asset_id "
-              + "       inner join pull_run pr on pr.id = pra.pull_run_id and pr.id in :pullRunIds "
-              + "       inner join tm_text_unit tu on tu.id = previous_tuv.tm_text_unit_id "
-              + "       inner join asset a on a.id = tu.asset_id "
-              + "       inner join repository r on r.id = a.repository_id and r.id = :repositoryId "
-              + "       inner join locale l on l.id = previous_tuv.locale_id and l.id in :localeIds "
-              + " ) as previous_tuv on previous_tuv.asset_id = a.id "
-              + "                   and previous_tuv.locale_id = l.id "
-              + "                   and previous_tuv.text_unit_id = base_tu.id "
-              + "where "
-              + "   latest_tuv.included_in_localized_file = true "
-              + // Exclude rejected translations
-              "   and base_tucv.last_modified_date >= :translationsFromDate "
-              + "   and (previous_tuv.id is null "
-              + "       or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5)) ")
+          """
+          select distinct base_tu.name as textUnitName,
+             l.bcp47_tag as bcp47Tag,
+             latest_tuv.content as content,
+             case
+                when previous_tuv.id is null then 'NEW_TRANSLATION'
+                else 'UPDATED_TRANSLATION'
+             end as deltaType
+          from tm_text_unit_variant latest_tuv
+          inner join tm_text_unit_current_variant base_tucv on base_tucv.tm_text_unit_variant_id = latest_tuv.id
+          inner join tm_text_unit base_tu on base_tu.id = base_tucv.tm_text_unit_id
+          inner join push_run_asset_tm_text_unit prattu on prattu.tm_text_unit_id = base_tu.id
+          inner join push_run_asset pra on pra.id = prattu.push_run_asset_id
+          inner join push_run pr on pr.id = pra.push_run_id and pr.id in :pushRunIds
+          inner join asset a on a.id = base_tu.asset_id
+          inner join repository r on r.id = a.repository_id and r.id = :repositoryId
+          inner join locale l on l.id = latest_tuv.locale_id and l.id in :localeIds
+          left outer join (
+             select distinct previous_tuv.id,
+                             previous_tuv.content_md5,
+                             a.id as asset_id,
+                             l.id as locale_id,
+                             tu.id as text_unit_id
+             from tm_text_unit_variant previous_tuv
+                 inner join pull_run_text_unit_variant prtuv on prtuv.tm_text_unit_variant_id = previous_tuv.id
+                 inner join pull_run_asset pra on pra.id = prtuv.pull_run_asset_id
+                 inner join pull_run pr on pr.id = pra.pull_run_id and pr.id in :pullRunIds
+                 inner join tm_text_unit tu on tu.id = previous_tuv.tm_text_unit_id
+                 inner join asset a on a.id = tu.asset_id
+                 inner join repository r on r.id = a.repository_id and r.id = :repositoryId
+                 inner join locale l on l.id = previous_tuv.locale_id and l.id in :localeIds
+           ) as previous_tuv on previous_tuv.asset_id = a.id
+                             and previous_tuv.locale_id = l.id
+                             and previous_tuv.text_unit_id = base_tu.id
+          where
+             latest_tuv.included_in_localized_file = true
+             and base_tucv.last_modified_date >= :translationsFromDate
+             and (previous_tuv.id is null
+                 or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5))
+          """)
   List<TextUnitVariantDelta> findDeltasForRuns(
       @Param("repositoryId") Long repositoryId,
       @Param("localeIds") List<Long> localeIds,

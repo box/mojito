@@ -23,7 +23,12 @@ public interface BranchStatisticRepository
   @EntityGraph(
       value = "BranchStatisticGraphWithoutTextUnits",
       type = EntityGraph.EntityGraphType.LOAD)
-  @Query("select bs " + "from BranchStatistic bs " + "where bs.id in ?1 and bs.totalCount > ?2")
+  @Query(
+      """
+      select bs
+      from BranchStatistic bs
+      where bs.id in ?1 and bs.totalCount > ?2
+      """)
   List<BranchStatistic> findAllGreaterThanById(List<Long> branchStatisticIds, Long totalCountLte);
 
   BranchStatistic findByBranch(Branch branch);
