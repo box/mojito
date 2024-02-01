@@ -88,7 +88,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
     TMTestData tmTestData = new TMTestData(testIdWatcher);
 
     RepositoryStatistic repositoryStatistic =
-        repositoryStatisticService.computeBaseStatistics(tmTestData.repository.getId());
+        repositoryStatisticService.computeBaseStatistics(tmTestData.repository.getId(), "testRepo");
 
     checkTextUnitCounts(repositoryStatistic);
   }
@@ -132,7 +132,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
     replaceTextUnits.get();
 
     RepositoryStatistic repositoryStatistic =
-        repositoryStatisticService.computeBaseStatistics(repository.getId());
+        repositoryStatisticService.computeBaseStatistics(repository.getId(), "testRepo");
 
     assertEquals(2L, (long) repositoryStatistic.getUsedTextUnitCount());
     assertEquals(4L, (long) repositoryStatistic.getUsedTextUnitWordCount());

@@ -10,6 +10,7 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.localtm.merger.BranchStateTextUnit;
 import com.box.l10n.mojito.localtm.merger.MultiBranchState;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
@@ -19,6 +20,7 @@ import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepo
 import com.box.l10n.mojito.service.assetExtraction.MultiBranchStateService;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJobInput;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -83,6 +85,8 @@ public class BranchStatisticService {
 
   @Autowired MeterRegistry meterRegistry;
 
+  @Autowired RepositoryRepository repositoryRepository;
+
   @Value("${l10n.branchStatistic.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
@@ -92,14 +96,21 @@ public class BranchStatisticService {
    * @param repositoryId
    * @param updateType
    */
-  public void computeAndSaveBranchStatistics(Long repositoryId, UpdateType updateType) {
+  public void computeAndSaveBranchStatistics(
+      Long repositoryId, String repositoryName, UpdateType updateType) {
     logger.debug("computeAndSaveBranchStatistics for repository: {}", repositoryId);
-
-    List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
-    computeAndSaveBranchStatistics(repositoryId, updateType, branchesToCheck);
-    for (Branch branch : branchesToCheck) {
-      scheduleBranchNotification(branch);
-    }
+    meterRegistry
+        .timer(
+            "BranchStatisticService.computeAndSaveBranchStatistics",
+            Tags.of("repositoryName", repositoryName))
+        .record(
+            () -> {
+              List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
+              computeAndSaveBranchStatistics(repositoryId, updateType, branchesToCheck);
+              for (Branch branch : branchesToCheck) {
+                scheduleBranchNotification(branch);
+              }
+            });
   }
 
   /**
@@ -119,6 +130,8 @@ public class BranchStatisticService {
 
     if (!branches.isEmpty()) {
 
+      Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
+      String repositoryName = repository != null ? repository.getName() : null;
       ImmutableSet<String> branchNamesToCheck =
           branches.stream().map(Branch::getName).collect(ImmutableSet.toImmutableSet());
 
@@ -167,7 +180,8 @@ public class BranchStatisticService {
                                                   assetId,
                                                   branch,
                                                   multiBranchState,
-                                                  textUnitDTOsForLocaleByTmTextUnitIds));
+                                                  textUnitDTOsForLocaleByTmTextUnitIds,
+                                                  repositoryName));
                                 })
                             .collect(groupByBranchAndCount())
                             .values()
@@ -194,42 +208,54 @@ public class BranchStatisticService {
       Long assetId,
       com.box.l10n.mojito.localtm.merger.Branch branch,
       MultiBranchState multiBranchState,
-      ImmutableMap<Long, TextUnitDTO> textUnitDTOsForLocaleByTmTextUnitIds) {
+      ImmutableMap<Long, TextUnitDTO> textUnitDTOsForLocaleByTmTextUnitIds,
+      String repositoryName) {
 
-    logger.debug("Proccesing asset id: {} for branch: {}", assetId, branch.getName());
-    ImmutableList<Long> tmTextUnitIds =
-        multiBranchState.getBranchStateTextUnits().stream()
-            .filter(bstu -> bstu.getBranchNameToBranchDatas().containsKey(branch.getName()))
-            .map(BranchStateTextUnit::getTmTextUnitId)
-            .collect(ImmutableList.toImmutableList());
+    return meterRegistry
+        .timer(
+            "BranchStatisticService.computeTranslationCountForBranch",
+            Tags.of("repository", repositoryName))
+        .record(
+            () -> {
+              logger.debug("Proccesing asset id: {} for branch: {}", assetId, branch.getName());
+              ImmutableList<Long> tmTextUnitIds =
+                  multiBranchState.getBranchStateTextUnits().stream()
+                      .filter(
+                          bstu -> bstu.getBranchNameToBranchDatas().containsKey(branch.getName()))
+                      .map(BranchStateTextUnit::getTmTextUnitId)
+                      .collect(ImmutableList.toImmutableList());
 
-    Stream<ForTranslationCountForTmTextUnitId> forTranslationCountForTmTextUnitIdStream =
-        tmTextUnitIds.stream()
-            .map(
-                tmTextUnitId -> {
-                  long forTranslationCount =
-                      Optional.ofNullable(textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
-                          .filter(TextUnitDTO::isUsed)
-                          .filter(not(TextUnitDTO::isDoNotTranslate))
-                          .filter(textUnitDTOsCacheService.statusPredicate(FOR_TRANSLATION))
-                          .map(textUnitDTO -> 1L)
-                          .orElse(0L);
+              Stream<ForTranslationCountForTmTextUnitId> forTranslationCountForTmTextUnitIdStream =
+                  tmTextUnitIds.stream()
+                      .map(
+                          tmTextUnitId -> {
+                            long forTranslationCount =
+                                Optional.ofNullable(
+                                        textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
+                                    .filter(TextUnitDTO::isUsed)
+                                    .filter(not(TextUnitDTO::isDoNotTranslate))
+                                    .filter(
+                                        textUnitDTOsCacheService.statusPredicate(FOR_TRANSLATION))
+                                    .map(textUnitDTO -> 1L)
+                                    .orElse(0L);
 
-                  long totalCount =
-                      Optional.ofNullable(textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
-                          .filter(TextUnitDTO::isUsed)
-                          .filter(not(TextUnitDTO::isDoNotTranslate))
-                          .map(textUnitDTO -> 1L)
-                          .orElse(0L);
+                            long totalCount =
+                                Optional.ofNullable(
+                                        textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
+                                    .filter(TextUnitDTO::isUsed)
+                                    .filter(not(TextUnitDTO::isDoNotTranslate))
+                                    .map(textUnitDTO -> 1L)
+                                    .orElse(0L);
 
-                  return ForTranslationCountForTmTextUnitId.builder()
-                      .tmTextUnitId(tmTextUnitId)
-                      .forTranslationCount(forTranslationCount)
-                      .totalCount(totalCount)
-                      .branch(branch)
-                      .build();
-                });
-    return forTranslationCountForTmTextUnitIdStream;
+                            return ForTranslationCountForTmTextUnitId.builder()
+                                .tmTextUnitId(tmTextUnitId)
+                                .forTranslationCount(forTranslationCount)
+                                .totalCount(totalCount)
+                                .branch(branch)
+                                .build();
+                          });
+              return forTranslationCountForTmTextUnitIdStream;
+            });
   }
 
   @Transactional
