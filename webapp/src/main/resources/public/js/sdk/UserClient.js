@@ -44,6 +44,13 @@ class UserClient extends BaseClient {
         return this.patch(this.getUrl(parmas.id), parmas.user);
     }
 
+    updatePassword(currentPassword, newPassword) {
+        return this.post(this.getUrl() + "/pw", {
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+        });
+    }
+
     getEntityName() {
         return 'users';
     }

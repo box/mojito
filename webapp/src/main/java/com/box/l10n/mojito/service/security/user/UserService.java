@@ -8,6 +8,7 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -175,6 +176,24 @@ public class UserService {
       authorityRepository.save(authority);
       user.setAuthorities(Sets.newHashSet(authority));
     }
+    return user;
+  }
+
+  @Transactional
+  public User updatePassword(String currentPassword, String newPassword) {
+    Objects.requireNonNull(currentPassword);
+    Objects.requireNonNull(newPassword);
+
+    User user = auditorAwareImpl.getCurrentAuditor().orElseThrow();
+
+    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    if (!bCryptPasswordEncoder.matches(currentPassword, user.getPassword())) {
+      throw new AccessDeniedException("Invalid current password");
+    }
+
+    user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+    userRepository.save(user);
+
     return user;
   }
 

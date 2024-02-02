@@ -7,6 +7,8 @@ import LocaleSelectorModal from "./LocaleSelectorModal";
 import Locales from "../../utils/Locales";
 import UrlHelper from "../../utils/UrlHelper";
 
+import ChangePasswordModal from "./ChangePasswordModal";
+
 import RepositoryActions from "../../actions/RepositoryActions";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
@@ -19,7 +21,8 @@ import {withAppConfig} from "../../utils/AppConfig";
 
 class Header extends React.Component {
     state = {
-        showLocaleSelectorModal: false
+        showLocaleSelectorModal: false,
+        showChangePasswordModal: false,
     };
 
     logoutSelected = () => {
@@ -39,6 +42,18 @@ class Header extends React.Component {
         });
     };
 
+    openChangePasswordModal = () => {
+        this.setState({
+            showChangePasswordModal: true
+        });
+    };
+
+    closeChangePasswordModal = () => {
+        this.setState({
+            showChangePasswordModal: false
+        });
+    };
+
     /**
      * Update the Workbench search params to load the default view
      *
@@ -54,9 +69,9 @@ class Header extends React.Component {
         const user = this.props.appConfig.user;
         let usernameDisplay = user.username;
 
-        if (user.givenName != null) {
+        if (user.givenName) {
             usernameDisplay = user.givenName;
-        } else if (user.commonName != null) {
+        } else if (user.commonName) {
             usernameDisplay = user.commonName;
         }
 
@@ -113,16 +128,23 @@ class Header extends React.Component {
                         </LinkContainer>
 
                         <MenuItem divider/>
+
+                        <MenuItem onSelect={this.openChangePasswordModal}>
+                            <Glyphicon glyph="pencil"/> <FormattedMessage id="header.change-pw"/>
+                        </MenuItem>
+
                         <MenuItem onSelect={this.logoutSelected}>
                             <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
                                 <FormControl type="hidden" name="_csrf" value={this.props.appConfig.csrfToken}/>
-                                <FormattedMessage id="header.loggedInUser.logout"/>
+                                <Glyphicon glyph="log-out"/> <FormattedMessage id="header.loggedInUser.logout"/>
                             </form>
                         </MenuItem>
                     </NavDropdown>
                 </Nav>
                 <LocaleSelectorModal key="headerLocaleSelectorModal" show={this.state.showLocaleSelectorModal}
                                      onClose={this.closeLocaleSelectorModal}/>
+                <ChangePasswordModal key="headerChangePasswordModal" show={this.state.showChangePasswordModal}
+                                     onClose={this.closeChangePasswordModal}/>
             </Navbar>
         );
     }

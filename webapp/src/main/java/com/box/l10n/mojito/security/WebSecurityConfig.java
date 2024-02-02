@@ -170,7 +170,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 antMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
                 .hasIpAddress("127.0.0.1")
                 . // Everyone can access the session endpoint
-                antMatchers("/api/users/session")
+                antMatchers("/api/users/session", "/api/users/pw")
                 .authenticated()
                 . // user management is only allowed for ADMINs and PMs
                 antMatchers("/api/users/**")
