@@ -23,6 +23,9 @@ class UserStore {
         /** @type {String} */
         this.lastErrorKey = null;
 
+        /** @type {Number} */
+        this.lastErrorCode = 0;
+
         /** @type {Boolean} */
         this.currentUsernameTaken = false;
 
@@ -83,6 +86,7 @@ class UserStore {
 
     onGetAllUsersError(err) {
         this.lastErrorKey = "userErrorModal.load";
+        this.lastErrorCode = err.response.status;
         console.log("error fetching users", err);
     }
 
@@ -101,10 +105,6 @@ class UserStore {
         this.currentUsernameChecked = true;
     }
 
-    onDeleteRequestError(err) {
-        console.log(err);
-    }
-
 
 
     onDeleteRequest(id) {
@@ -115,8 +115,9 @@ class UserStore {
         this.onReloadCurrentPage();
     }
 
-    onDeleteRequestError() {
+    onDeleteRequestError(err) {
         this.onReloadCurrentPage();
+        this.lastErrorCode = err.response.status;
         this.lastErrorKey = "userErrorModal.delete";
     }
 
@@ -130,8 +131,9 @@ class UserStore {
         this.onReloadCurrentPage();
     }
 
-    onSaveNewRequestError() {
+    onSaveNewRequestError(err) {
         this.onReloadCurrentPage();
+        this.lastErrorCode = err.response.status;
         this.lastErrorKey = "userErrorModal.new";
     }
 
@@ -145,8 +147,9 @@ class UserStore {
         this.onReloadCurrentPage();
     }
 
-    onSaveEditRequestError() {
+    onSaveEditRequestError(err) {
         this.onReloadCurrentPage();
+        this.lastErrorCode = err.response.status;
         this.lastErrorKey = "userErrorModal.edit";
     }
 

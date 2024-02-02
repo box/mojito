@@ -169,6 +169,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 . // allow health entry points
                 antMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
                 .hasIpAddress("127.0.0.1")
+                . // Everyone can access the session endpoint
+                antMatchers("/api/users/session")
+                .authenticated()
+                . // user management is only allowed for ADMINs and PMs
+                antMatchers("/api/users/**")
+                .hasAnyRole("PM", "ADMIN")
                 . // local access only for rotation management and logger config
                 antMatchers("/**")
                 .authenticated() // everything else must be authenticated

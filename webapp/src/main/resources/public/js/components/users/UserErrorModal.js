@@ -50,8 +50,15 @@ let UserErrorModal = createClass({
                     <Modal.Header closeButton>
                         <Modal.Title><FormattedMessage id="userErrorModal.title"/></Modal.Title>
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body className="text-center">
                         {this.state.store.lastErrorKey && <FormattedMessage id={this.state.store.lastErrorKey}/>}
+                        {this.state.store.lastErrorKey && this.state.store.lastErrorCode === 403 &&
+                            <div>
+                                <br />
+                                <br />
+                                <FormattedMessage id="userErrorModal.forbidden"/>
+                            </div>
+                        }
                     </Modal.Body>
                     <Modal.Footer>
                         <div className="text-center mbm">

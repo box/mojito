@@ -4,14 +4,19 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,11 +31,42 @@ public class UserService {
   static Logger logger = getLogger(UserService.class);
 
   public static final String SYSTEM_USERNAME = "system";
+  private static final List<Role> ROLE_HIERARCHY = List.of(Role.ADMIN, Role.PM, Role.TRANSLATOR, Role.USER);
+  private static final Role MIN_ROLE = Role.PM;
   private final String rolePrefix = "ROLE_";
 
   @Autowired UserRepository userRepository;
 
   @Autowired AuthorityRepository authorityRepository;
+
+  @Autowired AuditorAwareImpl auditorAwareImpl;
+
+  private void requireMinRole(Role role) {
+    final Optional<User> currentUser = auditorAwareImpl.getCurrentAuditor();
+    if (currentUser.isEmpty()) {
+      // Can't happen in the webapp because only authenticated users may use
+      // the API endpoints. However, allow this for tests
+      return;
+    }
+    final String currentAuthority = currentUser.get().getAuthorities().iterator().next().getAuthority();
+    final Role currentRole = createRoleFromAuthority(currentAuthority);
+
+    if (ROLE_HIERARCHY.indexOf(currentRole) > ROLE_HIERARCHY.indexOf(role)) {
+      throw new AccessDeniedException(String.format(
+              "Access denied! The current user has only role '%s' but at least role '%s' is required for this operation",
+              currentRole,
+              role
+      ));
+    }
+  }
+
+  private Role maxRoleOf(Role a, Role b) {
+    if (ROLE_HIERARCHY.indexOf(a) < ROLE_HIERARCHY.indexOf(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
 
   /**
    * Create a {@link com.box.l10n.mojito.entity.security.user.User}. This does not check if there is
@@ -55,6 +91,9 @@ public class UserService {
     logger.debug("Creating user entry for: {}", username);
     Preconditions.checkNotNull(password, "password must not be null");
     Preconditions.checkState(!password.isEmpty(), "password must not be empty");
+
+    // Only PMs and ADMINs can create new users and PMs can not create ADMIN users (privilege escalation)
+    requireMinRole(maxRoleOf(MIN_ROLE, role));
 
     User user = new User();
     user.setEnabled(true);
@@ -84,6 +123,9 @@ public class UserService {
       String surname,
       String commonName,
       boolean partiallyCreated) {
+
+    // Only PMs and ADMINs can edit users and PMs can not edit ADMIN users (privilege escalation)
+    requireMinRole(role == null ? MIN_ROLE : maxRoleOf(MIN_ROLE, role));
 
     if (givenName != null) {
       user.setGivenName(givenName);
@@ -156,8 +198,13 @@ public class UserService {
   }
 
   /**
-   * @return The System User
+   * Reverses {@link #createAuthorityName(Role)}
    */
+  public Role createRoleFromAuthority(String auth) {
+    return Role.valueOf(auth.replace(rolePrefix, ""));
+  }
+
+  /** @return The System User */
   public User findSystemUser() {
     return userRepository.findByUsername(SYSTEM_USERNAME);
   }
@@ -192,6 +239,9 @@ public class UserService {
    */
   @Transactional
   public void deleteUser(User user) {
+    // Only PMs and ADMINs can delete users and PMs can not delete ADMIN users
+    Role userRole = createRoleFromAuthority(user.getAuthorities().iterator().next().getAuthority());
+    requireMinRole(maxRoleOf(MIN_ROLE, userRole));
 
     logger.debug("Delete a user with username: {}", user.getUsername());
 
