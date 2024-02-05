@@ -7,7 +7,7 @@ import AuthorityService from "../../utils/AuthorityService";
 
 class UserManagement extends React.Component {
     render() {
-        if (!AuthorityService.hasPermissionsForUserManagement()) {
+        if (!AuthorityService.canViewUserManagement()) {
             return (
                 <div className="ptl">
                     <h3 className="text-center mtl"><FormattedMessage id="users.forbidden"/></h3>

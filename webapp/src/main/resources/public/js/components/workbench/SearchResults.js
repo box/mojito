@@ -22,6 +22,7 @@ import AltContainer from "alt-container";
 import ViewModeStore from "../../stores/workbench/ViewModeStore";
 import ViewModeDropdown from "./ViewModeDropdown";
 import ViewModeActions from "../../actions/workbench/ViewModeActions";
+import AuthorityService from "../../utils/AuthorityService";
 
 let SearchResults = createReactClass({
     displayName: 'SearchResults',
@@ -559,7 +560,8 @@ let SearchResults = createReactClass({
         let numberOfSelectedTextUnits = selectedTextUnits.length;
         let isAtLeastOneTextUnitSelected = numberOfSelectedTextUnits >= 1;
 
-        let actionButtonsDisabled = isSearching || !isAtLeastOneTextUnitSelected;
+        let selectorCheckBoxDisabled = !AuthorityService.canEditTranslations();
+        let actionButtonsDisabled = isSearching || !isAtLeastOneTextUnitSelected || !AuthorityService.canEditTranslations();
         let nextPageButtonDisabled = isSearching || noMoreResults;
         let previousPageButtonDisabled = isSearching || isFirstPage;
 
@@ -595,7 +597,7 @@ let SearchResults = createReactClass({
                                 <ViewModeDropdown onModeSelected={(mode) => ViewModeActions.changeViewMode(mode)}/>
                             </AltContainer>
 
-                            <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits}/>
+                            <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits} disabled={selectorCheckBoxDisabled}/>
                             <Button bsSize="small" disabled={previousPageButtonDisabled}
                                     onClick={this.onFetchPreviousPageClicked}><span
                                 className="glyphicon glyphicon-chevron-left"></span></Button>

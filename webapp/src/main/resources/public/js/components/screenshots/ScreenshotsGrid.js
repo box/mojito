@@ -8,7 +8,7 @@ import Screenshot from "./Screenshot";
 import ScreenshotsTextUnit from "./ScreenshotsTextUnit";
 
 class ScreenshotsGrid extends React.Component {
-    
+
     static propTypes = {
         "screenshotsData": PropTypes.array.isRequired,
         "selectedScreenshotIdx": PropTypes.number,
@@ -18,9 +18,10 @@ class ScreenshotsGrid extends React.Component {
         "onLocaleClick": PropTypes.func.isRequired,
         "onNameClick": PropTypes.func.isRequired,
         "onStatusGlyphClick": PropTypes.func.isRequired,
-        "onStatusChanged": PropTypes.func.isRequired
+        "onStatusChanged": PropTypes.func.isRequired,
+        "statusGlyphDisabled": PropTypes.bool.isRequired,
     }
-    
+
     getSelectedScreenshot() {
         let selectedScreenshot = null;
 
@@ -51,9 +52,9 @@ class ScreenshotsGrid extends React.Component {
 
                     let locale = this.getSelectedScreenshot().locale.bcp47Tag;
 
-                    return <ScreenshotsTextUnit 
+                    return <ScreenshotsTextUnit
                         key={textUnit.id}
-                        textUnit={textUnit} 
+                        textUnit={textUnit}
                         onNameClick={(e) => this.props.onScreenshotsTextUnitNameClick(e, textUnit, locale)}
                         onTargetClick={(e) => this.props.onScreenshotsTextUnitTargetClick(e, textUnit, locale)}
                         />
@@ -66,13 +67,14 @@ class ScreenshotsGrid extends React.Component {
         return this.props.screenshotsData.map((screenshot, idx) =>
             <Screenshot
                 key={screenshot.name + '_' + idx}
-                screenshot={screenshot} 
-                isSelected={idx === this.props.selectedScreenshotIdx} 
+                screenshot={screenshot}
+                isSelected={idx === this.props.selectedScreenshotIdx}
                 onClick={() => this.props.onScreenshotClicked(idx)}
                 onLocaleClick={ () => this.props.onLocaleClick([screenshot.locale.bcp47Tag])}
                 onNameClick={() => this.props.onNameClick(screenshot.name)}
                 onStatusGlyphClick={() => this.props.onStatusGlyphClick(idx)}
                 onStatusChanged={(status) => this.props.onStatusChanged({status: status, idx: idx})}
+                statusGlyphDisabled={this.props.statusGlyphDisabled}
                 />)
     }
 
@@ -92,16 +94,16 @@ class ScreenshotsGrid extends React.Component {
 
         return (
                 <div>
-                    <ReactSidebarResponsive 
-                        ref="sideBarScreenshot" 
+                    <ReactSidebarResponsive
+                        ref="sideBarScreenshot"
                         sidebar={this.renderSideBar()}
                         rootClassName="side-bar-root-container-screenshot"
                         sidebarClassName="side-bar-container-screenshot"
                         contentClassName="side-bar-main-content-container-screenshot"
                         docked={true} pullRight={true} transitions={false}>
-                
+
                         {this.renderScreenshots()}
-                
+
                     </ReactSidebarResponsive>
                 </div>);
     }
@@ -111,7 +113,7 @@ class ScreenshotsGrid extends React.Component {
      */
     render() {
         var res;
-        
+
         if (this.props.searching) {
             res = null;
         } else if (this.props.screenshotsData.length > 0) {
@@ -119,7 +121,7 @@ class ScreenshotsGrid extends React.Component {
         } else {
             res =this.renderNoResults();
         }
-        
+
         return res;
     }
 }

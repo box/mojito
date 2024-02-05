@@ -24,6 +24,7 @@ import Paginator from "../widgets/Paginator";
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
+import AuthorityService from "../../utils/AuthorityService";
 
 
 class BranchesPage extends React.Component {
@@ -233,6 +234,7 @@ class BranchesPage extends React.Component {
                         onDelete={() => {
                             BranchesScreenshotViewerActions.delete();
                         }}
+                        disableDelete={!AuthorityService.canEditScreenshots()}
                     />
                 </AltContainer>
 
