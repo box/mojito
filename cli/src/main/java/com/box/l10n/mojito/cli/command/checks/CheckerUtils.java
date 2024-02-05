@@ -19,6 +19,27 @@ public class CheckerUtils {
    */
   private static final Pattern HTML_TAGS_PATTERN = Pattern.compile("<[^>]+>");
 
+  /**
+   * Pattern matching for values inside curly braces, which usually are placeholders.
+   *
+   * <p>"<" matches an opening curly brace, "[^}]*" matches one or more characters that are not a
+   * curly brace and "}" matches a closing curly brace
+   */
+  private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{[^\\}]*\\}");
+
+  /**
+   * Pattern to match simplified email addresses.
+   *
+   * <p>[a-zA-Z0-9._%+-]+ : Matches one or more (+) of the allowed characters (a-z, A-Z, 0-9, ., _,
+   * %, +, -) in the local-part (before the @). @ : Matches the @ character exactly. [a-zA-Z0-9.-]+
+   * : Matches one or more (+) of the allowed characters (a-z, A-Z, 0-9, ., -) in the domain part
+   * (between the @ and the . for the TLD). \. : Matches the . character exactly (escaped because .
+   * is a special character in regex). [a-zA-Z]{2,6} : Matches between 2 and 6 of the allowed
+   * characters (a-z, A-Z) in the TLD (top-level domain, like .com or .org).
+   */
+  private static final Pattern EMAIL_PATTERN =
+      Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
+
   private static final Pattern WISHED_HTML_ATTRIBUTES_VALUE_PATTERN;
 
   private static final List<String> WISHED_HTML_ATTRIBUTES_FOR_SPELL_CHECK =
@@ -42,6 +63,8 @@ public class CheckerUtils {
     List<String> words = new ArrayList<>();
     BreakIterator wordBreakIterator = BreakIterator.getWordInstance(Locale.ENGLISH);
     str = removeHtmlTagsAndKeepWishedAttribute(str);
+    str = str.replaceAll(PLACEHOLDER_PATTERN.pattern(), "");
+    str = str.replaceAll(EMAIL_PATTERN.pattern(), "");
     wordBreakIterator.setText(str);
     int start = wordBreakIterator.first();
     for (int end = wordBreakIterator.next();

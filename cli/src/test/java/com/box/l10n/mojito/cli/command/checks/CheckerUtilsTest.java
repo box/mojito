@@ -146,4 +146,39 @@ class CheckerUtilsTest {
     List<String> result = CheckerUtils.getWordsInString(null);
     assertThat(result).isEmpty();
   }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andIgnorePlaceholderInsideCurlyBraces() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Placeholder inside curly braces should be ignored {some_placeholder}");
+    assertThat(result)
+        .containsExactly("Placeholder", "inside", "curly", "braces", "should", "be", "ignored");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andIgnorePlaceholdersInsideCurlyBraces() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "{a_placeholder} inside curly braces should be ignored. Also {another} should be ignored");
+    assertThat(result)
+        .containsExactly(
+            "inside", "curly", "braces", "should", "be", "ignored", "Also", "should", "be",
+            "ignored");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andIgnoreEmailAddress() {
+    List<String> result = CheckerUtils.getWordsInString("Email any@email.com should be ignored");
+    assertThat(result).containsExactly("Email", "should", "be", "ignored");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andIgnoreEmailAddresses() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Email any@email.com should be ignored. Also, another@org.com should be ignored");
+    assertThat(result)
+        .containsExactly("Email", "should", "be", "ignored", "Also", "should", "be", "ignored");
+  }
 }
