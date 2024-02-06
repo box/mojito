@@ -50,13 +50,23 @@ let UserModal = createClass({
     },
 
     getUsernameFormValidationState() {
-        if (this.state.store.currentUsernameTaken && this.state.store.modalState === UserStatics.stateEdit() || this.state.username.length > UserStatics.modalFormMaxLength())
+        if (this.state.store.modalState === UserStatics.stateEdit()) {
+            return null;
+        }
+        if (this.state.store.currentUsernameTaken || this.state.username.length > UserStatics.modalFormMaxLength()) {
             return 'error';
+        }
+        return 'success';
     },
 
     getPasswordFormValidationState() {
-        if (this.state.password.length > UserStatics.modalFormMaxLength() || this.state.passwordValidation.length > UserStatics.modalFormMaxLength())
+        if (this.state.password.length == 0 && this.state.passwordValidation.length == 0) {
+            return null;
+        }
+        if (this.state.password.length > UserStatics.modalFormMaxLength() || this.state.passwordValidation !== this.state.password) {
             return 'error';
+        }
+        return 'success';
     },
 
     renderForm() {
@@ -125,7 +135,7 @@ let UserModal = createClass({
                         placeholder={this.props.intl.formatMessage({ id: "userEditModal.form.placeholder.commonName" })}
                     />
                 </FormGroup>
-                <hr/>
+                <hr style={{marginBottom: "0px"}}/>
                 <FormGroup validationState={this.getPasswordFormValidationState()}>
 
                     <ControlLabel className="mutedBold mtm pbs">
@@ -148,7 +158,7 @@ let UserModal = createClass({
                         placeholder={this.props.intl.formatMessage({ id: "userEditModal.form.placeholder.passwordValidation" })}
                     />
                 </FormGroup>
-                <hr/>
+                <hr style={{marginBottom: "0px"}}/>
                 <FormGroup>
                     <ControlLabel className="mutedBold mtm pbs"><FormattedMessage id="userEditModal.form.label.authority"/></ControlLabel>
 
