@@ -45,12 +45,12 @@ let UserModal = createClass({
             password: '',
             passwordValidation: '',
             role: store.currentUser.getRole(),
-            infoAlert: true,
+            infoAlert: false,
         };
     },
 
     getUsernameFormValidationState() {
-        if (this.state.store.modalState === UserStatics.stateEdit()) {
+        if (this.state.store.modalState === UserStatics.stateEdit() || this.state.username.length == 0) {
             return null;
         }
         if (this.state.store.currentUsernameTaken || this.state.username.length > UserStatics.modalFormMaxLength()) {
@@ -77,8 +77,11 @@ let UserModal = createClass({
             case UserStatics.stateNew():
                 usernameForm = (
                     <div>
-                        <ControlLabel className="mutedBold pbs"><FormattedMessage id="userEditModal.form.label.username"/></ControlLabel>
-                        {this.state.store.currentUsernameTaken && this.state.username && <span className="mutedBold mtm pbs pull-right">Username already taken</span>}
+                        <div style={{display: "flex"}} className="pbs">
+                            <ControlLabel className="mutedBold"><FormattedMessage id="userEditModal.form.label.username"/></ControlLabel>
+                            <div style={{flexGrow: 1}}></div>
+                            {this.state.store.currentUsernameTaken && this.state.username && <FormattedMessage id="userEditModal.form.label.usernameTaken"/>}
+                        </div>
                         <FormControl
                             onChange={(e) => {
                                 this.setState({username: e.target.value});
@@ -86,6 +89,7 @@ let UserModal = createClass({
                             }}
                             type="text"
                             value={this.state.username}
+                            className="mbm"
                             placeholder={this.props.intl.formatMessage({ id: "userEditModal.form.placeholder.username" })}
                         />
                     </div>
@@ -94,7 +98,7 @@ let UserModal = createClass({
             case UserStatics.stateEdit():
                 optionalPasswordLabel = <span className="mutedBold mtm pbs pull-right">(optional)</span>;
                 usernameForm = (
-                    <div className="mutedBold mtm">
+                    <div className="mutedBold">
                         <ControlLabel><FormattedMessage id="userEditModal.form.label.username"/>:</ControlLabel>
                         <span className="mls">{this.state.username}</span>
                     </div>
@@ -162,14 +166,30 @@ let UserModal = createClass({
                 <FormGroup>
                     <ControlLabel className="mutedBold mtm pbs"><FormattedMessage id="userEditModal.form.label.authority"/></ControlLabel>
 
-                    <FormControl
-                        onChange={(e) => this.setState({role: e.target.value})}
-                        componentClass="select"
-                        placeholder={this.props.intl.formatMessage({ id: "userEditModal.form.select.placeholder" })}
-                        value={this.state.role}
-                    >
-                        {options}
-                    </FormControl>
+                    <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+                        <FormControl
+                            onChange={(e) => this.setState({role: e.target.value})}
+                            componentClass="select"
+                            placeholder={this.props.intl.formatMessage({ id: "userEditModal.form.select.placeholder" })}
+                            style={{flexGrow: 1}}
+                            value={this.state.role}
+                        >
+                            {options}
+                        </FormControl>
+                        <Glyphicon
+                            className="clickable"
+                            style={{fontSize: "20px"}}
+                            glyph="glyphicon glyphicon-info-sign"
+                            onClick={()=> this.setState({ infoAlert: !this.state.infoAlert })}
+                        />
+                    </div>
+                    <Collapse in={this.state.infoAlert} className="mtm">
+                        <div>
+                            <Alert bsStyle="info">
+                                <p className="text-muted brand-font-weight"><FormattedMessage id="users.userInformationAlert"/></p>
+                            </Alert>
+                        </div>
+                    </Collapse>
                 </FormGroup>
             </Form>
         );
@@ -249,10 +269,7 @@ let UserModal = createClass({
         }
 
         return (
-            <div>
-                <h4 className="text-center"><span className="mutedBold">{modalStateTitle}</span></h4>
-                <Glyphicon className="clickable" glyph="glyphicon glyphicon-info-sign" onClick={ ()=> this.setState({ infoAlert: !this.state.infoAlert })}/>
-            </div>
+            <span className="mutedBold">{modalStateTitle}</span>
         );
     },
 
@@ -268,25 +285,12 @@ let UserModal = createClass({
         );
     },
 
-    renderUserRoleInformation() {
-        return (
-            <Collapse in={this.state.infoAlert}>
-                <div>
-                    <Alert bsStyle="info">
-                        <p className="text-muted brand-font-weight"><FormattedMessage id="users.userInformationAlert"/></p>
-                    </Alert>
-                </div>
-            </Collapse>
-        );
-    },
-
     render() {
         return (
             <div>
                 <Modal bsSize="large" show={this.state.store.modalState != UserStatics.stateHidden()} onHide={UserActions.closeUserModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>{this.modalTitle()}</Modal.Title>
-                        {this.renderUserRoleInformation()}
                     </Modal.Header>
                     <Modal.Body>
                         {this.renderValueAlert()}
