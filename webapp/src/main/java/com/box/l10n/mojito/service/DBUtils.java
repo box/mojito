@@ -9,11 +9,18 @@ public class DBUtils {
   @Value("${spring.datasource.url}")
   String url;
 
+  @Value("${l10n.org.quartz.dataSource.myDS.driver:RAMJobStore}")
+  String quartzDatasourceDriver;
+
   public boolean isMysql() {
     return url.contains("mysql");
   }
 
   public boolean isHsql() {
     return url.contains("hsqldb");
+  }
+
+  public boolean isQuartzMysql() {
+    return quartzDatasourceDriver.contains("mysql");
   }
 }
