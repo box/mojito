@@ -2,7 +2,6 @@ package com.box.l10n.mojito.quartz;
 
 import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -151,16 +150,17 @@ public class QuartzPollableTaskSchedulerTest extends ServiceTestBase {
     PollableFuture<AQuartzPollableJobOutput> pollableFuture3 =
         quartzPollableTaskScheduler.scheduleJob(quartzJobInfo3);
 
-    // Wait jobs 1 & 3 to complete, job 2 will be a zombie due to providing non void output so it
-    // won't be skipped
-    pollableFuture.get();
     pollableFuture3.get();
 
     assertEquals("output: 10", pollableFuture.get().getOutput());
     PollableTask pollableTask =
         pollableTaskRepository.findById(pollableFuture2.getPollableTask().getId()).get();
-    assertFalse(pollableTask.isAllFinished());
-    assertNull(pollableTask.getMessage());
+    assertTrue(pollableTask.isAllFinished());
+    assertTrue(
+        pollableTask
+            .getMessage()
+            .contains(
+                "Job skipped as new job re-scheduled with the same unique id, tracked by pollable task id:"));
     assertEquals("output: 30", pollableFuture3.get().getOutput());
   }
 
