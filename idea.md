@@ -3,6 +3,7 @@
 The local/ is excluded from Git. It can be used to seem like to private config, deployment code, etc.
 
 ```shell
+mkdir local/
 cd local/
 ln -s ~/.l10n/config
 ln -s ~/code/mojito-deploy/
