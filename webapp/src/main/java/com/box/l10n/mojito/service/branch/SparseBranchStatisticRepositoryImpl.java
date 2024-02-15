@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,7 +30,10 @@ public class SparseBranchStatisticRepositoryImpl implements SparseBranchStatisti
     CriteriaQuery<Long> idQuery = criteriaBuilder.createQuery(Long.class);
     Root<BranchStatistic> root = idQuery.from(BranchStatistic.class);
     if (specification != null) {
-      idQuery.where(specification.toPredicate(root, idQuery, criteriaBuilder));
+      Predicate predicate = specification.toPredicate(root, idQuery, criteriaBuilder);
+      if (predicate != null) {
+        idQuery.where(predicate);
+      }
     }
 
     Long count = getTotalCount(specification, criteriaBuilder, idQuery, root);
