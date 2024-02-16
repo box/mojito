@@ -166,6 +166,47 @@ public class AssetExtractorTest {
   }
 
   @Test
+  public void checkDoNotTranslate() throws UnsupportedAssetFilterTypeException {
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset(
+            "test.html",
+            """
+                <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+                    "http://www.w3.org/TR/REC-html40/loose.dtd">
+                <html xmlns="http://www.w3.org/1999/xhtml">
+                <body>
+                <table>
+                  <tr>
+                    <td>
+                      <a title="Visit" href="https://www.somesite.com">
+                      <img src="https://www.somesite.com/img.png">
+                    </a>
+                    </td>
+                    <td>
+                      <img src="https://www.somesite.com/img2.png">
+                    </td>
+                  </tr>
+                </table>
+                </body>
+                </html>
+                """,
+            FilterConfigIdOverride.HTML_ALPHA,
+            Arrays.asList("processImageUrls=false"));
+
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            tuple("5e706a9b7eb9b142a619e4331d6976e6-d41d8cd98f00b204e9800998ecf8427e-1", "Visit"));
+
+    // without filtering according to Okapi "hasText()", it would return translatable text unit
+    // with the following content:
+    // tuple("93e7c3bf7f959f5dbd981361605b4b58-5e706a9b7eb9b142a619e4331d6976e6-1",
+    // "<u id='1'> <br id='p2'/> </u>"),
+    // tuple("e063c00ad4343fedbb80d79301575724-93e7c3bf7f959f5dbd981361605b4b58-1",
+    // "<br id='p1'/>"))
+  }
+
+  @Test
   public void documentPartExtraction() throws UnsupportedAssetFilterTypeException {
     List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
         assetExtractor.getAssetExtractorTextUnitsForAsset(

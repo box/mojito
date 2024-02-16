@@ -85,7 +85,7 @@ public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
       String source = textUnit.getSource().toString();
       // whitespaces are collapsed by the filter so just checking for empty string & for the usage
       // of &nbsp;
-      if (source.isEmpty() || "\u00A0".equals(source)) {
+      if (source.isEmpty() || "\u00A0".equals(source) || !textUnit.getSource().hasText()) {
         textUnit.setIsTranslatable(false);
       }
     }
