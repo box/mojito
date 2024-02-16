@@ -12,7 +12,7 @@ import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import net.sf.okapi.common.exceptions.OkapiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,46 +52,39 @@ public class GenerateLocalizedAssetJob
         repositoryLocaleRepository.findByRepositoryIdAndLocaleId(
             asset.getRepository().getId(), localizedAssetBody.getLocaleId());
 
-    return meterRegistry
-        .timer(
-            "GenerateLocalizedAssetJob.call",
-            Tags.of(
-                "repositoryName",
-                asset.getRepository().getName(),
-                "bcp47Tag",
-                repositoryLocale.getLocale().getBcp47Tag()))
-        .record(
-            () -> {
-              String normalizedContent =
-                  NormalizationUtils.normalize(localizedAssetBody.getContent());
+    try (var timer =
+        Timer.resource(meterRegistry, "GenerateLocalizedAssetJob.call")
+            .tag("repositoryName", asset.getRepository().getName())
+            .tag("bcp47Tag", repositoryLocale.getLocale().getBcp47Tag())) {
+      String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
-              String generateLocalized;
+      String generateLocalized;
 
-              try {
-                generateLocalized =
-                    tmService.generateLocalized(
-                        asset,
-                        normalizedContent,
-                        repositoryLocale,
-                        localizedAssetBody.getOutputBcp47tag(),
-                        localizedAssetBody.getFilterConfigIdOverride(),
-                        localizedAssetBody.getFilterOptions(),
-                        localizedAssetBody.getStatus(),
-                        localizedAssetBody.getInheritanceMode(),
-                        localizedAssetBody.getPullRunName());
-              } catch (UnsupportedAssetFilterTypeException e) {
-                throw new OkapiException(e);
-              }
+      try {
+        generateLocalized =
+            tmService.generateLocalized(
+                asset,
+                normalizedContent,
+                repositoryLocale,
+                localizedAssetBody.getOutputBcp47tag(),
+                localizedAssetBody.getFilterConfigIdOverride(),
+                localizedAssetBody.getFilterOptions(),
+                localizedAssetBody.getStatus(),
+                localizedAssetBody.getInheritanceMode(),
+                localizedAssetBody.getPullRunName());
+      } catch (UnsupportedAssetFilterTypeException e) {
+        throw new OkapiException(e);
+      }
 
-              localizedAssetBody.setContent(generateLocalized);
+      localizedAssetBody.setContent(generateLocalized);
 
-              if (localizedAssetBody.getOutputBcp47tag() != null) {
-                localizedAssetBody.setBcp47Tag(localizedAssetBody.getOutputBcp47tag());
-              } else {
-                localizedAssetBody.setBcp47Tag(repositoryLocale.getLocale().getBcp47Tag());
-              }
+      if (localizedAssetBody.getOutputBcp47tag() != null) {
+        localizedAssetBody.setBcp47Tag(localizedAssetBody.getOutputBcp47tag());
+      } else {
+        localizedAssetBody.setBcp47Tag(repositoryLocale.getLocale().getBcp47Tag());
+      }
 
-              return localizedAssetBody;
-            });
+      return localizedAssetBody;
+    }
   }
 }

@@ -9,7 +9,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.retry.DeadLockLoserExceptionRetryTemplate;
 import com.google.common.collect.Lists;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -61,28 +61,25 @@ public class PullRunAssetService {
       List<Long> uniqueTmTextUnitVariantIds,
       String outputBcp47Tag) {
     Repository repository = pullRunAsset.getPullRun().getRepository();
-    meterRegistry
-        .timer(
-            "PullRunAssetService.saveTextUnitVariantsMultiRow",
-            Tags.of("repositoryId", Objects.toString(repository.getId())))
-        .record(
-            () -> {
-              deadLockLoserExceptionRetryTemplate.execute(
-                  context -> {
-                    deleteExistingVariants(pullRunAsset, localeId, outputBcp47Tag);
-                    return null;
-                  });
+    try (var timer =
+        Timer.resource(meterRegistry, "PullRunAssetService.saveTextUnitVariantsMultiRow")
+            .tag("repositoryId", Objects.toString(repository.getId()))) {
+      deadLockLoserExceptionRetryTemplate.execute(
+          context -> {
+            deleteExistingVariants(pullRunAsset, localeId, outputBcp47Tag);
+            return null;
+          });
 
-              Lists.partition(uniqueTmTextUnitVariantIds, BATCH_SIZE)
-                  .forEach(
-                      tuvIdsBatch ->
-                          deadLockLoserExceptionRetryTemplate.execute(
-                              context -> {
-                                saveTextUnitVariantsMultiRowBatch(
-                                    pullRunAsset, localeId, tuvIdsBatch, outputBcp47Tag);
-                                return null;
-                              }));
-            });
+      Lists.partition(uniqueTmTextUnitVariantIds, BATCH_SIZE)
+          .forEach(
+              tuvIdsBatch ->
+                  deadLockLoserExceptionRetryTemplate.execute(
+                      context -> {
+                        saveTextUnitVariantsMultiRowBatch(
+                            pullRunAsset, localeId, tuvIdsBatch, outputBcp47Tag);
+                        return null;
+                      }));
+    }
   }
 
   @Transactional

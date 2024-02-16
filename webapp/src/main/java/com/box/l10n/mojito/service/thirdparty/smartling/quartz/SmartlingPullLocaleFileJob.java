@@ -15,7 +15,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.io.IOException;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
@@ -46,94 +46,84 @@ public class SmartlingPullLocaleFileJob
 
   @Override
   public Void call(SmartlingPullLocaleFileJobInput input) throws Exception {
+    try (var timer =
+        Timer.resource(meterRegistry, "SmartlingSync.processPullBatch")
+            .tag("repository", input.getRepositoryName())
+            .tag("locale", input.getLocaleBcp47Tag())
+            .tag("deltaPull", Boolean.toString(input.isDeltaPull()))) {
 
-    meterRegistry
-        .timer(
-            "SmartlingSync.processPullBatch",
-            Tags.of(
-                "repository",
-                input.getRepositoryName(),
-                "locale",
-                input.getLocaleBcp47Tag(),
-                "deltaPull",
-                Boolean.toString(input.isDeltaPull())))
-        .record(
-            () -> {
-              String localeTag = input.getLocaleBcp47Tag();
-              String smartlingLocale = input.getSmartlingLocale();
-              String fileName = input.getFileName();
-              AndroidStringDocumentMapper mapper =
-                  new AndroidStringDocumentMapper(
-                      input.getPluralSeparator(), null, localeTag, input.getRepositoryName());
+      String localeTag = input.getLocaleBcp47Tag();
+      String smartlingLocale = input.getSmartlingLocale();
+      String fileName = input.getFileName();
+      AndroidStringDocumentMapper mapper =
+          new AndroidStringDocumentMapper(
+              input.getPluralSeparator(), null, localeTag, input.getRepositoryName());
 
-              logger.debug(
-                  "Download localized file from Smartling for file: {}, Mojito locale: {} and Smartling locale: {}",
-                  fileName,
-                  localeTag,
-                  smartlingLocale);
+      logger.debug(
+          "Download localized file from Smartling for file: {}, Mojito locale: {} and Smartling locale: {}",
+          fileName,
+          localeTag,
+          smartlingLocale);
 
-              String fileContent =
-                  Mono.fromCallable(
-                          () ->
-                              smartlingClient.downloadPublishedFile(
-                                  input.getSmartlingProjectId(), smartlingLocale, fileName, false))
-                      .retryWhen(
-                          smartlingClient
-                              .getRetryConfiguration()
-                              .doBeforeRetry(
-                                  e ->
-                                      logger.info(
-                                          String.format(
-                                              "Retrying after failure to download file %s",
-                                              fileName),
-                                          e.failure())))
-                      .doOnError(
-                          e -> {
-                            String msg =
-                                String.format(
-                                    "Error downloading file %s: %s", fileName, e.getMessage());
-                            logger.error(msg, e);
-                            throw new SmartlingClientException(msg, e);
-                          })
-                      .blockOptional()
-                      .orElseThrow(
-                          () ->
-                              new SmartlingClientException(
-                                  "Error with download from Smartling, file content string is not present."));
+      String fileContent =
+          Mono.fromCallable(
+                  () ->
+                      smartlingClient.downloadPublishedFile(
+                          input.getSmartlingProjectId(), smartlingLocale, fileName, false))
+              .retryWhen(
+                  smartlingClient
+                      .getRetryConfiguration()
+                      .doBeforeRetry(
+                          e ->
+                              logger.info(
+                                  String.format(
+                                      "Retrying after failure to download file %s", fileName),
+                                  e.failure())))
+              .doOnError(
+                  e -> {
+                    String msg =
+                        String.format("Error downloading file %s: %s", fileName, e.getMessage());
+                    logger.error(msg, e);
+                    throw new SmartlingClientException(msg, e);
+                  })
+              .blockOptional()
+              .orElseThrow(
+                  () ->
+                      new SmartlingClientException(
+                          "Error with download from Smartling, file content string is not present."));
 
-              if (input.isDeltaPull()
-                  && matchesChecksumFromPreviousSync(input, localeTag, fileName, fileContent)) {
-                logger.info(
-                    "Checksum match for "
-                        + fileName
-                        + " in locale "
-                        + localeTag
-                        + ", skipping text unit import.");
-                return;
-              }
+      if (input.isDeltaPull()
+          && matchesChecksumFromPreviousSync(input, localeTag, fileName, fileContent)) {
+        logger.info(
+            "Checksum match for "
+                + fileName
+                + " in locale "
+                + localeTag
+                + ", skipping text unit import.");
+        return null;
+      }
 
-              List<TextUnitDTO> textUnits;
+      List<TextUnitDTO> textUnits;
 
-              try {
-                textUnits =
-                    mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
-              } catch (ParserConfigurationException | IOException | SAXException e) {
-                String msg = "An error ocurred when processing a pull batch";
-                logger.error(msg, e);
-                throw new RuntimeException(msg, e);
-              }
+      try {
+        textUnits = mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
+      } catch (ParserConfigurationException | IOException | SAXException e) {
+        String msg = "An error ocurred when processing a pull batch";
+        logger.error(msg, e);
+        throw new RuntimeException(msg, e);
+      }
 
-              if (!textUnits.isEmpty()
-                  && input.getSmartlingFilePrefix().equalsIgnoreCase("plural")
-                  && input.isPluralFixForLocale()) {
-                textUnits = SmartlingPluralFix.fixTextUnits(textUnits);
-              }
+      if (!textUnits.isEmpty()
+          && input.getSmartlingFilePrefix().equalsIgnoreCase("plural")
+          && input.isPluralFixForLocale()) {
+        textUnits = SmartlingPluralFix.fixTextUnits(textUnits);
+      }
 
-              if (!input.isDryRun()) {
-                logger.debug("Importing text units for locale: {}", smartlingLocale);
-                textUnitBatchImporterService.importTextUnits(textUnits, false, true);
-              }
-            });
+      if (!input.isDryRun()) {
+        logger.debug("Importing text units for locale: {}", smartlingLocale);
+        textUnitBatchImporterService.importTextUnits(textUnits, false, true);
+      }
+    }
     return null;
   }
 

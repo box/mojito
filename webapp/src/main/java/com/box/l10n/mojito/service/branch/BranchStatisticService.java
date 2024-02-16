@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -99,18 +99,17 @@ public class BranchStatisticService {
   public void computeAndSaveBranchStatistics(
       Long repositoryId, String repositoryName, UpdateType updateType) {
     logger.debug("computeAndSaveBranchStatistics for repository: {}", repositoryId);
-    meterRegistry
-        .timer(
-            "BranchStatisticService.computeAndSaveBranchStatistics",
-            Tags.of("repositoryName", repositoryName))
-        .record(
-            () -> {
-              List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
-              computeAndSaveBranchStatistics(repositoryId, updateType, branchesToCheck);
-              for (Branch branch : branchesToCheck) {
-                scheduleBranchNotification(branch);
-              }
-            });
+
+    try (var timer =
+        Timer.resource(meterRegistry, "BranchStatisticService.computeAndSaveBranchStatistics")
+            .tag("repositoryName", repositoryName)) {
+
+      List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
+      computeAndSaveBranchStatistics(repositoryId, updateType, branchesToCheck);
+      for (Branch branch : branchesToCheck) {
+        scheduleBranchNotification(branch);
+      }
+    }
   }
 
   /**
@@ -215,51 +214,45 @@ public class BranchStatisticService {
       ImmutableMap<Long, TextUnitDTO> textUnitDTOsForLocaleByTmTextUnitIds,
       String repositoryName) {
 
-    return meterRegistry
-        .timer(
-            "BranchStatisticService.computeTranslationCountForBranch",
-            Tags.of("repository", repositoryName))
-        .record(
-            () -> {
-              logger.debug("Proccesing asset id: {} for branch: {}", assetId, branch.getName());
-              ImmutableList<Long> tmTextUnitIds =
-                  multiBranchState.getBranchStateTextUnits().stream()
-                      .filter(
-                          bstu -> bstu.getBranchNameToBranchDatas().containsKey(branch.getName()))
-                      .map(BranchStateTextUnit::getTmTextUnitId)
-                      .collect(ImmutableList.toImmutableList());
+    try (var timer =
+        Timer.resource(meterRegistry, "BranchStatisticService.computeTranslationCountForBranch")
+            .tag("repository", repositoryName)) {
 
-              Stream<ForTranslationCountForTmTextUnitId> forTranslationCountForTmTextUnitIdStream =
-                  tmTextUnitIds.stream()
-                      .map(
-                          tmTextUnitId -> {
-                            long forTranslationCount =
-                                Optional.ofNullable(
-                                        textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
-                                    .filter(TextUnitDTO::isUsed)
-                                    .filter(not(TextUnitDTO::isDoNotTranslate))
-                                    .filter(
-                                        textUnitDTOsCacheService.statusPredicate(FOR_TRANSLATION))
-                                    .map(textUnitDTO -> 1L)
-                                    .orElse(0L);
+      logger.debug("Proccesing asset id: {} for branch: {}", assetId, branch.getName());
+      ImmutableList<Long> tmTextUnitIds =
+          multiBranchState.getBranchStateTextUnits().stream()
+              .filter(bstu -> bstu.getBranchNameToBranchDatas().containsKey(branch.getName()))
+              .map(BranchStateTextUnit::getTmTextUnitId)
+              .collect(ImmutableList.toImmutableList());
 
-                            long totalCount =
-                                Optional.ofNullable(
-                                        textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
-                                    .filter(TextUnitDTO::isUsed)
-                                    .filter(not(TextUnitDTO::isDoNotTranslate))
-                                    .map(textUnitDTO -> 1L)
-                                    .orElse(0L);
+      Stream<ForTranslationCountForTmTextUnitId> forTranslationCountForTmTextUnitIdStream =
+          tmTextUnitIds.stream()
+              .map(
+                  tmTextUnitId -> {
+                    long forTranslationCount =
+                        Optional.ofNullable(textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
+                            .filter(TextUnitDTO::isUsed)
+                            .filter(not(TextUnitDTO::isDoNotTranslate))
+                            .filter(textUnitDTOsCacheService.statusPredicate(FOR_TRANSLATION))
+                            .map(textUnitDTO -> 1L)
+                            .orElse(0L);
 
-                            return ForTranslationCountForTmTextUnitId.builder()
-                                .tmTextUnitId(tmTextUnitId)
-                                .forTranslationCount(forTranslationCount)
-                                .totalCount(totalCount)
-                                .branch(branch)
-                                .build();
-                          });
-              return forTranslationCountForTmTextUnitIdStream;
-            });
+                    long totalCount =
+                        Optional.ofNullable(textUnitDTOsForLocaleByTmTextUnitIds.get(tmTextUnitId))
+                            .filter(TextUnitDTO::isUsed)
+                            .filter(not(TextUnitDTO::isDoNotTranslate))
+                            .map(textUnitDTO -> 1L)
+                            .orElse(0L);
+
+                    return ForTranslationCountForTmTextUnitId.builder()
+                        .tmTextUnitId(tmTextUnitId)
+                        .forTranslationCount(forTranslationCount)
+                        .totalCount(totalCount)
+                        .branch(branch)
+                        .build();
+                  });
+      return forTranslationCountForTmTextUnitIdStream;
+    }
   }
 
   @Transactional
@@ -509,32 +502,20 @@ public class BranchStatisticService {
     textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
     textUnitSearcherParameters.setForRootLocale(true);
 
-    return meterRegistry
-        .timer(
-            "BranchStatisticService.getTextUnitDTOSForTmTextUnitIds",
-            Tags.of(
-                "repositoryId",
-                Objects.toString(branch.getRepository().getId()),
-                "branchId",
-                Objects.toString(branch.getId())))
-        .record(
-            () -> {
-              return textUnitSearcher.search(textUnitSearcherParameters);
-            });
+    try (var timer =
+        Timer.resource(meterRegistry, "BranchStatisticService.getTextUnitDTOSForTmTextUnitIds")
+            .tag("repositoryId", Objects.toString(branch.getRepository().getId()))
+            .tag("branchId", Objects.toString(branch.getId()))) {
+      return textUnitSearcher.search(textUnitSearcherParameters);
+    }
   }
 
   private List<Long> getBranchTextUnitIds(Branch branch) {
-    return meterRegistry
-        .timer(
-            "BranchStatisticService.getBranchTextUnitIds",
-            Tags.of(
-                "repositoryId",
-                Objects.toString(branch.getRepository().getId()),
-                "branchId",
-                Objects.toString(branch.getId())))
-        .record(
-            () -> {
-              return assetTextUnitToTMTextUnitRepository.findByBranch(branch);
-            });
+    try (var timer =
+        Timer.resource(meterRegistry, "BranchStatisticService.getBranchTextUnitIds")
+            .tag("repositoryId", Objects.toString(branch.getRepository().getId()))
+            .tag("branchId", Objects.toString(branch.getId()))) {
+      return assetTextUnitToTMTextUnitRepository.findByBranch(branch);
+    }
   }
 }

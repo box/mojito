@@ -12,7 +12,7 @@ import com.box.l10n.mojito.rest.asset.MultiLocalizedAssetBody;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class GenerateMultiLocalizedAssetJob
@@ -36,44 +36,39 @@ public class GenerateMultiLocalizedAssetJob
       throw new AssetWithIdNotFoundException(multiLocalizedAssetBody.getAssetId());
     }
 
-    return meterRegistry
-        .timer(
-            "GenerateMultiLocalizedAssetJob.call",
-            Tags.of("repositoryName", asset.getRepository().getName()))
-        .record(
-            () -> {
-              for (LocaleInfo localeInfo : multiLocalizedAssetBody.getLocaleInfos()) {
+    try (var timer =
+        Timer.resource(meterRegistry, "GenerateMultiLocalizedAssetJob.call")
+            .tag("repositoryName", asset.getRepository().getName())) {
 
-                RepositoryLocale repositoryLocale =
-                    repositoryLocaleRepository.findByRepositoryIdAndLocaleId(
-                        asset.getRepository().getId(), localeInfo.getLocaleId());
+      for (LocaleInfo localeInfo : multiLocalizedAssetBody.getLocaleInfos()) {
 
-                String outputTag =
-                    localeInfo.getOutputBcp47tag() != null
-                        ? localeInfo.getOutputBcp47tag()
-                        : repositoryLocale.getLocale().getBcp47Tag();
-                QuartzJobInfo<LocalizedAssetBody, LocalizedAssetBody> quartzJobInfo =
-                    QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class)
-                        .withInlineInput(false)
-                        .withParentId(getParentId())
-                        .withInput(createLocalizedAssetBody(localeInfo, multiLocalizedAssetBody))
-                        .withScheduler(multiLocalizedAssetBody.getSchedulerName())
-                        .withMessage(
-                            "Generate localized asset for locale: "
-                                + outputTag
-                                + ", asset: "
-                                + asset.getPath())
-                        .build();
-                multiLocalizedAssetBody.addGenerateLocalizedAddedJobIdToMap(
-                    outputTag,
-                    quartzPollableTaskScheduler
-                        .scheduleJob(quartzJobInfo)
-                        .getPollableTask()
-                        .getId());
-              }
+        RepositoryLocale repositoryLocale =
+            repositoryLocaleRepository.findByRepositoryIdAndLocaleId(
+                asset.getRepository().getId(), localeInfo.getLocaleId());
 
-              return multiLocalizedAssetBody;
-            });
+        String outputTag =
+            localeInfo.getOutputBcp47tag() != null
+                ? localeInfo.getOutputBcp47tag()
+                : repositoryLocale.getLocale().getBcp47Tag();
+        QuartzJobInfo<LocalizedAssetBody, LocalizedAssetBody> quartzJobInfo =
+            QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class)
+                .withInlineInput(false)
+                .withParentId(getParentId())
+                .withInput(createLocalizedAssetBody(localeInfo, multiLocalizedAssetBody))
+                .withScheduler(multiLocalizedAssetBody.getSchedulerName())
+                .withMessage(
+                    "Generate localized asset for locale: "
+                        + outputTag
+                        + ", asset: "
+                        + asset.getPath())
+                .build();
+        multiLocalizedAssetBody.addGenerateLocalizedAddedJobIdToMap(
+            outputTag,
+            quartzPollableTaskScheduler.scheduleJob(quartzJobInfo).getPollableTask().getId());
+      }
+
+      return multiLocalizedAssetBody;
+    }
   }
 
   protected long getParentId() {

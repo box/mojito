@@ -40,7 +40,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.time.ZonedDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
@@ -153,41 +153,33 @@ public class TextUnitBatchImporterService {
                   (locale, assetMap) -> {
                     assetMap.forEach(
                         (asset, textUnitsForBatchImport) -> {
-                          meterRegistry
-                              .timer(
-                                  "TextUnitBatchImporterService.importTextUnits.batch",
-                                  Tags.of(
-                                      "repository",
-                                      asset.getRepository().getName(),
-                                      "asset",
-                                      asset.getPath(),
-                                      "locale",
-                                      locale.getBcp47Tag()))
-                              .record(
-                                  () -> {
-                                    mapTextUnitsToImportWithExistingTextUnits(
-                                        locale, asset, textUnitsForBatchImport);
-                                    if (!integrityCheckSkipped) {
-                                      meterRegistry
-                                          .timer(
-                                              "TextUnitBatchImporterService.importTextUnits.integrityChecks",
-                                              "repository",
-                                              asset.getRepository().getName(),
-                                              "asset",
-                                              asset.getPath(),
-                                              "locale",
-                                              locale.getBcp47Tag())
-                                          .record(
-                                              () -> {
-                                                applyIntegrityChecks(
-                                                    asset,
-                                                    textUnitsForBatchImport,
-                                                    integrityCheckKeepStatusIfFailedAndSameTarget);
-                                              });
-                                    }
-                                    importTextUnitsOfLocaleAndAsset(
-                                        locale, asset, textUnitsForBatchImport);
-                                  });
+                          try (var timer =
+                              Timer.resource(
+                                      meterRegistry,
+                                      "TextUnitBatchImporterService.importTextUnits.batch")
+                                  .tag("repository", asset.getRepository().getName())
+                                  .tag("asset", asset.getPath())
+                                  .tag("locale", locale.getBcp47Tag())) {
+
+                            mapTextUnitsToImportWithExistingTextUnits(
+                                locale, asset, textUnitsForBatchImport);
+                            if (!integrityCheckSkipped) {
+                              try (var timer2 =
+                                  Timer.resource(
+                                          meterRegistry,
+                                          "TextUnitBatchImporterService.importTextUnits.integrityChecks")
+                                      .tag("repository", asset.getRepository().getName())
+                                      .tag("asset", asset.getPath())
+                                      .tag("locale", locale.getBcp47Tag())) {
+
+                                applyIntegrityChecks(
+                                    asset,
+                                    textUnitsForBatchImport,
+                                    integrityCheckKeepStatusIfFailedAndSameTarget);
+                              }
+                            }
+                            importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
+                          }
                         });
                   });
 

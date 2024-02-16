@@ -61,7 +61,6 @@ import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -1131,7 +1130,7 @@ public class TMService {
 
     try (Timer.ResourceSample timer =
         Timer.resource(meterRegistry, "TMService.generateLocalizedBase")
-            .tags(Tags.of("repositoryId", Objects.toString(asset.getRepository().getId())))) {
+            .tag("repositoryId", Objects.toString(asset.getRepository().getId()))) {
 
       IPipelineDriver driver = new PipelineDriver();
 
