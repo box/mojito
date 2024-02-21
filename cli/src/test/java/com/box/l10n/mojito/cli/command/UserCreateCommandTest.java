@@ -37,7 +37,7 @@ public class UserCreateCommandTest extends CLITestBase {
     User user = userRepository.findByUsername(username);
     assertEquals(commonName, user.getCommonName());
     assertTrue(
-        user.getAuthorities().iterator().next().getAuthority().contains(Role.USER.toString()));
+        user.getAuthorities().iterator().next().getAuthority().contains(Role.ROLE_USER.toString()));
   }
 
   @Test

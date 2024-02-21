@@ -11,7 +11,6 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
-import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -87,7 +86,7 @@ public class UserWS {
 
     Role role;
     if (user.getAuthorities() == null || user.getAuthorities().isEmpty()) {
-      role = Role.USER;
+      role = Role.ROLE_USER;
     } else {
       Authority authority = user.getAuthorities().iterator().next();
       role = Role.valueOf(authority.getAuthority());

@@ -17,16 +17,16 @@ class UserStatics {
 
     // authorities returned from the WS
     static authorityPm() {
-        return "PM";
+        return "ROLE_PM";
     }
     static authorityAdmin() {
-        return "ADMIN";
+        return "ROLE_ADMIN";
     }
     static authorityTranslator() {
-        return "TRANSLATOR";
+        return "ROLE_TRANSLATOR";
     }
     static authorityUser() {
-        return "USER";
+        return "ROLE_USER";
     }
 }
 

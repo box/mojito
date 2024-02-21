@@ -6,6 +6,7 @@ import com.box.l10n.mojito.rest.security.CsrfTokenController;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.AuthorityRepository;
+import com.box.l10n.mojito.service.security.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,8 @@ public class ReactAppController {
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
   @Autowired AuthorityRepository authorityRepository;
+
+  @Autowired UserService userService;
 
   @Value("${server.contextPath:}")
   String contextPath = "";
@@ -111,10 +114,10 @@ public class ReactAppController {
               reactUser.setSurname(currentAuditor.getSurname());
               reactUser.setCommonName(currentAuditor.getCommonName());
 
-              Role role = Role.USER;
+              Role role = Role.ROLE_USER;
               Authority authority = authorityRepository.findByUser(currentAuditor);
               if (authority != null) {
-                role = Role.valueOf(authority.getAuthority().replace("ROLE_", ""));
+                role = userService.createRoleFromAuthority(authority.getAuthority());
               }
               reactUser.setRole(role);
               return reactUser;

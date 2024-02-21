@@ -95,7 +95,7 @@ public class UserWSTest extends WSTestBase {
     User user = createTestUser(username);
 
     String password = "test_updated";
-    Role role = Role.ADMIN;
+    Role role = Role.ROLE_ADMIN;
     String surname = "Mojito_updated";
     String givenName = "Test_updated";
     String commonName = "Test_updated Mojito_updated";
@@ -107,7 +107,7 @@ public class UserWSTest extends WSTestBase {
     assertEquals(user.getId(), updatedUser.getId());
     assertEquals(username, updatedUser.getUsername());
     assertEquals(1, user.getAuthorities().size());
-    assertEquals("ROLE_" + role, updatedUser.getAuthorities().iterator().next().getAuthority());
+    assertEquals(role.name(), updatedUser.getAuthorities().iterator().next().getAuthority());
     assertEquals(surname, updatedUser.getSurname());
     assertEquals(givenName, updatedUser.getGivenName());
     assertEquals(commonName, updatedUser.getCommonName());
@@ -116,15 +116,15 @@ public class UserWSTest extends WSTestBase {
   private User createTestUser(String username) throws ResourceNotCreatedException {
 
     String password = "test";
-    Role role = Role.USER;
+    Role role = Role.ROLE_USER;
     String surname = "Mojito";
     String givenName = "Test";
     String commonName = "Test Mojito";
 
     User user =
-        userClient.createUser(username, password, Role.USER, surname, givenName, commonName);
+        userClient.createUser(username, password, Role.ROLE_USER, surname, givenName, commonName);
     assertEquals(username, user.getUsername());
-    assertEquals("ROLE_" + role, user.getAuthorities().iterator().next().getAuthority());
+    assertEquals(role.name(), user.getAuthorities().iterator().next().getAuthority());
     assertEquals(surname, user.getSurname());
     assertEquals(givenName, user.getGivenName());
     assertEquals(commonName, user.getCommonName());

@@ -125,7 +125,7 @@ public class UserUpdateCommandTest extends CLITestBase {
     String givenName = "Test";
     String commonName = "Test Mojito " + username;
 
-    Role role = Role.USER;
+    Role role = Role.ROLE_USER;
     if (rolename != null) {
       role = Role.valueOf(rolename);
     }

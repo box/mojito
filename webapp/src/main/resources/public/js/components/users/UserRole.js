@@ -5,7 +5,7 @@ import UserStatics from "../../utils/UserStatics";
 let createClass = require('create-react-class');
 
 function roleToIntlKey(role) {
-    switch (role.replace('ROLE_', '')) {
+    switch (role) {
         case UserStatics.authorityPm():
             return "users.role.pm";
         case UserStatics.authorityTranslator():

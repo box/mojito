@@ -30,7 +30,6 @@ public class UserService {
   static Logger logger = getLogger(UserService.class);
 
   public static final String SYSTEM_USERNAME = "system";
-  private final String rolePrefix = "ROLE_";
 
   @Autowired UserRepository userRepository;
 
@@ -53,15 +52,15 @@ public class UserService {
     final Role currentRole = createRoleFromAuthority(currentAuthority);
 
     switch (currentRole) {
-      case PM -> {
-        if (role == Role.ADMIN) {
+      case ROLE_PM -> {
+        if (role == Role.ROLE_ADMIN) {
           throw new AccessDeniedException("Access denied! PMs are not allowed to edit / create ADMINs");
         }
       }
-      case ADMIN -> {
+      case ROLE_ADMIN -> {
         // There is nothing above admin
       }
-      case TRANSLATOR, USER -> throw new AccessDeniedException("Access denied! Users and Translators are not allowed to to edit / create users");
+      case ROLE_TRANSLATOR, ROLE_USER -> throw new AccessDeniedException("Access denied! Users and Translators are not allowed to to edit / create users");
     }
   }
 
@@ -122,7 +121,7 @@ public class UserService {
       boolean partiallyCreated) {
 
     // Only PMs and ADMINs can edit users and PMs can not edit ADMIN users (privilege escalation)
-    checkPermissionsForRole(role == null ? Role.PM : role);
+    checkPermissionsForRole(role == null ? Role.ROLE_PM : role);
 
     if (givenName != null) {
       user.setGivenName(givenName);
@@ -190,15 +189,14 @@ public class UserService {
    * @return
    */
   public String createAuthorityName(Role role) {
-    String roleName = role.getRoleName().toUpperCase();
-    return rolePrefix + roleName;
+    return role.name();
   }
 
   /**
    * Reverses {@link #createAuthorityName(Role)}
    */
   public Role createRoleFromAuthority(String auth) {
-    return Role.valueOf(auth.replace(rolePrefix, ""));
+    return Role.valueOf(auth);
   }
 
   /** @return The System User */
@@ -262,7 +260,7 @@ public class UserService {
     String randomPassword = RandomStringUtils.randomAlphanumeric(15);
     User userWithRole =
         createUserWithRole(
-            username, randomPassword, Role.USER, givenName, surname, commonName, partiallyCreated);
+            username, randomPassword, Role.ROLE_USER, givenName, surname, commonName, partiallyCreated);
 
     logger.debug(
         "Manually setting created by user to system user because at this point, there isn't an authenticated user context");

@@ -6,8 +6,19 @@ package com.box.l10n.mojito.rest.entity;
  * @author jyi
  */
 public enum Role {
-  PM,
-  TRANSLATOR,
-  ADMIN,
-  USER;
+  ROLE_PM,
+  ROLE_TRANSLATOR,
+  ROLE_ADMIN,
+  ROLE_USER;
+
+  public static Role fromString(String roleName) {
+    if (roleName == null || roleName.isBlank()) {
+      return null;
+    }
+
+    if (!roleName.startsWith("ROLE_")) {
+      roleName = "ROLE_" + roleName;
+    }
+    return Role.valueOf(roleName);
+  }
 }

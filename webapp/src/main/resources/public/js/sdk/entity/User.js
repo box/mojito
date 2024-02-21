@@ -50,7 +50,7 @@ export default class User {
      */
     getRole() {
         if (this.authorities.length == 1) {
-            return this.authorities[0].authority.replace('ROLE_', '');
+            return this.authorities[0].authority;
         }
         return UserStatics.authorityUser();
     }
