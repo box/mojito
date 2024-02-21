@@ -49,30 +49,20 @@ public class UserClient extends BaseClient {
       filterParams.put("username", username);
     }
 
-    filterParams.put("size", "128");
+    filterParams.put("page", "0");
+    filterParams.put("size", String.valueOf(Integer.MAX_VALUE));
 
-    List<User> result = new ArrayList<>();
-    for (int p = 0; true; p++) {
-      filterParams.put("page", String.valueOf(p));
+    ResponseEntity<Page<User>> responseEntity =
+        authenticatedRestTemplate.getForEntityWithQueryParams(
+            getBasePathForEntity(), new ParameterizedTypeReference<Page<User>>() {}, filterParams
+        );
 
-      ResponseEntity<Page<User>> responseEntity =
-              authenticatedRestTemplate.getForEntityWithQueryParams(
-                      getBasePathForEntity(), new ParameterizedTypeReference<Page<User>>() {}, filterParams
-              );
-
-      Page<User> page = responseEntity.getBody();
-      if (page == null) {
-        break;
-      }
-
-      result.addAll(page.getContent());
-
-      if (page.isLast()) {
-        break;
-      }
+    Page<User> page = responseEntity.getBody();
+    if (page == null) {
+      return new ArrayList<>();
     }
 
-    return result;
+    return page.getContent();
   }
 
   /**
