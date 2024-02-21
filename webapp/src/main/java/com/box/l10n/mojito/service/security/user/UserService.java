@@ -9,7 +9,6 @@ import com.box.l10n.mojito.security.Role;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -31,8 +30,6 @@ public class UserService {
   static Logger logger = getLogger(UserService.class);
 
   public static final String SYSTEM_USERNAME = "system";
-  private static final List<Role> ROLE_HIERARCHY = List.of(Role.ADMIN, Role.PM, Role.TRANSLATOR, Role.USER);
-  private static final Role MIN_ROLE = Role.PM;
   private final String rolePrefix = "ROLE_";
 
   @Autowired UserRepository userRepository;
@@ -41,7 +38,11 @@ public class UserService {
 
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
-  private void requireMinRole(Role role) {
+  /**
+   * Allow PMs and ADMINs to create / edit users. However, a PM user can not
+   * create / edit ADMIN users.
+   */
+  private void checkPermissionsForRole(Role role) {
     final Optional<User> currentUser = auditorAwareImpl.getCurrentAuditor();
     if (currentUser.isEmpty()) {
       // Can't happen in the webapp because only authenticated users may use
@@ -51,20 +52,16 @@ public class UserService {
     final String currentAuthority = currentUser.get().getAuthorities().iterator().next().getAuthority();
     final Role currentRole = createRoleFromAuthority(currentAuthority);
 
-    if (ROLE_HIERARCHY.indexOf(currentRole) > ROLE_HIERARCHY.indexOf(role)) {
-      throw new AccessDeniedException(String.format(
-              "Access denied! The current user has only role '%s' but at least role '%s' is required for this operation",
-              currentRole,
-              role
-      ));
-    }
-  }
-
-  private Role maxRoleOf(Role a, Role b) {
-    if (ROLE_HIERARCHY.indexOf(a) < ROLE_HIERARCHY.indexOf(b)) {
-      return a;
-    } else {
-      return b;
+    switch (currentRole) {
+      case PM -> {
+        if (role == Role.ADMIN) {
+          throw new AccessDeniedException("Access denied! PMs are not allowed to edit / create ADMINs");
+        }
+      }
+      case ADMIN -> {
+        // There is nothing above admin
+      }
+      case TRANSLATOR, USER -> throw new AccessDeniedException("Access denied! Users and Translators are not allowed to to edit / create users");
     }
   }
 
@@ -93,7 +90,7 @@ public class UserService {
     Preconditions.checkState(!password.isEmpty(), "password must not be empty");
 
     // Only PMs and ADMINs can create new users and PMs can not create ADMIN users (privilege escalation)
-    requireMinRole(maxRoleOf(MIN_ROLE, role));
+    checkPermissionsForRole(role);
 
     User user = new User();
     user.setEnabled(true);
@@ -125,7 +122,7 @@ public class UserService {
       boolean partiallyCreated) {
 
     // Only PMs and ADMINs can edit users and PMs can not edit ADMIN users (privilege escalation)
-    requireMinRole(role == null ? MIN_ROLE : maxRoleOf(MIN_ROLE, role));
+    checkPermissionsForRole(role == null ? Role.PM : role);
 
     if (givenName != null) {
       user.setGivenName(givenName);
@@ -241,7 +238,7 @@ public class UserService {
   public void deleteUser(User user) {
     // Only PMs and ADMINs can delete users and PMs can not delete ADMIN users
     Role userRole = createRoleFromAuthority(user.getAuthorities().iterator().next().getAuthority());
-    requireMinRole(maxRoleOf(MIN_ROLE, userRole));
+    checkPermissionsForRole(userRole);
 
     logger.debug("Delete a user with username: {}", user.getUsername());
 
