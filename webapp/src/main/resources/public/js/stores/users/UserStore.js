@@ -64,12 +64,36 @@ class UserStore {
     }
 
 
+    prevPage() {
+        const prevPage = this.userPage ? this.userPage.number - 1 : 0;
+        const pageSize = this.userPage ? this.userPage.size : 10;
+
+        const pageRequestParams = new PageRequestParams(prevPage, pageSize);
+        this.getInstance().getAllUsers(pageRequestParams);
+    }
+
+    nextPage() {
+        const nextPage = this.userPage ? this.userPage.number + 1 : 0;
+        const pageSize = this.userPage ? this.userPage.size : 10;
+
+        const pageRequestParams = new PageRequestParams(nextPage, pageSize);
+        this.getInstance().getAllUsers(pageRequestParams);
+    }
+
+    updatePageSize(newSize) {
+        console.log(newSize);
+        const currPage = this.userPage ? this.userPage.number : 0;
+
+        const pageRequestParams = new PageRequestParams(currPage, newSize);
+        this.getInstance().getAllUsers(pageRequestParams);
+    }
+
 
     onReloadCurrentPage() {
-        if (!this.userPage) {
-            return;
-        }
-        const pageRequestParams = new PageRequestParams(this.userPage.number, this.userPage.size);
+        const currPage = this.userPage ? this.userPage.number : 0;
+        const pageSize = this.userPage ? this.userPage.size : 10;
+
+        const pageRequestParams = new PageRequestParams(currPage, pageSize);
         this.getInstance().getAllUsers(pageRequestParams);
     }
 

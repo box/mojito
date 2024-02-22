@@ -1,58 +1,19 @@
 import React from "react";
 import {FormattedMessage, intlShape, injectIntl} from "react-intl";
-import {
-    Popover, Button, FormControl, Modal, Form, FormGroup, ControlLabel, Alert, Collapse, Glyphicon, OverlayTrigger, Checkbox,
-    Badge, Fade
-} from "react-bootstrap";
-import FluxyMixin from "alt-mixins/FluxyMixin";
-import UserStore from "../../stores/users/UserStore";
+import {Button, Modal} from "react-bootstrap";
 import UserActions from "../../actions/users/UserActions";
 
-
-let createClass = require('create-react-class');
-
-let UserErrorModal = createClass({
-
-    mixins: [FluxyMixin],
-
-    propTypes: {
-        intl: intlShape.isRequired,
-    },
-
-    statics: {
-        storeListeners: {
-            "onUserStoreChanged": UserStore,
-        }
-    },
-
-    onUserStoreChanged() {
-        this.setState({
-            store: UserStore.getState(),
-        });
-    },
-
-    getInitialState() {
-        const store = UserStore.getState();
-        return {
-            store: store,
-        };
-    },
-
-    onDeleteUserConfirmed() {
-        UserActions.deleteRequest(this.state.store.currentUser.id);
-        UserActions.closeUserModal();
-    },
-
+class UserErrorModal extends React.Component {
     render() {
         return (
             <div>
-                <Modal bsSize="large" show={this.state.store.lastErrorKey != null} onHide={UserActions.closeUserModal}>
+                <Modal bsSize="large" show={this.props.lastErrorKey != null} onHide={UserActions.closeUserModal}>
                     <Modal.Header closeButton>
                         <Modal.Title><FormattedMessage id="userErrorModal.title"/></Modal.Title>
                     </Modal.Header>
                     <Modal.Body className="text-center">
-                        {this.state.store.lastErrorKey && <FormattedMessage id={this.state.store.lastErrorKey}/>}
-                        {this.state.store.lastErrorKey && this.state.store.lastErrorCode === 403 &&
+                        {this.props.lastErrorKey && <FormattedMessage id={this.props.lastErrorKey}/>}
+                        {this.props.lastErrorKey && this.props.lastErrorCode === 403 &&
                             <div>
                                 <br />
                                 <br />
@@ -71,6 +32,6 @@ let UserErrorModal = createClass({
             </div>
         );
     }
-});
+};
 
 export default injectIntl(UserErrorModal);

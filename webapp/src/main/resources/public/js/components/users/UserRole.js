@@ -2,8 +2,6 @@ import React from "react";
 import {FormattedMessage, injectIntl, __esModule} from "react-intl";
 import UserStatics from "../../utils/UserStatics";
 
-let createClass = require('create-react-class');
-
 function roleToIntlKey(role) {
     switch (role) {
         case UserStatics.authorityPm():
@@ -19,7 +17,7 @@ function roleToIntlKey(role) {
     }
 }
 
-let UserRoleRaw = createClass({
+class UserRoleRaw extends React.Component {
     render() {
         const role = this.props.user == null ? this.props.role : this.props.user.getRole();
         const roleKey = roleToIntlKey(role);
@@ -29,8 +27,8 @@ let UserRoleRaw = createClass({
         }
 
         return (<FormattedMessage id={roleKey}/>);
-    },
-});
+    }
+};
 
 let UserRole = injectIntl(UserRoleRaw);
 
