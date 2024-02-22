@@ -121,6 +121,10 @@ public class UserService {
       boolean partiallyCreated) {
 
     // Only PMs and ADMINs can edit users and PMs can not edit ADMIN users (privilege escalation)
+    if (!user.getAuthorities().isEmpty()) {
+      Role userRole = createRoleFromAuthority(user.getAuthorities().iterator().next().getAuthority());
+      checkPermissionsForRole(userRole);
+    }
     checkPermissionsForRole(role == null ? Role.ROLE_PM : role);
 
     if (givenName != null) {
