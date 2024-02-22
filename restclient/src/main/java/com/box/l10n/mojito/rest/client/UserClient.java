@@ -57,12 +57,7 @@ public class UserClient extends BaseClient {
             getBasePathForEntity(), new ParameterizedTypeReference<Page<User>>() {}, filterParams
         );
 
-    Page<User> page = responseEntity.getBody();
-    if (page == null) {
-      return new ArrayList<>();
-    }
-
-    return page.getContent();
+    return responseEntity.getBody().getContent();
   }
 
   /**
