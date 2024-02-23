@@ -4,6 +4,7 @@ import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULE
 import static com.box.l10n.mojito.service.assetExtraction.AssetExtractionService.PRIMARY_BRANCH;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
 import static com.box.l10n.mojito.utils.Predicates.not;
+import static com.box.l10n.mojito.utils.TaskExecutorUtils.waitForAllFutures;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.AssetExtraction;
@@ -20,6 +21,7 @@ import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepo
 import com.box.l10n.mojito.service.assetExtraction.MultiBranchStateService;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJobInput;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -49,6 +52,7 @@ import javax.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +91,8 @@ public class BranchStatisticService {
 
   @Autowired RepositoryRepository repositoryRepository;
 
+  @Autowired AsyncBranchStatisticUpdater asyncBranchStatisticUpdater;
+
   @Value("${l10n.branchStatistic.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
@@ -106,10 +112,15 @@ public class BranchStatisticService {
 
       List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
       computeAndSaveBranchStatistics(repositoryId, updateType, branchesToCheck);
-      for (Branch branch : branchesToCheck) {
-        scheduleBranchNotification(branch);
-      }
+      sendBranchNotifications(branchesToCheck);
     }
+  }
+
+  private void sendBranchNotifications(List<Branch> branchesToCheck) {
+    waitForAllFutures(
+        branchesToCheck.stream()
+            .map(branch -> scheduleBranchNotification(branch))
+            .collect(Collectors.toList()));
   }
 
   /**
@@ -135,9 +146,10 @@ public class BranchStatisticService {
           branches.stream().map(Branch::getName).collect(ImmutableSet.toImmutableSet());
 
       logger.info("Computing branch stastistics");
+
       Map<String, ImmutableMap<Long, ForTranslationCountForTmTextUnitId>>
           mapBranchNameToTranslationCountForTextUnitId =
-              assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, false).stream()
+              assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, false).parallelStream()
                   .flatMap(
                       assetId -> {
                         AssetExtraction lastSuccessfulAssetExtraction =
@@ -154,7 +166,7 @@ public class BranchStatisticService {
                             .getAsset()
                             .getRepository()
                             .getRepositoryLocales()
-                            .stream()
+                            .parallelStream()
                             .filter(
                                 rl -> rl.getParentLocale() != null && rl.isToBeFullyTranslated())
                             .flatMap(
@@ -173,7 +185,7 @@ public class BranchStatisticService {
                                                       TextUnitDTO::getTmTextUnitId,
                                                       Function.identity()));
 
-                                  return multiBranchState.getBranches().stream()
+                                  return multiBranchState.getBranches().parallelStream()
                                       .filter(
                                           branch -> branchNamesToCheck.contains(branch.getName()))
                                       .flatMap(
@@ -197,12 +209,8 @@ public class BranchStatisticService {
                   .collect(toMapBranchNameToTranslationCountForTextUnitId());
 
       logger.debug("Updating branch statistics");
-      for (Branch branch : branches) {
-        updateBranchStatisticInTx(
-            branch,
-            mapBranchNameToTranslationCountForTextUnitId.getOrDefault(
-                branch.getName(), ImmutableMap.of()));
-      }
+      asyncBranchStatisticUpdater.updateBranchStatistics(
+          branches, mapBranchNameToTranslationCountForTextUnitId);
       logger.debug("Finished computing statistics");
     }
   }
@@ -435,7 +443,8 @@ public class BranchStatisticService {
             }));
   }
 
-  void scheduleBranchNotification(Branch branch) {
+  @Async("statisticsTaskExecutor")
+  CompletableFuture<PollableFuture<Void>> scheduleBranchNotification(Branch branch) {
     BranchNotificationJobInput branchNotificationJobInput = new BranchNotificationJobInput();
     branchNotificationJobInput.setBranchId(branch.getId());
 
@@ -445,7 +454,8 @@ public class BranchStatisticService {
             .withInput(branchNotificationJobInput)
             .withScheduler(schedulerName)
             .build();
-    quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+    return CompletableFuture.completedFuture(
+        quartzPollableTaskScheduler.scheduleJob(quartzJobInfo));
   }
 
   /**

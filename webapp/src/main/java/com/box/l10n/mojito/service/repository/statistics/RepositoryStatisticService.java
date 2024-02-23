@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
 import static com.box.l10n.mojito.utils.Predicates.not;
+import static com.box.l10n.mojito.utils.TaskExecutorUtils.waitForAllFutures;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
@@ -31,11 +32,10 @@ import com.ibm.icu.util.ULocale;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,14 +144,10 @@ public class RepositoryStatisticService {
 
   private void executeLocaleStatisticUpdates(
       Repository repository, RepositoryStatistic repositoryStatistic) {
-    List<CompletableFuture<Void>> futures = new ArrayList<>();
-    repositoryService.getRepositoryLocalesWithoutRootLocale(repository).stream()
-        .forEach(
-            repositoryLocale ->
-                futures.add(updateLocaleStatistics(repositoryLocale, repositoryStatistic)));
-
-    // wait for all locale statistic calculations to complete
-    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    waitForAllFutures(
+        repositoryService.getRepositoryLocalesWithoutRootLocale(repository).stream()
+            .map(repositoryLocale -> updateLocaleStatistics(repositoryLocale, repositoryStatistic))
+            .collect(Collectors.toList()));
   }
 
   private RepositoryStatistic getRepositoryStatistic(Repository repository) {
