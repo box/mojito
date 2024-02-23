@@ -1,13 +1,12 @@
 import React from "react";
 import {FormattedMessage, intlShape, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
-import UserActions from "../../actions/users/UserActions";
 
 class UserErrorModal extends React.Component {
     render() {
         return (
             <div>
-                <Modal bsSize="large" show={this.props.lastErrorKey != null} onHide={UserActions.closeUserModal}>
+                <Modal bsSize="large" show={this.props.lastErrorKey != null} onHide={this.props.onClose}>
                     <Modal.Header closeButton>
                         <Modal.Title><FormattedMessage id="userErrorModal.title"/></Modal.Title>
                     </Modal.Header>
@@ -23,7 +22,7 @@ class UserErrorModal extends React.Component {
                     </Modal.Body>
                     <Modal.Footer>
                         <div className="text-center mbm">
-                            <Button onClick={UserActions.closeUserModal}>
+                            <Button onClick={this.props.onClose}>
                                 <FormattedMessage id="label.cancel"/>
                             </Button>
                         </div>

@@ -174,10 +174,17 @@ class UserMainPage extends React.Component {
                     <UserModal />
                 </AltContainer>
                 <AltContainer store={UserStore}>
-                    <UserDeleteModal />
+                    <UserDeleteModal
+                        onClose={() => UserActions.closeUserModal()}
+                        onDeleteUserConfirmed={(userId) => {
+                            UserActions.closeUserModal();
+                            UserActions.deleteRequest(userId);
+                            UserActions.reloadCurrentPage();
+                        }}
+                    />
                 </AltContainer>
                 <AltContainer store={UserStore}>
-                    <UserErrorModal />
+                    <UserErrorModal onClose={() => UserActions.closeUserModal()} />
                 </AltContainer>
             </div>
         );

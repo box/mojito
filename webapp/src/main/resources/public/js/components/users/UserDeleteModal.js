@@ -1,19 +1,12 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
-import UserActions from "../../actions/users/UserActions";
 
 class UserDeleteModal extends React.Component {
-    onDeleteUserConfirmed() {
-        UserActions.closeUserModal();
-        UserActions.deleteRequest(this.props.currentUser.id);
-        UserActions.reloadCurrentPage();
-    }
-
     render() {
         return (
             <div>
-                <Modal bsSize="large" show={this.props.showDeleteUserModal} onHide={UserActions.closeUserModal}>
+                <Modal bsSize="large" show={this.props.showDeleteUserModal} onHide={this.props.onClose}>
                     <Modal.Header closeButton>
                         <Modal.Title><FormattedMessage id="userDeleteModal.title" values={{username: this.props.currentUser.username}}/></Modal.Title>
                     </Modal.Header>
@@ -22,10 +15,10 @@ class UserDeleteModal extends React.Component {
                     </Modal.Body>
                     <Modal.Footer>
                         <div className="text-center mbm">
-                            <Button bsStyle="primary" onClick={() => this.onDeleteUserConfirmed()}>
+                            <Button bsStyle="primary" onClick={() => this.props.onDeleteUserConfirmed(this.props.currentUser.id)}>
                                 <FormattedMessage id="label.delete"/>
                             </Button>
-                            <Button onClick={UserActions.closeUserModal}>
+                            <Button onClick={this.props.onClose}>
                                 <FormattedMessage id="label.cancel"/>
                             </Button>
                         </div>
