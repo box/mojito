@@ -7,6 +7,7 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import RepositoryActions from "../../actions/RepositoryActions";
 import TextUnit from "../../sdk/TextUnit";
 import textUnitStore from "./TextUnitStore";
+import AuthorityService from "../../utils/AuthorityService";
 
 class SearchResultsStore {
 
@@ -229,6 +230,9 @@ class SearchResultsStore {
      */
     onSelectAllTextUnitsInCurrentPage() {
         for (let textUnit of this.searchResults) {
+            if (!AuthorityService.canTranslateLocale(textUnit.getTargetLocale())) {
+                continue;
+            }
             this.selectedTextUnitsMap[textUnit.getTextUnitKey()] = textUnit;
         }
     }

@@ -6,11 +6,14 @@ import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.data.jpa.domain.Specification.where;
 
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.entity.security.user.UserLocale;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -98,6 +101,11 @@ public class UserWS {
             user.getGivenName(),
             user.getSurname(),
             user.getCommonName(),
+            user.getUserLocales().stream()
+                .map(UserLocale::getLocale)
+                .map(Locale::getBcp47Tag)
+                .collect(Collectors.toSet()),
+            user.getCanTranslateAllLocales(),
             false);
 
     return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
@@ -151,6 +159,11 @@ public class UserWS {
         user.getGivenName(),
         user.getSurname(),
         user.getCommonName(),
+        user.getUserLocales().stream()
+            .map(UserLocale::getLocale)
+            .map(Locale::getBcp47Tag)
+            .collect(Collectors.toSet()),
+        user.getCanTranslateAllLocales(),
         false);
   }
 
