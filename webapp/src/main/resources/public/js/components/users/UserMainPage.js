@@ -1,12 +1,8 @@
 import React from "react";
 import {FormattedMessage, FormattedDate, FormattedTime, injectIntl, __esModule} from "react-intl";
-import {
-    Table, Button, OverlayTrigger, Popover,
-    DropdownButton, MenuItem
-} from "react-bootstrap";
+import {Table, Button, OverlayTrigger, Popover, DropdownButton, MenuItem} from "react-bootstrap";
 import UserActions from "../../actions/users/UserActions";
 import UserStore from "../../stores/users/UserStore";
-import UserStatics from "../../utils/UserStatics";
 import User from "../../sdk/entity/User";
 import UserModal from "./UserModal";
 import UserDeleteModal from "./UserDeleteModal";
@@ -77,6 +73,9 @@ class UserMainPage extends React.Component {
                     onClick={UserActions.nextPage}
                 >
                     <span className="glyphicon glyphicon-chevron-right"></span>
+                </Button>
+                <Button className="mlm btnCreate" bsSize="small" bsStyle="primary" onClick={() => this.openNewUserModal()}>
+                    <FormattedMessage id="users.buttons.newUser"/>
                 </Button>
             </div>
         );
@@ -164,12 +163,6 @@ class UserMainPage extends React.Component {
     }
 
     render() {
-        let popover = (
-            <Popover id="popover-trigger-hover-focus">
-                <span className="text-muted brand-font-weight"><FormattedMessage id="users.buttons.newUser"/></span>
-            </Popover>
-        );
-
         return (
             <div className="users-root mll mrl">
                 <div style={{gridArea: "count", justifySelf: "start"}} className="mbl">
@@ -177,13 +170,6 @@ class UserMainPage extends React.Component {
                 </div>
                 {this.renderPageBar()}
                 {this.renderUsersTable()}
-                <div style={{gridArea: "newUser", justifySelf: "start"}}>
-                    <OverlayTrigger overlay={popover}>
-                        <Button className="btnCreate" bsStyle="primary" onClick={() => this.openNewUserModal()}>
-                            <span className="glyphicon glyphicon-plus foreWhite" aria-label="add user"/>
-                        </Button>
-                    </OverlayTrigger>
-                </div>
                 <AltContainer stores={{user: UserStore, modal: UserModalStore}}>
                     <UserModal />
                 </AltContainer>
