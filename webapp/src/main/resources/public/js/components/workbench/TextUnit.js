@@ -32,6 +32,7 @@ import {
     OverlayTrigger,
     Tooltip
 } from "react-bootstrap";
+import ViewModeStore from "../../stores/workbench/ViewModeStore";
 
 
 let TextUnit = createReactClass({
@@ -218,7 +219,7 @@ let TextUnit = createReactClass({
         textUnit.setStatus(TextUnitSDK.STATUS.APPROVED);
         textUnit.setTarget(this.state.translation);
         textUnit.setTranslated(true);
-        
+
         return textUnit;
     },
 
@@ -382,7 +383,7 @@ let TextUnit = createReactClass({
         let rendered = '';
         if (!this.props.textUnit.isUsed()) {
             rendered = (
-                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.unused"/></Label>
+                <Label bsStyle="default"><FormattedMessage id="textUnit.unused"/></Label>
             );
         }
         return rendered;
@@ -397,7 +398,7 @@ let TextUnit = createReactClass({
         let rendered = '';
         if (this.props.textUnit.getDoNotTranslate()) {
             rendered = (
-                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.doNotTranslate"/></Label>
+                <Label bsStyle="default"><FormattedMessage id="textUnit.doNotTranslate"/></Label>
             );
         }
         return rendered;
@@ -412,7 +413,7 @@ let TextUnit = createReactClass({
         let rendered = '';
         if (this.props.textUnit.getPluralForm() != null) {
             rendered = (
-                <Label bsStyle="default" className="mrxs clickable" onClick={this.onPluralFormLabelClick}>
+                <Label bsStyle="default" className="clickable" onClick={this.onPluralFormLabelClick}>
                     {this.props.textUnit.getPluralForm()}
                 </Label>
             );
@@ -495,7 +496,7 @@ let TextUnit = createReactClass({
                                  dir={dir}
                                  onClick={this.onClickTextArea}/>
 
-                    <ButtonToolbar className="mtxs mbxs">
+                    <ButtonToolbar className="mtxs">
                         <Button bsStyle='primary' bsSize="small" disabled={saveDisabled}
                                 onClick={!saveDisabled ? this.saveTextUnitIfNeeded : null}>
                             <FormattedMessage id='label.save'/>
@@ -557,7 +558,7 @@ let TextUnit = createReactClass({
             }
 
             ui = (
-                <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
+                <label className={targetClassName} onClick={this.editStringClicked} dir={dir} style={{margin: "0px"}}>
                 {leadingWhitespacesSymbol}{targetString}{trailingWhitespacesSymbol}
                 </label>
             );
@@ -584,10 +585,10 @@ let TextUnit = createReactClass({
     },
 
     /**
-     * Handle click on the plural form label: stop event propagation (no need to 
-     * bubble up as we're reloading the workbench with new data) and update the 
-     * search parameter to show all plural forms for the string 
-     * 
+     * Handle click on the plural form label: stop event propagation (no need to
+     * bubble up as we're reloading the workbench with new data) and update the
+     * search parameter to show all plural forms for the string
+     *
      * @param {SyntheticEvent} e
      */
     onPluralFormLabelClick(e) {
@@ -671,6 +672,29 @@ let TextUnit = createReactClass({
     },
 
     /**
+     * Handle click on the repostiroty label: stop event propagation (no need to bubble
+     * up as we're reloading the workbench with new data) and update the search
+     * parameter to show strings for the given repository.
+     *
+     * @param {SyntheticEvent} e
+     */
+    onRepositoryClick(e) {
+
+        e.stopPropagation();
+
+        const repo = RepositoryStore.getRepositoryByName(this.props.textUnit.getRepositoryName());
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": [repo.id],
+            "searchText": SearchParamsStore.getState().searchText,
+            "searchAttribute": SearchParamsStore.getState().searchAttribute,
+            "searchType": SearchParamsStore.SEARCH_TYPES.EXACT,
+            "bcp47Tags": [this.props.textUnit.getTargetLocale()]
+        });
+    },
+
+    /**
      * Handling TextUnit onClick event
      * @param {SyntheticEvent} e
      */
@@ -701,7 +725,7 @@ let TextUnit = createReactClass({
     handleErrorAlertDismiss() {
 
         WorkbenchActions.resetErrorState(this.props.textUnit);
- 
+
         this.setState({
             "isErrorAlertShown": false,
             "isEditMode" : true
@@ -803,15 +827,20 @@ let TextUnit = createReactClass({
         source = source.trim();
 
         return (
-            <div className="plx pts textunit-string">{leadingWhitespacesSymbol}{source}{trailingWhitespacesSymbol}</div>
+            <div className="textunit-string">{leadingWhitespacesSymbol}{source}{trailingWhitespacesSymbol}</div>
         );
+    },
+
+    shouldRenderAssetLabel() {
+        return this.props.viewMode.viewMode === ViewModeStore.VIEW_MODE.FULL || this.props.viewMode.viewMode === ViewModeStore.VIEW_MODE.REDUCED;
     },
 
     renderName() {
         const id = this.props.textUnit.getTmTextUnitId();
         const locale = this.props.textUnit.getTargetLocale();
+        const assetPrefix = this.props.intl.formatMessage({id: "textUnit.tag.asset"}) + ': ';
         let assetPathWithZeroWidthSpace = this.addZeroWidthSpace(this.props.textUnit.getAssetPath()); // to make the tooltip text to wrap
-        let assetPathTooltip = <Tooltip id={`${id}-${locale}-assetPath`}>{assetPathWithZeroWidthSpace}</Tooltip>;
+        let assetPathTooltip = <Tooltip id={`${id}-${locale}-assetPath`}>{assetPrefix + assetPathWithZeroWidthSpace}</Tooltip>;
         let assetPathWithGitInfoTooltip =
             <Tooltip id={`${id}-${locale}-gitInfo`}>{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
 
@@ -823,10 +852,13 @@ let TextUnit = createReactClass({
         return (<span className="clickable textunit-name"
                       onClick={this.onStringIdClick}>
                     <span>{this.props.textUnit.getName()}</span>
-                    <OverlayTrigger placement="top" overlay={assetPathTooltip}>
-                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls"
-                               onClick={this.onAssetPathClick} />
-                    </OverlayTrigger>
+
+                    {!this.shouldRenderAssetLabel() &&
+                        <OverlayTrigger placement="top" overlay={assetPathTooltip}>
+                            <span className="textunit-assetpath glyphicon glyphicon-level-up mls"
+                                onClick={this.onAssetPathClick} />
+                        </OverlayTrigger>
+                    }
 
                     <OverlayTrigger placement="top" overlay={assetPathWithGitInfoTooltip}>
                         <span className="textunit-gitInfo glyphicon glyphicon-info-sign mls"
@@ -841,17 +873,74 @@ let TextUnit = createReactClass({
         );
     },
 
+    renderRepository() {
+        if (this.props.viewMode.viewMode !== ViewModeStore.VIEW_MODE.FULL) {
+            return;
+        }
+
+        let repoName = this.props.textUnit.getRepositoryName();
+        if (this.props.viewMode.viewMode === ViewModeStore.VIEW_MODE.FULL) {
+            repoName = this.props.intl.formatMessage({id: "textUnit.tag.repo"}) + ': ' + repoName;
+        }
+
+        return (
+            <Label bsStyle='default' bsSize='large' className="clickable" onClick={this.onRepositoryClick}>
+                {repoName}
+            </Label>
+        );
+    },
+
+    renderAsset() {
+        if (!this.shouldRenderAssetLabel()) {
+            return;
+        }
+
+        const id = this.props.textUnit.getTmTextUnitId();
+        const locale = this.props.textUnit.getTargetLocale();
+        const assetPrefix = this.props.intl.formatMessage({id: "textUnit.tag.asset"}) + ': ';
+        let assetPathWithZeroWidthSpace = this.addZeroWidthSpace(this.props.textUnit.getAssetPath()); // to make the tooltip text to wrap
+        let assetPathTooltip = <Tooltip id={`${id}-${locale}-assetPath`}>{assetPrefix + assetPathWithZeroWidthSpace}</Tooltip>;
+        let displayAssetPath = assetPathWithZeroWidthSpace;
+
+        if (this.props.viewMode.viewMode === ViewModeStore.VIEW_MODE.REDUCED) {
+            // Remove file extension
+            displayAssetPath = displayAssetPath.replace(/\.[^.]+/, '');
+        } else if (this.props.viewMode.viewMode === ViewModeStore.VIEW_MODE.FULL) {
+            displayAssetPath = this.props.intl.formatMessage({id: "textUnit.tag.asset"}) + ': ' + displayAssetPath;
+        }
+
+        return (
+            <OverlayTrigger placement="top" overlay={assetPathTooltip}>
+                <Label style={{maxWidth: "256px", overflow: "hidden"}} bsStyle='default' bsSize='large' className="clickable" onClick={this.onAssetPathClick}>
+                    {displayAssetPath}
+                </Label>
+            </OverlayTrigger>
+        );
+    },
+
+    renderComment() {
+        if (this.props.viewMode.viewMode === ViewModeStore.VIEW_MODE.COMPACT) {
+            return;
+        }
+
+        return (
+            <div className="em color-gray-light2 textunit-comment">
+                {this.props.textUnit.getComment()}
+            </div>
+        );
+    },
+
     addZeroWidthSpace(string) {
-        
+
         let newString = "";
-        
+
         [...string].forEach(c => {
             if (newString.length % 10 === 0) {
                 newString += '\u200B';
-            }        
+            }
             newString += c;
         });
-        
+
         return newString;
     },
 
@@ -895,7 +984,7 @@ let TextUnit = createReactClass({
 
     render() {
         // TODO: Must show which repository a string belongs to when multiple repositories are selected
-        let textunitClass = "mrm pbm ptm textunit";
+        let textunitClass = "mrm pbs pts textunit";
         let isActive = this.props.isActive;
         let isSelected = this.props.isSelected;
         if (isActive) {
@@ -904,43 +993,53 @@ let TextUnit = createReactClass({
         if (isSelected) {
             textunitClass = textunitClass + " textunit-selected";
         }
-        
+
         return (
             <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
                  onClick={this.onTextUnitClick}>
             {this.getErrorAlert()}
                 <div>
-                    <Grid fluid={true}>
-                        <Row className='show-grid'>
-                            <Col xs={11}>
-                                <span className="mrxs">
-                                    <input type="checkbox" checked={isSelected} readOnly={true}/>
-                                </span>
-                                <Label bsStyle='primary' bsSize='large' className="mrxs mtl clickable"
-                                       onClick={this.onLocaleLabelClick}>
+                    <div className="text-unit-root">
+                        <div className="left mls">
+                            <span style={{gridArea: "cb"}} className="mrxs">
+                                <input type="checkbox" checked={isSelected} readOnly={true}/>
+                            </span>
+                            <div style={{gridArea: "locale"}}>
+                                <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
                                     {this.props.textUnit.getTargetLocale()}
                                 </Label>
+                            </div>
+                            <div style={{gridArea: "repo"}}>
+                                {this.renderRepository()}
+                            </div>
+                            <div style={{gridArea: "res"}}>
+                                {this.renderAsset()}
+                            </div>
+                            <div style={{gridArea: "labels", display: "flex", "gap": "5px"}}>
                                 {this.renderUnusedLabel()}
                                 {this.renderDoNotTranslateLabel()}
                                 {this.renderPluralFormLabel()}
+                            </div>
+                            <div style={{gridArea: "name"}}>
                                 {this.renderName()}
-                            </Col>
-                        </Row>
-                        <Row className='show-grid'>
-                            <Col md={6}>
-                                <Row>
-                                    {this.renderSource()}
-                                    <div className="plx em color-gray-light2 textunit-comment">{this.props.textUnit.getComment()}</div>
-                                </Row>
-                            </Col>
-                            <Col md={6}>
-                                <Row>
-                                    {this.getTargetStringUI()}
-                                    <span className="textunit-actionbar mrxs">{this.renderReviewGlyph()}</span>
-                                </Row>
-                            </Col>
-                        </Row>
-                    </Grid>
+                            </div>
+                            <div style={{gridArea: "source"}}>
+                                {this.renderSource()}
+                            </div>
+                            <div style={{gridArea: "comment"}}>
+                                {this.renderComment()}
+                            </div>
+                        </div>
+
+                        <div className="right mrs">
+                            <div style={{gridArea: "target"}}>
+                                {this.getTargetStringUI()}
+                            </div>
+                            <span style={{gridArea: "review"}}>
+                                {this.renderReviewGlyph()}
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 {this.getTextUnitReviewModal()}
                 {this.getCancelConfirmationModel()}

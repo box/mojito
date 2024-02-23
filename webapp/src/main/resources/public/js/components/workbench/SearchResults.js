@@ -18,6 +18,10 @@ import TextUnitSelectorCheckBox from "./TextUnitSelectorCheckBox";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import ReviewTextUnitsDTO from "../../stores/workbench/ReviewTextUnitsDTO";
 import TextUnitSDK from "../../sdk/TextUnit";
+import AltContainer from "alt-container";
+import ViewModeStore from "../../stores/workbench/ViewModeStore";
+import ViewModeDropdown from "./ViewModeDropdown";
+import ViewModeActions from "../../actions/workbench/ViewModeActions";
 
 let SearchResults = createReactClass({
     displayName: 'SearchResults',
@@ -513,14 +517,16 @@ let SearchResults = createReactClass({
     createTextUnitComponent(textUnit, arrayIndex) {
 
         return (
-            <TextUnit key={this.getTextUnitComponentKey(textUnit)}
-                      textUnit={textUnit} textUnitIndex={arrayIndex}
-                      translation={textUnit.getTarget()}
-                      isActive={arrayIndex === this.state.activeTextUnitIndex}
-                      isSelected={this.isTextUnitSelected(textUnit)}
-                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}
-                      onEditModeSetToFalse={this.onTextUnitEditModeSetToFalse}
-            />
+            <AltContainer key={this.getTextUnitComponentKey(textUnit)} stores={{"viewMode": ViewModeStore}}>
+                <TextUnit
+                        textUnit={textUnit} textUnitIndex={arrayIndex}
+                        translation={textUnit.getTarget()}
+                        isActive={arrayIndex === this.state.activeTextUnitIndex}
+                        isSelected={this.isTextUnitSelected(textUnit)}
+                        onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}
+                        onEditModeSetToFalse={this.onTextUnitEditModeSetToFalse}
+                />
+            </AltContainer>
         );
     },
 
@@ -584,12 +590,16 @@ let SearchResults = createReactClass({
                                 </DropdownButton>
                             </ButtonToolbar>
                         </div>
-                        <div className="pull-right">
+                        <div className="pull-right" style={{display: "flex", alignItems: "center", "gap": "15px"}}>
+                            <AltContainer store={ViewModeStore}>
+                                <ViewModeDropdown onModeSelected={(mode) => ViewModeActions.changeViewMode(mode)}/>
+                            </AltContainer>
+
                             <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits}/>
                             <Button bsSize="small" disabled={previousPageButtonDisabled}
                                     onClick={this.onFetchPreviousPageClicked}><span
                                 className="glyphicon glyphicon-chevron-left"></span></Button>
-                            <label className="mls mrs default-label current-pageNumber">
+                            <label className="default-label current-pageNumber">
                                 {this.displayCurrentPageNumber()}
                             </label>
                             <Button bsSize="small" disabled={nextPageButtonDisabled}

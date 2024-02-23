@@ -110,6 +110,10 @@ class TextUnitStore {
      * @param {TextUnit} textUnit
      */
     resetErrorState(textUnit) {
+        if (!textUnit) {
+            this.errorsKeyedByTextUnitKey = [];
+            return;
+        }
         delete this.errorsKeyedByTextUnitKey[textUnit.getTextUnitKey()];
     }
 
