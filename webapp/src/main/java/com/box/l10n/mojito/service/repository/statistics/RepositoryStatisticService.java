@@ -31,13 +31,17 @@ import com.ibm.icu.util.ULocale;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.ToLongFunction;
 import javax.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -101,14 +105,7 @@ public class RepositoryStatisticService {
         Timer.resource(meterRegistry, "RepositoryStatisticsService.updateStatistics")
             .tag("repository", repository.getName())) {
 
-      logger.debug("Get the current repository statistics");
-      RepositoryStatistic repositoryStatistic = repository.getRepositoryStatistic();
-
-      if (repositoryStatistic == null) {
-        logger.debug(
-            "No current repository statistics (shouldn't happen if repository was created via the service), Create it.");
-        repositoryStatistic = new RepositoryStatistic();
-      }
+      RepositoryStatistic repositoryStatistic = getRepositoryStatistic(repository);
 
       logger.debug("Update current entity with new statitsitcs");
       RepositoryStatistic newRepositoryStatistics =
@@ -134,10 +131,8 @@ public class RepositoryStatisticService {
       repositoryStatisticRepository.save(repositoryStatistic);
 
       logger.debug("Update locale statistics");
-      for (RepositoryLocale repositoryLocale :
-          repositoryService.getRepositoryLocalesWithoutRootLocale(repository)) {
-        updateLocaleStatistics(repositoryLocale, repositoryStatistic);
-      }
+
+      executeLocaleStatisticUpdates(repository, repositoryStatistic);
 
       logger.debug("Update branch statistics");
       branchStatisticService.computeAndSaveBranchStatistics(
@@ -147,13 +142,39 @@ public class RepositoryStatisticService {
     }
   }
 
+  private void executeLocaleStatisticUpdates(
+      Repository repository, RepositoryStatistic repositoryStatistic) {
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
+    repositoryService.getRepositoryLocalesWithoutRootLocale(repository).stream()
+        .forEach(
+            repositoryLocale ->
+                futures.add(updateLocaleStatistics(repositoryLocale, repositoryStatistic)));
+
+    // wait for all locale statistic calculations to complete
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+  }
+
+  private RepositoryStatistic getRepositoryStatistic(Repository repository) {
+    logger.debug("Get the current repository statistics");
+    RepositoryStatistic repositoryStatistic = repository.getRepositoryStatistic();
+
+    if (repositoryStatistic == null) {
+      logger.debug(
+          "No current repository statistics (shouldn't happen if repository was created via the service), Create it.");
+      repositoryStatistic = new RepositoryStatistic();
+    }
+
+    return repositoryStatistic;
+  }
+
   /**
    * Updates the {@link RepositoryLocaleStatistic} for a given locale and repository.
    *
    * @param repositoryLocale the repository locale
    * @param repositoryStatistic the parent entity that old the repository statistics
    */
-  void updateLocaleStatistics(
+  @Async("statisticsTaskExecutor")
+  CompletableFuture<Void> updateLocaleStatistics(
       RepositoryLocale repositoryLocale, RepositoryStatistic repositoryStatistic) {
 
     try (var timer =
@@ -204,6 +225,8 @@ public class RepositoryStatisticService {
 
       repositoryLocaleStatisticRepository.save(repositoryLocaleStatistic);
     }
+
+    return CompletableFuture.completedFuture(null);
   }
 
   /**
@@ -322,7 +345,7 @@ public class RepositoryStatisticService {
       long repositoryId = repositoryLocale.getRepository().getId();
 
       RepositoryLocaleStatistic repositoryLocaleStatisticNew =
-          assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, false).stream()
+          assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, false).parallelStream()
               .map(
                   assetId -> {
                     Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5 =
