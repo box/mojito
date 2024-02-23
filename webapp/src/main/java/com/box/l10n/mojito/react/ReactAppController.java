@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.react;
 
 import com.box.l10n.mojito.entity.security.user.Authority;
+import com.box.l10n.mojito.entity.security.user.UserLocale;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.mustache.MustacheBaseContext;
 import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
@@ -14,6 +15,7 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,6 +136,12 @@ public class ReactAppController {
               reactUser.setGivenName(currentAuditor.getGivenName());
               reactUser.setSurname(currentAuditor.getSurname());
               reactUser.setCommonName(currentAuditor.getCommonName());
+              reactUser.setCanTranslateAllLocales(currentAuditor.getCanTranslateAllLocales());
+              reactUser.setUserLocales(
+                  currentAuditor.getUserLocales().stream()
+                      .map(UserLocale::getLocale)
+                      .map(com.box.l10n.mojito.entity.Locale::getBcp47Tag)
+                      .collect(Collectors.toList()));
 
               Role role = Role.ROLE_USER;
               Authority authority = authorityRepository.findByUser(currentAuditor);
