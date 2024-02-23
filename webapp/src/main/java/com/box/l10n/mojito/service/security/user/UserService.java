@@ -1,16 +1,22 @@
 package com.box.l10n.mojito.service.security.user;
 
+import static java.util.Locale.ROOT;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.entity.security.user.UserLocale;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
@@ -40,6 +46,10 @@ public class UserService {
   @Autowired AuthorityRepository authorityRepository;
 
   @Autowired AuditorAwareImpl auditorAwareImpl;
+
+  @Autowired UserLocaleRepository userLocaleRepository;
+
+  @Autowired LocaleService localeService;
 
   /**
    * Allow PMs and ADMINs to create / edit users. However, a PM user can not create / edit ADMIN
@@ -91,6 +101,8 @@ public class UserService {
       String givenName,
       String surname,
       String commonName,
+      Set<String> translatableLocales,
+      boolean canTranslateAllLocales,
       boolean partiallyCreated) {
     logger.debug("Creating user entry for: {}", username);
     Preconditions.checkNotNull(password, "password must not be null");
@@ -104,7 +116,16 @@ public class UserService {
     user.setEnabled(true);
     user.setUsername(username);
 
-    return saveUserWithRole(user, password, role, givenName, surname, commonName, partiallyCreated);
+    return saveUserWithRole(
+        user,
+        password,
+        role,
+        givenName,
+        surname,
+        commonName,
+        translatableLocales,
+        canTranslateAllLocales,
+        partiallyCreated);
   }
 
   /**
@@ -127,6 +148,8 @@ public class UserService {
       String givenName,
       String surname,
       String commonName,
+      Set<String> translatableLocales,
+      boolean canTranslateAllLocales,
       boolean partiallyCreated) {
 
     // Only PMs and ADMINs can edit users and PMs can not edit ADMIN users (privilege escalation)
@@ -154,6 +177,39 @@ public class UserService {
       user.setPassword(bCryptPasswordEncoder.encode(password));
     }
 
+    if (translatableLocales != null) {
+      Set<String> localesToAdd =
+          translatableLocales.stream().map(x -> x.toLowerCase(ROOT)).collect(Collectors.toSet());
+      Set<UserLocale> currentUserLocales = new HashSet<>(user.getUserLocales());
+      Set<UserLocale> newUserLocales = new HashSet<>();
+
+      // Check the existing locales
+      for (UserLocale ul : currentUserLocales) {
+        final String tag = ul.getLocale().getBcp47Tag().toLowerCase(ROOT);
+        if (localesToAdd.remove(tag)) {
+          // User locale is already set --> reuse it
+          newUserLocales.add(ul);
+        } else {
+          // The locale was not in the new set --> remove it
+          userLocaleRepository.delete(ul);
+        }
+      }
+
+      // Add the missing locales
+      if (!localesToAdd.isEmpty()) {
+        // Ensure that the user exists before saving new UserLocales objects
+        userRepository.save(user);
+      }
+      for (String bcp47Tag : localesToAdd) {
+        Locale locale = localeService.findByBcp47Tag(bcp47Tag);
+        UserLocale userLocale = new UserLocale(user, locale);
+        userLocaleRepository.save(userLocale);
+        newUserLocales.add(userLocale);
+      }
+      user.setUserLocales(newUserLocales);
+    }
+
+    user.setCanTranslateAllLocales(canTranslateAllLocales);
     user.setPartiallyCreated(partiallyCreated);
 
     userRepository.save(user);
@@ -211,7 +267,7 @@ public class UserService {
    * @return The newly created user
    */
   public User createUserWithRole(String username, String password, Role role) {
-    return createUserWithRole(username, password, role, null, null, null, false);
+    return createUserWithRole(username, password, role, null, null, null, null, true, false);
   }
 
   /**
@@ -298,8 +354,9 @@ public class UserService {
             givenName,
             surname,
             commonName,
+            null,
+            true,
             partiallyCreated);
-
     logger.debug(
         "Manually setting created by user to system user because at this point, there isn't an authenticated user context");
     updateCreatedByUserToSystemUser(userWithRole);
@@ -325,7 +382,17 @@ public class UserService {
           givenName,
           surname,
           commonName);
-      user = saveUserWithRole(user, null, null, givenName, surname, commonName, false);
+      user =
+          saveUserWithRole(
+              user,
+              null,
+              null,
+              givenName,
+              surname,
+              commonName,
+              null,
+              user.getCanTranslateAllLocales(),
+              false);
     }
 
     return user;

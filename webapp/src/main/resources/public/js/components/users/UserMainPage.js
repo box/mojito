@@ -11,11 +11,14 @@ import UserErrorModal from "./UserErrorModal";
 import AltContainer from "alt-container";
 import UserModalStore from "../../stores/users/UserModalStore";
 import UserModalActions from "../../actions/users/UserModalActions";
+import LocaleStore from "../../stores/users/LocaleStore";
+import LocaleActions from "../../actions/users/LocaleActions";
 
 class UserMainPage extends React.Component {
 
     componentDidMount() {
         UserActions.reloadCurrentPage();
+        LocaleActions.loadLocales();
     }
 
     mutedText(content) {
@@ -170,7 +173,7 @@ class UserMainPage extends React.Component {
                 </div>
                 {this.renderPageBar()}
                 {this.renderUsersTable()}
-                <AltContainer stores={{user: UserStore, modal: UserModalStore}}>
+                <AltContainer stores={{user: UserStore, modal: UserModalStore, locales: LocaleStore}}>
                     <UserModal />
                 </AltContainer>
                 <AltContainer store={UserStore}>

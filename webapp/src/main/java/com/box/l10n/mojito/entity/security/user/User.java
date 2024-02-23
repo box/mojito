@@ -36,12 +36,16 @@ import org.springframework.data.annotation.CreatedBy;
     name = "User.legacy",
     attributeNodes = {
       @NamedAttributeNode("createdByUser"),
+      @NamedAttributeNode(value = "userLocales", subgraph = "User.legacy.userLocales"),
       @NamedAttributeNode(value = "authorities", subgraph = "User.legacy.authorities")
     },
     subgraphs = {
       @NamedSubgraph(
           name = "User.legacy.authorities",
-          attributeNodes = {@NamedAttributeNode("createdByUser"), @NamedAttributeNode("user")})
+          attributeNodes = {@NamedAttributeNode("createdByUser"), @NamedAttributeNode("user")}),
+      @NamedSubgraph(
+          name = "User.legacy.userLocales",
+          attributeNodes = {@NamedAttributeNode("user")}),
     })
 public class User extends AuditableEntity implements Serializable {
 
@@ -69,6 +73,9 @@ public class User extends AuditableEntity implements Serializable {
   @JsonView(View.IdAndName.class)
   String commonName;
 
+  @Column(name = "can_translate_all_locales", nullable = false)
+  boolean canTranslateAllLocales = true;
+
   /**
    * Sets this flag if the user is created by a process that don't have all the information. Eg.
    * pushing an asset for a branch with an owner or header base authentication. If the owner is not
@@ -79,6 +86,10 @@ public class User extends AuditableEntity implements Serializable {
    */
   @Column(name = "partially_created")
   Boolean partiallyCreated = false;
+
+  @JsonManagedReference
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+  Set<UserLocale> userLocales = new HashSet<>();
 
   @JsonManagedReference
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
@@ -154,6 +165,22 @@ public class User extends AuditableEntity implements Serializable {
 
   public void setCommonName(String commonName) {
     this.commonName = commonName;
+  }
+
+  public boolean getCanTranslateAllLocales() {
+    return canTranslateAllLocales;
+  }
+
+  public void setCanTranslateAllLocales(boolean canTranslateAllLocales) {
+    this.canTranslateAllLocales = canTranslateAllLocales;
+  }
+
+  public Set<UserLocale> getUserLocales() {
+    return userLocales;
+  }
+
+  public void setUserLocales(Set<UserLocale> userLocales) {
+    this.userLocales = userLocales;
   }
 
   public Boolean getPartiallyCreated() {

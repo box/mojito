@@ -12,8 +12,14 @@ class UserModalActions {
             "updatePasswordValidation",
             "updateRole",
             "toggleInfoAlert",
+            "showValueAlert",
             "checkUsernameTaken",
             "checkUsernameTakenSuccess",
+            "pushCurrentLocale",
+            "removeLocaleFromList",
+            "updateCanTranslateAllLocales",
+            "updateLocaleFilter",
+            "updateSelectedLocale",
         );
     }
 }
