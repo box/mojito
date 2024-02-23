@@ -16,7 +16,6 @@ import SearchConstants from "../../utils/SearchConstants";
 import {FormControl, Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem} from 'react-bootstrap';
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 import {withAppConfig} from "../../utils/AppConfig";
-import AuthorityService from "../../utils/AuthorityService";
 
 class Header extends React.Component {
     state = {
@@ -25,10 +24,6 @@ class Header extends React.Component {
 
     logoutSelected = () => {
         this.refs.logoutForm.submit();
-    };
-
-    settingsSelected = () => {
-        location.href = UrlHelper.getUrlWithContextPath("/settings");
     };
 
     openLocaleSelectorModal = () => {
@@ -104,14 +99,6 @@ class Header extends React.Component {
                             ScreenshotsRepositoryActions.getAllRepositories();
                         }
                     }}><NavItem><FormattedMessage id="header.screenshots"/></NavItem></LinkContainer>
-                    {
-                        AuthorityService.hasPermissionsForUserManagement() &&
-                        <LinkContainer to="/user-management">
-                            <NavItem>
-                                <FormattedMessage id="header.user-management"/>
-                            </NavItem>
-                        </LinkContainer>
-                    }
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={this.getUsernameDisplay()} id="user-menu">
@@ -119,9 +106,11 @@ class Header extends React.Component {
                             <Glyphicon glyph="globe"/> {Locales.getCurrentLocaleDisplayName()}
                         </MenuItem>
 
-                        <MenuItem onSelect={this.settingsSelected}>
-                            <Glyphicon glyph="wrench"/> <FormattedMessage id="header.settings"/>
-                        </MenuItem>
+                        <LinkContainer to="/settings">
+                            <MenuItem>
+                                <Glyphicon glyph="wrench"/> <FormattedMessage id="header.settings"/>
+                            </MenuItem>
+                        </LinkContainer>
 
                         <MenuItem divider/>
                         <MenuItem onSelect={this.logoutSelected}>

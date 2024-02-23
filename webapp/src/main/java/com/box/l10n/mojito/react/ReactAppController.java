@@ -71,9 +71,10 @@ public class ReactAppController {
     "project-requests",
     "workbench",
     "branches",
-    "settings",
     "screenshots",
-    "user-management"
+    "settings",
+    "settings/user-management",
+    "settings/box"
   })
   @ResponseBody
   ModelAndView getIndex(
