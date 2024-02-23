@@ -7,7 +7,6 @@ import com.box.l10n.mojito.rest.entity.Page;
 import com.box.l10n.mojito.rest.entity.Role;
 import com.box.l10n.mojito.rest.entity.User;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,8 +53,7 @@ public class UserClient extends BaseClient {
 
     ResponseEntity<Page<User>> responseEntity =
         authenticatedRestTemplate.getForEntityWithQueryParams(
-            getBasePathForEntity(), new ParameterizedTypeReference<Page<User>>() {}, filterParams
-        );
+            getBasePathForEntity(), new ParameterizedTypeReference<Page<User>>() {}, filterParams);
 
     return responseEntity.getBody().getContent();
   }
