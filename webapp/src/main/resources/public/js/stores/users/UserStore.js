@@ -26,12 +26,6 @@ class UserStore {
         /** @type {Number} */
         this.lastErrorCode = 0;
 
-        /** @type {Boolean} */
-        this.currentUsernameTaken = false;
-
-        /** @type {Boolean} */
-        this.currentUsernameChecked = false;
-
         this.bindActions(UserActions);
         this.registerAsync(UserDataSource);
     }
@@ -41,8 +35,6 @@ class UserStore {
         this.modalState = UserStatics.stateHidden();
         this.showDeleteUserModal = false;
         this.lastErrorKey = null;
-        this.currentUsernameTaken = false;
-        this.currentUsernameChecked = false;
     }
 
     onOpenNewUserModal() {
@@ -81,7 +73,6 @@ class UserStore {
     }
 
     updatePageSize(newSize) {
-        console.log(newSize);
         const currPage = this.userPage ? this.userPage.number : 0;
 
         const pageRequestParams = new PageRequestParams(currPage, newSize);
@@ -113,22 +104,6 @@ class UserStore {
         this.lastErrorCode = err.response.status;
         console.log("error fetching users", err);
     }
-
-
-
-    onCheckUsernameTaken(username) {
-        this.currentUsernameChecked = false;
-        if (!username) {
-            return;
-        }
-        this.getInstance().checkUsernameTakenRequest(username);
-    }
-
-    onCheckUsernameTakenSuccess(isTaken) {
-        this.currentUsernameTaken = isTaken;
-        this.currentUsernameChecked = true;
-    }
-
 
 
     onDeleteRequest(id) {

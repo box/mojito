@@ -1,5 +1,6 @@
 import UserClient from "../../sdk/UserClient";
 import UserActions from "./UserActions";
+import UserModalActions from "./UserModalActions";
 
 const UserDataSource = {
     getAllUsers: {
@@ -16,8 +17,8 @@ const UserDataSource = {
             return UserClient.checkUsernameTaken(username);
         },
 
-        success: UserActions.checkUsernameTakenSuccess,
-        error: UserActions.checkUsernameTakenError
+        success: UserModalActions.checkUsernameTakenSuccess,
+        error: UserModalActions.checkUsernameTakenError
     },
 
     deleteRequest: {

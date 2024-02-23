@@ -13,6 +13,8 @@ import UserDeleteModal from "./UserDeleteModal";
 import { UserRole } from "./UserRole";
 import UserErrorModal from "./UserErrorModal";
 import AltContainer from "alt-container";
+import UserModalStore from "../../stores/users/UserModalStore";
+import UserModalActions from "../../actions/users/UserModalActions";
 
 class UserMainPage extends React.Component {
 
@@ -80,6 +82,16 @@ class UserMainPage extends React.Component {
         );
     }
 
+    openEditUserModal(user) {
+        UserActions.openEditUserModal(user);
+        UserModalActions.resetUserModal();
+    }
+
+    openNewUserModal() {
+        UserActions.openNewUserModal();
+        UserModalActions.resetUserModal();
+    }
+
     /**
      * @param {User} user
      */
@@ -103,7 +115,7 @@ class UserMainPage extends React.Component {
 
         modalButton = (
             <OverlayTrigger placement="top" overlay={modalBtnOverlay}>
-                <Button bsStyle="primary" bsSize="small" className= "mlxs" onClick={() => UserActions.openEditUserModal(user)}>
+                <Button bsStyle="primary" bsSize="small" className= "mlxs" onClick={() => this.openEditUserModal(user)}>
                     <span className="glyphicon glyphicon-pencil forceWhite" aria-label={deleteTitle}/>
                 </Button>
             </OverlayTrigger>
@@ -167,12 +179,14 @@ class UserMainPage extends React.Component {
                 {this.renderUsersTable()}
                 <div style={{gridArea: "newUser", justifySelf: "start"}}>
                     <OverlayTrigger overlay={popover}>
-                        <Button className="btnCreate" bsStyle="primary" onClick={() => UserActions.openNewUserModal()}>
+                        <Button className="btnCreate" bsStyle="primary" onClick={() => this.openNewUserModal()}>
                             <span className="glyphicon glyphicon-plus foreWhite" aria-label="add user"/>
                         </Button>
                     </OverlayTrigger>
                 </div>
-                {this.props.modalState != UserStatics.stateHidden() && <UserModal />}
+                <AltContainer stores={{user: UserStore, modal: UserModalStore}}>
+                    <UserModal />
+                </AltContainer>
                 <AltContainer store={UserStore}>
                     <UserDeleteModal />
                 </AltContainer>
