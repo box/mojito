@@ -10,14 +10,13 @@ permalink: /docs/guides/open-source-contributors/
 The following requirements are needed to develop on {{ site.mojito_green }}: 
 
 1. [Git](https://git-scm.com/about)
-2. [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) 
-           (9+ are not supported)
+2. [JDK 17](https://adoptium.net/temurin/releases/?version=17) 
 3. [Maven](https://maven.apache.org/download.cgi), or use the project Maven wrapper `mvnw` (version `3.8`)
-4. Optional but highly recommanded, [MySQL 5.7](https://dev.mysql.com/downloads/mysql/5.7.html) 
+4. Optional but highly recommanded, [MySQL 8](https://dev.mysql.com/downloads/mysql/8.html) 
 
 Next are instructions to setup the developper environment on Mac OS and Ubuntu. Both have instructions to install 
-`Mysql 5.7` that can be skipped but it is highly recommanded to work with a production like environment and persistent
-data. Note that `5.7` is the only version tested at the moment.
+`Mysql 8` that can be skipped but it is highly recommanded to work with a production like environment and persistent
+data. Note that `8` is the only version tested at the moment.
 
 Skip to the [build section](#build) if you already have everything setup!
 
@@ -27,15 +26,14 @@ You can also get started by using a [docker image](#docker-image) that has the b
 
 Install `brew` following the website instructions: https://brew.sh/
 
-Install `java 8` from `OpenJDK`:
+Install `java 17` from `Temurin`:
 
 ```sh
-brew tap adoptopenjdk/openjdk
-brew cask install adoptopenjdk8
+brew install temurin17
 ```
 
-Check that `java 8` is now in use with `java -version`. If you need multiple versions of `java` consider using 
-something like `jenv` or `sdkman`.
+Check that `java 17` is now in use with `java -version`. If you need multiple versions of `java` consider using 
+something like `jenv` (don't forget the plugins: `jenv enable-plugin maven` & `jenv enable-plugin export` ) or `sdkman`.
     
 Install `maven` (latest version should be fine):
     
@@ -43,34 +41,25 @@ Install `maven` (latest version should be fine):
 brew install maven
 ```
           
-Optionally, install `Mysql 5.7`
+Optionally, install `Mysql 8`
 
 ```sh
-brew install mysql@5.7
-```
- 
-And follow the instructions since it is key-only, you most likely want to update your `PATH`:
-
-```sh
-mysql@5.7 is keg-only, which means it was not symlinked into /usr/local,
-because this is an alternate version of another formula.
-
-If you need to have mysql@5.7 first in your PATH run:
-  echo 'export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"' >> ~/.zshrc
+brew install mysql@8
 ```
 
 Note, to install the exact same `maven` version as the wrapper: `brew install maven@3.8` (check the instructions since it is key-only) .
 
-      
+ 
 ### Install on Unbutu 18.4 LTS
 
-Install `java 8` from `OpenJDK`:
+Install `java 17` from `OpenJDK`:
 
 ```sh
-sudo apt-get install openjdk-8-jdk
+sudo apt-get install openjdk-17-jdk
 ```
 Check that `java 8` is now in use with `java -version`. If not you, can set it as default with 
-`sudo update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-amd64`. If you need multiple versions of `java` 
+`sudo update-java-alternatives -s /usr/lib/jvm/java-1.17.0-openjdk-amd64` (To check the list
+`sudo update-java-alternatives -l`). If you need multiple versions of `java` 
 consider using something like `jenv` or `sdkman`.
 
 Install `maven` (latest version should be fine):
@@ -84,10 +73,10 @@ Install `git`
 sudo apt-get install git
 ```
     
-Optionally, install `Mysql 5.7`
+Optionally, install `Mysql 8`
  
 ```sh
-sudo apt-get install mysql-server-5.7
+sudo apt-get install mysql-server
 ```       
   
 ## Create Mysql Databases & configuration files
@@ -314,9 +303,9 @@ Make sure you have Java 8 installed:
 
 ```sh
 [11:05:13] ~/code/mojito (fix_add_text_unit_plural) $ java -version
-java version "1.8.0_121"
-Java(TM) SE Runtime Environment (build 1.8.0_121-b13)
-Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
+openjdk version "17.0.9" 2023-10-17
+OpenJDK Runtime Environment Homebrew (build 17.0.9+0)
+OpenJDK 64-Bit Server VM Homebrew (build 17.0.9+0, mixed mode, sharing)
 ```
 
 ### Check Maven version
