@@ -8,7 +8,6 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,8 +37,8 @@ public class UserService {
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
   /**
-   * Allow PMs and ADMINs to create / edit users. However, a PM user can not
-   * create / edit ADMIN users.
+   * Allow PMs and ADMINs to create / edit users. However, a PM user can not create / edit ADMIN
+   * users.
    */
   private void checkPermissionsForRole(Role role) {
     final Optional<User> currentUser = auditorAwareImpl.getCurrentAuditor();
@@ -48,19 +47,22 @@ public class UserService {
       // the API endpoints. However, allow this for tests
       return;
     }
-    final String currentAuthority = currentUser.get().getAuthorities().iterator().next().getAuthority();
+    final String currentAuthority =
+        currentUser.get().getAuthorities().iterator().next().getAuthority();
     final Role currentRole = createRoleFromAuthority(currentAuthority);
 
     switch (currentRole) {
       case ROLE_PM -> {
         if (role == Role.ROLE_ADMIN) {
-          throw new AccessDeniedException("Access denied! PMs are not allowed to edit / create ADMINs");
+          throw new AccessDeniedException(
+              "Access denied! PMs are not allowed to edit / create ADMINs");
         }
       }
       case ROLE_ADMIN -> {
         // There is nothing above admin
       }
-      case ROLE_TRANSLATOR, ROLE_USER -> throw new AccessDeniedException("Access denied! Users and Translators are not allowed to to edit / create users");
+      case ROLE_TRANSLATOR, ROLE_USER -> throw new AccessDeniedException(
+          "Access denied! Users and Translators are not allowed to to edit / create users");
     }
   }
 
@@ -88,7 +90,8 @@ public class UserService {
     Preconditions.checkNotNull(password, "password must not be null");
     Preconditions.checkState(!password.isEmpty(), "password must not be empty");
 
-    // Only PMs and ADMINs can create new users and PMs can not create ADMIN users (privilege escalation)
+    // Only PMs and ADMINs can create new users and PMs can not create ADMIN users (privilege
+    // escalation)
     checkPermissionsForRole(role);
 
     User user = new User();
@@ -122,7 +125,8 @@ public class UserService {
 
     // Only PMs and ADMINs can edit users and PMs can not edit ADMIN users (privilege escalation)
     if (!user.getAuthorities().isEmpty()) {
-      Role userRole = createRoleFromAuthority(user.getAuthorities().iterator().next().getAuthority());
+      Role userRole =
+          createRoleFromAuthority(user.getAuthorities().iterator().next().getAuthority());
       checkPermissionsForRole(userRole);
     }
     checkPermissionsForRole(role == null ? Role.ROLE_PM : role);
@@ -196,14 +200,14 @@ public class UserService {
     return role.name();
   }
 
-  /**
-   * Reverses {@link #createAuthorityName(Role)}
-   */
+  /** Reverses {@link #createAuthorityName(Role)} */
   public Role createRoleFromAuthority(String auth) {
     return Role.valueOf(auth);
   }
 
-  /** @return The System User */
+  /**
+   * @return The System User
+   */
   public User findSystemUser() {
     return userRepository.findByUsername(SYSTEM_USERNAME);
   }
@@ -264,7 +268,13 @@ public class UserService {
     String randomPassword = RandomStringUtils.randomAlphanumeric(15);
     User userWithRole =
         createUserWithRole(
-            username, randomPassword, Role.ROLE_USER, givenName, surname, commonName, partiallyCreated);
+            username,
+            randomPassword,
+            Role.ROLE_USER,
+            givenName,
+            surname,
+            commonName,
+            partiallyCreated);
 
     logger.debug(
         "Manually setting created by user to system user because at this point, there isn't an authenticated user context");

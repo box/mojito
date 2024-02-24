@@ -7,6 +7,11 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.AuthorityRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.IllformedLocaleException;
+import java.util.Locale;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +21,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.IllformedLocaleException;
-import java.util.Locale;
 
 /**
  * The controller used to serve the React application.

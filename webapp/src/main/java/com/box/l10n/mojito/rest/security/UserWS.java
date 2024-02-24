@@ -47,13 +47,11 @@ public class UserWS {
    */
   @RequestMapping(value = "/api/users", method = RequestMethod.GET)
   public Page<User> getUsers(
-          @RequestParam(value = "username", required = false) String username,
-          @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable
-  ) {
+      @RequestParam(value = "username", required = false) String username,
+      @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
     Page<User> users =
         userRepository.findAll(
-            where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)),
-            pageable);
+            where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)), pageable);
     return users;
   }
 

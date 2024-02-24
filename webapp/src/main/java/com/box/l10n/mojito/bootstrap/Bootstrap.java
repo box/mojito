@@ -68,7 +68,8 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
     String randomPassword = RandomStringUtils.randomAlphanumeric(15);
 
     User systemUser =
-        userService.createUserWithRole(UserService.SYSTEM_USERNAME, randomPassword, Role.ROLE_ADMIN);
+        userService.createUserWithRole(
+            UserService.SYSTEM_USERNAME, randomPassword, Role.ROLE_ADMIN);
 
     logger.debug("Disabling System user so that it can't be authenticated");
     systemUser.setEnabled(false);
