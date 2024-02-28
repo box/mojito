@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.client;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException;
 import com.box.l10n.mojito.rest.entity.Authority;
+import com.box.l10n.mojito.rest.entity.Page;
 import com.box.l10n.mojito.rest.entity.Role;
 import com.box.l10n.mojito.rest.entity.User;
 import com.google.common.collect.Sets;
@@ -13,7 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -45,8 +48,14 @@ public class UserClient extends BaseClient {
       filterParams.put("username", username);
     }
 
-    return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
-        getBasePathForEntity(), User[].class, filterParams);
+    filterParams.put("page", "0");
+    filterParams.put("size", String.valueOf(Integer.MAX_VALUE));
+
+    ResponseEntity<Page<User>> responseEntity =
+        authenticatedRestTemplate.getForEntityWithQueryParams(
+            getBasePathForEntity(), new ParameterizedTypeReference<Page<User>>() {}, filterParams);
+
+    return responseEntity.getBody().getContent();
   }
 
   /**

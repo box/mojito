@@ -80,7 +80,7 @@ public class UserCreateCommand extends Command {
       consoleWriter.a("Enter new password for " + username + ":").println();
       String password = console.readPassword();
 
-      Role role = rolename == null ? null : Role.valueOf(rolename);
+      Role role = Role.fromString(rolename);
       User user = userClient.createUser(username, password, role, surname, givenName, commonName);
       consoleWriter
           .newLine()

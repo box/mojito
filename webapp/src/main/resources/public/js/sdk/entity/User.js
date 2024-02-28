@@ -1,3 +1,4 @@
+import UserStatics from "../../utils/UserStatics";
 import Authority from "./Authority";
 
 export default class User {
@@ -20,6 +21,9 @@ export default class User {
         /** @type {String} */
         this.commonName = "";
 
+        /** @type {Date} */
+        this.createdDate = null;
+
         /** @type {Authority[]} */
         this.authorities = [];
     }
@@ -33,10 +37,22 @@ export default class User {
         if (this.commonName) {
             name = this.commonName;
         } else if (this.givenName && this.surname) {
-            name = this.givenName + this.surname;
+            name = this.givenName + " " + this.surname;
         }
 
         return name;
+    }
+
+    /**
+     * Get the role of the user (the first and only authority)
+     *
+     * @returns {String}
+     */
+    getRole() {
+        if (this.authorities.length == 1) {
+            return this.authorities[0].authority;
+        }
+        return UserStatics.authorityUser();
     }
 
 
@@ -55,6 +71,7 @@ export default class User {
             user.commonName = jsonUser.commonName;
             user.surname = jsonUser.surname;
             user.givenName = jsonUser.givenName;
+            user.createdDate = new Date(jsonUser.createdDate);
             user.authorities = Authority.toAuthorities(jsonUser.authorities);
         }
         return user;

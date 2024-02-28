@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.react;
 
+import com.box.l10n.mojito.security.Role;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -9,6 +10,7 @@ public class ReactUser {
   String givenName;
   String surname;
   String commonName;
+  Role role;
 
   public String getUsername() {
     return username;
@@ -40,5 +42,13 @@ public class ReactUser {
 
   public void setCommonName(String commonName) {
     this.commonName = commonName;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public void setRole(Role role) {
+    this.role = role;
   }
 }

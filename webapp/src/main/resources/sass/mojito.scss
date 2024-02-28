@@ -964,3 +964,14 @@ label.current-pageNumber {
 .branches-screenshotviewer-modal-gotonext.enabled:hover {
     color: $gray-light;
 }
+
+.users-root {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: min-content min-content min-content;
+    grid-template-areas:
+        "count   .       pages"
+        "main    main    main"
+        "newUser .       ."
+    ;
+}

@@ -32,3 +32,4 @@ release.properties
 /node_modules/
 /tmp/
 /local/
+.vscode/

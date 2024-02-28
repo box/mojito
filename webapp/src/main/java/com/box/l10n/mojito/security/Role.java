@@ -5,27 +5,17 @@ package com.box.l10n.mojito.security;
  */
 public enum Role {
   /** Project Manager */
-  PM("PM"),
+  ROLE_PM,
 
   /** Translator in Mojito */
-  TRANSLATOR("TRANSLATOR"),
+  ROLE_TRANSLATOR,
 
   /** Administrator of Mojito. */
-  ADMIN("ADMIN"),
+  ROLE_ADMIN,
 
   /**
    * User does not have much authorities. Any new user who is logging in for the first time will
    * have this role
    */
-  USER("USER");
-
-  String roleName;
-
-  Role(String roleName) {
-    this.roleName = roleName;
-  }
-
-  public String getRoleName() {
-    return roleName;
-  }
+  ROLE_USER;
 }

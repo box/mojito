@@ -1,8 +1,12 @@
 package com.box.l10n.mojito.react;
 
+import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.security.CsrfTokenController;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
+import com.box.l10n.mojito.security.Role;
+import com.box.l10n.mojito.service.security.user.AuthorityRepository;
+import com.box.l10n.mojito.service.security.user.UserService;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.IllformedLocaleException;
@@ -51,6 +55,10 @@ public class ReactAppController {
 
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
+  @Autowired AuthorityRepository authorityRepository;
+
+  @Autowired UserService userService;
+
   @Value("${server.contextPath:}")
   String contextPath = "";
 
@@ -62,8 +70,10 @@ public class ReactAppController {
     "project-requests",
     "workbench",
     "branches",
+    "screenshots",
     "settings",
-    "screenshots"
+    "settings/user-management",
+    "settings/box"
   })
   @ResponseBody
   ModelAndView getIndex(
@@ -103,6 +113,13 @@ public class ReactAppController {
               reactUser.setGivenName(currentAuditor.getGivenName());
               reactUser.setSurname(currentAuditor.getSurname());
               reactUser.setCommonName(currentAuditor.getCommonName());
+
+              Role role = Role.ROLE_USER;
+              Authority authority = authorityRepository.findByUser(currentAuditor);
+              if (authority != null) {
+                role = userService.createRoleFromAuthority(authority.getAuthority());
+              }
+              reactUser.setRole(role);
               return reactUser;
             })
         .orElse(new ReactUser());

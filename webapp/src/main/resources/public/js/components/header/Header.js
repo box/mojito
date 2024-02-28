@@ -26,10 +26,6 @@ class Header extends React.Component {
         this.refs.logoutForm.submit();
     };
 
-    settingsSelected = () => {
-        location.href = UrlHelper.getUrlWithContextPath("/settings");
-    };
-
     openLocaleSelectorModal = () => {
         this.setState({
                 showLocaleSelectorModal: true
@@ -110,9 +106,11 @@ class Header extends React.Component {
                             <Glyphicon glyph="globe"/> {Locales.getCurrentLocaleDisplayName()}
                         </MenuItem>
 
-                        <MenuItem onSelect={this.settingsSelected}>
-                            <Glyphicon glyph="wrench"/> <FormattedMessage id="header.settings"/>
-                        </MenuItem>
+                        <LinkContainer to="/settings">
+                            <MenuItem>
+                                <Glyphicon glyph="wrench"/> <FormattedMessage id="header.settings"/>
+                            </MenuItem>
+                        </LinkContainer>
 
                         <MenuItem divider/>
                         <MenuItem onSelect={this.logoutSelected}>

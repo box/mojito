@@ -82,7 +82,7 @@ public class UserUpdateCommand extends Command {
     consoleWriter.a("Update user: ").fg(Ansi.Color.CYAN).a(username).println();
 
     try {
-      Role role = rolename == null ? null : Role.valueOf(rolename);
+      Role role = Role.fromString(rolename);
       userClient.updateUserByUsername(
           username, getPassword(), role, surname, givenName, commonName);
       consoleWriter.newLine().a("updated --> user: ").fg(Ansi.Color.MAGENTA).a(username).println();

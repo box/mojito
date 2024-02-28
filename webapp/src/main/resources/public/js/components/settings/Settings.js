@@ -1,38 +1,27 @@
 import React from "react";
+import {injectIntl, FormattedMessage} from "react-intl";
 import {Nav, NavItem} from "react-bootstrap";
-
-import BoxSettings from "./BoxSettings";
+import {LinkContainer} from "react-router-bootstrap";
 
 class Settings extends React.Component {
-    state = {
-        "currentSettingPanel": "box"
-    };
-
-    getMainContent = () => {
-        let result = "";
-        switch (this.state.currentSettingPanel) {
-            case "box":
-                result = (<BoxSettings />);
-        }
-
-        return result;
-    };
-
-    handleSelect = () => {
-        // TODO add more settings
-    };
-
     render() {
         return (
             <div>
-                <h4>Settings</h4>
-                <Nav bsStyle="tabs" activeKey={1} onSelect={this.handleSelect}>
-                    <NavItem>Box Integration</NavItem>
+                <h4 className="mbm"><FormattedMessage id="header.settings"/></h4>
+                <Nav bsStyle="tabs" className="mbl">
+                    <LinkContainer to="/settings/user-management">
+                        <NavItem>
+                            <FormattedMessage id="header.user-management"/>
+                        </NavItem>
+                    </LinkContainer>
+                    <LinkContainer to="/settings/box">
+                        <NavItem>Box Integration</NavItem>
+                    </LinkContainer>
                 </Nav>
-                {this.getMainContent()}
+                {this.props.children}
             </div>
         );
     }
 }
 
-export default Settings;
+export default injectIntl(Settings);

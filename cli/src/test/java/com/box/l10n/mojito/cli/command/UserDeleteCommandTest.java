@@ -34,7 +34,7 @@ public class UserDeleteCommandTest extends CLITestBase {
     String commonName = "Test Mojito";
 
     userService.createUserWithRole(
-        username, password, Role.USER, givenName, surname, commonName, false);
+        username, password, Role.ROLE_USER, givenName, surname, commonName, false);
     User user = userRepository.findByUsername(username);
     assertNotNull(user);
 

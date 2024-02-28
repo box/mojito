@@ -11,10 +11,12 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
-import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,11 +46,12 @@ public class UserWS {
    * @return
    */
   @RequestMapping(value = "/api/users", method = RequestMethod.GET)
-  public List<User> getUsers(@RequestParam(value = "username", required = false) String username) {
-    List<User> users =
+  public Page<User> getUsers(
+      @RequestParam(value = "username", required = false) String username,
+      @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
+    Page<User> users =
         userRepository.findAll(
-            where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)),
-            Sort.by(Sort.Direction.ASC, "username"));
+            where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)), pageable);
     return users;
   }
 
@@ -81,7 +84,7 @@ public class UserWS {
 
     Role role;
     if (user.getAuthorities() == null || user.getAuthorities().isEmpty()) {
-      role = Role.USER;
+      role = Role.ROLE_USER;
     } else {
       Authority authority = user.getAuthorities().iterator().next();
       role = Role.valueOf(authority.getAuthority());

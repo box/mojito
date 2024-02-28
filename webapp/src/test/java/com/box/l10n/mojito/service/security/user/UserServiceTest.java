@@ -29,7 +29,7 @@ public class UserServiceTest extends ServiceTestBase {
     String surname = "surname";
     String givenName = "givenName";
     String commonName = "commonName";
-    Role userRole = Role.USER;
+    Role userRole = Role.ROLE_USER;
     String expectedAuthorityName = userService.createAuthorityName(userRole);
 
     User userWithRole =
@@ -54,14 +54,14 @@ public class UserServiceTest extends ServiceTestBase {
   public void testCreateUserWithEmptyPassword() {
     String username = "testUser";
     String pwd = "";
-    userService.createUserWithRole(username, pwd, Role.USER);
+    userService.createUserWithRole(username, pwd, Role.ROLE_USER);
   }
 
   @Test(expected = NullPointerException.class)
   public void testCreateUserWithNullPassword() {
     String username = "testUser";
     String pwd = null;
-    userService.createUserWithRole(username, pwd, Role.USER);
+    userService.createUserWithRole(username, pwd, Role.ROLE_USER);
   }
 
   @Test

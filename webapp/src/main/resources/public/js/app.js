@@ -15,7 +15,9 @@ import Repositories from "./components/repositories/Repositories";
 import BranchesPage from "./components/branches/BranchesPage";
 import Drops from "./components/drops/Drops";
 import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
+import UserManagement from "./components/users/UserManagement";
 import Settings from "./components/settings/Settings";
+import BoxSettings from "./components/settings/BoxSettings";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
 import RepositoryActions from "./actions/RepositoryActions";
 import ScreenshotsPageActions from "./actions/screenshots/ScreenshotsPageActions";
@@ -47,6 +49,7 @@ import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
 import enMessages from '../../properties/en.properties';
 import GoogleAnalytics from "./utils/GoogleAnalytics";
 import ShareSearchParamsModalActions from "./actions/workbench/ShareSearchParamsModalActions";
+import AuthorityService from "./utils/AuthorityService";
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
@@ -115,8 +118,10 @@ function startApp(messages) {
                             <Route path="screenshots" component={ScreenshotsPage}
                                    onEnter={onEnterScreenshots}
                                    onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
-                            <Route path="settings" component={Settings}/>
-                            <IndexRoute component={Repositories}/>
+                            <Route path="settings" component={Settings} onEnter={onEnterSettings} onChange={onChangeSettings}>
+                                <Route path="user-management" component={UserManagement}/>
+                                <Route path="box" component={BoxSettings}/>
+                            </Route>
                         </Route>
                         <Route path="login" component={Login}></Route>
                     </Route>
@@ -209,9 +214,19 @@ function onEnterScreenshots() {
     }, 1);
 }
 
-function onEnterRoot() {
+function onEnterRoot(nextState, replace) {
     if (location.pathname === '/') {
-        getAllRepositoriesDeffered();
+        replace('/repositories')
+    }
+}
+
+function onEnterSettings(nextState, replace) {
+    onChangeSettings(null, nextState, replace);
+}
+
+function onChangeSettings(prevState, nextState, replace) {
+    if (location.pathname === '/settings') {
+        replace('/settings/user-management')
     }
 }
 
