@@ -266,7 +266,6 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
-
         <!-- TODO(P1) to be removed? -->
         <dependency>
             <groupId>org.apache.commons</groupId>
