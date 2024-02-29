@@ -167,6 +167,11 @@ class SearchParamsStore {
                 this.decrementPageNumber();
                 break;
 
+            case SearchConstants.PAGE_SIZE_CHANGED:
+
+                this.changePageSize(paramData.pageSize);
+                break;
+
             default:
                 console.error("SearchParamsStore::Unknown param type");
                 break;
@@ -365,6 +370,11 @@ class SearchParamsStore {
 
     incrementPageNumber() {
         this.setCurrentPageNumber(this.currentPageNumber + 1);
+    }
+
+    changePageSize(pageSize) {
+        this.pageSize = pageSize;
+        this.setCurrentPageNumber(1);
     }
 
     setCurrentPageNumber(pageNumber) {
