@@ -420,7 +420,7 @@ div.textunit label {
 }
 
 .textunit-string {
-    width: 90%;
+    width: 100%;
     white-space: pre-wrap;
 }
 
@@ -462,13 +462,49 @@ div.textunit label {
     border: 1px dotted gray;
 }
 
-.textunit-actionbar {
-    position: absolute;
-    right: 0;
-}
-
 .textunit-comment {
     white-space: pre-wrap;
+}
+
+.text-unit-root {
+    display: grid;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content;
+}
+
+.text-unit-root .left {
+    flex-grow: 1;
+    height: 100%;
+    display: grid;
+    gap: 7px;
+    align-items: center;
+
+    grid-template-columns: min-content min-content min-content fit-content(100%) 1fr min-content min-content;
+    grid-template-rows: min-content 1fr min-content min-content 1fr;
+    grid-template-areas:
+        "cb locale  labels  name    .        res      repo"
+        "cb .       .       .       .        .        ."
+        "cb source  source  source  source   source   ."
+        "cb comment comment comment .        .        ."
+        "cb .       .       .       .        .        ."
+    ;
+}
+
+.text-unit-root .right {
+    flex-grow: 1;
+    display: grid;
+    align-items: center;
+    justify-items: stretch;
+
+    grid-template-columns: 1fr 33px min-content;
+    grid-template-rows: min-content;
+    grid-template-areas:
+        "target . review"
+    ;
 }
 
 div.textunit div.targetstring-container {
