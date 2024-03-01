@@ -63,6 +63,9 @@ let SearchResults = createReactClass({
             /** @type {Number} Indicates the current page number of the search results. */
             "currentPageNumber": searchParamsStoreState.currentPageNumber,
 
+            /** @type {Number} The number of items on each page. */
+            "pageSize": searchParamsStoreState.pageSize,
+
             /** @type {Number}  The index of the currently active textunit. */
             "activeTextUnitIndex": 0,
 
@@ -353,6 +356,7 @@ let SearchResults = createReactClass({
             "searchHadNoResults": resultsStoreState.searchHadNoResults,
             "noMoreResults": resultsStoreState.noMoreResults,
             "currentPageNumber": paramsStoreState.currentPageNumber,
+            "pageSize": paramsStoreState.pageSize,
             "mustShowToolbar": mustShowToolbar,
             "activeTextUnitIndex": this.getActiveTextUnitIndex(),
             "isErrorOccurred": resultsStoreState.isErrorOccurred,
@@ -565,6 +569,22 @@ let SearchResults = createReactClass({
         let nextPageButtonDisabled = isSearching || noMoreResults;
         let previousPageButtonDisabled = isSearching || isFirstPage;
 
+        let pageSizes = [];
+        for (let i of [10, 25, 50, 100]) {
+            pageSizes.push(
+                <MenuItem
+                    key={i}
+                    eventKey={i}
+                    active={i == this.state.pageSize}
+                    onSelect={(s, _) => WorkbenchActions.searchParamsChanged({changedParam: SearchConstants.PAGE_SIZE_CHANGED, pageSize: s})}
+                >
+                    {i}
+                </MenuItem>
+            );
+        }
+
+        const title = <FormattedMessage values={{"pageSize": this.state.pageSize}} id="search.unitsPerPage" />;
+
         if (this.state.mustShowToolbar) {
             ui = (
                 <div>
@@ -598,6 +618,10 @@ let SearchResults = createReactClass({
                             </AltContainer>
 
                             <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits} disabled={selectorCheckBoxDisabled}/>
+
+                            <DropdownButton id="text-units-per-page" title={title}>
+                                {pageSizes}
+                            </DropdownButton>
                             <Button bsSize="small" disabled={previousPageButtonDisabled}
                                     onClick={this.onFetchPreviousPageClicked}><span
                                 className="glyphicon glyphicon-chevron-left"></span></Button>
