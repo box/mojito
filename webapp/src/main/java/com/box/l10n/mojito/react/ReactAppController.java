@@ -2,6 +2,8 @@ package com.box.l10n.mojito.react;
 
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.mustache.MustacheBaseContext;
+import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
 import com.box.l10n.mojito.rest.security.CsrfTokenController;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
@@ -9,6 +11,7 @@ import com.box.l10n.mojito.service.security.user.AuthorityRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
@@ -16,11 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * The controller used to serve the React application.
@@ -47,6 +52,9 @@ public class ReactAppController {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(ReactAppController.class);
 
+  private static final MediaType TEXT_HTML_UTF_8 =
+      new MediaType("text", "html", StandardCharsets.UTF_8);
+
   @Autowired CsrfTokenController csrfTokenController;
 
   @Autowired ObjectMapper objectMapper;
@@ -58,6 +66,8 @@ public class ReactAppController {
   @Autowired AuthorityRepository authorityRepository;
 
   @Autowired UserService userService;
+
+  @Autowired MustacheTemplateEngine mustacheTemplateEngine;
 
   @Value("${server.contextPath:}")
   String contextPath = "";
@@ -75,14 +85,13 @@ public class ReactAppController {
     "settings/user-management",
     "settings/box"
   })
-  @ResponseBody
-  ModelAndView getIndex(
+  ResponseEntity<String> getIndex(
       HttpServletRequest httpServletRequest,
       @CookieValue(value = "locale", required = false, defaultValue = "en")
           String localeCookieValue)
       throws MalformedURLException, IOException {
 
-    ModelAndView index = new ModelAndView("index");
+    ReactTemplateContext index = new ReactTemplateContext();
 
     ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, getReactUser());
     reactAppConfig.setLocale(getValidLocaleFromCookie(localeCookieValue));
@@ -90,17 +99,29 @@ public class ReactAppController {
     reactAppConfig.setCsrfToken(csrfTokenController.getCsrfToken(httpServletRequest));
     reactAppConfig.setContextPath(contextPath);
 
-    index.addObject("appConfig", objectMapper.writeValueAsStringUnchecked(reactAppConfig));
-    index.addObject("locale", reactAppConfig.locale);
-    index.addObject("contextPath", reactAppConfig.contextPath);
+    index.appConfig = objectMapper.writeValueAsStringUnchecked(reactAppConfig);
+    index.locale = reactAppConfig.locale;
+    index.contextPath = reactAppConfig.contextPath;
     // We must keep CSRF_TOKEN = '{{csrfToken}}'; in index.html, because some client rely on that
     // for authentication
     // Removing it would require code client update. So we keep for backward compatibility
     // eventhough it is not
     // great
-    index.addObject("csrfToken", reactAppConfig.csrfToken);
+    index.csrfToken = reactAppConfig.csrfToken;
 
-    return index;
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.setContentType(TEXT_HTML_UTF_8);
+
+    String body = mustacheTemplateEngine.render("index.html", index);
+
+    return new ResponseEntity<>(body, responseHeaders, HttpStatus.OK);
+  }
+
+  public static class ReactTemplateContext extends MustacheBaseContext {
+    public String appConfig;
+    public String locale;
+    public String contextPath;
+    public String csrfToken;
   }
 
   ReactUser getReactUser() {
