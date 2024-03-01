@@ -22,6 +22,7 @@ import ShareSearchParamsModalStore from "../../stores/workbench/ShareSearchParam
 import ShareSearchParamsModal from "./ShareSearchParamsModal";
 import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions";
 import ShareSearchParamsButton from "./ShareSearchParamsButton";
+import AuthorityService from "../../utils/AuthorityService";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -62,6 +63,7 @@ let Workbench = createReactClass({
                         onDelete={() => {
                             GitBlameScreenshotViewerActions.delete();
                         }}
+                        disableDelete={!AuthorityService.canEditScreenshots()}
                     />
                 </AltContainer>
                 <AltContainer store={TranslationHistoryStore}>

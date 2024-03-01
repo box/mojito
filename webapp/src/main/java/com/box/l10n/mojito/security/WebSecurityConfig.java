@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
@@ -174,6 +175,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 . // user management is only allowed for ADMINs and PMs
                 antMatchers("/api/users/**")
+                .hasAnyRole("PM", "ADMIN")
+                . // Read-only access is OK for users
+                antMatchers(HttpMethod.GET, "/api/textunits/**")
+                .authenticated()
+                . // Searching is also OK for users
+                antMatchers(HttpMethod.POST, "/api/textunits/search")
+                .authenticated()
+                . // USERs are not allowed to change translations
+                antMatchers("/api/textunits/**")
+                .hasAnyRole("TRANSLATOR", "PM", "ADMIN")
+                . // Read-only is OK for everyone
+                antMatchers(HttpMethod.GET, "/api/**")
+                .authenticated()
+                . // However, all other methods require is PM and ADMIN only unless overwritten
+                // above
+                antMatchers("/api/**")
                 .hasAnyRole("PM", "ADMIN")
                 . // local access only for rotation management and logger config
                 antMatchers("/**")

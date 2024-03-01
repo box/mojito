@@ -42,7 +42,7 @@ class TextUnitSelectorCheckBox extends React.Component {
 
     render() {
         return (
-            <DropdownButton id="Text" title={this.getTitle()} onSelect={this.selectionChanged}>
+            <DropdownButton id="Text" title={this.getTitle()} onSelect={this.selectionChanged} disabled={this.props.disabled}>
                 <MenuItem eventKey={this.SELECT_ALL_IN_PAGE}><FormattedMessage id="workbench.toolbar.selectAllInPage"/></MenuItem>
                 <MenuItem eventKey={this.CLEAR_ALL_IN_PAGE}><FormattedMessage
                     id="workbench.toolbar.clearAllInPage"/></MenuItem>

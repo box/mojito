@@ -9,7 +9,7 @@ import {StatusCommonTypes} from "./StatusCommon";
 
 
 class Screenshot extends React.Component {
-    
+
     static propTypes = {
         "screenshot": PropTypes.object.isRequired,
         "onClick": PropTypes.func.isRequired,
@@ -18,6 +18,7 @@ class Screenshot extends React.Component {
         "onNameClick": PropTypes.func.isRequired,
         "onStatusChanged": PropTypes.func.isRequired,
         "onStatusGlyphClick": PropTypes.func.isRequired,
+        "statusGlyphDisabled": PropTypes.bool.isRequired,
     }
 
     componentDidMount() {
@@ -66,14 +67,14 @@ class Screenshot extends React.Component {
     render() {
 
         let screenshotClassName = "screenshot";
-        
+
         if (this.props.isSelected) {
            screenshotClassName += " screenshot-selected";
         }
 
         return (
-                <div 
-                    ref="screenshot" 
+                <div
+                    ref="screenshot"
                     className={screenshotClassName}
                     onClick={this.props.onClick}
                     tabIndex={0}
@@ -83,20 +84,21 @@ class Screenshot extends React.Component {
                         <img src={this.props.screenshot.src} />
                     </div>
                     <div className="screenshot-description">
-                        <Label bsStyle='primary' 
-                               bsSize='large' 
+                        <Label bsStyle='primary'
+                               bsSize='large'
                                className="mrxs mtl clickable"
                                onClick={(e) => this.onLocaleClick(e)}>
                             {this.props.screenshot.locale.bcp47Tag}
-                        </Label> 
-                
+                        </Label>
+
                         <span onClick={(e) => this.onNameClick(e)} className="clickable">
                             {this.props.screenshot.name}
                         </span>
                     </div>
                     <span className="screenshot-glyph">
-                        <StatusGlyph status={this.props.screenshot.status} 
+                        <StatusGlyph status={this.props.screenshot.status}
                                      onClick={this.props.onStatusGlyphClick}
+                                     disabled={this.props.statusGlyphDisabled}
                                     />
                     </span >
                 </div>

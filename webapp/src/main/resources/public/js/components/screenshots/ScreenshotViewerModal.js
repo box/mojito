@@ -17,7 +17,8 @@ class ScreenshotViewerModal extends React.Component {
         "onGoToPrevious": PropTypes.func.isRequired,
         "onGoToNext": PropTypes.func.isRequired,
         "onDelete": PropTypes.func.isRequired,
-        "error": PropTypes.bool
+        "error": PropTypes.bool,
+        "disableDelete": PropTypes.bool.isRequired,
     }
 
     popover() {
@@ -96,7 +97,7 @@ class ScreenshotViewerModal extends React.Component {
                         <div className="branches-screenshotviewer-modal-delete-container">
                             {this.props.isDeleting ? <span className="glyphicon glyphicon-refresh spinning"/> :
                                 <OverlayTrigger trigger="click" placement="top" overlay={this.popover()}>
-                                    <Button bsStyle="danger" style={{fontSize: 11}}>
+                                    <Button bsStyle="danger" style={{fontSize: 11}} disabled={this.props.disableDelete}>
                                         <FormattedMessage id="label.delete"/>
                                     </Button>
                                 </OverlayTrigger>}

@@ -26,6 +26,7 @@ import StatusDropdown from "./StatusDropdown";
 import ScreenshotReviewModal from "./ScreenshotReviewModal";
 import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
 import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
+import AuthorityService from "../../utils/AuthorityService";
 
 class ScreenshotsPage extends React.Component {
 
@@ -281,9 +282,13 @@ class ScreenshotsPage extends React.Component {
                                                     ScreenshotsPageActions.performSearch();
                             }}
                             onStatusGlyphClick={(screenshotIdx) => {
+                                                        if (!AuthorityService.canEditScreenshots()) {
+                                                            return;
+                                                        }
                                                         ScreenshotsReviewModalActions.openWithScreenshot(screenshotIdx);
                             }}
                             onStatusChanged={ScreenshotActions.changeStatus}
+                            statusGlyphDisabled={!AuthorityService.canEditScreenshots()}
                             />
                     </AltContainer>
 

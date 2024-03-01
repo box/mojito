@@ -26,6 +26,7 @@ import ImportDropConfig from "../../sdk/drop/ImportDropConfig";
 import NewDropModal from "./NewDropModal";
 import RepositoryActions from "../../actions/RepositoryActions";
 import ConfirmationModal from "../widgets/ConfirmationModal";
+import AuthorityService from "../../utils/AuthorityService";
 
 let Drops = createReactClass({
     displayName: 'Drops',
@@ -276,7 +277,7 @@ let Drops = createReactClass({
 
         return (
             <tr key={`Drops.repositoryRow.${drop.name}.${drop.repository.name}`} className={rowClass}>
-                <td>{drop.name}{this.getButtonControlBar(drop)}</td>
+                <td>{drop.name}{AuthorityService.canEditProjectRequests() && this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
                 <td><FormattedNumber value={wordCount}/></td>
                 <td><FormattedDate value={drop.createdDate} day="numeric" month="long" year="numeric"/></td>
@@ -463,7 +464,7 @@ let Drops = createReactClass({
         return (
             <div className="pull-right mrm mlm">
                 <Button bsStyle="primary" bsSize="small" className="new-request-button"
-                        onClick={this.onClickNewRequest}>
+                        onClick={this.onClickNewRequest} disabled={!AuthorityService.canEditProjectRequests()}>
                     <FormattedMessage id="drops.newRequest.btn"/>
                 </Button>
             </div>

@@ -18,6 +18,7 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
 import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
 import Locales from "../../utils/Locales";
+import AuthorityService from "../../utils/AuthorityService";
 import {
     Grid,
     Row,
@@ -450,7 +451,7 @@ let TextUnit = createReactClass({
             }
             ui = (
                 <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
-                           onClick={this.onTextUnitGlyphClicked}/>
+                           onClick={this.onTextUnitGlyphClicked} disabled={!AuthorityService.canEditTranslations()}/>
             );
         }
 
@@ -520,6 +521,9 @@ let TextUnit = createReactClass({
     editStringClicked(e) {
         e.stopPropagation();
 
+        if (!AuthorityService.canEditTranslations()) {
+            return;
+        }
         this.setState({
             isEditMode: true
         }, () => {
@@ -535,7 +539,7 @@ let TextUnit = createReactClass({
      */
     getTargetStringUI() {
         let ui;
-        if (this.state.isEditMode) {
+        if (this.state.isEditMode && AuthorityService.canEditTranslations()) {
             ui = this.getUIForEditMode();
         } else {
             let targetString = this.hasTargetChanged() ? this.state.translation : this.props.translation;
@@ -544,7 +548,10 @@ let TextUnit = createReactClass({
             let trailingWhitespacesSymbol = "";
 
             let noTranslation = false;
-            let targetClassName = "pts pls pbs textunit-string textunit-target";
+            let targetClassName = "pts pls pbs textunit-string";
+            if (AuthorityService.canEditTranslations()) {
+                targetClassName += " textunit-target"
+            }
             if (targetString == null) {
                 noTranslation = true;
                 dir = Locales.getLanguageDirection(Locales.getCurrentLocale());
@@ -699,6 +706,10 @@ let TextUnit = createReactClass({
      * @param {SyntheticEvent} e
      */
     onTextUnitClick(e) {
+        if (!AuthorityService.canEditTranslations()) {
+            return;
+        }
+
         // NOTE: if text has been selected for this textunit, don't activate it because the user's intention is to
         // select text, not activate textunit.
         if (!window.getSelection().toString()) {
@@ -711,7 +722,7 @@ let TextUnit = createReactClass({
      */
     getTextUnitReviewModal() {
         let ui = "";
-        if (this.state.isShowModal) {
+        if (this.state.isShowModal && AuthorityService.canEditTranslations()) {
             let textUnitArray = [this.getCloneOfTextUnitFromProps()];
             ui = (
                 <TextUnitsReviewModal isShowModal={this.state.isShowModal}
@@ -1002,7 +1013,7 @@ let TextUnit = createReactClass({
                     <div className="text-unit-root">
                         <div className="left mls">
                             <span style={{gridArea: "cb"}} className="mrxs">
-                                <input type="checkbox" checked={isSelected} readOnly={true}/>
+                                <input type="checkbox" checked={isSelected} readOnly={true} disabled={!AuthorityService.canEditTranslations()}/>
                             </span>
                             <div style={{gridArea: "locale"}}>
                                 <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
