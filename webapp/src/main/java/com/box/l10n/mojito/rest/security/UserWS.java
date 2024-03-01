@@ -153,4 +153,11 @@ public class UserWS {
         user.getCommonName(),
         false);
   }
+
+  @RequestMapping(value = "/api/users/pw", method = RequestMethod.POST)
+  public ResponseEntity<User> changePassword(@RequestBody PasswordChangeRequest requestDTO) {
+    User user = userService.updatePassword(requestDTO.currentPassword(), requestDTO.newPassword());
+    logger.info("Updated password for user [{}]", user.getId());
+    return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+  }
 }
