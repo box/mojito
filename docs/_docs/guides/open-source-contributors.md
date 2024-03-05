@@ -26,10 +26,16 @@ You can also get started by using a [docker image](#docker-image) that has the b
 
 Install `brew` following the website instructions: https://brew.sh/
 
+Ensure that you have added the `cask-versions` [tap](https://github.com/Homebrew/homebrew-cask-versions).
+
+```sh
+brew tap homebrew/cask-versions
+```
+
 Install `java 17` from `Temurin`:
 
 ```sh
-brew install temurin17
+brew install --cask temurin17
 ```
 
 Check that `java 17` is now in use with `java -version`. If you need multiple versions of `java` consider using 
@@ -44,7 +50,7 @@ brew install maven
 Optionally, install `Mysql 8`
 
 ```sh
-brew install mysql@8
+brew install mysql@8.0
 ```
 
 Note, to install the exact same `maven` version as the wrapper: `brew install maven@3.8` (check the instructions since it is key-only) .
@@ -57,7 +63,7 @@ Install `java 17` from `OpenJDK`:
 ```sh
 sudo apt-get install openjdk-17-jdk
 ```
-Check that `java 8` is now in use with `java -version`. If not you, can set it as default with 
+Check that `java 17` is now in use with `java -version`. If not you, can set it as default with 
 `sudo update-java-alternatives -s /usr/lib/jvm/java-1.17.0-openjdk-amd64` (To check the list
 `sudo update-java-alternatives -l`). If you need multiple versions of `java` 
 consider using something like `jenv` or `sdkman`.
@@ -69,6 +75,7 @@ sudo apt-get install maven
 ```
 
 Install `git` 
+
 ```sh    
 sudo apt-get install git
 ```
@@ -99,7 +106,6 @@ max_allowed_packet = 256M
 
 [mysqld]
 default-time-zone = '+00:00'
-```
 ```
 
 The server needs to be started/restarted. 
