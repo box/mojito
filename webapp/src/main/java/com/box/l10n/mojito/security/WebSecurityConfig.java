@@ -188,6 +188,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 . // Read-only is OK for everyone
                 antMatchers(HttpMethod.GET, "/api/**")
                 .authenticated()
+                // Everyone can retrieve & upload images
+                .antMatchers(HttpMethod.GET, "/api/images/**")
+                .authenticated()
+                .antMatchers(HttpMethod.PUT, "/api/images/**")
+                .authenticated()
+                // Everyone can retrieve, upload and delete screenshots
+                .antMatchers(HttpMethod.GET, "/api/screenshots")
+                .authenticated()
+                .antMatchers(HttpMethod.POST, "/api/screenshots")
+                .authenticated()
+                .antMatchers(HttpMethod.PUT, "/api/screenshots/**")
+                .authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/screenshots/**")
+                .authenticated()
                 . // However, all other methods require is PM and ADMIN only unless overwritten
                 // above
                 antMatchers("/api/**")
