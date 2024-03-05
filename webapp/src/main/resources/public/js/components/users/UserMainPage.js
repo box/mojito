@@ -37,7 +37,7 @@ class UserMainPage extends React.Component {
     }
 
     currentPage() {
-        return this.props.userPage == null ? 0 : this.props.userPage.totalPages;
+        return this.props.userPage == null ? 1 : this.props.userPage.number + 1;
     }
 
     renderPageBar() {
