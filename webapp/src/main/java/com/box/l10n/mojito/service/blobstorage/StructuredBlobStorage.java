@@ -18,7 +18,15 @@ public class StructuredBlobStorage {
     return blobStorage.getString(getFullName(prefix, name));
   }
 
+  public Optional<byte[]> getBytes(Prefix prefix, String name) {
+    return blobStorage.getBytes(getFullName(prefix, name));
+  }
+
   public void put(Prefix prefix, String name, String content, Retention retention) {
+    blobStorage.put(getFullName(prefix, name), content, retention);
+  }
+
+  public void putBytes(Prefix prefix, String name, byte[] content, Retention retention) {
     blobStorage.put(getFullName(prefix, name), content, retention);
   }
 

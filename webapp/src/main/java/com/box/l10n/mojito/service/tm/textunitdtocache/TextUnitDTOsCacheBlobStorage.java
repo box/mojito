@@ -13,9 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(
+    name = "l10n.cache.textunit.smile.enabled",
+    havingValue = "false",
+    matchIfMissing = true)
 class TextUnitDTOsCacheBlobStorage {
 
   static Logger logger = LoggerFactory.getLogger(TextUnitDTOsCacheBlobStorage.class);
@@ -39,9 +44,7 @@ class TextUnitDTOsCacheBlobStorage {
   public Optional<ImmutableList<TextUnitDTO>> getTextUnitDTOs(Long assetId, Long localeId) {
     logger.debug(
         "Get TextUnitDTOs from Blob Storage for assetId: {}, localeId: {}", assetId, localeId);
-    Optional<String> asString =
-        structuredBlobStorage.getString(TEXT_UNIT_DTOS_CACHE, getName(assetId, localeId));
-    return asString.map(this::convertToListOrEmptyList);
+    return getTextUnitsFromCache(assetId, localeId);
   }
 
   @Timed("TextUnitDTOsCacheBlobStorage.putTextUnitDTOs")
@@ -55,9 +58,7 @@ class TextUnitDTOsCacheBlobStorage {
     TextUnitDTOsCacheBlobStorageJson textUnitDTOsCacheBlobStorageJson =
         new TextUnitDTOsCacheBlobStorageJson();
     textUnitDTOsCacheBlobStorageJson.setTextUnitDTOs(textUnitDTOs);
-    String asString = objectMapper.writeValueAsStringUnchecked(textUnitDTOsCacheBlobStorageJson);
-    structuredBlobStorage.put(
-        TEXT_UNIT_DTOS_CACHE, getName(assetId, localeId), asString, Retention.PERMANENT);
+    writeTextUnitDTOsToCache(assetId, localeId, textUnitDTOsCacheBlobStorageJson);
   }
 
   String getName(Long assetId, Long localeId) {
@@ -76,5 +77,20 @@ class TextUnitDTOsCacheBlobStorage {
           e);
       return ImmutableList.of();
     }
+  }
+
+  Optional<ImmutableList<TextUnitDTO>> getTextUnitsFromCache(Long assetId, Long localeId) {
+    Optional<String> asString =
+        structuredBlobStorage.getString(TEXT_UNIT_DTOS_CACHE, getName(assetId, localeId));
+    return asString.map(this::convertToListOrEmptyList);
+  }
+
+  void writeTextUnitDTOsToCache(
+      Long assetId,
+      Long localeId,
+      TextUnitDTOsCacheBlobStorageJson textUnitDTOsCacheBlobStorageJson) {
+    String asString = objectMapper.writeValueAsStringUnchecked(textUnitDTOsCacheBlobStorageJson);
+    structuredBlobStorage.put(
+        TEXT_UNIT_DTOS_CACHE, getName(assetId, localeId), asString, Retention.PERMANENT);
   }
 }

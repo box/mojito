@@ -38,6 +38,7 @@
         <docker.compose.detached.mode>true</docker.compose.detached.mode>
         <docker.compose.remove.volumes>true</docker.compose.remove.volumes>
         <aspectj.version>1.9.20</aspectj.version>
+        <jackson.version>2.13.5</jackson.version>
     </properties>
 
     <dependencies>

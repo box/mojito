@@ -76,6 +76,12 @@ public class Application {
     return objectMapper;
   }
 
+  @Bean(name = "smile_format_object_mapper")
+  public ObjectMapper getSmileFormatObjectMapper() {
+    ObjectMapper objectMapper = ObjectMapper.withSmileEnabled();
+    return objectMapper;
+  }
+
   /**
    * Configuration Jackson ObjectMapper
    *

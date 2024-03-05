@@ -6,8 +6,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -29,6 +31,18 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
     super(objectMapper);
     registerJavaTimeModule();
     registerGuavaModule();
+  }
+
+  public ObjectMapper(SmileFactory smileFactory) {
+    super(smileFactory);
+    registerJavaTimeModule();
+    registerGuavaModule();
+    // Blackbird module uses bytecode generation to further speed up serialization/deserialization
+    registerBlackbirdModule();
+  }
+
+  private void registerBlackbirdModule() {
+    registerModule(new BlackbirdModule());
   }
 
   private final void registerJavaTimeModule() {
@@ -63,6 +77,14 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
   public String writeValueAsStringUnchecked(Object value) {
     try {
       return super.writeValueAsString(value);
+    } catch (JsonProcessingException jpe) {
+      throw new RuntimeException(jpe);
+    }
+  }
+
+  public byte[] writeValueAsBytes(Object value) {
+    try {
+      return super.writeValueAsBytes(value);
     } catch (JsonProcessingException jpe) {
       throw new RuntimeException(jpe);
     }
@@ -121,6 +143,12 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
 
   public static ObjectMapper withNoFailOnUnknownProperties() {
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper;
+  }
+
+  public static ObjectMapper withSmileEnabled() {
+    ObjectMapper objectMapper = new ObjectMapper(new SmileFactory());
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return objectMapper;
   }
