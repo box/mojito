@@ -31,15 +31,13 @@ class UserModal extends React.Component{
 
     renderLocales() {
         const options = [];
+        let freeTagList = []
         for (let tag of this.props.locales.allLocales.map((x) => x.bcp47Tag).toSorted()) {
             if (this.props.modal.localeTags.includes(tag) || (this.props.modal.localeFilter && !tag.toLowerCase().includes(this.props.modal.localeFilter.toLowerCase()))) {
                 continue;
             }
-            options.push(
-                <MenuItem key={tag} eventKey={tag} active={tag === this.props.modal.selectedLocale}>
-                    {tag}
-                </MenuItem>
-            );
+            options.push(<option key={tag} value={tag} />);
+            freeTagList.push(tag);
         }
 
         let localeElements = [];
@@ -57,36 +55,20 @@ class UserModal extends React.Component{
                 <div className="locales-list panel panel-default">
                     {localeElements}
                 </div>
-                <Dropdown
-                    id="all-locales"
+                <FormControl
+                    onChange={(e) => UserModalActions.updateLocaleInput(e.target.value)}
+                    type="text"
+                    value={this.props.modal.localeInput}
                     style={{gridArea: 'new-select'}}
-                >
-                    <Dropdown.Toggle
-                        id="all-locales-btn"
-                        style={{width: '100%'}}
-                        onClick={() => UserModalActions.updateLocaleFilter('')}
-                    >
-                        {this.props.modal.selectedLocale}
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu
-                        style={{overflow: 'scroll', maxHeight: '256px', width: '100%', top: '35px'}}
-                        onSelect={(k) => k !== '__filter__' && UserModalActions.updateSelectedLocale(k)}
-                    >
-                        <MenuItem eventKey='__filter__'>
-                            {/* Extra div to cactch the click events into the input field */}
-                            <div onClick={(e) => {e.stopPropagation(); e.preventDefault();}}>
-                                <FormControl
-                                    type="text"
-                                    value={this.props.modal.localeFilter}
-                                    onChange={(e) => UserModalActions.updateLocaleFilter(e.target.value)}
-                                />
-                            </div>
-                        </MenuItem>
-                        {options}
-                    </Dropdown.Menu>
-                </Dropdown>
+                    placeholder="de-DE"
+                    id="new-locale-input"
+                    list="new-locale-options"
+                />
+                <datalist id="new-locale-options">
+                    {options}
+                </datalist>
                 <div style={{gridArea: "new-btn", justifySelf: "start"}}>
-                    <Button bsStyle="primary" onClick={UserModalActions.pushCurrentLocale}>
+                    <Button bsStyle="primary" onClick={UserModalActions.pushCurrentLocale} disabled={!freeTagList.includes(this.props.modal.localeInput)}>
                         <span className="glyphicon glyphicon-plus foreWhite" aria-label="add locale for user"/>
                     </Button>
                 </div>

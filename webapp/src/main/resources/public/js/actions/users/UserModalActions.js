@@ -18,8 +18,7 @@ class UserModalActions {
             "pushCurrentLocale",
             "removeLocaleFromList",
             "updateCanTranslateAllLocales",
-            "updateLocaleFilter",
-            "updateSelectedLocale",
+            "updateLocaleInput",
         );
     }
 }

@@ -46,10 +46,7 @@ class UserModalStore {
         this.localeTags = [];
 
         /** @type {String} */
-        this.selectedLocale = '';
-
-        /** @type {String} */
-        this.localeFilter = '';
+        this.localeInput = '';
 
         this.bindActions(UserModalActions);
         this.registerAsync(UserDataSource);
@@ -71,8 +68,7 @@ class UserModalStore {
         this.currentUsernameChecked = false;
         this.canTranslateAllLocales = store.currentUser.canTranslateAllLocales;
         this.localeTags = store.currentUser.getLocaleTags();
-        this.selectedLocale = this.getAnyLocale();
-        this.localeFilter = '';
+        this.localeInput = this.getAnyLocale();
     }
 
     updateUsername(username) {
@@ -136,8 +132,8 @@ class UserModalStore {
     }
 
     pushCurrentLocale() {
-        this.localeTags = this.localeTags.concat([this.selectedLocale]);
-        this.selectedLocale = this.getAnyLocale();
+        this.localeTags = this.localeTags.concat([this.localeInput]);
+        this.localeInput = this.getAnyLocale();
     }
 
     removeLocaleFromList(tag) {
@@ -149,12 +145,8 @@ class UserModalStore {
         this.canTranslateAllLocales = state;
     }
 
-    updateLocaleFilter(localeFilter) {
-        this.localeFilter = localeFilter;
-    }
-
-    updateSelectedLocale(selectedLocale) {
-        this.selectedLocale = selectedLocale;
+    updateLocaleInput(localeInput) {
+        this.localeInput = localeInput;
     }
 }
 
