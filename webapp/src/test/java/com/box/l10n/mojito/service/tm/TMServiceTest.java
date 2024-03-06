@@ -1699,7 +1699,79 @@ public class TMServiceTest extends ServiceTestBase {
             InheritanceMode.USE_PARENT,
             null);
     logger.debug("localized=\n{}", localizedAsset);
-    assertEquals(localizedAsset, localizedAsset);
+    assertEquals(assetContent, localizedAsset);
+  }
+
+  @Test
+  public void testLocalizeAndroidUnicodeEscape() throws Exception {
+
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+
+    String assetContent =
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <!-- Test Unicode Escapes -->
+            <string name="unicode_escape">A string with\\u00A0Unicode Escape</string>
+            <string name="unicode_escape2">A string with&#x00a0;Unicode Escape</string>
+            <string name="unicode_escape3">A string with&#160;Unicode Escape</string>
+            <string name="unicode_escape4">A string with&#xa0;Unicode Escape</string>
+        </resources>""";
+
+    asset =
+        assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null, null);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.debug("comment=[{}]", textUnitDTO.getComment());
+    }
+    assertEquals(4, textUnitDTOs.size());
+    assertEquals("A string with\u00A0Unicode Escape", textUnitDTOs.get(0).getSource());
+    assertEquals("Test Unicode Escapes", textUnitDTOs.get(0).getComment());
+    assertEquals("A string with\u00A0Unicode Escape", textUnitDTOs.get(1).getSource());
+    assertEquals("A string with\u00A0Unicode Escape", textUnitDTOs.get(2).getSource());
+    assertEquals("A string with\u00A0Unicode Escape", textUnitDTOs.get(3).getSource());
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "en-GB",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.error("localized=\n{}", localizedAsset);
+    String expectedLocalizedAsset =
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <!-- Test Unicode Escapes -->
+            <string name="unicode_escape">A string with&#x00a0;Unicode Escape</string>
+            <string name="unicode_escape2">A string with&#x00a0;Unicode Escape</string>
+            <string name="unicode_escape3">A string with&#x00a0;Unicode Escape</string>
+            <string name="unicode_escape4">A string with&#x00a0;Unicode Escape</string>
+        </resources>""";
+    assertEquals(expectedLocalizedAsset, localizedAsset);
   }
 
   @Test
@@ -2042,7 +2114,7 @@ public class TMServiceTest extends ServiceTestBase {
             InheritanceMode.REMOVE_UNTRANSLATED,
             null);
     logger.debug("localized=\n{}", localizedAsset);
-    assertEquals(localizedAsset, localizedAsset);
+    assertEquals(expectedLocalized, localizedAsset);
   }
 
   /**

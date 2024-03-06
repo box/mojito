@@ -96,6 +96,10 @@ public class AndroidFilterTest {
 
     // multi lines and spaces
     testUnescaping("\n line1   \n   line2 \n", "line1 line2");
+
+    // unicode escape
+    var str = "Unicode\\u00A0escape";
+    testUnescaping("Unicode\\u00A0escape", "Unicode\u00A0escape");
   }
 
   void testUnescaping(String input, String expected) {
