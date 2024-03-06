@@ -157,6 +157,7 @@ public class AndroidFilter extends XMLFilter {
     String unescapedSourceString;
 
     unescapedSourceString = sourceString.trim();
+    unescapedSourceString = unescapeUtils.replaceEscapedUnicode(unescapedSourceString);
 
     if (StringUtils.startsWith(unescapedSourceString, "\"")
         && StringUtils.endsWith(unescapedSourceString, "\"")) {

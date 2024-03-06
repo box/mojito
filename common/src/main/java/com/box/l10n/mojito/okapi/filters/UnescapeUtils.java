@@ -19,6 +19,7 @@ public class UnescapeUtils {
   private static final Pattern ESCAPED_QUOTES = Pattern.compile("\\\\(\"|')");
   private static final Pattern ESCAPED_BACKQUOTES = Pattern.compile("\\\\(`)");
   private static final Pattern ESCAPED_CHARACTERS = Pattern.compile("\\\\(.)?");
+  private static final Pattern ESCAPED_UNICODE = Pattern.compile("\\\\u([0-9a-fA-F]{4})");
   private static final Pattern SPACES = Pattern.compile("\\s+");
   private static final Pattern LINE_FEED = Pattern.compile("\n");
 
@@ -64,9 +65,24 @@ public class UnescapeUtils {
   }
 
   /**
+   * Replace unicode escape character of the form \\uXXXX.
+   *
+   * <p>Must be call before calling other method that would unescape the "u" letter like {@link
+   * #replaceEscapedCharacters(String)} (String)}
+   *
+   * @param text
+   * @return
+   */
+  String replaceEscapedUnicode(String text) {
+    return ESCAPED_UNICODE
+        .matcher(text)
+        .replaceAll(match -> new String(Character.toChars(Integer.parseInt(match.group(1), 16))));
+  }
+
+  /**
    * Replace other escape character with the character itself.
    *
-   * <p>Must be call after replacing espace sequence that need a different treatment like {@link
+   * <p>Must be call after replacing escape sequence that need a different treatment like {@link
    * #replaceEscapedLineFeed(String)}
    *
    * @param text
