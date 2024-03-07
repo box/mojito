@@ -10,14 +10,14 @@ class LocaleSelectorModal extends React.Component {
     };
 
     state = {
-        "selectedLocale": Locales.getCurrentLocale()
+        "localeInput": Locales.getCurrentLocale()
     };
 
     /**
      * Changes the locale of the app by setting the locale cookie and reloading the page.
      */
     onSaveClicked = () => {
-        document.cookie = 'locale=' + this.state.selectedLocale;
+        document.cookie = 'locale=' + this.state.localeInput;
         document.location.reload(true);
     };
 
@@ -34,7 +34,7 @@ class LocaleSelectorModal extends React.Component {
      * @returns {boolean}
      */
     isNewLocaleSelected = () => {
-        return Locales.getCurrentLocale() !== this.state.selectedLocale;
+        return Locales.getCurrentLocale() !== this.state.localeInput;
     };
 
     /**
@@ -44,7 +44,7 @@ class LocaleSelectorModal extends React.Component {
      */
     onLocaleClicked = (locale) => {
         this.setState({
-            "selectedLocale": locale
+            "localeInput": locale
         });
     };
 
@@ -56,7 +56,7 @@ class LocaleSelectorModal extends React.Component {
     getLocaleListGroupItem = (locale) => {
 
         let localeDisplayName = Locales.getNativeDispalyName(locale);
-        let active = locale === this.state.selectedLocale;
+        let active = locale === this.state.localeInput;
 
         return (
             <ListGroupItem active={active}

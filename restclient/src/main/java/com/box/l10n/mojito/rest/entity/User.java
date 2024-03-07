@@ -25,7 +25,11 @@ public class User {
 
   private String commonName;
 
+  private boolean canTranslateAllLocales;
+
   @JsonManagedReference Set<Authority> authorities = new HashSet<>();
+
+  @JsonManagedReference Set<UserLocale> userLocales = new HashSet<>();
 
   public Long getId() {
     return id;
@@ -89,5 +93,21 @@ public class User {
 
   public void setAuthorities(Set<Authority> authorities) {
     this.authorities = authorities;
+  }
+
+  public boolean getCanTranslateAllLocales() {
+    return canTranslateAllLocales;
+  }
+
+  public void setCanTranslateAllLocales(boolean canTranslateAllLocales) {
+    this.canTranslateAllLocales = canTranslateAllLocales;
+  }
+
+  public Set<UserLocale> getUserLocales() {
+    return userLocales;
+  }
+
+  public void setUserLocales(Set<UserLocale> userLocales) {
+    this.userLocales = userLocales;
   }
 }

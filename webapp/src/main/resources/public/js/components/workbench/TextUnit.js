@@ -433,6 +433,7 @@ let TextUnit = createReactClass({
 
             let glyphType = "ok";
             let glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.accepted"});
+            let canChange = AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale());
 
             if (!this.props.textUnit.isIncludedInLocalizedFile()) {
 
@@ -451,7 +452,7 @@ let TextUnit = createReactClass({
             }
             ui = (
                 <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
-                           onClick={this.onTextUnitGlyphClicked} disabled={!AuthorityService.canEditTranslations()}/>
+                           onClick={this.onTextUnitGlyphClicked} disabled={!canChange}/>
             );
         }
 
@@ -521,7 +522,7 @@ let TextUnit = createReactClass({
     editStringClicked(e) {
         e.stopPropagation();
 
-        if (!AuthorityService.canEditTranslations()) {
+        if (!AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale())) {
             return;
         }
         this.setState({
@@ -539,7 +540,7 @@ let TextUnit = createReactClass({
      */
     getTargetStringUI() {
         let ui;
-        if (this.state.isEditMode && AuthorityService.canEditTranslations()) {
+        if (this.state.isEditMode && AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale())) {
             ui = this.getUIForEditMode();
         } else {
             let targetString = this.hasTargetChanged() ? this.state.translation : this.props.translation;
@@ -549,7 +550,7 @@ let TextUnit = createReactClass({
 
             let noTranslation = false;
             let targetClassName = "pts pls pbs textunit-string";
-            if (AuthorityService.canEditTranslations()) {
+            if (AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale())) {
                 targetClassName += " textunit-target"
             }
             if (targetString == null) {
@@ -706,7 +707,7 @@ let TextUnit = createReactClass({
      * @param {SyntheticEvent} e
      */
     onTextUnitClick(e) {
-        if (!AuthorityService.canEditTranslations()) {
+        if (!AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale())) {
             return;
         }
 
@@ -722,7 +723,7 @@ let TextUnit = createReactClass({
      */
     getTextUnitReviewModal() {
         let ui = "";
-        if (this.state.isShowModal && AuthorityService.canEditTranslations()) {
+        if (this.state.isShowModal && AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale())) {
             let textUnitArray = [this.getCloneOfTextUnitFromProps()];
             ui = (
                 <TextUnitsReviewModal isShowModal={this.state.isShowModal}
@@ -1013,7 +1014,7 @@ let TextUnit = createReactClass({
                     <div className="text-unit-root">
                         <div className="left mls">
                             <span style={{gridArea: "cb"}} className="mrxs">
-                                <input type="checkbox" checked={isSelected} readOnly={true} disabled={!AuthorityService.canEditTranslations()}/>
+                                <input type="checkbox" checked={isSelected} readOnly={true} disabled={!AuthorityService.canTranslateLocale(this.props.textUnit.getTargetLocale())}/>
                             </span>
                             <div style={{gridArea: "locale"}}>
                                 <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>

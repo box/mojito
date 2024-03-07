@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.react;
 
 import com.box.l10n.mojito.security.Role;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,6 +12,8 @@ public class ReactUser {
   String surname;
   String commonName;
   Role role;
+  boolean canTranslateAllLocales;
+  List<String> userLocales;
 
   public String getUsername() {
     return username;
@@ -50,5 +53,21 @@ public class ReactUser {
 
   public void setRole(Role role) {
     this.role = role;
+  }
+
+  public boolean getCanTranslateAllLocales() {
+    return canTranslateAllLocales;
+  }
+
+  public void setCanTranslateAllLocales(boolean canTranslateAllLocales) {
+    this.canTranslateAllLocales = canTranslateAllLocales;
+  }
+
+  public List<String> getUserLocales() {
+    return userLocales;
+  }
+
+  public void setUserLocales(List<String> userLocales) {
+    this.userLocales = userLocales;
   }
 }
