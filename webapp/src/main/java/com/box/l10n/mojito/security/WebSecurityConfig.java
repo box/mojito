@@ -167,6 +167,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 . // always accessible to serve the frontend
                 antMatchers(getHeathcheckPatterns())
                 .permitAll()
+                // allow deep link creation and retrieval
+                .antMatchers(HttpMethod.GET, "/api/clobstorage", "/api/clobstorage/**")
+                .authenticated()
+                .antMatchers(HttpMethod.POST, "/api/clobstorage", "/api/clobstorage/**")
+                .authenticated()
                 . // allow health entry points
                 antMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
                 .hasIpAddress("127.0.0.1")
