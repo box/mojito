@@ -381,13 +381,22 @@ public class ScreenshotService {
    */
   @Transactional
   public void deleteScreenshot(Long id) {
+    logger.debug("thirdPartyScreenshotRepository: " + thirdPartyScreenshotRepository);
+    logger.debug("thirdPartySyncJobsConfig: " + thirdPartySyncJobsConfig);
+    logger.debug("thirdPartyService: " + thirdPartyService);
+    logger.debug("thirdPartyScreenshotRepository: " + thirdPartyScreenshotRepository);
+    logger.debug("screenshotTextUnitRepository: " + screenshotTextUnitRepository);
+    logger.debug("screenshotRepository: " + screenshotRepository);
+
+    logger.debug("id: " + id);
     List<ThirdPartyScreenshot> thirdPartyScreenshots =
         thirdPartyScreenshotRepository.findAllByScreenshotId(id);
-
+    logger.debug("thirdPartyScreenshots: " + thirdPartyScreenshots);
     final Map<String, ThirdPartySyncJobConfig> thirdPartySyncJobs =
         thirdPartySyncJobsConfig.getThirdPartySyncJobs();
-
+    logger.debug("thirdPartySyncJobs: " + thirdPartySyncJobs);
     for (ThirdPartyScreenshot thirdPartyScreenshot : thirdPartyScreenshots) {
+      logger.debug("thirdPartyScreenshot: " + thirdPartyScreenshot);
       String repository =
           thirdPartyScreenshot.getScreenshot().getScreenshotTextUnits().stream()
               .findFirst()
@@ -396,9 +405,9 @@ public class ScreenshotService {
               .getAsset()
               .getRepository()
               .getName();
-
+      logger.debug("repository: " + repository);
       String projectId = thirdPartySyncJobs.get(repository).getThirdPartyProjectId();
-
+      logger.debug("projectId: " + projectId);
       thirdPartyService.removeImage(projectId, thirdPartyScreenshot.getThirdPartyId());
       thirdPartyScreenshotRepository.deleteById(thirdPartyScreenshot.getId());
     }
