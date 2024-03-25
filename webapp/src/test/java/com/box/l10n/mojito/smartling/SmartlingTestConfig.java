@@ -9,6 +9,10 @@ public class SmartlingTestConfig {
   public String projectId = null;
   public String fileUri = null;
 
+  public String accountId = null;
+
+  public String glossaryId = null;
+
   public String getProjectId() {
     return projectId;
   }
@@ -23,5 +27,21 @@ public class SmartlingTestConfig {
 
   public void setFileUri(String fileUri) {
     this.fileUri = fileUri;
+  }
+
+  public String getAccountId() {
+    return accountId;
+  }
+
+  public void setAccountId(String accountId) {
+    this.accountId = accountId;
+  }
+
+  public String getGlossaryId() {
+    return glossaryId;
+  }
+
+  public void setGlossaryId(String glossaryId) {
+    this.glossaryId = glossaryId;
   }
 }

@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.smartling;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
@@ -14,14 +16,12 @@ import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.*;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
@@ -43,8 +43,6 @@ public class SmartlingClientTest {
   SmartlingClient smartlingClient;
 
   @Autowired SmartlingTestConfig smartlingTestConfig;
-
-  @Mock OAuth2RestTemplate mockedOAuth2RestTemplate;
 
   @Before
   public void init() {
@@ -90,7 +88,53 @@ public class SmartlingClientTest {
             });
   }
 
-  @Ignore
+  @Test
+  public void testDownloadGlossaryFile() {
+    Assume.assumeNotNull(smartlingClient);
+    Assume.assumeNotNull(smartlingTestConfig.accountId);
+    Assume.assumeNotNull(smartlingTestConfig.glossaryId);
+
+    String glossaryContent =
+        smartlingClient.downloadGlossaryFile(
+            smartlingTestConfig.accountId, smartlingTestConfig.glossaryId);
+
+    assertNotNull(glossaryContent);
+    assertTrue(glossaryContent.startsWith("<?xml version='1.0' encoding='UTF-8'?>"));
+  }
+
+  @Test
+  public void testDownloadSourceGlossaryFile() {
+    Assume.assumeNotNull(smartlingClient);
+    Assume.assumeNotNull(smartlingTestConfig.accountId);
+    Assume.assumeNotNull(smartlingTestConfig.glossaryId);
+
+    String glossaryContent =
+        smartlingClient.downloadSourceGlossaryFile(
+            smartlingTestConfig.accountId, smartlingTestConfig.glossaryId, "fr-FR");
+
+    assertNotNull(glossaryContent);
+    assertTrue(glossaryContent.startsWith("<?xml version='1.0' encoding='UTF-8'?>"));
+    assertTrue(glossaryContent.contains("xml:lang=\"fr-FR\""));
+  }
+
+  @Test
+  public void testDownloadGlossaryFileWithTranslations() throws Exception {
+    Assume.assumeNotNull(smartlingClient);
+    Assume.assumeNotNull(smartlingTestConfig.accountId);
+    Assume.assumeNotNull(smartlingTestConfig.glossaryId);
+
+    String glossaryContent =
+        smartlingClient.downloadGlossaryFileWithTranslations(
+            smartlingTestConfig.accountId, smartlingTestConfig.glossaryId, "fr-FR", "en-US");
+
+    assertNotNull(glossaryContent);
+    assertTrue(glossaryContent.startsWith("<?xml version='1.0' encoding='UTF-8'?>"));
+    assertTrue(glossaryContent.contains("xml:lang=\"en-US\""));
+    assertTrue(glossaryContent.contains("<langSet xml:lang=\"fr-FR\""));
+  }
+
+  //  @Ignore
+  @Test
   public void testRefreshToken() throws InterruptedException {
     Assume.assumeNotNull(smartlingTestConfig.projectId);
     Assume.assumeNotNull(smartlingTestConfig.fileUri);
@@ -180,10 +224,7 @@ public class SmartlingClientTest {
               SmartlingClient.RetrievalType.PUBLISHED);
 
       Assert.assertEquals(
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-              + "<resources>\n"
-              + "    \n"
-              + "</resources>",
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<resources>\n" + "</resources>\n",
           result);
     } finally {
       smartlingClient.deleteFile(smartlingTestConfig.projectId, fileName);
@@ -220,7 +261,7 @@ public class SmartlingClientTest {
             SmartlingClient.RetrievalType.PENDING);
 
     assertThat(response.getCode()).isEqualTo("SUCCESS");
-    assertThat(downloadFile).isEqualTo(content);
+    assertThat(downloadFile.trim()).isEqualTo(content);
 
     smartlingClient.deleteFile(smartlingTestConfig.projectId, fileName);
   }
@@ -237,7 +278,7 @@ public class SmartlingClientTest {
     Context context =
         smartlingClient.getContext(smartlingTestConfig.projectId, createdContext.getContextUid());
 
-    Assert.assertNotNull(context.getContextUid());
+    assertNotNull(context.getContextUid());
     Assert.assertEquals(createdContext.getContextUid(), context.getContextUid());
   }
 
@@ -250,12 +291,12 @@ public class SmartlingClientTest {
     Context createdContext =
         smartlingClient.uploadContext(smartlingTestConfig.projectId, "image1.png", content);
 
-    Assert.assertNotNull(createdContext.getContextUid());
+    assertNotNull(createdContext.getContextUid());
 
     Context context =
         smartlingClient.getContext(smartlingTestConfig.projectId, createdContext.getContextUid());
 
-    Assert.assertNotNull(context.getContextUid());
+    assertNotNull(context.getContextUid());
     Assert.assertEquals(createdContext.getContextUid(), context.getContextUid());
 
     smartlingClient.deleteContext(smartlingTestConfig.projectId, context.getContextUid());

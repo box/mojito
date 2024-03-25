@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -14,8 +17,10 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingTestConfig;
+import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,20 +74,7 @@ public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
         new ThirdPartyServiceTestData(testIdWatcher);
     Repository repository = thirdPartyServiceTestData.repository;
 
-    String smartlingContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <!--comment 1-->\n"
-            + "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"946852\">Hello</string>\n"
-            + "    <!-- twice the same name in the 3rd party tms shouldn't break the mapping -->\n"
-            + "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"8464561\">Hello-samename</string>\n"
-            + "    <!--comment 2-->\n"
-            + "    <string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"946853\">Bye</string>\n"
-            + "    <plurals name=\"src/main/res/values/strings.xml#@#plural_things\">\n"
-            + "        <item quantity=\"one\">One thing</item>\n"
-            + "        <item quantity=\"other\">Multiple things</item>\n"
-            + "    </plurals>"
-            + "</resources>";
+    String smartlingContent = getAndroidFileContent();
 
     String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
     smartlingClient.uploadFile(
@@ -102,5 +94,54 @@ public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
 
     thirdPartyService.uploadScreenshotsAndCreateMappings(
         repository, testConfig.projectId, parentTask);
+  }
+
+  @Test
+  public void testFileUploadAndDeletion() throws Exception {
+    Assume.assumeNotNull(smartlingClient);
+    Assume.assumeNotNull(testConfig.projectId);
+
+    // Upload a file
+    ThirdPartyServiceTestData thirdPartyServiceTestData =
+        new ThirdPartyServiceTestData(testIdWatcher);
+    Repository repository = thirdPartyServiceTestData.repository;
+    String smartlingFileUri = repository.getName() + "/0000_deletion_test.xml";
+    smartlingClient.uploadFile(
+        testConfig.projectId,
+        smartlingFileUri,
+        "android",
+        getAndroidFileContent(),
+        null,
+        null,
+        null);
+
+    // Verify the file was uploaded
+    List<File> files = smartlingClient.getFiles(testConfig.projectId).getItems();
+    assertTrue(files.stream().anyMatch(file -> file.getFileUri().equals(smartlingFileUri)));
+
+    // Delete the file
+    smartlingClient.deleteFile(testConfig.projectId, smartlingFileUri);
+
+    // Verify the file was deleted
+    files = smartlingClient.getFiles(testConfig.projectId).getItems();
+    assertFalse(files.stream().anyMatch(file -> file.getFileUri().equals(smartlingFileUri)));
+  }
+
+  private static String getAndroidFileContent() {
+    String smartlingContent =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<resources>\n"
+            + "    <!--comment 1-->\n"
+            + "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"946852\">Hello</string>\n"
+            + "    <!-- twice the same name in the 3rd party tms shouldn't break the mapping -->\n"
+            + "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"8464561\">Hello-samename</string>\n"
+            + "    <!--comment 2-->\n"
+            + "    <string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"946853\">Bye</string>\n"
+            + "    <plurals name=\"src/main/res/values/strings.xml#@#plural_things\">\n"
+            + "        <item quantity=\"one\">One thing</item>\n"
+            + "        <item quantity=\"other\">Multiple things</item>\n"
+            + "    </plurals>"
+            + "</resources>";
+    return smartlingContent;
   }
 }

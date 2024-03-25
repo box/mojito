@@ -3,20 +3,37 @@ package com.box.l10n.mojito.smartling;
 import com.box.l10n.mojito.iterators.PageFetcherOffsetAndLimitSplitIterator;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.smartling.request.Bindings;
-import com.box.l10n.mojito.smartling.response.*;
+import com.box.l10n.mojito.smartling.response.Context;
+import com.box.l10n.mojito.smartling.response.ContextResponse;
+import com.box.l10n.mojito.smartling.response.File;
+import com.box.l10n.mojito.smartling.response.FileUploadResponse;
+import com.box.l10n.mojito.smartling.response.FilesResponse;
+import com.box.l10n.mojito.smartling.response.GetGlossaryDetailsResponse;
+import com.box.l10n.mojito.smartling.response.GlossaryDetails;
+import com.box.l10n.mojito.smartling.response.Items;
+import com.box.l10n.mojito.smartling.response.Response;
+import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
+import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
 import reactor.util.retry.RetryBackoffSpec;
 
 public class SmartlingClient {
@@ -41,6 +58,7 @@ public class SmartlingClient {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
 
+  static final String BASE_URL = "https://api.smartling.com/";
   static final String API_SOURCE_STRINGS =
       "strings-api/v2/projects/{projectId}/source-strings?fileUri={fileUri}&offset={offset}&offset={limit}";
   static final String API_FILES_LIST = "files-api/v2/projects/{projectId}/files/list";
@@ -90,14 +108,19 @@ public class SmartlingClient {
 
   static final int LIMIT = 500;
 
-  OAuth2RestTemplate oAuth2RestTemplate;
+  SmartlingOAuth2TokenService smartlingOAuth2TokenService;
 
   RetryBackoffSpec retryConfiguration;
 
+  final HttpClient httpClient = HttpClient.newHttpClient();
+
   public SmartlingClient(
-      OAuth2RestTemplate oAuth2RestTemplate, RetryBackoffSpec retryConfiguration) {
-    this.oAuth2RestTemplate = oAuth2RestTemplate;
-    this.objectMapper = new ObjectMapper();
+      SmartlingOAuth2TokenService smartlingOAuth2TokenService,
+      RetryBackoffSpec retryConfiguration) {
+    this.smartlingOAuth2TokenService = smartlingOAuth2TokenService;
+    objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     this.retryConfiguration = retryConfiguration;
   }
@@ -122,12 +145,23 @@ public class SmartlingClient {
 
   public Items<File> getFiles(String projectId) {
     try {
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(BASE_URL + API_FILES_LIST.replace("{projectId}", projectId)))
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .build();
+
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
       FilesResponse filesResponse =
-          oAuth2RestTemplate.getForObject(API_FILES_LIST, FilesResponse.class, projectId);
+          objectMapper.readValue(httpResponse.body(), FilesResponse.class);
+
       throwExceptionOnError(filesResponse, ERROR_CANT_GET_FILES);
+
       return filesResponse.getData();
-    } catch (HttpClientErrorException httpClientErrorException) {
-      throw wrapIntoSmartlingException(httpClientErrorException, ERROR_CANT_GET_FILES);
+    } catch (Exception e) {
+      throw wrapIntoSmartlingException(e, ERROR_CANT_GET_FILES);
     }
   }
 
@@ -138,39 +172,73 @@ public class SmartlingClient {
       boolean includeOriginalStrings,
       RetrievalType retrievalType) {
     try {
-      String file =
-          oAuth2RestTemplate.getForObject(
-              API_FILES_DOWNLOAD,
-              String.class,
-              projectId,
-              locale,
-              fileUri,
-              includeOriginalStrings,
-              retrievalType.getValue());
-      return file;
-    } catch (HttpClientErrorException e) {
+      String url =
+          BASE_URL
+              + API_FILES_DOWNLOAD
+                  .replace("{projectId}", projectId)
+                  .replace("{locale_id}", locale)
+                  .replace("{fileUri}", fileUri)
+                  .replace("{includeOriginalStrings}", Boolean.toString(includeOriginalStrings))
+                  .replace("{retrievalType}", retrievalType.getValue());
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      return response.body();
+    } catch (InterruptedException | IOException e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_FILE, fileUri, projectId, locale);
     }
   }
 
   public String downloadGlossaryFile(String accountId, String glossaryId) {
     try {
-      String file =
-          oAuth2RestTemplate.getForObject(
-              API_GLOSSARY_DOWNLOAD_TBX, String.class, accountId, glossaryId);
-      return file;
-    } catch (HttpClientErrorException e) {
+      String url =
+          BASE_URL
+              + API_GLOSSARY_DOWNLOAD_TBX
+                  .replace("{accountId}", accountId)
+                  .replace("{glossaryId}", glossaryId);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .uri(URI.create(url))
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      return response.body();
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_GLOSSARY_FILE, accountId, glossaryId);
     }
   }
 
   public String downloadSourceGlossaryFile(String accountId, String glossaryId, String locale) {
     try {
-      String file =
-          oAuth2RestTemplate.getForObject(
-              API_GLOSSARY_SOURCE_TBX_DOWNLOAD, String.class, accountId, glossaryId, locale);
-      return file;
-    } catch (HttpClientErrorException e) {
+      String url =
+          BASE_URL
+              + API_GLOSSARY_SOURCE_TBX_DOWNLOAD
+                  .replace("{accountId}", accountId)
+                  .replace("{glossaryId}", glossaryId)
+                  .replace("{locale}", locale);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .uri(URI.create(url))
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      return response.body();
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(
           e, ERROR_CANT_DOWNLOAD_GLOSSARY_FILE_WITH_LOCALE, accountId, glossaryId, locale);
     }
@@ -179,16 +247,25 @@ public class SmartlingClient {
   public String downloadGlossaryFileWithTranslations(
       String accountId, String glossaryId, String locale, String sourceLocale) {
     try {
-      String file =
-          oAuth2RestTemplate.getForObject(
-              API_GLOSSARY_TRANSLATED_TBX_DOWNLOAD,
-              String.class,
-              accountId,
-              glossaryId,
-              locale,
-              sourceLocale);
-      return file;
-    } catch (HttpClientErrorException e) {
+      String url =
+          BASE_URL
+              + API_GLOSSARY_TRANSLATED_TBX_DOWNLOAD
+                  .replace("{accountId}", accountId)
+                  .replace("{glossaryId}", glossaryId)
+                  .replace("{locale}", locale)
+                  .replace("{sourceLocale}", sourceLocale);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .uri(URI.create(url))
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      return response.body();
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(
           e, ERROR_CANT_DOWNLOAD_GLOSSARY_FILE_WITH_LOCALE, accountId, glossaryId, locale);
     }
@@ -201,20 +278,27 @@ public class SmartlingClient {
   }
 
   public void deleteFile(String projectId, String fileUri) {
+    try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
-    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-    body.add("fileUri", fileUri);
+      String url = BASE_URL + API_FILES_DELETE.replace("{projectId}", projectId);
+      HttpPost deleteFileMethod = new HttpPost(url);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+      deleteFileMethod.setHeader(
+          "Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken());
 
-    try {
-      Response response =
-          oAuth2RestTemplate.postForObject(
-              API_FILES_DELETE, requestEntity, Response.class, projectId);
-      throwExceptionOnError(response, ERROR_CANT_DELETE_FILE, fileUri);
-    } catch (HttpClientErrorException e) {
+      MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+      multipartEntityBuilder.addTextBody("fileUri", fileUri);
+
+      deleteFileMethod.setEntity(multipartEntityBuilder.build());
+
+      try (CloseableHttpResponse response = httpclient.execute(deleteFileMethod)) {
+        String responseBody = EntityUtils.toString(response.getEntity());
+
+        Response resp = objectMapper.readValue(responseBody, Response.class);
+
+        throwExceptionOnError(resp, ERROR_CANT_DELETE_FILE, fileUri);
+      }
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_DELETE_FILE, fileUri);
     }
   }
@@ -228,29 +312,48 @@ public class SmartlingClient {
       String placeholderFormatCustom,
       String stringFormat) {
 
-    NamedByteArrayResource fileContentAsResource =
-        new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
+    try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+      HttpPost uploadFileMethod =
+          new HttpPost(BASE_URL + API_FILES_UPLOAD.replace("{projectId}", projectId));
+      uploadFileMethod.setHeader(
+          "Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken());
 
-    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-    body.add("fileUri", fileUri);
-    body.add("fileType", fileType);
-    body.add("smartling.placeholder_format", placeholderFormat);
-    body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
-    body.add("smartling.string_format", stringFormat);
-    body.add("smartling.instruction_comments_enabled", "on");
-    body.add("file", fileContentAsResource);
+      NamedByteArrayResource fileContentAsResource =
+          new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+      MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
 
-    try {
-      FileUploadResponse response =
-          oAuth2RestTemplate.postForObject(
-              API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
-      throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE, fileUri);
-      return response;
-    } catch (HttpClientErrorException e) {
+      multipartEntityBuilder.addTextBody("fileUri", fileUri);
+      multipartEntityBuilder.addTextBody("fileType", fileType);
+      if (!Strings.isNullOrEmpty(placeholderFormat)) {
+        multipartEntityBuilder.addTextBody("smartling.placeholder_format", placeholderFormat);
+      }
+      if (!Strings.isNullOrEmpty(placeholderFormatCustom)) {
+        multipartEntityBuilder.addTextBody(
+            "smartling.placeholder_format_custom", placeholderFormatCustom);
+      }
+      if (!Strings.isNullOrEmpty(stringFormat)) {
+        multipartEntityBuilder.addTextBody("smartling.string_format", stringFormat);
+      }
+      multipartEntityBuilder.addTextBody("smartling.instruction_comments_enabled", "on");
+      multipartEntityBuilder.addBinaryBody(
+          "file",
+          fileContentAsResource.getByteArray(),
+          ContentType.APPLICATION_OCTET_STREAM,
+          fileContentAsResource.getFilename());
+
+      uploadFileMethod.setEntity(multipartEntityBuilder.build());
+
+      try (CloseableHttpResponse response = httpclient.execute(uploadFileMethod)) {
+        String responseBody = EntityUtils.toString(response.getEntity());
+        FileUploadResponse fileUploadResponse =
+            objectMapper.readValue(responseBody, FileUploadResponse.class);
+
+        throwExceptionOnError(fileUploadResponse, ERROR_CANT_UPLOAD_FILE, fileUri);
+        return fileUploadResponse;
+      }
+
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE, fileUri);
     }
   }
@@ -264,83 +367,131 @@ public class SmartlingClient {
       String placeholderFormat,
       String placeholderFormatCustom) {
 
-    NamedByteArrayResource fileContentAsResource =
-        new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
+    try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+      HttpPost uploadFileMethod =
+          new HttpPost(
+              BASE_URL
+                  + API_FILES_UPLOAD_LOCALIZED
+                      .replace("{projectId}", projectId)
+                      .replace("{localeId}", localeId));
+      uploadFileMethod.setHeader(
+          "Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken());
 
-    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-    body.add("fileUri", fileUri);
-    body.add("fileType", fileType);
-    body.add("translationState", "PUBLISHED");
-    body.add("overwrite", true);
-    body.add("smartling.placeholder_format", placeholderFormat);
-    body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
-    body.add("file", fileContentAsResource);
+      NamedByteArrayResource fileContentAsResource =
+          new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+      MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
 
-    try {
-      FileUploadResponse response =
-          oAuth2RestTemplate.postForObject(
-              API_FILES_UPLOAD_LOCALIZED,
-              requestEntity,
-              FileUploadResponse.class,
-              projectId,
-              localeId);
-      throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE, fileUri);
-      return response;
-    } catch (HttpClientErrorException e) {
+      multipartEntityBuilder.addTextBody("fileUri", fileUri);
+      multipartEntityBuilder.addTextBody("fileType", fileType);
+      multipartEntityBuilder.addTextBody("translationState", "PUBLISHED");
+      multipartEntityBuilder.addTextBody("overwrite", "true");
+      if (!Strings.isNullOrEmpty(placeholderFormat)) {
+        multipartEntityBuilder.addTextBody("smartling.placeholder_format", placeholderFormat);
+      }
+      if (!Strings.isNullOrEmpty(placeholderFormatCustom)) {
+        multipartEntityBuilder.addTextBody(
+            "smartling.placeholder_format_custom", placeholderFormatCustom);
+      }
+      multipartEntityBuilder.addBinaryBody(
+          "file",
+          fileContentAsResource.getByteArray(),
+          ContentType.APPLICATION_OCTET_STREAM,
+          fileContentAsResource.getFilename());
+
+      uploadFileMethod.setEntity(multipartEntityBuilder.build());
+
+      try (CloseableHttpResponse response = httpclient.execute(uploadFileMethod)) {
+        String responseBody = EntityUtils.toString(response.getEntity());
+        FileUploadResponse fileUploadResponse =
+            objectMapper.readValue(responseBody, FileUploadResponse.class);
+
+        throwExceptionOnError(fileUploadResponse, ERROR_CANT_UPLOAD_FILE, fileUri);
+        return fileUploadResponse;
+      }
+
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE, fileUri);
     }
   }
 
   public Items<StringInfo> getSourceStrings(
-      String projectId, String fileUri, Integer offset, Integer limit)
-      throws SmartlingClientException {
+      String projectId, String fileUri, Integer offset, Integer limit) {
     try {
+      String url =
+          BASE_URL
+              + API_SOURCE_STRINGS
+                  .replace("{projectId}", projectId)
+                  .replace("{fileUri}", fileUri)
+                  .replace("{offset}", offset.toString())
+                  .replace("{limit}", limit.toString());
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .uri(URI.create(url))
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
       SourceStringsResponse sourceStringsResponse =
-          oAuth2RestTemplate.getForObject(
-              API_SOURCE_STRINGS, SourceStringsResponse.class, projectId, fileUri, offset, limit);
+          objectMapper.readValue(response.body(), SourceStringsResponse.class);
+
       throwExceptionOnError(sourceStringsResponse, ERROR_CANT_GET_SOURCE_STRINGS);
       return sourceStringsResponse.getData();
-    } catch (HttpClientErrorException e) {
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_GET_SOURCE_STRINGS);
     }
   }
 
   public Context uploadContext(String projectId, String name, byte[] content) {
+    try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+      HttpPost uploadContextMethod =
+          new HttpPost(BASE_URL + API_CONTEXTS.replace("{projectId}", projectId));
+      uploadContextMethod.setHeader(
+          "Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken());
 
-    ByteArrayResource contentAsResource = new NamedByteArrayResource(content, name);
+      MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
 
-    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-    body.add("content", contentAsResource);
-    body.add("name", name);
+      multipartEntityBuilder.addTextBody("name", name);
+      multipartEntityBuilder.addBinaryBody(
+          "content", content, ContentType.APPLICATION_OCTET_STREAM, name);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+      uploadContextMethod.setEntity(multipartEntityBuilder.build());
 
-    try {
-      ContextResponse contextResponse =
-          oAuth2RestTemplate.postForObject(
-              API_CONTEXTS, requestEntity, ContextResponse.class, projectId);
-      throwExceptionOnError(contextResponse, ERROR_CANT_UPLOAD_CONTEXT, name);
-      return contextResponse.getData();
-    } catch (HttpClientErrorException e) {
+      try (CloseableHttpResponse response = httpclient.execute(uploadContextMethod)) {
+        String responseBody = EntityUtils.toString(response.getEntity());
+
+        ContextResponse contextResponse =
+            objectMapper.readValue(responseBody, ContextResponse.class);
+
+        throwExceptionOnError(contextResponse, ERROR_CANT_UPLOAD_CONTEXT, name);
+        return contextResponse.getData();
+      }
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_CONTEXT, name);
     }
   }
 
   public void createBindings(Bindings bindings, String projectId) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-    HttpEntity<Bindings> requestEntity = new HttpEntity<>(bindings, headers);
     try {
-      String s =
-          oAuth2RestTemplate.postForObject(API_BINDINGS, requestEntity, String.class, projectId);
-      logger.debug("create binding: {}", s);
-    } catch (HttpClientErrorException e) {
+      String url = BASE_URL + API_BINDINGS.replace("{projectId}", projectId);
+      String requestBody = objectMapper.writeValueAsString(bindings);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .header("Content-Type", "application/json")
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      logger.debug("create binding: {}", response.body());
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(
           e, ERROR_CANT_CREATE_BINDINGS, objectMapper.writeValueAsStringUnchecked(bindings));
     }
@@ -348,13 +499,28 @@ public class SmartlingClient {
 
   public GlossaryDetails getGlossaryDetails(String accountId, String glossaryId) {
     try {
+      String url =
+          BASE_URL
+              + API_GLOSSARY_DETAILS
+                  .replace("{accountId}", accountId)
+                  .replace("{glossaryId}", glossaryId);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
       GetGlossaryDetailsResponse getGlossaryDetailsResponse =
-          oAuth2RestTemplate.getForObject(
-              API_GLOSSARY_DETAILS, GetGlossaryDetailsResponse.class, accountId, glossaryId);
+          objectMapper.readValue(response.body(), GetGlossaryDetailsResponse.class);
+
       throwExceptionOnError(
           getGlossaryDetailsResponse, ERROR_CANT_GET_GLOSSARY_DETAILS, accountId, glossaryId);
       return getGlossaryDetailsResponse.getData();
-    } catch (HttpClientErrorException e) {
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_GET_GLOSSARY_DETAILS, accountId, glossaryId);
     }
   }
@@ -379,15 +545,9 @@ public class SmartlingClient {
    * <p>Note that 200 is not always success, {@see throwExceptionOnError}
    */
   SmartlingClientException wrapIntoSmartlingException(
-      HttpClientErrorException httpClientErrorException, String messageSummary, Object... vars)
-      throws SmartlingClientException {
-    String msg =
-        String.format(messageSummary, vars)
-            + "\nMessage: "
-            + httpClientErrorException.getMessage()
-            + "\nBody: "
-            + httpClientErrorException.getResponseBodyAsString();
-    return new SmartlingClientException(msg, httpClientErrorException);
+      Exception exception, String messageSummary, Object... vars) throws SmartlingClientException {
+    String msg = String.format(messageSummary, vars) + "\nMessage: " + exception.getMessage();
+    return new SmartlingClientException(msg, exception);
   }
 
   static class NamedByteArrayResource extends ByteArrayResource {
@@ -425,22 +585,52 @@ public class SmartlingClient {
 
   public void deleteContext(String projectId, String contextId) {
     try {
-      oAuth2RestTemplate.delete(
-          API_CONTEXTS_DETAILS.replace("{projectId}", projectId).replace("{contextId}", contextId));
-    } catch (HttpClientErrorException e) {
+      String url =
+          BASE_URL
+              + API_CONTEXTS_DETAILS
+                  .replace("{projectId}", projectId)
+                  .replace("{contextId}", contextId);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .DELETE()
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() != 200) {
+        throw new RuntimeException("Failed to delete context");
+      }
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_DELETE_CONTEXT, contextId);
     }
   }
 
   public Context getContext(String projectId, String contextId) {
     try {
+      String url =
+          BASE_URL
+              + API_CONTEXTS_DETAILS
+                  .replace("{projectId}", projectId)
+                  .replace("{contextId}", contextId);
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .header("Authorization", "Bearer " + smartlingOAuth2TokenService.getAccessToken())
+              .build();
+
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
       ContextResponse contextResponse =
-          oAuth2RestTemplate.getForObject(
-              API_CONTEXTS_DETAILS, ContextResponse.class, projectId, contextId);
+          objectMapper.readValue(response.body(), ContextResponse.class);
 
       throwExceptionOnError(contextResponse, ERROR_CANT_GET_CONTEXT, contextId);
       return contextResponse.getData();
-    } catch (HttpClientErrorException e) {
+    } catch (Exception e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_GET_CONTEXT, contextId);
     }
   }
