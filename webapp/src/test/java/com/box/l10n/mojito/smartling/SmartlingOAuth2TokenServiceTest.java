@@ -38,6 +38,7 @@ public class SmartlingOAuth2TokenServiceTest {
   public void getAccessTokenRequestsNewTokenWhenRefreshTokenExpired() throws Exception {
     when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
+    when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body())
         .thenReturn(
             "{\"response\": {\"data\": {\"accessToken\": \"newToken\", \"expiresIn\": 3600, \"refreshToken\": \"refreshToken\", \"refreshExpiresIn\": 1}}}");
@@ -54,6 +55,7 @@ public class SmartlingOAuth2TokenServiceTest {
   public void getAccessTokenRequestsNewTokenWhenNoTokenExists() throws Exception {
     when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
+    when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body())
         .thenReturn(
             "{\"response\": {\"data\": {\"accessToken\": \"newToken\", \"expiresIn\": 3600, \"refreshToken\": \"refreshToken\", \"refreshExpiresIn\": 7200}}}");
@@ -68,6 +70,7 @@ public class SmartlingOAuth2TokenServiceTest {
   public void getRefreshedAccessTokenTokenWhenAccessTokenExpired() throws Exception {
     when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
+    when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body())
         .thenReturn(
             "{\"response\": {\"data\": {\"accessToken\": \"newToken\", \"expiresIn\": 1, \"refreshToken\": \"refreshToken\", \"refreshExpiresIn\": 7200}}}");
@@ -83,5 +86,44 @@ public class SmartlingOAuth2TokenServiceTest {
 
     assertEquals("refreshedToken", accessToken);
     verify(httpClient, times(2)).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
+  }
+
+  @Test
+  public void testRefreshTokenRequestResponse401TriggersNewTokenRequest() throws Exception {
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+    when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.body())
+        .thenReturn(
+            "{\"response\": {\"data\": {\"accessToken\": \"newToken\", \"expiresIn\": 1, \"refreshToken\": \"refreshToken\", \"refreshExpiresIn\": 7200}}}");
+
+    String accessToken = smartlingOAuth2TokenService.getAccessToken();
+
+    assertEquals("newToken", accessToken);
+
+    when(mockResponse.statusCode()).thenReturn(401).thenReturn(401).thenReturn(200);
+    when(mockResponse.body())
+        .thenReturn(
+            "{\"response\": {\"code\": \"AUTHENTICATION_ERROR\", \"errors\": {\"details\": {}, \"key\": \"invalid_token\", \"message\": \"Invalid token\"}}}")
+        .thenReturn(
+            "{\"response\": {\"data\": {\"accessToken\": \"evenNewerToken\", \"expiresIn\": 1, \"refreshToken\": \"refreshToken\", \"refreshExpiresIn\": 7200}}}");
+
+    accessToken = smartlingOAuth2TokenService.getAccessToken();
+
+    assertEquals("evenNewerToken", accessToken);
+
+    verify(httpClient, times(3)).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
+  }
+
+  @Test(expected = SmartlingOAuthTokenException.class)
+  public void testNewTokenRequestResponse401TriggersException() throws Exception {
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+    when(mockResponse.statusCode()).thenReturn(401);
+    when(mockResponse.body())
+        .thenReturn(
+            "{\"response\": {\"code\": \"AUTHENTICATION_ERROR\", \"errors\": {\"details\": {}, \"key\": \"invalid_token\", \"message\": \"Invalid token\"}}}");
+
+    smartlingOAuth2TokenService.getAccessToken();
   }
 }

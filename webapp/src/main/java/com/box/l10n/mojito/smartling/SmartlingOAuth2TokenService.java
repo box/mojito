@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.smartling;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -14,7 +15,7 @@ import org.springframework.http.MediaType;
 
 public class SmartlingOAuth2TokenService {
 
-  private static final int THREE_SECONDS_MS = 3000;
+  private static final int THIRTY_SECONDS_MS = 30000;
   private static Logger logger =
       org.slf4j.LoggerFactory.getLogger(SmartlingOAuth2TokenService.class);
 
@@ -39,9 +40,10 @@ public class SmartlingOAuth2TokenService {
     this.accessTokenUrl = accessTokenUrl;
     this.refreshTokenUrl = refreshTokenUrl;
     this.objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
-  public String getAccessToken() {
+  public synchronized String getAccessToken() {
     if (isRefreshRequired()) {
       smartlingOAuthAccessToken = requestAccessToken();
     }
@@ -51,13 +53,13 @@ public class SmartlingOAuth2TokenService {
   private boolean isTokenExpired() {
     return smartlingOAuthAccessToken == null
         || smartlingOAuthAccessToken.getTokenExpiryTime()
-            <= System.currentTimeMillis() + THREE_SECONDS_MS;
+            <= System.currentTimeMillis() + THIRTY_SECONDS_MS;
   }
 
   private boolean isRefreshTokenExpired() {
     return smartlingOAuthAccessToken == null
         || smartlingOAuthAccessToken.getRefreshExpiryTime()
-            <= System.currentTimeMillis() + THREE_SECONDS_MS;
+            <= System.currentTimeMillis() + THIRTY_SECONDS_MS;
   }
 
   private boolean isRefreshRequired() {
@@ -65,7 +67,7 @@ public class SmartlingOAuth2TokenService {
     return isTokenExpired() || isRefreshTokenExpired();
   }
 
-  private synchronized SmartlingOAuthAccessResponse.TokenData requestAccessToken() {
+  private SmartlingOAuthAccessResponse.TokenData requestAccessToken() {
     if (isRefreshTokenExpired()) {
       requestNewAccessToken();
     } else if (isTokenExpired()) {
@@ -110,13 +112,30 @@ public class SmartlingOAuth2TokenService {
 
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-    SmartlingOAuthAccessResponse smartlingOAuthAccessResponse =
-        objectMapper.readValue(response.body(), SmartlingOAuthAccessResponse.class);
-    smartlingOAuthAccessToken = smartlingOAuthAccessResponse.getResponse().getData();
-    smartlingOAuthAccessToken.setTokenExpiryTime(
-        System.currentTimeMillis() + (smartlingOAuthAccessToken.getExpiresIn() * 1000));
-    smartlingOAuthAccessToken.setRefreshExpiryTime(
-        System.currentTimeMillis() + (smartlingOAuthAccessToken.getRefreshExpiresIn() * 1000));
+    if (response.statusCode() != 200) {
+      handleErrorResponse(authUrl, response);
+    } else {
+      SmartlingOAuthAccessResponse smartlingOAuthAccessResponse =
+          objectMapper.readValue(response.body(), SmartlingOAuthAccessResponse.class);
+      smartlingOAuthAccessToken = smartlingOAuthAccessResponse.getResponse().getData();
+      smartlingOAuthAccessToken.setTokenExpiryTime(
+          System.currentTimeMillis() + (smartlingOAuthAccessToken.getExpiresIn() * 1000));
+      smartlingOAuthAccessToken.setRefreshExpiryTime(
+          System.currentTimeMillis() + (smartlingOAuthAccessToken.getRefreshExpiresIn() * 1000));
+    }
+  }
+
+  private void handleErrorResponse(String authUrl, HttpResponse<String> response) {
+    if (response.statusCode() == 401 && authUrl.equals(refreshTokenUrl)) {
+      // Refresh returned 401, try request a new token
+      logger.debug(
+          "Failed to refresh Smartling OAuth token, requesting new token: " + response.body());
+      requestNewAccessToken();
+    } else {
+      logger.error("Failed to retrieve OAuth token from Smartling: {}", response.body());
+      throw new SmartlingOAuthTokenException(
+          "Failed to retrieve OAuth token from Smartling: " + response.body());
+    }
   }
 
   record ClientAuthDetails(
