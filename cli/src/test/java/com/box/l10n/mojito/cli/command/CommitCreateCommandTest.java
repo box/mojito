@@ -35,7 +35,7 @@ public class CommitCreateCommandTest extends CLITestBase {
     String commitHash = "ABC123";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    ZonedDateTime creationDate = ZonedDateTime.now();
+    ZonedDateTime creationDate = ZonedDateTime.now().withNano(0);
 
     L10nJCommander l10nJCommander = getL10nJCommander();
     l10nJCommander.run(

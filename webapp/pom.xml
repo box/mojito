@@ -188,8 +188,13 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-envers</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-ant</artifactId>
         </dependency>
 
         <dependency>
@@ -272,11 +277,6 @@
             <version>1.4</version>
         </dependency>
         <!-- TODO(P1) to be removed? -->
-
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>net.logstash.logback</groupId>
@@ -423,7 +423,7 @@
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
                     <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/webapp/
-                        -Dspring.profiles.active=${user.name},test -Xmx1024m
+                        -Dspring.profiles.active=${user.name},test -Duser.timezone=UTC
                     </argLine>
 
                     <rerunFailingTestsCount>1</rerunFailingTestsCount>
@@ -469,12 +469,13 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>pl.project13.maven</groupId>
-                        <artifactId>git-commit-id-plugin</artifactId>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
                         <configuration>
                             <failOnNoGitDirectory>false</failOnNoGitDirectory>
                             <offline>true</offline>
                         </configuration>
+                        <version>7.0.0</version>
                     </plugin>
                 </plugins>
             </build>

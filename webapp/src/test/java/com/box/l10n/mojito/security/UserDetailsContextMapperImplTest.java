@@ -42,7 +42,7 @@ public class UserDetailsContextMapperImplTest {
     UserDetails userDetails =
         userDetailsContextMapper.mapUserFromContext(dirContextOperations, "testUsername", null);
 
-    Assert.notNull(userDetails);
+    Assert.notNull(userDetails, "userDetails must not be null");
     verify(dirContextOperations, times(3)).getStringAttribute(anyString());
   }
 }

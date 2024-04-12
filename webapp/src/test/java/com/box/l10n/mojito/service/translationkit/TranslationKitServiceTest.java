@@ -87,6 +87,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
     logger.debug("Check the translation kit entities");
     TranslationKit translationKit =
         translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
+
     List<TranslationKitTextUnit> findByTranslationKitId =
         translationKitTextUnitRepository.findByTranslationKit(translationKit);
 

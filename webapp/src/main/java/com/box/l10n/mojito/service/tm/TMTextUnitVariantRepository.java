@@ -5,10 +5,12 @@ import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.google.common.annotations.VisibleForTesting;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,15 +22,22 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVariant, Long> {
 
+  @VisibleForTesting
+  @EntityGraph(value = "TMTextUnitVariant.legacy", type = EntityGraph.EntityGraphType.FETCH)
   List<TMTextUnitVariant> findAllByLocale_IdAndTmTextUnit_Tm_id(Long localeId, Long tmId);
 
+  @EntityGraph(value = "TMTextUnitVariant.legacy", type = EntityGraph.EntityGraphType.FETCH)
   List<TMTextUnitVariant> findAllByTmTextUnit_IdAndLocale_IdOrderByCreatedDateDesc(
       Long tmTextUnitId, Long localeId);
 
   TMTextUnitVariant findTopByTmTextUnitTmIdOrderByCreatedDateDesc(Long tmId);
 
+  @VisibleForTesting
+  @EntityGraph(value = "TMTextUnitVariant.legacy", type = EntityGraph.EntityGraphType.FETCH)
   List<TMTextUnitVariant> findByTmTextUnitTmRepositoriesOrderByContent(Repository repository);
 
+  @VisibleForTesting
+  @EntityGraph(value = "TMTextUnitVariant.legacy", type = EntityGraph.EntityGraphType.FETCH)
   List<TMTextUnitVariant> findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
       Repository repository, String bcp47Tag);
 

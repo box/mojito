@@ -4,12 +4,15 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.Table;
 
 /**
  * Repository statistic per locale.
@@ -25,9 +28,12 @@ import javax.persistence.Table;
           columnList = "repository_statistic_id, locale_id",
           unique = true)
     })
+@NamedEntityGraph(
+    name = "RepositoryLocaleStatistic.legacy",
+    attributeNodes = {@NamedAttributeNode("locale")})
 public class RepositoryLocaleStatistic extends BaseEntity {
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
   @JoinColumn(
       name = "repository_statistic_id",
@@ -35,7 +41,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
   private RepositoryStatistic repositoryStatistic;
 
   @JsonView(View.LocaleSummary.class)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE_STATISTIC__LOCALE__ID"),

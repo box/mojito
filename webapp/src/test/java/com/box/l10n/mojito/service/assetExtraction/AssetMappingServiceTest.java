@@ -31,10 +31,10 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.Iterator;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -1054,7 +1054,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
     TypedQuery<AssetTextUnitToTMTextUnit> query =
         entityManager
             .createQuery(
-                "select m from AssetTextUnitToTMTextUnit m where m.assetTextUnit.assetExtraction.id = :assetExtractionId order by m.tmTextUnit.id asc",
+                "select m from AssetTextUnitToTMTextUnit m join fetch m.tmTextUnit join fetch m.assetTextUnit where m.assetTextUnit.assetExtraction.id = :assetExtractionId order by m.tmTextUnit.id asc",
                 AssetTextUnitToTMTextUnit.class)
             .setParameter("assetExtractionId", assetExtraction.getId());
     List<AssetTextUnitToTMTextUnit> assetTextUnitToTMTextUnits = query.getResultList();

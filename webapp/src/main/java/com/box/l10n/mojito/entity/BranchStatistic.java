@@ -3,9 +3,9 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
 
 /**
  * @author jeanaurambault
@@ -20,15 +20,34 @@ import javax.persistence.*;
     name = "BranchStatisticGraph",
     attributeNodes = {
       @NamedAttributeNode(value = "branch", subgraph = "branchGraph"),
-      @NamedAttributeNode("branchTextUnitStatistics")
+      @NamedAttributeNode(
+          value = "branchTextUnitStatistics",
+          subgraph = "branchGraph.branchTextUnitStatistics")
     },
-    subgraphs =
-        @NamedSubgraph(
-            name = "branchGraph",
-            attributeNodes = {
-              @NamedAttributeNode(value = "screenshots"),
-              @NamedAttributeNode(value = "repository"),
-            }))
+    subgraphs = {
+      @NamedSubgraph(
+          name = "branchGraph",
+          attributeNodes = {
+            @NamedAttributeNode(value = "screenshots", subgraph = "branchGraph.screenshots"),
+            @NamedAttributeNode(value = "repository", subgraph = "branchGraph.repository"),
+          }),
+      @NamedSubgraph(
+          name = "branchGraph.branchTextUnitStatistics",
+          attributeNodes = {
+            @NamedAttributeNode(value = "tmTextUnit"),
+          }),
+      @NamedSubgraph(
+          name = "branchGraph.repository",
+          attributeNodes = {
+            @NamedAttributeNode(value = "sourceLocale"),
+            @NamedAttributeNode(value = "manualScreenshotRun"),
+          }),
+      @NamedSubgraph(
+          name = "branchGraph.screenshots",
+          attributeNodes = {
+            @NamedAttributeNode(value = "screenshotTextUnits"),
+          })
+    })
 @NamedEntityGraph(
     name = "BranchStatisticGraphWithoutTextUnits",
     attributeNodes = {
@@ -45,7 +64,7 @@ import javax.persistence.*;
 public class BranchStatistic extends AuditableEntity {
 
   @JsonView(View.BranchStatistic.class)
-  @OneToOne(optional = false)
+  @OneToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "branch_id",
       foreignKey = @ForeignKey(name = "FK__BRANCH_STATISTIC__BRANCH__ID"))

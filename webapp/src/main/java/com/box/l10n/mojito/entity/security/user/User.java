@@ -8,19 +8,22 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -29,6 +32,17 @@ import org.springframework.data.annotation.CreatedBy;
     name = "user",
     indexes = {@Index(name = "I__USERS__USERNAME", columnList = "username", unique = true)})
 @BatchSize(size = 1000)
+@NamedEntityGraph(
+    name = "User.legacy",
+    attributeNodes = {
+      @NamedAttributeNode("createdByUser"),
+      @NamedAttributeNode(value = "authorities", subgraph = "User.legacy.authorities")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "User.legacy.authorities",
+          attributeNodes = {@NamedAttributeNode("createdByUser"), @NamedAttributeNode("user")})
+    })
 public class User extends AuditableEntity implements Serializable {
 
   public static final int NAME_MAX_LENGTH = 255;
@@ -67,12 +81,12 @@ public class User extends AuditableEntity implements Serializable {
   Boolean partiallyCreated = false;
 
   @JsonManagedReference
-  @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
   Set<Authority> authorities = new HashSet<>();
 
   @JsonIgnore
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__USER__USER__ID"))

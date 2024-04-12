@@ -100,4 +100,13 @@ jdbcTemplate.queryForList(
   .forEach(System.out::println);
 ```
 
+Investigate constraint errors
+
+```sql
+SELECT tc.constraint_name, tc.constraint_type, tc.table_name, kcu.column_name
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc
+         JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
+              ON tc.constraint_name = kcu.constraint_name
+WHERE tc.constraint_name = 'SYS_CT_252844';
+```
 

@@ -17,11 +17,13 @@ import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +50,8 @@ public class RepositoryWSTest extends WSTestBase {
 
   @Autowired LocaleService localeService;
 
+  @Autowired RepositoryRepository repositoryRepository;
+
   @Test
   public void testGetRepositoryByName()
       throws RestClientException, RepositoryNameAlreadyUsedException {
@@ -62,6 +66,10 @@ public class RepositoryWSTest extends WSTestBase {
   public void testGetRepositoryById()
       throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException {
     Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
+
+    final Optional<Repository> byId = repositoryRepository.findById(expectedRepository.getId());
+    System.out.println(byId.get().getName());
+
     com.box.l10n.mojito.rest.entity.Repository actualRepository =
         repositoryClient.getRepositoryById(expectedRepository.getId());
 

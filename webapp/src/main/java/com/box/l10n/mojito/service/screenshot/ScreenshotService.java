@@ -13,10 +13,11 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.Strings;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.*;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -256,51 +257,49 @@ public class ScreenshotService {
     Join<Screenshot, ScreenshotTextUnit> screenshotTextUnits =
         screenshot.join(Screenshot_.screenshotTextUnits, JoinType.LEFT);
 
-    Predicate conjunction = builder.conjunction();
+    List<Predicate> predicates = new ArrayList<>();
 
     if (ScreenshotRunType.LAST_SUCCESSFUL_RUN.equals(screenshotRunType)) {
-      conjunction
-          .getExpressions()
-          .add(builder.isTrue(screenshotRunJoin.get(ScreenshotRun_.lastSuccessfulRun)));
+      predicates.add(builder.isTrue(screenshotRunJoin.get(ScreenshotRun_.lastSuccessfulRun)));
     } else {
       Path<ScreenshotRun> screenshotRunPath = repositoryJoin.get(Repository_.manualScreenshotRun);
-      conjunction
-          .getExpressions()
-          .add(builder.equal(screenshotRunPath, screenshotRunJoin.get(ScreenshotRun_.id)));
+      predicates.add(
+          builder.equal(
+              screenshotRunPath.get(ScreenshotRun_.id), screenshotRunJoin.get(ScreenshotRun_.id)));
     }
 
     if (repositoryIds != null) {
-      conjunction.getExpressions().add(repositoryJoin.get(Repository_.id).in(repositoryIds));
+      predicates.add(repositoryJoin.get(Repository_.id).in(repositoryIds));
     }
 
     if (bcp47Tags != null) {
-      conjunction.getExpressions().add(localeJoin.get(Locale_.bcp47Tag).in(bcp47Tags));
+      predicates.add(localeJoin.get(Locale_.bcp47Tag).in(bcp47Tags));
     }
 
     if (!Strings.isNullOrEmpty(screenshotName)) {
       Predicate predicate =
           getPredicateForSearchType(
               searchType, builder, screenshot.get(Screenshot_.name), screenshotName);
-      conjunction.getExpressions().add(predicate);
+      predicates.add(predicate);
     }
 
     if (status != null) {
       Predicate predicate = builder.equal(screenshot.get(Screenshot_.status), status);
-      conjunction.getExpressions().add(predicate);
+      predicates.add(predicate);
     }
 
     if (!Strings.isNullOrEmpty(name)) {
       Predicate predicate =
           getPredicateForSearchType(
               searchType, builder, screenshotTextUnits.get(ScreenshotTextUnit_.name), name);
-      conjunction.getExpressions().add(predicate);
+      predicates.add(predicate);
     }
 
     if (!Strings.isNullOrEmpty(source)) {
       Predicate predicate =
           getPredicateForSearchType(
               searchType, builder, screenshotTextUnits.get(ScreenshotTextUnit_.source), source);
-      conjunction.getExpressions().add(predicate);
+      predicates.add(predicate);
     }
 
     if (!Strings.isNullOrEmpty(target)) {
@@ -316,10 +315,10 @@ public class ScreenshotService {
               screenshotTextUnits.get(ScreenshotTextUnit_.renderedTarget),
               target);
 
-      conjunction.getExpressions().add(builder.or(targetPredicate, renderedTargetPredicate));
+      predicates.add(builder.or(targetPredicate, renderedTargetPredicate));
     }
 
-    query.where(conjunction);
+    query.where(predicates.toArray(new Predicate[predicates.size()]));
     query.orderBy(builder.asc(screenshot.get(Screenshot_.id)));
 
     List<Screenshot> screenshots =
@@ -327,6 +326,22 @@ public class ScreenshotService {
             .setFirstResult(offset)
             .setMaxResults(limit)
             .getResultList();
+
+    // Cannot use an EntityGraph with pagination as it triggers the following warning:
+    // HHH90003004: firstResult/maxResults specified with collection fetch; applying in memory
+    //
+    // Replacing:
+    // screenshot.fetch(Screenshot_.screenshotRun).fetch(ScreenshotRun_.repository);
+    // screenshot.fetch(Screenshot_.locale);
+    // screenshot.fetch(Screenshot_.screenshotTextUnits, JoinType.LEFT);
+    screenshots.forEach(
+        s -> {
+          Hibernate.initialize(s.getScreenshotRun());
+          Hibernate.initialize(s.getScreenshotRun().getRepository());
+          Hibernate.initialize(s.getLocale());
+          Hibernate.initialize(s.getScreenshotTextUnits());
+        });
+
     return screenshots;
   }
 

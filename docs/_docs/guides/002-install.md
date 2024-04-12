@@ -1,6 +1,6 @@
 ---
 layout: doc
-title:  "Installation and Setup"
+title:  "Installation and Setup (deprecated)"
 categories: guides
 permalink: /docs/guides/install/
 ---

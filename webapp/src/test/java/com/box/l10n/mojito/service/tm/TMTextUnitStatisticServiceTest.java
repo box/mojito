@@ -13,6 +13,7 @@ import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,8 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
   String tmTextComment = "comment";
   Double lastDayEstimatedVolume = 3D;
   Double lastPeriodEstimatedVolume = 42D;
-  ZonedDateTime lastSeenDate = JSR310Migration.newDateTimeCtor(2021, 11, 25, 0, 0);
+  ZonedDateTime lastSeenDate =
+      JSR310Migration.newDateTimeCtor(2021, 11, 25, 0, 0).withZoneSameInstant(ZoneId.of("Z"));
 
   private void createTestTextUnitData(Repository repository) {
     logger.debug("Create data for test");

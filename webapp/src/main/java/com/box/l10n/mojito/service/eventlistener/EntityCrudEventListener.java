@@ -115,7 +115,7 @@ public class EntityCrudEventListener
   }
 
   @Override
-  public boolean requiresPostCommitHanding(EntityPersister ep) {
+  public boolean requiresPostCommitHandling(EntityPersister ep) {
     String entityName = ep.getEntityName();
     return ENTITY_NAMES.contains(entityName);
   }

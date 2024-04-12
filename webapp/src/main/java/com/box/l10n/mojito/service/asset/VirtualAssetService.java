@@ -40,17 +40,17 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.base.Strings;
 import com.ibm.icu.text.MessageFormat;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.ParameterExpression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -186,25 +186,22 @@ public class VirtualAssetService {
 
     Root<AssetTextUnit> assetTextUnitRoot = query.from(AssetTextUnit.class);
 
-    Predicate conjunction = criteriaBuilder.conjunction();
-
     ParameterExpression<Long> assetExtractionIdParameter = criteriaBuilder.parameter(Long.class);
-    conjunction
-        .getExpressions()
-        .add(
-            criteriaBuilder.equal(
-                assetTextUnitRoot.get(AssetTextUnit_.assetExtraction).get(AssetExtraction_.id),
-                assetExtractionIdParameter));
+
+    final List<Predicate> predicates = new ArrayList<>();
+
+    predicates.add(
+        criteriaBuilder.equal(
+            assetTextUnitRoot.get(AssetTextUnit_.assetExtraction).get(AssetExtraction_.id),
+            assetExtractionIdParameter));
 
     ParameterExpression<Boolean> doNotTranslateFilterParameter = null;
     if (doNotTranslateFilter != null) {
       doNotTranslateFilterParameter = criteriaBuilder.parameter(Boolean.class);
-      conjunction
-          .getExpressions()
-          .add(
-              criteriaBuilder.equal(
-                  assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate),
-                  doNotTranslateFilterParameter));
+
+      predicates.add(
+          criteriaBuilder.equal(
+              assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate), doNotTranslateFilterParameter));
     }
 
     query.select(
@@ -218,12 +215,13 @@ public class VirtualAssetService {
             assetTextUnitRoot.get(AssetTextUnit_.md5),
             assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate)));
 
-    query.where(conjunction);
+    query.where(predicates.toArray(new Predicate[predicates.size()]));
     query.orderBy(criteriaBuilder.asc(assetTextUnitRoot.get(AssetTextUnit_.name)));
 
     TypedQuery<AssetTextUnitDTO> typedQuery = em.createQuery(query);
 
     typedQuery.setParameter(assetExtractionIdParameter, assetExtractionId);
+
     if (doNotTranslateFilterParameter != null) {
       typedQuery.setParameter(doNotTranslateFilterParameter, doNotTranslateFilter);
     }

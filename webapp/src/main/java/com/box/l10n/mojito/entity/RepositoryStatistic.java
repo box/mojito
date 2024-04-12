@@ -5,17 +5,16 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -68,11 +67,15 @@ public class RepositoryStatistic extends AuditableEntity {
   @JsonView(View.RepositorySummary.class)
   @JsonManagedReference
   @OneToMany(mappedBy = "repositoryStatistic", fetch = FetchType.EAGER)
-  @OrderBy(value = "locale")
+  // This is not supported anymore
+  // Caused by: org.hibernate.NotYetImplementedFor6Exception: Ordering for
+  // ToOneAttributeMapping(NavigableRole[com.box.l10n.mojito.entity.RepositoryLocaleStatistic.locale])@501185817 not supported
+  // is that fine now?
+  // @OrderBy(value = "locale")
   private Set<RepositoryLocaleStatistic> repositoryLocaleStatistics = new HashSet<>();
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__REPOSITORY_STATISTIC__USER__ID"))

@@ -5,19 +5,21 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -28,6 +30,14 @@ import org.springframework.data.annotation.CreatedBy;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "tm_text_unit_variant")
+@NamedEntityGraph(
+    name = "TMTextUnitVariant.legacy",
+    attributeNodes = {
+      @NamedAttributeNode("tmTextUnit"),
+      @NamedAttributeNode("locale"),
+      @NamedAttributeNode("createdByUser"),
+      @NamedAttributeNode("tmTextUnitVariantComments")
+    })
 public class TMTextUnitVariant extends SettableAuditableEntity {
 
   /**
@@ -66,15 +76,13 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
   @JsonView(View.TranslationHistorySummary.class)
   private String content;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "tm_text_unit_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT__TM_TEXT_UNIT__ID"))
   private TMTextUnit tmTextUnit;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT__LOCALE__ID"))
@@ -112,7 +120,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
   private boolean includedInLocalizedFile = true;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT__USER__ID"))
@@ -128,7 +136,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
   }
 
   @JsonManagedReference
-  @OneToMany(mappedBy = "tmTextUnitVariant", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "tmTextUnitVariant", fetch = FetchType.LAZY)
   @JsonView(View.TranslationHistorySummary.class)
   private Set<TMTextUnitVariantComment> tmTextUnitVariantComments = new HashSet<>();
 

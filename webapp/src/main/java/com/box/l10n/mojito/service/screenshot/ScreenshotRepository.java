@@ -5,6 +5,8 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -29,6 +31,7 @@ public interface ScreenshotRepository
           left join  s.thirdPartyScreenshots tps
           where r = ?1 and r.manualScreenshotRun = sr and tps is null
           """)
+  @EntityGraph(value = "Screenshot.legacy", type = EntityGraphType.FETCH)
   List<Screenshot> findUnmappedScreenshots(Repository repository);
 
   void deleteById(Long screenshotId);

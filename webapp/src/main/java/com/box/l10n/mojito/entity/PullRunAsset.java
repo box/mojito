@@ -2,14 +2,15 @@ package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
 /**
@@ -28,14 +29,14 @@ import org.hibernate.annotations.BatchSize;
     })
 @BatchSize(size = 1000)
 public class PullRunAsset extends SettableAuditableEntity {
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   @JsonBackReference
   @JoinColumn(
       name = "pull_run_id",
       foreignKey = @ForeignKey(name = "FK__PULL_RUN_ASSET__PULL_RUN_ID"))
   private PullRun pullRun;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
   @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__PULL_RUN_ASSET__ASSET_ID"))
   private Asset asset;

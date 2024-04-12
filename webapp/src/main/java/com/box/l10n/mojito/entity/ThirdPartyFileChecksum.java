@@ -1,12 +1,13 @@
 package com.box.l10n.mojito.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /** Entity that stores the checksum of a translated file downloaded via a third party sync. */
 @Entity
@@ -20,7 +21,7 @@ import javax.persistence.Table;
     })
 public class ThirdPartyFileChecksum extends AuditableEntity {
 
-  @ManyToOne(optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "repository_id",
       foreignKey = @ForeignKey(name = "FK__TPS_FILE_CHECKSUM__REPO__ID"))
@@ -29,7 +30,7 @@ public class ThirdPartyFileChecksum extends AuditableEntity {
   @Column(name = "file_name")
   private String fileName;
 
-  @ManyToOne(optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__TPS_FILE_CHECKSUM__LOCALE__ID"))

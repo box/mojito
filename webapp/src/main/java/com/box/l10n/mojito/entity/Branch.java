@@ -2,12 +2,13 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javax.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -31,11 +32,24 @@ import org.springframework.data.annotation.CreatedBy;
           unique = true),
       @Index(name = "I__BRANCH__DELETED", columnList = "deleted")
     })
+@NamedEntityGraph(
+    name = "Branch.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(value = "notifiers"),
+      @NamedAttributeNode(value = "screenshots", subgraph = "Branch.legacy.screenshots"),
+      @NamedAttributeNode("createdByUser"),
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "Branch.legacy.screenshots",
+          attributeNodes = {@NamedAttributeNode("screenshotTextUnits")})
+    })
 public class Branch extends SettableAuditableEntity {
 
-  @ManyToOne(optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__BRANCH__REPOSITORY__ID"))
   @JsonView(View.BranchSummary.class)
+  @JsonBackReference
   Repository repository;
 
   @JsonView(View.BranchSummary.class)
@@ -44,7 +58,7 @@ public class Branch extends SettableAuditableEntity {
 
   @JsonView(View.BranchSummary.class)
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__BRANCH__USER__ID"))
@@ -55,7 +69,7 @@ public class Branch extends SettableAuditableEntity {
   Boolean deleted = false;
 
   @JsonView(View.BranchSummary.class)
-  @OneToMany(mappedBy = "branch", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JsonDeserialize(as = LinkedHashSet.class)
   @OrderBy("id")
   Set<Screenshot> screenshots = new HashSet<>();
@@ -63,7 +77,7 @@ public class Branch extends SettableAuditableEntity {
   @OneToOne(mappedBy = "branch", fetch = FetchType.LAZY)
   BranchStatistic branchStatistic;
 
-  @ElementCollection(fetch = FetchType.EAGER)
+  @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(
       name = "branch_notifiers",
       joinColumns = @JoinColumn(name = "branch_id"),

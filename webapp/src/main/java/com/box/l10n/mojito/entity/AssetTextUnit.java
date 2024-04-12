@@ -2,17 +2,19 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.Table;
 import java.util.Set;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -27,6 +29,13 @@ import org.springframework.data.annotation.CreatedBy;
           columnList = "md5, asset_extraction_id",
           unique = true),
       @Index(name = "I__ASSET_TEXT_UNIT__BRANCH_ID", columnList = "branch_id")
+    })
+@NamedEntityGraph(
+    name = "AssetTextUnit.legacy",
+    attributeNodes = {
+      @NamedAttributeNode("usages"),
+      @NamedAttributeNode("branch"),
+      @NamedAttributeNode("pluralForm"),
     })
 public class AssetTextUnit extends AuditableEntity {
 
@@ -48,20 +57,20 @@ public class AssetTextUnit extends AuditableEntity {
   private String comment;
 
   @JsonBackReference("assetTextUnits")
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_extraction_id",
       foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__ASSET_EXTRACTION__ID"))
   private AssetExtraction assetExtraction;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__USER__ID"))
   private User createdByUser;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "plural_form_id",
       foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__PLURAL_FORM__ID"))
@@ -70,7 +79,7 @@ public class AssetTextUnit extends AuditableEntity {
   @Column(name = "plural_form_other", length = Integer.MAX_VALUE)
   private String pluralFormOther;
 
-  @ElementCollection(fetch = FetchType.EAGER)
+  @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(
       name = "asset_text_unit_usages",
       joinColumns = @JoinColumn(name = "asset_text_unit_id"),
@@ -80,7 +89,7 @@ public class AssetTextUnit extends AuditableEntity {
   @Column(name = "do_not_translate", nullable = false)
   private boolean doNotTranslate = false;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "branch_id",
       foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__BRANCH__ID"))

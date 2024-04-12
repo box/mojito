@@ -22,14 +22,19 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {ExtractionCheckNotificationSenderSlackTest.class})
+@SpringBootTest(
+    classes = {
+      ExtractionCheckNotificationSenderSlackTest.class,
+      ExtractionCheckNotificationSenderSlackTest
+          .ExtractionCheckNotificationSenderSlackTestConfiguration.class
+    })
 public class ExtractionCheckNotificationSenderSlackTest {
 
   @TestConfiguration
@@ -46,9 +51,9 @@ public class ExtractionCheckNotificationSenderSlackTest {
     }
   }
 
-  @MockBean SlackClient slackClientMock;
+  @Autowired SlackClient slackClientMock;
 
-  @MockBean SlackChannels slackChannelsMock;
+  @Autowired SlackChannels slackChannelsMock;
 
   @Captor ArgumentCaptor<Message> messageArgumentCaptor;
 
@@ -66,6 +71,8 @@ public class ExtractionCheckNotificationSenderSlackTest {
             false);
     extractionCheckNotificationSenderSlack.slackClient = slackClientMock;
     extractionCheckNotificationSenderSlack.slackChannels = slackChannelsMock;
+    Mockito.reset(slackChannelsMock);
+    Mockito.reset(slackClientMock);
   }
 
   @Test

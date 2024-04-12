@@ -6,15 +6,17 @@ import com.box.l10n.mojito.entity.AssetExtractionByBranch_;
 import com.box.l10n.mojito.entity.Asset_;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Branch_;
+import com.box.l10n.mojito.entity.Repository_;
 import com.box.l10n.mojito.specification.SingleParamSpecification;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.SetJoin;
+import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.SetJoin;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -48,7 +50,7 @@ public class AssetSpecification {
     return new SingleParamSpecification<Asset>(repositoryId) {
       public Predicate toPredicate(
           Root<Asset> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        return builder.equal(root.get(Asset_.repository), repositoryId);
+        return builder.equal(root.get(Asset_.repository).get(Repository_.id), repositoryId);
       }
     };
   }
@@ -113,21 +115,17 @@ public class AssetSpecification {
             assetAssetExtractionByBranchSetJoin.join(
                 AssetExtractionByBranch_.branch, JoinType.LEFT);
 
-        Predicate conjunction = builder.conjunction();
-        conjunction
-            .getExpressions()
-            .add(builder.equal(assetExtractionByBranchBranchJoin.get(Branch_.id), branchId));
+        final List<Predicate> predicates = new ArrayList<>();
+        predicates.add(builder.equal(assetExtractionByBranchBranchJoin.get(Branch_.id), branchId));
 
         if (deleted != null) {
-          conjunction
-              .getExpressions()
-              .add(
-                  builder.equal(
-                      assetAssetExtractionByBranchSetJoin.get(AssetExtractionByBranch_.deleted),
-                      deleted));
+          predicates.add(
+              builder.equal(
+                  assetAssetExtractionByBranchSetJoin.get(AssetExtractionByBranch_.deleted),
+                  deleted));
         }
 
-        return conjunction;
+        return builder.and(predicates.toArray(new Predicate[predicates.size()]));
       }
     };
   }

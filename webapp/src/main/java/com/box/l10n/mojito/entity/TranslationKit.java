@@ -6,19 +6,21 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.translationkit.TranslationKitExportedImportedAndCurrentTUV;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.ConstructorResult;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.SqlResultSetMapping;
+import jakarta.persistence.Table;
 import java.util.Set;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ColumnResult;
-import javax.persistence.ConstructorResult;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.SqlResultSetMapping;
-import javax.persistence.Table;
 import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
 import org.springframework.data.annotation.CreatedBy;
@@ -54,6 +56,9 @@ import org.springframework.data.annotation.CreatedBy;
         resultSetMapping = "TranslationKit.exportedAndCurrentTuvs"))
 @Entity
 @Table(name = "translation_kit")
+@NamedEntityGraph(
+    name = "TranslationKit.legacy",
+    attributeNodes = {@NamedAttributeNode("drop")})
 public class TranslationKit extends AuditableEntity {
 
   /**
@@ -76,7 +81,7 @@ public class TranslationKit extends AuditableEntity {
     REVIEW
   }
 
-  @OneToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT__LOCALE__ID"))
@@ -84,7 +89,7 @@ public class TranslationKit extends AuditableEntity {
   private Locale locale;
 
   @JsonBackReference
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "drop_id", foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT__DROP__ID"))
   private Drop drop;
 
@@ -120,7 +125,7 @@ public class TranslationKit extends AuditableEntity {
   private Set<String> notFoundTextUnitIds;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT__USER__ID"))

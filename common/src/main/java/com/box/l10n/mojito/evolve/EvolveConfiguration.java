@@ -16,7 +16,7 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 @ConditionalOnProperty("l10n.evolve.url")
 @Configuration
@@ -34,9 +34,9 @@ public class EvolveConfiguration {
 
   RestTemplate evolveRestTemplate() {
     RestTemplate restTemplate = new RestTemplate();
-    DefaultUriTemplateHandler defaultUriTemplateHandler = new DefaultUriTemplateHandler();
-    defaultUriTemplateHandler.setBaseUrl(evolveConfigurationProperties.getUrl());
-    restTemplate.setUriTemplateHandler(defaultUriTemplateHandler);
+
+    restTemplate.setUriTemplateHandler(
+        new DefaultUriBuilderFactory(evolveConfigurationProperties.getUrl()));
 
     restTemplate
         .getInterceptors()

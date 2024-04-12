@@ -3,15 +3,16 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
 /**
@@ -25,7 +26,7 @@ import org.hibernate.annotations.BatchSize;
     indexes = {@Index(name = "UK__PULL_RUN__NAME", columnList = "name", unique = true)})
 @BatchSize(size = 1000)
 public class PullRun extends SettableAuditableEntity {
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "repository_id",
       foreignKey = @ForeignKey(name = "FK__PULL_RUN__REPOSITORY_ID"))

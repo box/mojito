@@ -13,8 +13,12 @@ import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -337,12 +341,12 @@ public class UserService {
    * @return
    */
   public User getOrCreatePartialBasicUser(String username) {
+
     User user = userRepository.findByUsername(username);
 
     if (user == null) {
       return createBasicUser(username, null, null, null, true);
     }
-
     return user;
   }
 
@@ -356,5 +360,28 @@ public class UserService {
     }
 
     return user;
+  }
+
+  /**
+   * Cannot use an EntityGraph with pagination as it triggers the following warning: HHH90003004:
+   * firstResult/maxResults specified with collection fetch; applying in memory
+   *
+   * @param spec
+   * @param pageable
+   */
+  public Page<User> findAll(Specification<User> spec, Pageable pageable) {
+    final Page<User> users = userRepository.findAll(spec, pageable);
+    users.forEach(
+        u -> {
+          Hibernate.initialize(u.getAuthorities());
+          u.getAuthorities()
+              .forEach(
+                  a -> {
+                    Hibernate.initialize(a.getUser());
+                    Hibernate.initialize(a.getCreatedByUser());
+                  });
+          Hibernate.initialize(u.getCreatedByUser());
+        });
+    return users;
   }
 }

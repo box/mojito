@@ -25,6 +25,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.Hibernate;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -328,7 +329,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
   @Transactional
   BranchStatistic getByBranchWithBranchTextUnitStatistics(Branch branch) {
     BranchStatistic byBranch = branchStatisticRepository.findByBranch(branch);
-    byBranch.getBranchTextUnitStatistics().forEach(t -> logger.trace("force initialize"));
+    Hibernate.initialize(byBranch.getBranchTextUnitStatistics());
     return byBranch;
   }
 }

@@ -63,7 +63,6 @@ public class RepositoryWS {
   @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
   public Repository getRepositoryById(@PathVariable Long repositoryId)
       throws RepositoryWithIdNotFoundException {
-    ResponseEntity<Repository> result;
     Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
     if (repository == null) {
@@ -240,7 +239,7 @@ public class RepositoryWS {
       @RequestParam(value = "translated", required = false) Boolean translated,
       @RequestParam(value = "createdBefore", required = false) ZonedDateTime createdBefore)
       throws RepositoryWithIdNotFoundException {
-    ResponseEntity<Repository> result;
+
     Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
     if (repository == null) {

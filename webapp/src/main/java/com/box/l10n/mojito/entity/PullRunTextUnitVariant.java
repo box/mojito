@@ -2,14 +2,15 @@ package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
 /**
@@ -32,7 +33,7 @@ import org.hibernate.annotations.BatchSize;
     })
 @BatchSize(size = 1000)
 public class PullRunTextUnitVariant extends SettableAuditableEntity {
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
   @JoinColumn(
       name = "pull_run_asset_id",
@@ -40,13 +41,13 @@ public class PullRunTextUnitVariant extends SettableAuditableEntity {
   private PullRunAsset pullRunAsset;
 
   @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__PULL_RUN_TEXT_UNIT_VARIANT__LOCALE__ID"))
   private Locale locale;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JsonManagedReference
   @JoinColumn(
       name = "tm_text_unit_variant_id",

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import java.io.File;
@@ -45,7 +46,7 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
     registerModule(new BlackbirdModule());
   }
 
-  private final void registerJavaTimeModule() {
+  private void registerJavaTimeModule() {
     JavaTimeModule javaTimeModule = new JavaTimeModule();
     registerModule(javaTimeModule);
 
@@ -56,9 +57,14 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
     disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
   }
 
-  private final void registerGuavaModule() {
+  private void registerGuavaModule() {
     GuavaModule guavaModule = new GuavaModule();
     registerModule(guavaModule);
+  }
+
+  public void registerHibernateModule() {
+    Hibernate6Module hibernate6Module = new Hibernate6Module();
+    registerModule(hibernate6Module);
   }
 
   @Override

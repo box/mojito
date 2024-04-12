@@ -1,8 +1,8 @@
 package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.service.delta.DeltaType;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 /**
  * Interface that captures information about a text unit variant together with information about its

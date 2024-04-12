@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.screenshot;
 import com.box.l10n.mojito.entity.ScreenshotTextUnit;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -14,6 +16,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface ScreenshotTextUnitRepository
     extends JpaRepository<ScreenshotTextUnit, Long>, JpaSpecificationExecutor<ScreenshotTextUnit> {
 
+  @EntityGraph(value = "ScreenshotTextUnit.legacy", type = EntityGraphType.FETCH)
   List<ScreenshotTextUnit> findByTmTextUnitIdIn(Set<Long> tmTextUnitId);
 
   void deleteAllByScreenshot_Id(Long id);

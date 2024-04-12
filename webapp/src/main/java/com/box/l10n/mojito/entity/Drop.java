@@ -5,19 +5,22 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -27,6 +30,18 @@ import org.springframework.data.annotation.CreatedBy;
  */
 @Entity
 @Table(name = "`drop`")
+@NamedEntityGraph(
+    name = "Drop.legacy",
+    attributeNodes = {
+      @NamedAttributeNode("repository"),
+      @NamedAttributeNode(value = "importPollableTask", subgraph = "Drop.legacy.subTask"),
+      @NamedAttributeNode(value = "exportPollableTask", subgraph = "Drop.legacy.subTask")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "Drop.legacy.subTask",
+          attributeNodes = {@NamedAttributeNode("subTasks")})
+    })
 public class Drop extends AuditableEntity {
 
   @Column(name = "drop_exporter_type")
@@ -41,16 +56,14 @@ public class Drop extends AuditableEntity {
   @JsonView(View.DropSummary.class)
   String dropExporterConfig;
 
-  @OneToOne
-  @Basic(optional = true)
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "import_pollable_task_id",
       foreignKey = @ForeignKey(name = "FK__DROP__IMPORT_POLLABLE_TASK__ID"))
   @JsonView(View.DropSummary.class)
   PollableTask importPollableTask;
 
-  @OneToOne
-  @Basic(optional = true)
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "export_pollable_task_id",
       foreignKey = @ForeignKey(name = "FK__DROP__EXPORT_POLLABLE_TASK__ID"))
@@ -61,7 +74,7 @@ public class Drop extends AuditableEntity {
   @JsonView(View.DropSummary.class)
   private Set<TranslationKit> translationKits;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__DROP__REPOSITORY__ID"))
   @JsonView(View.DropSummary.class)
   private Repository repository;
@@ -83,7 +96,7 @@ public class Drop extends AuditableEntity {
   protected Boolean canceled;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__DROP__USER__ID"))

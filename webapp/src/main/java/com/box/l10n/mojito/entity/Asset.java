@@ -4,8 +4,8 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.*;
 import java.util.Set;
-import javax.persistence.*;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -26,9 +26,36 @@ import org.springframework.data.annotation.CreatedBy;
           unique = true),
     })
 @BatchSize(size = 1000)
+@NamedEntityGraph(
+    name = "Asset.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(value = "repository", subgraph = "Asset.legacy.repository"),
+      @NamedAttributeNode(
+          value = "lastSuccessfulAssetExtraction",
+          subgraph = "Asset.legacy.lastSuccessfulAssetExtraction"),
+      @NamedAttributeNode("createdByUser")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "Asset.legacy.lastSuccessfulAssetExtraction",
+          attributeNodes = {}),
+      @NamedSubgraph(
+          name = "Asset.legacy.repository",
+          attributeNodes = {
+            @NamedAttributeNode(
+                value = "repositoryLocales",
+                subgraph = "Asset.legacy.repository.repositoryLocales"),
+          }),
+      @NamedSubgraph(
+          name = "Asset.legacy.repository.repositoryLocales",
+          attributeNodes = {
+            @NamedAttributeNode("locale"),
+            @NamedAttributeNode("parentLocale"),
+          }),
+    })
 public class Asset extends AuditableEntity {
 
-  @ManyToOne(optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__ASSET__REPOSITORY__ID"))
   @JsonView(View.AssetSummary.class)
   private Repository repository;
@@ -42,7 +69,7 @@ public class Asset extends AuditableEntity {
   @JsonView(View.AssetSummary.class)
   private Boolean virtual = false;
 
-  @OneToOne
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "last_successful_asset_extraction_id",
       foreignKey = @ForeignKey(name = "FK__ASSET__ASSET_EXTRACTION__ID"))
@@ -51,7 +78,7 @@ public class Asset extends AuditableEntity {
   private AssetExtraction lastSuccessfulAssetExtraction;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__ASSET__USER__ID"))

@@ -62,13 +62,13 @@ import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import jakarta.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.filters.IFilterConfigurationMapper;
@@ -574,6 +574,8 @@ public class TMService {
 
     TMTextUnitVariant tmTextUnitVariant;
 
+    int i = 0;
+
     if (tmTextUnitCurrentVariant == null
         || tmTextUnitCurrentVariant.getTmTextUnitVariant() == null) {
       logger.debug("There is no currrent text unit variant, add entities");
@@ -597,14 +599,11 @@ public class TMService {
         tmTextUnitCurrentVariant =
             tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
       }
-
       logger.trace("Put the actual tmTextUnitVariant instead of the proxy");
       tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
     } else {
-
       logger.debug("There is a current text unit variant, check if an update is needed");
       TMTextUnitVariant currentTmTextUnitVariant = tmTextUnitCurrentVariant.getTmTextUnitVariant();
-
       boolean updateNeeded =
           isUpdateNeededForTmTextUnitVariant(
               currentTmTextUnitVariant.getStatus(),
@@ -629,11 +628,12 @@ public class TMService {
                 includedInLocalizedFile,
                 createdDate,
                 createdBy);
-
         logger.debug(
             "Updating the current TextUnitVariant with id: {} current for locale: {}",
             tmTextUnitVariant.getId(),
             localeId);
+
+        tmTextUnitCurrentVariantRepository.flush();
         tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
         tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
       } else {

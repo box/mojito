@@ -6,8 +6,6 @@ import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.pathEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.repositoryIdEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
-import static com.box.l10n.mojito.specification.Specifications.distinct;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Asset;
@@ -41,6 +39,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Joiner;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -459,14 +458,31 @@ public class AssetService {
         virtual,
         branchId);
 
-    Specification<Asset> assetSpecifications =
-        distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
-            .and(ifParamNotNull(pathEquals(path)))
-            .and(ifParamNotNull(deletedEquals(deleted)))
-            .and(ifParamNotNull(virtualEquals(virtual)))
-            .and(ifParamNotNull(branchId(branchId, deleted)));
+    final ArrayList<Specification> specifications = new ArrayList<>();
 
-    List<Asset> all = assetRepository.findAll(assetSpecifications);
+    if (repositoryId != null) {
+      specifications.add(repositoryIdEquals(repositoryId));
+    }
+
+    if (path != null) {
+      specifications.add(pathEquals(path));
+    }
+
+    if (deleted != null) {
+      specifications.add(deletedEquals(deleted));
+    }
+
+    if (virtual != null) {
+      specifications.add(virtualEquals(virtual));
+    }
+
+    if (branchId != null) {
+      specifications.add(branchId(branchId, deleted));
+    }
+
+    List<Asset> all =
+        assetRepository.findAll(
+            Specification.allOf(specifications.toArray(new Specification[specifications.size()])));
     return all;
   }
 

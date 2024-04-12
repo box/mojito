@@ -1,13 +1,14 @@
 package com.box.l10n.mojito.entity;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 /**
  * @author jyi
@@ -17,19 +18,18 @@ import javax.persistence.Table;
 public class TMXliff extends AuditableEntity {
 
   @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_id",
       foreignKey = @ForeignKey(name = "FK__TM_XLIFF__ASSET__ID"),
       nullable = false)
   private Asset asset;
 
-  @OneToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__TM_XLIFF__LOCALE__ID"))
   private Locale locale;
 
-  @OneToOne
-  @Basic(optional = true)
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "export_pollable_task_id",
       foreignKey = @ForeignKey(name = "FK__TM_XLIFF__EXPORT_POLLABLE_TASK__ID"))

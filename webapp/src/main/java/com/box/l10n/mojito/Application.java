@@ -5,6 +5,7 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -67,7 +68,9 @@ public class Application {
   @Bean
   @Primary
   public ObjectMapper getObjectMapper() {
-    return new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerHibernateModule();
+    return objectMapper;
   }
 
   @Bean(name = "fail_on_unknown_properties_false")
@@ -101,9 +104,11 @@ public class Application {
     jomfb.setFeaturesToDisable(
         SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS,
         DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
-    jomfb.afterPropertiesSet();
 
+    jomfb.setModulesToInstall(Hibernate6Module.class);
+    jomfb.afterPropertiesSet();
     mjhmc.setObjectMapper(jomfb.getObject());
+
     return mjhmc;
   }
 

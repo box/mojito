@@ -3,16 +3,17 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonView;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -40,6 +41,9 @@ import org.springframework.data.annotation.CreatedBy;
       @Index(name = "I__TM_TEXT_UNIT__PLURAL_FORM_OTHER", columnList = "plural_form_other")
     })
 @BatchSize(size = 1000)
+@NamedEntityGraph(
+    name = "TMTextUnit.legacy",
+    attributeNodes = {@NamedAttributeNode("asset")})
 public class TMTextUnit extends SettableAuditableEntity {
 
   @JsonView(View.IdAndName.class)
@@ -64,13 +68,11 @@ public class TMTextUnit extends SettableAuditableEntity {
   @Column(name = "word_count")
   private Integer wordCount;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "tm_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__TM__ID"))
   private TM tm;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__ASSET__ID"),
@@ -78,13 +80,13 @@ public class TMTextUnit extends SettableAuditableEntity {
   private Asset asset;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__USER__ID"))
   protected User createdByUser;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "plural_form_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__PLURAL_FORM__ID"))
@@ -184,11 +186,11 @@ public class TMTextUnit extends SettableAuditableEntity {
     this.pluralFormOther = pluralFormOther;
   }
 
-  public TMTextUnitStatistic getStatistic() {
+  public TMTextUnitStatistic getTmTextUnitStatistic() {
     return tmTextUnitStatistic;
   }
 
-  public void setStatistic(TMTextUnitStatistic tmTextUnitStatistic) {
+  public void setTmTextUnitStatistic(TMTextUnitStatistic tmTextUnitStatistic) {
     this.tmTextUnitStatistic = tmTextUnitStatistic;
   }
 }

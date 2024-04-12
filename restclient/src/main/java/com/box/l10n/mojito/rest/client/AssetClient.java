@@ -288,8 +288,8 @@ public class AssetClient extends BaseClient {
   public Asset getAssetByPathAndRepositoryId(String path, Long repositoryId)
       throws AssetNotFoundException {
 
-    Assert.notNull(path);
-    Assert.notNull(repositoryId);
+    Assert.notNull(path, "path must not be null");
+    Assert.notNull(repositoryId, "repository must not be null");
 
     List<Asset> assets = getAssets(path, repositoryId);
 

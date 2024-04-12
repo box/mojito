@@ -5,22 +5,24 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
 /**
@@ -37,6 +39,9 @@ import org.hibernate.annotations.BatchSize;
           columnList = "name, locale_id, screenshot_run_id",
           unique = true)
     })
+@NamedEntityGraph(
+    name = "Screenshot.legacy",
+    attributeNodes = {@NamedAttributeNode("screenshotTextUnits")})
 public class Screenshot extends SettableAuditableEntity {
 
   public enum Status {
@@ -50,20 +55,20 @@ public class Screenshot extends SettableAuditableEntity {
 
   @JsonView(View.Screenshots.class)
   @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "screenshot_run_id",
       foreignKey = @ForeignKey(name = "FK__SCREENSHOT__SCREENSHOT_RUN__ID"))
   private ScreenshotRun screenshotRun;
 
   @JsonView(View.Screenshots.class)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "branch_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__BRANCH__ID"))
   private Branch branch;
 
   @JsonView(View.Screenshots.class)
   @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__LOCALE__ID"))
   private Locale locale;
 
@@ -86,7 +91,7 @@ public class Screenshot extends SettableAuditableEntity {
 
   @JsonView({View.Screenshots.class, View.BranchStatistic.class, View.GitBlameWithUsage.class})
   @JsonManagedReference
-  @OneToMany(mappedBy = "screenshot", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "screenshot", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JsonProperty("textUnits")
   @JsonDeserialize(as = LinkedHashSet.class)
   @BatchSize(size = 1000)

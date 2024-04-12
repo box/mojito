@@ -1,15 +1,19 @@
 package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 /**
  * To save the content of an {@link Asset} for later processing. It is linked to a branch. Strictly
@@ -21,13 +25,24 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "asset_content")
+@NamedEntityGraph(
+    name = "AssetContent.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(value = "asset", subgraph = "AssetContent.legacy.asset"),
+      @NamedAttributeNode("branch")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "AssetContent.legacy.asset",
+          attributeNodes = @NamedAttributeNode(value = "repository")),
+    })
 public class AssetContent extends AuditableEntity {
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__ASSET_CONTENT__ASSET__ID"))
   private Asset asset;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "branch_id", foreignKey = @ForeignKey(name = "FK__ASSET_CONTENT__BRANCH__ID"))
   private Branch branch;
 

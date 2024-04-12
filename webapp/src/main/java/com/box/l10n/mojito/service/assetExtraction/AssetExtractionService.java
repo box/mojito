@@ -66,6 +66,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.ibm.icu.text.MessageFormat;
 import io.micrometer.core.annotation.Timed;
+import jakarta.persistence.EntityManager;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +81,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1011,7 +1011,6 @@ public class AssetExtractionService {
       @ParentTask PollableTask parentTask)
       throws UnsupportedAssetFilterTypeException {
 
-    Asset asset = assetContent.getAsset();
     List<AssetExtractorTextUnit> assetExtractorTextUnits =
         getExtractorTextUnitsForAssetContent(assetContent, filterOptions, filterConfigIdOverride);
     com.box.l10n.mojito.localtm.merger.Branch branch = convertBranchToLocalTmBranch(assetContent);

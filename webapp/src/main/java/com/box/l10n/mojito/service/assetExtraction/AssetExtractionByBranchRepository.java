@@ -5,6 +5,8 @@ import com.box.l10n.mojito.entity.AssetExtractionByBranch;
 import com.box.l10n.mojito.entity.Branch;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +23,7 @@ public interface AssetExtractionByBranchRepository
 
   int countByAssetAndDeletedFalseAndBranchNot(Asset asset, Branch branch);
 
+  @EntityGraph(value = "AssetExtractionByBranch.legacy", type = EntityGraphType.FETCH)
   Optional<AssetExtractionByBranch> findByAssetAndBranch(Asset asset, Branch branch);
 
   @Modifying

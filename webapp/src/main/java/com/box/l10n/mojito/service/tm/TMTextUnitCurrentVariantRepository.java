@@ -2,6 +2,8 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -13,6 +15,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface TMTextUnitCurrentVariantRepository
     extends JpaRepository<TMTextUnitCurrentVariant, Long> {
 
+  @EntityGraph(value = "TMTextUnitCurrentVariant.legacy", type = EntityGraphType.FETCH)
   TMTextUnitCurrentVariant findByLocale_IdAndTmTextUnit_Id(Long localeId, Long tmTextUnitId);
 
   List<TMTextUnitCurrentVariant> findByTmTextUnit_Id(Long tmTextUnitId);

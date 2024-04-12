@@ -4,11 +4,11 @@ import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULE
 
 import com.box.l10n.mojito.monitoring.QuartzMetricsReportingJobListener;
 import com.box.l10n.mojito.quartz.AutoWiringSpringBeanJobFactory;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import javax.annotation.PostConstruct;
 import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

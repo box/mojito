@@ -10,19 +10,21 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -38,6 +40,12 @@ import org.springframework.data.annotation.CreatedBy;
       @Index(name = "I__POLLABLE_TASK__FINISHED_DATE", columnList = "finished_date")
     })
 @BatchSize(size = 1000)
+@NamedEntityGraph(
+    name = "PollableTask.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(value = "subTasks"),
+      @NamedAttributeNode(value = "parentTask")
+    })
 public class PollableTask extends AuditableEntity {
 
   /**
@@ -68,13 +76,13 @@ public class PollableTask extends AuditableEntity {
   @Column(name = "expected_sub_task_number")
   private int expectedSubTaskNumber = 0;
 
-  @OneToMany(mappedBy = "parentTask", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "parentTask", fetch = FetchType.LAZY)
   @OrderBy("id")
   @BatchSize(size = 1000)
   private Set<PollableTask> subTasks;
 
   @JsonBackReference
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "parent_task_id",
       foreignKey = @ForeignKey(name = "FK__POLLABLE_TASK__POLLABLE_TASK__ID"))
@@ -85,7 +93,7 @@ public class PollableTask extends AuditableEntity {
   private Long timeout;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__POLLABLE_TASK__USER__ID"))

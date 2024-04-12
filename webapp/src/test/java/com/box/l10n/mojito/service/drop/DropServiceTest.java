@@ -896,6 +896,7 @@ public class DropServiceTest extends ServiceTestBase {
     PollableFuture<Drop> dropPollableFuture =
         dropService.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK);
     PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
+    pollableTaskService.getPollableTask(cancelDropPollableTask.getId());
 
     logger.debug("Wait for cancellation to finish");
     pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 600000L);

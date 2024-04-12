@@ -134,12 +134,11 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
     TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
     logger.debug("tmtextunit: {}", tmTextUnit);
 
-    TMTextUnitVariant addCurrentTMTextUnitVariant =
-        addCurrentTMTextUnitVariant(
-            tmTextUnit.getId(),
-            frFRLocale.getId(),
-            "FR[this is the content]",
-            "0a30a359b20fd4095fc17fb586e8db4d");
+    addCurrentTMTextUnitVariant(
+        tmTextUnit.getId(),
+        frFRLocale.getId(),
+        "FR[this is the content]",
+        "0a30a359b20fd4095fc17fb586e8db4d");
 
     // then get the history of it without adding any variants
     List<TMTextUnitVariant> history =

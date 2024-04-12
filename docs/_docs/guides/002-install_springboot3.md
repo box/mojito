@@ -1,17 +1,17 @@
 ---
 layout: doc
-title:  "Installation and Setup (Spring Boot 2 on master)"
+title:  "Installation and Setup (Spring Boot 3 on master)"
 categories: guides
-permalink: /docs/guides/install-springboot2/
+permalink: /docs/guides/install-springboot3/
 ---
 
 ## Installation
 
-No binaries are available for the `Spring Boot 2` at the moment. It should be built from the `master` branch.
+No binaries are available for the `Spring Boot 3` at the moment. It should be built from the `master` branch.
 
 Assuming `Java 17` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
 
-For detail instructions on development environement setup, [see here]({{ site.url }}/docs/guides/open-source-contributors/). 
+For detail instructions on development environment setup, [see here]({{ site.url }}/docs/guides/open-source-contributors/). 
 
 ### Using Executable Jars
 
@@ -180,7 +180,7 @@ When Flyway is used for DB migration, the Mojito setting to clean the database a
 It is strongly recommended to explicitly disable the Mojito cleanup feature (it is disabled by default but may prevent bad 
 configuration to propagate) and to configure Flyway to disable cleanup as well (this is not the default settings).
 
-In short, recommanded settings are:
+In short, recommended settings are:
 
 ```properties
 spring.flyway.clean-disabled=true 

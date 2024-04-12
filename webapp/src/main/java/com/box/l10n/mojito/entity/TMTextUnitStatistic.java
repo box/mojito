@@ -1,13 +1,17 @@
 package com.box.l10n.mojito.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
 /**
@@ -23,9 +27,26 @@ import org.hibernate.annotations.BatchSize;
           unique = true),
     })
 @BatchSize(size = 1000)
+@NamedEntityGraph(
+    name = "TMTextUnitStatistic.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(value = "tmTextUnit", subgraph = "TMTextUnitStatistic.legacy.tmTextUnit")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "TMTextUnitStatistic.legacy.tmTextUnit",
+          attributeNodes = {
+            @NamedAttributeNode(
+                value = "asset",
+                subgraph = "TMTextUnitStatistic.legacy.tmTextUnit.asset")
+          }),
+      @NamedSubgraph(
+          name = "TMTextUnitStatistic.legacy.tmTextUnit.asset",
+          attributeNodes = {@NamedAttributeNode(value = "repository")})
+    })
 public class TMTextUnitStatistic extends AuditableEntity {
 
-  @OneToOne(optional = false)
+  @OneToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "tm_text_unit_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_STATISTIC__BRANCH_ID"))

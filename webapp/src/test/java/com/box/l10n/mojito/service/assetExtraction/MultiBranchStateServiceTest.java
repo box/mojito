@@ -17,10 +17,12 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +67,7 @@ public class MultiBranchStateServiceTest extends ServiceTestBase {
     expectedMultiBranchState = roundDateTimesIfMysql(expectedMultiBranchState);
 
     Assertions.assertThat(multiBranchStateForAssetExtractionId)
-        .usingRecursiveComparison()
+        .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
         .isEqualTo(expectedMultiBranchState);
 
     Optional<MultiBranchState> multiBranchStateForAssetExtractionAfter =
@@ -89,7 +91,11 @@ public class MultiBranchStateServiceTest extends ServiceTestBase {
       expectedMultiBranchState =
           expectedMultiBranchState.withBranchStateTextUnits(
               expectedMultiBranchState.getBranchStateTextUnits().stream()
-                  .map(bstu -> bstu.withCreatedDate(roundDateTimeToSecond(bstu.getCreatedDate())))
+                  .map(
+                      bstu ->
+                          bstu.withCreatedDate(
+                              roundDateTimeToSecond(
+                                  bstu.getCreatedDate().withZoneSameInstant(ZoneId.of("Z")))))
                   .collect(ImmutableList.toImmutableList()));
 
       expectedMultiBranchState =
@@ -104,7 +110,9 @@ public class MultiBranchStateServiceTest extends ServiceTestBase {
                   .map(
                       bstu ->
                           bstu.withCreatedDate(
-                              bstu.getCreatedDate().truncatedTo(ChronoUnit.MICROS)))
+                              bstu.getCreatedDate()
+                                  .truncatedTo(ChronoUnit.MICROS)
+                                  .withZoneSameInstant(ZoneId.of("Z"))))
                   .collect(ImmutableList.toImmutableList()));
 
       expectedMultiBranchState =

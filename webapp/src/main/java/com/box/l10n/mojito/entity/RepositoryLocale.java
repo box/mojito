@@ -4,13 +4,17 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.Table;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
@@ -29,9 +33,21 @@ import org.hibernate.envers.RelationTargetAuditMode;
           columnList = "repository_id, locale_id",
           unique = true)
     })
+@NamedEntityGraph(
+    name = "RepositoryLocale.legacy",
+    attributeNodes = {
+      @NamedAttributeNode("repository"),
+      @NamedAttributeNode("locale"),
+      @NamedAttributeNode(value = "parentLocale", subgraph = "RepositoryLocale.legacy.parentLocale")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "RepositoryLocale.legacy.parentLocale",
+          attributeNodes = {@NamedAttributeNode("locale"), @NamedAttributeNode("parentLocale")})
+    })
 public class RepositoryLocale extends BaseEntity {
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference("repositoryLocales")
   @JoinColumn(
       name = "repository_id",
@@ -40,7 +56,7 @@ public class RepositoryLocale extends BaseEntity {
   private Repository repository;
 
   @JsonView(View.LocaleSummary.class)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE__LOCALE__ID"),
@@ -83,7 +99,7 @@ public class RepositoryLocale extends BaseEntity {
    * <code>
    */
   @JsonView(View.RepositorySummary.class)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "parent_locale",
       foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE__PARENT_LOCALE__ID"))

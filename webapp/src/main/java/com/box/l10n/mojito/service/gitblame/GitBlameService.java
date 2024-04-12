@@ -145,7 +145,7 @@ public class GitBlameService {
     logger.debug("Fetch the asset text unit information");
     List<AssetTextUnit> assetTextUnits =
         assetTextUnitRepository.findByIdIn(
-            new ArrayList<Long>(assetTextUnitIdToGitBlameWithUsage.keySet()));
+            new ArrayList<>(assetTextUnitIdToGitBlameWithUsage.keySet()));
 
     for (AssetTextUnit assetTextUnit : assetTextUnits) {
       GitBlameWithUsage gitBlameWithUsage =

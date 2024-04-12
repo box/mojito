@@ -5,6 +5,9 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -14,6 +17,10 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  */
 @RepositoryRestResource(exported = false)
 public interface TMTextUnitRepository extends JpaRepository<TMTextUnit, Long> {
+
+  @Override
+  @EntityGraph(value = "TMTextUnit.legacy", type = EntityGraphType.FETCH)
+  Optional<TMTextUnit> findById(Long aLong);
 
   TMTextUnit findFirstByTmAndMd5(TM tm, String md5);
 

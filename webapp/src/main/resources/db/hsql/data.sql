@@ -1,4 +1,4 @@
-insert into locale (id, bcp47_tag) values (157, 'af-ZA'); 
+insert into locale (id, bcp47_tag) values (157, 'af-ZA');
 insert into locale (id, bcp47_tag) values (161, 'ar-AE'); 
 insert into locale (id, bcp47_tag) values (165, 'ar-BH'); 
 insert into locale (id, bcp47_tag) values (169, 'ar-DZ'); 

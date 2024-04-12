@@ -2,7 +2,7 @@ package com.box.l10n.mojito.rest.security;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.csrf.CsrfToken;

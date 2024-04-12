@@ -2,13 +2,16 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.Table;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 import org.springframework.data.annotation.CreatedBy;
@@ -30,49 +33,56 @@ import org.springframework.data.annotation.CreatedBy;
           columnList = "tm_text_unit_id, locale_id",
           unique = true)
     })
+@NamedEntityGraph(
+    name = "TMTextUnitCurrentVariant.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(
+          value = "tmTextUnitVariant",
+          subgraph = "TMTextUnitCurrentVariant.legacy.tmTextUnitVariant"),
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "TMTextUnitCurrentVariant.legacy.tmTextUnitVariant",
+          attributeNodes = {@NamedAttributeNode("tmTextUnitVariantComments")})
+    })
 public class TMTextUnitCurrentVariant extends AuditableEntity {
 
   // This field has been added to be able to rollback a TM to a previous state.
   // Without this field, it would not be possible to filter on a TM, as Envers does not support
   // joins
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "tm_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__TM__ID"))
   private TM tm;
 
   /** Denormalization to optimize lookup by asset id, with no joins */
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "asset_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__ASSET__ID"))
   private Asset asset;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "tm_text_unit_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__TM_TEXT_UNIT__ID"))
   private TMTextUnit tmTextUnit;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "tm_text_unit_variant_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__TM_TEXT_UNIT_VARIANT__ID"))
   private TMTextUnitVariant tmTextUnitVariant;
 
-  @Basic(optional = false)
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__LOCALE__ID"))
   private Locale locale;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__USER__ID"))

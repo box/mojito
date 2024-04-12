@@ -145,7 +145,7 @@ public class TMTextUnitStatisticService {
                                 "Add statistics for text unit with name: {}.",
                                 textUnitStatistic.getName());
 
-                            TMTextUnitStatistic statistic = tmTextUnit.getStatistic();
+                            TMTextUnitStatistic statistic = tmTextUnit.getTmTextUnitStatistic();
 
                             if (statistic == null) {
                               statistic = new TMTextUnitStatistic();

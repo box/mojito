@@ -3,17 +3,21 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Version;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -26,10 +30,23 @@ import org.springframework.data.annotation.CreatedBy;
  */
 @Entity
 @Table(name = "asset_extraction")
+@NamedEntityGraph(
+    name = "AssetExtraction.legacy",
+    attributeNodes = {
+      @NamedAttributeNode(value = "asset", subgraph = "AssetExtraction.legacy.asset"),
+      @NamedAttributeNode("assetContent")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "AssetExtraction.legacy.asset",
+          attributeNodes = {
+            @NamedAttributeNode(value = "repository"),
+          })
+    })
 public class AssetExtraction extends AuditableEntity {
 
   @JsonBackReference("asset")
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET__ID"))
   private Asset asset;
 
@@ -39,7 +56,7 @@ public class AssetExtraction extends AuditableEntity {
    * there)
    */
   @JsonBackReference("assetContent")
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_content_id",
       foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET_CONTENT__ID"))
@@ -59,7 +76,7 @@ public class AssetExtraction extends AuditableEntity {
   @OneToMany(mappedBy = "assetExtraction")
   private Set<AssetExtractionByBranch> assetExtractionByBranches = new HashSet<>();
 
-  @OneToOne
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "pollable_task_id",
       foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__POLLABLE_TASK__ID"))
@@ -70,7 +87,7 @@ public class AssetExtraction extends AuditableEntity {
   private Long version = 0L;
 
   @CreatedBy
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
       foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__USER__ID"))

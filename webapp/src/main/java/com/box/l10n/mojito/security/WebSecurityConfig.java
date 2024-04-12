@@ -3,25 +3,27 @@ package com.box.l10n.mojito.security;
 import com.box.l10n.mojito.ActuatorHealthLegacyConfig;
 import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Preconditions;
+import jakarta.servlet.Filter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AdviceMode;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
@@ -36,7 +38,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 // TOOD(spring2) we don't use method level security, do we? remove?
 @EnableGlobalMethodSecurity(securedEnabled = true, mode = AdviceMode.ASPECTJ)
 @Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
   static final String LOGIN_PAGE = "/login";
   /** logger */
@@ -47,6 +49,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired LdapConfig ldapConfig;
 
   @Autowired ActiveDirectoryConfig activeDirectoryConfig;
+
+  @Autowired AuthenticationConfiguration authenticationConfiguration;
 
   @Autowired ActuatorHealthLegacyConfig actuatorHealthLegacyConfig;
 
@@ -138,8 +142,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     auth.authenticationProvider(preAuthenticatedAuthenticationProvider);
   }
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  @Bean
+  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     logger.debug("Configuring web security");
 
     // TODO should we just enable caching of static assets, this disabling cache control for
@@ -148,13 +152,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.headers().cacheControl().disable();
 
     // no csrf on rotation end point - they are accessible only locally
-    http.csrf().ignoringAntMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation");
+    http.csrf()
+        .ignoringRequestMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation");
 
     // matcher order matters - "everything else" mapping must be last
+
     http.authorizeRequests(
         authorizeRequests ->
             authorizeRequests
-                .antMatchers(
+                .requestMatchers(
                     "/intl/*",
                     "/img/*",
                     "/login/**",
@@ -162,57 +168,58 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     "/fonts/*",
                     "/cli/**",
                     "/js/**",
-                    "/css/**")
+                    "/css/**",
+                    "/error")
                 .permitAll()
                 . // always accessible to serve the frontend
-                antMatchers(getHeathcheckPatterns())
+                requestMatchers(getHeathcheckPatterns())
                 .permitAll()
                 // allow deep link creation and retrieval
-                .antMatchers(HttpMethod.GET, "/api/clobstorage", "/api/clobstorage/**")
+                .requestMatchers(HttpMethod.GET, "/api/clobstorage", "/api/clobstorage/**")
                 .authenticated()
-                .antMatchers(HttpMethod.POST, "/api/clobstorage", "/api/clobstorage/**")
+                .requestMatchers(HttpMethod.POST, "/api/clobstorage", "/api/clobstorage/**")
                 .authenticated()
                 . // allow health entry points
-                antMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
+                requestMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
                 .hasIpAddress("127.0.0.1")
                 . // Everyone can access the session endpoint
-                antMatchers("/api/users/session", "/api/users/pw")
+                requestMatchers("/api/users/session", "/api/users/pw")
                 .authenticated()
                 . // user management is only allowed for ADMINs and PMs
-                antMatchers("/api/users/**")
+                requestMatchers("/api/users/**")
                 .hasAnyRole("PM", "ADMIN")
                 . // Read-only access is OK for users
-                antMatchers(HttpMethod.GET, "/api/textunits/**")
+                requestMatchers(HttpMethod.GET, "/api/textunits/**")
                 .authenticated()
                 . // Searching is also OK for users
-                antMatchers(HttpMethod.POST, "/api/textunits/search")
+                requestMatchers(HttpMethod.POST, "/api/textunits/search")
                 .authenticated()
                 . // USERs are not allowed to change translations
-                antMatchers("/api/textunits/**")
+                requestMatchers("/api/textunits/**")
                 .hasAnyRole("TRANSLATOR", "PM", "ADMIN")
                 . // Read-only is OK for everyone
-                antMatchers(HttpMethod.GET, "/api/**")
+                requestMatchers(HttpMethod.GET, "/api/**")
                 .authenticated()
                 // Everyone can retrieve & upload images
-                .antMatchers(HttpMethod.GET, "/api/images/**")
+                .requestMatchers(HttpMethod.GET, "/api/images/**")
                 .authenticated()
-                .antMatchers(HttpMethod.PUT, "/api/images/**")
+                .requestMatchers(HttpMethod.PUT, "/api/images/**")
                 .authenticated()
                 // Everyone can retrieve, upload and delete screenshots
-                .antMatchers(HttpMethod.GET, "/api/screenshots")
+                .requestMatchers(HttpMethod.GET, "/api/screenshots")
                 .authenticated()
-                .antMatchers(HttpMethod.POST, "/api/screenshots")
+                .requestMatchers(HttpMethod.POST, "/api/screenshots")
                 .authenticated()
-                .antMatchers(HttpMethod.PUT, "/api/screenshots/**")
+                .requestMatchers(HttpMethod.PUT, "/api/screenshots/**")
                 .authenticated()
-                .antMatchers(HttpMethod.DELETE, "/api/screenshots/**")
+                .requestMatchers(HttpMethod.DELETE, "/api/screenshots/**")
                 .authenticated()
                 . // However, all other methods require is PM and ADMIN only unless overwritten
                 // above
-                antMatchers("/api/**")
+                requestMatchers("/api/**")
                 .hasAnyRole("PM", "ADMIN")
                 . // local access only for rotation management and logger config
-                antMatchers("/**")
+                requestMatchers("/**")
                 .authenticated() // everything else must be authenticated
         );
 
@@ -239,7 +246,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
               requestHeaderAuthenticationFilter,
               "The requestHeaderAuthenticationFilter must be configured");
           logger.debug("Add request header Auth filter");
-          requestHeaderAuthenticationFilter.setAuthenticationManager(authenticationManager());
+          requestHeaderAuthenticationFilter.setAuthenticationManager(
+              authenticationConfiguration.getAuthenticationManager());
           http.addFilterBefore(requestHeaderAuthenticationFilter, BasicAuthenticationFilter.class);
           break;
         case OAUTH2:
@@ -274,6 +282,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
           break;
       }
     }
+
+    return http.build();
   }
 
   /**

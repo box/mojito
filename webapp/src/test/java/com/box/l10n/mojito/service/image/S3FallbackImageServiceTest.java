@@ -21,10 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -32,8 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @SpringBootTest(
     classes = {
       S3FallbackImageServiceTest.class,
-      ImageServiceConfiguration.class,
-      S3FallbackImageService.class
+      S3FallbackImageServiceTest.S3FallbackImageServiceTestConfiguration.class
     },
     properties = {
       "l10n.image-service.storage.type=s3Fallback",
@@ -42,15 +39,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     })
 public class S3FallbackImageServiceTest {
 
-  @Configuration
+  @TestConfiguration
   static class S3FallbackImageServiceTestConfiguration {
 
-    @MockBean ImageRepository imageRepository;
+    @Bean
+    public ImageRepository imageRepository() {
+      return Mockito.mock(ImageRepository.class);
+    }
 
-    @MockBean S3BlobStorage s3BlobStorage;
+    @Bean
+    public S3BlobStorage s3BlobStorage() {
+      return Mockito.mock(S3BlobStorage.class);
+    }
 
     @Bean("databaseImageService")
-    public DatabaseImageService databaseImageService() {
+    public DatabaseImageService databaseImageService(ImageRepository imageRepository) {
       return Mockito.spy(new DatabaseImageService(imageRepository));
     }
 
@@ -77,15 +80,15 @@ public class S3FallbackImageServiceTest {
     }
   }
 
-  @MockBean S3BlobStorage s3BlobStorageMock;
+  @Autowired S3BlobStorage s3BlobStorageMock;
 
-  @MockBean ImageRepository imageRepositoryMock;
+  @Autowired ImageRepository imageRepositoryMock;
 
-  @SpyBean S3UploadImageAsyncTask s3UploadImageAsyncTaskSpy;
+  @Autowired S3UploadImageAsyncTask s3UploadImageAsyncTaskSpy;
 
-  @SpyBean S3ImageService s3ImageService;
+  @Autowired S3ImageService s3ImageService;
 
-  @Autowired S3FallbackImageService s3FallbackImageService;
+  @Autowired ImageService s3FallbackImageService;
 
   byte[] imageBytes = new byte[] {1, 2, 3, 4, 5};
 
@@ -94,6 +97,8 @@ public class S3FallbackImageServiceTest {
   @Before
   public void setup() {
     imageContent = Optional.of(imageBytes);
+    Mockito.reset(
+        s3BlobStorageMock, imageRepositoryMock, s3UploadImageAsyncTaskSpy, s3ImageService);
   }
 
   @Test

@@ -5,6 +5,8 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.entity.TranslationKitTextUnit;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -28,5 +30,6 @@ public interface TranslationKitTextUnitRepository
   int countByTranslationKitAndDetectedLanguageNotEqualsDetectedLanguageExpected(
       TranslationKit translationKit);
 
+  @EntityGraph(value = "TranslationKitTextUnit.legacy", type = EntityGraphType.FETCH)
   List<TranslationKitTextUnit> findByTranslationKit(TranslationKit translationKit);
 }

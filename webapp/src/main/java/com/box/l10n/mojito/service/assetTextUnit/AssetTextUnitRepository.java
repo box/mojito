@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.assetTextUnit;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +20,7 @@ public interface AssetTextUnitRepository
 
   List<AssetTextUnit> findByAssetExtraction(AssetExtraction assetExtraction);
 
+  @EntityGraph(value = "AssetTextUnit.legacy", type = EntityGraphType.FETCH)
   List<AssetTextUnit> findByAssetExtractionId(long assetExtractionId);
 
   @Query(
@@ -60,6 +63,7 @@ public interface AssetTextUnitRepository
 
   List<AssetTextUnit> findByAssetExtractionIdAndName(Long assetExtractionId, String name);
 
+  @EntityGraph(value = "AssetTextUnit.legacy", type = EntityGraphType.FETCH)
   List<AssetTextUnit> findByIdIn(List<Long> assetTextUnitIds);
 
   void deleteByIdIn(List<Long> assetTextUnitIds);

@@ -10,14 +10,15 @@ import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PullRun_;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.PushRun_;
+import com.box.l10n.mojito.entity.Repository_;
 import com.box.l10n.mojito.specification.SingleParamSpecification;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -35,7 +36,7 @@ public class CommitSpecification {
     return new SingleParamSpecification<Commit>(repositoryId) {
       public Predicate toPredicate(
           Root<Commit> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        return builder.equal(root.get(Commit_.repository), repositoryId);
+        return builder.equal(root.get(Commit_.repository).get(Repository_.id), repositoryId);
       }
     };
   }
@@ -73,12 +74,7 @@ public class CommitSpecification {
         Join<CommitToPushRun, PushRun> pushRunJoin =
             commitToPushRunJoin.join(CommitToPushRun_.pushRun, JoinType.LEFT);
 
-        Predicate conjunction = builder.conjunction();
-        conjunction
-            .getExpressions()
-            .add(builder.equal(pushRunJoin.get(PushRun_.name), pushRunName));
-
-        return conjunction;
+        return builder.equal(pushRunJoin.get(PushRun_.name), pushRunName);
       }
     };
   }
@@ -100,12 +96,7 @@ public class CommitSpecification {
         Join<CommitToPullRun, PullRun> pullRunJoin =
             commitToPullRunJoin.join(CommitToPullRun_.pullRun, JoinType.LEFT);
 
-        Predicate conjunction = builder.conjunction();
-        conjunction
-            .getExpressions()
-            .add(builder.equal(pullRunJoin.get(PullRun_.name), pullRunName));
-
-        return conjunction;
+        return builder.equal(pullRunJoin.get(PullRun_.name), pullRunName);
       }
     };
   }
@@ -122,16 +113,10 @@ public class CommitSpecification {
           Root<Commit> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
         Join<Commit, CommitToPushRun> commitToPushRunJoin =
             root.join(Commit_.commitToPushRun, JoinType.LEFT);
-        Predicate conjunction = builder.conjunction();
 
-        conjunction
-            .getExpressions()
-            .add(
-                hasPushRun != null && hasPushRun
-                    ? builder.isNotNull(commitToPushRunJoin.get(CommitToPushRun_.pushRun))
-                    : builder.isNull(commitToPushRunJoin.get(CommitToPushRun_.pushRun)));
-
-        return conjunction;
+        return hasPushRun != null && hasPushRun
+            ? builder.isNotNull(commitToPushRunJoin.get(CommitToPushRun_.pushRun))
+            : builder.isNull(commitToPushRunJoin.get(CommitToPushRun_.pushRun));
       }
     };
   }
@@ -148,16 +133,10 @@ public class CommitSpecification {
           Root<Commit> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
         Join<Commit, CommitToPullRun> commitToPullRunJoin =
             root.join(Commit_.commitToPullRun, JoinType.LEFT);
-        Predicate conjunction = builder.conjunction();
 
-        conjunction
-            .getExpressions()
-            .add(
-                hasPullRun != null && hasPullRun
-                    ? builder.isNotNull(commitToPullRunJoin.get(CommitToPullRun_.pullRun))
-                    : builder.isNull(commitToPullRunJoin.get(CommitToPullRun_.pullRun)));
-
-        return conjunction;
+        return hasPullRun != null && hasPullRun
+            ? builder.isNotNull(commitToPullRunJoin.get(CommitToPullRun_.pullRun))
+            : builder.isNull(commitToPullRunJoin.get(CommitToPullRun_.pullRun));
       }
     };
   }

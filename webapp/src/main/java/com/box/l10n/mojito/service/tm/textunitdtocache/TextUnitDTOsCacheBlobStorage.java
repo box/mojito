@@ -72,6 +72,7 @@ class TextUnitDTOsCacheBlobStorage {
               .readValueUnchecked(s, TextUnitDTOsCacheBlobStorageJson.class)
               .getTextUnitDTOs());
     } catch (Exception e) {
+      logger.error("Convert: %s".formatted(s));
       logger.error(
           "Can't convert the content into TextUnitDTOsCacheBlobStorageJson, return an empty list instead",
           e);

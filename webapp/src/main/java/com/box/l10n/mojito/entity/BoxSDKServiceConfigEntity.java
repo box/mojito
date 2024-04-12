@@ -2,9 +2,9 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceConfig;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "box_sdk_service_config")

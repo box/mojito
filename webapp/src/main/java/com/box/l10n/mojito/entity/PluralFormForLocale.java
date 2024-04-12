@@ -1,11 +1,12 @@
 package com.box.l10n.mojito.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Entity that contains plural form per locale.
@@ -23,14 +24,14 @@ import javax.persistence.Table;
     })
 public class PluralFormForLocale extends BaseEntity {
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "locale_id",
       foreignKey = @ForeignKey(name = "FK__PLURAL_FORM_FOR_LOCALE__LOCALE__ID"),
       nullable = false)
   private Locale locale;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "plural_form_id",
       foreignKey = @ForeignKey(name = "FK__PLURAL_FORM_FOR_LOCALE__PLURAL_FORM__ID"),

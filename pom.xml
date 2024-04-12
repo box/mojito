@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.15</version>
+        <version>3.1.5</version>
     </parent>
 
     <properties>
@@ -24,8 +24,6 @@
         <maven.release.version>2.5.3</maven.release.version>
         <okapi.version>1.45.0</okapi.version>
         <guava.version>29.0-jre</guava.version>
-        <hibernate.joda-time.version>1.4</hibernate.joda-time.version>
-        <usertype.core.version>6.0.1.GA</usertype.core.version>
         <aspectj-maven-plugin.version>1.13.1</aspectj-maven-plugin.version>
         <!-- org.codehaus.mojo doesn't support Java 17+, use fork for now -->
         <aspectj-maven-plugin.group-id>dev.aspectj</aspectj-maven-plugin.group-id>
@@ -80,6 +78,7 @@
             <artifactId>icu4j</artifactId>
             <version>${icu4j.version}</version>
         </dependency>
+
     </dependencies>
 
     <!-- SCM setup to push changes to the Github repo on release -->
@@ -194,7 +193,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.4</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -209,7 +207,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.1</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>

@@ -2,7 +2,7 @@ package com.box.l10n.mojito.nativecriteria;
 
 import com.github.pnowy.nc.core.NativeQuery;
 import com.github.pnowy.nc.core.NativeQueryProvider;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 

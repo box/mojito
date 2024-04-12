@@ -3,12 +3,13 @@ package com.box.l10n.mojito.rest.drop;
 import com.box.l10n.mojito.entity.Drop;
 import com.box.l10n.mojito.entity.Drop_;
 import com.box.l10n.mojito.entity.PollableTask_;
+import com.box.l10n.mojito.entity.Repository_;
 import com.box.l10n.mojito.specification.SingleParamSpecification;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -92,7 +93,7 @@ public class DropSpecification {
     return new SingleParamSpecification<Drop>(repositoryId) {
       public Predicate toPredicate(
           Root<Drop> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        return builder.equal(root.get(Drop_.repository), repositoryId);
+        return builder.equal(root.get(Drop_.repository).get(Repository_.id), repositoryId);
       }
     };
   }

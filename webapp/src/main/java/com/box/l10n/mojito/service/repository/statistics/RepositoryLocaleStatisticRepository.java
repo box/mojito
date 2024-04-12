@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.repository.statistics;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import java.util.Set;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -17,6 +19,7 @@ public interface RepositoryLocaleStatisticRepository
   RepositoryLocaleStatistic findByRepositoryStatisticIdAndLocaleId(
       Long repositoryStatisticId, Long localeId);
 
+  @EntityGraph(value = "RepositoryLocaleStatistic.legacy", type = EntityGraphType.FETCH)
   Set<RepositoryLocaleStatistic> findByRepositoryStatisticId(Long repositoryStatisticId);
 
   void deleteByRepositoryStatisticId(Long repositoryStatisticId);
