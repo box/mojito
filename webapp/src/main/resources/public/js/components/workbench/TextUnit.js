@@ -826,7 +826,7 @@ let TextUnit = createReactClass({
     },
 
     /**
-     * render the source. If the source ends with a retrun line remove and
+     * render the source. If the source ends with a return line remove and
      * render a return line symbol so that the user as a clue about the trailing
      * return line.
      */

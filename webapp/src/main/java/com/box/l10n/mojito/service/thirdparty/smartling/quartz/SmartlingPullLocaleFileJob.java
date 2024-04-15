@@ -108,7 +108,7 @@ public class SmartlingPullLocaleFileJob
       try {
         textUnits = mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
       } catch (ParserConfigurationException | IOException | SAXException e) {
-        String msg = "An error ocurred when processing a pull batch";
+        String msg = "An error occurred when processing a pull batch";
         logger.error(msg, e);
         throw new RuntimeException(msg, e);
       }
