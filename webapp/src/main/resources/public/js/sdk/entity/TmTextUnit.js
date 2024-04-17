@@ -28,9 +28,11 @@ export default class TmTextUnit {
     static toTmTextUnit(json) {
         let result = new TmTextUnit();
 
-        result.id = json.id;
-        result.name = json.name;
-        result.content = json.content;
+        if (json) {
+            result.id = json.id;
+            result.name = json.name;
+            result.content = json.content;
+        }
 
         return result;
     }

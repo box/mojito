@@ -46,7 +46,14 @@ import java.util.Set;
       @NamedSubgraph(
           name = "branchGraph.screenshots",
           attributeNodes = {
-            @NamedAttributeNode(value = "screenshotTextUnits"),
+            @NamedAttributeNode(
+                value = "screenshotTextUnits",
+                subgraph = "branchGraph.screenshots.screenshotTextUnits"),
+          }),
+      @NamedSubgraph(
+          name = "branchGraph.screenshots.screenshotTextUnits",
+          attributeNodes = {
+            @NamedAttributeNode(value = "tmTextUnit"),
           }),
     })
 @NamedEntityGraph(
@@ -58,8 +65,20 @@ import java.util.Set;
       @NamedSubgraph(
           name = "branchGraph",
           attributeNodes = {
-            @NamedAttributeNode(value = "screenshots"),
+            @NamedAttributeNode(value = "screenshots", subgraph = "branchGraph.screenshots"),
             @NamedAttributeNode(value = "repository"),
+          }),
+      @NamedSubgraph(
+          name = "branchGraph.screenshots",
+          attributeNodes = {
+            @NamedAttributeNode(
+                value = "screenshotTextUnits",
+                subgraph = "branchGraph.screenshots.screenshotTextUnits"),
+          }),
+      @NamedSubgraph(
+          name = "branchGraph.screenshots.screenshotTextUnits",
+          attributeNodes = {
+            @NamedAttributeNode(value = "tmTextUnit"),
           }),
     })
 public class BranchStatistic extends AuditableEntity {
