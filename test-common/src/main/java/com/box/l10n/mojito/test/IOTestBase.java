@@ -31,6 +31,7 @@ public class IOTestBase {
 
   /** Test source directory, contains resource for the test */
   protected File sourceTestDir;
+
   /** Test target directory, to store output file during testing */
   protected File targetTestDir;
 

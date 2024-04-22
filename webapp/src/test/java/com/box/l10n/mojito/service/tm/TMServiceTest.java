@@ -2492,8 +2492,10 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testLocalizeMacStringsdictPluralWithDifferentIdentation()
-      throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException,
-          ExecutionException, InterruptedException {
+      throws RepositoryNameAlreadyUsedException,
+          UnsupportedAssetFilterTypeException,
+          ExecutionException,
+          InterruptedException {
     Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
     RepositoryLocale repoLocale;
     String bcp47Tag = "fr-FR";
@@ -3985,8 +3987,11 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testImportLocalizedAssetApproved()
-      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
-          AssetUpdateException, AssetUpdateException {
+      throws RepositoryNameAlreadyUsedException,
+          ExecutionException,
+          InterruptedException,
+          AssetUpdateException,
+          AssetUpdateException {
 
     baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
@@ -4013,7 +4018,9 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testImportLocalizedAssetReviewNeeded()
-      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
+      throws RepositoryNameAlreadyUsedException,
+          ExecutionException,
+          InterruptedException,
           AssetUpdateException {
 
     baseTestImportLocalizedAsset(StatusForEqualTarget.REVIEW_NEEDED);
@@ -4041,7 +4048,9 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testImportLocalizedAssetTranslationNeeded()
-      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
+      throws RepositoryNameAlreadyUsedException,
+          ExecutionException,
+          InterruptedException,
           AssetUpdateException {
 
     baseTestImportLocalizedAsset(StatusForEqualTarget.TRANSLATION_NEEDED);
@@ -4069,7 +4078,9 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testImportLocalizedAssetSkip()
-      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
+      throws RepositoryNameAlreadyUsedException,
+          ExecutionException,
+          InterruptedException,
           AssetUpdateException {
 
     baseTestImportLocalizedAsset(StatusForEqualTarget.SKIPPED);
@@ -4093,7 +4104,9 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testImportLocalizedAssetNotFullyTranslated()
-      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
+      throws RepositoryNameAlreadyUsedException,
+          ExecutionException,
+          InterruptedException,
           AssetUpdateException {
 
     baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
@@ -4132,7 +4145,9 @@ public class TMServiceTest extends ServiceTestBase {
 
   @Test
   public void testReImportLocalizedAsset()
-      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
+      throws RepositoryNameAlreadyUsedException,
+          ExecutionException,
+          InterruptedException,
           AssetUpdateException {
 
     baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
@@ -4179,8 +4194,11 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   private void baseTestImportLocalizedAsset(StatusForEqualTarget statusForEqualTarget)
-      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
-          AssetUpdateException, AssetUpdateException {
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          AssetUpdateException,
+          AssetUpdateException {
     repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
     RepositoryLocale repoLocale;
     try {

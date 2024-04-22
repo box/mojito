@@ -33,6 +33,7 @@ public class PerformanceDataGenerationCommand extends Command {
   static final String MASTER_BRANCH_NAME = "master";
   static final int MASTER_BRANCH_IDX = -1;
   static final String PERFORMANCE = "performance";
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(PerformanceDataGenerationCommand.class);
 

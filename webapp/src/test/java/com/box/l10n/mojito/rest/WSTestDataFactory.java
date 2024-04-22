@@ -81,7 +81,8 @@ public class WSTestDataFactory {
    * @return The {@link Repository}
    */
   public Repository createRepoAndAssetAndTextUnits(TestIdWatcher testIdWatcher)
-      throws RepositoryNameAlreadyUsedException, AssetUpdateException,
+      throws RepositoryNameAlreadyUsedException,
+          AssetUpdateException,
           UnsupportedAssetFilterTypeException {
     Repository repository = createRepository(testIdWatcher);
 

@@ -41,6 +41,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class WebSecurityConfig {
 
   static final String LOGIN_PAGE = "/login";
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 

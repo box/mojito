@@ -11,8 +11,10 @@ public class AnnotatedMethodParam<T extends Annotation> {
 
   /** The annotation type of the argument */
   private T annotation;
+
   /** Index of the argument in the argument list */
   private Integer index;
+
   /** The argument value */
   private Object arg;
 

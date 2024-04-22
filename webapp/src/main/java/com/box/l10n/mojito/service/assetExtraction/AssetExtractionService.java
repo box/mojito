@@ -1129,7 +1129,8 @@ public class AssetExtractionService {
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions,
       Long parentTaskId)
-      throws UnsupportedAssetFilterTypeException, InterruptedException,
+      throws UnsupportedAssetFilterTypeException,
+          InterruptedException,
           AssetExtractionConflictException {
 
     ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();

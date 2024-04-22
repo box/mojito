@@ -35,11 +35,13 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
   Pattern noteKeyPattern = null;
   Pattern usagesKeyPattern = null;
+
   /**
    * To keep the usage until a new one is found. When false it will reset the usages when the text
    * unit/object end is reached.
    */
   boolean usagesKeepOrReplace = false;
+
   /**
    * To keep the note until a new one is found. When false it will reset the usages when the text
    * unit/object end is reached.

@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class VirtualAssetPerformanceTest {
 
   static final int NUMBER_OF_TEXTUNITS = 25000;
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(VirtualAssetPerformanceTest.class);
 

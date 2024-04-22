@@ -17,6 +17,7 @@ public class StringInfo {
 
   /** This is processed and often can't be match to the source string */
   String parsedStringText;
+
   /** Seems empty (and that's a problem since we can't match...) */
   String stringText;
 

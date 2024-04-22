@@ -66,8 +66,9 @@ public class UserService {
       case ROLE_ADMIN -> {
         // There is nothing above admin
       }
-      case ROLE_TRANSLATOR, ROLE_USER -> throw new AccessDeniedException(
-          "Access denied! Users and Translators are not allowed to to edit / create users");
+      case ROLE_TRANSLATOR, ROLE_USER ->
+          throw new AccessDeniedException(
+              "Access denied! Users and Translators are not allowed to to edit / create users");
     }
   }
 

@@ -19,6 +19,7 @@ public @interface MsgArg {
    * @return parameter name
    */
   String name();
+
   /**
    * @return an optional access on the annotated object (for example getId() to get the id of the
    *     object instead of the object itself)

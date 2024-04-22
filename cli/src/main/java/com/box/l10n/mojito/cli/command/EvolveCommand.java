@@ -48,6 +48,7 @@ public class EvolveCommand extends Command {
           "extractAllPairs=false",
           "exceptions=_fields/.*/value",
           UUID.randomUUID().toString());
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(EvolveCommand.class);
 

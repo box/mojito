@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 public class DDLGenerator extends ServiceTestBase {
 
   static final String TARGET_DB_MIGRATION_VX_YY_ZZ_SQL = "target/db/migration/Vx__yy_zz.sql";
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(DDLGenerator.class);
 

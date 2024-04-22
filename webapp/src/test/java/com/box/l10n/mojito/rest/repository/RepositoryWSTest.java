@@ -107,8 +107,10 @@ public class RepositoryWSTest extends WSTestBase {
 
   @Test
   public void testUpdateRepositoryNameAndDescription()
-      throws RepositoryNotFoundException, ResourceNotCreatedException,
-          RepositoryNameAlreadyUsedException, ResourceNotUpdatedException {
+      throws RepositoryNotFoundException,
+          ResourceNotCreatedException,
+          RepositoryNameAlreadyUsedException,
+          ResourceNotUpdatedException {
     Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
 
     String newName = expectedRepository.getName() + "_updated";
@@ -144,7 +146,8 @@ public class RepositoryWSTest extends WSTestBase {
 
   @Test
   public void testUpdateRepositoryLocales()
-      throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException,
+      throws RepositoryNotFoundException,
+          RepositoryNameAlreadyUsedException,
           ResourceNotUpdatedException {
     Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
 

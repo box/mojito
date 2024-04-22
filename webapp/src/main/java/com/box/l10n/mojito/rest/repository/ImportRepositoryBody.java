@@ -6,6 +6,7 @@ package com.box.l10n.mojito.rest.repository;
 public class ImportRepositoryBody {
 
   String xliffContent;
+
   /**
    * Indicates if the TM should be updated or if the translation can be imported assuming that there
    * is no translation yet.

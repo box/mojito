@@ -46,6 +46,7 @@ public class TranslatorWithInheritance {
   InheritanceMode inheritanceMode;
 
   RepositoryLocale repositoryLocale;
+
   /** Cache that contains the translations required to translate the asset. */
   Map<Long, Map<String, TextUnitDTO>> localeToTextUnitDTOsForLocaleMap = new HashMap<>();
 

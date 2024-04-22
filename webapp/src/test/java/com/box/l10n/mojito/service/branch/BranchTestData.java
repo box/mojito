@@ -110,8 +110,10 @@ public class BranchTestData {
 
   @PostConstruct
   public BranchTestData init()
-      throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException,
-          InterruptedException, java.util.concurrent.ExecutionException,
+      throws RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          InterruptedException,
+          java.util.concurrent.ExecutionException,
           UnsupportedAssetFilterTypeException {
     repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
     repositoryLocaleFrFr = repositoryService.addRepositoryLocale(repository, "fr-FR");

@@ -43,6 +43,7 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
   protected ITextUnit textUnit;
 
   protected DocumentPart documentPart;
+
   /**
    * if not null, indicates a document part property that can be localized in child steps.
    *

@@ -15,6 +15,7 @@ public class DifferentialDiff {
   static final String TRANSACTIONS_0_TYPE = "transactions[0][type]";
   static final String TRANSACTIONS_0_VALUE = "transactions[0][value]";
   static final String TRANSACTIONS_0_VALUE_0 = "transactions[0][value][0]";
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(DifferentialDiff.class);
 

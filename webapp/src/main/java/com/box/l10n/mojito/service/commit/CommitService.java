@@ -215,7 +215,8 @@ public class CommitService {
   /** See {@link CommitService#associateCommitToPushRun(Commit, PushRun)}. */
   @Transactional
   public void associateCommitToPushRun(Long repositoryId, String commitName, String pushRunName)
-      throws CommitWithNameNotFoundException, RepositoryWithIdNotFoundException,
+      throws CommitWithNameNotFoundException,
+          RepositoryWithIdNotFoundException,
           PushRunWithNameNotFoundException {
     Commit commit =
         commitRepository

@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PollableTaskService {
 
   public static final Long NO_TIMEOUT = -1L;
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(PollableTaskService.class);
 

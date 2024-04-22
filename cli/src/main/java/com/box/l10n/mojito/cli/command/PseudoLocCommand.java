@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 public class PseudoLocCommand extends Command {
 
   public static final String OUTPUT_BCP47_TAG = "en-x-pseudo";
+
   /** logger */
   static Logger logger = LoggerFactory.getLogger(PseudoLocCommand.class);
 
@@ -105,6 +106,7 @@ public class PseudoLocCommand extends Command {
   Repository repository;
 
   CommandDirectories commandDirectories;
+
   /** Contains a map of locale for generating localized file a locales defined in the repository. */
   Map<String, String> localeMappings;
 

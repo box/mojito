@@ -60,6 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BranchStatisticService {
 
   public static final int BATCH_SIZE_UPDATE_BRANCH_TEXT_UNIT_STATISTICS = 1000;
+
   /** logger */
   static Logger logger = getLogger(BranchStatisticService.class);
 

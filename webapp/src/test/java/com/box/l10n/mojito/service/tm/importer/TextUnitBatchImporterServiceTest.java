@@ -341,8 +341,11 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
   @Test
   public void testUnused()
-      throws InterruptedException, RepositoryNameAlreadyUsedException,
-          RepositoryLocaleCreationException, VirtualAssetBadRequestException, ExecutionException {
+      throws InterruptedException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          VirtualAssetBadRequestException,
+          ExecutionException {
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("testUnused"));
     RepositoryLocale repositoryLocaleFrFR =

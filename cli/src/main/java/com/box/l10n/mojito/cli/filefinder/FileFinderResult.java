@@ -11,6 +11,7 @@ public class FileFinderResult {
 
   /** FileMatches for source files (files to be localized) */
   ArrayList<FileMatch> sources = new ArrayList<>();
+
   /** FileMatches for target files (localized files) */
   ArrayList<FileMatch> targets = new ArrayList<>();
 

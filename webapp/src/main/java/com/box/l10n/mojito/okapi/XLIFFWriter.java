@@ -47,6 +47,7 @@ public class XLIFFWriter implements IFilterWriter {
 
   /** Name of the Okapi XLIFF extension matchType. */
   public static final String OKP_MATCHTYPE = "matchType";
+
   /** Name of the Okapi XLIFF extension engine. */
   public static final String OKP_ENGINE = "engine";
 
