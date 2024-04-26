@@ -1,5 +1,7 @@
 import UserStatics from "../../utils/UserStatics";
 import Authority from "./Authority";
+import Locale from "./Locale";
+import UserLocale from "./UserLocale";
 
 export default class User {
     constructor() {
@@ -24,8 +26,14 @@ export default class User {
         /** @type {Date} */
         this.createdDate = null;
 
+        /** @type {Boolean} */
+        this.canTranslateAllLocales = true;
+
         /** @type {Authority[]} */
         this.authorities = [];
+
+        /** @type {UserLocale[]} */
+        this.userLocales = [];
     }
 
     /**
@@ -55,6 +63,28 @@ export default class User {
         return UserStatics.authorityUser();
     }
 
+    /**
+     * Get the locale tags
+     *
+     * @returns {String[]}
+     */
+    getLocaleTags() {
+        return this.userLocales.map((x) => x.locale.bcp47Tag)
+    }
+
+    /**
+     * @param {String[]} newTags 
+     */
+    setLocaleTags(newTags) {
+        this.userLocales = newTags.map((x) => {
+            let ul = new UserLocale()
+            let l = new Locale();
+            l.bcp47Tag = x;
+            ul.locale = l;
+            return ul;
+        })
+    }
+
 
     /**
      * Convert JSON User object
@@ -71,8 +101,10 @@ export default class User {
             user.commonName = jsonUser.commonName;
             user.surname = jsonUser.surname;
             user.givenName = jsonUser.givenName;
+            user.canTranslateAllLocales = jsonUser.canTranslateAllLocales;
             user.createdDate = new Date(jsonUser.createdDate);
             user.authorities = Authority.toAuthorities(jsonUser.authorities);
+            user.userLocales = jsonUser.userLocales ? jsonUser.userLocales.map((x) => UserLocale.toUserLocale(x)) : [];
         }
         return user;
     }

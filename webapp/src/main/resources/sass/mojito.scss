@@ -1011,3 +1011,33 @@ label.current-pageNumber {
         "newUser .       ."
     ;
 }
+
+.users-locale-select-root {
+    display: grid;
+    grid-template-columns: 2fr 1fr min-content;
+    grid-template-rows: min-content;
+    grid-template-areas: "locales new-select new-btn";
+    gap: 7px;
+}
+
+.users-locale-select-root .locales-list {
+    grid-area: locales;
+    overflow-y: scroll;
+    height: 128px;
+    display: grid;
+    grid-template-columns: 48px 1fr 48px 1fr;
+    grid-auto-rows: min-content;
+    grid-auto-flow: row;
+    row-gap: 7px;
+    column-gap: 10px;
+    padding: 5px;
+}
+
+.users-locale-select-root .locales-list span {
+    justify-self: start;
+    align-self: center;
+}
+
+.users-locale-select-root .locales-list button {
+    justify-self: start;
+}
