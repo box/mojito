@@ -412,10 +412,11 @@ public class ScreenshotService {
               .getRepository()
               .getName();
 
-      String projectId = thirdPartySyncJobs.get(repository).getThirdPartyProjectId();
-
-      thirdPartyService.removeImage(projectId, thirdPartyScreenshot.getThirdPartyId());
-      thirdPartyScreenshotRepository.deleteById(thirdPartyScreenshot.getId());
+      if (thirdPartySyncJobs.containsKey(repository)) {
+        String projectId = thirdPartySyncJobs.get(repository).getThirdPartyProjectId();
+        thirdPartyService.removeImage(projectId, thirdPartyScreenshot.getThirdPartyId());
+        thirdPartyScreenshotRepository.deleteById(thirdPartyScreenshot.getId());
+      }
     }
 
     screenshotTextUnitRepository.deleteAllByScreenshot_Id(id);

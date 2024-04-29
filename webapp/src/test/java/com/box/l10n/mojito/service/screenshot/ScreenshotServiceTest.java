@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.screenshot;
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -70,6 +71,13 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     final Map<String, ThirdPartySyncJobConfig> thirdPartySyncJobs =
         thirdPartySyncJobsConfig.getThirdPartySyncJobs();
 
+    ThirdPartySyncJobConfig thirdPartySyncJobConfig = new ThirdPartySyncJobConfig();
+    thirdPartySyncJobConfig.setRepository("testRepository");
+    thirdPartySyncJobConfig.setThirdPartyProjectId("testProjectId");
+
+    thirdPartySyncJobs.put("testRepository", thirdPartySyncJobConfig);
+
+    thirdPartySyncJobsConfig.setThirdPartySyncJobs(thirdPartySyncJobs);
     screenshotService.thirdPartyService = thirdPartyServiceMock;
 
     Screenshot screenshot = new Screenshot();
@@ -110,13 +118,51 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
     screenshotService.deleteScreenshot(screenshot.getId());
 
-    verify(thirdPartyServiceMock, times(1))
-        .removeImage(
-            thirdPartySyncJobs.get(repository.getName()).getThirdPartyProjectId(),
-            thirdPartyScreenshot.getThirdPartyId());
+    verify(thirdPartyServiceMock, times(1)).removeImage("testProjectId", "smartlingScreenshotId");
     Assert.assertNull(screenshotRepository.findById(screenshot.getId()).orElse(null));
     Assert.assertEquals(
         0, thirdPartyScreenshotRepository.findAllByScreenshotId(screenshot.getId()).size());
+    Assert.assertNull(
+        screenshotTextUnitRepository.findById(screenshotTextUnit.getId()).orElse(null));
+  }
+
+  @Test
+  public void testDeleteScreenshotNoThirdPartyConfig() throws RepositoryNameAlreadyUsedException {
+    final Map<String, ThirdPartySyncJobConfig> thirdPartySyncJobs =
+        thirdPartySyncJobsConfig.getThirdPartySyncJobs();
+
+    screenshotService.thirdPartyService = thirdPartyServiceMock;
+
+    Screenshot screenshot = new Screenshot();
+    screenshot.setId(1L);
+    screenshot.setName("screenshot");
+    screenshotRepository.save(screenshot);
+
+    Assert.assertNotNull(screenshotRepository.findById(screenshot.getId()).orElse(null));
+
+    Repository repository = repositoryService.createRepository("testRepository2");
+
+    Asset asset =
+        assetService.createAssetWithContent(repository.getId(), "fake_for_test2", "fake for test2");
+
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setAsset(asset);
+    tmTextUnitRepository.save(tmTextUnit);
+
+    ScreenshotTextUnit screenshotTextUnit = new ScreenshotTextUnit();
+    screenshotTextUnit.setId(1L);
+    screenshotTextUnit.setScreenshot(screenshot);
+    screenshotTextUnit.setTmTextUnit(tmTextUnit);
+    screenshotTextUnitRepository.save(screenshotTextUnit);
+
+    ScreenshotTextUnit createdScreenshotTextUnit =
+        screenshotTextUnitRepository.findById(screenshotTextUnit.getId()).orElse(null);
+    assertEquals(createdScreenshotTextUnit.getScreenshot().getId(), screenshot.getId());
+
+    screenshotService.deleteScreenshot(screenshot.getId());
+
+    verify(thirdPartyServiceMock, times(0)).removeImage(any(), any());
+    Assert.assertNull(screenshotRepository.findById(screenshot.getId()).orElse(null));
     Assert.assertNull(
         screenshotTextUnitRepository.findById(screenshotTextUnit.getId()).orElse(null));
   }
