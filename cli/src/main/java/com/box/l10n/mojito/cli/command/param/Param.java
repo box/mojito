@@ -32,7 +32,14 @@ public class Param {
   public static final String BRANCH_CREATED_BEFORE_LAST_WEEK_LONG = "--created-before-last-week";
   public static final String BRANCH_CREATED_BEFORE_LAST_WEEK_SHORT = "-cblw";
   public static final String BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION =
-      "Filter branches that were created before last week";
+      "DEPRECATED: Filter branches that were created before last week";
+
+  public static final String BRANCH_CREATED_BEFORE = "--created-before";
+  public static final String BRANCH_CREATED_BEFORE_SHORT = "-cb";
+  public static final String BRANCH_CREATED_BEFORE_DESCRIPTION =
+      "Filter branches that were created before the given timeframe (D - days, W - weeks, M - months and Y - years, with values from 1 to 999). e.g: 2W";
+  public static final String BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE =
+      "(D - days, W - weeks, M - months and Y - years, with values from 1 to 999). e.g: 2W";
 
   public static final String REPOSITORY_LONG = "--repository";
   public static final String REPOSITORY_SHORT = "-r";

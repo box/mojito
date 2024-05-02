@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE;
+
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileFinder;
@@ -24,14 +26,22 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -51,6 +61,11 @@ public class CommandHelper {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
 
+  // Regex for timeframes (the placeholder will be replaced by all {@link TimeframeType} values)
+  private static final String TIMEFRAMES_REGEX_PLACEHOLDER = "^[1-9][0-9]{0,2}[%s]$";
+
+  private static final Map<TimeframeType, Function<Integer, Period>> TIMEFRAME_FUNCTIONS;
+
   /** Supported BOM */
   private final ByteOrderMark[] boms = {
     ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE
@@ -61,6 +76,14 @@ public class CommandHelper {
   @Autowired PollableTaskClient pollableTaskClient;
 
   @Autowired ConsoleWriter consoleWriter;
+
+  static {
+    TIMEFRAME_FUNCTIONS = new HashMap<>();
+    TIMEFRAME_FUNCTIONS.put(TimeframeType.DAYS, Period::ofDays);
+    TIMEFRAME_FUNCTIONS.put(TimeframeType.WEEKS, Period::ofWeeks);
+    TIMEFRAME_FUNCTIONS.put(TimeframeType.MONTHS, Period::ofMonths);
+    TIMEFRAME_FUNCTIONS.put(TimeframeType.YEARS, Period::ofYears);
+  }
 
   /**
    * @param repositoryName Name of repository
@@ -358,6 +381,54 @@ public class CommandHelper {
       dateTime = JSR310Migration.dateTimeNowInUTC().minusWeeks(1);
     }
     return dateTime;
+  }
+
+  private static String getTimeframesRegexPlaceholder() {
+    final StringJoiner timeframeRegexJoiner = new StringJoiner("|");
+    Arrays.stream(TimeframeType.values())
+        .forEach(
+            timeframeType ->
+                timeframeRegexJoiner
+                    .add(String.valueOf(timeframeType.getAbbreviationInUpperCase()))
+                    .add(String.valueOf(timeframeType.getAbbreviationInLowerCase())));
+    return String.format(TIMEFRAMES_REGEX_PLACEHOLDER, timeframeRegexJoiner);
+  }
+
+  private static int getTimeframe(String input, TimeframeType timeframeType) {
+    String regex =
+        String.format(
+            "\\d+(?=[%c|%c])",
+            timeframeType.getAbbreviationInUpperCase(), timeframeType.getAbbreviationInLowerCase());
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(input);
+    if (matcher.find()) {
+      return Integer.parseInt(matcher.group());
+    }
+    return 0;
+  }
+
+  static ZonedDateTime getCreatedBeforeDateTime(final String timeframe) {
+    if (!timeframe.matches(getTimeframesRegexPlaceholder())) {
+      throw new CommandException(
+          String.format(
+              "Please enter a single valid timeframe %s",
+              BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE));
+    }
+    final List<Period> periods = new ArrayList<>();
+    Arrays.stream(TimeframeType.values())
+        .forEach(
+            timeframeType -> {
+              if (TIMEFRAME_FUNCTIONS.containsKey(timeframeType)) {
+                periods.add(
+                    TIMEFRAME_FUNCTIONS
+                        .get(timeframeType)
+                        .apply(getTimeframe(timeframe, timeframeType)));
+              }
+            });
+    final Optional<Period> optionalPeriod =
+        periods.stream().filter(period -> !period.isZero()).findFirst();
+    final ZonedDateTime createdBeforeDateTime = JSR310Migration.dateTimeNowInUTC();
+    return optionalPeriod.map(createdBeforeDateTime::minus).orElse(createdBeforeDateTime);
   }
 
   /**

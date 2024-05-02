@@ -1,5 +1,9 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_LONG;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_SHORT;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
@@ -15,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class BranchDeleteCommandTest extends CLITestBase {
@@ -161,6 +166,156 @@ public class BranchDeleteCommandTest extends CLITestBase {
 
     getL10nJCommander().run("branch-delete", "-r", repository.getName(), "-nr", "(?!^master$).*");
     checkBranches("", repository, null, null, "master");
+  }
+
+  @Test
+  public void testCreatedBeforeParameter() throws Exception {
+    final String masterBranchName = "master";
+    final String pushCommandName = "push";
+    final String branchDeleteCommandName = "branch-delete";
+    Repository repository = createTestRepoUsingRepoService("repository-test", false);
+
+    getL10nJCommander()
+        .run(
+            pushCommandName,
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    final String oneMonthBranchName = "1-month-branch";
+    final String tenDaysBranchName = "10-days-branch";
+    Stream.of(masterBranchName, oneMonthBranchName, tenDaysBranchName)
+        .forEach(
+            branchName -> {
+              getL10nJCommander()
+                  .run(
+                      pushCommandName,
+                      "-r",
+                      repository.getName(),
+                      "-s",
+                      getInputResourcesTestDir("source").getAbsolutePath(),
+                      "-b",
+                      branchName);
+            });
+
+    com.box.l10n.mojito.entity.Branch oneMonthBranch =
+        branchRepository.findByNameAndRepository(oneMonthBranchName, repository);
+    oneMonthBranch.setCreatedDate(ZonedDateTime.now().minusMonths(1));
+    branchRepository.save(oneMonthBranch);
+
+    com.box.l10n.mojito.entity.Branch tenDaysBranch =
+        branchRepository.findByNameAndRepository(tenDaysBranchName, repository);
+    tenDaysBranch.setCreatedDate(ZonedDateTime.now().minusDays(10));
+    branchRepository.save(tenDaysBranch);
+
+    L10nJCommander commander = getL10nJCommander();
+    commander.consoleWriter = Mockito.spy(commander.consoleWriter);
+    commander.run(
+        branchDeleteCommandName,
+        "-r",
+        repository.getName(),
+        "-nr",
+        tenDaysBranchName,
+        BRANCH_CREATED_BEFORE_SHORT,
+        String.format(
+            "3%c2%c",
+            TimeframeType.DAYS.getAbbreviationInUpperCase(),
+            TimeframeType.WEEKS.getAbbreviationInUpperCase()));
+    Mockito.verify(commander.consoleWriter, Mockito.times(1))
+        .a(
+            String.format(
+                "Please enter a single valid timeframe %s",
+                BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE));
+
+    commander = getL10nJCommander();
+    commander.consoleWriter = Mockito.spy(commander.consoleWriter);
+    commander.run(
+        branchDeleteCommandName,
+        "-r",
+        repository.getName(),
+        "-nr",
+        tenDaysBranchName,
+        BRANCH_CREATED_BEFORE_SHORT,
+        String.format("9991%c", TimeframeType.DAYS.getAbbreviationInUpperCase()));
+    Mockito.verify(commander.consoleWriter, Mockito.times(1))
+        .a(
+            String.format(
+                "Please enter a single valid timeframe %s",
+                BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE));
+
+    commander = getL10nJCommander();
+    commander.consoleWriter = Mockito.spy(commander.consoleWriter);
+    commander.run(
+        branchDeleteCommandName,
+        "-r",
+        repository.getName(),
+        "-nr",
+        tenDaysBranchName,
+        BRANCH_CREATED_BEFORE_SHORT,
+        "3R");
+    Mockito.verify(commander.consoleWriter, Mockito.times(1))
+        .a(
+            String.format(
+                "Please enter a single valid timeframe %s",
+                BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE));
+
+    commander = getL10nJCommander();
+    commander.consoleWriter = Mockito.spy(commander.consoleWriter);
+    commander.run(
+        branchDeleteCommandName,
+        "-r",
+        repository.getName(),
+        "-nr",
+        tenDaysBranchName,
+        BRANCH_CREATED_BEFORE_SHORT,
+        "3D",
+        BRANCH_CREATED_BEFORE_LAST_WEEK_LONG);
+    Mockito.verify(commander.consoleWriter, Mockito.times(1))
+        .a(
+            String.format(
+                "Please, pick only one of these parameters: %s or %s",
+                BRANCH_CREATED_BEFORE_LAST_WEEK_LONG, BRANCH_CREATED_BEFORE));
+
+    checkBranches(
+        "This should show all the branches",
+        repository,
+        null,
+        null,
+        null,
+        masterBranchName,
+        oneMonthBranchName,
+        tenDaysBranchName);
+
+    getL10nJCommander()
+        .run(
+            branchDeleteCommandName,
+            "-r",
+            repository.getName(),
+            "-nr",
+            String.format("(%s|%s)", oneMonthBranchName, tenDaysBranchName),
+            BRANCH_CREATED_BEFORE_SHORT,
+            String.format("3%c", TimeframeType.WEEKS.getAbbreviationInUpperCase()));
+
+    checkBranches(
+        "Should only delete oneMonthBranchName",
+        repository,
+        null,
+        null,
+        null,
+        masterBranchName,
+        tenDaysBranchName);
+
+    getL10nJCommander()
+        .run(
+            branchDeleteCommandName,
+            "-r",
+            repository.getName(),
+            "-nr",
+            tenDaysBranchName,
+            BRANCH_CREATED_BEFORE_SHORT,
+            String.format("1%c", TimeframeType.WEEKS.getAbbreviationInLowerCase()));
+    checkBranches("Should delete fiveDaysBranch", repository, null, null, null, masterBranchName);
   }
 
   void checkBranches(

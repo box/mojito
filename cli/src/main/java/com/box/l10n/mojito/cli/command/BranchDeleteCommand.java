@@ -1,8 +1,11 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_DESCRIPTION;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_LONG;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_SHORT;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_SHORT;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_DESCRIPTION;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_LONG;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_SHORT;
@@ -19,6 +22,7 @@ import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -81,6 +85,12 @@ public class BranchDeleteCommand extends Command {
       description = BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION)
   boolean beforeLastWeek;
 
+  @Parameter(
+      names = {BRANCH_CREATED_BEFORE, BRANCH_CREATED_BEFORE_SHORT},
+      arity = 1,
+      description = BRANCH_CREATED_BEFORE_DESCRIPTION)
+  String createdBefore = null;
+
   @Override
   public void execute() throws CommandException {
     consoleWriter
@@ -91,6 +101,19 @@ public class BranchDeleteCommand extends Command {
         .println();
     Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
+    ZonedDateTime createdBeforeDateTime =
+        this.commandHelper.getLastWeekDateIfTrue(this.beforeLastWeek);
+    if (this.createdBefore != null) {
+      if (createdBeforeDateTime == null) {
+        createdBeforeDateTime = CommandHelper.getCreatedBeforeDateTime(this.createdBefore);
+      } else {
+        throw new CommandException(
+            String.format(
+                "Please, pick only one of these parameters: %s or %s",
+                BRANCH_CREATED_BEFORE_LAST_WEEK_LONG, BRANCH_CREATED_BEFORE));
+      }
+    }
+
     List<Branch> branches =
         repositoryClient.getBranches(
             repository.getId(),
@@ -99,7 +122,7 @@ public class BranchDeleteCommand extends Command {
             false,
             translated,
             includeNullBranch,
-            commandHelper.getLastWeekDateIfTrue(beforeLastWeek));
+            createdBeforeDateTime);
 
     for (Branch branch : branches) {
       consoleWriter
