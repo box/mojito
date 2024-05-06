@@ -989,6 +989,7 @@ insert into locale (id, bcp47_tag) values (1637, 'zh-Hant-alt-long');
 insert into locale (id, bcp47_tag) values (1638, 'zun');
 insert into locale (id, bcp47_tag) values (1639, 'zxx');
 insert into locale (id, bcp47_tag) values (1640, 'zza');
+insert into locale (id, bcp47_tag) values (1641, 'bn-BD');
 
 
 insert into plural_form (id, name) values (1, 'one');
