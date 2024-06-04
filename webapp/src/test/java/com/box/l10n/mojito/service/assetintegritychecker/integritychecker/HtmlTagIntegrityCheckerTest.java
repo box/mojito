@@ -47,6 +47,20 @@ public class HtmlTagIntegrityCheckerTest {
   }
 
   @Test(expected = HtmlTagIntegrityCheckerException.class)
+  public void testHtmlTagCheckWorksWhenEndingFirst() {
+    String source = "There are <b>%1</b> files";
+    String target = "Il y a %1 </b>fichiers<b> et %2 dossiers";
+    checker.check(source, target);
+  }
+
+  @Test(expected = HtmlTagIntegrityCheckerException.class)
+  public void testHtmlTagCheckWorksWhenCrossing() {
+    String source = "There are <b>%1</b> files and <u>%2</u> folders";
+    String target = "Il y a %1 <b>fichiers <u></b> et %2</u> dossiers";
+    checker.check(source, target);
+  }
+
+  @Test(expected = HtmlTagIntegrityCheckerException.class)
   public void testHtmlTagCheckWorksWhenTagIsModified() {
     String source = "There are <b>%1</b> files and %2 folders";
     String target = "Il y a <u>%1</u> fichiers et %2 dossiers";
