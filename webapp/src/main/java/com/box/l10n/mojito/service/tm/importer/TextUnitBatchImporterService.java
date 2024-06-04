@@ -158,8 +158,7 @@ public class TextUnitBatchImporterService {
                                       meterRegistry,
                                       "TextUnitBatchImporterService.importTextUnits.batch")
                                   .tag("repository", asset.getRepository().getName())
-                                  .tag("asset", asset.getPath())
-                                  .tag("locale", locale.getBcp47Tag())) {
+                                  .tag("asset", asset.getPath())) {
 
                             mapTextUnitsToImportWithExistingTextUnits(
                                 locale, asset, textUnitsForBatchImport);
@@ -169,8 +168,7 @@ public class TextUnitBatchImporterService {
                                           meterRegistry,
                                           "TextUnitBatchImporterService.importTextUnits.integrityChecks")
                                       .tag("repository", asset.getRepository().getName())
-                                      .tag("asset", asset.getPath())
-                                      .tag("locale", locale.getBcp47Tag())) {
+                                      .tag("asset", asset.getPath())) {
 
                                 applyIntegrityChecks(
                                     asset,
