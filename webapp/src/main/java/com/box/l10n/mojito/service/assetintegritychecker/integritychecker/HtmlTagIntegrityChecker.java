@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -20,7 +21,7 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
 
   @Override
   public String getRegex() {
-    return "(<\\w+(\\s+\\w+(\\s*=\\s*('(\\\'|[^'])*?'|\"(\\\"|[^\"])*?\")))*?>|</\\w+>)";
+    return "(<\\w+(\\s+\\w+(\\s*=\\s*('([^']*?)'|\"([^\"]*?)\"))?)*\\s*/?>|</\\w+>)";
   }
 
   @Override
@@ -37,6 +38,11 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
     if (!sourceHtmlTags.containsAll(targetHtmlTags)
         || !targetHtmlTags.containsAll(sourceHtmlTags)) {
       throw new HtmlTagIntegrityCheckerException("HTML tags in source and target are different");
+    }
+
+    logger.debug("Make sure the target tags are in valid order");
+    if (!isValidTagOrder(targetHtmlTags)) {
+      throw new HtmlTagIntegrityCheckerException("HTML tags in target are not in valid order");
     }
   }
 
@@ -59,5 +65,27 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
     }
 
     return tags;
+  }
+
+  public static boolean isValidTagOrder(List<String> tags) {
+
+    boolean res = true;
+
+    ArrayDeque<String> stack = new ArrayDeque<>();
+
+    for (String tag : tags) {
+      if (!tag.startsWith("</")) {
+        stack.push(tag);
+      } else {
+        if (stack.isEmpty()
+            || !stack.peek().startsWith(tag.substring(0, tag.length() - 1).replace("</", "<"))) {
+          res = false;
+          break;
+        }
+        stack.pop();
+      }
+    }
+
+    return res;
   }
 }
