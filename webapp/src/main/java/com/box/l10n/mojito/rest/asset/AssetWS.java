@@ -124,7 +124,7 @@ public class AssetWS {
 
     Repository repository =
         repositoryRepository
-            .findById(sourceAsset.getRepositoryId())
+            .findNoGraphById(sourceAsset.getRepositoryId())
             .orElseThrow(
                 () -> new RepositoryWithIdNotFoundException(sourceAsset.getRepositoryId()));
 
