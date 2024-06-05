@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.hc.client5.http.cookie.Cookie;
@@ -43,7 +44,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
   public static final String CSRF_PARAM_NAME = "_csrf";
   public static final String CSRF_HEADER_NAME = "X-CSRF-TOKEN";
-  public static final String COOKIE_SESSION_NAME = "JSESSIONID";
+  public static final Set<String> COOKIE_SESSION_NAMES = Set.of("SESSION", "JSESSIONID");
 
   @Autowired FormLoginConfig formLoginConfig;
 
@@ -223,12 +224,13 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
   }
 
   /**
-   * @return null if no sesson id cookie is found
+   * @return null if no session id cookie is found
    */
   protected String getAuthenticationSessionIdFromCookieStore() {
     List<Cookie> cookies = cookieStore.getCookies();
+
     for (Cookie cookie : cookies) {
-      if (cookie.getName().equals(COOKIE_SESSION_NAME)) {
+      if (COOKIE_SESSION_NAMES.contains(cookie.getName())) {
         String cookieValue = cookie.getValue();
         logger.debug("Found session cookie: {}", cookieValue);
         return cookieValue;
