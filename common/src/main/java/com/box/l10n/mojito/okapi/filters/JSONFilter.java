@@ -48,6 +48,18 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
    */
   boolean noteKeepOrReplace = false;
 
+  /**
+   * Remove the suffix from the key.
+   *
+   * <p>Typically useful for FormatJS:
+   *
+   * <p>"text-unit-name": { "defaultMessage": "example", "description": "example description" }
+   *
+   * <p>text unit name would be text-unit-name/defaultMessage. With removeKeySuffix set, the
+   * "/defaultMessage" can be removed.
+   */
+  String removeKeySuffix = null;
+
   NoteAnnotation noteAnnotation;
   UsagesAnnotation usagesAnnotation;
   String currentKeyName;
@@ -110,6 +122,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
       filterOptions.getString("usagesKeyPattern", s -> usagesKeyPattern = Pattern.compile(s));
       filterOptions.getBoolean("noteKeepOrReplace", b -> noteKeepOrReplace = b);
       filterOptions.getBoolean("usagesKeepOrReplace", b -> usagesKeepOrReplace = b);
+      filterOptions.getString("removeKeySuffix", s -> removeKeySuffix = s);
       filterOptions.getBoolean(
           "convertToHtmlCodes",
           b -> {
@@ -119,6 +132,18 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
             }
           });
     }
+  }
+
+  @Override
+  public Event next() {
+    Event next = super.next();
+
+    if (next.isTextUnit()) {
+      ITextUnit textUnit = next.getTextUnit();
+      textUnit.setName(removeKeySuffixIfMatch(textUnit.getName()));
+    }
+
+    return next;
   }
 
   @Override
@@ -168,6 +193,17 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     }
 
     noteAnnotation.add(note);
+  }
+
+  String removeKeySuffixIfMatch(String key) {
+    if (removeKeySuffix != null) {
+      if (key.endsWith(removeKeySuffix)) {
+        key = key.substring(0, key.length() - removeKeySuffix.length());
+        logger.info("Remove suffix from key: {}", key);
+        getEventTextUnit().setName(key);
+      }
+    }
+    return key;
   }
 
   void extractNoteIfMatch(String value) {
