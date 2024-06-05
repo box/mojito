@@ -7,6 +7,7 @@ mkdir local/
 cd local/
 ln -s ~/.l10n/config
 ln -s ~/code/mojito-deploy/
+ln -s ~/tmp/mojito
 ```
 
 ## Simplest way to get everything to work quickly (but slower that intellij incremental update)
