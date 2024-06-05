@@ -3902,6 +3902,86 @@ public class TMServiceTest extends ServiceTestBase {
       logger.debug("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
     }
 
+    assertEquals("hello_world/string", textUnitDTOs.get(0).getName());
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "en-GB",
+            null,
+            jsonFilterOptions,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedContent, localizedAsset);
+  }
+
+  @Test
+  public void testLocalizeJsonRemoveKeySuffix() throws Exception {
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+
+    List<String> jsonFilterOptions =
+        Arrays.asList(
+            "useFullKeyPath=true",
+            "extractAllPairs=false",
+            "exceptions=.*/string",
+            "removeKeySuffix=/string");
+
+    String assetContent =
+        "{\n"
+            + "  \"this to ignore\": {\n"
+            + "    \"k1\": \"v1\"\n"
+            + "  },\n"
+            + "  \"hello_world\": {\n"
+            + "    \"string\": \"Hello World\",\n"
+            + "    \"note\": \"The start of every language book.\"\n"
+            + "  },\n"
+            + "  \"num_photos\": {\n"
+            + "    \"string\": \"You have {numPhotos, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}\",\n"
+            + "    \"note\": \"A description that shows the number of photos a user has.\"\n"
+            + "  }\n"
+            + "}";
+    String expectedContent = assetContent;
+
+    asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(),
+            asset.getPath(),
+            assetContent,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            jsonFilterOptions);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(2, textUnitDTOs.size());
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.debug("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+    }
+
+    assertEquals("hello_world", textUnitDTOs.get(0).getName());
+
     String localizedAsset =
         tmService.generateLocalized(
             asset,

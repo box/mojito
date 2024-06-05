@@ -679,6 +679,58 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
   }
 
   @Test
+  public void importJsonDefaultFormatJsCompiled() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "JSON_NOBASENAME",
+            "-fo",
+            "noteKeyPattern=description",
+            "extractAllPairs=false",
+            "exceptions=defaultMessage",
+            "removeKeySuffix=/defaultMessage");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "JSON_NOBASENAME");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "JSON_NOBASENAME",
+            "-fo",
+            "noteKeyPattern=description",
+            "extractAllPairs=false",
+            "exceptions=defaultMessage",
+            "removeKeySuffix=/defaultMessage");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void importJsonI18NextParser() throws Exception {
 
     Repository repository = createTestRepoUsingRepoService();
