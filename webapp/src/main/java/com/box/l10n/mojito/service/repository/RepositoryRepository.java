@@ -27,6 +27,8 @@ public interface RepositoryRepository
   @Override
   Optional<Repository> findById(Long aLong);
 
+  Optional<Repository> findNoGraphById(Long aLong);
+
   @Override
   List<Repository> findAll(Specification<Repository> s, Sort sort);
 
