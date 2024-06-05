@@ -6,21 +6,21 @@ import java.util.regex.Matcher;
 
 public class MarkdownLinkIntegrityChecker extends RegexIntegrityChecker {
 
-    @Override
-    public String getRegex() {
-        return "\\[(?<text>.+?)]\\((?<url>.+?)\\)";
-    }
+  @Override
+  public String getRegex() {
+    return "\\[(?<text>.+?)]\\((?<url>.+?)\\)";
+  }
 
-    @Override
-    Set<String> getPlaceholders(String string) {
-        Set<String> placeholders = new LinkedHashSet<>();
+  @Override
+  Set<String> getPlaceholders(String string) {
+    Set<String> placeholders = new LinkedHashSet<>();
 
-        if (string != null) {
-            Matcher matcher = getPattern().matcher(string);
-            while (matcher.find()) {
-                placeholders.add("[%s](%s)".formatted("--translatable--", matcher.group("url")));
-            }
-        }
-        return placeholders;
+    if (string != null) {
+      Matcher matcher = getPattern().matcher(string);
+      while (matcher.find()) {
+        placeholders.add("[%s](%s)".formatted("--translatable--", matcher.group("url")));
+      }
     }
+    return placeholders;
+  }
 }
