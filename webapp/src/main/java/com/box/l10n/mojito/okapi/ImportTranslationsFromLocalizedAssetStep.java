@@ -117,6 +117,35 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     }
   }
 
+  @Override
+  protected TMTextUnitVariant importTextUnit(
+      TMTextUnit tmTextUnit,
+      TextContainer target,
+      TMTextUnitVariant.Status status,
+      ZonedDateTime createdDate) {
+
+    for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
+      try {
+        textUnitIntegrityChecker.check(tmTextUnit.getContent(), target.toString());
+      } catch (IntegrityCheckException integrityCheckException) {
+        TMTextUnitVariantCommentAnnotation tmTextUnitVariantCommentAnnotation =
+            new TMTextUnitVariantCommentAnnotation();
+        tmTextUnitVariantCommentAnnotation.setCommentType(
+            TMTextUnitVariantComment.Type.INTEGRITY_CHECK);
+
+        tmTextUnitVariantCommentAnnotation.setMessage(integrityCheckException.getMessage());
+
+        tmTextUnitVariantCommentAnnotation.setSeverity(
+            TMTextUnitVariantComment.Severity.ERROR);
+
+        new TMTextUnitVariantCommentAnnotations(target)
+            .addAnnotation(tmTextUnitVariantCommentAnnotation);
+      }
+    }
+
+    return super.importTextUnit(tmTextUnit, target, status, createdDate);
+  }
+
   void initTextUnitsMapByMd5() {
     logger.debug("initTextUnitsMapByMd5");
     List<TMTextUnit> textUnits = tmTextUnitRepository.findByAsset(asset);
