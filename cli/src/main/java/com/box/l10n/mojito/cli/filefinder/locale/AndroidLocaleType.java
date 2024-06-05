@@ -19,6 +19,10 @@ public class AndroidLocaleType extends LocaleType {
 
     String androidLocale = forLanguageTag.getLanguage();
 
+    if (targetLocale.startsWith("in")) {
+      androidLocale = "in";
+    }
+
     if (!Strings.isNullOrEmpty(forLanguageTag.getCountry())) {
       androidLocale += "-r" + forLanguageTag.getCountry();
     }

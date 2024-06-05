@@ -26,4 +26,31 @@ public class AndroidLocaleTypeTest {
     String result = instance.getTargetLocaleRepresentation(targetLocale);
     assertEquals(expResult, result);
   }
+
+  @Test
+  public void testGetTargetLocaleIndonesianOld() {
+    String targetLocale = "in";
+    AndroidLocaleType instance = new AndroidLocaleType();
+    String expResult = "in";
+    String result = instance.getTargetLocaleRepresentation(targetLocale);
+    assertEquals(expResult, result);
+  }
+
+  @Test
+  public void testGetTargetLocaleIndonesianIndonesiaOld() {
+    String targetLocale = "in-ID";
+    AndroidLocaleType instance = new AndroidLocaleType();
+    String expResult = "in-rID";
+    String result = instance.getTargetLocaleRepresentation(targetLocale);
+    assertEquals(expResult, result);
+  }
+
+  @Test
+  public void testGetTargetLocaleIndonesianNew() {
+    String targetLocale = "id";
+    AndroidLocaleType instance = new AndroidLocaleType();
+    String expResult = "id";
+    String result = instance.getTargetLocaleRepresentation(targetLocale);
+    assertEquals(expResult, result);
+  }
 }
