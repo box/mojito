@@ -5,16 +5,25 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotation;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotations;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
@@ -33,6 +42,8 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
   @Autowired TextUnitSearcher textUnitSearcher;
 
+  @Autowired IntegrityCheckerFactory integrityCheckerFactory;
+
   Asset asset;
   RepositoryLocale repositoryLocale;
   StatusForEqualTarget statusForEqualTarget;
@@ -42,6 +53,8 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
   ArrayListMultimap<String, TMTextUnit> textUnitsByNameUnused = ArrayListMultimap.create();
 
   TranslatorWithInheritance translatorWithInheritance;
+
+  private Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
 
   boolean hasTranslationWithoutInheritance;
 
@@ -67,6 +80,17 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     translatorWithInheritance =
         new TranslatorWithInheritance(asset, repositoryLocale, InheritanceMode.USE_PARENT);
     hasTranslationWithoutInheritance = translatorWithInheritance.hasTranslationWithoutInheritance();
+
+    textUnitIntegrityCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
+    if (textUnitIntegrityCheckers.isEmpty()) {
+      logger.debug("There is no integrity checkers for asset id {}", asset.getId());
+    } else {
+      logger.debug(
+          "Found {} integrity checker(s) for asset id {}",
+          textUnitIntegrityCheckers.size(),
+          asset.getId());
+    }
+
     return event;
   }
 
@@ -115,6 +139,35 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     for (TMTextUnit tmTextUnit : textUnitsUnused) {
       textUnitsByNameUnused.put(tmTextUnit.getName(), tmTextUnit);
     }
+  }
+
+  @Override
+  protected TMTextUnitVariant importTextUnit(
+      TMTextUnit tmTextUnit,
+      TextContainer target,
+      TMTextUnitVariant.Status status,
+      ZonedDateTime createdDate) {
+
+    for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
+      try {
+        textUnitIntegrityChecker.check(source, tmTextUnit.getContent());
+      } catch (IntegrityCheckException integrityCheckException) {
+        TMTextUnitVariantCommentAnnotation tmTextUnitVariantCommentAnnotation =
+            new TMTextUnitVariantCommentAnnotation();
+        tmTextUnitVariantCommentAnnotation.setCommentType(
+            TMTextUnitVariantComment.Type.INTEGRITY_CHECK);
+
+        tmTextUnitVariantCommentAnnotation.setMessage(integrityCheckException.getMessage());
+
+        tmTextUnitVariantCommentAnnotation.setSeverity(
+            TMTextUnitVariantComment.Severity.ERROR); // dial it down for plural strings?
+
+        new TMTextUnitVariantCommentAnnotations(target)
+            .addAnnotation(tmTextUnitVariantCommentAnnotation);
+      }
+    }
+
+    return super.importTextUnit(tmTextUnit, target, status, createdDate);
   }
 
   void initTextUnitsMapByMd5() {
