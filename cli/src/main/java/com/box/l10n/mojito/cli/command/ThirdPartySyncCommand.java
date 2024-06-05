@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Parameters(
     commandNames = {"thirdparty-sync", "tps"},
     commandDescription =
-        "Third-party command to sychronize text units and screenshots with third party TMS")
+        "Third-party command to synchronize text units and screenshots with third party TMS")
 public class ThirdPartySyncCommand extends Command {
 
   /** logger */
