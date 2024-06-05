@@ -47,4 +47,19 @@ public class SimpleFileEditorCommandTest extends CLITestBase {
 
     checkExpectedGeneratedResources();
   }
+
+  @Test
+  public void macStringsRemoveComments() {
+
+    getL10nJCommander()
+        .run(
+            "simple-file-editor",
+            "-i",
+            getInputResourcesTestDir().getAbsolutePath(),
+            "-o",
+            getTargetTestDir().getAbsolutePath(),
+            "--macstrings-remove-comments");
+
+    checkExpectedGeneratedResources();
+  }
 }

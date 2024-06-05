@@ -41,6 +41,8 @@ public class SimpleFileEditorCommand extends Command {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(SimpleFileEditorCommand.class);
 
+  static final String COMMENTS_PATTERN = "(?s)/*\\*.*?\\*/";
+
   @Autowired ConsoleWriter consoleWriter;
 
   @Autowired CommandHelper commandHelper;
@@ -78,6 +80,12 @@ public class SimpleFileEditorCommand extends Command {
   boolean removeUsagesInMacStrings = false;
 
   @Parameter(
+      names = {"--macstrings-remove-comments"},
+      required = false,
+      description = "To remove comments from both Mac strings")
+  boolean removeCommentsInMacStrings = false;
+
+  @Parameter(
       names = {"--json-indent"},
       required = false,
       description = "To indent JSON files")
@@ -105,6 +113,10 @@ public class SimpleFileEditorCommand extends Command {
 
     if (removeUsagesInMacStrings) {
       removeUsagesInMacStringsAndStringDict();
+    }
+
+    if (removeCommentsInMacStrings) {
+      removeCommentsInMacStrings();
     }
 
     if (indentJson) {
@@ -180,6 +192,39 @@ public class SimpleFileEditorCommand extends Command {
                   commandHelper
                       .getFileContent(inputPath)
                       .replaceAll(ExtractUsagesFromTextUnitComments.USAGES_PATTERN, "");
+              writeOutputFile(inputPath, modifiedContent);
+            });
+  }
+
+  void removeCommentsInMacStrings() throws CommandException {
+    MacStringsFileType fileType = new MacStringsFileType();
+
+    commandDirectories
+        .listFilesWithExtensionInSourceDirectory(
+            fileType.getSourceFileExtension(), fileType.getTargetFileExtension())
+        .stream()
+        .filter(
+            path ->
+                fileType
+                        .getSourceFilePattern()
+                        .getPattern()
+                        .matcher(path.toAbsolutePath().toString())
+                        .matches()
+                    || fileType
+                        .getTargetFilePattern()
+                        .getPattern()
+                        .matcher(path.toAbsolutePath().toString())
+                        .matches())
+        .filter(getInputFilterMatch())
+        .forEach(
+            inputPath -> {
+              consoleWriter
+                  .a(" - Remove comments: ")
+                  .fg(Ansi.Color.MAGENTA)
+                  .a(inputPath.toString())
+                  .print();
+              String modifiedContent =
+                  commandHelper.getFileContent(inputPath).replaceAll(COMMENTS_PATTERN, "");
               writeOutputFile(inputPath, modifiedContent);
             });
   }
