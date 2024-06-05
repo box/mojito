@@ -11,7 +11,6 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.LocaleClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
-import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForEqualTarget;
@@ -22,6 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,6 +124,12 @@ public class ImportLocalizedAssetCommand extends Command {
       converter = ImportLocalizedAssetBodyStatusForEqualTargetConverter.class)
   StatusForEqualTarget statusForEqualTarget = StatusForEqualTarget.APPROVED;
 
+  @Parameter(
+      names = {"--continue-on-error"},
+      arity = 0,
+      description = "Continue import on errors")
+  boolean continueOnError = false;
+
   @Autowired AssetClient assetClient;
 
   @Autowired LocaleClient localeClient;
@@ -163,15 +169,37 @@ public class ImportLocalizedAssetCommand extends Command {
             sourcePathFilterRegex,
             directoriesIncludePatterns,
             directoriesExcludePatterns)) {
-      for (Locale locale : getLocalesForImport()) {
-        doImportFileMatch(sourceFileMatch, locale);
-      }
+
+      List<ImportLocalizedAssetBody> list =
+          getLocalesForImport().stream()
+              .map(locale -> doImportFileMatch(sourceFileMatch, locale))
+              .filter(Objects::nonNull)
+              .toList();
+
+      list.forEach(
+          importLocalizedAssetForContent -> {
+            try {
+              commandHelper.waitForPollableTask(
+                  importLocalizedAssetForContent.getPollableTask().getId());
+            } catch (CommandException e) {
+              if (continueOnError) {
+                consoleWriter
+                    .a("   Error while importing: ")
+                    .fg(Ansi.Color.RED)
+                    .a(sourceFileMatch.getPath().toString())
+                    .println();
+              } else {
+                throw e;
+              }
+            }
+          });
     }
 
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
   }
 
-  protected void doImportFileMatch(FileMatch fileMatch, Locale locale) throws CommandException {
+  protected ImportLocalizedAssetBody doImportFileMatch(FileMatch fileMatch, Locale locale)
+      throws CommandException {
     try {
       logger.info("Importing for locale: {}", locale.getBcp47Tag());
       Path targetPath = getTargetPath(fileMatch, locale);
@@ -185,26 +213,44 @@ public class ImportLocalizedAssetCommand extends Command {
       Asset assetByPathAndRepositoryId =
           assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
 
-      ImportLocalizedAssetBody importLocalizedAssetForContent =
-          assetClient.importLocalizedAssetForContent(
-              assetByPathAndRepositoryId.getId(),
-              locale.getId(),
-              commandHelper.getFileContent(targetPath),
-              statusForEqualTarget,
-              fileMatch.getFileType().getFilterConfigIdOverride(),
-              commandHelper.getFilterOptionsOrDefaults(
-                  fileMatch.getFileType(), filterOptionsParam));
-
+      String fileContent;
       try {
-        commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
-      } catch (PollableTaskException e) {
-        throw new CommandException(e.getMessage(), e.getCause());
+        fileContent = commandHelper.getFileContent(targetPath);
+      } catch (Exception e) {
+        if (continueOnError) {
+          if (!commandHelper.getFileContent(fileMatch.getPath()).isBlank()) {
+            consoleWriter
+                .a("   Missing file, skipping: ")
+                .fg(Ansi.Color.YELLOW)
+                .a(targetPath.toString())
+                .println();
+          }
+          return null;
+        } else {
+          throw e;
+        }
       }
+      return assetClient.importLocalizedAssetForContent(
+          assetByPathAndRepositoryId.getId(),
+          locale.getId(),
+          fileContent,
+          statusForEqualTarget,
+          fileMatch.getFileType().getFilterConfigIdOverride(),
+          commandHelper.getFilterOptionsOrDefaults(fileMatch.getFileType(), filterOptionsParam));
     } catch (AssetNotFoundException ex) {
-      throw new CommandException(
-          "No asset for file [" + fileMatch.getPath() + "] into repo [" + repositoryParam + "]",
-          ex);
+      if (continueOnError) {
+        consoleWriter
+            .a("   Asset not found: ")
+            .fg(Ansi.Color.YELLOW)
+            .a(fileMatch.getPath().toString())
+            .println();
+      } else {
+        throw new CommandException(
+            "No asset for file [" + fileMatch.getPath() + "] into repo [" + repositoryParam + "]",
+            ex);
+      }
     }
+    return null;
   }
 
   public Collection<Locale> getLocalesForImport() {
