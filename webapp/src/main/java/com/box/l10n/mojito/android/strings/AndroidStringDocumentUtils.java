@@ -11,8 +11,12 @@ public final class AndroidStringDocumentUtils {
       DocumentBuilderFactory.newInstance();
   static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
 
-  static DocumentBuilder documentBuilder() throws ParserConfigurationException {
-    return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+  static DocumentBuilder documentBuilder() {
+    try {
+      return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+    } catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private AndroidStringDocumentUtils() {
