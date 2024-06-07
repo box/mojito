@@ -296,7 +296,7 @@ public class ThirdPartyService {
     Set<Long> alreadyMappedTmTextUnitId =
         thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
 
-    Boolean allWithTmTextUnitId =
+    boolean allWithTmTextUnitId =
         thirdPartyTextUnitsToMap.stream()
             .map(ThirdPartyTextUnit::getTmTextUnitId)
             .allMatch(Objects::nonNull);
