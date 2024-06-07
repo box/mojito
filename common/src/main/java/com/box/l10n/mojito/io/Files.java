@@ -55,6 +55,14 @@ public class Files {
     }
   }
 
+  public static void readString(Path path, String content) {
+    try {
+      java.nio.file.Files.readString(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   public static Stream<String> lines(Path path) {
     try {
       return java.nio.file.Files.lines(path, StandardCharsets.UTF_8);
