@@ -50,8 +50,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -472,17 +470,10 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     SmartlingFile file = new SmartlingFile();
     file.setFileName(getOutputSourceFile(batchNumber, repository.getName(), filePrefix.getType()));
 
-    try {
-
-      logger.debug("Save source file to: {}", file.getFileName());
-      AndroidStringDocumentWriter writer =
-          new AndroidStringDocumentWriter(mapper.readFromSourceTextUnits(result));
-      file.setFileContent(writer.toText());
-
-    } catch (ParserConfigurationException | TransformerException e) {
-      logger.error("An error occurred when processing a push batch", e);
-      throw new RuntimeException(e);
-    }
+    logger.debug("Save source file to: {}", file.getFileName());
+    AndroidStringDocumentWriter writer =
+        new AndroidStringDocumentWriter(mapper.readFromSourceTextUnits(result));
+    file.setFileContent(writer.toText());
 
     if (!options.isDryRun()) {
       Mono.fromCallable(
@@ -753,26 +744,18 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       SmartlingFile file = new SmartlingFile();
       file.setFileName(targetFilename);
 
-      try {
+      logger.debug("Save target file to: {}", file.getFileName());
 
-        logger.debug("Save target file to: {}", file.getFileName());
-
-        if (filterTmTextUnitIds != null) {
-          fileBatch =
-              fileBatch.stream()
-                  .filter(
-                      textUnitDTO -> filterTmTextUnitIds.contains(textUnitDTO.getTmTextUnitId()))
-                  .collect(Collectors.toList());
-        }
-
-        AndroidStringDocumentWriter writer =
-            new AndroidStringDocumentWriter(mapper.readFromTargetTextUnits(batch));
-        file.setFileContent(writer.toText());
-
-      } catch (ParserConfigurationException | TransformerException e) {
-        logger.error("An error occurred when processing a push_translations batch", e);
-        throw new RuntimeException(e);
+      if (filterTmTextUnitIds != null) {
+        fileBatch =
+            fileBatch.stream()
+                .filter(textUnitDTO -> filterTmTextUnitIds.contains(textUnitDTO.getTmTextUnitId()))
+                .collect(Collectors.toList());
       }
+
+      AndroidStringDocumentWriter writer =
+          new AndroidStringDocumentWriter(mapper.readFromTargetTextUnits(batch));
+      file.setFileContent(writer.toText());
 
       if (!options.isDryRun()) {
         logger.debug(

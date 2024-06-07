@@ -21,10 +21,13 @@ public class AndroidStringDocumentReader {
     return buildFromDocument(documentBuilder().parse(new File(fileName)));
   }
 
-  public static AndroidStringDocument fromText(String text)
-      throws ParserConfigurationException, IOException, SAXException {
-    return buildFromDocument(
-        documentBuilder().parse(new InputSource(new StringReader(Strings.nullToEmpty(text)))));
+  public static AndroidStringDocument fromText(String text) {
+    try {
+      return buildFromDocument(
+          documentBuilder().parse(new InputSource(new StringReader(Strings.nullToEmpty(text)))));
+    } catch (SAXException | IOException e) {
+      throw new AndroidStringDocumentReaderException(e);
+    }
   }
 
   private static AndroidStringDocument buildFromDocument(Document source) {
