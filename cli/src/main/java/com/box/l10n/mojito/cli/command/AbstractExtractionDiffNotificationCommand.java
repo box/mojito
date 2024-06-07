@@ -4,7 +4,7 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
-import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
+import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryException;
 
 public abstract class AbstractExtractionDiffNotificationCommand extends Command {
 
@@ -30,9 +30,9 @@ public abstract class AbstractExtractionDiffNotificationCommand extends Command 
     try {
       extractionDiffStatistics =
           extractionDiffService.computeExtractionDiffStatistics(extractionDiffPaths);
-    } catch (MissingExtractionDirectoryExcpetion missingExtractionDirectoryExcpetion) {
+    } catch (MissingExtractionDirectoryException missingExtractionDirectoryException) {
       throw new CommandException(
-          "Can't compute extraction diff statistics", missingExtractionDirectoryExcpetion);
+          "Can't compute extraction diff statistics", missingExtractionDirectoryException);
     }
 
     return extractionDiffStatistics;

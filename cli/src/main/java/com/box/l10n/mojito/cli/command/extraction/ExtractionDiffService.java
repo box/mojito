@@ -56,10 +56,10 @@ public class ExtractionDiffService {
    *
    * @param extractionDiffPaths
    * @return
-   * @throws MissingExtractionDirectoryExcpetion
+   * @throws MissingExtractionDirectoryException
    */
   public ExtractionDiffStatistics computeExtractionDiffStatistics(
-      ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
+      ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryException {
 
     ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
     ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
@@ -112,7 +112,7 @@ public class ExtractionDiffService {
   }
 
   public List<AssetExtractionDiff> findAssetExtractionDiffsWithAddedTextUnits(
-      ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
+      ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryException {
 
     ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
     ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
@@ -134,10 +134,10 @@ public class ExtractionDiffService {
    * @param baseAssetExtraction
    * @param diffExtractionName
    * @param extractionDiffPaths
-   * @throws MissingExtractionDirectoryExcpetion
+   * @throws MissingExtractionDirectoryException
    */
   public void computeAndWriteDiffs(ExtractionDiffPaths extractionDiffPaths)
-      throws MissingExtractionDirectoryExcpetion {
+      throws MissingExtractionDirectoryException {
 
     ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
     ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
@@ -246,7 +246,7 @@ public class ExtractionDiffService {
   }
 
   void checkExtractionDirectoryExists(ExtractionPaths extractionPaths)
-      throws MissingExtractionDirectoryExcpetion {
+      throws MissingExtractionDirectoryException {
     Path extractionPath = extractionPaths.extractionPath();
 
     if (!extractionPath.toFile().exists()) {
@@ -254,7 +254,7 @@ public class ExtractionDiffService {
           MessageFormat.format(
               "There is no directory for extraction: {0}, can't compare",
               extractionPaths.getExtractionName());
-      throw new MissingExtractionDirectoryExcpetion(msg);
+      throw new MissingExtractionDirectoryException(msg);
     }
   }
 

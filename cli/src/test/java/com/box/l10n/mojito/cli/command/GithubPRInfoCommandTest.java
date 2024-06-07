@@ -63,6 +63,8 @@ public class GithubPRInfoCommandTest {
     verify(consoleWriterMock, times(1)).a("some");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=false");
+    verify(this.consoleWriterMock, times(1))
+        .a(String.format("%s=false", GithubPRInfoCommand.SKIP_MAX_STRINGS_BLOCK_FLAG));
   }
 
   @Test
@@ -78,6 +80,8 @@ public class GithubPRInfoCommandTest {
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=true");
     verify(ghIssueCommentMock, times(1)).createReaction(ReactionContent.PLUS_ONE);
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=false");
+    verify(this.consoleWriterMock, times(1))
+        .a(String.format("%s=false", GithubPRInfoCommand.SKIP_MAX_STRINGS_BLOCK_FLAG));
   }
 
   @Test
@@ -92,6 +96,8 @@ public class GithubPRInfoCommandTest {
     verify(consoleWriterMock, times(1)).a("some");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=true");
+    verify(this.consoleWriterMock, times(1))
+        .a(String.format("%s=false", GithubPRInfoCommand.SKIP_MAX_STRINGS_BLOCK_FLAG));
     verify(githubMock, times(1))
         .addCommentToPR(
             "testRepo",
@@ -114,6 +120,8 @@ public class GithubPRInfoCommandTest {
     verify(consoleWriterMock, times(1)).a("some");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=true");
+    verify(this.consoleWriterMock, times(1))
+        .a(String.format("%s=false", GithubPRInfoCommand.SKIP_MAX_STRINGS_BLOCK_FLAG));
     verify(githubMock, times(0))
         .addCommentToPR(
             "testRepo",
@@ -125,5 +133,23 @@ public class GithubPRInfoCommandTest {
   public void testGithubClientNotAvailable() {
     when(githubClientsMock.getClient(isA(String.class))).thenReturn(null);
     githubPRInfoCommand.execute();
+  }
+
+  @Test
+  public void testExecuteWithNumberOfStringsChecksSkipped() throws IOException {
+    when(this.githubMock.isLabelAppliedToPR(
+            "testRepo", 1, this.githubPRInfoCommand.skipMaxStringsBlockLabel))
+        .thenReturn(true);
+    this.githubPRInfoCommand.execute();
+    verify(this.consoleWriterMock, times(1)).a("MOJITO_GITHUB_BASE_COMMIT=");
+    verify(this.consoleWriterMock, times(1)).a("baseSha");
+    verify(this.consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_EMAIL=");
+    verify(this.consoleWriterMock, times(1)).a("some@email.com");
+    verify(this.consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_USERNAME=");
+    verify(this.consoleWriterMock, times(1)).a("some");
+    verify(this.consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
+    verify(this.consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=false");
+    verify(this.consoleWriterMock, times(1))
+        .a(String.format("%s=true", GithubPRInfoCommand.SKIP_MAX_STRINGS_BLOCK_FLAG));
   }
 }

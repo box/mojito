@@ -35,6 +35,8 @@ public class GithubPRInfoCommand extends Command {
 
   protected static final String SKIP_I18N_CHECKS_FLAG = "SKIP_I18N_CHECKS";
 
+  protected static final String SKIP_MAX_STRINGS_BLOCK_FLAG = "MOJITO_SKIP_MAX_STRINGS_BLOCK";
+
   @Qualifier("ansiCodeEnabledFalse")
   @Autowired
   ConsoleWriter consoleWriterAnsiCodeEnabledFalse;
@@ -79,6 +81,12 @@ public class GithubPRInfoCommand extends Command {
   String skipI18NPushComment =
       ":warning: I18N strings will not be pushed to Mojito as '%s' label is applied to this PR.";
 
+  @Parameter(
+      names = {"--skip-max-strings-block-label"},
+      arity = 1,
+      description = "Github label name that is used to trigger skipping max string blocks checks")
+  String skipMaxStringsBlockLabel = "skip-max-strings-block";
+
   @Override
   public void execute() throws CommandException {
 
@@ -118,6 +126,17 @@ public class GithubPRInfoCommand extends Command {
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_PUSH=true").println();
       } else {
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_PUSH=false").println();
+      }
+
+      if (github.isLabelAppliedToPR(
+          this.repository, this.prNumber, this.skipMaxStringsBlockLabel)) {
+        this.consoleWriterAnsiCodeEnabledFalse
+            .a(String.format("%s=true", SKIP_MAX_STRINGS_BLOCK_FLAG))
+            .println();
+      } else {
+        this.consoleWriterAnsiCodeEnabledFalse
+            .a(String.format("%s=false", SKIP_MAX_STRINGS_BLOCK_FLAG))
+            .println();
       }
 
     } catch (GithubException e) {

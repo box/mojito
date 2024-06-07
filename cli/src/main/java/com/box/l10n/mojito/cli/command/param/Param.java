@@ -210,4 +210,24 @@ public class Param {
   public static final String CREATION_DATE_SHORT = "-d";
   public static final String CREATION_DATE_DESCRIPTION =
       "The date when the commit was merged into the mainline branch.";
+
+  public static final String SLACK_NOTIFICATION_CHANNEL_LONG = "--slack-notification-channel";
+  public static final String SLACK_NOTIFICATION_CHANNEL_SHORT = "-snc";
+  public static final String SLACK_NOTIFICATION_CHANNEL_DESCRIPTION =
+      "Slack channel to which notifications are sent, required if sending Slack notifications.";
+
+  public static final String SKIP_MAX_STRINGS_BLOCK_LONG = "--skip-max_strings-block";
+  public static final String SKIP_MAX_STRINGS_BLOCK_SHORT = "-smsb";
+  public static final String SKIP_MAX_STRINGS_BLOCK_DESCRIPTION =
+      "If set to true, it bypasses the checks for the maximum number of strings added and removed.";
+
+  public static final String MAX_STRINGS_ADDED_BLOCK_LONG = "--max-strings-added-block";
+  public static final String MAX_STRINGS_ADDED_BLOCK_SHORT = "-msab";
+  public static final String MAX_STRINGS_ADDED_BLOCK_DESCRIPTION =
+      "The maximum number of strings to be added.";
+
+  public static final String MAX_STRINGS_REMOVED_BLOCK_LONG = "--max-strings-removed-block";
+  public static final String MAX_STRINGS_REMOVED_BLOCK_SHORT = "-msrb";
+  public static final String MAX_STRINGS_REMOVED_BLOCK_DESCRIPTION =
+      "The maximum number of strings to be removed.";
 }

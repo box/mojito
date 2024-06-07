@@ -16,7 +16,7 @@ import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
-import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
+import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryException;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderException;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderGithub;
@@ -318,7 +318,7 @@ public class ExtractionCheckCommand extends Command {
         } else {
           consoleWriter.newLine().a("No new strings in diff to be checked.").println();
         }
-      } catch (MissingExtractionDirectoryExcpetion missingExtractionDirectoryException) {
+      } catch (MissingExtractionDirectoryException missingExtractionDirectoryException) {
         throw new CommandException(
             "Can't compute extraction diffs", missingExtractionDirectoryException);
       }

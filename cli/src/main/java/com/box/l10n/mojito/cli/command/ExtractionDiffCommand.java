@@ -1,23 +1,30 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffNotificationSender;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
-import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
+import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryException;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.shell.Shell;
+import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -78,6 +85,12 @@ public class ExtractionDiffCommand extends Command {
           + ")";
   public static final String CURRENT_EXTRACTION_NAME_DESCRIPTION = "The current extraction name";
   public static final String BASE_EXTRACTION_NAME_DESCRIPTION = "The base extraction name";
+
+  public static final String MAX_STRINGS_ADDED_BLOCK_MESSAGE =
+      "The branch: %s has %d strings added. The changes will not be sent to Mojito as a result. If this a valid and expected change, decrease or disable the block limit from the current value of: %d";
+
+  public static final String MAX_STRINGS_REMOVED_BLOCK_MESSAGE =
+      "The branch: %s has %d strings removed. The changes will not be sent to Mojito as a result. If this a valid and expected change, decrease or disable the block limit from the current value of: %d";
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommand.class);
@@ -192,6 +205,30 @@ public class ExtractionDiffCommand extends Command {
       converter = AssetMappingConverter.class)
   Map<String, String> assetMapping;
 
+  @Parameter(
+      names = {Param.SLACK_NOTIFICATION_CHANNEL_LONG, Param.SLACK_NOTIFICATION_CHANNEL_SHORT},
+      arity = 1,
+      description = Param.SLACK_NOTIFICATION_CHANNEL_DESCRIPTION)
+  String slackNotificationChannel;
+
+  @Parameter(
+      names = {Param.SKIP_MAX_STRINGS_BLOCK_LONG, Param.SKIP_MAX_STRINGS_BLOCK_SHORT},
+      arity = 0,
+      description = Param.SKIP_MAX_STRINGS_BLOCK_DESCRIPTION)
+  boolean skipMaxStringsBlock = false;
+
+  @Parameter(
+      names = {Param.MAX_STRINGS_ADDED_BLOCK_LONG, Param.MAX_STRINGS_ADDED_BLOCK_SHORT},
+      arity = 1,
+      description = Param.MAX_STRINGS_ADDED_BLOCK_DESCRIPTION)
+  Integer maxStringsAddedBlock;
+
+  @Parameter(
+      names = {Param.MAX_STRINGS_REMOVED_BLOCK_LONG, Param.MAX_STRINGS_REMOVED_BLOCK_SHORT},
+      arity = 1,
+      description = Param.MAX_STRINGS_REMOVED_BLOCK_DESCRIPTION)
+  Integer maxStringsRemovedBlock;
+
   @Autowired ExtractionDiffService extractionDiffService;
 
   @Autowired ObjectMapper objectMapper;
@@ -200,8 +237,19 @@ public class ExtractionDiffCommand extends Command {
 
   @Autowired PushService pushService;
 
+  private Optional<ExtractionDiffNotificationSender> notificationSender;
+
+  // Method for testing purposes
+  protected Optional<ExtractionDiffNotificationSender> getNotificationSender() {
+    if (!Strings.isNullOrEmpty(this.slackNotificationChannel)) {
+      return of(new ExtractionDiffNotificationSender(this.slackNotificationChannel));
+    }
+    return empty();
+  }
+
   @Override
   public void execute() throws CommandException {
+    this.notificationSender = this.getNotificationSender();
     try {
       executeUnsafe();
     } catch (Throwable t) {
@@ -213,7 +261,41 @@ public class ExtractionDiffCommand extends Command {
     }
   }
 
-  void executeUnsafe() throws CommandException {
+  private void checkMaxStringsBlock(ExtractionDiffPaths extractionDiffPaths)
+      throws MissingExtractionDirectoryException, CommandException {
+    if (!this.skipMaxStringsBlock && !Strings.isNullOrEmpty(this.pushToBranchName)) {
+      ExtractionDiffStatistics extractionDiffStatistics =
+          this.extractionDiffService.computeExtractionDiffStatistics(extractionDiffPaths);
+      if (this.maxStringsAddedBlock != null
+          && extractionDiffStatistics.getAdded() > this.maxStringsAddedBlock) {
+        this.notificationSender.ifPresent(
+            notificationSender ->
+                notificationSender.sendMessage(
+                    String.format(
+                        MAX_STRINGS_ADDED_BLOCK_MESSAGE,
+                        this.pushToBranchName,
+                        extractionDiffStatistics.getAdded(),
+                        this.maxStringsAddedBlock)));
+        throw new CommandException(
+            String.format("There are more than %d strings added", this.maxStringsAddedBlock));
+      }
+      if (this.maxStringsRemovedBlock != null
+          && extractionDiffStatistics.getRemoved() > this.maxStringsRemovedBlock) {
+        this.notificationSender.ifPresent(
+            notificationSender ->
+                notificationSender.sendMessage(
+                    String.format(
+                        MAX_STRINGS_REMOVED_BLOCK_MESSAGE,
+                        this.pushToBranchName,
+                        extractionDiffStatistics.getRemoved(),
+                        this.maxStringsRemovedBlock)));
+        throw new CommandException(
+            String.format("There are more than %d strings removed", this.maxStringsRemovedBlock));
+      }
+    }
+  }
+
+  void executeUnsafe() {
     consoleWriter
         .newLine()
         .a("Generate diff between extractions: ")
@@ -239,7 +321,7 @@ public class ExtractionDiffCommand extends Command {
 
     try {
       extractionDiffService.computeAndWriteDiffs(extractionDiffPaths);
-    } catch (MissingExtractionDirectoryExcpetion msobe) {
+    } catch (MissingExtractionDirectoryException msobe) {
       throw new CommandException(msobe.getMessage());
     }
 
@@ -253,6 +335,11 @@ public class ExtractionDiffCommand extends Command {
             .a(pushToRepository)
             .println();
       } else {
+        try {
+          this.checkMaxStringsBlock(extractionDiffPaths);
+        } catch (MissingExtractionDirectoryException msobe) {
+          throw new CommandException(msobe.getMessage());
+        }
         pushToRepository = getValidRepositoryName();
         consoleWriter
             .a("Push asset diffs to repository: ")
