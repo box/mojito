@@ -17,9 +17,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -34,13 +34,12 @@ public class AndroidStringDocumentWriter {
   private Document document;
   private Node root;
 
-  public AndroidStringDocumentWriter(final AndroidStringDocument source)
-      throws ParserConfigurationException {
+  public AndroidStringDocumentWriter(final AndroidStringDocument source) {
     this.source = requireNonNull(source);
     buildDomSource();
   }
 
-  public void buildDomSource() throws ParserConfigurationException {
+  public void buildDomSource() {
     document = documentBuilder().newDocument();
     root = document.createElement(ROOT_ELEMENT_NAME);
     document.setXmlStandalone(true);
@@ -49,20 +48,29 @@ public class AndroidStringDocumentWriter {
     domSource = new DOMSource(document);
   }
 
-  private <W extends Writer> W buildWriter(W writer) throws TransformerException {
+  private <W extends Writer> W buildWriter(W writer) {
 
-    Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+    Transformer transformer = null;
+    try {
+      transformer = TRANSFORMER_FACTORY.newTransformer();
+    } catch (TransformerConfigurationException e) {
+      throw new RuntimeException(e);
+    }
 
     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     transformer.setOutputProperty(OutputKeys.METHOD, "xml");
     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "0");
-    transformer.transform(domSource, new StreamResult(writer));
+    try {
+      transformer.transform(domSource, new StreamResult(writer));
+    } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    }
 
     return writer;
   }
 
-  public String toText() throws TransformerException {
+  public String toText() {
     return buildWriter(new StringWriter()).toString();
   }
 

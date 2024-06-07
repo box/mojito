@@ -66,7 +66,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -77,7 +76,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import javax.xml.parsers.ParserConfigurationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -96,7 +94,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
-import org.xml.sax.SAXException;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
@@ -1805,14 +1802,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     AndroidStringDocumentMapper mapper =
         new AndroidStringDocumentMapper(pluralSeparator, null, null, null);
     List<TextUnitDTO> result;
-
-    try {
-      result = mapper.mapToTextUnits(fromText(file.getFileContent()));
-    } catch (ParserConfigurationException | IOException | SAXException e) {
-      result = new ArrayList<>();
-      e.printStackTrace();
-    }
-    return result;
+    return mapper.mapToTextUnits(fromText(file.getFileContent()));
   }
 
   private void prepareAssetAndTextUnits(AssetExtraction assetExtraction, Asset asset, TM tm) {
