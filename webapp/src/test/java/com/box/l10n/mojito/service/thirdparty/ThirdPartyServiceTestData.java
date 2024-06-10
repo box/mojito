@@ -177,4 +177,8 @@ public class ThirdPartyServiceTestData {
     logger.debug("Finished init of ThirdPartyServiceTestData");
     return this;
   }
+
+  public String getPluralSeparator() {
+    return "_";
+  }
 }
