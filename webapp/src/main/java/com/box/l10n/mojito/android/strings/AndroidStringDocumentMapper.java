@@ -6,9 +6,11 @@ import com.box.l10n.mojito.service.tm.PluralNameParser;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Strings;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,15 +31,26 @@ public class AndroidStringDocumentMapper {
   private final String locale;
   private final String repositoryName;
   private final PluralNameParser pluralNameParser;
+  private final boolean addTextUnitIdInName;
 
   public AndroidStringDocumentMapper(
-      String pluralSeparator, String assetDelimiter, String locale, String repositoryName) {
+      String pluralSeparator,
+      String assetDelimiter,
+      String locale,
+      String repositoryName,
+      boolean addTextUnitIdInName) {
     this.pluralSeparator = pluralSeparator;
     this.assetDelimiter =
         Optional.ofNullable(Strings.emptyToNull(assetDelimiter)).orElse(DEFAULT_ASSET_DELIMITER);
     this.locale = locale;
     this.repositoryName = repositoryName;
     this.pluralNameParser = new PluralNameParser();
+    this.addTextUnitIdInName = addTextUnitIdInName;
+  }
+
+  public AndroidStringDocumentMapper(
+      String pluralSeparator, String assetDelimiter, String locale, String repositoryName) {
+    this(pluralSeparator, assetDelimiter, locale, repositoryName, false);
   }
 
   public AndroidStringDocumentMapper(String pluralSeparator, String assetDelimiter) {
@@ -85,7 +98,19 @@ public class AndroidStringDocumentMapper {
       }
     }
 
-    pluralByOther.forEach((pluralFormOther, builder) -> document.addPlural(builder.build()));
+    pluralByOther.forEach(
+        (pluralFormOther, builder) -> {
+          if (addTextUnitIdInName) {
+            String ids =
+                builder.getSortedItems().stream()
+                    .map(AndroidPluralItem::getId)
+                    .map(Objects::toString)
+                    .collect(Collectors.joining(","));
+            builder.setName(ids + "#@#" + builder.getName());
+          }
+
+          document.addPlural(builder.build());
+        });
 
     return document;
   }
@@ -117,11 +142,34 @@ public class AndroidStringDocumentMapper {
     }
 
     if (textUnit.getName().contains(assetDelimiter)) {
-      String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
 
-      if (nameParts.length > 1) {
-        textUnit.setAssetPath(nameParts[0]);
-        textUnit.setName(nameParts[1]);
+      if (addTextUnitIdInName) {
+        String[] nameParts = textUnit.getName().split(assetDelimiter, 3);
+        if (nameParts.length > 2) {
+
+          if (textUnit.getPluralForm() == null) {
+            textUnit.setTmTextUnitId(Long.valueOf(nameParts[0]));
+          } else {
+            String idsString = nameParts[0];
+            List<Long> ids = Arrays.stream(idsString.split(",")).map(Long::valueOf).toList();
+            if (ids.size() != 6) {
+              throw new RuntimeException(
+                  "There must be 6 ids, check that all the required text units are provided (typically TextUnitSearcherParameters#setPluralFormsFiltered(false)");
+            }
+
+            AndroidPluralQuantity androidPluralQuantity =
+                AndroidPluralQuantity.valueOf(textUnit.getPluralForm());
+            textUnit.setTmTextUnitId(ids.get(androidPluralQuantity.ordinal()));
+          }
+          textUnit.setAssetPath(nameParts[1]);
+          textUnit.setName(nameParts[2]);
+        }
+      } else {
+        String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
+        if (nameParts.length > 1) {
+          textUnit.setAssetPath(nameParts[0]);
+          textUnit.setName(nameParts[1]);
+        }
       }
     }
 
@@ -142,7 +190,6 @@ public class AndroidStringDocumentMapper {
 
   Stream<TextUnitDTO> singularToTextUnit(AndroidSingular singular) {
     TextUnitDTO textUnit = new TextUnitDTO();
-
     textUnit.setName(singular.getName());
     textUnit.setComment(singular.getComment());
     textUnit.setTmTextUnitId(singular.getId());
@@ -190,9 +237,13 @@ public class AndroidStringDocumentMapper {
   }
 
   AndroidSingular textUnitToAndroidSingular(TextUnitDTO textUnit, boolean useSource) {
+
     return new AndroidSingular(
         textUnit.getTmTextUnitId(),
-        textUnit.getAssetPath() + assetDelimiter + textUnit.getName(),
+        (addTextUnitIdInName ? textUnit.getTmTextUnitId() + assetDelimiter : "")
+            + textUnit.getAssetPath()
+            + assetDelimiter
+            + textUnit.getName(),
         removeInvalidControlCharacter(
             Strings.nullToEmpty(useSource ? textUnit.getSource() : textUnit.getTarget())),
         removeInvalidControlCharacter(textUnit.getComment()));
