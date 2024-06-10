@@ -83,4 +83,12 @@ public class Files {
       throw new UncheckedIOException(ioe);
     }
   }
+
+  public static Path createTempDirectory(String prefix, FileAttribute<?>... attrs) {
+    try {
+      return java.nio.file.Files.createTempDirectory(prefix, attrs);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }
