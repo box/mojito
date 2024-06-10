@@ -69,6 +69,10 @@ public class AndroidPlural extends AbstractAndroidString {
       return this;
     }
 
+    public String getName() {
+      return name;
+    }
+
     public AndroidPluralBuilder setName(String name) {
       this.name = name;
       return this;
@@ -77,6 +81,12 @@ public class AndroidPlural extends AbstractAndroidString {
     public AndroidPluralBuilder setComment(String comment) {
       this.comment = comment;
       return this;
+    }
+
+    public List<AndroidPluralItem> getSortedItems() {
+      return items.stream()
+          .sorted(Comparator.comparing(item -> item.getQuantity().ordinal()))
+          .collect(Collectors.toList());
     }
 
     public AndroidPlural build() {
