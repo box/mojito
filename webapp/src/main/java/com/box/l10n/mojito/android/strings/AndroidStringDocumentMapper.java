@@ -29,15 +29,26 @@ public class AndroidStringDocumentMapper {
   private final String locale;
   private final String repositoryName;
   private final PluralNameParser pluralNameParser;
+  private final boolean addTextUnitIdInName;
 
   public AndroidStringDocumentMapper(
-      String pluralSeparator, String assetDelimiter, String locale, String repositoryName) {
+      String pluralSeparator,
+      String assetDelimiter,
+      String locale,
+      String repositoryName,
+      boolean addTextUnitIdInName) {
     this.pluralSeparator = pluralSeparator;
     this.assetDelimiter =
         Optional.ofNullable(Strings.emptyToNull(assetDelimiter)).orElse(DEFAULT_ASSET_DELIMITER);
     this.locale = locale;
     this.repositoryName = repositoryName;
     this.pluralNameParser = new PluralNameParser();
+    this.addTextUnitIdInName = addTextUnitIdInName;
+  }
+
+  public AndroidStringDocumentMapper(
+      String pluralSeparator, String assetDelimiter, String locale, String repositoryName) {
+    this(pluralSeparator, assetDelimiter, locale, repositoryName, false);
   }
 
   public AndroidStringDocumentMapper(String pluralSeparator, String assetDelimiter) {
@@ -63,7 +74,11 @@ public class AndroidStringDocumentMapper {
 
               if (OTHER.name().equalsIgnoreCase(textUnit.getPluralForm())) {
                 String name = pluralNameParser.getPrefix(textUnit.getName(), pluralSeparator);
-                builder.setName(textUnit.getAssetPath() + assetDelimiter + name);
+                builder.setName(
+                    (addTextUnitIdInName ? textUnit.getTmTextUnitId() + "#@#" : "")
+                        + textUnit.getAssetPath()
+                        + assetDelimiter
+                        + name);
                 builder.setComment(textUnit.getComment());
               }
 
@@ -117,11 +132,20 @@ public class AndroidStringDocumentMapper {
     }
 
     if (textUnit.getName().contains(assetDelimiter)) {
-      String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
 
-      if (nameParts.length > 1) {
-        textUnit.setAssetPath(nameParts[0]);
-        textUnit.setName(nameParts[1]);
+      if (addTextUnitIdInName) {
+        String[] nameParts = textUnit.getName().split(assetDelimiter, 3);
+        if (nameParts.length > 2) {
+          textUnit.setTmTextUnitId(Long.valueOf(nameParts[0]));
+          textUnit.setAssetPath(nameParts[1]);
+          textUnit.setName(nameParts[2]);
+        }
+      } else {
+        String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
+        if (nameParts.length > 1) {
+          textUnit.setAssetPath(nameParts[0]);
+          textUnit.setName(nameParts[1]);
+        }
       }
     }
 
@@ -142,7 +166,6 @@ public class AndroidStringDocumentMapper {
 
   Stream<TextUnitDTO> singularToTextUnit(AndroidSingular singular) {
     TextUnitDTO textUnit = new TextUnitDTO();
-
     textUnit.setName(singular.getName());
     textUnit.setComment(singular.getComment());
     textUnit.setTmTextUnitId(singular.getId());
@@ -190,9 +213,13 @@ public class AndroidStringDocumentMapper {
   }
 
   AndroidSingular textUnitToAndroidSingular(TextUnitDTO textUnit, boolean useSource) {
+
     return new AndroidSingular(
         textUnit.getTmTextUnitId(),
-        textUnit.getAssetPath() + assetDelimiter + textUnit.getName(),
+        (addTextUnitIdInName ? textUnit.getTmTextUnitId() + assetDelimiter : "")
+            + textUnit.getAssetPath()
+            + assetDelimiter
+            + textUnit.getName(),
         removeInvalidControlCharacter(
             Strings.nullToEmpty(useSource ? textUnit.getSource() : textUnit.getTarget())),
         removeInvalidControlCharacter(textUnit.getComment()));

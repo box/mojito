@@ -59,6 +59,29 @@ public class AndroidStringDocumentMapperTest {
   }
 
   @Test
+  public void testReadFromSourceTextUnitsWithoutPluralFormsAndWithTmTextUnitIdInName() {
+    mapper = new AndroidStringDocumentMapper("_", assetDelimiter, null, null, true);
+    textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
+    textUnits.add(sourceTextUnitDTO(124L, "name1", "content1", "comment1", "my/path1", null, null));
+
+    document = mapper.readFromSourceTextUnits(textUnits);
+
+    assertThat(document).isNotNull();
+    assertThat(document.getPlurals()).isEmpty();
+    assertThat(document.getSingulars()).hasSize(2);
+    AndroidSingular singular1 = document.getSingulars().get(0);
+    assertThat(singular1.getId()).isEqualTo(123L);
+    assertThat(singular1.getName()).isEqualTo("123#@#my/path0#@#name0");
+    assertThat(singular1.getContent()).isEqualTo("content0");
+    assertThat(singular1.getComment()).isEqualTo("comment0");
+    AndroidSingular singular2 = document.getSingulars().get(1);
+    assertThat(singular2.getId()).isEqualTo(124L);
+    assertThat(singular2.getName()).isEqualTo("124#@#my/path1#@#name1");
+    assertThat(singular2.getContent()).isEqualTo("content1");
+    assertThat(singular2.getComment()).isEqualTo("comment1");
+  }
+
+  @Test
   public void testReadFromSourceTextUnitsWithoutPluralFormsRemovesBadCharacters() {
     mapper = new AndroidStringDocumentMapper("_", assetDelimiter);
     textUnits.add(
@@ -118,6 +141,65 @@ public class AndroidStringDocumentMapperTest {
     assertThat(document.getPlurals()).hasSize(1);
     AndroidPlural plural = document.getPlurals().get(0);
     assertThat(plural.getName()).isEqualTo("my/path1#@#name1");
+    assertThat(plural.getComment()).isEqualTo("comment1");
+    assertThat(plural.getItems()).hasSize(6);
+    assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(100L);
+    assertThat(plural.getItems().get(ZERO).getContent()).isEqualTo("content1_zero");
+    assertThat(plural.getItems().get(ONE).getId()).isEqualTo(101L);
+    assertThat(plural.getItems().get(ONE).getContent()).isEqualTo("content1_one");
+    assertThat(plural.getItems().get(TWO).getId()).isEqualTo(102L);
+    assertThat(plural.getItems().get(TWO).getContent()).isEqualTo("content1_two");
+    assertThat(plural.getItems().get(FEW).getId()).isEqualTo(103L);
+    assertThat(plural.getItems().get(FEW).getContent()).isEqualTo("content1_few");
+    assertThat(plural.getItems().get(MANY).getId()).isEqualTo(104L);
+    assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("content1_many");
+    assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(105L);
+    assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("content1_other");
+  }
+
+  @Test
+  public void testReadFromSourceTextUnitsWithPluralsAndWithTmTextUnitIdInName() {
+    mapper = new AndroidStringDocumentMapper(" _", assetDelimiter, null, null, true);
+    textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
+
+    textUnits.add(
+        sourceTextUnitDTO(
+            100L, "name1 _other", "content1_zero", "comment1", "my/path1", "zero", "name1_other"));
+    textUnits.add(
+        sourceTextUnitDTO(
+            101L, "name1 _other", "content1_one", "comment1", "my/path1", "one", "name1_other"));
+    textUnits.add(
+        sourceTextUnitDTO(
+            102L, "name1 _other", "content1_two", "comment1", "my/path1", "two", "name1_other"));
+    textUnits.add(
+        sourceTextUnitDTO(
+            103L, "name1 _other", "content1_few", "comment1", "my/path1", "few", "name1_other"));
+    textUnits.add(
+        sourceTextUnitDTO(
+            104L, "name1 _other", "content1_many", "comment1", "my/path1", "many", "name1_other"));
+    textUnits.add(
+        sourceTextUnitDTO(
+            105L,
+            "name1 _other",
+            "content1_other",
+            "comment1",
+            "my/path1",
+            "other",
+            "name1_other"));
+
+    document = mapper.readFromSourceTextUnits(textUnits);
+
+    assertThat(document).isNotNull();
+    assertThat(document.getSingulars()).hasSize(1);
+    AndroidSingular singular = document.getSingulars().get(0);
+    assertThat(singular.getId()).isEqualTo(123L);
+    assertThat(singular.getName()).isEqualTo("123#@#my/path0#@#name0");
+    assertThat(singular.getContent()).isEqualTo("content0");
+    assertThat(singular.getComment()).isEqualTo("comment0");
+
+    assertThat(document.getPlurals()).hasSize(1);
+    AndroidPlural plural = document.getPlurals().get(0);
+    assertThat(plural.getName()).isEqualTo("105#@#my/path1#@#name1");
     assertThat(plural.getComment()).isEqualTo("comment1");
     assertThat(plural.getItems()).hasSize(6);
     assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(100L);
@@ -667,13 +749,13 @@ public class AndroidStringDocumentMapperTest {
 
     assertThat(textUnits)
         .filteredOn(tu -> tu.getName().equalsIgnoreCase("some_string"))
-        .extracting("target", "comment")
-        .containsOnly(tuple("Dela...", "Some string"));
+        .extracting("name", "target", "comment")
+        .containsOnly(tuple("some_string", "Dela...", "Some string"));
 
     assertThat(textUnits)
         .filteredOn(tu -> tu.getName().equalsIgnoreCase("show_options"))
-        .extracting("target", "comment")
-        .containsOnly(tuple("Mer \" dela", "Options"));
+        .extracting("name", "target", "comment")
+        .containsOnly(tuple("show_options", "Mer \" dela", "Options"));
 
     assertThat(textUnits)
         .filteredOn(tu -> tu.getName().equalsIgnoreCase("without_comment"))
@@ -732,6 +814,22 @@ public class AndroidStringDocumentMapperTest {
     assertThat(mapper.addTextUnitDTOAttributes(textUnitDTO))
         .extracting(TextUnitDTO::getAssetPath, TextUnitDTO::getName)
         .containsExactly("asset_path", "name_part1#@#name_part2");
+  }
+
+  @Test
+  public void testAddTextUnitDTOAttributesTextUnitIdAndAssetPathAndName() {
+    mapper = new AndroidStringDocumentMapper("_", null, null, null, true);
+    TextUnitDTO textUnitDTO = new TextUnitDTO();
+
+    textUnitDTO.setName("156151#@#asset_path#@#name_part1");
+    assertThat(mapper.addTextUnitDTOAttributes(textUnitDTO))
+        .extracting(TextUnitDTO::getTmTextUnitId, TextUnitDTO::getAssetPath, TextUnitDTO::getName)
+        .containsExactly(156151L, "asset_path", "name_part1");
+
+    textUnitDTO.setName("156152#@#asset_path#@#name_part1#@#name_part2");
+    assertThat(mapper.addTextUnitDTOAttributes(textUnitDTO))
+        .extracting(TextUnitDTO::getTmTextUnitId, TextUnitDTO::getAssetPath, TextUnitDTO::getName)
+        .containsExactly(156152L, "asset_path", "name_part1#@#name_part2");
   }
 
   private TextUnitDTO sourceTextUnitDTO(
