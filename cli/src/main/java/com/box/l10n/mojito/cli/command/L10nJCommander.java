@@ -209,6 +209,7 @@ public class L10nJCommander {
   public void createJCommanderForRun() {
     logger.debug("Create JCommander instance");
     jCommander = new JCommander();
+    jCommander.setExpandAtSign(false);
 
     jCommander.setAcceptUnknownOptions(true);
 
