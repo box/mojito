@@ -13,7 +13,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -30,11 +32,19 @@ public class OpenAIClient {
 
   final HttpClient httpClient;
 
-  OpenAIClient(String apiKey, String host, ObjectMapper objectMapper, HttpClient httpClient) {
-    this.apiKey = Objects.requireNonNull(apiKey);
+  final Map<String, String> customHeaders;
+
+  OpenAIClient(
+      String apiKey,
+      String host,
+      ObjectMapper objectMapper,
+      HttpClient httpClient,
+      Map<String, String> customHeaders) {
+    this.apiKey = apiKey;
     this.host = Objects.requireNonNull(host);
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.httpClient = Objects.requireNonNull(httpClient);
+    this.customHeaders = customHeaders;
   }
 
   public static class Builder {
@@ -47,10 +57,12 @@ public class OpenAIClient {
 
     private HttpClient httpClient;
 
+    private Map<String, String> customHeaders;
+
     public Builder() {}
 
     public Builder apiKey(String apiKey) {
-      this.apiKey = Objects.requireNonNull(apiKey);
+      this.apiKey = apiKey;
       return this;
     }
 
@@ -69,10 +81,12 @@ public class OpenAIClient {
       return this;
     }
 
+    public Builder customHeaders(Map<String, String> customHeaders) {
+      this.customHeaders = customHeaders;
+      return this;
+    }
+
     public OpenAIClient build() {
-      if (apiKey == null) {
-        throw new IllegalStateException("API key must be provided");
-      }
 
       if (objectMapper == null) {
         objectMapper = createObjectMapper();
@@ -80,7 +94,7 @@ public class OpenAIClient {
       if (httpClient == null) {
         httpClient = createHttpClient();
       }
-      return new OpenAIClient(apiKey, host, objectMapper, httpClient);
+      return new OpenAIClient(apiKey, host, objectMapper, httpClient, customHeaders);
     }
 
     private HttpClient createHttpClient() {
@@ -118,8 +132,7 @@ public class OpenAIClient {
     HttpRequest request =
         HttpRequest.newBuilder()
             .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
+            .headers(getHeaders())
             .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
             .build();
 
@@ -162,8 +175,7 @@ public class OpenAIClient {
     HttpRequest request =
         HttpRequest.newBuilder()
             .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
+            .headers(getHeaders())
             .POST(HttpRequest.BodyPublishers.ofString(requestPayload, StandardCharsets.UTF_8))
             .build();
 
@@ -211,6 +223,7 @@ public class OpenAIClient {
       int seed,
       boolean stream,
       float temperature,
+      @JsonProperty("response_format") ResponseFormat responseFormat,
       @JsonProperty("max_tokens") int maxTokens,
       @JsonProperty("top_p") float topP,
       @JsonProperty("frequency_penalty") float frequencyPenalty,
@@ -219,7 +232,9 @@ public class OpenAIClient {
     static String ENDPOINT = "/v1/chat/completions";
 
     public enum Models {
-      GPT_3_5_TURBO("gpt-3.5-turbo");
+      GPT_3_5_TURBO("gpt-3.5-turbo"),
+      GPT_4_TURBO("gtp-4-turbo"),
+      GPT_4o("gpt-4o");
 
       @JsonValue String name;
 
@@ -236,71 +251,58 @@ public class OpenAIClient {
       String name();
     }
 
-    public record SystemMessage(String role, String content, String name) implements Message {
+    public record ResponseFormat(String type) {
+      public static class ResponseFormatBuilder {
+        private String type;
 
-      public static class SystemMessageBuilder {
-        private String role = "system";
-        private String content;
-        private String name;
+        private ResponseFormatBuilder() {}
 
-        private SystemMessageBuilder() {}
-
-        public SystemMessageBuilder role(String role) {
-          this.role = role;
+        public ResponseFormatBuilder type(String type) {
+          this.type = type;
           return this;
         }
 
-        public SystemMessageBuilder content(String content) {
-          this.content = content;
-          return this;
-        }
-
-        public SystemMessageBuilder name(String name) {
-          this.name = name;
-          return this;
-        }
-
-        public SystemMessage build() {
-          return new SystemMessage(role, content, name);
+        public ResponseFormat build() {
+          return new ResponseFormat(type);
         }
       }
 
-      public static SystemMessageBuilder systemMessageBuilder() {
-        return new SystemMessageBuilder();
+      public static ResponseFormatBuilder responseFormatBuilder() {
+        return new ResponseFormatBuilder();
       }
     }
 
-    public record UserMessage(String role, String content, String name) implements Message {
+    public record ChatMessage(String role, String content, String name) implements Message {
 
-      public static class UserMessageBuilder {
+      public static class ChatMessageBuilder {
         private String role = "user";
         private String content;
         private String name;
 
-        private UserMessageBuilder() {}
+        private ChatMessageBuilder() {}
 
-        public UserMessageBuilder role(String role) {
+        public ChatMessageBuilder role(String role) {
           this.role = role;
           return this;
         }
 
-        public UserMessageBuilder content(String content) {
+        public ChatMessageBuilder content(String content) {
           this.content = content;
           return this;
         }
 
-        public UserMessageBuilder name(String name) {
+        public ChatMessageBuilder name(String name) {
           this.name = name;
           return this;
         }
 
-        public UserMessage build() {
-          return new UserMessage(role, content, name);
+        public ChatMessage build() {
+          return new ChatMessage(role, content, name);
         }
       }
 
-      public static UserMessageBuilder userMessageBuilder() {
-        return new UserMessageBuilder();
+      public static ChatMessageBuilder messageBuilder() {
+        return new ChatMessageBuilder();
       }
     }
 
@@ -314,6 +316,8 @@ public class OpenAIClient {
       private float topP;
       private float frequencyPenalty;
       private float presencePenalty;
+      private ResponseFormat responseFormat =
+          ResponseFormat.responseFormatBuilder().type("text").build();
 
       public Builder model(Models model) {
         return model(model.name);
@@ -364,6 +368,13 @@ public class OpenAIClient {
         return this;
       }
 
+      public Builder jsonResponseType(boolean isJson) {
+        if (isJson) {
+          this.responseFormat = ResponseFormat.responseFormatBuilder().type("json_object").build();
+        }
+        return this;
+      }
+
       public ChatCompletionsRequest build() {
         return new ChatCompletionsRequest(
             model,
@@ -371,6 +382,7 @@ public class OpenAIClient {
             seed,
             stream,
             temperature,
+            responseFormat,
             maxTokens,
             topP,
             frequencyPenalty,
@@ -433,6 +445,24 @@ public class OpenAIClient {
     }
   }
 
+  private String[] getHeaders() {
+    List<String> headersList = new ArrayList<>();
+    headersList.add("Content-Type");
+    headersList.add("application/json");
+    if (apiKey != null && !apiKey.isBlank()) {
+      headersList.add("Authorization");
+      headersList.add("Bearer " + this.apiKey);
+    }
+    if (customHeaders != null && !customHeaders.isEmpty()) {
+      customHeaders.forEach(
+          (key, value) -> {
+            headersList.add(key);
+            headersList.add(value);
+          });
+    }
+    return headersList.toArray(new String[0]);
+  }
+
   public CompletableFuture<EmbeddingResponse> getEmbedding(EmbeddingRequest embeddingRequest) {
 
     String requestBody;
@@ -445,8 +475,7 @@ public class OpenAIClient {
     HttpRequest httpRequest =
         HttpRequest.newBuilder()
             .uri(getUriForEndpoint(EmbeddingRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
+            .headers(getHeaders())
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build();
 

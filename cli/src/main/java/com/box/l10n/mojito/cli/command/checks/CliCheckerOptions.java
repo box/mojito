@@ -55,6 +55,14 @@ public class CliCheckerOptions {
     return optionsMap.get(CONTEXT_COMMENT_REJECT_PATTERN_KEY.getKey());
   }
 
+  public String getRepositoryName() {
+    return optionsMap.get(CliCheckerParameters.REPOSITORY_NAME.getKey());
+  }
+
+  public String getOpenAIErrorMessage() {
+    return optionsMap.get(CliCheckerParameters.OPEN_AI_RETRY_ERROR_MSG.getKey());
+  }
+
   public String getRecommendStringIdLabelIgnorePattern() {
     return optionsMap.get(RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY.getKey());
   }

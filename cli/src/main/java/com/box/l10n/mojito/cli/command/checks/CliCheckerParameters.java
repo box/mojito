@@ -7,7 +7,9 @@ public enum CliCheckerParameters {
   DICTIONARY_AFFIX_FILE_PATH_KEY("dictionaryAffixFilePath"),
   CONTEXT_COMMENT_REJECT_PATTERN_KEY("contextCommentRejectPattern"),
   RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY("recommendStringIdLabelIgnorePattern"),
-  CONTEXT_COMMENT_PLURAL_SKIP("contextCommentSkipPlurals");
+  CONTEXT_COMMENT_PLURAL_SKIP("contextCommentSkipPlurals"),
+  REPOSITORY_NAME("repositoryName"),
+  OPEN_AI_RETRY_ERROR_MSG("openAIRetryErrorMessage");
 
   private String key;
 
