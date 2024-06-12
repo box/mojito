@@ -42,6 +42,7 @@ public class PullCommandParallel extends PullCommand {
     this.sourceLocale = pullCommand.sourceLocale;
     this.fileTypes = pullCommand.fileTypes;
     this.localeMappingParam = pullCommand.localeMappingParam;
+    this.localeMappingTypeParam = pullCommand.localeMappingTypeParam;
     this.repositoryParam = pullCommand.repositoryParam;
     this.sourceDirectoryParam = pullCommand.sourceDirectoryParam;
     this.targetDirectoryParam = pullCommand.targetDirectoryParam;
@@ -82,19 +83,13 @@ public class PullCommandParallel extends PullCommand {
 
   private void sendContentForLocalizedGeneration(
       FileMatch sourceFileMatch, List<String> filterOptions) {
-    if (localeMappingParam != null) {
-      pollableTaskIdToFileMatchMap.put(
-          generateLocalizedFilesWithLocaleMappingParallel(
-                  repository, sourceFileMatch, filterOptions)
-              .getId(),
-          sourceFileMatch);
-    } else {
-      pollableTaskIdToFileMatchMap.put(
-          generateLocalizedFilesWithoutLocaleMappingParallel(
-                  repository, sourceFileMatch, filterOptions)
-              .getId(),
-          sourceFileMatch);
-    }
+
+    List<RepositoryLocale> repositoryLocales =
+        getMapOutputTagToRepositoryLocale().values().stream().distinct().toList();
+    pollableTaskIdToFileMatchMap.put(
+        generateLocalizedFiles(repository, sourceFileMatch, filterOptions, repositoryLocales)
+            .getId(),
+        sourceFileMatch);
   }
 
   private void pollForLocalizedFiles() {
@@ -116,31 +111,6 @@ public class PullCommandParallel extends PullCommand {
                     entry.getValue());
               }
             });
-  }
-
-  private PollableTask generateLocalizedFilesWithLocaleMappingParallel(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
-
-    List<RepositoryLocale> repositoryLocales =
-        localeMappings.entrySet().stream()
-            .map(entry -> getRepositoryLocaleForOutputBcp47Tag(entry.getKey()))
-            .distinct()
-            .collect(Collectors.toList());
-    return generateLocalizedFiles(repository, sourceFileMatch, filterOptions, repositoryLocales);
-  }
-
-  private PollableTask generateLocalizedFilesWithoutLocaleMappingParallel(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
-
-    logger.debug("Generate localized files (without locale mapping)");
-
-    return generateLocalizedFiles(
-        repository,
-        sourceFileMatch,
-        filterOptions,
-        Lists.newArrayList(repositoryLocalesWithoutRootLocale.values()));
   }
 
   void writeLocalizedAssetToTargetDirectory(
@@ -171,19 +141,6 @@ public class PullCommandParallel extends PullCommand {
         .fg(Ansi.Color.MAGENTA)
         .a(relativeTargetFilePath.toString())
         .println();
-  }
-
-  void generateLocalizedFilesWithoutLocaleMapping(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
-
-    logger.debug("Generate localized files (without locale mapping)");
-
-    generateLocalizedFiles(
-        repository,
-        sourceFileMatch,
-        filterOptions,
-        Lists.newArrayList(repositoryLocalesWithoutRootLocale.values()));
   }
 
   private PollableTask generateLocalizedFiles(
@@ -222,6 +179,7 @@ public class PullCommandParallel extends PullCommand {
   private Map<RepositoryLocale, List<String>> getRepoLocaleToOutputTagsMap() {
     Map<RepositoryLocale, List<String>> localeIdToOutputTagsMap = new HashMap<>();
 
+    // TODO(ja) need to change this becased on the type
     if (localeMappings != null) {
       for (Map.Entry<String, String> mapping : localeMappings.entrySet()) {
         String outputBcp47tag = mapping.getKey();
