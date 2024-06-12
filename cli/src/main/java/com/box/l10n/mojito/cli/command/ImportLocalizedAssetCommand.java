@@ -72,14 +72,14 @@ public class ImportLocalizedAssetCommand extends Command {
   String localeMappingParam;
 
   @Parameter(
-          names = {"-lmt", "--locale-mapping-type"},
-          arity = 1,
-          required = false,
-          description = "Specifies how to handle locale mappings when used with --locale-mapping. " +
-                  "MAP_ONLY processes only the locales explicitly specified in the mapping. " +
-                  "WITH_REPOSITORY generates a basic mapping from the repository's locales and " +
-                  "supplements it with the provided mapping, potentially overriding existing entries."
-  )
+      names = {"-lmt", "--locale-mapping-type"},
+      arity = 1,
+      required = false,
+      description =
+          "Specifies how to handle locale mappings when used with --locale-mapping. "
+              + "MAP_ONLY processes only the locales explicitly specified in the mapping. "
+              + "WITH_REPOSITORY generates a basic mapping from the repository's locales and "
+              + "supplements it with the provided mapping, potentially overriding existing entries.")
   LocaleMappingType localeMappingTypeParam = LocaleMappingType.WITH_REPOSITORY;
 
   enum LocaleMappingType {
@@ -272,8 +272,7 @@ public class ImportLocalizedAssetCommand extends Command {
   public Collection<Locale> getLocalesForImport() {
     Collection<Locale> sortedRepositoryLocales =
         commandHelper.getSortedRepositoryLocales(repository).values();
-    if (LocaleMappingType.MAP_ONLY.equals(localeMappingTypeParam)
-        && inverseLocaleMapping != null) {
+    if (LocaleMappingType.MAP_ONLY.equals(localeMappingTypeParam) && inverseLocaleMapping != null) {
       sortedRepositoryLocales =
           sortedRepositoryLocales.stream()
               .filter(l -> inverseLocaleMapping.containsKey(l.getBcp47Tag()))
