@@ -18,7 +18,6 @@ import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,6 +70,22 @@ public class ImportLocalizedAssetCommand extends Command {
       required = false,
       description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
   String localeMappingParam;
+
+  @Parameter(
+      names = {"-lmt", "--locale-mapping-type"},
+      arity = 1,
+      required = false,
+      description =
+          "Specifies how to handle locale mappings when used with --locale-mapping. "
+              + "MAP_ONLY processes only the locales explicitly specified in the mapping. "
+              + "WITH_REPOSITORY generates a basic mapping from the repository's locales and "
+              + "supplements it with the provided mapping, potentially overriding existing entries.")
+  LocaleMappingType localeMappingTypeParam = LocaleMappingType.WITH_REPOSITORY;
+
+  enum LocaleMappingType {
+    MAP_ONLY,
+    WITH_REPOSITORY
+  }
 
   @Parameter(
       names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT},
@@ -158,6 +173,7 @@ public class ImportLocalizedAssetCommand extends Command {
         .println(2);
 
     repository = commandHelper.findRepositoryByName(repositoryParam);
+
     commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
     inverseLocaleMapping = localeMappingHelper.getInverseLocaleMapping(localeMappingParam);
 
@@ -256,31 +272,21 @@ public class ImportLocalizedAssetCommand extends Command {
   public Collection<Locale> getLocalesForImport() {
     Collection<Locale> sortedRepositoryLocales =
         commandHelper.getSortedRepositoryLocales(repository).values();
-    filterLocalesWithMapping(sortedRepositoryLocales);
-    return sortedRepositoryLocales;
-  }
-
-  private void filterLocalesWithMapping(Collection<Locale> locales) {
-
-    if (inverseLocaleMapping != null) {
-      Iterator<Locale> iterator = locales.iterator();
-      while (iterator.hasNext()) {
-        Locale l = iterator.next();
-        if (!inverseLocaleMapping.containsKey(l.getBcp47Tag())) {
-          iterator.remove();
-        }
-      }
+    if (LocaleMappingType.MAP_ONLY.equals(localeMappingTypeParam) && inverseLocaleMapping != null) {
+      sortedRepositoryLocales =
+          sortedRepositoryLocales.stream()
+              .filter(l -> inverseLocaleMapping.containsKey(l.getBcp47Tag()))
+              .toList();
     }
+    return sortedRepositoryLocales;
   }
 
   private Path getTargetPath(FileMatch fileMatch, Locale locale) throws CommandException {
 
-    String targetLocale;
+    String targetLocale = locale.getBcp47Tag();
 
-    if (inverseLocaleMapping != null) {
+    if (inverseLocaleMapping != null && inverseLocaleMapping.containsKey(locale.getBcp47Tag())) {
       targetLocale = inverseLocaleMapping.get(locale.getBcp47Tag());
-    } else {
-      targetLocale = locale.getBcp47Tag();
     }
 
     logger.info("processing locale for import: {}", targetLocale);
