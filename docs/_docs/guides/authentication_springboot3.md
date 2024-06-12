@@ -32,9 +32,10 @@ If the redirect is enabled, it is still possible to access {{ site.mojito_green 
 
 #### Example with GitHub
 
-Create a `GitHub OAuth app` with `Authorization callback URL`: `http://localhost:8080/login/oauth`.
+Create a `GitHub OAuth app` with `Authorization callback URL`: `http://localhost:8080/login/oauth2/code/github`.
  This URI maps to the `redirect_uri` in OAuth and to `preEstablishedRedirectUri` in Spring settings. 
- The `clientId` and `clientSecret` are available once the app has been created.
+ The `clientId` and `clientSecret` are available once the app has been created. The homepage URL should not matter
+but can be set to: `http://localhost:8080/`
 
 Settings to be added, substituting the client `id` and `secret`:
   
