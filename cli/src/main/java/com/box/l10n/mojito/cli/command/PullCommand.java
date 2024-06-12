@@ -18,6 +18,7 @@ import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import java.nio.file.Path;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,22 @@ public class PullCommand extends Command {
       required = false,
       description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
   String localeMappingParam;
+
+  @Parameter(
+      names = {"-lmt", "--locale-mapping-type"},
+      arity = 1,
+      required = false,
+      description =
+          "Specifies how to handle locale mappings when used with --locale-mapping. "
+              + "MAP_ONLY processes only the locales explicitly specified in the mapping. "
+              + "WITH_REPOSITORY generates a basic mapping from the repository's locales and "
+              + "supplements it with the provided mapping, potentially overriding existing entries.")
+  LocaleMappingType localeMappingTypeParam = LocaleMappingType.WITH_REPOSITORY;
+
+  enum LocaleMappingType {
+    MAP_ONLY,
+    WITH_REPOSITORY
+  }
 
   @Parameter(
       names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT},
@@ -184,7 +201,10 @@ public class PullCommand extends Command {
 
   CommandDirectories commandDirectories;
 
-  /** Contains a map of locale for generating localized file a locales defined in the repository. */
+  /**
+   * Contains a map of locale for generating localized file. Key: file output tag, value: the tag in
+   * the repository
+   */
   Map<String, String> localeMappings;
 
   /** Map of locale and the boolean value for fully translated status of the locale */
@@ -233,21 +253,13 @@ public class PullCommand extends Command {
             commandHelper.getFilterOptionsOrDefaults(
                 sourceFileMatch.getFileType(), filterOptionsParam);
 
-        generateLocalizedFiles(sourceFileMatch, filterOptions);
+        generateLocalizedFiles(repository, sourceFileMatch, filterOptions);
       }
     }
 
     writePullRunFileIfNeeded();
 
     consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
-  }
-
-  private void generateLocalizedFiles(FileMatch sourceFileMatch, List<String> filterOptions) {
-    if (localeMappingParam != null) {
-      generateLocalizedFilesWithLocaleMaping(repository, sourceFileMatch, filterOptions);
-    } else {
-      generateLocalizedFilesWithoutLocaleMapping(repository, sourceFileMatch, filterOptions);
-    }
   }
 
   void initPullRunName() {
@@ -270,51 +282,66 @@ public class PullCommand extends Command {
   }
 
   /**
-   * Default generation, uses the locales defined in the repository to generate the localized files.
+   * Default generation, uses the locales defined in the repository to generate the localized files
+   * and eventually use the locale mapping to override the output tags.
    *
    * @param repository
    * @param sourceFileMatch
    * @param filterOptions
    * @throws CommandException
    */
-  void generateLocalizedFilesWithoutLocaleMapping(
+  void generateLocalizedFiles(
       Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
       throws CommandException {
 
-    logger.debug("Generate localized files (without locale mapping)");
+    logger.debug("Generate localized files");
+    Map<String, RepositoryLocale> outputToRepo = getMapOutputTagToRepositoryLocale();
 
-    for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale.values()) {
-      generateLocalizedFile(repository, sourceFileMatch, filterOptions, null, repositoryLocale);
+    for (Map.Entry<String, RepositoryLocale> e : outputToRepo.entrySet()) {
+      generateLocalizedFile(repository, sourceFileMatch, filterOptions, e.getKey(), e.getValue());
     }
   }
 
-  /**
-   * Generation with locale mapping. The localized files are generated using specific output tags
-   * while still using the repository locale to fetch the proper translations.
-   *
-   * @param repository
-   * @param sourceFileMatch
-   * @param filterOptions
-   * @throws CommandException
-   */
-  void generateLocalizedFilesWithLocaleMaping(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
+  Map<String, RepositoryLocale> getMapOutputTagToRepositoryLocale() {
+    Map<String, RepositoryLocale> outputToRepo;
 
-    logger.debug("Generate localized files with locale mapping");
+    if (LocaleMappingType.MAP_ONLY.equals(localeMappingTypeParam)) {
 
-    List<RepositoryLocale> repositoryLocales =
-        localeMappings.entrySet().stream()
-            .map(entry -> getRepositoryLocaleForOutputBcp47Tag(entry.getKey()))
-            .distinct()
-            .collect(Collectors.toList());
+      if (localeMappings == null) {
+        throw new RuntimeException("MAP_ONLY must be used with an locale mapping");
+      }
+      outputToRepo = getLocaleMapFromLocaleMappings();
 
-    for (Map.Entry<String, String> localeMapping : localeMappings.entrySet()) {
-      String outputBcp47tag = localeMapping.getKey();
-      RepositoryLocale repositoryLocale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
-      generateLocalizedFile(
-          repository, sourceFileMatch, filterOptions, outputBcp47tag, repositoryLocale);
+    } else {
+      if (localeMappings == null) {
+        outputToRepo = repositoryLocalesWithoutRootLocale;
+      } else {
+        outputToRepo =
+            repositoryLocalesWithoutRootLocale.entrySet().stream()
+                .filter(e -> !localeMappings.containsValue(e.getValue().getLocale().getBcp47Tag()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        outputToRepo.putAll(getLocaleMapFromLocaleMappings());
+      }
     }
+    return outputToRepo;
+  }
+
+  private Map<String, RepositoryLocale> getLocaleMapFromLocaleMappings() {
+    return localeMappings.entrySet().stream()
+        .map(e -> new SimpleEntry<>(e.getKey(), getRepositoryLocaleByTag(e.getValue())))
+        .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+  }
+
+  private RepositoryLocale getRepositoryLocaleByTag(String tag) {
+    RepositoryLocale repositoryLocale;
+
+    if (rootRepositoryLocale.getLocale().getBcp47Tag().equals(tag)) {
+      repositoryLocale = rootRepositoryLocale;
+    } else {
+      repositoryLocale = repositoryLocalesWithoutRootLocale.get(tag);
+    }
+
+    return repositoryLocale;
   }
 
   void generateLocalizedFile(

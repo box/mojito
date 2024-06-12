@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 public class LocaleMappingHelper {
 
   /**
-   * Gets the locale mapping given the locale mapping param
+   * Gets the locale mapping given the locale mapping param.
    *
    * @param localeMapppingParam locale mapping param coming from the CLI
-   * @return A map containing the locale mapping
+   * @return A map containing the locale mapping (key: output tag, value: the tag in the repository)
    */
   public Map<String, String> getLocaleMapping(String localeMapppingParam) {
 
@@ -28,7 +28,8 @@ public class LocaleMappingHelper {
    * Gets the inverse locale mapping given the locale mapping param
    *
    * @param localeMapppingParam locale mapping param coming from the CLI
-   * @return A map containing the inverse locale mapping
+   * @return A map containing the inverse locale mapping (key: the tag in the repository, value:
+   *     file output tag)
    */
   public Map<String, String> getInverseLocaleMapping(String localeMapppingParam) {
 

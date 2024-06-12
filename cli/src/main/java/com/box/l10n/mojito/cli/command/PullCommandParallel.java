@@ -8,7 +8,6 @@ import com.box.l10n.mojito.rest.entity.MultiLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +41,7 @@ public class PullCommandParallel extends PullCommand {
     this.sourceLocale = pullCommand.sourceLocale;
     this.fileTypes = pullCommand.fileTypes;
     this.localeMappingParam = pullCommand.localeMappingParam;
+    this.localeMappingTypeParam = pullCommand.localeMappingTypeParam;
     this.repositoryParam = pullCommand.repositoryParam;
     this.sourceDirectoryParam = pullCommand.sourceDirectoryParam;
     this.targetDirectoryParam = pullCommand.targetDirectoryParam;
@@ -82,19 +82,10 @@ public class PullCommandParallel extends PullCommand {
 
   private void sendContentForLocalizedGeneration(
       FileMatch sourceFileMatch, List<String> filterOptions) {
-    if (localeMappingParam != null) {
-      pollableTaskIdToFileMatchMap.put(
-          generateLocalizedFilesWithLocaleMappingParallel(
-                  repository, sourceFileMatch, filterOptions)
-              .getId(),
-          sourceFileMatch);
-    } else {
-      pollableTaskIdToFileMatchMap.put(
-          generateLocalizedFilesWithoutLocaleMappingParallel(
-                  repository, sourceFileMatch, filterOptions)
-              .getId(),
-          sourceFileMatch);
-    }
+
+    pollableTaskIdToFileMatchMap.put(
+        generateLocalizedFilesParallel(repository, sourceFileMatch, filterOptions).getId(),
+        sourceFileMatch);
   }
 
   private void pollForLocalizedFiles() {
@@ -116,31 +107,6 @@ public class PullCommandParallel extends PullCommand {
                     entry.getValue());
               }
             });
-  }
-
-  private PollableTask generateLocalizedFilesWithLocaleMappingParallel(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
-
-    List<RepositoryLocale> repositoryLocales =
-        localeMappings.entrySet().stream()
-            .map(entry -> getRepositoryLocaleForOutputBcp47Tag(entry.getKey()))
-            .distinct()
-            .collect(Collectors.toList());
-    return generateLocalizedFiles(repository, sourceFileMatch, filterOptions, repositoryLocales);
-  }
-
-  private PollableTask generateLocalizedFilesWithoutLocaleMappingParallel(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
-
-    logger.debug("Generate localized files (without locale mapping)");
-
-    return generateLocalizedFiles(
-        repository,
-        sourceFileMatch,
-        filterOptions,
-        Lists.newArrayList(repositoryLocalesWithoutRootLocale.values()));
   }
 
   void writeLocalizedAssetToTargetDirectory(
@@ -173,24 +139,8 @@ public class PullCommandParallel extends PullCommand {
         .println();
   }
 
-  void generateLocalizedFilesWithoutLocaleMapping(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
-      throws CommandException {
-
-    logger.debug("Generate localized files (without locale mapping)");
-
-    generateLocalizedFiles(
-        repository,
-        sourceFileMatch,
-        filterOptions,
-        Lists.newArrayList(repositoryLocalesWithoutRootLocale.values()));
-  }
-
-  private PollableTask generateLocalizedFiles(
-      Repository repository,
-      FileMatch sourceFileMatch,
-      List<String> filterOptions,
-      List<RepositoryLocale> repositoryLocales) {
+  private PollableTask generateLocalizedFilesParallel(
+      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions) {
     Asset assetByPathAndRepositoryId;
 
     String sourcePath =
@@ -207,12 +157,16 @@ public class PullCommandParallel extends PullCommand {
           e);
     }
 
-    return getLocalizedAssetBodyParallel(
-        sourceFileMatch,
-        repositoryLocales.stream()
+    List<RepositoryLocale> repositoryLocales =
+        getMapOutputTagToRepositoryLocale().values().stream()
+            .distinct()
             .filter(
                 repoLocale -> shouldGenerateLocalizedFileWithCliOutput(sourceFileMatch, repoLocale))
-            .collect(Collectors.toList()),
+            .toList();
+
+    return getLocalizedAssetBodyParallel(
+        sourceFileMatch,
+        repositoryLocales,
         getRepoLocaleToOutputTagsMap(),
         filterOptions,
         assetByPathAndRepositoryId,
@@ -220,18 +174,26 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private Map<RepositoryLocale, List<String>> getRepoLocaleToOutputTagsMap() {
-    Map<RepositoryLocale, List<String>> localeIdToOutputTagsMap = new HashMap<>();
+    Map<RepositoryLocale, List<String>> localeIdToOutputTagsMap;
 
     if (localeMappings != null) {
-      for (Map.Entry<String, String> mapping : localeMappings.entrySet()) {
-        String outputBcp47tag = mapping.getKey();
-        RepositoryLocale locale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
-        if (localeIdToOutputTagsMap.containsKey(locale)) {
-          localeIdToOutputTagsMap.get(locale).add(outputBcp47tag);
-        } else {
-          localeIdToOutputTagsMap.put(locale, Lists.newArrayList(outputBcp47tag));
-        }
-      }
+
+      Map<String, RepositoryLocale> mapOutputTagToRepositoryLocale =
+          getMapOutputTagToRepositoryLocale();
+
+      localeIdToOutputTagsMap =
+          mapOutputTagToRepositoryLocale.entrySet().stream()
+              .collect(
+                  Collectors.groupingBy(
+                      Map.Entry::getValue,
+                      Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+
+    } else {
+      // Adapted for backward compatibility - a deeper refactor could improve clarity.
+      // Note: If there is no mapping, it returns an empty map. The impact on the backend is
+      // unclear,
+      // so this behavior is being preserved.
+      localeIdToOutputTagsMap = new HashMap<>();
     }
 
     return localeIdToOutputTagsMap;
