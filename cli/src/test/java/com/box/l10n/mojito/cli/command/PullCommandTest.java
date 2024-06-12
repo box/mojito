@@ -516,7 +516,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-FR:fr-FR,ja:ja-JP");
+            "fr:fr-FR,fr-FR:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
@@ -550,6 +552,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-FR:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "--parallel");
 
     checkExpectedGeneratedResources();
@@ -773,7 +777,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     getL10nJCommander()
         .run(
@@ -785,7 +791,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
@@ -1004,6 +1012,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "-ft",
             "XCODE_XLIFF");
 
@@ -1018,6 +1028,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "-ft",
             "XCODE_XLIFF");
 
@@ -1052,7 +1064,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     getL10nJCommander()
         .run(
@@ -1064,7 +1078,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
@@ -1101,6 +1117,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "-ft",
             "HTML_ALPHA",
             "-fo",
@@ -1117,6 +1135,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "-ft",
             "HTML_ALPHA",
             "-fo",
@@ -1154,6 +1174,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "--inheritance-mode",
             "REMOVE_UNTRANSLATED");
 
@@ -1168,6 +1190,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "--inheritance-mode",
             "REMOVE_UNTRANSLATED");
 
@@ -1205,6 +1229,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "--inheritance-mode",
             "REMOVE_UNTRANSLATED",
             "--status",
@@ -1224,6 +1250,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "--inheritance-mode",
             "REMOVE_UNTRANSLATED",
             "--status",
@@ -1397,7 +1425,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,ja:ja-JP");
+            "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     getL10nJCommander()
         .run(
@@ -1409,7 +1439,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,ja:ja-JP");
+            "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
@@ -1441,7 +1473,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,ja:ja-JP");
+            "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     getL10nJCommander()
         .run(
@@ -1453,7 +1487,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,ja:ja-JP");
+            "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
@@ -1963,7 +1999,9 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_baseline").getAbsolutePath(),
             "-lm",
             "ru-RU:ru-RU",
-            "--record-pull-run");
+            "--record-pull-run",
+            "-lmt",
+            "MAP_ONLY");
 
     getL10nJCommander()
         .run(
@@ -1975,7 +2013,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getInputResourcesTestDir("translations").getAbsolutePath(),
             "-lm",
-            "ru-RU:ru-RU");
+            "ru-RU:ru-RU",
+            "-lmt",
+            "MAP_ONLY");
 
     logger.debug("Record a second pull run after translation import");
     getL10nJCommander()
@@ -1989,7 +2029,9 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_translated").getAbsolutePath(),
             "-lm",
             "ru-RU:ru-RU",
-            "--record-pull-run");
+            "--record-pull-run",
+            "-lmt",
+            "MAP_ONLY");
 
     logger.debug("Simulate commit and linked to pull-run");
     String pullRunHash1 = "ddaa11";
@@ -2461,7 +2503,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,ja:ja-JP");
+            "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     getL10nJCommander()
         .run(
@@ -2473,7 +2517,9 @@ public class PullCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,ja:ja-JP");
+            "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
@@ -2509,6 +2555,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "-fo",
             "extractAllPairs=false",
             "exceptions=1_day_duration|1_year_duration");
@@ -2524,6 +2572,8 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_modified").getAbsolutePath(),
             "-lm",
             "fr:fr-FR,ja:ja-JP",
+            "-lmt",
+            "MAP_ONLY",
             "-fo",
             "extractAllPairs=false",
             "exceptions=1_day_duration|1_year_duration");
