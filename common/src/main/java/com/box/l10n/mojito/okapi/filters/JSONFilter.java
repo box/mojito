@@ -91,7 +91,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     input.setAnnotation(
         new RemoveUntranslatedStategyAnnotation(
             RemoveUntranslatedStrategy.PLACEHOLDER_AND_POST_PROCESSING));
-    // Post processing is disable for now, it will be enabled by the TranslsateStep if there are
+    // Post processing is disable for now, it will be enabled by the TranslateStep if there are
     // actual text unit to remove
     input.setAnnotation(
         new OutputDocumentPostProcessingAnnotation(JSONFilter::removeUntranslated, false));
