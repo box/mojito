@@ -41,7 +41,7 @@ public class SimpleFileEditorCommand extends Command {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(SimpleFileEditorCommand.class);
 
-  static final String COMMENTS_PATTERN = "(?s)/*\\*.*?\\*/";
+  static final String COMMENTS_PATTERN = "(?s)/\\*.*?\\*/";
 
   @Autowired ConsoleWriter consoleWriter;
 
@@ -224,7 +224,11 @@ public class SimpleFileEditorCommand extends Command {
                   .a(inputPath.toString())
                   .print();
               String modifiedContent =
-                  commandHelper.getFileContent(inputPath).replaceAll(COMMENTS_PATTERN, "");
+                  commandHelper
+                      .getFileContent(inputPath)
+                      .replaceAll(COMMENTS_PATTERN, "")
+                      .replaceFirst("^\n+", "")
+                      .replaceAll("\n{2,}", "\n\n");
               writeOutputFile(inputPath, modifiedContent);
             });
   }
