@@ -60,7 +60,7 @@ public class AndroidStringDocumentMapperTest {
 
   @Test
   public void testReadFromSourceTextUnitsWithoutPluralFormsAndWithTmTextUnitIdInName() {
-    mapper = new AndroidStringDocumentMapper("_", assetDelimiter, null, null, true);
+    mapper = new AndroidStringDocumentMapper("_", assetDelimiter, null, null, true, null);
     textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
     textUnits.add(sourceTextUnitDTO(124L, "name1", "content1", "comment1", "my/path1", null, null));
 
@@ -159,7 +159,7 @@ public class AndroidStringDocumentMapperTest {
 
   @Test
   public void testReadFromSourceTextUnitsWithPluralsAndWithTmTextUnitIdInName() {
-    mapper = new AndroidStringDocumentMapper(" _", assetDelimiter, null, null, true);
+    mapper = new AndroidStringDocumentMapper(" _", assetDelimiter, null, null, true, null);
     textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
 
     textUnits.add(
@@ -818,7 +818,7 @@ public class AndroidStringDocumentMapperTest {
 
   @Test
   public void testAddTextUnitDTOAttributesTextUnitIdAndAssetPathAndName() {
-    mapper = new AndroidStringDocumentMapper("_", null, null, null, true);
+    mapper = new AndroidStringDocumentMapper("_", null, null, null, true, null);
     TextUnitDTO textUnitDTO = new TextUnitDTO();
 
     textUnitDTO.setName("156151#@#asset_path#@#name_part1");

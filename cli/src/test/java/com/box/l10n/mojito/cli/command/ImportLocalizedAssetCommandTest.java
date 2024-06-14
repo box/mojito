@@ -4,10 +4,12 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author jeanaurambault
@@ -18,6 +20,10 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
   static Logger logger = LoggerFactory.getLogger(DropXliffImportCommandTest.class);
 
   @Autowired LocaleService localeService;
+
+  // TODO(ja) move in its own class
+  @Value("${test.phrase-client.projectId:}")
+  String testProjectId;
 
   @Test
   public void importAndroidStrings() throws Exception {
@@ -88,6 +94,150 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-t",
             getTargetTestDir().getAbsolutePath());
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void importAndroidStringsPostProcessing() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+    repositoryService.addRepositoryLocale(repository, "ru-RU");
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("removeDescription").getAbsolutePath(),
+            "-fo",
+            "removeDescription=true");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("removeUntranslated").getAbsolutePath(),
+            "--inheritance-mode",
+            "REMOVE_UNTRANSLATED");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("removeUntranslatedAndDescription").getAbsolutePath(),
+            "--inheritance-mode",
+            "REMOVE_UNTRANSLATED",
+            "-fo",
+            "removeDescription=true");
+
+    checkExpectedGeneratedResources();
+  }
+  @Test
+  public void importAndroidStringsPluralWithThirdPartySync() throws Exception {
+    Assume.assumeNotNull(testProjectId);
+
+    Repository repository = createTestRepoUsingRepoService();
+    repositoryService.addRepositoryLocale(repository, "ru-RU");
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-b",
+            "source2");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("before-sync").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "thirdparty-sync",
+            "-r",
+            repository.getName(),
+            "-p",
+            testProjectId,
+            "-a",
+            "PUSH,MAP_TEXTUNIT,PUSH_TRANSLATION,PULL");
+
+    getL10nJCommander()
+            .run(
+                    "pull",
+                    "-r",
+                    repository.getName(),
+                    "-s",
+                    getInputResourcesTestDir("source").getAbsolutePath(),
+                    "-t",
+                    getTargetTestDir("after-sync").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "thirdparty-sync",
+            "-r",
+            repository.getName(),
+            "-p",
+            testProjectId,
+            "-a",
+            "MAP_TEXTUNIT",
+            "-o",
+            "deleteCurrentMapping=true");
 
     checkExpectedGeneratedResources();
   }
@@ -1023,7 +1173,9 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir("withMapping").getAbsolutePath(),
             "-lm",
-            "en-US:en-US,en:en,fr-FR:fr-FR");
+            "en-US:en-US,en:en,fr-FR:fr-FR",
+            "-lmt",
+            "MAP_ONLY");
 
     checkExpectedGeneratedResources();
   }
