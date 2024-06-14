@@ -156,7 +156,7 @@ public class ThirdPartySyncCommand extends Command {
         .fg(CYAN)
         .a(skipAssetsWithPathPattern)
         .reset()
-        .a(" include-text-units-with-pattern")
+        .a(" include-text-units-with-pattern: ")
         .fg(CYAN)
         .a(includeTextUnitsWithPattern)
         .reset()
