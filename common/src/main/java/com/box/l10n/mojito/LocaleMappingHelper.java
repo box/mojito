@@ -28,7 +28,8 @@ public class LocaleMappingHelper {
    * Gets the inverse locale mapping given the locale mapping param
    *
    * @param localeMapppingParam locale mapping param coming from the CLI
-   * @return A map containing the inverse locale mapping (key: the tag in the repository, value: file output tag)
+   * @return A map containing the inverse locale mapping (key: the tag in the repository, value:
+   *     file output tag)
    */
   public Map<String, String> getInverseLocaleMapping(String localeMapppingParam) {
 

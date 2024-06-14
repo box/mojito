@@ -160,7 +160,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         tmTextUnitVariantCommentAnnotation.setMessage(integrityCheckException.getMessage());
 
         tmTextUnitVariantCommentAnnotation.setSeverity(
-            TMTextUnitVariantComment.Severity.ERROR); //TODO(ja) dial it down for plural strings?
+            TMTextUnitVariantComment.Severity.ERROR); // TODO(ja) dial it down for plural strings?
 
         new TMTextUnitVariantCommentAnnotations(target)
             .addAnnotation(tmTextUnitVariantCommentAnnotation);

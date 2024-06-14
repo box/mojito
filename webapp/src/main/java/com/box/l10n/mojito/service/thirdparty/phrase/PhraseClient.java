@@ -93,7 +93,7 @@ public class PhraseClient {
     }
   }
 
-  public String uploadCreateFile(
+  String uploadCreateFile(
       String projectId,
       String localeId,
       String fileFormat,

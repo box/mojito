@@ -9,12 +9,12 @@ import com.google.common.base.Strings;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +34,15 @@ public class AndroidStringDocumentMapper {
   private final String repositoryName;
   private final PluralNameParser pluralNameParser;
   private final boolean addTextUnitIdInName;
+  private final Map<String, String> pluralFormToCommaId;
 
   public AndroidStringDocumentMapper(
       String pluralSeparator,
       String assetDelimiter,
       String locale,
       String repositoryName,
-      boolean addTextUnitIdInName) {
+      boolean addTextUnitIdInName,
+      Map<String, String> pluralFormToCommaId) {
     this.pluralSeparator = pluralSeparator;
     this.assetDelimiter =
         Optional.ofNullable(Strings.emptyToNull(assetDelimiter)).orElse(DEFAULT_ASSET_DELIMITER);
@@ -48,11 +50,12 @@ public class AndroidStringDocumentMapper {
     this.repositoryName = repositoryName;
     this.pluralNameParser = new PluralNameParser();
     this.addTextUnitIdInName = addTextUnitIdInName;
+    this.pluralFormToCommaId = pluralFormToCommaId;
   }
 
   public AndroidStringDocumentMapper(
       String pluralSeparator, String assetDelimiter, String locale, String repositoryName) {
-    this(pluralSeparator, assetDelimiter, locale, repositoryName, false);
+    this(pluralSeparator, assetDelimiter, locale, repositoryName, false, null);
   }
 
   public AndroidStringDocumentMapper(String pluralSeparator, String assetDelimiter) {
@@ -103,14 +106,18 @@ public class AndroidStringDocumentMapper {
     pluralByOther.forEach(
         (pluralFormOther, builder) -> {
           if (addTextUnitIdInName) {
-            String ids =
-                builder.getSortedItems().stream()
-                    .map(AndroidPluralItem::getId)
-                    .map(Objects::toString)
-                    .collect(Collectors.joining(","));
+            String ids;
+            if (pluralFormToCommaId != null) {
+              ids = this.pluralFormToCommaId.get(pluralFormOther);
+            } else {
+              ids =
+                  builder.getSortedItems().stream()
+                      .map(AndroidPluralItem::getId)
+                      .map(Objects::toString)
+                      .collect(Collectors.joining(","));
+            }
             builder.setName(ids + "#@#" + builder.getName());
           }
-
           document.addPlural(builder.build());
         });
 
@@ -160,7 +167,7 @@ public class AndroidStringDocumentMapper {
             }
 
             AndroidPluralQuantity androidPluralQuantity =
-                AndroidPluralQuantity.valueOf(textUnit.getPluralForm());
+                AndroidPluralQuantity.valueOf(textUnit.getPluralForm().toUpperCase(Locale.ROOT));
             textUnit.setTmTextUnitId(ids.get(androidPluralQuantity.ordinal()));
           }
           textUnit.setAssetPath(nameParts[1]);
@@ -230,7 +237,7 @@ public class AndroidStringDocumentMapper {
     return Strings.isNullOrEmpty(textUnit.getPluralForm());
   }
 
-  String getKeyToGroupByPluralOtherAndComment(TextUnitDTO textUnit) {
+  public static String getKeyToGroupByPluralOtherAndComment(TextUnitDTO textUnit) {
     return textUnit.getAssetPath()
         + DEFAULT_ASSET_DELIMITER
         + textUnit.getPluralFormOther()
@@ -268,24 +275,21 @@ public class AndroidStringDocumentMapper {
     return withoutControlCharacters;
   }
 
-  /**
-   * should use {@link com.box.l10n.mojito.okapi.filters.AndroidFilter#unescape(String)}
-   */
+  /** should use {@link com.box.l10n.mojito.okapi.filters.AndroidFilter#unescape(String)} */
   static String unescape(String str) {
 
     String unescape = str;
 
-    if (StringUtils.startsWith(unescape, "\"")
-            && StringUtils.endsWith(unescape, "\"")) {
-      unescape =
-              unescape.substring(1, unescape.length() - 1);
+    if (StringUtils.startsWith(unescape, "\"") && StringUtils.endsWith(unescape, "\"")) {
+      unescape = unescape.substring(1, unescape.length() - 1);
     }
 
-    unescape = Strings.nullToEmpty(unescape)
-        .replaceAll("\\\\'", "'")
-        .replaceAll("\\\\\"", "\"")
-        .replaceAll("\\\\@", "@")
-        .replaceAll("\\\\n", "\n");
+    unescape =
+        Strings.nullToEmpty(unescape)
+            .replaceAll("\\\\'", "'")
+            .replaceAll("\\\\\"", "\"")
+            .replaceAll("\\\\@", "@")
+            .replaceAll("\\\\n", "\n");
 
     return unescape;
   }

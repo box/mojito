@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- The singular and plural form for Recipe Cook Time in hours -->
+    <plurals name="plural_recipe_cook_hours">
+        <item formatted="false" quantity="one">%,d hr to cook</item>
+        <item formatted="false" quantity="other">%,d hrs to cook</item>
+    </plurals>
+    
+    <!-- People, as a filter -->
+    <string name="people">People</string>
+    
+    <plurals name="plural_collaborators_other">
+        <item formatted="false" quantity="one">%1$,d collaborator</item>
+        <item formatted="false" quantity="other">%1$,d collaborators</item>
+    </plurals>
+    
+    <!-- Header for the recipe ingredients with the ingredients countsection -->
+    <plurals name="pin_recipe_ingredients_with_count">
+        <item formatted="false" quantity="one">%d ingredient</item>
+        <item formatted="false" quantity="other">%d ingredients</item>
+    </plurals>
+    
+    <!-- Delete a piece of content -->
+    <string name="delete_confirm">Delete</string>
+</resources>
