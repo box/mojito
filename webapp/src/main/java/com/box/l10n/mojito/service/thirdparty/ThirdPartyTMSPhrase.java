@@ -8,10 +8,12 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.thirdparty.phrase.PhraseClient;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -22,12 +24,16 @@ import com.phrase.client.model.Tag;
 import com.phrase.client.model.TranslationKey;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +128,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     List<TextUnitDTO> search =
         getSourceTextUnitDTOs(repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
 
-    String text = getFileContent(pluralSeparator, search, true);
+    String text = getFileContent(pluralSeparator, search, true, null);
 
     String tagForUpload = getTagForUpload();
     phraseClient.uploadAndWait(
@@ -162,6 +168,24 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     return textUnitSearcher.search(parameters);
   }
 
+  private List<TextUnitDTO> getSourceTextUnitDTOsPluralOnly(
+      Repository repository, String skipTextUnitsWithPattern, String skipAssetsWithPathPattern) {
+
+    TextUnitSearcherParameters parameters = new TextUnitSearcherParameters();
+
+    parameters.setRepositoryIds(repository.getId());
+    parameters.setForRootLocale(true);
+    parameters.setDoNotTranslateFilter(false);
+    parameters.setUsedFilter(UsedFilter.USED);
+    parameters.setSkipTextUnitWithPattern(skipTextUnitsWithPattern);
+    parameters.setSkipAssetPathWithPattern(skipAssetsWithPathPattern);
+    parameters.setSearchType(SearchType.ILIKE);
+    parameters.setPluralFormsFiltered(false);
+    parameters.setPluralFormOther("%");
+
+    return textUnitSearcher.search(parameters);
+  }
+
   public static String getTagForUpload() {
     ZonedDateTime zonedDateTime = JSR310Migration.dateTimeNowInUTC();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss_SSS");
@@ -192,9 +216,11 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       logger.info("Downloading locale: {} from Phrase", localeTag);
       String fileContent = phraseClient.localeDownload(projectId, localeTag, "xml");
 
+      logger.info("file content from pull: {}", fileContent);
+
       AndroidStringDocumentMapper mapper =
           new AndroidStringDocumentMapper(
-              pluralSeparator, null, localeTag, repository.getName(), true);
+              pluralSeparator, null, localeTag, repository.getName(), true, null);
 
       List<TextUnitDTO> textUnitDTOS =
           mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
@@ -216,6 +242,36 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       String includeTextUnitsWithPattern,
       List<String> optionList) {
 
+    List<TextUnitDTO> pluralTextUnitDTOs =
+        getSourceTextUnitDTOsPluralOnly(
+            repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
+
+    Map<String, List<TextUnitDTO>> pluralFormOtherToTextUnitDTO =
+        pluralTextUnitDTOs.stream()
+            .collect(
+                Collectors.groupingBy(
+                    AndroidStringDocumentMapper::getKeyToGroupByPluralOtherAndComment));
+
+    pluralFormOtherToTextUnitDTO.forEach(
+        (key, value) -> {
+          if (value.size() != 6) {
+            throw new RuntimeException("there must be only 6 text units per PluralFormOther value");
+          }
+        });
+
+    Map<String, String> pluralFormToCommaId =
+        pluralFormOtherToTextUnitDTO.entrySet().stream()
+            .map(
+                e ->
+                    new SimpleEntry<>(
+                        e.getKey(),
+                        e.getValue().stream()
+                            .sorted(new ByPluralFormComparator())
+                            .map(TextUnitDTO::getTmTextUnitId)
+                            .map(String::valueOf)
+                            .collect(Collectors.joining(","))))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     Set<RepositoryLocale> repositoryLocalesWithoutRootLocale =
         repositoryService.getRepositoryLocalesWithoutRootLocale(repository);
 
@@ -228,15 +284,29 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
               includeTextUnitsWithPattern,
               repositoryLocale);
 
-      String fileContent = getFileContent(pluralSeparator, textUnitDTOS, false);
+      if (textUnitDTOS.isEmpty()) {
+        logger.info("Not translation, skip upload");
+      } else {
 
-      phraseClient.uploadCreateFile(
-          projectId,
-          repositoryLocale.getLocale().getBcp47Tag(),
-          "xml",
-          repository.getName() + "-strings.xml",
-          fileContent,
-          null);
+        logger.info("Print text unit for {}", repositoryLocale.getLocale().getBcp47Tag());
+        textUnitDTOS.forEach(
+            textUnitDTO ->
+                logger.info(
+                    "Textunit: {}",
+                    ObjectMapper.withIndentedOutput().writeValueAsStringUnchecked(textUnitDTO)));
+
+        String fileContent =
+            getFileContent(pluralSeparator, textUnitDTOS, false, pluralFormToCommaId);
+        logger.info("Push translation to phrase:\n{}", fileContent);
+
+        phraseClient.uploadAndWait(
+            projectId,
+            repositoryLocale.getLocale().getBcp47Tag(),
+            "xml",
+            repository.getName() + "-strings.xml",
+            fileContent,
+            null);
+      }
     }
   }
 
@@ -260,10 +330,14 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
   }
 
   private static String getFileContent(
-      String pluralSeparator, List<TextUnitDTO> textUnitDTOS, boolean useSource) {
+      String pluralSeparator,
+      List<TextUnitDTO> textUnitDTOS,
+      boolean useSource,
+      Map<String, String> pluralFormToCommaId) {
 
     AndroidStringDocumentMapper androidStringDocumentMapper =
-        new AndroidStringDocumentMapper(pluralSeparator, null, null, null, true);
+        new AndroidStringDocumentMapper(
+            pluralSeparator, null, null, null, true, pluralFormToCommaId);
 
     AndroidStringDocument androidStringDocument =
         androidStringDocumentMapper.readFromTextUnits(textUnitDTOS, useSource);
@@ -278,5 +352,25 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       List<String> optionList,
       Map<String, String> localeMapping) {
     throw new UnsupportedOperationException("Pull source is not supported");
+  }
+
+  static class ByPluralFormComparator implements Comparator<TextUnitDTO> {
+
+    private final Map<String, Integer> orderMap;
+
+    public ByPluralFormComparator() {
+      this.orderMap = new HashMap<>();
+      int i = 0;
+      for (String v : Arrays.asList("zero", "one", "two", "few", "many", "other")) {
+        this.orderMap.put(v, i++);
+      }
+    }
+
+    @Override
+    public int compare(TextUnitDTO o1, TextUnitDTO o2) {
+      return Integer.compare(
+          orderMap.getOrDefault(o1.getPluralForm(), -1),
+          orderMap.getOrDefault(o2.getPluralForm(), -1));
+    }
   }
 }
