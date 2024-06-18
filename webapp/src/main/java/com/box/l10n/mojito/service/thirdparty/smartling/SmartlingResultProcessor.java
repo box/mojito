@@ -47,7 +47,7 @@ public class SmartlingResultProcessor {
             "{} result for request id {} uploaded to: {}", action, options.getRequestId(), result);
       } catch (IOException | SdkClientException e) {
         String errorMessage =
-            String.format("An error ocurred when uploading a %s result zip file", action);
+            String.format("An error occurred when uploading a %s result zip file", action);
         logger.error(errorMessage, e);
         throw new RuntimeException(errorMessage, e);
       }

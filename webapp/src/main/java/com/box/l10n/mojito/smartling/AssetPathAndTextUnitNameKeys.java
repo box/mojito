@@ -17,7 +17,7 @@ public class AssetPathAndTextUnitNameKeys {
     Preconditions.checkNotNull(string);
     String[] split = string.split(DELIMITER, 2);
     if (split.length != 2) {
-      throw new IllegalArgumentException("must contain delimter #@#");
+      throw new IllegalArgumentException("must contain delimiter #@#");
     }
 
     return new Key(split[0], split[1]);

@@ -154,8 +154,8 @@ public class FlyWayConfig {
    * since a failure to perform the query will show that the DB is not protected.
    *
    * <p>This is an extra check added to the settings: spring.flyway.clean-disabled=true (now default
-   * in Mojito) and l10n.flyway.clean=false (that is usally set manualy, but can be wrongly enabled)
-   * and shouldn't be soly relied upon.
+   * in Mojito) and l10n.flyway.clean=false (that is usually set manually, but can be wrongly enabled)
+   * and shouldn't be solely relied upon.
    *
    * <p>For now this is enabled manually in the database with: CREATE TABLE
    * flyway_clean_protection(enabled boolean default true); INSERT INTO flyway_clean_protection

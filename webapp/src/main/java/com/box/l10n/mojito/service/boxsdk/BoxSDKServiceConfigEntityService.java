@@ -211,7 +211,7 @@ public class BoxSDKServiceConfigEntityService {
    * When root folder is not provided, create the following structure inside user's root. <UserRoot>
    * |-> Mojito |-> Project Requests
    *
-   * <p>Note: We're creating a Mojito root folder to store everythign related to Mojito because an
+   * <p>Note: We're creating a Mojito root folder to store everything related to Mojito because an
    * App User can be accessible by other API keys
    *
    * <p>Note: for now, we're only creating the Project Requests (Drops) folder. Maybe later when we

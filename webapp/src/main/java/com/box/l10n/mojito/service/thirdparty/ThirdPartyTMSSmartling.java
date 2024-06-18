@@ -480,7 +480,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       file.setFileContent(writer.toText());
 
     } catch (ParserConfigurationException | TransformerException e) {
-      logger.error("An error ocurred when processing a push batch", e);
+      logger.error("An error occurred when processing a push batch", e);
       throw new RuntimeException(e);
     }
 
@@ -770,7 +770,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         file.setFileContent(writer.toText());
 
       } catch (ParserConfigurationException | TransformerException e) {
-        logger.error("An error ocurred when processing a push_translations batch", e);
+        logger.error("An error occurred when processing a push_translations batch", e);
         throw new RuntimeException(e);
       }
 

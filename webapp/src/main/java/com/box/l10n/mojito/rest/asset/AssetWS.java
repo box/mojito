@@ -434,7 +434,7 @@ public class AssetWS {
       @RequestParam(value = "virtual", required = false) Boolean virtual,
       @RequestParam(value = "branchId", required = false) Long branchId) {
 
-    // not the best to fetch the whole asset (espcially for old one that have content, though with
+    // not the best to fetch the whole asset (especially for old one that have content, though with
     // branch that
     // will change. Wanted to use spring project but it is not working for some reason. Since soon
     // asset won't have

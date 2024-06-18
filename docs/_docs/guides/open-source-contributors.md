@@ -12,10 +12,10 @@ The following requirements are needed to develop on {{ site.mojito_green }}:
 1. [Git](https://git-scm.com/about)
 2. [JDK 17](https://adoptium.net/temurin/releases/?version=17) 
 3. [Maven](https://maven.apache.org/download.cgi), or use the project Maven wrapper `mvnw` (version `3.8`)
-4. Optional but highly recommanded, [MySQL 8](https://dev.mysql.com/downloads/mysql/8.html) 
+4. Optional but highly recommended, [MySQL 8](https://dev.mysql.com/downloads/mysql/8.html) 
 
-Next are instructions to setup the developper environment on Mac OS and Ubuntu. Both have instructions to install 
-`Mysql 8` that can be skipped but it is highly recommanded to work with a production like environment and persistent
+Next are instructions to setup the developer environment on Mac OS and Ubuntu. Both have instructions to install 
+`Mysql 8` that can be skipped but it is highly recommended to work with a production like environment and persistent
 data. Note that `8` is the only version tested at the moment.
 
 Skip to the [build section](#build) if you already have everything setup!
@@ -56,7 +56,7 @@ brew install mysql@8.0
 Note, to install the exact same `maven` version as the wrapper: `brew install maven@3.8` (check the instructions since it is key-only) .
 
  
-### Install on Unbutu 18.4 LTS
+### Install on Ubuntu 18.4 LTS
 
 Install `java 17` from `OpenJDK`:
 
@@ -89,7 +89,7 @@ sudo apt-get install mysql-server
 ## Create Mysql Databases & configuration files
 
 If you've decided to use `Mysql` the server needs to be configured for better Unicode support. This section also describes 
-how to create 2 databases along with spring configuraitons to setup 2 envrionments that will make developpment easier.
+how to create 2 databases along with spring configurations to setup 2 environments that will make development easier.
 
 Configure the server to use `utf-8` on `4 bytes` by default by appending these configurations to 
 `/usr/local/etc/my.cnf` file on Mac and to `/etc/mysql/my.cnf` file on Ubuntu:
