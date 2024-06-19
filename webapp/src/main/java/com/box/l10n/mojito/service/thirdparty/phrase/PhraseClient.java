@@ -24,6 +24,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -168,13 +170,35 @@ public class PhraseClient {
         .block();
   }
 
-  public void removeKeysNotTaggedWith(String projectId, String tag) {
-    logger.info("Removing keys not tagged with: {}", tag);
+  /**
+   * Conducted tests on keysDeleteCollection using the <code>-tags:tag1,tag2</code> option, and it
+   * operates as a filter for keys "not in any of the tags".
+   *
+   * <p>It removes keys that are not tagged with any of the provided tags.
+   *
+   * <p>For example:
+   *
+   * <ul>
+   *   <li>If key <code>ka</code> has tag <code>tag1</code>,
+   *   <li>If key <code>kb</code> has tag <code>tag2</code>,
+   *   <li>If key <code>kc</code> has tag <code>tag3</code>,
+   * </ul>
+   *
+   * <p>Calling <code>keysDeleteCollection</code> with <code>-tags:tag1,tag3</code> will remove
+   * <code>kb</code>.
+   */
+  public void removeKeysNotTaggedWith(String projectId, List<String> anyOfTheseTags) {
+    logger.info("Removing keys not tagged with any of the following tags: {}", anyOfTheseTags);
 
     Mono.fromCallable(
             () -> {
               KeysApi keysApi = new KeysApi(apiClient);
-              keysApi.keysDeleteCollection(projectId, null, null, "-tags:%s".formatted(tag), null);
+              keysApi.keysDeleteCollection(
+                  projectId,
+                  null,
+                  null,
+                  "-tags:%s".formatted(String.join(",", anyOfTheseTags)),
+                  null);
               return null;
             })
         .retryWhen(
@@ -193,7 +217,18 @@ public class PhraseClient {
         .block();
   }
 
-  public String localeDownload(String projectId, String locale, String fileFormat) {
+  /**
+   * @param onTagErrorRefreshCallback with concurrent update, the tags could be updated during
+   *     download. We don't want to retry the whole logic, so we provide a callback to refresh the
+   *     tags
+   */
+  public String localeDownload(
+      String projectId,
+      String locale,
+      String fileFormat,
+      String tags,
+      Supplier<String> onTagErrorRefreshCallback) {
+    AtomicReference<String> refTags = new AtomicReference<>(tags);
     return Mono.fromCallable(
             () -> {
               LocalesApi localesApi = new LocalesApi(apiClient);
@@ -211,7 +246,7 @@ public class PhraseClient {
                       null,
                       null,
                       fileFormat,
-                      null,
+                      refTags.get(),
                       null,
                       null,
                       null,
@@ -234,11 +269,22 @@ public class PhraseClient {
             })
         .retryWhen(
             retryBackoffSpec.doBeforeRetry(
-                doBeforeRetry ->
-                    logAttempt(
-                        doBeforeRetry.failure(),
-                        "Retrying failed attempt to localeDownload from Phrase, project id: %s, locale: %s"
-                            .formatted(projectId, locale))))
+                doBeforeRetry -> {
+                  logAttempt(
+                      doBeforeRetry.failure(),
+                      "Retrying failed attempt to localeDownload from Phrase, project id: %s, locale: %s"
+                          .formatted(projectId, locale));
+
+                  if (getErrorMessageFromOptionalApiException(doBeforeRetry.failure())
+                      .contains("Invalid Download Options. Parameter tags ")) {
+                    String newTags = onTagErrorRefreshCallback.get();
+                    logger.warn(
+                        "Replacing old tags: {} with new tags: {} for download locale",
+                        refTags.get(),
+                        newTags);
+                    refTags.set(newTags);
+                  }
+                }))
         .doOnError(
             throwable ->
                 rethrowExceptionWithLog(
@@ -325,15 +371,17 @@ public class PhraseClient {
     return tags;
   }
 
-  public void deleteTags(String projectId, List<Tag> tags) {
+  public void deleteTags(String projectId, List<String> tagNames) {
+
+    logger.debug("Delete tags: {}", tagNames);
+
     TagsApi tagsApi = new TagsApi(apiClient);
     Map<String, Throwable> exceptions = new LinkedHashMap<>();
-    for (Tag tag : tags) {
+    for (String tagName : tagNames) {
       Mono.fromCallable(
               () -> {
-                logger.debug(
-                    "Deleting tag: %s in project id: %s".formatted(tag.getName(), projectId));
-                tagsApi.tagDelete(projectId, tag.getName(), null, null);
+                logger.debug("Deleting tag: %s in project id: %s".formatted(tagName, projectId));
+                tagsApi.tagDelete(projectId, tagName, null, null);
                 return null;
               })
           .retryWhen(
@@ -342,15 +390,15 @@ public class PhraseClient {
                     logAttempt(
                         doBeforeRetry.failure(),
                         "Retrying failed attempt to delete tag: %s in project id: %s"
-                            .formatted(tag.getName(), projectId));
+                            .formatted(tagName, projectId));
                   }))
           .doOnError(
               throwable -> {
-                exceptions.put(tag.getName(), throwable);
+                exceptions.put(tagName, throwable);
                 rethrowExceptionWithLog(
                     throwable,
                     "Final error to delete tag: %s in project id: %s"
-                        .formatted(tag.getName(), projectId));
+                        .formatted(tagName, projectId));
               })
           .block();
     }
@@ -359,7 +407,7 @@ public class PhraseClient {
       List<String> tagsWithErrors = exceptions.keySet().stream().limit(10).toList();
       String andMore = (tagsWithErrors.size() < exceptions.size()) ? " and more." : "";
       throw new PhraseClientException(
-          String.format("Can't delete tags: %s%s", tagsWithErrors, andMore));
+          String.format("Can't delete tagNames: %s%s", tagsWithErrors, andMore));
     }
   }
 

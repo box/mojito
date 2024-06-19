@@ -31,6 +31,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Component;
 public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
   static final String TAG_PREFIX = "push_";
+  static final String TAG_PREFIX_WITH_REPOSITORY = "push_%s";
 
   static Logger logger = LoggerFactory.getLogger(ThirdPartyTMSPhrase.class);
 
@@ -56,6 +58,12 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
   PhraseClient phraseClient;
 
   @Autowired RepositoryService repositoryService;
+
+  public ThirdPartyTMSPhrase() {}
+
+  public ThirdPartyTMSPhrase(PhraseClient phraseClient) {
+    this.phraseClient = phraseClient;
+  }
 
   @Override
   public void removeImage(String projectId, String imageId) {
@@ -130,7 +138,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     String text = getFileContent(pluralSeparator, search, true, null);
 
-    String tagForUpload = getTagForUpload();
+    String tagForUpload = getTagForUpload(repository.getName());
     phraseClient.uploadAndWait(
         projectId,
         repository.getSourceLocale().getBcp47Tag(),
@@ -139,17 +147,62 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
         text,
         ImmutableList.of(tagForUpload));
 
-    phraseClient.removeKeysNotTaggedWith(projectId, tagForUpload);
+    removeUnusedKeysAndTags(projectId, repository.getName(), tagForUpload);
+  }
 
-    List<Tag> tagsToDelete =
+  /**
+   * Remove unused keys and tags
+   *
+   * <ul>
+   *   <li><b>Remove Unused Keys:</b>
+   *       <ul>
+   *         <li>Unused keys in a Phrase project are defined as keys that are not tagged with the
+   *             latest push tag from any Mojito repository.
+   *         <li>To identify unused keys, fetch the current push tags of all repositories, excluding
+   *             the push tag related to the Mojito repository being processed, and include the
+   *             current upload tag.
+   *       </ul>
+   *   <li><b>Manage Tags:</b>
+   *       <ul>
+   *         <li>Ensure that there is only one active "push" tag per repository.
+   *         <li>Remove old tags that are prefixed with "push" but not active
+   *       </ul>
+   * </ul>
+   *
+   * <p><b>Explanation:</b>
+   *
+   * <p>The N:1 relationship between Mojito and Phrase is maintained through this logic, allowing
+   * for efficient management of keys and tags.
+   */
+  public void removeUnusedKeysAndTags(
+      String projectId, String repositoryName, String tagForUpload) {
+
+    List<String> tagsForOtherRepositories =
         phraseClient.listTags(projectId).stream()
+            .map(Tag::getName)
+            .filter(Objects::nonNull)
+            .filter(tagName -> tagName.startsWith(TAG_PREFIX))
             .filter(
-                tag ->
-                    tag.getName() != null
-                        && !tag.getName().equals(tagForUpload)
-                        && tag.getName().startsWith(TAG_PREFIX))
+                tagName ->
+                    !tagName.startsWith(TAG_PREFIX_WITH_REPOSITORY.formatted(repositoryName)))
             .toList();
-    phraseClient.deleteTags(projectId, tagsToDelete);
+
+    List<String> allActiveTags = new ArrayList<>(tagsForOtherRepositories);
+    allActiveTags.add(tagForUpload);
+
+    logger.info("All active tags: {}", allActiveTags);
+    phraseClient.removeKeysNotTaggedWith(projectId, allActiveTags);
+
+    List<String> pushTagsToDelete =
+        phraseClient.listTags(projectId).stream()
+            .map(Tag::getName)
+            .filter(Objects::nonNull)
+            .filter(tagName -> tagName.startsWith(TAG_PREFIX))
+            .filter(tagName -> !allActiveTags.contains(tagName))
+            .toList();
+
+    logger.info("Tags to delete: {}", pushTagsToDelete);
+    phraseClient.deleteTags(projectId, pushTagsToDelete);
   }
 
   private List<TextUnitDTO> getSourceTextUnitDTOs(
@@ -186,12 +239,13 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     return textUnitSearcher.search(parameters);
   }
 
-  public static String getTagForUpload() {
+  public static String getTagForUpload(String repositoryName) {
     ZonedDateTime zonedDateTime = JSR310Migration.dateTimeNowInUTC();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss_SSS");
-    return ("%s%s_%s")
+    return ("%s%s_%s_%s")
         .formatted(
             TAG_PREFIX,
+            repositoryName,
             formatter.format(zonedDateTime),
             Math.abs(UUID.randomUUID().getLeastSignificantBits() % 1000));
   }
@@ -211,10 +265,19 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     Set<RepositoryLocale> repositoryLocalesWithoutRootLocale =
         repositoryService.getRepositoryLocalesWithoutRootLocale(repository);
 
+    String currentTags = getCurrentTagsForRepository(repository, projectId);
+
     for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
       String localeTag = repositoryLocale.getLocale().getBcp47Tag();
       logger.info("Downloading locale: {} from Phrase", localeTag);
-      String fileContent = phraseClient.localeDownload(projectId, localeTag, "xml");
+
+      String fileContent =
+          phraseClient.localeDownload(
+              projectId,
+              localeTag,
+              "xml",
+              currentTags,
+              () -> getCurrentTagsForRepository(repository, projectId));
 
       logger.info("file content from pull: {}", fileContent);
 
@@ -229,6 +292,14 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     }
 
     return null;
+  }
+
+  private String getCurrentTagsForRepository(Repository repository, String projectId) {
+    return phraseClient.listTags(projectId).stream()
+        .map(Tag::getName)
+        .filter(Objects::nonNull)
+        .filter(tagName -> tagName.startsWith(repository.getName()))
+        .collect(Collectors.joining(","));
   }
 
   @Override
