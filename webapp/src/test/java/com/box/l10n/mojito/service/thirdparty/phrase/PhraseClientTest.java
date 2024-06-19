@@ -1,10 +1,11 @@
 package com.box.l10n.mojito.service.thirdparty.phrase;
 
-import com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSPhrase;
-import com.google.common.collect.ImmutableList;
+import com.box.l10n.mojito.JSR310Migration;
 import com.phrase.client.model.Tag;
-import com.phrase.client.model.TranslationKey;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,16 +32,18 @@ public class PhraseClientTest {
   @Autowired(required = false)
   PhraseClient phraseClient;
 
-  @Value("${test.phrase-client.projectId}")
+  @Value("${test.phrase-client.projectId:}")
   String testProjectId;
 
   @Test
   public void testRemoveTag() {
     String tagForUpload = "push_2024_06_10_07_17_00_089_122";
-    List<Tag> tagsToDelete =
+    List<String> tagsToDelete =
         phraseClient.listTags(testProjectId).stream()
             .peek(tag -> logger.info("tag: {}", tag))
-            .filter(tag -> tag.getName() != null && !tag.getName().equals(tagForUpload))
+            .map(Tag::getName)
+            .filter(Objects::nonNull)
+            .filter(tagName -> !tagName.equals(tagForUpload))
             .toList();
 
     phraseClient.deleteTags(testProjectId, tagsToDelete);
@@ -50,27 +53,29 @@ public class PhraseClientTest {
   public void test() {
     Assume.assumeNotNull(testProjectId);
 
-    String tagForUpload = ThirdPartyTMSPhrase.getTagForUpload();
-
-    logger.info("tagForUpload: {}", tagForUpload);
-
-    StringBuilder fileContentAndroidBuilder = generateFileContent();
-
-    String fileContentAndroid = fileContentAndroidBuilder.toString();
-    phraseClient.uploadAndWait(
-        testProjectId,
-        "en",
-        "xml",
-        "strings.xml",
-        fileContentAndroid,
-        ImmutableList.of(tagForUpload));
-
-    phraseClient.removeKeysNotTaggedWith(testProjectId, tagForUpload);
-
-    List<TranslationKey> translationKeys = phraseClient.getKeys(testProjectId);
-    for (TranslationKey translationKey : translationKeys) {
-      logger.info("{}", translationKey);
-    }
+    //    for (int i = 0; i < 3; i++) {
+    //      String repoName = "repo_%d".formatted(i);
+    //      String tagForUpload = ThirdPartyTMSPhrase.getTagForUpload(repoName);
+    //
+    //      logger.info("tagForUpload: {}", tagForUpload);
+    //
+    //      String fileContentAndroid = generateFileContent(repoName).toString();
+    //      phraseClient.uploadAndWait(
+    //          testProjectId,
+    //          "en",
+    //          "xml",
+    //          "strings.xml",
+    //          fileContentAndroid,
+    //          ImmutableList.of(tagForUpload));
+    //
+    //      new ThirdPartyTMSPhrase(phraseClient)
+    //          .removeUnusedKeysAndTags(testProjectId, repoName, tagForUpload);
+    //    }
+    //
+    //    List<TranslationKey> translationKeys = phraseClient.getKeys(testProjectId);
+    //    for (TranslationKey translationKey : translationKeys) {
+    //      logger.info("{}", translationKey);
+    //    }
 
     //
     //    String fileContentAndroid2 =
@@ -88,23 +93,42 @@ public class PhraseClientTest {
     //                    """;
     //    phraseClient.uploadCreateFile(
     //        testProjectId, "fr", "xml", "strings.xml", fileContentAndroid2, null);
-    //    String s2 = phraseClient.localeDownload(testProjectId, "fr", "xml");
-    //    logger.info(s2);
+
+    String s2 =
+        phraseClient.localeDownload(
+            testProjectId,
+            "en",
+            "xml",
+            "startWithABadTag",
+            () ->
+                phraseClient.listTags(testProjectId).stream()
+                    .map(Tag::getName)
+                    .filter(Objects::nonNull)
+                    .filter(tagName -> tagName.startsWith("push_repo_2"))
+                    .collect(Collectors.joining(",")));
+
+    logger.info(s2);
   }
 
-  static StringBuilder generateFileContent() {
+  static StringBuilder generateFileContent(String repositoryName) {
     StringBuilder fileContentAndroidBuilder = new StringBuilder();
 
     fileContentAndroidBuilder.append(
         """
         <?xml version="1.0" encoding="UTF-8"?>
         <resources>
-          <string name="app_name">Locale Tester</string>
-        """);
+          <string name="app_name_%s">Locale Tester</string>
+        """
+            .formatted(repositoryName));
 
-    for (int i = 0; i < 2000; i++) {
+    ZonedDateTime now = JSR310Migration.dateTimeNowInUTC();
+    for (int i = 0; i < 1; i++) {
       fileContentAndroidBuilder.append(
           String.format("<string name=\"action_settings-%d\">Settings</string>\n", i));
+      fileContentAndroidBuilder.append(
+          String.format(
+              "<string name=\"%s_action_settings-%d-%s\">Settings</string>\n",
+              repositoryName, i, now.toString()));
     }
 
     fileContentAndroidBuilder.append("</resources>");
