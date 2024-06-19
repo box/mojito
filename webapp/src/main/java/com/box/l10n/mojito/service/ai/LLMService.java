@@ -48,6 +48,7 @@ public interface LLMService {
     aiStringCheck.setComment(textUnit.getComments());
     aiStringCheck.setPromptOutput(promptOutput);
     aiStringCheck.setCreatedDate(JSR310Migration.dateTimeNow());
+    aiStringCheck.setStringName(textUnit.getName());
     aiStringCheckRepository.save(aiStringCheck);
   }
 }
