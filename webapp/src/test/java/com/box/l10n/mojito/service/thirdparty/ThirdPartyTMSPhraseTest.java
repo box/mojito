@@ -31,7 +31,7 @@ public class ThirdPartyTMSPhraseTest extends ServiceTestBase {
 
   @Autowired TextUnitSearcher textUnitSearcher;
 
-  @Value("${test.phrase-client.projectId}")
+  @Value("${test.phrase-client.projectId:}")
   String testProjectId;
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
