@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,8 @@ public class OpenAILLMService implements LLMService {
 
   @Autowired LLMPromptService LLMPromptService;
 
+  @Autowired MeterRegistry meterRegistry;
+
   @Value("${l10n.ai.checks.persistResults:true}")
   boolean persistResults;
 
@@ -70,8 +73,7 @@ public class OpenAILLMService implements LLMService {
     AICheckRequest.getTextUnits()
         .forEach(
             textUnit -> {
-              List<AICheckResult> AICheckResults =
-                  checkString(textUnit, prompts, repository.getId());
+              List<AICheckResult> AICheckResults = checkString(textUnit, prompts, repository);
               results.put(textUnit.getSource(), AICheckResults);
             });
 
@@ -83,21 +85,20 @@ public class OpenAILLMService implements LLMService {
 
   @Timed("OpenAILLMService.checkString")
   private List<AICheckResult> checkString(
-      AssetExtractorTextUnit textUnit, List<AIPrompt> prompts, long repositoryId) {
+      AssetExtractorTextUnit textUnit, List<AIPrompt> prompts, Repository repository) {
     List<AICheckResult> results = new ArrayList<>();
     String sourceString = textUnit.getSource();
     String comment = textUnit.getComments();
     String[] nameSplit = textUnit.getName().split(" --- ");
 
     if (!prompts.isEmpty()) {
-      executePromptChecks(
-          textUnit, prompts, repositoryId, sourceString, comment, nameSplit, results);
+      executePromptChecks(textUnit, prompts, repository, sourceString, comment, nameSplit, results);
     } else {
-      logger.warn("No prompts found for repository id: {}", repositoryId);
+      logger.warn("No prompts found for repository: {}", repository.getName());
       AICheckResult result = new AICheckResult();
       result.setSuccess(true);
       result.setSuggestedFix(
-          "No prompts found for repository id: " + repositoryId + ", skipping check.");
+          "No prompts found for repository: " + repository.getName() + ", skipping check.");
       results.add(result);
     }
 
@@ -107,7 +108,7 @@ public class OpenAILLMService implements LLMService {
   private void executePromptChecks(
       AssetExtractorTextUnit textUnit,
       List<AIPrompt> prompts,
-      long repositoryId,
+      Repository repository,
       String sourceString,
       String comment,
       String[] nameSplit,
@@ -143,27 +144,38 @@ public class OpenAILLMService implements LLMService {
       if (persistResults) {
         persistCheckResult(
             textUnit,
-            repositoryId,
+            repository,
             prompt,
             chatCompletionsResponse.choices().getFirst().message().content(),
             aiStringCheckRepository);
       }
-      results.add(parseResponse(chatCompletionsResponse));
+      results.add(parseResponse(chatCompletionsResponse, repository));
     }
   }
 
   private AICheckResult parseResponse(
-      OpenAIClient.ChatCompletionsResponse chatCompletionsResponse) {
+      OpenAIClient.ChatCompletionsResponse chatCompletionsResponse, Repository repository) {
     AICheckResult result;
     String response = chatCompletionsResponse.choices().getFirst().message().content();
     try {
       result = objectMapper.readValue(response, AICheckResult.class);
+      meterRegistry
+          .counter(
+              "OpenAILLMService.checks.result",
+              "success",
+              Boolean.toString(result.isSuccess()),
+              "repository",
+              repository.getName())
+          .increment();
     } catch (JsonProcessingException e) {
       logger.error("Error parsing AI check result from response: {}", response, e);
       // Nothing the user can do about this, so just skip the check
       result = new AICheckResult();
       result.setSuccess(true);
       result.setSuggestedFix("Check skipped as error parsing response from OpenAI.");
+      meterRegistry
+          .counter("OpenAILLMService.checks.parse.error", "repository", repository.getName())
+          .increment();
     }
     return result;
   }

@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.ai;
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.AIPrompt;
 import com.box.l10n.mojito.entity.AIStringCheck;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.rest.ai.AICheckRequest;
 import com.box.l10n.mojito.rest.ai.AICheckResponse;
@@ -36,12 +37,12 @@ public interface LLMService {
 
   default void persistCheckResult(
       AssetExtractorTextUnit textUnit,
-      long repositoryId,
+      Repository repository,
       AIPrompt prompt,
       String promptOutput,
       AIStringCheckRepository aiStringCheckRepository) {
     AIStringCheck aiStringCheck = new AIStringCheck();
-    aiStringCheck.setRepositoryId(repositoryId);
+    aiStringCheck.setRepositoryId(repository.getId());
     aiStringCheck.setAiPromptId(prompt.getId());
     aiStringCheck.setContent(textUnit.getSource());
     aiStringCheck.setComment(textUnit.getComments());

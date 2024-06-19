@@ -45,6 +45,12 @@ public class OpenAIConfig {
        * Allow modification of a restricted header prior to sending the request.
        *
        * <p>Provided list here is a list of header names which are set as unrestricted in the JRE.
+       *
+       * <p>Note that depending on when libraries are loaded and the order in which the loading
+       * occurs, this property setting may not be in effect before the httpClient library is loaded.
+       *
+       * <p>In those cases you should set the system property directly via the command line prior to
+       * application startup.
        */
       System.setProperty(
           "jdk.httpclient.allowRestrictedHeaders",

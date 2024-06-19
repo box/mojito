@@ -14,6 +14,7 @@ import com.box.l10n.mojito.rest.ai.AICheckRequest;
 import com.box.l10n.mojito.rest.ai.AICheckResponse;
 import com.box.l10n.mojito.service.ai.AIStringCheckRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,6 +37,8 @@ class OpenAILLMServiceTest {
 
   @Mock LLMPromptService promptService;
 
+  @Mock MeterRegistry meterRegistry;
+
   @Spy ObjectMapper objectMapper;
 
   @Captor private ArgumentCaptor<OpenAIClient.ChatCompletionsRequest> requestCaptor;
@@ -46,6 +49,8 @@ class OpenAILLMServiceTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
     openAILLMService.persistResults = true;
+    when(meterRegistry.counter(anyString(), any(String[].class)))
+        .thenReturn(mock(io.micrometer.core.instrument.Counter.class));
   }
 
   @Test
@@ -66,6 +71,7 @@ class OpenAILLMServiceTest {
     AICheckRequest.setRepositoryName("testRepo");
     AICheckRequest.setTextUnits(textUnits);
     Repository repository = new Repository();
+    repository.setName("testRepo");
     repository.setId(1L);
     when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
     when(promptService.getPromptsByRepositoryAndPromptType(
@@ -91,6 +97,8 @@ class OpenAILLMServiceTest {
     assertTrue(response.getResults().containsKey("A test string"));
     assertTrue(response.getResults().get("A test string").getFirst().isSuccess());
     verify(aiStringCheckRepository, times(1)).save(any());
+    verify(meterRegistry, times(1))
+        .counter("OpenAILLMService.checks.result", "success", "true", "repository", "testRepo");
   }
 
   @Test
@@ -111,6 +119,7 @@ class OpenAILLMServiceTest {
     AICheckRequest.setRepositoryName("testRepo");
     AICheckRequest.setTextUnits(textUnits);
     Repository repository = new Repository();
+    repository.setName("testRepo");
     repository.setId(1L);
     when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
     when(promptService.getPromptsByRepositoryAndPromptType(
@@ -140,6 +149,8 @@ class OpenAILLMServiceTest {
         "The word test is spelt wrong",
         response.getResults().get("A tst string").getFirst().getSuggestedFix());
     verify(aiStringCheckRepository, times(1)).save(any());
+    verify(meterRegistry, times(1))
+        .counter("OpenAILLMService.checks.result", "success", "false", "repository", "testRepo");
   }
 
   @Test
@@ -160,6 +171,7 @@ class OpenAILLMServiceTest {
     AICheckRequest.setRepositoryName("testRepo");
     AICheckRequest.setTextUnits(textUnits);
     Repository repository = new Repository();
+    repository.setName("testRepo");
     repository.setId(1L);
     when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
     when(promptService.getPromptsByRepositoryAndPromptType(
@@ -186,6 +198,8 @@ class OpenAILLMServiceTest {
         result.getResults().get("A test string").getFirst().getSuggestedFix(),
         "Check skipped as error parsing response from OpenAI.");
     verify(aiStringCheckRepository, times(1)).save(any());
+    verify(meterRegistry, times(1))
+        .counter("OpenAILLMService.checks.parse.error", "repository", "testRepo");
   }
 
   @Test
@@ -200,6 +214,7 @@ class OpenAILLMServiceTest {
     AICheckRequest.setRepositoryName("testRepo");
     AICheckRequest.setTextUnits(textUnits);
     Repository repository = new Repository();
+    repository.setName("testRepo");
     repository.setId(1L);
     when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
     when(promptService.getPromptsByRepositoryAndPromptType(
@@ -225,7 +240,7 @@ class OpenAILLMServiceTest {
     assertTrue(response.getResults().containsKey("A test string"));
     assertTrue(response.getResults().get("A test string").getFirst().isSuccess());
     assertEquals(
-        "No prompts found for repository id: 1, skipping check.",
+        "No prompts found for repository: testRepo, skipping check.",
         response.getResults().get("A test string").getFirst().getSuggestedFix());
     verify(aiStringCheckRepository, times(0)).save(any());
   }
