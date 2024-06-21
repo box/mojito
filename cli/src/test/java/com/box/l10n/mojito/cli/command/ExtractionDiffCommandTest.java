@@ -573,7 +573,7 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         .run(
             "extract",
             "-s",
-            getInputResourcesTestDir("source3").getAbsolutePath(),
+            getInputResourcesTestDir("source2").getAbsolutePath(),
             "-o",
             getTargetTestDir("extractions").getAbsolutePath(),
             "-n",
@@ -588,9 +588,9 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         "-o",
         getTargetTestDir("extraction-diffs").getAbsolutePath(),
         "-c",
-        "source1",
-        "-b",
         "source2",
+        "-b",
+        "source1",
         "-p",
         repository.getName(),
         "-pb",
@@ -621,9 +621,9 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         "-o",
         getTargetTestDir("extraction-diffs").getAbsolutePath(),
         "-c",
-        "source1",
-        "-b",
         "source2",
+        "-b",
+        "source1",
         "-p",
         repository.getName(),
         "-pb",
@@ -636,6 +636,158 @@ public class ExtractionDiffCommandTest extends CLITestBase {
     extractionDiffCommandForTest = l10nJCommander.getCommand(ExtractionDiffCommandForTest.class);
     mockedNotificationSender = extractionDiffCommandForTest.getMockedNotificationSender();
     assertFalse(mockedNotificationSender.isPresent());
+    Assert.assertEquals(1L, l10nJCommander.getExitCode());
+    Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))
+        .a("There are more than 2 strings removed");
+  }
+
+  @Test
+  public void testMaxStringsAddedOrRemovedBlockFailure() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source1").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source3").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source3");
+
+    getL10nJCommander()
+        .run(
+            "extract-diff",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source3",
+            "-b",
+            "source1",
+            "-p",
+            repository.getName(),
+            "-pb",
+            "branch");
+    List<TextUnitDTO> textUnitDTOS = getTextUnitDTOS(repository);
+    assertEquals(3L, textUnitDTOS.size());
+
+    assertEquals("1 century --- 1_century_duration", textUnitDTOS.get(0).getName());
+    assertEquals("1 century", textUnitDTOS.get(0).getSource());
+    assertEquals("File lock dialog duration", textUnitDTOS.get(0).getComment());
+    assertEquals("LC_MESSAGES/messages.pot", textUnitDTOS.get(0).getAssetPath());
+
+    assertEquals("1 decade --- 1_decade_duration", textUnitDTOS.get(1).getName());
+    assertEquals("1 decade", textUnitDTOS.get(1).getSource());
+    assertEquals("File lock dialog duration", textUnitDTOS.get(1).getComment());
+    assertEquals("LC_MESSAGES/messages.pot", textUnitDTOS.get(1).getAssetPath());
+
+    assertEquals("1 year --- 1_year_duration", textUnitDTOS.get(2).getName());
+    assertEquals("1 year", textUnitDTOS.get(2).getSource());
+    assertEquals("File lock dialog duration", textUnitDTOS.get(2).getComment());
+    assertEquals("LC_MESSAGES/messages.pot", textUnitDTOS.get(2).getAssetPath());
+
+    L10nJCommander l10nJCommander = getL10nJCommander();
+    l10nJCommander.consoleWriter = Mockito.spy(l10nJCommander.consoleWriter);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source3",
+        "-b",
+        "source1",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "-msab",
+        "2",
+        "-msrb",
+        "2");
+    Assert.assertEquals(1L, l10nJCommander.getExitCode());
+    Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))
+        .a("There are more than 2 strings added");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source1").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source2");
+
+    l10nJCommander = getL10nJCommander();
+    l10nJCommander.consoleWriter = Mockito.spy(l10nJCommander.consoleWriter);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source1",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "-msab",
+        "2",
+        "-msrb",
+        "2");
+
+    Assert.assertEquals(1L, l10nJCommander.getExitCode());
+    Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))
+        .a("There are more than 2 strings removed");
+
+    l10nJCommander = getL10nJCommander();
+    l10nJCommander.consoleWriter = Mockito.spy(l10nJCommander.consoleWriter);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source1",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "-msab",
+        "2",
+        "-msrb",
+        "2");
+
     Assert.assertEquals(1L, l10nJCommander.getExitCode());
     Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))
         .a("There are more than 2 strings removed");

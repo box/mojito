@@ -1,5 +1,5 @@
 {
-  "name" : "source2",
+  "name" : "source1",
   "textunits" : [ {
     "name" : "100 character description: --- 100_character_description_",
     "source" : "100 character description:",
@@ -7,6 +7,27 @@
     "pluralForm" : null,
     "pluralFormOther" : null,
     "usages" : [ "file.js:2" ]
+  }, {
+    "name" : "15 min --- 15_min_duration",
+    "source" : "15 min",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:4" ]
+  }, {
+    "name" : "1 day --- 1_day_duration",
+    "source" : "1 day",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:6" ]
+  }, {
+    "name" : "1 hour --- 1_hour_duration",
+    "source" : "1 hour",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:8" ]
   }, {
     "name" : "1 month --- 1_month_duration",
     "source" : "1 month",
@@ -56,13 +77,6 @@
     "pluralForm" : "other",
     "pluralFormOther" : "There is {number} car --- car _other",
     "usages" : [ "file.js:20" ]
-  }, {
-    "name" : "1 year --- 1_year_duration",
-    "source" : "1 year",
-    "comments" : "File lock dialog duration",
-    "pluralForm" : null,
-    "pluralFormOther" : null,
-    "usages" : [ "file.js:40" ]
   } ],
   "filterConfigIdOverride" : null,
   "filterOptions" : [ "sometestoption=value1" ]

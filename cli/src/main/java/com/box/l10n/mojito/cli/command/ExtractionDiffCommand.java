@@ -326,6 +326,12 @@ public class ExtractionDiffCommand extends Command {
     }
 
     if (pushToRepository != null) {
+      try {
+        this.checkMaxStringsBlock(extractionDiffPaths);
+      } catch (MissingExtractionDirectoryException exception) {
+        throw new CommandException(exception.getMessage());
+      }
+
       boolean hasAddedTextUnits = extractionDiffService.hasAddedTextUnits(extractionDiffPaths);
 
       if (!hasAddedTextUnits) {
@@ -335,11 +341,6 @@ public class ExtractionDiffCommand extends Command {
             .a(pushToRepository)
             .println();
       } else {
-        try {
-          this.checkMaxStringsBlock(extractionDiffPaths);
-        } catch (MissingExtractionDirectoryException msobe) {
-          throw new CommandException(msobe.getMessage());
-        }
         pushToRepository = getValidRepositoryName();
         consoleWriter
             .a("Push asset diffs to repository: ")

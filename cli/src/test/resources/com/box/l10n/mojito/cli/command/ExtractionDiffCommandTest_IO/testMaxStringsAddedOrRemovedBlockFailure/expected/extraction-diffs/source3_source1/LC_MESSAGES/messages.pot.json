@@ -1,0 +1,27 @@
+{
+  "currentFilterConfigIdOverride" : null,
+  "currentFilterOptions" : [ "sometestoption=value1" ],
+  "addedTextunits" : [ {
+    "name" : "1 year --- 1_year_duration",
+    "source" : "1 year",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:40" ]
+  }, {
+    "name" : "1 decade --- 1_decade_duration",
+    "source" : "1 decade",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:50" ]
+  }, {
+    "name" : "1 century --- 1_century_duration",
+    "source" : "1 century",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:60" ]
+  }],
+  "removedTextunits" : []
+}

@@ -56,13 +56,6 @@
     "pluralForm" : "other",
     "pluralFormOther" : "There is {number} car --- car _other",
     "usages" : [ "file.js:20" ]
-  }, {
-    "name" : "1 year --- 1_year_duration",
-    "source" : "1 year",
-    "comments" : "File lock dialog duration",
-    "pluralForm" : null,
-    "pluralFormOther" : null,
-    "usages" : [ "file.js:40" ]
   } ],
   "filterConfigIdOverride" : null,
   "filterOptions" : [ "sometestoption=value1" ]
