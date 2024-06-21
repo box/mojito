@@ -56,4 +56,12 @@ public class AIServiceClient extends BaseClient {
     authenticatedRestTemplate.delete(
         getBasePathForEntity() + "/prompts/contextMessage/" + contextMessageId);
   }
+
+  public void addPromptToRepository(Long promptId, String repositoryName, String promptType) {
+    logger.debug("Received request to add prompt id {} to {} repository", promptId, repositoryName);
+    authenticatedRestTemplate.postForObject(
+        getBasePathForEntity() + "/prompts/" + promptId + "/" + repositoryName + "/" + promptType,
+        null,
+        Void.class);
+  }
 }

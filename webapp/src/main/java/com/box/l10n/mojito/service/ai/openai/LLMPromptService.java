@@ -82,6 +82,34 @@ public class LLMPromptService implements PromptService {
     return aiPrompt.getId();
   }
 
+  @Timed("LLMPromptService.addPromptToRepository")
+  public void addPromptToRepository(Long promptId, String repositoryName, String promptType) {
+    Repository repository = repositoryRepository.findByName(repositoryName);
+
+    if (repository == null) {
+      logger.error("Repository not found: {}", repositoryName);
+      throw new AIException("Repository not found: " + repositoryName);
+    }
+
+    AIPromptType aiPromptType = aiPromptTypeRepository.findByName(promptType);
+    if (aiPromptType == null) {
+      logger.error("Prompt type not found: {}", promptType);
+      throw new AIException("Prompt type not found: " + promptType);
+    }
+
+    AIPrompt aiPrompt =
+        aiPromptRepository
+            .findById(promptId)
+            .orElseThrow(() -> new AIException("Prompt not found: " + promptId));
+
+    RepositoryAIPrompt repositoryAIPrompt = new RepositoryAIPrompt();
+    repositoryAIPrompt.setRepositoryId(repository.getId());
+    repositoryAIPrompt.setAiPromptId(aiPrompt.getId());
+    repositoryAIPrompt.setPromptTypeId(aiPromptType.getId());
+    repositoryAIPromptRepository.save(repositoryAIPrompt);
+    logger.debug("Created repository prompt with id: {}", repositoryAIPrompt.getId());
+  }
+
   @Timed("LLMPromptService.getPromptsByRepositoryAndPromptType")
   public List<AIPrompt> getPromptsByRepositoryAndPromptType(
       Repository repository, PromptType promptType) {

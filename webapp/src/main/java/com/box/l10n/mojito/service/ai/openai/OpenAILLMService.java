@@ -88,7 +88,7 @@ public class OpenAILLMService implements LLMService {
       AssetExtractorTextUnit textUnit, List<AIPrompt> prompts, Repository repository) {
     List<AICheckResult> results = new ArrayList<>();
     String sourceString = textUnit.getSource();
-    String comment = textUnit.getComments();
+    String comment = textUnit.getComments() != null ? textUnit.getComments() : "";
     String[] nameSplit = textUnit.getName().split(" --- ");
 
     if (!prompts.isEmpty()) {

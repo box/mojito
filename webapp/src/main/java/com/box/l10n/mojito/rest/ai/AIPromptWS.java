@@ -29,6 +29,18 @@ public class AIPromptWS {
     return promptService.createPrompt(AIPromptCreateRequest);
   }
 
+  @RequestMapping(
+      value = "/api/ai/prompts/{prompt_id}/{repository_name}/{prompt_type}",
+      method = RequestMethod.POST)
+  @Timed("AIWS.addPromptToRepository")
+  public void addPromptToRepository(
+      @PathVariable("prompt_id") Long promptId,
+      @PathVariable("repository_name") String repositoryName,
+      @PathVariable("prompt_type") String promptType) {
+    logger.debug("Received request to add prompt id {} to {} repository", promptId, repositoryName);
+    promptService.addPromptToRepository(promptId, repositoryName, promptType);
+  }
+
   @RequestMapping(value = "/api/ai/prompts/{prompt_id}", method = RequestMethod.DELETE)
   @Timed("AIWS.deletePrompt")
   public void deletePrompt(@PathVariable("prompt_id") Long promptId) {

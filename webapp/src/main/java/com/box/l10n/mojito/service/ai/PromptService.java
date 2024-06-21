@@ -21,4 +21,6 @@ public interface PromptService {
       AIPromptContextMessageCreateRequest aiPromptContextMessageCreateRequest);
 
   void deletePromptContextMessage(Long promptContextMessageId);
+
+  void addPromptToRepository(Long promptId, String repositoryName, String promptType);
 }

@@ -22,6 +22,8 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -35,6 +37,8 @@ public class LLMPromptServiceTest {
   @Mock RepositoryAIPromptRepository repositoryAIPromptRepository;
 
   @Mock RepositoryRepository repositoryRepository;
+
+  @Captor ArgumentCaptor<RepositoryAIPrompt> repositoryAIPromptCaptor;
 
   @InjectMocks LLMPromptService LLMPromptService;
 
@@ -134,5 +138,24 @@ public class LLMPromptServiceTest {
     assertEquals("Check strings for spelling", openAIPrompt.getUserPrompt());
     assertEquals("gtp-3.5-turbo", openAIPrompt.getModelName());
     assertEquals(0.0F, openAIPrompt.getPromptTemperature());
+  }
+
+  @Test
+  void testAddPromptToRepository() {
+    AIPrompt aiPrompt = new AIPrompt();
+    aiPrompt.setId(1L);
+    Repository repository = new Repository();
+    repository.setId(2L);
+    AIPromptType promptType = new AIPromptType();
+    promptType.setId(3L);
+    when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
+    when(aiPromptTypeRepository.findByName("SOURCE_STRING_CHECKER")).thenReturn(promptType);
+    when(aiPromptRepository.findById(1L)).thenReturn(Optional.of(aiPrompt));
+    LLMPromptService.addPromptToRepository(1L, "testRepo", "SOURCE_STRING_CHECKER");
+    verify(aiPromptTypeRepository, times(1)).findByName("SOURCE_STRING_CHECKER");
+    verify(repositoryAIPromptRepository, times(1)).save(repositoryAIPromptCaptor.capture());
+    assertEquals(1L, repositoryAIPromptCaptor.getValue().getAiPromptId());
+    assertEquals(2L, repositoryAIPromptCaptor.getValue().getRepositoryId());
+    assertEquals(3L, repositoryAIPromptCaptor.getValue().getPromptTypeId());
   }
 }
