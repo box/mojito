@@ -278,7 +278,14 @@ public class ThirdPartyService {
         thirdPartyTextUnits.stream()
             .collect(
                 groupingBy(
-                    o -> assetCache.getUnchecked(o.getAssetPath()).orElse(null),
+                    o ->
+                        assetCache
+                            .getUnchecked(o.getAssetPath())
+                            .orElseThrow(
+                                () ->
+                                    new RuntimeException(
+                                        "Trying to map a third party text unit for an asset (%s) that does not exist in the repository"
+                                            .formatted(o.getAssetPath()))),
                     LinkedHashMap::new,
                     toList()));
 
