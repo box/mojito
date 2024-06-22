@@ -4,4 +4,8 @@ public class ThridPartyTMSPhraseException extends RuntimeException {
   public ThridPartyTMSPhraseException(String msg, Throwable e) {
     super(msg, e);
   }
+
+  public ThridPartyTMSPhraseException(String message) {
+    super(message);
+  }
 }

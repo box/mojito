@@ -81,7 +81,10 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     List<ThirdPartyTextUnit> thirdPartyTextUnits = new ArrayList<>();
 
-    List<TranslationKey> phraseTranslationKeys = phraseClient.getKeys(projectId);
+    String currentTagsForRepository = getCurrentTagsForRepository(repository, projectId);
+
+    List<TranslationKey> phraseTranslationKeys =
+        phraseClient.getKeys(projectId, currentTagsForRepository);
 
     for (TranslationKey translationKey : phraseTranslationKeys) {
 
@@ -182,9 +185,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
             .map(Tag::getName)
             .filter(Objects::nonNull)
             .filter(tagName -> tagName.startsWith(TAG_PREFIX))
-            .filter(
-                tagName ->
-                    !tagName.startsWith(TAG_PREFIX_WITH_REPOSITORY.formatted(repositoryName)))
+            .filter(tagName -> !tagName.startsWith(getTagNamePrefixForRepository(repositoryName)))
             .toList();
 
     List<String> allActiveTags = new ArrayList<>(tagsForOtherRepositories);
@@ -242,12 +243,25 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
   public static String getTagForUpload(String repositoryName) {
     ZonedDateTime zonedDateTime = JSR310Migration.dateTimeNowInUTC();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss_SSS");
-    return ("%s%s_%s_%s")
-        .formatted(
-            TAG_PREFIX,
-            repositoryName,
-            formatter.format(zonedDateTime),
-            Math.abs(UUID.randomUUID().getLeastSignificantBits() % 1000));
+    return normalizeTagName(
+        "%s%s_%s_%s"
+            .formatted(
+                TAG_PREFIX,
+                repositoryName,
+                formatter.format(zonedDateTime),
+                Math.abs(UUID.randomUUID().getLeastSignificantBits() % 1000)));
+  }
+
+  private static String getTagNamePrefixForRepository(String repositoryName) {
+    return normalizeTagName(TAG_PREFIX_WITH_REPOSITORY.formatted(repositoryName));
+  }
+
+  /**
+   * At least "/" are getting converted by phrase into "_", apply that logic on our side to have
+   * consistent filtering
+   */
+  private static String normalizeTagName(String repositoryName) {
+    return repositoryName.replace("/", "_");
   }
 
   @Override
@@ -269,7 +283,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
       String localeTag = repositoryLocale.getLocale().getBcp47Tag();
-      logger.info("Downloading locale: {} from Phrase", localeTag);
+      logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
 
       String fileContent =
           phraseClient.localeDownload(
@@ -294,12 +308,25 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     return null;
   }
 
+  /**
+   * It should typically return a single tag, but if concurrent syncs, it could return more. That
+   * should not be a problem when downloading or keys for mapping or pulling strings
+   */
   private String getCurrentTagsForRepository(Repository repository, String projectId) {
-    return phraseClient.listTags(projectId).stream()
-        .map(Tag::getName)
-        .filter(Objects::nonNull)
-        .filter(tagName -> tagName.startsWith(repository.getName()))
-        .collect(Collectors.joining(","));
+    String tagNamePrefixForRepository = getTagNamePrefixForRepository(repository.getName());
+    String tags =
+        phraseClient.listTags(projectId).stream()
+            .map(Tag::getName)
+            .filter(Objects::nonNull)
+            .filter(tagName -> tagName.startsWith(tagNamePrefixForRepository))
+            .collect(Collectors.joining(","));
+
+    if (tags.isBlank()) {
+      throw new RuntimeException(
+          "There are no current tags for the repository, make sure push was run first or that the repository name does not contain special character (which will need to get normalized)");
+    }
+
+    return tags;
   }
 
   @Override

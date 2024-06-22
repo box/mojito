@@ -105,16 +105,23 @@ public class PhraseClient {
 
     Path tmpWorkingDirectory = null;
 
+    logger.info(
+        "uploadCreateFile: projectId: {}, localeId: {}, fileName: {}, tags: {}",
+        projectId,
+        localeId,
+        fileName,
+        tags);
+
     try {
       tmpWorkingDirectory = createTempDirectory("phrase-integration");
 
       if (tmpWorkingDirectory.toFile().exists()) {
-        logger.info("Created temporary working directory: {}", tmpWorkingDirectory);
+        logger.debug("Created temporary working directory: {}", tmpWorkingDirectory);
       }
 
       Path fileToUpload = tmpWorkingDirectory.resolve(fileName);
 
-      logger.info("Create file: {}", fileToUpload);
+      logger.debug("Create file: {}", fileToUpload);
       createDirectories(fileToUpload.getParent());
       write(fileToUpload, fileContent);
 
@@ -294,7 +301,7 @@ public class PhraseClient {
         .block();
   }
 
-  public List<TranslationKey> getKeys(String projectId) {
+  public List<TranslationKey> getKeys(String projectId, String tags) {
     KeysApi keysApi = new KeysApi(apiClient);
     AtomicInteger page = new AtomicInteger(0);
     int batchSize = BATCH_SIZE;
@@ -305,7 +312,15 @@ public class PhraseClient {
                   () -> {
                     logger.info("Fetching keys for project: {}, page: {}", projectId, page);
                     return keysApi.keysList(
-                        projectId, null, page.get(), batchSize, null, null, null, null, null);
+                        projectId,
+                        null,
+                        page.get(),
+                        batchSize,
+                        null,
+                        null,
+                        null,
+                        "tags:%s".formatted(tags),
+                        null);
                   })
               .retryWhen(
                   retryBackoffSpec.doBeforeRetry(
