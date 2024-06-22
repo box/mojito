@@ -302,6 +302,11 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       List<TextUnitDTO> textUnitDTOS =
           mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
 
+      // make sure that the source comment does not get replicated to all translations. Eventually
+      // we may want to
+      // communicate some comments, but anyway it should not be the source comment
+      textUnitDTOS.forEach(t -> t.setComment(null));
+
       textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
     }
 
