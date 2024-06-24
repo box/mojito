@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -268,24 +267,21 @@ public class AndroidStringDocumentMapper {
     return withoutControlCharacters;
   }
 
-  /**
-   * should use {@link com.box.l10n.mojito.okapi.filters.AndroidFilter#unescape(String)}
-   */
+  /** should use {@link com.box.l10n.mojito.okapi.filters.AndroidFilter#unescape(String)} */
   static String unescape(String str) {
 
     String unescape = str;
 
-    if (StringUtils.startsWith(unescape, "\"")
-            && StringUtils.endsWith(unescape, "\"")) {
-      unescape =
-              unescape.substring(1, unescape.length() - 1);
+    if (StringUtils.startsWith(unescape, "\"") && StringUtils.endsWith(unescape, "\"")) {
+      unescape = unescape.substring(1, unescape.length() - 1);
     }
 
-    unescape = Strings.nullToEmpty(unescape)
-        .replaceAll("\\\\'", "'")
-        .replaceAll("\\\\\"", "\"")
-        .replaceAll("\\\\@", "@")
-        .replaceAll("\\\\n", "\n");
+    unescape =
+        Strings.nullToEmpty(unescape)
+            .replaceAll("\\\\'", "'")
+            .replaceAll("\\\\\"", "\"")
+            .replaceAll("\\\\@", "@")
+            .replaceAll("\\\\n", "\n");
 
     return unescape;
   }
