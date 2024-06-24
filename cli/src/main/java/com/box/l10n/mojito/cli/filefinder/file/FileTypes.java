@@ -24,6 +24,7 @@ public enum FileTypes {
   JSON(JSONFileType.class),
   JSON_NOBASENAME(JSONNoBasenameFileType.class),
   CHROME_EXT_JSON(ChromeExtensionJSONFileType.class),
+  FORMATJS_JSON_NOBASENAME(FormatJSJSONNoBasenameFileType.class),
   I18NEXT_PARSER_JSON(I18NextFileType.class),
   TS(TSFileType.class),
   YAML(YamlFileType.class),

@@ -691,11 +691,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-ft",
-            "JSON_NOBASENAME",
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage");
+            "FORMATJS_JSON_NOBASENAME");
 
     getL10nJCommander()
         .run(
@@ -707,11 +703,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getInputResourcesTestDir("translations").getAbsolutePath(),
             "-ft",
-            "JSON_NOBASENAME",
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage");
+            "FORMATJS_JSON_NOBASENAME");
 
     getL10nJCommander()
         .run(
@@ -723,11 +715,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir().getAbsolutePath(),
             "-ft",
-            "JSON_NOBASENAME",
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage");
+            "FORMATJS_JSON_NOBASENAME");
 
     checkExpectedGeneratedResources();
   }
@@ -745,12 +733,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-ft",
-            "JSON_NOBASENAME",
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage",
-            "removeKeySuffix=/defaultMessage");
+            "FORMATJS_JSON_NOBASENAME");
 
     getL10nJCommander()
         .run(

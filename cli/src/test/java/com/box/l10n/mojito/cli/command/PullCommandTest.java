@@ -1656,12 +1656,8 @@ public class PullCommandTest extends CLITestBase {
             repository.getName(),
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath(),
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage",
             "-ft",
-            "JSON_NOBASENAME");
+            "FORMATJS_JSON_NOBASENAME");
 
     Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -1676,12 +1672,8 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage",
             "-ft",
-            "JSON_NOBASENAME");
+            "FORMATJS_JSON_NOBASENAME");
 
     getL10nJCommander()
         .run(
@@ -1692,12 +1684,8 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source_modified").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage",
             "-ft",
-            "JSON_NOBASENAME");
+            "FORMATJS_JSON_NOBASENAME");
 
     checkExpectedGeneratedResources();
   }
@@ -1713,12 +1701,8 @@ public class PullCommandTest extends CLITestBase {
             repository.getName(),
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath(),
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage",
             "-ft",
-            "JSON_NOBASENAME");
+            "FORMATJS_JSON_NOBASENAME");
 
     Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -1733,12 +1717,8 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-t",
             getTargetTestDir("target").getAbsolutePath(),
-            "-fo",
-            "noteKeyPattern=description",
-            "extractAllPairs=false",
-            "exceptions=defaultMessage",
             "-ft",
-            "JSON_NOBASENAME",
+            "FORMATJS_JSON_NOBASENAME",
             "--inheritance-mode",
             "REMOVE_UNTRANSLATED");
 
