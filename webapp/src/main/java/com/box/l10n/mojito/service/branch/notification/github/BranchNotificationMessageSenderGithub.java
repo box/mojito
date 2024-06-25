@@ -10,6 +10,8 @@ import com.box.l10n.mojito.github.GithubException;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
 import java.util.List;
+import java.util.Optional;
+import org.kohsuke.github.GHIssueComment;
 import org.slf4j.Logger;
 
 public class BranchNotificationMessageSenderGithub implements BranchNotificationMessageSender {
@@ -39,16 +41,20 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
 
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
-      githubClient.addCommentToPR(
-          branchDetails.getRepository(),
-          branchDetails.getPrNumber(),
-          branchNotificationMessageBuilderGithub.getNewMessage(branchName, sourceStrings));
+      GHIssueComment addedComment =
+          githubClient.addCommentToPR(
+              branchDetails.getRepository(),
+              branchDetails.getPrNumber(),
+              branchNotificationMessageBuilderGithub.getNewMessage(branchName, sourceStrings));
       updatePRLabel(
           githubClient,
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
           TRANSLATIONS_REQUIRED);
-      return null;
+      return Optional.ofNullable(addedComment)
+          .map(GHIssueComment::getId)
+          .map(Object::toString)
+          .orElse("");
     } catch (GithubException e) {
       throw new BranchNotificationMessageSenderException(e);
     }
@@ -61,16 +67,20 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
     logger.debug("sendNewMessage to: {}", githubClient.getEndpoint() + "/" + branchName);
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
-      githubClient.addCommentToPR(
-          branchDetails.getRepository(),
-          branchDetails.getPrNumber(),
-          branchNotificationMessageBuilderGithub.getUpdatedMessage(branchName, sourceStrings));
+      GHIssueComment addedComment =
+          githubClient.addCommentToPR(
+              branchDetails.getRepository(),
+              branchDetails.getPrNumber(),
+              branchNotificationMessageBuilderGithub.getUpdatedMessage(branchName, sourceStrings));
       updatePRLabel(
           githubClient,
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
           TRANSLATIONS_REQUIRED);
-      return null;
+      return Optional.ofNullable(addedComment)
+          .map(GHIssueComment::getId)
+          .map(Object::toString)
+          .orElse("");
     } catch (GithubException e) {
       throw new BranchNotificationMessageSenderException(e);
     }

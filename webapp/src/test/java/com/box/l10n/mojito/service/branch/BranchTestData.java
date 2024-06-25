@@ -19,6 +19,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.Sets;
 import jakarta.annotation.PostConstruct;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -98,13 +99,19 @@ public class BranchTestData {
   }
 
   public BranchTestData(TestIdWatcher testIdWatcher) {
-    this(testIdWatcher, false);
+    this(testIdWatcher, false, null);
   }
 
-  public BranchTestData(TestIdWatcher testIdWatcher, boolean legacy) {
+  public BranchTestData(TestIdWatcher testIdWatcher, Set<String> branchNotifierIds) {
+    this(testIdWatcher, false, branchNotifierIds);
+  }
+
+  public BranchTestData(
+      TestIdWatcher testIdWatcher, boolean legacy, Set<String> branchNotifierIds) {
     this.testIdWatcher = testIdWatcher;
     if (!legacy) {
-      branchNotifierIds = Sets.newHashSet("noop-1");
+      this.branchNotifierIds =
+          Optional.ofNullable(branchNotifierIds).orElse(Sets.newHashSet("noop-1"));
     }
   }
 

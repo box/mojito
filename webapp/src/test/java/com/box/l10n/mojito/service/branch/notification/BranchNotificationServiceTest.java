@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.service.branch.notification;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
@@ -11,6 +14,7 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
+import com.box.l10n.mojito.service.branch.notification.noop.BranchNotificationMessageSenderNoop;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -18,7 +22,9 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +55,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
   String branchNotifierId = "noop-1";
 
   @Test
-  public void allNotfication() throws Exception {
+  public void allNotification() throws Exception {
 
     BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
@@ -70,32 +76,99 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
     waitForCondition(
         "Branch1 new notification must be sent",
-        () -> {
-          return branchNotificationRepository
-                  .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
-                  .getNewMsgSentAt()
-              != null;
-        });
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
+                    .getNewMsgSentAt()
+                != null);
 
     waitForCondition(
         "Branch2 translated notification must be sent",
-        () -> {
-          return branchNotificationRepository
-                  .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
-                  .getNewMsgSentAt()
-              != null;
-        });
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
+                    .getNewMsgSentAt()
+                != null);
 
     translateBranch(branchTestData.getBranch2());
 
     waitForCondition(
         "Branch2 translated notification must be sent",
-        () -> {
-          return branchNotificationRepository
-                  .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
-                  .getTranslatedMsgSentAt()
-              != null;
-        });
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
+                    .getTranslatedMsgSentAt()
+                != null);
+  }
+
+  @Test
+  public void allNotificationFail() {
+    String exceptionMessage = "allNotificationFail - should not fail silently";
+
+    BranchNotificationMessageSenderNoop branchNotificationMessageSenderNoopException =
+        new BranchNotificationMessageSenderNoop(branchNotifierId) {
+          @Override
+          public String sendNewMessage(
+              String branchName, String username, List<String> sourceStrings)
+              throws BranchNotificationMessageSenderException {
+            throw new BranchNotificationMessageSenderException(exceptionMessage);
+          }
+
+          @Override
+          public String sendUpdatedMessage(
+              String branchName, String username, String messageId, List<String> sourceStrings)
+              throws BranchNotificationMessageSenderException {
+            throw new BranchNotificationMessageSenderException(exceptionMessage);
+          }
+
+          @Override
+          public void sendTranslatedMessage(String branchName, String username, String messageId)
+              throws BranchNotificationMessageSenderException {
+            throw new BranchNotificationMessageSenderException(exceptionMessage);
+          }
+
+          @Override
+          public void sendScreenshotMissingMessage(
+              String branchName, String username, String messageId)
+              throws BranchNotificationMessageSenderException {
+            throw new BranchNotificationMessageSenderException(exceptionMessage);
+          }
+        };
+
+    String exceptionNotifierId = "noop-exception";
+    branchNotificationService.branchNotificationMessageSenders
+        .mapIdToBranchNotificationMessageSender.put(
+        exceptionNotifierId, branchNotificationMessageSenderNoopException);
+
+    BranchTestData branchTestData = new BranchTestData(testIdWatcher, Set.of(exceptionNotifierId));
+
+    assertThatThrownBy(
+            () ->
+                branchNotificationService.sendNotificationsForBranch(
+                    branchTestData.getBranch1().getId()))
+        .satisfies(
+            throwable -> {
+              Exception ex = (Exception) throwable;
+              assertThat(
+                      Arrays.stream(ex.getSuppressed())
+                          .anyMatch(
+                              suppressed -> suppressed.getMessage().contains(exceptionMessage)))
+                  .isTrue();
+            });
+
+    BranchNotification branchNotification =
+        branchNotificationRepository.findByBranchAndNotifierId(
+            branchTestData.getBranch1(), exceptionNotifierId);
+
+    assertThat(branchNotification == null || branchNotification.getNewMsgSentAt() == null).isTrue();
+    assertThat(branchNotification == null || branchNotification.getTranslatedMsgSentAt() == null)
+        .isTrue();
+    assertThat(branchNotification == null || branchNotification.getTranslatedMsgSentAt() == null)
+        .isTrue();
+    assertThat(
+            branchNotification == null
+                || branchNotification.getScreenshotMissingMsgSentAt() == null)
+        .isTrue();
   }
 
   @Test
@@ -104,11 +177,10 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
     waitForCondition(
         "Branch notification for branch1 is missing",
-        () -> {
-          return branchNotificationRepository.findByBranchAndNotifierId(
-                  branchTestData.getBranch1(), branchNotifierId)
-              != null;
-        });
+        () ->
+            branchNotificationRepository.findByBranchAndNotifierId(
+                    branchTestData.getBranch1(), branchNotifierId)
+                != null);
 
     BranchNotification branchNotification =
         branchNotificationRepository.findByBranchAndNotifierId(
@@ -121,12 +193,11 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
     waitForCondition(
         "Branch1 screenshot missing notification must be sent",
-        () -> {
-          return branchNotificationRepository
-                  .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
-                  .getScreenshotMissingMsgSentAt()
-              != null;
-        });
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
+                    .getScreenshotMissingMsgSentAt()
+                != null);
   }
 
   void translateBranch(Branch branch) throws ExecutionException, InterruptedException {
@@ -140,11 +211,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     // before? also need to review the branch page?
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
-    textUnitDTOs.stream()
-        .forEach(
-            tu -> {
-              tu.setTarget(tu.getSource() + " - " + tu.getTargetLocale());
-            });
+    textUnitDTOs.forEach(tu -> tu.setTarget(tu.getSource() + " - " + tu.getTargetLocale()));
 
     ImportTextUnitsBatch importTextUnitsBatch = new ImportTextUnitsBatch();
     importTextUnitsBatch.setTextUnits(textUnitDTOs);
@@ -156,7 +223,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
             importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget())
         .get();
 
-    // make sure the stats are ready for whatever is done next in notificaiton
+    // make sure the stats are ready for whatever is done next in notification
     branchStatisticService.computeAndSaveBranchStatistics(branch);
   }
 }

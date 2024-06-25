@@ -120,7 +120,7 @@ public class BranchStatisticService {
   private void sendBranchNotifications(List<Branch> branchesToCheck) {
     waitForAllFutures(
         branchesToCheck.stream()
-            .map(branch -> scheduleBranchNotification(branch))
+            .map(this::scheduleBranchNotification)
             .collect(Collectors.toList()));
   }
 

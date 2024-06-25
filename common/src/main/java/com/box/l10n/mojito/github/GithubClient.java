@@ -75,10 +75,10 @@ public class GithubClient {
     return keyFactory.generatePrivate(spec);
   }
 
-  public void addCommentToPR(String repository, int prNumber, String comment) {
+  public GHIssueComment addCommentToPR(String repository, int prNumber, String comment) {
     String repoFullPath = getRepositoryPath(repository);
     try {
-      getGithubClient(repository)
+      return getGithubClient(repository)
           .getRepository(getRepositoryPath(repository))
           .getPullRequest(prNumber)
           .comment(comment);
@@ -89,6 +89,8 @@ public class GithubClient {
               prNumber, repoFullPath, e.getMessage()),
           e);
     }
+
+    return null;
   }
 
   public void addStatusToCommit(

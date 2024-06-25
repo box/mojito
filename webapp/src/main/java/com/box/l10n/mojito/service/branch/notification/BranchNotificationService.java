@@ -21,6 +21,7 @@ import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -62,7 +63,7 @@ public class BranchNotificationService {
    *
    * <p>It also schedules a job to check if screenshot are missing and send notification.
    *
-   * @param branch
+   * @param branchId
    */
   public void sendNotificationsForBranch(Long branchId) {
     logger.debug("sendNotificationsForBranch, id: {}", branchId);
@@ -109,6 +110,7 @@ public class BranchNotificationService {
 
     BranchNotificationInfo branchNotificationInfo = getBranchNotificationInfo(branch);
 
+    List<Exception> exceptions = new ArrayList<>();
     branch.getNotifiers().stream()
         .map(
             notifierId -> {
@@ -127,8 +129,16 @@ public class BranchNotificationService {
                     branchNotificationMessageSender, branch, branchNotificationInfo);
               } catch (Exception e) {
                 logger.error("Fail safe, error tracking is up to each sender", e);
+                exceptions.add(e);
               }
             });
+
+    if (!exceptions.isEmpty()) {
+      RuntimeException aggregatedException =
+          new RuntimeException("One or more exceptions occurred while sending notifications.");
+      exceptions.forEach(aggregatedException::addSuppressed);
+      throw aggregatedException;
+    }
   }
 
   void sendNotificationsForBranchWithSender(
@@ -210,11 +220,14 @@ public class BranchNotificationService {
       branchNotification.setNewMsgSentAt(dateTimeUtils.now());
       branchNotification.setMessageId(messageId);
       branchNotification.setContentMD5(branchNotificationInfo.getContentMd5());
-
-    } catch (BranchNotificationMessageSenderException mse) {
-      logger.debug("Can't send new message", mse);
-    } finally {
       branchNotificationRepository.save(branchNotification);
+    } catch (BranchNotificationMessageSenderException mse) {
+      logger.error(
+          "Can't send new message with notifier: {} for branch: {}",
+          branch.getName(),
+          branchNotificationMessageSender.getClass().getName(),
+          mse);
+      throw new RuntimeException(mse);
     }
   }
 
@@ -237,11 +250,10 @@ public class BranchNotificationService {
       branchNotification.setTranslatedMsgSentAt(null);
       branchNotification.setMessageId(messageId);
       branchNotification.setContentMD5(branchNotificationInfo.getContentMd5());
-
-    } catch (BranchNotificationMessageSenderException mse) {
-      logger.debug("Can't send updated message", mse);
-    } finally {
       branchNotificationRepository.save(branchNotification);
+    } catch (BranchNotificationMessageSenderException mse) {
+      logger.error("Can't send updated message", mse);
+      throw new RuntimeException(mse);
     }
   }
 
@@ -256,10 +268,10 @@ public class BranchNotificationService {
           branch.getName(), getUsername(branch), branchNotification.getMessageId());
 
       branchNotification.setTranslatedMsgSentAt(dateTimeUtils.now());
-    } catch (BranchNotificationMessageSenderException mse) {
-      logger.debug("Can't send translated message", mse);
-    } finally {
       branchNotificationRepository.save(branchNotification);
+    } catch (BranchNotificationMessageSenderException mse) {
+      logger.error("Can't send translated message", mse);
+      throw new RuntimeException(mse);
     }
   }
 
@@ -273,10 +285,10 @@ public class BranchNotificationService {
       branchNotificationMessageSender.sendScreenshotMissingMessage(
           branch.getName(), branchNotification.getMessageId(), getUsername(branch));
       branchNotification.setScreenshotMissingMsgSentAt(dateTimeUtils.now());
-    } catch (BranchNotificationMessageSenderException mse) {
-      logger.debug("Can't send screenshot missing message", mse);
-    } finally {
       branchNotificationRepository.save(branchNotification);
+    } catch (BranchNotificationMessageSenderException mse) {
+      logger.error("Can't send screenshot missing message", mse);
+      throw new RuntimeException(mse);
     }
   }
 
