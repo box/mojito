@@ -36,6 +36,8 @@ public class ThirdPartyTMSPhraseTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
+
+
   @Test
   public void testBasics() throws RepositoryLocaleCreationException {
     Assume.assumeNotNull(thirdPartyTMSPhrase);

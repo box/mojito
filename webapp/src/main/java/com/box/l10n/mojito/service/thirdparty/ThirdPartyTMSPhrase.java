@@ -19,6 +19,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.phrase.client.model.Tag;
 import com.phrase.client.model.TranslationKey;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -292,27 +294,32 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     String currentTags = getCurrentTagsForRepository(repository, projectId);
 
+    // may already hit rate limit, according it is 4 qps ... there is a retry in the locale client though.
+    // but 4 qps is very low to download 64 locales.
     repositoryLocalesWithoutRootLocale.parallelStream()
-        .forEach(pullLocaleTimed(repository, projectId, pluralSeparator, currentTags));
+        .forEach(locale -> pullLocaleTimed(repository, projectId, locale, pluralSeparator, currentTags));
+
     return null;
   }
 
-  private Consumer<RepositoryLocale> pullLocaleTimed(
-      Repository repository, String projectId, String pluralSeparator, String currentTags) {
+  private void pullLocaleTimed(
+      Repository repository, String projectId, RepositoryLocale repositoryLocale, String pluralSeparator, String currentTags) {
     try (var timer =
         Timer.resource(meterRegistry, "ThirdPartyTMSPhrase.pullLocale")
             .tag("repository", repository.getName())) {
 
-      return pullLocale(repository, projectId, pluralSeparator, currentTags);
+      pullLocale(repository, projectId, repositoryLocale,
+              pluralSeparator, currentTags);
     }
   }
 
-  private Consumer<RepositoryLocale> pullLocale(
-      Repository repository, String projectId, String pluralSeparator, String currentTags) {
-    return repositoryLocale -> {
+  private void pullLocale(
+      Repository repository, String projectId, RepositoryLocale repositoryLocale, String pluralSeparator, String currentTags) {
+
       String localeTag = repositoryLocale.getLocale().getBcp47Tag();
       logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
 
+      Stopwatch localeDownloadStopWatch = Stopwatch.createStarted();
       String fileContent =
           phraseClient.localeDownload(
               projectId,
@@ -320,6 +327,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
               "xml",
               currentTags,
               () -> getCurrentTagsForRepository(repository, projectId));
+
+      logger.info("Phrase locale download took: {}", localeDownloadStopWatch.elapsed());
 
       logger.debug("file content from pull: {}", fileContent);
 
@@ -335,8 +344,9 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       // communicate some comments, but anyway it should not be the source comment
       textUnitDTOS.forEach(t -> t.setComment(null));
 
-      textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
-    };
+    Stopwatch importStopWatch = Stopwatch.createStarted();
+    textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
+    logger.info("Time importing text units: {}", importStopWatch.elapsed());
   }
 
   /**

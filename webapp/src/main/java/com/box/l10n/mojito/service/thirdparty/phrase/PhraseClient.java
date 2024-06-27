@@ -282,7 +282,7 @@ public class PhraseClient {
                       "Retrying failed attempt to localeDownload from Phrase, project id: %s, locale: %s"
                           .formatted(projectId, locale));
 
-                  if (getErrorMessageFromOptionalApiException(doBeforeRetry.failure())
+                  if (onTagErrorRefreshCallback != null && getErrorMessageFromOptionalApiException(doBeforeRetry.failure())
                       .contains("Invalid Download Options. Parameter tags ")) {
                     String newTags = onTagErrorRefreshCallback.get();
                     logger.warn(
