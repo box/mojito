@@ -438,7 +438,7 @@ public class AssetClient extends BaseClient {
    */
   public List<Long> getAssetIds(
       Long repositoryId, Boolean deleted, Boolean virtual, Long branchId) {
-    Assert.notNull(repositoryId);
+    Assert.notNull(repositoryId, "The repositoryId must not be null");
 
     UriComponentsBuilder uriBuilder =
         UriComponentsBuilder.fromPath(getBasePathForEntity() + "/ids");
