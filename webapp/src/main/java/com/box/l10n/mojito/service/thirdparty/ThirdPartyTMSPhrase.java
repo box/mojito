@@ -19,9 +19,12 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.phrase.client.model.Tag;
 import com.phrase.client.model.TranslationKey;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
@@ -37,7 +40,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -50,19 +52,28 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
   static Logger logger = LoggerFactory.getLogger(ThirdPartyTMSPhrase.class);
 
-  @Autowired TextUnitSearcher textUnitSearcher = new TextUnitSearcher();
+  TextUnitSearcher textUnitSearcher = new TextUnitSearcher();
 
-  @Autowired TextUnitBatchImporterService textUnitBatchImporterService;
+  TextUnitBatchImporterService textUnitBatchImporterService;
 
-  @Autowired(required = false)
   PhraseClient phraseClient;
 
-  @Autowired RepositoryService repositoryService;
+  RepositoryService repositoryService;
 
-  public ThirdPartyTMSPhrase() {}
+  MeterRegistry meterRegistry;
 
-  public ThirdPartyTMSPhrase(PhraseClient phraseClient) {
+  public ThirdPartyTMSPhrase(
+      TextUnitSearcher textUnitSearcher,
+      TextUnitBatchImporterService textUnitBatchImporterService,
+      PhraseClient phraseClient,
+      RepositoryService repositoryService,
+      MeterRegistry meterRegistry) {
+
+    this.textUnitSearcher = textUnitSearcher;
+    this.textUnitBatchImporterService = textUnitBatchImporterService;
     this.phraseClient = phraseClient;
+    this.repositoryService = repositoryService;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
@@ -281,36 +292,68 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     String currentTags = getCurrentTagsForRepository(repository, projectId);
 
-    for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
-      String localeTag = repositoryLocale.getLocale().getBcp47Tag();
-      logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
-
-      String fileContent =
-          phraseClient.localeDownload(
-              projectId,
-              localeTag,
-              "xml",
-              currentTags,
-              () -> getCurrentTagsForRepository(repository, projectId));
-
-      logger.info("file content from pull: {}", fileContent);
-
-      AndroidStringDocumentMapper mapper =
-          new AndroidStringDocumentMapper(
-              pluralSeparator, null, localeTag, repository.getName(), true, null);
-
-      List<TextUnitDTO> textUnitDTOS =
-          mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
-
-      // make sure that the source comment does not get replicated to all translations. Eventually
-      // we may want to
-      // communicate some comments, but anyway it should not be the source comment
-      textUnitDTOS.forEach(t -> t.setComment(null));
-
-      textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
-    }
+    // may already hit rate limit, according it is 4 qps ... there is a retry in the locale client
+    // though.
+    // but 4 qps is very low to download 64 locales.
+    repositoryLocalesWithoutRootLocale.parallelStream()
+        .forEach(
+            locale -> pullLocaleTimed(repository, projectId, locale, pluralSeparator, currentTags));
 
     return null;
+  }
+
+  private void pullLocaleTimed(
+      Repository repository,
+      String projectId,
+      RepositoryLocale repositoryLocale,
+      String pluralSeparator,
+      String currentTags) {
+    try (var timer =
+        Timer.resource(meterRegistry, "ThirdPartyTMSPhrase.pullLocale")
+            .tag("repository", repository.getName())) {
+
+      pullLocale(repository, projectId, repositoryLocale, pluralSeparator, currentTags);
+    }
+  }
+
+  private void pullLocale(
+      Repository repository,
+      String projectId,
+      RepositoryLocale repositoryLocale,
+      String pluralSeparator,
+      String currentTags) {
+
+    String localeTag = repositoryLocale.getLocale().getBcp47Tag();
+    logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
+
+    Stopwatch localeDownloadStopWatch = Stopwatch.createStarted();
+    String fileContent =
+        phraseClient.localeDownload(
+            projectId,
+            localeTag,
+            "xml",
+            currentTags,
+            () -> getCurrentTagsForRepository(repository, projectId));
+
+    logger.info("Phrase locale download took: {}", localeDownloadStopWatch.elapsed());
+
+    logger.debug("file content from pull: {}", fileContent);
+
+    AndroidStringDocumentMapper mapper =
+        new AndroidStringDocumentMapper(
+            pluralSeparator, null, localeTag, repository.getName(), true, null);
+
+    List<TextUnitDTO> textUnitDTOS =
+        mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
+
+    // make sure that the source comment does not get replicated to all translations. Eventually
+    // we may want to
+    // communicate some comments, but anyway it should not be the source comment
+    textUnitDTOS.forEach(t -> t.setComment(null));
+
+    Stopwatch importStopWatch = Stopwatch.createStarted();
+    textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
+    logger.info("Time importing text units: {}", importStopWatch.elapsed());
   }
 
   /**
