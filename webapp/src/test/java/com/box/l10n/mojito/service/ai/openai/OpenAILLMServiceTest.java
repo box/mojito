@@ -362,4 +362,57 @@ class OpenAILLMServiceTest {
     assertEquals("Check strings for spelling", request.messages().get(3).content());
     assertEquals("user", request.messages().get(3).role());
   }
+
+  @Test
+  public void testSourceOnlyCheckedOnce() {
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setUserPrompt("Check strings for spelling");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+    List<AIPrompt> prompts = List.of(prompt);
+    AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+    assetExtractorTextUnit.setSource("A test string");
+    assetExtractorTextUnit.setName("A test string --- A test context_one");
+    assetExtractorTextUnit.setComments("A test comment");
+    AssetExtractorTextUnit assetExtractorTextUnit2 = new AssetExtractorTextUnit();
+    assetExtractorTextUnit2.setSource("A test string");
+    assetExtractorTextUnit2.setName("A test string --- A test context_many");
+    assetExtractorTextUnit2.setComments("A test comment");
+    List<AssetExtractorTextUnit> textUnits =
+        List.of(assetExtractorTextUnit, assetExtractorTextUnit2);
+    AICheckRequest AICheckRequest = new AICheckRequest();
+    AICheckRequest.setRepositoryName("testRepo");
+    AICheckRequest.setTextUnits(textUnits);
+    Repository repository = new Repository();
+    repository.setName("testRepo");
+    repository.setId(1L);
+    when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
+    when(promptService.getPromptsByRepositoryAndPromptType(
+            repository, PromptType.SOURCE_STRING_CHECKER))
+        .thenReturn(prompts);
+    List<OpenAIClient.ChatCompletionsResponse.Choice> choices =
+        List.of(
+            new OpenAIClient.ChatCompletionsResponse.Choice(
+                0,
+                new OpenAIClient.ChatCompletionsResponse.Choice.Message(
+                    "test", "{\"success\": true, \"suggestedFix\": \"\"}"),
+                null));
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        new OpenAIClient.ChatCompletionsResponse(null, null, null, null, choices, null, null);
+    CompletableFuture<OpenAIClient.ChatCompletionsResponse> futureResponse =
+        CompletableFuture.completedFuture(chatCompletionsResponse);
+    when(openAIClient.getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class)))
+        .thenReturn(futureResponse);
+
+    AICheckResponse response = openAILLMService.executeAIChecks(AICheckRequest);
+    assertNotNull(response);
+    assertEquals(1, response.getResults().size());
+    assertTrue(response.getResults().containsKey("A test string"));
+    assertTrue(response.getResults().get("A test string").getFirst().isSuccess());
+    verify(aiStringCheckRepository, times(1)).save(any());
+    verify(meterRegistry, times(1))
+        .counter("OpenAILLMService.checks.result", "success", "true", "repository", "testRepo");
+  }
 }

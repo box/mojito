@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,31 +57,40 @@ public class OpenAILLMService implements LLMService {
   boolean persistResults;
 
   @Timed("OpenAILLMService.executeAIChecks")
-  public AICheckResponse executeAIChecks(AICheckRequest AICheckRequest) {
+  public AICheckResponse executeAIChecks(AICheckRequest aiCheckRequest) {
 
     logger.debug("Executing OpenAI string checks.");
-    Repository repository = repositoryRepository.findByName(AICheckRequest.getRepositoryName());
+    Repository repository = repositoryRepository.findByName(aiCheckRequest.getRepositoryName());
 
     if (repository == null) {
-      logger.error("Repository not found: {}", AICheckRequest.getRepositoryName());
-      throw new AIException("Repository not found: " + AICheckRequest.getRepositoryName());
+      logger.error("Repository not found: {}", aiCheckRequest.getRepositoryName());
+      throw new AIException("Repository not found: " + aiCheckRequest.getRepositoryName());
     }
 
     List<AIPrompt> prompts =
         LLMPromptService.getPromptsByRepositoryAndPromptType(repository, SOURCE_STRING_CHECKER);
 
+    Map<String, AssetExtractorTextUnit> textUnitsUniqueSource =
+        aiCheckRequest.getTextUnits().stream()
+            .collect(
+                Collectors.toMap(
+                    AssetExtractorTextUnit::getSource,
+                    textUnit -> textUnit,
+                    (existing, replacement) -> existing,
+                    HashMap::new));
     Map<String, List<AICheckResult>> results = new HashMap<>();
-    AICheckRequest.getTextUnits()
+    textUnitsUniqueSource
+        .values()
         .forEach(
             textUnit -> {
-              List<AICheckResult> AICheckResults = checkString(textUnit, prompts, repository);
-              results.put(textUnit.getSource(), AICheckResults);
+              List<AICheckResult> aiCheckResults = checkString(textUnit, prompts, repository);
+              results.put(textUnit.getSource(), aiCheckResults);
             });
 
-    AICheckResponse AICheckResponse = new AICheckResponse();
-    AICheckResponse.setResults(results);
+    AICheckResponse aiCheckResponse = new AICheckResponse();
+    aiCheckResponse.setResults(results);
 
-    return AICheckResponse;
+    return aiCheckResponse;
   }
 
   @Timed("OpenAILLMService.checkString")
