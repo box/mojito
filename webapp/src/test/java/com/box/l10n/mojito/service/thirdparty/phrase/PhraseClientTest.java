@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty.phrase;
 
 import com.box.l10n.mojito.JSR310Migration;
+import com.google.common.base.Stopwatch;
 import com.phrase.client.model.Tag;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -47,6 +48,36 @@ public class PhraseClientTest {
             .toList();
 
     phraseClient.deleteTags(testProjectId, tagsToDelete);
+  }
+
+  @Test
+  public void testParallelDownload() {
+    // measure time of following call
+    Stopwatch total = Stopwatch.createStarted();
+
+    List<String> locales =
+        List.of(
+            "bg", "bn", "bs", "ca", "cs", "da", "de", "el", "es-419", "es", "et", "fi", "fr-CA",
+            "fr", "gu", "hi", "hr", "hu", "hy", "id", "is", "it", "ja", "ka", "kn", "ko", "lv",
+            "mk", "mr", "ms", "my", "nb", "nl", "pl", "pt", "pt-PT", "ro", "ru", "sk", "sl", "so",
+            "sq", "sr", "sv", "sw", "ta", "te", "th", "tr", "uk", "vi", "zh", "zh-HK", "zh-Hant");
+
+    locales.parallelStream()
+        .forEach(
+            l -> {
+              Stopwatch started = Stopwatch.createStarted();
+              String s =
+                  phraseClient.localeDownload(
+                      "9b6f4e167397549fe7ec1fe82497159b",
+                      l,
+                      "xml",
+                      "push_chatgpt-web_2024_06_27_05_14_58_356_208",
+                      null);
+              //      logger.info(s);
+              logger.info("Download: {} in {}", l, started.elapsed());
+            });
+
+    logger.info("total time: {}", total.elapsed());
   }
 
   @Test

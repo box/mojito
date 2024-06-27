@@ -5,6 +5,7 @@ import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULE
 import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 
 import com.box.l10n.mojito.JSR310Migration;
+import com.box.l10n.mojito.aspect.StopWatch;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
@@ -128,6 +129,7 @@ public class TextUnitBatchImporterService {
         ImportTextUnitJob.class, importTextUnitJobInput, schedulerName);
   }
 
+  @StopWatch
   public PollableFuture<Void> importTextUnits(
       List<TextUnitDTO> textUnitDTOs,
       boolean integrityCheckSkipped,
@@ -194,6 +196,7 @@ public class TextUnitBatchImporterService {
    * @param asset
    * @param textUnitsToImport text units to which the current text units must be added
    */
+  @StopWatch
   void mapTextUnitsToImportWithExistingTextUnits(
       Locale locale, Asset asset, List<TextUnitForBatchMatcherImport> textUnitsToImport) {
     logger.debug(
@@ -205,14 +208,16 @@ public class TextUnitBatchImporterService {
     textUnitsToImport.forEach(tu -> match.apply(tu).ifPresent(m -> tu.setCurrentTextUnit(m)));
   }
 
+  @StopWatch
   @Transactional
   void importTextUnitsOfLocaleAndAsset(
       Locale locale, Asset asset, List<TextUnitForBatchMatcherImport> textUnitsToImport) {
     ZonedDateTime importTime = JSR310Migration.newDateTimeEmptyCtor();
-    logger.debug(
-        "Start import text units for asset: {} and locale: {}",
+    logger.info(
+        "Start import text units for asset: {}, locale: {}, count: {}",
         asset.getPath(),
-        locale.getBcp47Tag());
+        locale.getBcp47Tag(),
+        textUnitsToImport.size());
 
     textUnitsToImport.stream()
         .filter(
@@ -244,7 +249,7 @@ public class TextUnitBatchImporterService {
 
               TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
               if (currentTextUnit.getTmTextUnitCurrentVariantId() != null) {
-                logger.debug("Looking up current variant");
+                // this is making many calls!
                 tmTextUnitCurrentVariant =
                     tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
                         currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
