@@ -22,6 +22,8 @@ import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.collect.ImmutableList;
 import com.phrase.client.model.Tag;
 import com.phrase.client.model.TranslationKey;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
@@ -34,10 +36,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -50,19 +52,28 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
   static Logger logger = LoggerFactory.getLogger(ThirdPartyTMSPhrase.class);
 
-  @Autowired TextUnitSearcher textUnitSearcher = new TextUnitSearcher();
+  TextUnitSearcher textUnitSearcher = new TextUnitSearcher();
 
-  @Autowired TextUnitBatchImporterService textUnitBatchImporterService;
+  TextUnitBatchImporterService textUnitBatchImporterService;
 
-  @Autowired(required = false)
   PhraseClient phraseClient;
 
-  @Autowired RepositoryService repositoryService;
+  RepositoryService repositoryService;
 
-  public ThirdPartyTMSPhrase() {}
+  MeterRegistry meterRegistry;
 
-  public ThirdPartyTMSPhrase(PhraseClient phraseClient) {
+  public ThirdPartyTMSPhrase(
+      TextUnitSearcher textUnitSearcher,
+      TextUnitBatchImporterService textUnitBatchImporterService,
+      PhraseClient phraseClient,
+      RepositoryService repositoryService,
+      MeterRegistry meterRegistry) {
+
+    this.textUnitSearcher = textUnitSearcher;
+    this.textUnitBatchImporterService = textUnitBatchImporterService;
     this.phraseClient = phraseClient;
+    this.repositoryService = repositoryService;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
@@ -281,7 +292,24 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     String currentTags = getCurrentTagsForRepository(repository, projectId);
 
-    for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
+    repositoryLocalesWithoutRootLocale.parallelStream()
+        .forEach(pullLocaleTimed(repository, projectId, pluralSeparator, currentTags));
+    return null;
+  }
+
+  private Consumer<RepositoryLocale> pullLocaleTimed(
+      Repository repository, String projectId, String pluralSeparator, String currentTags) {
+    try (var timer =
+        Timer.resource(meterRegistry, "ThirdPartyTMSPhrase.pullLocale")
+            .tag("repository", repository.getName())) {
+
+      return pullLocale(repository, projectId, pluralSeparator, currentTags);
+    }
+  }
+
+  private Consumer<RepositoryLocale> pullLocale(
+      Repository repository, String projectId, String pluralSeparator, String currentTags) {
+    return repositoryLocale -> {
       String localeTag = repositoryLocale.getLocale().getBcp47Tag();
       logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
 
@@ -293,7 +321,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
               currentTags,
               () -> getCurrentTagsForRepository(repository, projectId));
 
-      logger.info("file content from pull: {}", fileContent);
+      logger.debug("file content from pull: {}", fileContent);
 
       AndroidStringDocumentMapper mapper =
           new AndroidStringDocumentMapper(
@@ -308,9 +336,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       textUnitDTOS.forEach(t -> t.setComment(null));
 
       textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
-    }
-
-    return null;
+    };
   }
 
   /**
