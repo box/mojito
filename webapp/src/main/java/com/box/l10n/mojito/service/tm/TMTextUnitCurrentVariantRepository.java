@@ -18,6 +18,8 @@ public interface TMTextUnitCurrentVariantRepository
   @EntityGraph(value = "TMTextUnitCurrentVariant.legacy", type = EntityGraphType.FETCH)
   TMTextUnitCurrentVariant findByLocale_IdAndTmTextUnit_Id(Long localeId, Long tmTextUnitId);
 
+  TMTextUnitCurrentVariant findNoGraphByLocale_IdAndTmTextUnit_Id(Long localeId, Long tmTextUnitId);
+
   List<TMTextUnitCurrentVariant> findByTmTextUnit_Id(Long tmTextUnitId);
 
   List<TMTextUnitCurrentVariant> findByTmTextUnit_Tm_IdAndLocale_Id(Long tmId, Long localeId);

@@ -250,8 +250,10 @@ public class TextUnitBatchImporterService {
               TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
               if (currentTextUnit.getTmTextUnitCurrentVariantId() != null) {
                   // this is making many calls!
+                  // re-fetching is expensive, and we probably don't need it - why not computing
+                  // partial data from TextunitDTO? TODO(ja) later. first try without graph
                 tmTextUnitCurrentVariant =
-                    tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+                    tmTextUnitCurrentVariantRepository.findNoGraphByLocale_IdAndTmTextUnit_Id(
                         currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
               }
 
