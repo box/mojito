@@ -1,11 +1,12 @@
 package com.box.l10n.mojito.rest.ai;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AICheckResponse {
+public class AICheckResponse implements Serializable {
 
   boolean error;
 

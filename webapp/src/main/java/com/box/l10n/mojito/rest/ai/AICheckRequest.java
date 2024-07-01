@@ -2,10 +2,11 @@ package com.box.l10n.mojito.rest.ai;
 
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AICheckRequest {
+public class AICheckRequest implements Serializable {
 
   private List<AssetExtractorTextUnit> textUnits;
   private String repositoryName;

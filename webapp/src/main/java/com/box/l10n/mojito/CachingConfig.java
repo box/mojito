@@ -1,5 +1,6 @@
 package com.box.l10n.mojito;
 
+import com.box.l10n.mojito.service.ai.AIChecksCacheConfiguration;
 import com.box.l10n.mojito.service.cache.DatabaseCache;
 import com.box.l10n.mojito.service.cache.DatabaseCacheConfiguration;
 import com.box.l10n.mojito.service.cache.TieredCache;
@@ -29,8 +30,13 @@ public class CachingConfig extends CachingConfigurerSupport {
 
   final MTServiceCacheConfiguration mtServiceCacheConfiguration;
 
-  public CachingConfig(MTServiceCacheConfiguration mtServiceCacheConfiguration) {
+  final AIChecksCacheConfiguration aiChecksCacheConfiguration;
+
+  public CachingConfig(
+      MTServiceCacheConfiguration mtServiceCacheConfiguration,
+      AIChecksCacheConfiguration aiChecksCacheConfiguration) {
     this.mtServiceCacheConfiguration = mtServiceCacheConfiguration;
+    this.aiChecksCacheConfiguration = aiChecksCacheConfiguration;
   }
 
   @Bean
@@ -42,11 +48,43 @@ public class CachingConfig extends CachingConfigurerSupport {
 
     TieredCache machineTranslationTieredCache = getMachineTranslationCache();
 
+    TieredCache aiChecksTieredCache = getAIChecksCache();
+
     SimpleCacheManager manager = new SimpleCacheManager();
     manager.setCaches(
-        Arrays.asList(defaultCache, localesCache, pluralForm, machineTranslationTieredCache));
+        Arrays.asList(
+            defaultCache,
+            localesCache,
+            pluralForm,
+            machineTranslationTieredCache,
+            aiChecksTieredCache));
 
     return manager;
+  }
+
+  private TieredCache getAIChecksCache() {
+    com.github.benmanes.caffeine.cache.@NonNull Cache<Object, Object> aiChecksCaffeineCache =
+        Caffeine.newBuilder()
+            .expireAfterWrite(
+                aiChecksCacheConfiguration.getInMemory().getTtl().toMillis(), TimeUnit.MILLISECONDS)
+            .maximumSize(aiChecksCacheConfiguration.getInMemory().getMaximumSize())
+            .build();
+
+    CaffeineCache aiChecksMemoryCache =
+        new CaffeineCache("aiChecksInMemory", aiChecksCaffeineCache);
+
+    DatabaseCache aiChecksDatabaseCache = null;
+
+    if (aiChecksCacheConfiguration.getDatabase().isEnabled()) {
+      DatabaseCacheConfiguration aiChecksDbCacheConfiguration = new DatabaseCacheConfiguration();
+      aiChecksDbCacheConfiguration.setTtl(aiChecksCacheConfiguration.getDatabase().getTtl());
+      aiChecksDbCacheConfiguration.setEvictEntryOnDeserializationFailure(
+          aiChecksCacheConfiguration.getDatabase().isEvictEntryOnDeserializationFailure());
+
+      aiChecksDatabaseCache = new DatabaseCache("aiChecksInDb", aiChecksDbCacheConfiguration);
+    }
+
+    return new TieredCache(CacheType.Names.AI_CHECKS, aiChecksMemoryCache, aiChecksDatabaseCache);
   }
 
   private TieredCache getMachineTranslationCache() {

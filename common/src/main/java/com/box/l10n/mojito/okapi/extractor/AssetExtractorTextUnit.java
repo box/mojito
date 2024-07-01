@@ -1,8 +1,9 @@
 package com.box.l10n.mojito.okapi.extractor;
 
+import java.io.Serializable;
 import java.util.Set;
 
-public class AssetExtractorTextUnit {
+public class AssetExtractorTextUnit implements Serializable {
   String name;
   String source;
   String comments;
