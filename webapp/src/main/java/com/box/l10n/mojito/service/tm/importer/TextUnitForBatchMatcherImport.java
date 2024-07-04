@@ -21,6 +21,7 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
   String content;
   String name;
   String comment;
+  String targetComment;
   Long tmTextUnitId;
   TextUnitDTO currentTextUnit;
   boolean includedInLocalizedFile;
@@ -76,6 +77,14 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
 
   public void setComment(String comment) {
     this.comment = comment;
+  }
+
+  public String getTargetComment() {
+    return targetComment;
+  }
+
+  public void setTargetComment(String targetComment) {
+    this.targetComment = targetComment;
   }
 
   @Override

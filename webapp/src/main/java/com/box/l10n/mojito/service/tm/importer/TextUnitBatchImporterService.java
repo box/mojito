@@ -264,7 +264,7 @@ public class TextUnitBatchImporterService {
                       currentTextUnit.getTmTextUnitId(),
                       locale.getId(),
                       textUnitForBatchImport.getContent(),
-                      textUnitForBatchImport.getComment(),
+                      textUnitForBatchImport.getTargetComment(),
                       textUnitForBatchImport.getStatus(),
                       textUnitForBatchImport.isIncludedInLocalizedFile(),
                       importTime,
@@ -299,11 +299,11 @@ public class TextUnitBatchImporterService {
             currentTextUnit.getStatus(),
             DigestUtils.md5Hex(currentTextUnit.getTarget()),
             currentTextUnit.isIncludedInLocalizedFile(),
-            currentTextUnit.getComment(),
+            currentTextUnit.getTargetComment(),
             textUnitForBatchImport.getStatus(),
             DigestUtils.md5Hex(textUnitForBatchImport.getContent()),
             textUnitForBatchImport.isIncludedInLocalizedFile(),
-            textUnitForBatchImport.getComment());
+            textUnitForBatchImport.getTargetComment());
   }
 
   List<TextUnitDTO> getTextUnitTDOsForLocaleAndAsset(Locale locale, Asset asset) {
@@ -430,6 +430,7 @@ public class TextUnitBatchImporterService {
               textUnitForBatchImport.setLocale(localeService.findByBcp47Tag(t.getTargetLocale()));
               textUnitForBatchImport.setContent(NormalizationUtils.normalize(t.getTarget()));
               textUnitForBatchImport.setComment(t.getComment());
+              textUnitForBatchImport.setTargetComment(t.getTargetComment());
               textUnitForBatchImport.setIncludedInLocalizedFile(t.isIncludedInLocalizedFile());
               textUnitForBatchImport.setStatus(t.getStatus() == null ? APPROVED : t.getStatus());
               return textUnitForBatchImport;
