@@ -489,6 +489,7 @@ public class XLIFFWriter implements IFilterWriter {
             params.getPlaceholderMode(),
             params.getIncludeCodeAttrs(),
             params.getIncludeIts(),
+            false,
             trgLoc));
     List<GenericAnnotations> srcStandoff = xliffCont.getStandoff();
     writer.writeEndElementLineBreak(); // source
@@ -505,6 +506,7 @@ public class XLIFFWriter implements IFilterWriter {
               params.getPlaceholderMode(),
               params.getIncludeCodeAttrs(),
               params.getIncludeIts(),
+              false,
               trgLoc));
       // No repeat of the standoff
       writer.writeEndElementLineBreak(); // seg-source
@@ -581,6 +583,7 @@ public class XLIFFWriter implements IFilterWriter {
                 params.getPlaceholderMode(),
                 params.getIncludeCodeAttrs(),
                 params.getIncludeIts(),
+                false,
                 trgLoc));
         trgStandoff = xliffCont.getStandoff();
         writer.writeEndElementLineBreak(); // target
@@ -716,6 +719,7 @@ public class XLIFFWriter implements IFilterWriter {
                 params.getPlaceholderMode(),
                 params.getIncludeCodeAttrs(),
                 params.getIncludeIts(),
+                false,
                 trgLoc));
         writer.writeEndElementLineBreak(); // source
       }
@@ -746,6 +750,7 @@ public class XLIFFWriter implements IFilterWriter {
               params.getPlaceholderMode(),
               params.getIncludeCodeAttrs(),
               params.getIncludeIts(),
+              false,
               trgLoc));
       writer.writeEndElementLineBreak(); // target
       annotatorsRef.pop();

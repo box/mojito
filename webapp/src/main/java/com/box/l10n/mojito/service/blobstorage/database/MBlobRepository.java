@@ -31,7 +31,7 @@ public interface MBlobRepository
   @Query(
       """
       select mb.id from #{#entityName} mb
-      where (unix_timestamp(mb.createdDate) + mb.expireAfterSeconds) < unix_timestamp(:now)
+      where (cast(unix_timestamp(mb.createdDate) as biginteger) + cast(mb.expireAfterSeconds as biginteger)) < cast(unix_timestamp(:now) as biginteger)
       """)
   List<Long> findExpiredBlobIdsWithNow(@Param("now") ZonedDateTime now, Pageable pageable);
 
