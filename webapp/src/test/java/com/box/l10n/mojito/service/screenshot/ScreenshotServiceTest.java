@@ -81,9 +81,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     screenshotService.thirdPartyService = thirdPartyServiceMock;
 
     Screenshot screenshot = new Screenshot();
-    screenshot.setId(1L);
     screenshot.setName("screenshot");
-    screenshotRepository.save(screenshot);
+    screenshot = screenshotRepository.save(screenshot);
 
     Assert.assertNotNull(screenshotRepository.findById(screenshot.getId()).orElse(null));
 

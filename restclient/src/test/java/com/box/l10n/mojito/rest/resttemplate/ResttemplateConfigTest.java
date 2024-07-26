@@ -29,7 +29,7 @@ public class ResttemplateConfigTest {
   @Test
   public void testConfig() {
     assertEquals("localhost", resttemplateConfig.getHost());
-    assertEquals(new Integer(8080), resttemplateConfig.getPort());
+    assertEquals(Integer.valueOf(8080), resttemplateConfig.getPort());
     assertEquals("http", resttemplateConfig.getScheme());
     assertEquals("admin", resttemplateConfig.getAuthentication().getUsername());
     assertEquals("ChangeMe", resttemplateConfig.getAuthentication().getPassword());
