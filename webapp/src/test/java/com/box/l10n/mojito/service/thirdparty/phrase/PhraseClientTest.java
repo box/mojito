@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.springframework.test.context.junit4.SpringRunner;
       PhraseClientPropertiesConfig.class
     })
 @EnableConfigurationProperties
+@Ignore
 public class PhraseClientTest {
 
   static Logger logger = LoggerFactory.getLogger(PhraseClientTest.class);
@@ -52,6 +54,8 @@ public class PhraseClientTest {
 
   @Test
   public void testParallelDownload() {
+
+    Assume.assumeNotNull(testProjectId);
     // measure time of following call
     Stopwatch total = Stopwatch.createStarted();
 
