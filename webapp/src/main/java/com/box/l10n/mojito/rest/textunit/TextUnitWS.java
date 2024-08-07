@@ -204,6 +204,7 @@ public class TextUnitWS {
         emptyOrString(textUnitSearchBody.getTarget(), textUnitSearchBody.searchType));
     textUnitSearcherParameters.setAssetPath(textUnitSearchBody.getAssetPath());
     textUnitSearcherParameters.setPluralFormOther(textUnitSearchBody.getPluralFormOther());
+    textUnitSearcherParameters.setLocationUsage(textUnitSearchBody.getLocationUsage());
     textUnitSearcherParameters.setPluralFormsFiltered(textUnitSearchBody.isPluralFormFiltered());
     textUnitSearcherParameters.setPluralFormsExcluded(textUnitSearchBody.isPluralFormExcluded());
     textUnitSearcherParameters.setSearchType(textUnitSearchBody.getSearchType());

@@ -32,6 +32,10 @@ class TextUnitSearcherParameters {
         this.params.tmTextUnitIds = tmTextUnitIds;
     }
 
+    locationUsage(locationUsage) {
+        this.params.locationUsage = locationUsage;
+    }
+
     branchId(branchId) {
         this.params.branchId = branchId;
     }

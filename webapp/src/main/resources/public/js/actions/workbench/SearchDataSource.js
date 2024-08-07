@@ -30,6 +30,8 @@ const SearchDataSource = {
                     textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_ID) {
                     textUnitSearcherParameters.tmTextUnitIds([parseInt(searchParams.searchText) || 0]);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.LOCATION_USAGE) {
+                    textUnitSearcherParameters.locationUsage(searchParams.searchText);
                 } else {
                     textUnitSearcherParameters.name(searchParams.searchText);
                 }

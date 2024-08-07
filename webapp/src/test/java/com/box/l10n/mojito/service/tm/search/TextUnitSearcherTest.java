@@ -7,6 +7,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetExtraction;
+import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -18,11 +21,16 @@ import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.junit.Assert;
@@ -56,6 +64,8 @@ public class TextUnitSearcherTest extends ServiceTestBase {
 
   @Autowired AssetService assetService;
 
+  @Autowired EntityManager entityManager;
+
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
   @Transactional
@@ -77,6 +87,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
     textUnitSearcherParameters.setSource("Please enter a valid state, region or province");
     textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
     textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+    textUnitSearcherParameters.setLocationUsage("fake_for_test");
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
@@ -99,6 +110,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         tmTestData.addCurrentTMTextUnitVariant1KoKR.getId(), next.getTmTextUnitVariantId());
     assertTrue(next.isTranslated());
     assertTrue(next.isUsed());
+    assertEquals("fake_for_test", next.getAssetPath());
 
     assertFalse(iterator.hasNext());
   }
@@ -799,9 +811,54 @@ public class TextUnitSearcherTest extends ServiceTestBase {
             "Content3 fr-FR"));
   }
 
+  @Test
+  public void testExactMatchLocationUsageByAssetPath() {
+    testSearchText("assetPath", "fake_for_test", SearchType.EXACT, List.of("fake_for_test"));
+  }
+
+  @Test
+  public void testContainsLocationUsageByAssetPath() {
+    testSearchText("assetPath", "fake", SearchType.CONTAINS, List.of("fake_for_test"));
+  }
+
+  @Test
+  public void testILikeLocationUsageByAssetPath() {
+    testSearchText("assetPath", "%FAKE_FOR_%test", SearchType.ILIKE, List.of("fake_for_test"));
+  }
+
+  @Test
+  public void testExactMatchLocationUsageByUsages() {
+    testSearchText("usage", "usage_test", SearchType.EXACT, List.of("usage_test"), true);
+  }
+
+  @Test
+  public void testContainsLocationUsageByUsages() {
+    testSearchText("usage", "usage", SearchType.CONTAINS, List.of("usage_test"), true);
+  }
+
+  @Test
+  public void testILikeLocationUsageByUsages() {
+    testSearchText("usage", "%USAGE_%TEST", SearchType.ILIKE, List.of("usage_test"), true);
+  }
+
+  private List<AssetTextUnitToTMTextUnit> getAssetTextUnitToTMTextUnit(
+      AssetExtraction assetExtraction) {
+    TypedQuery<AssetTextUnitToTMTextUnit> query =
+        this.entityManager
+            .createQuery(
+                "select m from AssetTextUnitToTMTextUnit m join fetch m.assetTextUnit join fetch m.assetTextUnit.usages where m.assetTextUnit.assetExtraction.id = :assetExtractionId",
+                AssetTextUnitToTMTextUnit.class)
+            .setParameter("assetExtractionId", assetExtraction.getId());
+    return query.getResultList();
+  }
+
   public void testSearchText(
-      String attribute, String value, SearchType searchType, List<String> expectedNames) {
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+      String attribute,
+      String value,
+      SearchType searchType,
+      List<String> expectedNames,
+      boolean addUsage) {
+    TMTestData tmTestData = new TMTestData(testIdWatcher, addUsage);
 
     TextUnitSearcherParameters textUnitSearcherParameters =
         new TextUnitSearcherParametersForTesting();
@@ -812,6 +869,8 @@ public class TextUnitSearcherTest extends ServiceTestBase {
       textUnitSearcherParameters.setSource(value);
     } else if ("target".equals(attribute)) {
       textUnitSearcherParameters.setTarget(value);
+    } else if ("usage".equals(attribute) || "assetPath".equals(attribute)) {
+      textUnitSearcherParameters.setLocationUsage(value);
     } else {
       throw new RuntimeException();
     }
@@ -823,12 +882,15 @@ public class TextUnitSearcherTest extends ServiceTestBase {
 
     assertFalse(textUnitDTOs.isEmpty());
 
+    List<AssetTextUnitToTMTextUnit> assetTextUnitToTMTextUnits =
+        this.getAssetTextUnitToTMTextUnit(tmTestData.assetExtraction);
+
     for (TextUnitDTO textUnitDTO : textUnitDTOs) {
       logger.debug(ToStringBuilder.reflectionToString(textUnitDTO, ToStringStyle.MULTI_LINE_STYLE));
     }
 
     for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-      String attributeToCheck = null;
+      String attributeToCheck;
 
       if ("name".equals(attribute)) {
         attributeToCheck = textUnitDTO.getName();
@@ -836,8 +898,25 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         attributeToCheck = textUnitDTO.getSource();
       } else if ("target".equals(attribute)) {
         attributeToCheck = textUnitDTO.getTarget();
+      } else if ("assetPath".equals(attribute)) {
+        attributeToCheck = textUnitDTO.getAssetPath();
       } else {
-        throw new RuntimeException();
+        Optional<String> optionalUsage =
+            assetTextUnitToTMTextUnits.stream()
+                .filter(
+                    assetTextUnitToTMTextUnit ->
+                        Objects.equals(
+                            assetTextUnitToTMTextUnit.getTmTextUnit().getId(),
+                            textUnitDTO.getTmTextUnitId()))
+                .map(AssetTextUnitToTMTextUnit::getAssetTextUnit)
+                .map(AssetTextUnit::getUsages)
+                .flatMap(Collection::stream)
+                .filter(usage -> usage.equals("usage_test"))
+                .findFirst();
+        if (optionalUsage.isEmpty()) {
+          throw new RuntimeException();
+        }
+        attributeToCheck = optionalUsage.get();
       }
 
       if (!expectedNames.contains(attributeToCheck)) {
@@ -845,5 +924,10 @@ public class TextUnitSearcherTest extends ServiceTestBase {
             "the search returned an unexpected textunit, " + attribute + ": " + attributeToCheck);
       }
     }
+  }
+
+  public void testSearchText(
+      String attribute, String value, SearchType searchType, List<String> expectedNames) {
+    this.testSearchText(attribute, value, searchType, expectedNames, false);
   }
 }

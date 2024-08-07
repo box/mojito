@@ -9,7 +9,9 @@ import com.box.l10n.mojito.nativecriteria.NativeDateLteExp;
 import com.box.l10n.mojito.nativecriteria.NativeEqExpFix;
 import com.box.l10n.mojito.nativecriteria.NativeILikeExp;
 import com.box.l10n.mojito.nativecriteria.NativeInExpFix;
+import com.box.l10n.mojito.nativecriteria.NativeInSubQueryExp;
 import com.box.l10n.mojito.nativecriteria.NativeNotILikeExp;
+import com.box.l10n.mojito.nativecriteria.NativeNotInSubQueryExp;
 import com.github.pnowy.nc.core.CriteriaResult;
 import com.github.pnowy.nc.core.NativeCriteria;
 import com.github.pnowy.nc.core.NativeExps;
@@ -129,6 +131,35 @@ public class TextUnitSearcher {
       logger.warn("TextUnitSearcher failed to search, query: {}", c.getQueryInfo().toString());
       throw new TextUnitSearcherError(c, "search", e);
     }
+  }
+
+  private void addLocationUsageExp(
+      TextUnitSearcherParameters searchParameters, NativeJunctionExp conjunction) {
+    NativeJunctionExp usageExp = NativeExps.disjunction();
+
+    NativeCriteria allUsages =
+        new NativeCriteria(new JpaQueryProvider(), "asset_text_unit_usages", "atuu");
+    allUsages.setDistinct(true);
+    allUsages.setProjection(NativeExps.projection().addProjection("atuu.asset_text_unit_id"));
+    NativeJunctionExp assetPathUsageConjunction = NativeExps.conjunction();
+    assetPathUsageConjunction.add(new NativeNotInSubQueryExp("atu.id", allUsages));
+    assetPathUsageConjunction.add(
+        getSearchTypeNativeExp(
+            searchParameters.getSearchType(), "a.path", searchParameters.getLocationUsage()));
+    usageExp.add(assetPathUsageConjunction);
+
+    NativeCriteria usage =
+        new NativeCriteria(new JpaQueryProvider(), "asset_text_unit_usages", "atuu");
+    usage.setDistinct(true);
+    usage.setProjection(NativeExps.projection().addProjection("atuu.asset_text_unit_id"));
+    NativeJunctionExp usageConjunction = NativeExps.conjunction();
+    usageConjunction.add(
+        getSearchTypeNativeExp(
+            searchParameters.getSearchType(), "atuu.usages", searchParameters.getLocationUsage()));
+    usage.add(usageConjunction);
+    usageExp.add(new NativeInSubQueryExp("atu.id", usage));
+
+    conjunction.add(usageExp);
   }
 
   NativeCriteria getCriteriaForSearch(TextUnitSearcherParameters searchParameters) {
@@ -326,6 +357,10 @@ public class TextUnitSearcher {
 
     if (searchParameters.getBranchId() != null) {
       conjunction.add(new NativeEqExpFix("atu.branch_id", searchParameters.getBranchId()));
+    }
+
+    if (searchParameters.getLocationUsage() != null) {
+      this.addLocationUsageExp(searchParameters, conjunction);
     }
 
     if (searchParameters.getSkipTextUnitWithPattern() != null) {

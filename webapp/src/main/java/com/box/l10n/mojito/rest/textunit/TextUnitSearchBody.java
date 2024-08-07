@@ -15,6 +15,7 @@ class TextUnitSearchBody {
   String target;
   String assetPath;
   String pluralFormOther;
+  String locationUsage;
   boolean pluralFormFiltered = true;
   boolean pluralFormExcluded = false;
   SearchType searchType = SearchType.EXACT;
@@ -90,6 +91,14 @@ class TextUnitSearchBody {
 
   public void setPluralFormOther(String pluralFormOther) {
     this.pluralFormOther = pluralFormOther;
+  }
+
+  public String getLocationUsage() {
+    return this.locationUsage;
+  }
+
+  public void setLocationUsage(String locationUsage) {
+    this.locationUsage = locationUsage;
   }
 
   public boolean isPluralFormFiltered() {

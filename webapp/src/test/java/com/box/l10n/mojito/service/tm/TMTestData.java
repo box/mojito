@@ -4,6 +4,7 @@ import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
@@ -23,6 +24,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableMap;
 import jakarta.annotation.PostConstruct;
 import java.time.ZonedDateTime;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -84,8 +86,15 @@ public class TMTestData {
 
   TestIdWatcher testIdWatcher;
 
+  private boolean addUsage;
+
   public TMTestData(TestIdWatcher testIdWatcher) {
     this.testIdWatcher = testIdWatcher;
+  }
+
+  public TMTestData(TestIdWatcher testIdWatcher, boolean addUsage) {
+    this(testIdWatcher);
+    this.addUsage = addUsage;
   }
 
   @PostConstruct
@@ -152,12 +161,22 @@ public class TMTestData {
     assetExtraction.setAsset(asset);
     assetExtraction = assetExtractionRepository.save(assetExtraction);
 
+    Branch branch =
+        assetExtraction.getAssetContent() != null
+            ? assetExtraction.getAssetContent().getBranch()
+            : null;
+    Set<String> usages = this.addUsage ? Set.of("usage_test") : null;
     createAssetTextUnit1 =
         assetExtractionService.createAssetTextUnit(
-            assetExtraction,
+            assetExtraction.getId(),
             "zuora_error_message_verify_state_province",
             "Please enter a valid state, region or province",
-            "Comment1");
+            "Comment1",
+            null,
+            null,
+            false,
+            usages,
+            branch);
     createAssetTextUnit2 =
         assetExtractionService.createAssetTextUnit(
             assetExtraction, "TEST2", "Content2", "Comment2");

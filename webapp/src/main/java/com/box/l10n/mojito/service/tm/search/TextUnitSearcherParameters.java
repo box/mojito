@@ -20,6 +20,7 @@ public class TextUnitSearcherParameters {
   String target;
   String assetPath;
   String pluralFormOther;
+  String locationUsage;
   SearchType searchType;
   List<Long> repositoryIds;
   List<String> repositoryNames;
@@ -204,6 +205,14 @@ public class TextUnitSearcherParameters {
 
   public void setPluralFormOther(String pluralFormOther) {
     this.pluralFormOther = pluralFormOther;
+  }
+
+  public String getLocationUsage() {
+    return this.locationUsage;
+  }
+
+  public void setLocationUsage(String locationUsage) {
+    this.locationUsage = locationUsage;
   }
 
   public List<String> getRepositoryNames() {
