@@ -2034,7 +2034,7 @@ public class TMServiceTest extends ServiceTestBase {
     assetResult.get();
 
     String forImport =
-        "<resources>\n" + "    <string name=\"test\">Le test</string>\n" + "</resources>";
+        "<resources>\n" + "    <string name=\"test\">Le test</string>\n" + "</resources>\n";
 
     tmService
         .importLocalizedAssetAsync(
@@ -2053,7 +2053,7 @@ public class TMServiceTest extends ServiceTestBase {
             repoLocale,
             "en-GB",
             null,
-            null,
+            List.of("postProcessIndent=4"),
             Status.ALL,
             InheritanceMode.REMOVE_UNTRANSLATED,
             null);
@@ -2097,10 +2097,9 @@ public class TMServiceTest extends ServiceTestBase {
     assetResult.get();
 
     String expectedLocalized =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
             + "<!-- comment after prolog -->"
-            + "<resources>\n"
-            + "</resources>";
+            + "<resources/>\n";
 
     String localizedAsset =
         tmService.generateLocalized(

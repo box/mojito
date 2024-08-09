@@ -162,6 +162,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
     checkExpectedGeneratedResources();
   }
+
   @Test
   public void importAndroidStringsPluralWithThirdPartySync() throws Exception {
     Assume.assumeNotNull(testProjectId);
