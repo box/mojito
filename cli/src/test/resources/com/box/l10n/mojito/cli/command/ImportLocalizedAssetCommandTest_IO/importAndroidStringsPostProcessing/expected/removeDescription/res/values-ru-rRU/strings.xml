@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<resources>
+  <plurals name="plural_recipe_cook_hours">
+    <item formatted="false" quantity="one">Приготовление: %1$,d час</item>
+    <item formatted="false" quantity="few">Приготовление: %1$,d часа</item>
+    <item formatted="false" quantity="many">Приготовление: %1$,d часов</item>
+    <item formatted="false" quantity="other">Приготовление: %1$,d часа</item>
+  </plurals>
+  <string name="people">Люди</string>
+  <plurals name="plural_collaborators_other">
+    <item formatted="false" quantity="one">%1$,d соавтор</item>
+    <item formatted="false" quantity="few">%1$,d соавтора</item>
+    <item formatted="false" quantity="many">%1$,d соавторов</item>
+    <item formatted="false" quantity="other">%1$,d соавтора</item>
+  </plurals>
+  <!-- Header for the recipe ingredients with the ingredients countsection -->
+  <plurals name="pin_recipe_ingredients_with_count">
+    <item formatted="false" quantity="one">%1$d ингредиент</item>
+    <item formatted="false" quantity="few">%1$d ингредиента</item>
+    <item formatted="false" quantity="many">%1$d ингредиентов</item>
+    <item formatted="false" quantity="other">%1$d ингредиента</item>
+  </plurals>
+  <!-- Delete a piece of content -->
+  <string name="delete_confirm">Удалить</string>
+  <string name="untranstaled">Untranslated</string>
+  <plurals name="plural_untranslated">
+    <item formatted="false" quantity="one">plural_untranslated_one</item>
+    <item formatted="false" quantity="few">plural_untranslated_other</item>
+    <item formatted="false" quantity="many">plural_untranslated_other</item>
+    <item formatted="false" quantity="other">plural_untranslated_other</item>
+  </plurals>
+  <string name="do_not_translate" translatable="false">do_not_translate</string>
+  <!-- translatable="false" does not work on plural -->
+  <plurals name="plural_do_not_translate" translatable="false">
+    <item formatted="false" quantity="one">plural_do_not_translate_one</item>
+    <item formatted="false" quantity="few">plural_do_not_translate_other</item>
+    <item formatted="false" quantity="many">plural_do_not_translate_other</item>
+    <item formatted="false" quantity="other">plural_do_not_translate_other</item>
+  </plurals>
+</resources>

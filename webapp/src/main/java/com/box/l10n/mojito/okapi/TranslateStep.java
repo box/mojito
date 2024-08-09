@@ -137,22 +137,20 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
       if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
         logger.debug("Remove untranslated text unit");
-        Event androidEvent = getEventForAndroidFirstTextUnit(textUnit);
 
-        if (androidEvent == null) {
-          switch (getRemoveUntranslatedStrategyFromAnnotation()) {
-            case NOOP_EVENT:
-              event = Event.createNoopEvent();
-              break;
-            case PLACEHOLDER_AND_POST_PROCESSING:
-              logger.debug("Set untranslated placeholder for text unit with name: {}", name);
-              textUnit.setTarget(
-                  targetLocale,
-                  new TextContainer(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER));
-              enableOutputDocumentPostProcessing();
-              break;
-          }
+        switch (getRemoveUntranslatedStrategyFromAnnotation()) {
+          case NOOP_EVENT:
+            event = Event.createNoopEvent();
+            break;
+          case PLACEHOLDER_AND_POST_PROCESSING:
+            logger.debug("Set untranslated placeholder for text unit with name: {}", name);
+            textUnit.setTarget(
+                targetLocale,
+                new TextContainer(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER));
+            enableOutputDocumentPostProcessing();
+            break;
         }
+
       } else {
 
         if (!shouldConvertToHtmlCodes) {
