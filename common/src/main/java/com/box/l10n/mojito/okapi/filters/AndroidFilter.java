@@ -1,10 +1,23 @@
 package com.box.l10n.mojito.okapi.filters;
 
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.IResource;
 import net.sf.okapi.common.LocaleId;
@@ -19,6 +32,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * @author jaurambault
@@ -34,6 +54,10 @@ public class AndroidFilter extends XMLFilter {
   public static final String FILTER_CONFIG_ID = "okf_xml@mojito-AndroidStrings";
 
   private static final String OPTION_OLD_ESCAPING = "oldEscaping";
+
+  private static final String REMOVE_DESCRIPTION = "removeDescription";
+
+  private static final String POST_PROCESS_INDENT = "postProcessIndent";
 
   private static final Pattern PATTERN_PLURAL_START = Pattern.compile("<plurals");
   private static final Pattern PATTERN_PLURAL_END = Pattern.compile("</plurals>");
@@ -84,12 +108,28 @@ public class AndroidFilter extends XMLFilter {
 
   List<Event> eventQueue = new ArrayList<>();
 
+  boolean removeDescription = false;
+
+  int postProcessIndent = 2;
+
   @Override
   public void open(RawDocument input) {
     super.open(input);
     targetLocale = input.getTargetLocale();
     hasAnnotation = input.getAnnotation(CopyFormsOnImport.class) != null;
     applyFilterOptions(input);
+    input.setAnnotation(
+        new RemoveUntranslatedStategyAnnotation(
+            RemoveUntranslatedStrategy.PLACEHOLDER_AND_POST_PROCESSING));
+    // The post processing is optionally enable based on the removed description option. Contrary to
+    // a filter like
+    // JsonFilter the post-processing where the post processing is always disable by default, and
+    // then activated
+    // in the TranslateStep
+    input.setAnnotation(
+        new OutputDocumentPostProcessingAnnotation(
+            new AndroidFilePostProcessing(removeDescription, postProcessIndent)::execute,
+            removeDescription));
   }
 
   void applyFilterOptions(RawDocument input) {
@@ -104,9 +144,20 @@ public class AndroidFilter extends XMLFilter {
               androidXMLEncoder.oldEscaping = oldEscaping;
             }
           });
-    }
+      logger.debug("filter option, old escaping: {}", oldEscaping);
 
-    logger.debug("filter option, old escaping: {}", oldEscaping);
+      filterOptions.getBoolean(
+          REMOVE_DESCRIPTION,
+          b -> {
+            removeDescription = b;
+          });
+
+      filterOptions.getInteger(
+          POST_PROCESS_INDENT,
+          i -> {
+            postProcessIndent = i;
+          });
+    }
   }
 
   @Override
@@ -365,6 +416,112 @@ public class AndroidFilter extends XMLFilter {
         }
         if (ignore) {
           genericSkeletonPart.setData("");
+        }
+      }
+    }
+  }
+
+  static class AndroidFilePostProcessing {
+    static final String DESCRIPTION_ATTRIBUTE = "description";
+    boolean removeDescription;
+    int indent;
+
+    AndroidFilePostProcessing(boolean removeDescription, int indent) {
+      this.removeDescription = removeDescription;
+      this.indent = indent;
+    }
+
+    String execute(String xmlContent) {
+
+      if (xmlContent == null || xmlContent.isBlank()) {
+        return xmlContent;
+      }
+
+      try {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+        document.getDocumentElement().normalize();
+
+        NodeList stringElements = document.getElementsByTagName("string");
+        for (int i = 0; i < stringElements.getLength(); i++) {
+          Node node = stringElements.item(i);
+          if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            if (element
+                .getTextContent()
+                .equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
+              element.getParentNode().removeChild(element);
+              i--;
+            }
+
+            if (element.hasAttribute(DESCRIPTION_ATTRIBUTE)) {
+              if (removeDescription) {
+                element.removeAttribute(DESCRIPTION_ATTRIBUTE);
+              }
+            }
+          }
+        }
+
+        NodeList pluralsElements = document.getElementsByTagName("plurals");
+        for (int i = 0; i < pluralsElements.getLength(); i++) {
+          Element plurals = (Element) pluralsElements.item(i);
+          NodeList items = plurals.getElementsByTagName("item");
+          boolean hasTranslated = false;
+
+          for (int j = 0; j < items.getLength(); j++) {
+            Element item = (Element) items.item(j);
+            if (item.getTextContent().equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
+              item.getParentNode().removeChild(item);
+              j--;
+            } else {
+              hasTranslated = true;
+            }
+          }
+
+          if (!hasTranslated) {
+            plurals.getParentNode().removeChild(plurals);
+            i--;
+          }
+
+          if (plurals.hasAttribute(DESCRIPTION_ATTRIBUTE)) {
+            if (removeDescription) {
+              plurals.removeAttribute(DESCRIPTION_ATTRIBUTE);
+            }
+          }
+        }
+
+        removeWhitespaceNodes(document);
+
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(
+            "{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
+
+        boolean hasDeclaration = xmlContent.trim().startsWith("<?xml");
+        transformer.setOutputProperty(
+            OutputKeys.OMIT_XML_DECLARATION, hasDeclaration ? "no" : "yes");
+
+        DOMSource domSource = new DOMSource(document);
+        StreamResult streamResult = new StreamResult(new StringWriter());
+        transformer.transform(domSource, streamResult);
+        String processedXmlContent = streamResult.getWriter().toString();
+        return processedXmlContent;
+
+      } catch (ParserConfigurationException | SAXException | IOException | TransformerException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    public void removeWhitespaceNodes(Node node) {
+      NodeList childNodes = node.getChildNodes();
+      for (int i = childNodes.getLength() - 1; i >= 0; i--) {
+        Node childNode = childNodes.item(i);
+        if (childNode instanceof Text && childNode.getNodeValue().isBlank()) {
+          node.removeChild(childNode);
+        } else if (childNode instanceof Element) {
+          removeWhitespaceNodes(childNode);
         }
       }
     }

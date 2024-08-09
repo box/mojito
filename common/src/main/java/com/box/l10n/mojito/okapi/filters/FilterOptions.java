@@ -33,4 +33,10 @@ public class FilterOptions implements IAnnotation {
       consumer.accept(Boolean.valueOf(this.options.get(key)));
     }
   }
+
+  public void getInteger(String key, Consumer<Integer> consumer) {
+    if (this.options.containsKey(key)) {
+      consumer.accept(Integer.valueOf(this.options.get(key)));
+    }
+  }
 }

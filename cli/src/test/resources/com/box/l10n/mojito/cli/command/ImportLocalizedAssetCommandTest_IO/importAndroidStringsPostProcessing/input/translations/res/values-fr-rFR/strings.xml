@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+
+    <plurals name="plural_recipe_cook_hours" description="The singular and plural form for Recipe Cook Time in hours">
+        <item formatted="false" quantity="one">%1$,d heure à cuisiner</item>
+        <item formatted="false" quantity="other">%1$,d heures à cuisiner</item>
+    </plurals>
+
+    <string description="People, as a filter" name="people">Membres</string>
+    
+    <plurals name="plural_collaborators_other">
+        <item formatted="false" quantity="one">%1$,d collaborateur</item>
+        <item formatted="false" quantity="other">%1$,d collaborateurs</item>
+    </plurals>
+
+    <!-- Header for the recipe ingredients with the ingredients countsection -->
+    <plurals name="pin_recipe_ingredients_with_count">
+        <item formatted="false" quantity="one">%1$d ingrédient</item>
+        <item formatted="false" quantity="other">%1$d ingrédients </item>
+    </plurals>
+
+    <!-- Delete a piece of content -->
+    <string name="delete_confirm">Supprimer</string>
+
+    <string name="do_not_translate">do_not_translate_fr</string>
+
+    <plurals name="plural_do_not_translate">
+        <item formatted="false" quantity="one">plural_do_not_translate_one_fr</item>
+        <item formatted="false" quantity="other">plural_do_not_translate_other_fr</item>
+    </plurals>
+</resources>
