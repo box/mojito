@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_EXCLUDE_FILES_PATTERN_KEY;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_PLURAL_SKIP;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_REJECT_PATTERN_KEY;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_ADDITIONS_PATH_KEY;
@@ -53,6 +54,10 @@ public class CliCheckerOptions {
 
   public String getContextCommentRejectPattern() {
     return optionsMap.get(CONTEXT_COMMENT_REJECT_PATTERN_KEY.getKey());
+  }
+
+  public String getContextCommentExcludeFilesPattern() {
+    return optionsMap.get(CONTEXT_COMMENT_EXCLUDE_FILES_PATTERN_KEY.getKey());
   }
 
   public String getRepositoryName() {

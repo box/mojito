@@ -9,7 +9,8 @@ public enum CliCheckerParameters {
   RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY("recommendStringIdLabelIgnorePattern"),
   CONTEXT_COMMENT_PLURAL_SKIP("contextCommentSkipPlurals"),
   REPOSITORY_NAME("repositoryName"),
-  OPEN_AI_RETRY_ERROR_MSG("openAIRetryErrorMessage");
+  OPEN_AI_RETRY_ERROR_MSG("openAIRetryErrorMessage"),
+  CONTEXT_COMMENT_EXCLUDE_FILES_PATTERN_KEY("contextCommentExcludeFilesPattern");
 
   private String key;
 

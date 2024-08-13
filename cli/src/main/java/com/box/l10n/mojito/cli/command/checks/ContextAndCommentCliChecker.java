@@ -1,11 +1,15 @@
 package com.box.l10n.mojito.cli.command.checks;
 
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.google.common.base.Strings;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -76,9 +80,26 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
     return cliCheckResult;
   }
 
+  private Optional<Pattern> getContextCommentExcludeFilesPattern() {
+    if (StringUtils.isNotBlank(this.cliCheckerOptions.getContextCommentExcludeFilesPattern())) {
+      return of(Pattern.compile(this.cliCheckerOptions.getContextCommentExcludeFilesPattern()));
+    }
+    return empty();
+  }
+
   private List<ContextAndCommentCliCheckerResult> runChecks(
       List<AssetExtractionDiff> assetExtractionDiffs) {
+    Optional<Pattern> excludeFilesPattern = this.getContextCommentExcludeFilesPattern();
     return getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
+        .filter(
+            assetExtractorTextUnit -> {
+              if (excludeFilesPattern.isPresent() && assetExtractorTextUnit.getUsages() != null) {
+                return assetExtractorTextUnit.getUsages().stream()
+                    .map(usage -> usage.replaceAll(":\\d+$", ""))
+                    .noneMatch(usage -> excludeFilesPattern.get().matcher(usage).find());
+              }
+              return true;
+            })
         .map(
             assetExtractorTextUnit ->
                 getContextAndCommentCliCheckerResult(
