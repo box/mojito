@@ -35,7 +35,8 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
     logger.debug("Source Html tags: {}", sourceHtmlTags);
 
     logger.debug("Make sure the target has the same Html tags as the source");
-    if (!sourceHtmlTags.containsAll(targetHtmlTags)
+    if (sourceHtmlTags.size() != targetHtmlTags.size()
+        || !sourceHtmlTags.containsAll(targetHtmlTags)
         || !targetHtmlTags.containsAll(sourceHtmlTags)) {
       throw new HtmlTagIntegrityCheckerException("HTML tags in source and target are different");
     }
