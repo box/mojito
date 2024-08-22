@@ -61,6 +61,13 @@ public class HtmlTagIntegrityCheckerTest {
   }
 
   @Test(expected = HtmlTagIntegrityCheckerException.class)
+  public void testHtmlTagCheckFailsWithDuplicatedOpening() {
+    String source = "There are <b>%1</b> files";
+    String target = "Il y a %1 <b><b>fichiers</b>";
+    checker.check(source, target);
+  }
+
+  @Test(expected = HtmlTagIntegrityCheckerException.class)
   public void testHtmlTagCheckWorksWhenTagIsModified() {
     String source = "There are <b>%1</b> files and %2 folders";
     String target = "Il y a <u>%1</u> fichiers et %2 dossiers";
