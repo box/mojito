@@ -254,9 +254,9 @@ public class IOTestBase {
         // If that's a file, check that the both files have the same content
         if (file2.isFile() && !Files.equal(file1, file2)) {
           throw new DifferentDirectoryContentException(
-              "File: "
+              "File1: "
                   + file1.toString()
-                  + " and file: "
+                  + " and file2: "
                   + file2.toString()
                   + " have different content."
                   + "\n\nfile1 content:\n\n"
