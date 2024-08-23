@@ -1703,6 +1703,52 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testLocalizeAndroidTranslatableFalse() throws Exception {
+
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+
+    String assetContent =
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string name="do_not_translate" translatable="false">do_not_translate</string>
+
+            <plurals name="plural_do_not_translate" translatable="false">
+                <item formatted="false" quantity="one">plural_do_not_translate_one</item>
+                <item formatted="false" quantity="other">plural_do_not_translate_other</item>
+            </plurals>
+        </resources>""";
+
+    asset =
+        assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null, null);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.info("name=[{}]", textUnitDTO.getName());
+    }
+    assertEquals(2, textUnitDTOs.size());
+    // TODO translatable on plural strings don't work
+
+  }
+
+  @Test
   public void testLocalizeAndroidUnicodeEscape() throws Exception {
 
     Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
