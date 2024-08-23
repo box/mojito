@@ -28,6 +28,12 @@ Some useful command
 
 This can be configured in Maven UI too.
 
+## Re-indent list of commits
+
+```
+git rebase -i HEAD~20 --exec 'mvn spotless:apply && git add -A && git commit --amend --no-edit'
+```
+
 ## Debug commands with Maven
 
 ### Debug the CLI
