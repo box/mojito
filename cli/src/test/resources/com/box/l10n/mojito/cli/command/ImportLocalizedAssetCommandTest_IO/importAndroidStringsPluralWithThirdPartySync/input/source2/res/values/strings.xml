@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <plurals name="plural_collaborators_other">
+        <item formatted="false" quantity="one">%1$,d collaborator in branch</item>
+        <item formatted="false" quantity="other">%1$,d collaborators in branch</item>
+    </plurals>
+</resources>
