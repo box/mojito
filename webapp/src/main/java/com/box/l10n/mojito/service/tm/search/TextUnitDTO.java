@@ -34,6 +34,7 @@ public class TextUnitDTO {
   private Long assetTextUnitId;
   private ZonedDateTime tmTextUnitCreatedDate;
   private boolean doNotTranslate;
+  private Long branchId;
 
   public Long getTmTextUnitId() {
     return tmTextUnitId;
@@ -241,5 +242,13 @@ public class TextUnitDTO {
 
   public void setDoNotTranslate(boolean doNotTranslate) {
     this.doNotTranslate = doNotTranslate;
+  }
+
+  public Long getBranchId() {
+    return branchId;
+  }
+
+  public void setBranchId(Long branchId) {
+    this.branchId = branchId;
   }
 }

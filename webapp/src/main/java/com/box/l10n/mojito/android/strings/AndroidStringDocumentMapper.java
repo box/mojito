@@ -242,7 +242,19 @@ public class AndroidStringDocumentMapper {
         + DEFAULT_ASSET_DELIMITER
         + textUnit.getPluralFormOther()
         + "_"
-        + textUnit.getComment();
+        + textUnit.getComment()
+        + "-"
+        // Support plural strings with the same name but different content across branches
+        //
+        // Under normal circumstances, there can only be one active text unit for a given name.
+        // However, with multiple branches, it's possible to have multiple text units with the
+        // same name. While this isn't an issue for singular strings, it becomes problematic for
+        // plural strings, as we group by name when building the AndroidStringDocument. This can
+        // lead to too many or duplicated entries for one or more plural forms.
+        //
+        // To resolve this, we now include the branch ID in the group by logic. This ensures
+        // that plural strings are properly grouped, allowing for correct document generation.
+        + textUnit.getBranchId();
   }
 
   AndroidSingular textUnitToAndroidSingular(TextUnitDTO textUnit, boolean useSource) {

@@ -51,10 +51,11 @@ public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUni
     t.setAssetPath(cr.getString(idx++));
     t.setAssetTextUnitId(cr.getLong(idx++));
     t.setTmTextUnitCreatedDate(JSR310Migration.newDateTimeCtorWithDate(cr.getDate(idx++)));
-    t.setDoNotTranslate(Boolean.valueOf(includedInLocalizedFile));
 
     String doNotTranslate = cr.getString(idx++);
     t.setDoNotTranslate(Boolean.valueOf(doNotTranslate));
+
+    t.setBranchId(cr.getLong(idx++));
 
     return t;
   }

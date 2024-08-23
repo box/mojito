@@ -219,7 +219,8 @@ public class TextUnitSearcher {
             .addProjection("a.path", "assetPath")
             .addProjection("atu.id", "assetTextUnitId")
             .addProjection("tu.created_date", "tmTextUnitCreatedDate")
-            .addProjection("atu.do_not_translate", "doNotTranslate"));
+            .addProjection("atu.do_not_translate", "doNotTranslate")
+            .addProjection("atu.branch_id", "branch_id"));
 
     logger.debug("Add search filters");
     NativeJunctionExp conjunction = NativeExps.conjunction();

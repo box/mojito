@@ -46,7 +46,7 @@ public class AndroidPlural extends AbstractAndroidString {
                   throw new AndroidPluralDuplicateKeyException(
                       "A duplicate was found when building an Android Plural. "
                           + androidPluralItem
-                          + " dupplicates: "
+                          + " duplicates: "
                           + androidPluralItem2);
                 }));
   }
