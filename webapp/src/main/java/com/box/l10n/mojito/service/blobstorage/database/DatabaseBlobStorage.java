@@ -11,6 +11,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation that use the database to store the blobs.
@@ -60,6 +62,7 @@ public class DatabaseBlobStorage implements BlobStorage {
         });
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   void putBase(String name, byte[] content, Retention retention) {
     MBlob mBlob =
         mBlobRepository
