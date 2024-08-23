@@ -23,7 +23,8 @@ public enum IntegrityCheckerType {
   BACKQUOTE(BackquoteIntegrityChecker.class.getName()),
   EMPTY_TARGET_NOT_EMPTY_SOURCE(EmptyTargetNotEmptySourceIntegrityChecker.class.getName()),
   MARKDOWN_LINKS(MarkdownLinkIntegrityChecker.class.getName()),
-  PYTHON_FPRINT(PythonFStringIntegrityChecker.class.getName());
+  PYTHON_FPRINT(PythonFStringIntegrityChecker.class.getName()),
+  EMAIL(EmailIntegrityChecker.class.getName());
 
   String className;
 
