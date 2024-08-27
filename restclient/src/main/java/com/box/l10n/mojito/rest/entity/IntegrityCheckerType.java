@@ -22,5 +22,6 @@ public enum IntegrityCheckerType {
   EMPTY_TARGET_NOT_EMPTY_SOURCE,
   MARKDOWN_LINKS,
   PYTHON_FPRINT,
-  EMAIL;
+  EMAIL,
+  URL;
 }
