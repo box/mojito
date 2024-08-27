@@ -33,8 +33,8 @@ public class OptionsParser {
     }
   }
 
-  public Boolean getBoolean(String key) {
-    Boolean value = null;
+  public Boolean getBoolean(String key, Boolean defaultValue) {
+    Boolean value = defaultValue;
 
     if (this.options.containsKey(key)) {
       value = Boolean.valueOf(this.options.get(key));
