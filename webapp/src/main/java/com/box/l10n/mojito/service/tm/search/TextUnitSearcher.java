@@ -430,6 +430,16 @@ public class TextUnitSearcher {
           new NativeDateGteExp("tu.created_date", searchParameters.getTmTextUnitCreatedAfter()));
     }
 
+    if (searchParameters.getTmTextUnitVariantCreatedBefore() != null) {
+      conjunction.add(
+          new NativeDateLteExp("tu.created_date", searchParameters.getTmTextUnitCreatedBefore()));
+    }
+
+    if (searchParameters.getTmTextUnitVariantCreatedAfter() != null) {
+      conjunction.add(
+          new NativeDateGteExp("tu.created_date", searchParameters.getTmTextUnitCreatedAfter()));
+    }
+
     if (!conjunction.toSQL().isEmpty()) {
       c.add(conjunction);
     }
