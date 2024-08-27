@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.okapi.filters;
+package com.box.l10n.mojito.utils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -8,26 +8,26 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
-public class FilterOptionsTest {
+public class OptionsParserTest {
 
   @Test
   public void testNullGivesEmptyMap() {
-    FilterOptions filterOptions = new FilterOptions(null);
-    assertTrue(filterOptions.options.isEmpty());
+    OptionsParser optionsParser = new OptionsParser(null);
+    assertTrue(optionsParser.options.isEmpty());
   }
 
   @Test
   public void testSplit() {
-    FilterOptions filterOptions =
-        new FilterOptions(Arrays.asList("option1=value1", "option2=value2"));
+    OptionsParser optionsParser =
+        new OptionsParser(Arrays.asList("option1=value1", "option2=value2"));
     AtomicBoolean called = new AtomicBoolean(false);
-    filterOptions.getString(
+    optionsParser.getString(
         "option1",
         v -> {
           called.set(true);
           assertEquals("value1", v);
         });
-    filterOptions.getString(
+    optionsParser.getString(
         "option2",
         v -> {
           called.set(true);
@@ -38,16 +38,16 @@ public class FilterOptionsTest {
 
   @Test
   public void testGetBoolean() {
-    FilterOptions filterOptions = new FilterOptions(Arrays.asList("option1=true", "option2=false"));
+    OptionsParser optionsParser = new OptionsParser(Arrays.asList("option1=true", "option2=false"));
     AtomicBoolean called = new AtomicBoolean(false);
-    filterOptions.getBoolean(
+    optionsParser.getBoolean(
         "option1",
         v -> {
           called.set(true);
           assertTrue(v);
         });
 
-    filterOptions.getBoolean(
+    optionsParser.getBoolean(
         "option2",
         v -> {
           called.set(true);
@@ -60,8 +60,8 @@ public class FilterOptionsTest {
 
   @Test
   public void testSetObjectVariable() {
-    FilterOptions filterOptions = new FilterOptions(Arrays.asList("option1=someobjectvalue"));
-    filterOptions.getString("option1", v -> forTestSetObjectVariable = v);
+    OptionsParser optionsParser = new OptionsParser(Arrays.asList("option1=someobjectvalue"));
+    optionsParser.getString("option1", v -> forTestSetObjectVariable = v);
     assertEquals("someobjectvalue", forTestSetObjectVariable);
   }
 }

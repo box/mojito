@@ -19,6 +19,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.box.l10n.mojito.utils.OptionsParser;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.phrase.client.model.Tag;
@@ -292,12 +293,23 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     String currentTags = getCurrentTagsForRepository(repository, projectId);
 
+    OptionsParser optionsParser = new OptionsParser(optionList);
+    Boolean integrityCheckKeepStatusIfFailedAndSameTarget =
+        optionsParser.getBoolean("integrityCheckKeepStatusIfFailedAndSameTarget");
+
     // may already hit rate limit, according it is 4 qps ... there is a retry in the locale client
     // though.
     // but 4 qps is very low to download 64 locales.
     repositoryLocalesWithoutRootLocale.parallelStream()
         .forEach(
-            locale -> pullLocaleTimed(repository, projectId, locale, pluralSeparator, currentTags));
+            locale ->
+                pullLocaleTimed(
+                    repository,
+                    projectId,
+                    locale,
+                    pluralSeparator,
+                    currentTags,
+                    integrityCheckKeepStatusIfFailedAndSameTarget));
 
     return null;
   }
@@ -307,12 +319,19 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       String projectId,
       RepositoryLocale repositoryLocale,
       String pluralSeparator,
-      String currentTags) {
+      String currentTags,
+      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
     try (var timer =
         Timer.resource(meterRegistry, "ThirdPartyTMSPhrase.pullLocale")
             .tag("repository", repository.getName())) {
 
-      pullLocale(repository, projectId, repositoryLocale, pluralSeparator, currentTags);
+      pullLocale(
+          repository,
+          projectId,
+          repositoryLocale,
+          pluralSeparator,
+          currentTags,
+          integrityCheckKeepStatusIfFailedAndSameTarget);
     }
   }
 
@@ -321,7 +340,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       String projectId,
       RepositoryLocale repositoryLocale,
       String pluralSeparator,
-      String currentTags) {
+      String currentTags,
+      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
     String localeTag = repositoryLocale.getLocale().getBcp47Tag();
     logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
@@ -352,7 +372,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     textUnitDTOS.forEach(t -> t.setComment(null));
 
     Stopwatch importStopWatch = Stopwatch.createStarted();
-    textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
+    textUnitBatchImporterService.importTextUnits(
+        textUnitDTOS, false, integrityCheckKeepStatusIfFailedAndSameTarget);
     logger.info("Time importing text units: {}", importStopWatch.elapsed());
   }
 
