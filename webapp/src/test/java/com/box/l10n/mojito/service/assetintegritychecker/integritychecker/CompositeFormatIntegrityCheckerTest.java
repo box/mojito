@@ -63,6 +63,16 @@ public class CompositeFormatIntegrityCheckerTest {
   }
 
   @Test(expected = CompositeFormatIntegrityCheckerException.class)
+  public void testMustacheUnmatchedBrace() {
+    CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
+
+    String source = "A {{  mustache  }} template.";
+    String target = "Un modėle {{  mustache  }.";
+
+    checker.check(source, target);
+  }
+
+  @Test(expected = CompositeFormatIntegrityCheckerException.class)
   public void testMustacheInvalidMissingCurlyBraces() {
     CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
 
