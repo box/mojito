@@ -295,7 +295,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     OptionsParser optionsParser = new OptionsParser(optionList);
     Boolean integrityCheckKeepStatusIfFailedAndSameTarget =
-        optionsParser.getBoolean("integrityCheckKeepStatusIfFailedAndSameTarget");
+        optionsParser.getBoolean("integrityCheckKeepStatusIfFailedAndSameTarget", true);
 
     // may already hit rate limit, according it is 4 qps ... there is a retry in the locale client
     // though.
