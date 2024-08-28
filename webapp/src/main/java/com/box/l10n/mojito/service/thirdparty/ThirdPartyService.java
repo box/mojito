@@ -24,6 +24,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
+import com.box.l10n.mojito.utils.OptionsParser;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -268,6 +269,9 @@ public class ThirdPartyService {
         repository.getName(),
         projectId);
 
+    OptionsParser optionsParser = new OptionsParser(options);
+    Boolean deleteCurrentMapping = optionsParser.getBoolean("deleteCurrentMapping", false);
+
     logger.debug("Get the text units of the third party TMS");
     List<ThirdPartyTextUnit> thirdPartyTextUnits =
         thirdPartyTMS.getThirdPartyTextUnits(repository, projectId, options);
@@ -294,14 +298,26 @@ public class ThirdPartyService {
     thirdPartyTextUnitsByAsset.entrySet().stream()
         .filter(e -> e.getKey() != null)
         .forEach(
-            e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue(), pluralSeparator));
+            e ->
+                mapThirdPartyTextUnitsToTextUnitDTOs(
+                    e.getKey(), e.getValue(), pluralSeparator, deleteCurrentMapping));
   }
 
   void mapThirdPartyTextUnitsToTextUnitDTOs(
-      Asset asset, List<ThirdPartyTextUnit> thirdPartyTextUnitsToMap, String pluralSeparator) {
+      Asset asset,
+      List<ThirdPartyTextUnit> thirdPartyTextUnitsToMap,
+      String pluralSeparator,
+      boolean deleteCurrentMapping) {
     logger.debug("Map third party text units to text unit DTOs for asset: {}", asset.getId());
     Set<Long> alreadyMappedTmTextUnitId =
         thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
+
+    if (deleteCurrentMapping) {
+      logger.info("Delete existing ThirdPartyTextUnit mapping for asset id: {}", asset.getId());
+      int deletedCount = thirdPartyTextUnitRepository.deleteByAssetId(asset.getId());
+      logger.info(
+          "Deleted {} ThirdPartyTextUnit mappings for asset id: {}", deletedCount, asset.getId());
+    }
 
     boolean allWithTmTextUnitId =
         thirdPartyTextUnitsToMap.stream()
