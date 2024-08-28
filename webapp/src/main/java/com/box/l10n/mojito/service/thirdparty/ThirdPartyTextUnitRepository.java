@@ -12,7 +12,9 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author jeanaurambault
@@ -32,4 +34,7 @@ public interface ThirdPartyTextUnitRepository
   @Override
   @EntityGraph(value = "ThirdPartyTextUnit.legacy", type = EntityGraphType.FETCH)
   List<ThirdPartyTextUnit> findAll();
+
+  @Transactional
+  int deleteByAssetId(@Param("assetId") long assetId);
 }
