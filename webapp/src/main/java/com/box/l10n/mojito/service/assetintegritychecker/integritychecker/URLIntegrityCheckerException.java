@@ -3,9 +3,9 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 /**
  * @author jaurambault
  */
-public class URLIntegrityCheckerException extends RegexCheckerException {
+public class URLIntegrityCheckerException extends IntegrityCheckException {
 
-  public URLIntegrityCheckerException(RegexCheckerException rce) {
-    super(rce.getMessage());
+  public URLIntegrityCheckerException(String message) {
+    super(message);
   }
 }

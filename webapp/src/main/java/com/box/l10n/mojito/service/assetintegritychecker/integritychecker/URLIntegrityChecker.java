@@ -23,7 +23,7 @@ public class URLIntegrityChecker extends RegexIntegrityChecker {
     try {
       super.check(sourceContent, targetContent);
     } catch (RegexCheckerException rce) {
-      throw new URLIntegrityCheckerException(rce);
+      throw new URLIntegrityCheckerException("URLs in source and target are different");
     }
   }
 }

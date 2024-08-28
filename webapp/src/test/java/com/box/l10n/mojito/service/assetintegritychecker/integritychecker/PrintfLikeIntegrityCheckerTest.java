@@ -123,7 +123,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 
@@ -139,7 +139,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 
@@ -155,7 +155,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 
@@ -225,7 +225,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 
@@ -241,7 +241,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 
@@ -257,7 +257,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 
@@ -282,7 +282,7 @@ public class PrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeIntegrityCheckerException must be thrown");
     } catch (PrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(e.getMessage(), "PrintfLike placeholders are different in source and target");
     }
   }
 }

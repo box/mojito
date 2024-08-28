@@ -12,7 +12,8 @@ public class PythonFStringIntegrityChecker extends RegexIntegrityChecker {
     try {
       super.check(content, target);
     } catch (RegexCheckerException ex) {
-      throw new PythonFStringIntegrityCheckerException("Variable types do not match.");
+      throw new PythonFStringIntegrityCheckerException(
+          "PythonFString placeholders are different in source and target.");
     }
   }
 }
