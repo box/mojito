@@ -22,7 +22,8 @@ public class PrintfLikeVariableTypeIntegrityChecker extends RegexIntegrityChecke
     try {
       super.check(content, target);
     } catch (RegexCheckerException ex) {
-      throw new PrintfLikeVariableTypeIntegrityCheckerException("Variable types do not match.");
+      throw new PrintfLikeVariableTypeIntegrityCheckerException(
+          "PrintfLikeVariableType placeholder are different in source and target.");
     }
   }
 }
