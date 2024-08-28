@@ -29,7 +29,8 @@ public class PrintfLikeIntegrityChecker extends RegexIntegrityChecker {
     try {
       super.check(sourceContent, targetContent);
     } catch (RegexCheckerException rce) {
-      throw new PrintfLikeIntegrityCheckerException((rce.getMessage()));
+      throw new PrintfLikeIntegrityCheckerException(
+          "PrintfLike placeholders are different in source and target");
     }
   }
 }

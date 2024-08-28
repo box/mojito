@@ -3,9 +3,9 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 /**
  * @author jaurambault
  */
-public class CompositeFormatIntegrityCheckerException extends RegexCheckerException {
+public class CompositeFormatIntegrityCheckerException extends IntegrityCheckException {
 
-  public CompositeFormatIntegrityCheckerException(RegexCheckerException rce) {
-    super(rce.getMessage());
+  public CompositeFormatIntegrityCheckerException(String message) {
+    super(message);
   }
 }

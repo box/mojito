@@ -29,7 +29,7 @@ public class MarkdownLinkIntegrityChecker extends RegexIntegrityChecker {
     try {
       super.check(content, target);
     } catch (RegexCheckerException ex) {
-      throw new MarkdownLinkIntegrityCheckerException("Variable types do not match.");
+      throw new MarkdownLinkIntegrityCheckerException("Markdown Links do not match.");
     }
   }
 }

@@ -67,7 +67,8 @@ public class SimplePrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("SimplePrintfLikeIntegrityCheckerException must be thrown");
     } catch (SimplePrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(
+          e.getMessage(), "SimplePrintfLike placeholders are different in source and target.");
     }
   }
 
@@ -82,7 +83,8 @@ public class SimplePrintfLikeIntegrityCheckerTest {
       checker.check(source, target);
       fail("SimplePrintfLikeIntegrityCheckerException must be thrown");
     } catch (SimplePrintfLikeIntegrityCheckerException e) {
-      assertEquals(e.getMessage(), "Placeholders in source and target are different");
+      assertEquals(
+          e.getMessage(), "SimplePrintfLike placeholders are different in source and target.");
     }
   }
 

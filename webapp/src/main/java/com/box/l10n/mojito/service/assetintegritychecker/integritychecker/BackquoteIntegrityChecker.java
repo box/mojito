@@ -25,7 +25,8 @@ public class BackquoteIntegrityChecker extends RegexIntegrityChecker {
     try {
       super.check(sourceContent, targetContent);
     } catch (RegexCheckerException rce) {
-      throw new BackquoteIntegrityCheckerException((rce.getMessage()));
+      throw new BackquoteIntegrityCheckerException(
+          "Backquoted stings are different in source and target");
     }
   }
 }

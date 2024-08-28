@@ -27,7 +27,8 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
     } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-      assertEquals("Variable types do not match.", e.getMessage());
+      assertEquals(
+          "PrintfLikeVariableType placeholder are different in source and target.", e.getMessage());
     }
   }
 
@@ -42,7 +43,8 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
     } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-      assertEquals("Variable types do not match.", e.getMessage());
+      assertEquals(
+          "PrintfLikeVariableType placeholder are different in source and target.", e.getMessage());
     }
   }
 
@@ -56,7 +58,8 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
     } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-      assertEquals("Variable types do not match.", e.getMessage());
+      assertEquals(
+          "PrintfLikeVariableType placeholder are different in source and target.", e.getMessage());
     }
 
     source = "%(count) s view";
@@ -66,7 +69,8 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
     } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-      assertEquals("Variable types do not match.", e.getMessage());
+      assertEquals(
+          "PrintfLikeVariableType placeholder are different in source and target.", e.getMessage());
     }
 
     source = "%(count).1f view";
@@ -76,7 +80,8 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
     } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-      assertEquals("Variable types do not match.", e.getMessage());
+      assertEquals(
+          "PrintfLikeVariableType placeholder are different in source and target.", e.getMessage());
     }
   }
 
@@ -90,7 +95,8 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
       checker.check(source, target);
       fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
     } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-      assertEquals("Variable types do not match.", e.getMessage());
+      assertEquals(
+          "PrintfLikeVariableType placeholder are different in source and target.", e.getMessage());
     }
   }
 

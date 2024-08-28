@@ -18,7 +18,8 @@ public class CompositeFormatIntegrityChecker extends RegexIntegrityChecker {
     try {
       super.check(sourceContent, targetContent);
     } catch (RegexCheckerException rce) {
-      throw new CompositeFormatIntegrityCheckerException(rce);
+      throw new CompositeFormatIntegrityCheckerException(
+          "Composite Format placeholders in source and target are different");
     }
   }
 }
