@@ -500,8 +500,15 @@ public class AndroidFilter extends XMLFilter {
             "{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
 
         boolean hasDeclaration = xmlContent.trim().startsWith("<?xml");
+        boolean hasStandalone = xmlContent.contains("standalone=\"");
+
         transformer.setOutputProperty(
             OutputKeys.OMIT_XML_DECLARATION, hasDeclaration ? "no" : "yes");
+
+        if (hasStandalone) {
+          String standaloneValue = xmlContent.contains("standalone=\"yes\"") ? "yes" : "no";
+          transformer.setOutputProperty(OutputKeys.STANDALONE, standaloneValue);
+        }
 
         DOMSource domSource = new DOMSource(document);
         StreamResult streamResult = new StreamResult(new StringWriter());
