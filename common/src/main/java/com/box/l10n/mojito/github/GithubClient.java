@@ -69,10 +69,76 @@ public class GithubClient {
 
   private PrivateKey createPrivateKey(String key)
       throws NoSuchAlgorithmException, InvalidKeySpecException {
-    byte[] encodedKey = Base64.decodeBase64(key);
+    byte[] encodedKey = keyToBytes(key);
     PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(encodedKey);
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     return keyFactory.generatePrivate(spec);
+  }
+
+  /**
+   * Converts a PEM-formatted private key string to a byte array.
+   *
+   * <p>This method handles both PKCS#1 and PKCS#8 formatted private keys. It strips the PEM headers
+   * and footers, decodes the base64 content, and, if necessary, converts a PKCS#1 key to a PKCS#8
+   * format.
+   */
+  private static byte[] keyToBytes(String formattedKey) {
+    boolean pkcs1Header = formattedKey.startsWith("-----BEGIN RSA PRIVATE KEY-----");
+    boolean pkcs8Header = formattedKey.startsWith("-----BEGIN PRIVATE KEY-----");
+
+    if (pkcs1Header || pkcs8Header) {
+      formattedKey =
+          formattedKey
+              .replaceAll("-----BEGIN.*?-----", "")
+              .replaceAll("-----END.*?-----", "")
+              .replaceAll("\\s+", "");
+    }
+
+    byte[] encodedKey = Base64.decodeBase64(formattedKey);
+
+    if (pkcs1Header) {
+      encodedKey = convertPkcs1ToPkcs8(encodedKey);
+    }
+
+    return encodedKey;
+  }
+
+  private static byte[] convertPkcs1ToPkcs8(byte[] pkcs1Bytes) {
+    // PKCS#8 header for RSA encryption
+    byte[] pkcs8Header = {
+      0x30,
+      (byte) 0x82, // SEQUENCE + LENGTH
+      (byte) ((pkcs1Bytes.length + 22) >> 8),
+      (byte) ((pkcs1Bytes.length + 22) & 0xff), // PKCS#8 LENGTH
+      0x02,
+      0x01,
+      0x00, // INTEGER (0)
+      0x30,
+      0x0d, // SEQUENCE
+      0x06,
+      0x09, // OID
+      0x2a,
+      (byte) 0x86,
+      0x48,
+      (byte) 0x86,
+      (byte) 0xf7,
+      0x0d,
+      0x01,
+      0x01,
+      0x01, // rsaEncryption OID
+      0x05,
+      0x00, // NULL
+      0x04,
+      (byte) 0x82, // OCTET STRING + LENGTH
+      (byte) (pkcs1Bytes.length >> 8),
+      (byte) (pkcs1Bytes.length & 0xff) // PKCS#1 LENGTH
+    };
+
+    byte[] pkcs8Bytes = new byte[pkcs8Header.length + pkcs1Bytes.length];
+    System.arraycopy(pkcs8Header, 0, pkcs8Bytes, 0, pkcs8Header.length);
+    System.arraycopy(pkcs1Bytes, 0, pkcs8Bytes, pkcs8Header.length, pkcs1Bytes.length);
+
+    return pkcs8Bytes;
   }
 
   public void addCommentToPR(String repository, int prNumber, String comment) {
