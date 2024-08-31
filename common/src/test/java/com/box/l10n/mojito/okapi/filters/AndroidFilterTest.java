@@ -113,7 +113,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingKeepDescription() {
     AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(false, 2);
+        new AndroidFilter.AndroidFilePostProcessing(false, 2, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -157,7 +157,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingRemoveDescription() {
     AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2);
+        new AndroidFilter.AndroidFilePostProcessing(true, 2, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -201,7 +201,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingEmptyFile() {
     AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2);
+        new AndroidFilter.AndroidFilePostProcessing(true, 2, false);
     String input = "";
     String output = androidFilePostProcessing.execute(input);
     String expected = "";
@@ -211,7 +211,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingNoProlog() {
     AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2);
+        new AndroidFilter.AndroidFilePostProcessing(true, 2, false);
     String input =
         """
             <resources>
@@ -226,6 +226,45 @@ public class AndroidFilterTest {
               <string name="pinterest2">somestring to keep</string>
             </resources>
             """;
+    assertEquals(expected, output);
+  }
+
+  @Test
+  public void testPostProcessingRemoveTranslatableFalse() {
+    AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
+        new AndroidFilter.AndroidFilePostProcessing(true, 2, true);
+    String input =
+        """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <resources>
+                <string name="pinterest2" description="a description" translatable="false">somestring to keep</string>
+                <string name="pinterest">@#$untranslated$#@</string>
+                <!--testing plural-->
+                <plurals name="pins">
+                    <item quantity="one">@#$untranslated$#@</item>
+                    <item quantity="other">@#$untranslated$#@</item>
+                </plurals>
+                <plurals description="testing plural attr" name="pins2">
+                    <item quantity="one">translated</item>
+                    <item quantity="other">@#$untranslated$#@</item>
+                </plurals>
+                <plurals name="pins3" translatable="false">
+                    <item quantity="one">pin fr</item>
+                    <item quantity="other">pins fr</item>
+                </plurals>
+            </resources>
+            """;
+    String output = androidFilePostProcessing.execute(input);
+    String expected =
+        """
+             <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+             <resources>
+               <!--testing plural-->
+               <plurals name="pins2">
+                 <item quantity="one">translated</item>
+               </plurals>
+             </resources>
+             """;
     assertEquals(expected, output);
   }
 }
