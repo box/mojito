@@ -59,6 +59,9 @@ public class AndroidFilter extends XMLFilter {
 
   private static final String POST_PROCESS_INDENT = "postProcessIndent";
 
+  private static final String POST_PROCESS_REMOVE_TRANSLATABLE_FALSE =
+      "postRemoveTranslatableFalse";
+
   private static final Pattern PATTERN_PLURAL_START = Pattern.compile("<plurals");
   private static final Pattern PATTERN_PLURAL_END = Pattern.compile("</plurals>");
   private static final Pattern PATTERN_XML_COMMENT = Pattern.compile("<!--(?<comment>.*?)-->");
@@ -110,6 +113,8 @@ public class AndroidFilter extends XMLFilter {
 
   boolean removeDescription = false;
 
+  boolean removeTranslatableFalse = false;
+
   int postProcessIndent = 2;
 
   @Override
@@ -128,7 +133,9 @@ public class AndroidFilter extends XMLFilter {
     // in the TranslateStep
     input.setAnnotation(
         new OutputDocumentPostProcessingAnnotation(
-            new AndroidFilePostProcessing(removeDescription, postProcessIndent)::execute,
+            new AndroidFilePostProcessing(
+                    removeDescription, postProcessIndent, removeTranslatableFalse)
+                ::execute,
             removeDescription));
   }
 
@@ -150,6 +157,12 @@ public class AndroidFilter extends XMLFilter {
           REMOVE_DESCRIPTION,
           b -> {
             removeDescription = b;
+          });
+
+      filterOptions.getBoolean(
+          POST_PROCESS_REMOVE_TRANSLATABLE_FALSE,
+          b -> {
+            removeTranslatableFalse = b;
           });
 
       filterOptions.getInteger(
@@ -424,10 +437,13 @@ public class AndroidFilter extends XMLFilter {
   static class AndroidFilePostProcessing {
     static final String DESCRIPTION_ATTRIBUTE = "description";
     boolean removeDescription;
+    boolean removeTranslatableFalse;
     int indent;
 
-    AndroidFilePostProcessing(boolean removeDescription, int indent) {
+    AndroidFilePostProcessing(
+        boolean removeDescription, int indent, boolean removeTranslatableFalse) {
       this.removeDescription = removeDescription;
+      this.removeTranslatableFalse = removeTranslatableFalse;
       this.indent = indent;
     }
 
@@ -491,6 +507,9 @@ public class AndroidFilter extends XMLFilter {
           }
         }
 
+        if (removeTranslatableFalse) {
+          removeTranslatableFalseElements(document);
+        }
         removeWhitespaceNodes(document);
 
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -521,7 +540,7 @@ public class AndroidFilter extends XMLFilter {
       }
     }
 
-    public void removeWhitespaceNodes(Node node) {
+    void removeWhitespaceNodes(Node node) {
       NodeList childNodes = node.getChildNodes();
       for (int i = childNodes.getLength() - 1; i >= 0; i--) {
         Node childNode = childNodes.item(i);
@@ -529,6 +548,22 @@ public class AndroidFilter extends XMLFilter {
           node.removeChild(childNode);
         } else if (childNode instanceof Element) {
           removeWhitespaceNodes(childNode);
+        }
+      }
+    }
+
+    void removeTranslatableFalseElements(Node node) {
+      NodeList childNodes = node.getChildNodes();
+      for (int i = childNodes.getLength() - 1; i >= 0; i--) {
+        Node childNode = childNodes.item(i);
+        if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+          Element element = (Element) childNode;
+          if (element.hasAttribute("translatable")
+              && element.getAttribute("translatable").equals("false")) {
+            node.removeChild(element);
+          } else {
+            removeTranslatableFalseElements(element);
+          }
         }
       }
     }
