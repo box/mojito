@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.text.MessageFormat;
 import org.junit.Test;
 
 public class MessageFormatIntegrityCheckerTest {
@@ -128,4 +130,18 @@ public class MessageFormatIntegrityCheckerTest {
       // assertEquals("Different placeholder name in source and target", e.getMessage());
     }
   }
+
+  @Test(expected = IntegrityCheckException.class)
+  public void testQuoteCurlyEscaping() throws MessageFormatIntegrityCheckerException {
+    // ' with character are rendered by if it is a special character like {, it will escape it ....
+    MessageFormatIntegrityChecker checker = new MessageFormatIntegrityChecker();
+    String source = "This is a \"{placeholder}\"";
+    String target = "C'est un '{placeholder}'";
+    checker.check(source, target);
+
+    MessageFormat messageFormat = new MessageFormat(target);
+    String format = messageFormat.format(ImmutableMap.of("placeholder", "stuff"));
+    assertEquals("C'est un {placeholder}", format);
+  }
+
 }
