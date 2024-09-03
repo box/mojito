@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,7 +68,7 @@ public abstract class RegexIntegrityChecker extends AbstractTextUnitIntegrityChe
    */
   Set<String> getPlaceholders(String string) {
 
-    Set<String> placeholders = new HashSet<>();
+    Set<String> placeholders = new LinkedHashSet<>();
 
     if (string != null) {
 
