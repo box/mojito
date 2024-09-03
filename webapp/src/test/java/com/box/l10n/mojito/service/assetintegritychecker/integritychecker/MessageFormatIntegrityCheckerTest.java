@@ -143,5 +143,4 @@ public class MessageFormatIntegrityCheckerTest {
     String format = messageFormat.format(ImmutableMap.of("placeholder", "stuff"));
     assertEquals("C'est un {placeholder}", format);
   }
-
 }

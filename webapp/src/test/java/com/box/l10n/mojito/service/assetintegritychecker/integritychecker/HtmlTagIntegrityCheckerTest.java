@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,5 +192,13 @@ public class HtmlTagIntegrityCheckerTest {
     String target = "Le téléchargement est terminé < 10 %.";
 
     checker.check(source, target);
+  }
+
+  @Test
+  public void testHtmlTagCheckWithDash() {
+    String source = "<sign-up>Mag-sign up</sign-up> o <login> upang </login>";
+    Set<String> placeholders = checker.getPlaceholders(source);
+    Assertions.assertThat(placeholders)
+        .containsExactly("<sign-up>", "</sign-up>", "<login>", "</login>");
   }
 }
