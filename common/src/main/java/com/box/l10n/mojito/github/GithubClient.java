@@ -15,6 +15,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHPullRequest;
+import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.slf4j.Logger;
@@ -299,6 +301,45 @@ public class GithubClient {
           String.format(
               "Error retrieving comments for PR %d in repository '%s': %s",
               prNumber, repoFullPath, e.getMessage());
+      logger.error(message, e);
+      throw new GithubException(message, e);
+    }
+  }
+
+  public GHPullRequest createPR(
+      String repository,
+      String title,
+      String head,
+      String base,
+      String body,
+      List<String> reviewers) {
+    String repoFullPath = getRepositoryPath(repository);
+    try {
+      GHPullRequest pullRequest =
+          getGithubClient(repository)
+              .getRepository(repoFullPath)
+              .createPullRequest(title, head, base, body);
+
+      if (reviewers != null) {
+        List<GHUser> reviewersGH =
+            reviewers.stream()
+                .map(
+                    s -> {
+                      try {
+                        return gitHubClient.getUser(s);
+                      } catch (IOException e) {
+                        throw new RuntimeException(e);
+                      }
+                    })
+                .toList();
+
+        pullRequest.requestReviewers(reviewersGH);
+      }
+
+      return pullRequest;
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+      String message =
+          String.format("Error creating a PR in repository '%s': %s", repoFullPath, e.getMessage());
       logger.error(message, e);
       throw new GithubException(message, e);
     }
