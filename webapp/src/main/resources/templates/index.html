@@ -11,7 +11,11 @@
     </head>
 
     <body>
+        {{& analyticsHtmlInclude }} test
         <div id="app"></div>
+        <script>
+            console.log({plugin: htmlWebpackPlugin})
+        </script>
         <script type="text/javascript" src="{{contextPath}}<%= htmlWebpackPlugin.files.js[0] %>"></script>
         <script type="text/javascript" src="{{contextPath}}<%= htmlWebpackPlugin.files.js[1] %>"></script>
     </body>

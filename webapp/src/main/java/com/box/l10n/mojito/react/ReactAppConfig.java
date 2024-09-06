@@ -16,6 +16,8 @@ public class ReactAppConfig {
 
   String contextPath;
 
+  String analyticsHtmlInclude;
+
   public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, ReactUser reactUser) {
     this.reactStaticAppConfig = reactStaticAppConfig;
     this.user = reactUser;
@@ -67,5 +69,9 @@ public class ReactAppConfig {
 
   public void setContextPath(String contextPath) {
     this.contextPath = contextPath;
+  }
+
+  public void setAnalyticsHtmlInclude(String analyticsHtmlInclude) {
+    this.analyticsHtmlInclude = analyticsHtmlInclude;
   }
 }

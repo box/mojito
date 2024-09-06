@@ -2,7 +2,6 @@ var path = require('path');
 var webpack = require("webpack");
 
 module.exports = function (env) {
-
     env = env || {};
 
     var config = {
@@ -102,7 +101,6 @@ module.exports = function (env) {
         },
         plugins: []
     };
-
 
     var HtmlWebpackPlugin = require('html-webpack-plugin');
     config.plugins.push(new HtmlWebpackPlugin({

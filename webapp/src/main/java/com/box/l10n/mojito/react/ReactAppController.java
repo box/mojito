@@ -69,6 +69,8 @@ public class ReactAppController {
 
   @Autowired MustacheTemplateEngine mustacheTemplateEngine;
 
+  @Value("${l10n.webapp.analytics.html.include:}") String analyticsHtmlInclude;
+
   @Value("${server.contextPath:}")
   String contextPath = "";
 
@@ -97,11 +99,13 @@ public class ReactAppController {
     reactAppConfig.setLocale(getValidLocaleFromCookie(localeCookieValue));
     reactAppConfig.setIct(httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
     reactAppConfig.setCsrfToken(csrfTokenController.getCsrfToken(httpServletRequest));
-    reactAppConfig.setContextPath(contextPath);
+    reactAppConfig.setContextPath(contextPath);  
+    reactAppConfig.setAnalyticsHtmlInclude(analyticsHtmlInclude);
 
     index.appConfig = objectMapper.writeValueAsStringUnchecked(reactAppConfig);
     index.locale = reactAppConfig.locale;
     index.contextPath = reactAppConfig.contextPath;
+    index.analyticsHtmlInclude = reactAppConfig.analyticsHtmlInclude;
     // We must keep CSRF_TOKEN = '{{csrfToken}}'; in index.html, because some client rely on that
     // for authentication
     // Removing it would require code client update. So we keep for backward compatibility
@@ -122,6 +126,7 @@ public class ReactAppController {
     public String locale;
     public String contextPath;
     public String csrfToken;
+    public String analyticsHtmlInclude;
   }
 
   ReactUser getReactUser() {

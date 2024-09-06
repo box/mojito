@@ -34,6 +34,6 @@ services:
       "spring.jpa.hibernate.ddl-auto" : "none",
       "spring.datasource.url" : "jdbc:mysql://db:3306/mojito?characterEncoding=UTF-8&useUnicode=true",
       "spring.datasource.username" : "mojito",
-      "spring.datasource.password" : "ChangeMe",
+      "spring.datasource.password" : "secret123",
       "spring.datasource.driverClassName" : "com.mysql.cj.jdbc.Driver"
       }'
