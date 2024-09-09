@@ -46,6 +46,10 @@ public class TMTextUnitIntegrityCheckService {
       logger.debug("No designated checker for this asset.  Nothing to do");
     } else {
       for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
+        // Injected values for Integrity Check Notifier (ICN) messages
+        textUnitChecker.setRepository(asset.getRepository());
+        textUnitChecker.setTextUnitId(tmTextUnitId);
+
         textUnitChecker.check(tmTextUnit.getContent(), contentToCheck);
       }
     }

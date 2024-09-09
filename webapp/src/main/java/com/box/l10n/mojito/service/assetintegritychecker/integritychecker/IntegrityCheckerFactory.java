@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import com.box.l10n.mojito.common.notification.IntegrityCheckNotifier;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Repository;
@@ -24,6 +25,9 @@ public class IntegrityCheckerFactory {
   @Autowired AssetIntegrityCheckerRepository assetIntegrityCheckerRepository;
 
   @Autowired ApplicationContext applicationContext;
+
+  @Autowired(required = false)
+  IntegrityCheckNotifier integrityCheckNotifier;
 
   List<DocumentIntegrityChecker> documentIntegrityCheckers = new ArrayList<>();
 
@@ -84,7 +88,10 @@ public class IntegrityCheckerFactory {
       throws IntegrityCheckerInstantiationException {
     try {
       Class<?> clazz = Class.forName(className);
-      return (TextUnitIntegrityChecker) clazz.newInstance();
+      // Cast to inject notifier
+      TextUnitIntegrityChecker integrityChecker = (TextUnitIntegrityChecker) clazz.newInstance();
+      integrityChecker.setIntegrityCheckNotifier(integrityCheckNotifier);
+      return integrityChecker;
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
       throw new IntegrityCheckerInstantiationException(
           "Cannot create an instance of TextUnitIntegrityChecker using reflection", e);

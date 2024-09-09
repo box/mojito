@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import com.box.l10n.mojito.common.notification.IntegrityCheckNotifier;
+import com.box.l10n.mojito.entity.Repository;
 import java.util.Map;
 
 /**
@@ -9,6 +11,10 @@ import java.util.Map;
  * @author jyi
  */
 public abstract class AbstractTextUnitIntegrityChecker implements TextUnitIntegrityChecker {
+
+  private IntegrityCheckNotifier integrityCheckNotifier;
+  private Repository repository;
+  private Long textUnitId;
 
   /**
    * All non-localizable parts from the given string are extracted and replaced with identifiers.
@@ -37,5 +43,35 @@ public abstract class AbstractTextUnitIntegrityChecker implements TextUnitIntegr
       restore = restore.replace(replacement, nonLocalizableParts.get(replacement));
     }
     return restore;
+  }
+
+  @Override
+  public void setIntegrityCheckNotifier(IntegrityCheckNotifier integrityCheckNotifier) {
+    this.integrityCheckNotifier = integrityCheckNotifier;
+  }
+
+  @Override
+  public void setRepository(Repository repository) {
+    this.repository = repository;
+  }
+
+  @Override
+  public void setTextUnitId(Long textUnitId) {
+    this.textUnitId = textUnitId;
+  }
+
+  @Override
+  public Repository getRepository() {
+    return this.repository;
+  }
+
+  @Override
+  public Long getTextUnitId() {
+    return textUnitId;
+  }
+
+  @Override
+  public IntegrityCheckNotifier getIntegrityCheckNotifier() {
+    return integrityCheckNotifier;
   }
 }

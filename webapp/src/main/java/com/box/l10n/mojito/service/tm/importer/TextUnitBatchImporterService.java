@@ -327,6 +327,9 @@ public class TextUnitBatchImporterService {
 
       for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
         try {
+          textUnitChecker.setRepository(asset.getRepository());
+          textUnitChecker.setTextUnitId(currentTextUnit.getTmTextUnitId());
+
           textUnitChecker.check(currentTextUnit.getSource(), textUnitForBatchImport.getContent());
         } catch (IntegrityCheckException ice) {
 
