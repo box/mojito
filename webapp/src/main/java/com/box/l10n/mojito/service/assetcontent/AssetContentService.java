@@ -1,11 +1,13 @@
 package com.box.l10n.mojito.service.assetcontent;
 
+import static java.util.Optional.ofNullable;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.service.branch.BranchService;
+import java.util.Optional;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +31,21 @@ public class AssetContentService {
   /** logger */
   static Logger logger = getLogger(AssetContentService.class);
 
-  @Autowired BranchService branchService;
+  private final BranchService branchService;
 
-  @Autowired AssetContentRepository assetContentRepository;
+  private final AssetContentRepository assetContentRepository;
+
+  private final Optional<ContentService> contentService;
+
+  @Autowired
+  public AssetContentService(
+      BranchService branchService,
+      AssetContentRepository assetContentRepository,
+      @Autowired(required = false) ContentService contentService) {
+    this.branchService = branchService;
+    this.assetContentRepository = assetContentRepository;
+    this.contentService = ofNullable(contentService);
+  }
 
   /**
    * Creates an {@link AssetContent} with no branch name specified. This will create a {@link
@@ -63,23 +77,38 @@ public class AssetContentService {
     AssetContent assetContent = new AssetContent();
 
     assetContent.setAsset(asset);
-    assetContent.setContent(content);
+    assetContent.setContent(this.contentService.isPresent() ? "" : content);
     assetContent.setContentMd5(DigestUtils.md5Hex(content));
     assetContent.setBranch(branch);
     assetContent.setExtractedContent(extractedContent);
 
-    assetContent = assetContentRepository.save(assetContent);
+    assetContent = this.assetContentRepository.save(assetContent);
+    if (this.contentService.isPresent()) {
+      this.contentService.get().setContent(assetContent, content);
+    }
 
     return assetContent;
   }
 
   /**
-   * Proxy {@link AssetContentRepository#findOne()}.
+   * Proxy {@link AssetContentRepository#findById(Long)} ()}.
    *
-   * @param id {@link AssetContent#id}
+   * @param id {@link com.box.l10n.mojito.entity.AssetContent#getId()}
    * @return the asset content
    */
   public AssetContent findOne(Long id) {
-    return assetContentRepository.findById(id).orElse(null);
+    Optional<AssetContent> optionalAssetContent = this.assetContentRepository.findById(id);
+    if (optionalAssetContent.isPresent() && this.contentService.isPresent()) {
+      AssetContent assetContent = optionalAssetContent.get();
+      Optional<String> content = this.contentService.get().getContent(assetContent);
+      if (content.isPresent()) {
+        assetContent.setContent(content.get());
+      } else {
+        throw new ContentNotFoundException(
+            "No content found for asset content: " + assetContent.getId());
+      }
+    }
+
+    return optionalAssetContent.orElse(null);
   }
 }
