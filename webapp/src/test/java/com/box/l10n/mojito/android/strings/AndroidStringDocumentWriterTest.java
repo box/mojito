@@ -159,6 +159,8 @@ public class AndroidStringDocumentWriterTest {
               </resources>
               """;
 
+    System.out.println(result);
+
     source = new AndroidStringDocument();
     source.addSingular(
         new AndroidSingular(120L, "a_href", "with a <a href=\"http://test.org\"> link</a>.", ""));

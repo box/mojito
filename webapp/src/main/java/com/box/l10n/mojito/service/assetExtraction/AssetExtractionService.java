@@ -317,6 +317,7 @@ public class AssetExtractionService {
               multiBranchStateMerger.merge(
                   currentState,
                   baseState,
+                  // need main here in some case
                   ImmutableSet.of(PRIMARY_BRANCH, NULL_BRANCH_TEXT_PLACEHOLDER));
 
           Modifications modifications = getModifications(baseState, newState);

@@ -468,6 +468,7 @@ public class BranchStatisticService {
    * @return
    */
   List<Branch> getBranchesToProcess(Long repositoryId) {
+    // also need for main
     List<Branch> branches =
         branchRepository.findByRepositoryIdAndDeletedFalseAndNameNotNullAndNameNot(
             repositoryId, PRIMARY_BRANCH);
