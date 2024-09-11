@@ -219,14 +219,14 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "PUSH,MAP_TEXTUNIT,PUSH_TRANSLATION,PULL");
 
     getL10nJCommander()
-            .run(
-                    "pull",
-                    "-r",
-                    repository.getName(),
-                    "-s",
-                    getInputResourcesTestDir("source").getAbsolutePath(),
-                    "-t",
-                    getTargetTestDir("after-sync").getAbsolutePath());
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("after-sync").getAbsolutePath());
 
     getL10nJCommander()
         .run(
