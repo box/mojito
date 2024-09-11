@@ -89,4 +89,11 @@ public class URLIntegrityCheckerTest {
     String target = "Il n'y a pas d'email mailto:tedst@test.org";
     checker.check(source, target);
   }
+
+  @Test(expected = URLIntegrityCheckerException.class)
+  public void urlWithDash() {
+    String source = "A url https://test.com/manage.";
+    String target = "Une url https://test.com/account/manage-.";
+    checker.check(source, target);
+  }
 }

@@ -141,6 +141,44 @@ public class AndroidStringDocumentWriterTest {
   }
 
   @Test
+  public void testEscaping() throws Exception {
+
+    // Not sure why the current implementation uses escapeQuotes(). Intuitively, for
+    // machine-to-machine communication, pure XML
+    // seems to be the best option. However, it appears that escapeQuotes() tries to mimic the
+    // Android format
+    // overloads. I'm wondering if this was required by Smartling.
+    result =
+        """
+              <?xml version="1.0" encoding="UTF-8"?><resources>
+              <string name="a_href" tmTextUnitId="120">with a &lt;a href=\\"http://test.org\\"&gt; link&lt;/a&gt;.</string>
+              <string name="i" tmTextUnitId="121">&lt;i&gt;i&lt;/i&gt; could be unescape, but currently is escaped.</string>
+              <string name="return_line" tmTextUnitId="122">a string with\\n return line</string>
+              <string name="with_quotes" tmTextUnitId="123">a string with \\" quote.</string>
+              <string name="with_annotation" tmTextUnitId="124">&lt;annotation url=\\"http://test.com\\"&gt;test&lt;/annotation&gt;</string>
+              </resources>
+              """;
+
+    source = new AndroidStringDocument();
+    source.addSingular(
+        new AndroidSingular(120L, "a_href", "with a <a href=\"http://test.org\"> link</a>.", ""));
+    source.addSingular(
+        new AndroidSingular(
+            121L, "i", "<i>i</i> could be unescape, but currently is escaped.", ""));
+    source.addSingular(new AndroidSingular(122L, "return_line", "a string with\n return line", ""));
+    source.addSingular(new AndroidSingular(123L, "with_quotes", "a string with \" quote.", ""));
+    source.addSingular(
+        new AndroidSingular(
+            124L, "with_annotation", "<annotation url=\"http://test.com\">test</annotation>", ""));
+
+    writer = new AndroidStringDocumentWriter(source);
+    assertThat(writer.toText()).isEqualTo(result);
+
+    writer.toFile(tmpFile.getPath());
+    assertThat(getTempFileContent()).isEqualTo(result);
+  }
+
+  @Test
   public void testWritePlurals() throws Exception {
 
     result =
