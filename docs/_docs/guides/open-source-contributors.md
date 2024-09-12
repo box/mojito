@@ -32,13 +32,13 @@ Ensure that you have added the `cask-versions` [tap](https://github.com/Homebrew
 brew tap homebrew/cask-versions
 ```
 
-Install `java 17` from `Temurin`:
+Install `java 21` from `Temurin`:
 
 ```sh
 brew install --cask temurin17
 ```
 
-Check that `java 17` is now in use with `java -version`. If you need multiple versions of `java` consider using 
+Check that `java 21` is now in use with `java -version`. If you need multiple versions of `java` consider using 
 something like `jenv` (don't forget the plugins: `jenv enable-plugin maven` & `jenv enable-plugin export` ) or `sdkman`.
     
 Install `maven` (latest version should be fine):
@@ -58,13 +58,13 @@ Note, to install the exact same `maven` version as the wrapper: `brew install ma
  
 ### Install on Ubuntu 18.4 LTS
 
-Install `java 17` from `OpenJDK`:
+Install `java 21` from `OpenJDK`:
 
 ```sh
-sudo apt-get install openjdk-17-jdk
+sudo apt-get install openjdk-21-jdk
 ```
-Check that `java 17` is now in use with `java -version`. If not you, can set it as default with 
-`sudo update-java-alternatives -s /usr/lib/jvm/java-1.17.0-openjdk-amd64` (To check the list
+Check that `java 21` is now in use with `java -version`. If not you, can set it as default with 
+`sudo update-java-alternatives -s /usr/lib/jvm/java-1.21.0-openjdk-amd64` (To check the list
 `sudo update-java-alternatives -l`). If you need multiple versions of `java` 
 consider using something like `jenv` or `sdkman`.
 
@@ -140,8 +140,8 @@ Run the following commands to create the databases. Change the user name, databa
 CREATE USER 'mojito'@'localhost' IDENTIFIED BY 'mojito';
 CREATE DATABASE IF NOT EXISTS mojito CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin';
 CREATE DATABASE IF NOT EXISTS mojito_dev CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin';
-GRANT ALL ON mojito.* TO 'mojito'@'localhost' IDENTIFIED BY 'mojito';
-GRANT ALL ON mojito_dev.* TO 'mojito'@'localhost' IDENTIFIED BY 'mojito';
+GRANT ALL PRIVILEGES ON mojito.* TO 'mojito'@'localhost';
+GRANT ALL PRIVILEGES ON mojito_dev.* TO 'mojito'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
