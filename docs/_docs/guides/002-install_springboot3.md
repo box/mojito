@@ -9,13 +9,13 @@ permalink: /docs/guides/install-springboot3/
 
 No binaries are available for the `Spring Boot 3` at the moment. It should be built from the `master` branch.
 
-Assuming `Java 17` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
+Assuming `Java 21` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
 
 For detail instructions on development environment setup, [see here]({{ site.url }}/docs/guides/open-source-contributors/). 
 
 ### Using Executable Jars
 
-`Java 17` is required.
+`Java 21` is required.
 
 Run the Webapp with:
 
@@ -78,8 +78,8 @@ The port can be changed with the `server.port` property.
 
 ### MySQL
 
-[Install MySQL 5.7](http://dev.mysql.com/doc/refman/5.7/en/installing.html) and then create a database for {{ site.mojito_green }} 
-(with Brew: `brew install mysql@5.7`). 
+[Install MySQL 8](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/) and then create a database for {{ site.mojito_green }} 
+(with Brew: `brew install mysql@8`). 
 
 Connect to MySQL DB as root user
 
