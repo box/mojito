@@ -2,8 +2,13 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +39,34 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
     List<String> sourceHtmlTags = getHtmlTags(sourceContent);
     logger.debug("Source Html tags: {}", sourceHtmlTags);
 
+    Map<String, Long> sourceTagCount =
+        sourceHtmlTags.stream()
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    Map<String, Long> targetTagCount =
+        targetHtmlTags.stream()
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
     logger.debug("Make sure the target has the same Html tags as the source");
-    if (sourceHtmlTags.size() != targetHtmlTags.size()
-        || !sourceHtmlTags.containsAll(targetHtmlTags)
-        || !targetHtmlTags.containsAll(sourceHtmlTags)) {
-      throw new HtmlTagIntegrityCheckerException("HTML tags in source and target are different");
+    if (!sourceTagCount.equals(targetTagCount)) {
+      StringBuilder differences = new StringBuilder();
+
+      Set<String> allTags = new HashSet<>();
+      allTags.addAll(sourceTagCount.keySet());
+      allTags.addAll(targetTagCount.keySet());
+
+      for (String tag : allTags) {
+        Long sourceCount = sourceTagCount.getOrDefault(tag, 0L);
+        Long targetCount = targetTagCount.getOrDefault(tag, 0L);
+        if (sourceCount > targetCount) {
+          differences.append(
+              String.format("Target is missing %d tag(s) '%s'%n", sourceCount - targetCount, tag));
+        } else if (sourceCount < targetCount) {
+          differences.append(
+              String.format("Target has extra %d tag(s) '%s'%n", targetCount - sourceCount, tag));
+        }
+      }
+      throw new HtmlTagIntegrityCheckerException(
+          "HTML tag counts in source and target are different:\n" + differences.toString().trim());
     }
 
     logger.debug("Make sure the target tags are in valid order");
