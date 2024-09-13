@@ -17,11 +17,14 @@ public class SpanTranslateTagIntegrityChecker extends RegexIntegrityChecker {
 
   @Override
   public String getRegex() {
-    return "<.*span translate[^>]*>";
+    return "<span[^>]*translate[^>]*>";
   }
 
   @Override
   public void check(String sourceContent, String targetContent) throws IntegrityCheckException {
+    // Source and target both have span tag, return
+    if (matchesRegex(sourceContent) && matchesRegex(targetContent)) return;
+    // Target doesn't have span tag, return
     if (!matchesRegex(targetContent)) return;
 
     SpanTranslateTagIntegrityCheckerException spanTranslateException =
