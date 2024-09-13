@@ -268,6 +268,9 @@ public class WebSecurityConfig {
                     userInfoEndpoint -> {
                       userInfoEndpoint.userService(
                           new UserDetailImplOAuth2UserService(securityConfig, userService));
+
+                      userInfoEndpoint.oidcUserService(
+                          new UserDetailImplOidcUserService(securityConfig, userService));
                     });
               });
           break;

@@ -72,6 +72,17 @@ public class SecurityConfig {
 
     String unwrapUserAttributes;
 
+    /**
+     * In case the principal ID form the auth provider is a UUID, it is of little use on the Mojito
+     * side for tasks such as sending notifications, associating with Git commit, PRs, etc.
+     *
+     * <p>With this option, the username is extracted from the email. This assumes a 1:1 mapping
+     * between the email and the Unix username
+     *
+     * <p>Currently only implement in {@link UserDetailImplOidcUserService}
+     */
+    boolean usernameFromEmail = false;
+
     String givenNameAttribute = "first_name";
     String surnameAttribute = "last_name";
     String commonNameAttribute = "name";
@@ -114,6 +125,14 @@ public class SecurityConfig {
 
     public void setUnwrapUserAttributes(String unwrapUserAttributes) {
       this.unwrapUserAttributes = unwrapUserAttributes;
+    }
+
+    public boolean isUsernameFromEmail() {
+      return usernameFromEmail;
+    }
+
+    public void setUsernameFromEmail(boolean usernameFromEmail) {
+      this.usernameFromEmail = usernameFromEmail;
     }
   }
 }
