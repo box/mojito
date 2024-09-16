@@ -92,8 +92,8 @@ public class URLIntegrityCheckerTest {
 
   @Test(expected = URLIntegrityCheckerException.class)
   public void urlWithDash() {
-    String source = "A url https://test.com/manage.";
-    String target = "Une url https://test.com/account/manage-.";
+    String source = "A url https://test.more.com/account/manage.";
+    String target = "Une url https://test.more.com/account/manage-.";
     checker.check(source, target);
   }
 }
