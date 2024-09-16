@@ -9,7 +9,7 @@ public class CompositeFormatIntegrityChecker extends RegexIntegrityChecker {
 
   @Override
   public String getRegex() {
-    return "\\{\\{[^{}]*?\\}\\}|\\{[^{}]*?\\}";
+    return "(\\{){1,3}[^\\{\\}]*\\}+";
   }
 
   @Override

@@ -17,7 +17,7 @@ public class CompositeFormatIntegrityCheckerTest {
   public void testGetPlaceholder() throws CompositeFormatIntegrityCheckerException {
 
     CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
-    String string = "{0} '{2}' {0:0.00}% \"{1}\"";
+    String string = "{0} '{2}' {0:0.00}% \"{1}\" {{3}} {{{4}}} {{{5}} {{6}}}";
 
     Set<String> placeholders = checker.getPlaceholders(string);
 
@@ -26,6 +26,10 @@ public class CompositeFormatIntegrityCheckerTest {
     expected.add("{2}");
     expected.add("{0:0.00}");
     expected.add("{1}");
+    expected.add("{{3}}");
+    expected.add("{{{4}}}");
+    expected.add("{{{5}}");
+    expected.add("{{6}}}");
 
     assertEquals(expected, placeholders);
   }
@@ -78,6 +82,26 @@ public class CompositeFormatIntegrityCheckerTest {
 
     String source = "A {{mustache}} template";
     String target = "Un modėle {mustache}";
+
+    checker.check(source, target);
+  }
+
+  @Test(expected = CompositeFormatIntegrityCheckerException.class)
+  public void testMustacheInvalidMissingCurlyBraces2() {
+    CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
+
+    String source = "A {{mustache} template";
+    String target = "Un modėle {{{mustache}";
+
+    checker.check(source, target);
+  }
+
+  @Test(expected = CompositeFormatIntegrityCheckerException.class)
+  public void testMustacheInvalidMissingCurlyBraces3() {
+    CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
+
+    String source = "A {{mustache}} template";
+    String target = "Un modėle {{{mustache}}";
 
     checker.check(source, target);
   }
