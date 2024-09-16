@@ -31,7 +31,7 @@
         <immutables-value.version>2.8.2</immutables-value.version>
         <plugin.version.google-java-format>1.22.0</plugin.version.google-java-format>
         <jjwt.version>0.10.5</jjwt.version>
-        <github.api.version>1.313</github.api.version>
+        <github.api.version>1.325</github.api.version>
         <icu4j.version>64.2</icu4j.version>
         <docker.compose.detached.mode>true</docker.compose.detached.mode>
         <docker.compose.remove.volumes>true</docker.compose.remove.volumes>
