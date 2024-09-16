@@ -14,7 +14,7 @@ public class URLIntegrityChecker extends RegexIntegrityChecker {
 
   @Override
   public String getRegex() {
-    return "(https?|ftp)://(?:www\\.)?[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}(?:/[a-zA-Z0-9/_\\-?#+%]*)*|mailto:[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}";
+    return "(https?|ftp)://(?:www\\.)?(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}(?:/[a-zA-Z0-9/_\\.\\-?#+%]*)*|mailto:[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}";
   }
 
   @Override
