@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.android.strings;
 
-import static com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter.escapeQuotes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
@@ -265,13 +264,37 @@ public class AndroidStringDocumentWriterTest {
   }
 
   @Test
+  public void testGenerateWithHTML() {
+    source = new AndroidStringDocument();
+    source.addSingular(
+        new AndroidSingular(10L, "string1", "some <a>link</a> to a page", "test comment1"));
+    source.addSingular(
+        new AndroidSingular(
+            11L,
+            "string2",
+            "some <a href=\"http://test.com/\">link</a> to a page",
+            "test comment2"));
+    source.addSingular(
+        new AndroidSingular(
+            12L,
+            "string3",
+            "If that is your IP address <a href=\"{{ url }}\">click here</a> to unblock it.",
+            "test comment2"));
+
+    writer = new AndroidStringDocumentWriter(source);
+    // TODO(ja) must finsih
+    System.out.println(writer.toText());
+    //    assertThat(writer.toText()).isEqualTo(result);
+  }
+
+  @Test
   public void testEscapeQuotes() {
-    assertThat(escapeQuotes(null)).isEqualTo("");
-    assertThat(escapeQuotes("")).isEqualTo("");
-    assertThat(escapeQuotes("String")).isEqualTo("String");
-    assertThat(escapeQuotes("second\\\"String")).isEqualTo("second\\\\\"String");
-    assertThat(escapeQuotes("third\nString")).isEqualTo("third\\nString");
-    assertThat(escapeQuotes("fourth\ntest\\\"String\\\""))
+    assertThat(writer.escapeQuotes(null)).isEqualTo("");
+    assertThat(writer.escapeQuotes("")).isEqualTo("");
+    assertThat(writer.escapeQuotes("String")).isEqualTo("String");
+    assertThat(writer.escapeQuotes("second\\\"String")).isEqualTo("second\\\\\"String");
+    assertThat(writer.escapeQuotes("third\nString")).isEqualTo("third\\nString");
+    assertThat(writer.escapeQuotes("fourth\ntest\\\"String\\\""))
         .isEqualTo("fourth\\ntest\\\\\"String\\\\\"");
   }
 

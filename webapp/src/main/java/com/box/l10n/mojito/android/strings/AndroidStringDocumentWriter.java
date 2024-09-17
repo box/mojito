@@ -33,9 +33,15 @@ public class AndroidStringDocumentWriter {
   private DOMSource domSource;
   private Document document;
   private Node root;
+  private EscapeType escapeType;
 
   public AndroidStringDocumentWriter(final AndroidStringDocument source) {
+    this(source, EscapeType.QUOTE_AND_NEW_LINE);
+  }
+
+  public AndroidStringDocumentWriter(final AndroidStringDocument source, EscapeType escapeType) {
     this.source = requireNonNull(source);
+    this.escapeType = escapeType;
     buildDomSource();
   }
 
@@ -153,7 +159,22 @@ public class AndroidStringDocumentWriter {
     }
   }
 
-  static String escapeQuotes(String str) {
-    return Strings.nullToEmpty(str).replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\n");
+  String escapeQuotes(String str) {
+    String escaped = str;
+    if (!Strings.isNullOrEmpty(str)) {
+      escaped =
+          switch (escapeType) {
+            case QUOTE_AND_NEW_LINE -> str.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\n");
+            case NEW_LINE -> str.replaceAll("\n", "\\\\n");
+            case NONE -> str;
+          };
+    }
+    return escaped;
+  }
+
+  public enum EscapeType {
+    QUOTE_AND_NEW_LINE, // Legacy
+    NEW_LINE,
+    NONE
   }
 }
