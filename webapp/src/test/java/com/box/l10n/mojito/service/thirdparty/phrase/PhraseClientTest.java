@@ -1,12 +1,15 @@
 package com.box.l10n.mojito.service.thirdparty.phrase;
 
 import com.box.l10n.mojito.JSR310Migration;
+import com.box.l10n.mojito.android.strings.AndroidSingular;
+import com.box.l10n.mojito.android.strings.AndroidStringDocument;
+import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import com.phrase.client.model.Tag;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -88,6 +91,65 @@ public class PhraseClientTest {
   public void test() {
     Assume.assumeNotNull(testProjectId);
 
+    for (int i = 0; i < 2; i++) {
+      AndroidStringDocument source = new AndroidStringDocument();
+      source.addSingular(
+          new AndroidSingular(11L, i + "string1", "some <a>link</a> to a page", "test comment1"));
+      source.addSingular(
+          new AndroidSingular(
+              12L,
+              i + "string2",
+              "some <a href=\"http://test.com/\">link</a> to a page",
+              "test comment2"));
+      source.addSingular(
+          new AndroidSingular(
+              13L,
+              i + "string3",
+              "If that is your IP address <a href=\"{{ url }}\">click here</a> to unblock it.",
+              "test comment2"));
+
+      source.addSingular(
+          new AndroidSingular(
+              14L,
+              i + "string4",
+              "If that is your IP address <a href=\"{ url }\">click here</a> to unblock it.",
+              "test comment2"));
+
+      source.addSingular(
+          new AndroidSingular(
+              15L,
+              i + "string5",
+              "If that is your IP address <a href=\"url\">click here</a> to unblock it.",
+              "test comment2"));
+
+      source.addSingular(
+          new AndroidSingular(
+              16L,
+              i + "string6",
+              "visit your <annotation url=\"settings\">settings</annotation>",
+              "test comment2"));
+
+      String androidFile = new AndroidStringDocumentWriter(source, i % 2 == 0).toText();
+      System.out.println(androidFile);
+
+      phraseClient.uploadAndWait(
+          testProjectId,
+          "en",
+          "xml",
+          "strings.xml",
+          androidFile,
+          ImmutableList.of(i % 2 == 0 ? "test-escaping" : "test-no-escaping"));
+
+      String s =
+          phraseClient.localeDownload(
+              testProjectId,
+              "en",
+              "xml",
+              i % 2 == 0 ? "test-escaping" : "test-no-escaping",
+              () -> null);
+      System.out.println(s);
+    }
+
     //    for (int i = 0; i < 3; i++) {
     //      String repoName = "repo_%d".formatted(i);
     //      String tagForUpload = ThirdPartyTMSPhrase.getTagForUpload(repoName);
@@ -129,20 +191,20 @@ public class PhraseClientTest {
     //    phraseClient.uploadCreateFile(
     //        testProjectId, "fr", "xml", "strings.xml", fileContentAndroid2, null);
 
-    String s2 =
-        phraseClient.localeDownload(
-            testProjectId,
-            "en",
-            "xml",
-            "startWithABadTag",
-            () ->
-                phraseClient.listTags(testProjectId).stream()
-                    .map(Tag::getName)
-                    .filter(Objects::nonNull)
-                    .filter(tagName -> tagName.startsWith("push_repo_2"))
-                    .collect(Collectors.joining(",")));
-
-    logger.info(s2);
+    //    String s2 =
+    //        phraseClient.localeDownload(
+    //            testProjectId,
+    //            "en",
+    //            "xml",
+    //            "startWithABadTag",
+    //            () ->
+    //                phraseClient.listTags(testProjectId).stream()
+    //                    .map(Tag::getName)
+    //                    .filter(Objects::nonNull)
+    //                    .filter(tagName -> tagName.startsWith("push_repo_2"))
+    //                    .collect(Collectors.joining(",")));
+    //
+    //    logger.info(s2);
   }
 
   static StringBuilder generateFileContent(String repositoryName) {
