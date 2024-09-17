@@ -118,6 +118,13 @@ public class ExtractionDiffNotificationCommand extends Command {
   String githubMessageTemplate = "{baseMessage}";
 
   @Parameter(
+      names = "--github-message-regex",
+      arity = 1,
+      description =
+          "The regex to update existing Github comments. Default regex: '.*[\\d]+ string[s]{0,1} removed and [\\d]+ string[s]{0,1} added.*'")
+  String githubMessageRegex = ".*[\\d]+ string[s]{0,1} removed and [\\d]+ string[s]{0,1} added.*";
+
+  @Parameter(
       names = "--github-repository",
       arity = 1,
       description = "The Github repository used to send the notification")
@@ -284,6 +291,7 @@ public class ExtractionDiffNotificationCommand extends Command {
         new ExtractionDiffNotifierMessageBuilder(githubMessageTemplate),
         githubClient,
         githubRepository,
-        githubPrNumber);
+        githubPrNumber,
+        this.githubMessageRegex);
   }
 }

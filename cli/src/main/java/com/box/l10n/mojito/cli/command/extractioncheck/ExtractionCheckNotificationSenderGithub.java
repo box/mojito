@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command.extractioncheck;
 import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.thirdpartynotification.github.GithubIcon;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,8 +28,11 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
 
   private final String commitStatusTargetUrl;
 
+  private final String messageRegex;
+
   public ExtractionCheckNotificationSenderGithub(
       String messageTemplate,
+      String messageRegex,
       String hardFailureMessage,
       String checksSkippedMessage,
       String githubOwner,
@@ -56,6 +60,7 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
     this.isSetCommitStatus = isSetCommitStatus;
     this.commitSha = commitSha;
     this.commitStatusTargetUrl = commitStatusTargetUrl;
+    this.messageRegex = Preconditions.checkNotNull(messageRegex);
   }
 
   @Override
@@ -97,7 +102,8 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
               replaceQuoteMarkers(appendHardFailureMessage(hardFail, sb)));
       githubClients
           .getClient(githubOwner)
-          .addCommentToPR(githubRepo, prNumber, GithubIcon.WARNING + " " + message);
+          .updateOrAddCommentToPR(
+              githubRepo, prNumber, GithubIcon.WARNING + " " + message, this.messageRegex);
       if (isSetCommitStatus) {
         githubClients
             .getClient(githubOwner)

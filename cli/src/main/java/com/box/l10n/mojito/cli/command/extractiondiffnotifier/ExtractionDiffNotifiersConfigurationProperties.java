@@ -35,6 +35,8 @@ public class ExtractionDiffNotifiersConfigurationProperties {
 
     String messageTemplate = "{baseMessage}";
 
+    String messageRegex = ".*[\\d]+ string[s]{0,1} removed and [\\d]+ string[s]{0,1} added.*";
+
     int prNumber;
 
     public String getOwner() {
@@ -59,6 +61,14 @@ public class ExtractionDiffNotifiersConfigurationProperties {
 
     public void setMessageTemplate(String messageTemplate) {
       this.messageTemplate = messageTemplate;
+    }
+
+    public String getMessageRegex() {
+      return messageRegex;
+    }
+
+    public void setMessageRegex(String messageRegex) {
+      this.messageRegex = messageRegex;
     }
 
     public int getPrNumber() {

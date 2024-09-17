@@ -11,6 +11,7 @@ import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessage
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.kohsuke.github.GHIssueComment;
 import org.slf4j.Logger;
 
@@ -68,10 +69,15 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
       GHIssueComment addedComment =
-          githubClient.addCommentToPR(
+          githubClient.updateOrAddCommentToPR(
               branchDetails.getRepository(),
               branchDetails.getPrNumber(),
-              branchNotificationMessageBuilderGithub.getUpdatedMessage(branchName, sourceStrings));
+              branchNotificationMessageBuilderGithub.getUpdatedMessage(branchName, sourceStrings),
+              String.format(
+                  "(%s|%s).*",
+                  Pattern.quote(this.branchNotificationMessageBuilderGithub.getNewStringMsg()),
+                  Pattern.quote(
+                      this.branchNotificationMessageBuilderGithub.getUpdatedStringMsg())));
       updatePRLabel(
           githubClient,
           branchDetails.getRepository(),

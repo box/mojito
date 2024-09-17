@@ -106,4 +106,12 @@ public class BranchNotificationMessageBuilderGithub {
   String getLinkGoToMojito(String branchName) {
     return "[→ Go to Mojito](" + branchUrlBuilder.getBranchDashboardUrl(branchName) + ")";
   }
+
+  public String getNewStringMsg() {
+    return this.newStringMsg;
+  }
+
+  public String getUpdatedStringMsg() {
+    return this.updatedStringMsg;
+  }
 }

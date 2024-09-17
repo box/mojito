@@ -11,6 +11,7 @@ import com.box.l10n.mojito.service.branch.notification.github.BranchNotification
 import com.box.l10n.mojito.service.branch.notification.github.GithubBranchDetails;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -30,25 +31,36 @@ public class BranchNotificationMessageSenderGithubTest {
 
   GithubBranchDetails githubBranchDetails = new GithubBranchDetails(branchName);
 
+  String commentRegex;
+
   @Before
   public void setup() {
+    final String newStringMsg = "Test new message";
+    final String updatedStringMsg = "Test updated message";
     sourceStrings = new ArrayList<>();
     sourceStrings.add("Test string");
     when(branchNotificationMessageBuilderGithubMock.getNewMessage(branchName, sourceStrings))
-        .thenReturn("Test new message");
+        .thenReturn(newStringMsg);
     when(branchNotificationMessageBuilderGithubMock.getUpdatedMessage(branchName, sourceStrings))
-        .thenReturn("Test updated message");
+        .thenReturn(updatedStringMsg);
     when(branchNotificationMessageBuilderGithubMock.getTranslatedMessage(
             branchName, githubBranchDetails))
         .thenReturn("Test translated message");
     when(branchNotificationMessageBuilderGithubMock.getScreenshotMissingMessage())
         .thenReturn("Test screenshot missing message");
+    when(branchNotificationMessageBuilderGithubMock.getScreenshotMissingMessage())
+        .thenReturn("Test screenshot missing message");
+    when(branchNotificationMessageBuilderGithubMock.getNewStringMsg()).thenReturn(newStringMsg);
+    when(branchNotificationMessageBuilderGithubMock.getUpdatedStringMsg())
+        .thenReturn(updatedStringMsg);
     when(githubClientMock.isLabelAppliedToPR(
             isA(String.class), isA(Integer.class), isA(String.class)))
         .thenReturn(true);
     branchNotificationMessageSenderGithub =
         new BranchNotificationMessageSenderGithub(
             "testId", githubClientMock, branchNotificationMessageBuilderGithubMock);
+    commentRegex =
+        String.format("(%s|%s).*", Pattern.quote(newStringMsg), Pattern.quote(updatedStringMsg));
   }
 
   @Test
@@ -69,7 +81,8 @@ public class BranchNotificationMessageSenderGithubTest {
         .thenReturn(false);
     branchNotificationMessageSenderGithub.sendUpdatedMessage(
         branchName, "testUser", "1", sourceStrings);
-    verify(githubClientMock, times(1)).addCommentToPR("testRepo", 1, "Test updated message");
+    verify(githubClientMock, times(1))
+        .updateOrAddCommentToPR("testRepo", 1, "Test updated message", this.commentRegex);
     verify(githubClientMock, times(1)).removeLabelFromPR("testRepo", 1, "translations-ready");
     verify(githubClientMock, times(1)).addLabelToPR("testRepo", 1, "translations-required");
   }

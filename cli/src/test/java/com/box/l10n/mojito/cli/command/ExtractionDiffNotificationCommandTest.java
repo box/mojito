@@ -29,6 +29,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 public class ExtractionDiffNotificationCommandTest extends CLITestBase {
+  private static final String MESSAGE_REGEX =
+      ".*[\\d]+ string[s]{0,1} removed and [\\d]+ string[s]{0,1} added.*";
 
   @Test
   public void shouldSendNotification() {
@@ -193,10 +195,11 @@ public class ExtractionDiffNotificationCommandTest extends CLITestBase {
 
     //  GitHub's notification does not contain the added/removed strings
     verify(mockGithubClient)
-        .addCommentToPR(
+        .updateOrAddCommentToPR(
             "testrepository",
             123,
-            "Github -- ⚠️ 5 strings removed and 2 strings added (from 10 to 7)");
+            "Github -- ⚠️ 5 strings removed and 2 strings added (from 10 to 7)",
+            MESSAGE_REGEX);
 
     verify(mockExtractionDiffNotifierSlack1).sendDiffStatistics(any());
     verify(mockExtractionDiffNotifierGithub1).sendDiffStatistics(any());

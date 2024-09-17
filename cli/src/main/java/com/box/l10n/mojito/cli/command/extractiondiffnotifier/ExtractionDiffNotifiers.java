@@ -77,7 +77,8 @@ public class ExtractionDiffNotifiers {
                           githubConfigurationProperties.getMessageTemplate()),
                       githubClients.getClient(githubConfigurationProperties.getOwner()),
                       githubConfigurationProperties.getRepository(),
-                      githubConfigurationProperties.getPrNumber());
+                      githubConfigurationProperties.getPrNumber(),
+                      githubConfigurationProperties.getMessageRegex());
 
               return new SimpleEntry<String, ExtractionDiffNotifierGithub>(
                   id, extractionDiffNotifierGithub);

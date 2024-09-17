@@ -11,6 +11,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHCommitState;
@@ -90,6 +92,34 @@ public class GithubClient {
           e);
     }
 
+    return null;
+  }
+
+  public GHIssueComment updateOrAddCommentToPR(
+      String repository, int prNumber, String comment, String commentRegex) {
+    Pattern commentPattern = Pattern.compile(commentRegex, Pattern.DOTALL);
+    try {
+      Optional<GHIssueComment> githubComment =
+          this.getGithubClient(repository)
+              .getRepository(this.getRepositoryPath(repository))
+              .getPullRequest(prNumber)
+              .getComments()
+              .stream()
+              .filter(actualComment -> commentPattern.matcher(actualComment.getBody()).matches())
+              .findFirst();
+      if (githubComment.isPresent()) {
+        githubComment.get().update(comment);
+        return githubComment.get();
+      } else {
+        return this.addCommentToPR(repository, prNumber, comment);
+      }
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+      logger.error(
+          String.format(
+              "Error updating/adding a comment to PR %d in repository '%s': %s",
+              prNumber, this.getRepositoryPath(repository), e.getMessage()),
+          e);
+    }
     return null;
   }
 

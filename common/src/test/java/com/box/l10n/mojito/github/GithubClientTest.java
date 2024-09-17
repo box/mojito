@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Assume;
 import org.junit.Before;
@@ -59,6 +60,10 @@ public class GithubClientTest {
 
   @Mock GHUser ghUserMock;
 
+  @Mock GHIssueComment ghCommentMock1;
+
+  @Mock GHIssueComment ghCommentMock2;
+
   @Before
   public void setup() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
     Assume.assumeNotNull(githubClient);
@@ -72,6 +77,10 @@ public class GithubClientTest {
     when(ghCommitPointerMock.getSha()).thenReturn("mockSha");
     when(ghPullRequestMock.getUser()).thenReturn(ghUserMock);
     when(ghUserMock.getEmail()).thenReturn("some@email.com");
+    when(this.ghCommentMock1.getBody()).thenReturn("Test comment 1");
+    when(this.ghCommentMock2.getBody()).thenReturn("Test 2");
+    when(this.ghPullRequestMock.getComments())
+        .thenReturn(Arrays.asList(this.ghCommentMock1, this.ghCommentMock2));
   }
 
   @Test
@@ -87,6 +96,31 @@ public class GithubClientTest {
     verify(gitHubMock, times(1)).getRepository("testOwner/testRepo");
     verify(ghRepoMock, times(1)).getPullRequest(1);
     verify(ghPullRequestMock, times(1)).comment("Test comment");
+  }
+
+  @Test
+  public void testUpdateOrAddCommentToPRWhenUpdatingComment() throws IOException {
+    this.githubClient.updateOrAddCommentToPR("testRepo", 1, "Test comment", "[a-zA-Z]+\\s[\\d].*");
+    verify(this.gitHubMock, times(1)).getRepository("testOwner/testRepo");
+    verify(this.ghRepoMock, times(1)).getPullRequest(1);
+    verify(this.ghPullRequestMock, times(1)).getComments();
+    verify(this.ghCommentMock1, times(1)).getBody();
+    verify(this.ghCommentMock2, times(1)).getBody();
+    verify(this.ghCommentMock1, times(0)).update("Test comment");
+    verify(this.ghCommentMock2, times(1)).update("Test comment");
+  }
+
+  @Test
+  public void testUpdateOrAddCommentToPRWhenAddingComment() throws IOException {
+    this.githubClient.updateOrAddCommentToPR("testRepo", 1, "Test comment", "[a-z]+\\s[\\d]{2}.*");
+    verify(this.gitHubMock, times(2)).getRepository("testOwner/testRepo");
+    verify(this.ghRepoMock, times(2)).getPullRequest(1);
+    verify(this.ghPullRequestMock, times(1)).getComments();
+    verify(this.ghCommentMock1, times(1)).getBody();
+    verify(this.ghCommentMock2, times(1)).getBody();
+    verify(this.ghCommentMock1, times(0)).update("Test comment");
+    verify(this.ghCommentMock2, times(0)).update("Test comment");
+    verify(this.githubClient, times(1)).addCommentToPR("testRepo", 1, "Test comment");
   }
 
   @Test

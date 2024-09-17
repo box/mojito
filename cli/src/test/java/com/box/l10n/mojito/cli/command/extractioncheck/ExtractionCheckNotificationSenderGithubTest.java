@@ -27,6 +27,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = {ExtractionCheckNotificationSenderGithubTest.class})
 public class ExtractionCheckNotificationSenderGithubTest {
+  static final String MESSAGE_REGEX = ".*\\*\\*i18n source string checks failed\\*\\*.*";
 
   @Mock GithubClients githubClientsMock;
 
@@ -35,6 +36,8 @@ public class ExtractionCheckNotificationSenderGithubTest {
   @Captor ArgumentCaptor<Integer> prNumberCaptor;
 
   @Captor ArgumentCaptor<String> messageCaptor;
+
+  @Captor ArgumentCaptor<String> keyMessageCaptor;
 
   GithubClient githubClientMock;
 
@@ -48,6 +51,7 @@ public class ExtractionCheckNotificationSenderGithubTest {
     extractionCheckNotificationSenderGithub =
         new ExtractionCheckNotificationSenderGithub(
             "{baseMessage}",
+            MESSAGE_REGEX,
             "This is a hard failure message",
             "This is a checks skipped message",
             "testOwner",
@@ -67,13 +71,17 @@ public class ExtractionCheckNotificationSenderGithubTest {
     results.add(result);
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, false);
     verify(githubClientMock, times(1))
-        .addCommentToPR(
-            repoNameCaptor.capture(), prNumberCaptor.capture(), messageCaptor.capture());
+        .updateOrAddCommentToPR(
+            repoNameCaptor.capture(),
+            prNumberCaptor.capture(),
+            messageCaptor.capture(),
+            keyMessageCaptor.capture());
     Assert.assertTrue(repoNameCaptor.getValue().equals("testRepo"));
     Assert.assertTrue(prNumberCaptor.getValue().equals(100));
     Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.WARNING.toString()));
     Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
+    Assert.assertEquals(MESSAGE_REGEX, keyMessageCaptor.getValue());
     verify(githubClientMock, times(1))
         .addStatusToCommit(
             "testRepo",
@@ -90,6 +98,7 @@ public class ExtractionCheckNotificationSenderGithubTest {
     extractionCheckNotificationSenderGithub =
         new ExtractionCheckNotificationSenderGithub(
             "{baseMessage}",
+            MESSAGE_REGEX,
             "This is a hard failure message",
             "This is a checks skipped message",
             "testOwner",
@@ -105,13 +114,17 @@ public class ExtractionCheckNotificationSenderGithubTest {
     results.add(result);
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, false);
     verify(githubClientMock, times(1))
-        .addCommentToPR(
-            repoNameCaptor.capture(), prNumberCaptor.capture(), messageCaptor.capture());
+        .updateOrAddCommentToPR(
+            repoNameCaptor.capture(),
+            prNumberCaptor.capture(),
+            messageCaptor.capture(),
+            keyMessageCaptor.capture());
     Assert.assertTrue(repoNameCaptor.getValue().equals("testRepo"));
     Assert.assertTrue(prNumberCaptor.getValue().equals(100));
     Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.WARNING.toString()));
     Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
+    Assert.assertEquals(MESSAGE_REGEX, keyMessageCaptor.getValue());
     verify(githubClientMock, times(0))
         .addStatusToCommit(
             "testRepo",
@@ -133,8 +146,11 @@ public class ExtractionCheckNotificationSenderGithubTest {
     results.add(result2);
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, false);
     verify(githubClientMock, times(1))
-        .addCommentToPR(
-            repoNameCaptor.capture(), prNumberCaptor.capture(), messageCaptor.capture());
+        .updateOrAddCommentToPR(
+            repoNameCaptor.capture(),
+            prNumberCaptor.capture(),
+            messageCaptor.capture(),
+            keyMessageCaptor.capture());
     Assert.assertTrue(repoNameCaptor.getValue().equals("testRepo"));
     Assert.assertTrue(prNumberCaptor.getValue().equals(100));
     Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.WARNING.toString()));
@@ -142,6 +158,7 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
     Assert.assertTrue(messageCaptor.getValue().contains("Other Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some other notification text"));
+    Assert.assertEquals(MESSAGE_REGEX, keyMessageCaptor.getValue());
     verify(githubClientMock, times(1))
         .addStatusToCommit(
             "testRepo",
@@ -160,8 +177,11 @@ public class ExtractionCheckNotificationSenderGithubTest {
     results.add(result);
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, true);
     verify(githubClientMock, times(1))
-        .addCommentToPR(
-            repoNameCaptor.capture(), prNumberCaptor.capture(), messageCaptor.capture());
+        .updateOrAddCommentToPR(
+            repoNameCaptor.capture(),
+            prNumberCaptor.capture(),
+            messageCaptor.capture(),
+            keyMessageCaptor.capture());
     Assert.assertTrue(repoNameCaptor.getValue().equals("testRepo"));
     Assert.assertTrue(prNumberCaptor.getValue().equals(100));
     Assert.assertTrue(
@@ -172,6 +192,7 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
     Assert.assertTrue(messageCaptor.getValue().contains("This is a hard failure message"));
     Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.STOP.toString()));
+    Assert.assertEquals(MESSAGE_REGEX, keyMessageCaptor.getValue());
     verify(githubClientMock, times(1))
         .addStatusToCommit(
             "testRepo",
@@ -210,7 +231,8 @@ public class ExtractionCheckNotificationSenderGithubTest {
     results.add(result);
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, true);
     verify(githubClientMock, times(0))
-        .addCommentToPR(isA(String.class), isA(Integer.class), isA(String.class));
+        .updateOrAddCommentToPR(
+            isA(String.class), isA(Integer.class), isA(String.class), isA(String.class));
     verify(githubClientMock, times(0))
         .addStatusToCommit(
             isA(String.class),
@@ -225,7 +247,8 @@ public class ExtractionCheckNotificationSenderGithubTest {
   public void testNoNotificationsSentIfNullListSent() {
     extractionCheckNotificationSenderGithub.sendFailureNotification(null, true);
     verify(githubClientMock, times(0))
-        .addCommentToPR(isA(String.class), isA(Integer.class), isA(String.class));
+        .updateOrAddCommentToPR(
+            isA(String.class), isA(Integer.class), isA(String.class), isA(String.class));
     verify(githubClientMock, times(0))
         .addStatusToCommit(
             isA(String.class),
@@ -239,19 +262,19 @@ public class ExtractionCheckNotificationSenderGithubTest {
   @Test(expected = ExtractionCheckNotificationSenderException.class)
   public void testExceptionThrownIfNoOwnerSpecified() {
     new ExtractionCheckNotificationSenderGithub(
-        "", "some template", "", "", "testRepo", 100, true, "", "");
+        "", MESSAGE_REGEX, "some template", "", "", "testRepo", 100, true, "", "");
   }
 
   @Test(expected = ExtractionCheckNotificationSenderException.class)
   public void testExceptionThrownIfNoRepositorySpecified() {
     new ExtractionCheckNotificationSenderGithub(
-        "", "some template", "", "testOwner", "", 100, true, "", "");
+        "", MESSAGE_REGEX, "some template", "", "testOwner", "", 100, true, "", "");
   }
 
   @Test(expected = ExtractionCheckNotificationSenderException.class)
   public void testExceptionThrownIfNoPRNumberProvided() {
     new ExtractionCheckNotificationSenderGithub(
-        "", "some template", "", "testOwner", "testRepo", null, true, "", "");
+        "", MESSAGE_REGEX, "some template", "", "testOwner", "testRepo", null, true, "", "");
   }
 
   @Test
@@ -263,8 +286,11 @@ public class ExtractionCheckNotificationSenderGithubTest {
     results.add(result);
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, true);
     verify(githubClientMock, times(1))
-        .addCommentToPR(
-            repoNameCaptor.capture(), prNumberCaptor.capture(), messageCaptor.capture());
+        .updateOrAddCommentToPR(
+            repoNameCaptor.capture(),
+            prNumberCaptor.capture(),
+            messageCaptor.capture(),
+            keyMessageCaptor.capture());
     Assert.assertTrue(repoNameCaptor.getValue().equals("testRepo"));
     Assert.assertTrue(prNumberCaptor.getValue().equals(100));
     Assert.assertTrue(
@@ -275,5 +301,6 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
     Assert.assertTrue(messageCaptor.getValue().contains("This is a hard failure message"));
     Assert.assertTrue(messageCaptor.getValue().contains("`some.text.id`"));
+    Assert.assertEquals(MESSAGE_REGEX, keyMessageCaptor.getValue());
   }
 }

@@ -119,6 +119,13 @@ public class ExtractionCheckCommand extends Command {
   String githubMessageTemplate = "{baseMessage}";
 
   @Parameter(
+      names = {"--github-message-regex", "-gmr"},
+      arity = 1,
+      description =
+          "Optional message regex to update existing Github comments. Default regex: '.*\\*\\*i18n source string checks failed\\*\\*.*'")
+  String githubMessageRegex = ".*\\*\\*i18n source string checks failed\\*\\*.*";
+
+  @Parameter(
       names = {"--hard-fail-message", "-hfm"},
       arity = 1,
       required = false,
@@ -420,6 +427,7 @@ public class ExtractionCheckCommand extends Command {
         extractionCheckNotificationSender =
             new ExtractionCheckNotificationSenderGithub(
                 githubMessageTemplate,
+                this.githubMessageRegex,
                 hardFailureMessage,
                 checksSkippedMessage,
                 githubOwner,

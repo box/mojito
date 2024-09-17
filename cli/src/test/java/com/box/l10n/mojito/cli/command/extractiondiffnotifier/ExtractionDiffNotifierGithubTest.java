@@ -13,6 +13,8 @@ import com.box.l10n.mojito.github.GithubClient;
 import org.junit.Test;
 
 public class ExtractionDiffNotifierGithubTest {
+  private static final String MESSAGE_REGEX =
+      ".*[\\d]+ string[s]{0,1} removed and [\\d]+ string[s]{0,1} added.*";
 
   @Test
   public void sendDiffStatistics() {
@@ -28,15 +30,19 @@ public class ExtractionDiffNotifierGithubTest {
             new ExtractionDiffNotifierMessageBuilder("{baseMessage}"),
             mockGithubClient,
             repository,
-            prNumber);
+            prNumber,
+            MESSAGE_REGEX);
 
     final String msg =
         extractionDiffNotifierGithub.sendDiffStatistics(ExtractionDiffStatistics.builder().build());
 
     assertThat(msg).isEqualTo("ℹ️ 0 strings removed and 0 strings added (from 0 to 0)");
     verify(mockGithubClient)
-        .addCommentToPR(
-            repository, prNumber, "ℹ️ 0 strings removed and 0 strings added (from 0 to 0)");
+        .updateOrAddCommentToPR(
+            repository,
+            prNumber,
+            "ℹ️ 0 strings removed and 0 strings added (from 0 to 0)",
+            MESSAGE_REGEX);
     verify(mockGithubClient, times(0))
         .addLabelToPR(repository, prNumber, TRANSLATIONS_REQUIRED.toString());
   }
@@ -54,7 +60,8 @@ public class ExtractionDiffNotifierGithubTest {
             new ExtractionDiffNotifierMessageBuilder("{baseMessage}"),
             mockGithubClient,
             repository,
-            prNumber);
+            prNumber,
+            MESSAGE_REGEX);
 
     final String msg =
         extractionDiffNotifierGithub.sendDiffStatistics(
@@ -78,7 +85,8 @@ public class ExtractionDiffNotifierGithubTest {
             new ExtractionDiffNotifierMessageBuilder("{baseMessage}"),
             mockGithubClient,
             repository,
-            prNumber);
+            prNumber,
+            MESSAGE_REGEX);
 
     final String msg =
         extractionDiffNotifierGithub.sendDiffStatistics(
@@ -101,7 +109,8 @@ public class ExtractionDiffNotifierGithubTest {
             new ExtractionDiffNotifierMessageBuilder("{baseMessage}"),
             mockGithubClient,
             repository,
-            prNumber);
+            prNumber,
+            MESSAGE_REGEX);
 
     extractionDiffNotifierGithub.sendNoChangesNotification();
 
@@ -122,7 +131,8 @@ public class ExtractionDiffNotifierGithubTest {
             new ExtractionDiffNotifierMessageBuilder("{baseMessage}"),
             mockGithubClient,
             repository,
-            prNumber);
+            prNumber,
+            MESSAGE_REGEX);
 
     final String msg =
         extractionDiffNotifierGithub.sendDiffStatistics(

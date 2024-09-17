@@ -26,16 +26,20 @@ public class ExtractionDiffNotifierGithub implements ExtractionDiffNotifier {
 
   int prNumber;
 
+  private final String messageRegex;
+
   public ExtractionDiffNotifierGithub(
       ExtractionDiffNotifierMessageBuilder extractionDiffNotifierMessageBuilder,
       GithubClient githubClient,
       String repository,
-      int prNumber) {
+      int prNumber,
+      String messageRegex) {
     this.extractionDiffNotifierMessageBuilder =
         Preconditions.checkNotNull(extractionDiffNotifierMessageBuilder);
     this.githubClient = Preconditions.checkNotNull(githubClient);
     this.repository = Preconditions.checkNotNull(repository);
     this.prNumber = Preconditions.checkNotNull(prNumber);
+    this.messageRegex = Preconditions.checkNotNull(messageRegex);
   }
 
   @Override
@@ -48,7 +52,7 @@ public class ExtractionDiffNotifierGithub implements ExtractionDiffNotifier {
             .withRemovedStrings(new ArrayList<>());
 
     String message = extractionDiffNotifierMessageBuilder.getMessage(extractionDiffStatistics);
-    githubClient.addCommentToPR(repository, prNumber, message);
+    githubClient.updateOrAddCommentToPR(repository, prNumber, message, this.messageRegex);
 
     if (extractionDiffStatistics.getAdded() > 0) {
       // For the initial string addition, the CLI will put the label, but for updates that creates
