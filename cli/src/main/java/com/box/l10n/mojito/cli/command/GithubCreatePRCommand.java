@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.github.GithubException;
 import java.util.List;
@@ -75,6 +76,19 @@ public class GithubCreatePRCommand extends Command {
       description = "The PR reviewers")
   List<String> reviewers;
 
+  @Parameter(
+      names = {"--enable-auto-merge"},
+      required = false,
+      arity = 1,
+      description = "Enable auto-merge with the specified method")
+  EnableAutoMergeType enableAutoMerge = EnableAutoMergeType.NONE;
+
+  enum EnableAutoMergeType {
+    SQUASH,
+    MERGE,
+    NONE
+  }
+
   @Override
   public boolean shouldShowInCommandList() {
     return false;
@@ -86,8 +100,10 @@ public class GithubCreatePRCommand extends Command {
 
       GHPullRequest pr =
           githubClients.getClient(owner).createPR(repository, title, head, base, body, reviewers);
-
       consoleWriter.a("PR created: ").fg(Ansi.Color.CYAN).a(pr.getHtmlUrl().toString()).println();
+      if (!EnableAutoMergeType.NONE.equals(enableAutoMerge)) {
+        githubClients.getClient(owner).enableAutoMerge(pr, GithubClient.AutoMergeType.SQUASH);
+      }
     } catch (GithubException e) {
       throw new CommandException(e);
     }
