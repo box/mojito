@@ -1,9 +1,16 @@
 package com.box.l10n.mojito.github;
 
+import com.box.l10n.mojito.json.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -11,6 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHCommitState;
@@ -306,6 +314,15 @@ public class GithubClient {
     }
   }
 
+  public void listPR(String repository) {
+    try {
+      GitHub gc = getGithubClient(repository);
+      gc.getRepository(repository);
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public GHPullRequest createPR(
       String repository,
       String title,
@@ -335,13 +352,84 @@ public class GithubClient {
 
         pullRequest.requestReviewers(reviewersGH);
       }
-
       return pullRequest;
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+    } catch (Exception e) {
       String message =
           String.format("Error creating a PR in repository '%s': %s", repoFullPath, e.getMessage());
       logger.error(message, e);
       throw new GithubException(message, e);
+    }
+  }
+
+  public enum AutoMergeType {
+    SQUASH,
+    MERGE
+  }
+
+  /**
+   * This is implemented using the GraphQL API since, the Java client does not support this method
+   * yet.
+   */
+  public void enableAutoMerge(GHPullRequest pullRequest, AutoMergeType autoMergeType) {
+
+    logger.debug(
+        "Enable Auto Merge on PR: {}, with type: {}",
+        pullRequest.getNumber(),
+        autoMergeType.name());
+
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    HttpResponse<String> mutationResponse;
+
+    try (HttpClient client = HttpClient.newHttpClient()) {
+
+      String mutation =
+          """
+                    mutation($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+                      enablePullRequestAutoMerge(input: {
+                          pullRequestId: $pullRequestId,
+                          mergeMethod: $mergeMethod,
+                        }) {
+                          clientMutationId
+                       }
+                    }
+                    """;
+
+      ImmutableMap<String, Object> variables =
+          ImmutableMap.of(
+              "pullRequestId", pullRequest.getNodeId(), "mergeMethod", autoMergeType.name());
+
+      ImmutableMap<String, Object> payload =
+          ImmutableMap.of("query", mutation, "variables", variables);
+
+      String jsonPayload = objectMapper.writeValueAsStringUnchecked(payload);
+
+      String authToken =
+          getGithubAppInstallationToken(pullRequest.getRepository().getName()).getToken();
+
+      HttpRequest mutationRequest =
+          HttpRequest.newBuilder()
+              .uri(URI.create("https://api.github.com/graphql"))
+              .header("Authorization", "Bearer " + authToken)
+              .header("Content-Type", "application/json")
+              .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+              .build();
+      try {
+        mutationResponse = client.send(mutationRequest, HttpResponse.BodyHandlers.ofString());
+      } catch (IOException | InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+
+      if (mutationResponse.statusCode() != 200) {
+        throw new GithubException("Error enabling auto-merge: " + mutationResponse.body());
+      }
+
+      Map<String, Object> mutationResponseMap =
+          objectMapper.readValueUnchecked(mutationResponse.body(), new TypeReference<>() {});
+
+      if (mutationResponseMap.containsKey("errors")) {
+        throw new GithubException("Error enabling auto-merge: " + mutationResponse.body());
+      }
     }
   }
 
@@ -357,22 +445,25 @@ public class GithubClient {
     return endpoint;
   }
 
-  public GHAppInstallationToken getGithubAppInstallationToken(String repository)
-      throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-    if (githubAppInstallationToken == null
-        || githubAppInstallationToken.getExpiresAt().getTime()
-            <= System.currentTimeMillis() - 30000) {
-      // Existing installation token has less than 30 seconds before expiry, get new token
-      GitHub gitHub =
-          new GitHubBuilder()
-              .withEndpoint(getEndpoint())
-              .withJwtToken(getGithubJWT(tokenTTL).getToken())
-              .build();
-      githubAppInstallationToken =
-          gitHub.getApp().getInstallationByRepository(owner, repository).createToken().create();
-    }
+  public GHAppInstallationToken getGithubAppInstallationToken(String repository) {
+    try {
+      if (githubAppInstallationToken == null
+          || githubAppInstallationToken.getExpiresAt().getTime()
+              <= System.currentTimeMillis() - 30000) {
+        // Existing installation token has less than 30 seconds before expiry, get new token
+        GitHub gitHub =
+            new GitHubBuilder()
+                .withEndpoint(getEndpoint())
+                .withJwtToken(getGithubJWT(tokenTTL).getToken())
+                .build();
+        githubAppInstallationToken =
+            gitHub.getApp().getInstallationByRepository(owner, repository).createToken().create();
+      }
 
-    return githubAppInstallationToken;
+      return githubAppInstallationToken;
+    } catch (Exception e) {
+      throw new RuntimeException("Can't get the App installation token", e);
+    }
   }
 
   protected GitHub createGithubClient(String repository)
@@ -383,7 +474,7 @@ public class GithubClient {
         .build();
   }
 
-  private String getRepositoryPath(String repository) {
+  String getRepositoryPath(String repository) {
     return owner != null && !owner.isEmpty() ? owner + "/" + repository : repository;
   }
 

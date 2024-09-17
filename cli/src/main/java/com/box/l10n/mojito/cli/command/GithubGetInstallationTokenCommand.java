@@ -4,9 +4,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.github.GithubClients;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -50,7 +47,7 @@ public class GithubGetInstallationTokenCommand extends Command {
       consoleWriter
           .a(githubClients.getClient(owner).getGithubAppInstallationToken(repository).getToken())
           .print();
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+    } catch (Exception e) {
       throw new CommandException(e);
     }
   }
