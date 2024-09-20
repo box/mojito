@@ -5,6 +5,7 @@ import static com.box.l10n.mojito.io.Files.createTempDirectory;
 import static com.box.l10n.mojito.io.Files.write;
 
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableSet;
 import com.phrase.client.ApiClient;
 import com.phrase.client.ApiException;
@@ -12,10 +13,17 @@ import com.phrase.client.api.KeysApi;
 import com.phrase.client.api.LocalesApi;
 import com.phrase.client.api.TagsApi;
 import com.phrase.client.api.UploadsApi;
+import com.phrase.client.auth.ApiKeyAuth;
 import com.phrase.client.model.Tag;
 import com.phrase.client.model.TranslationKey;
 import com.phrase.client.model.Upload;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -23,6 +31,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -48,16 +57,33 @@ public class PhraseClient {
         Retry.backoff(5, Duration.ofMillis(500)).maxBackoff(Duration.ofSeconds(5));
   }
 
+  public Upload nativeUploadAndWait(
+      String projectId,
+      String localeId,
+      String fileFormat,
+      String fileName,
+      String fileContent,
+      List<String> tags,
+      Map<String, String> formatOptions) {
+
+    String uploadId =
+        nativeUploadCreateFileWithRetry(
+            projectId, localeId, fileFormat, fileName, fileContent, tags, formatOptions);
+    return waitForUploadToFinish(projectId, uploadId);
+  }
+
   public Upload uploadAndWait(
       String projectId,
       String localeId,
       String fileFormat,
       String fileName,
       String fileContent,
-      List<String> tags) {
+      List<String> tags,
+      String formatOptions) {
 
     String uploadId =
-        uploadCreateFile(projectId, localeId, fileFormat, fileName, fileContent, tags);
+        uploadCreateFile(
+            projectId, localeId, fileFormat, fileName, fileContent, tags, formatOptions);
     return waitForUploadToFinish(projectId, uploadId);
   }
 
@@ -101,7 +127,8 @@ public class PhraseClient {
       String fileFormat,
       String fileName,
       String fileContent,
-      List<String> tags) {
+      List<String> tags,
+      String formatOptions) {
 
     Path tmpWorkingDirectory = null;
 
@@ -126,7 +153,8 @@ public class PhraseClient {
       write(fileToUpload, fileContent);
 
       Upload upload =
-          uploadsApiUploadCreateWithRetry(projectId, localeId, fileFormat, tags, fileToUpload);
+          uploadsApiUploadCreateWithRetry(
+              projectId, localeId, fileFormat, tags, fileToUpload, formatOptions);
 
       return upload.getId();
     } finally {
@@ -136,8 +164,147 @@ public class PhraseClient {
     }
   }
 
+  public String nativeUploadCreateFileWithRetry(
+      String projectId,
+      String localeId,
+      String fileFormat,
+      String fileName,
+      String fileContent,
+      List<String> tags,
+      Map<String, String> formatOptions) {
+
+    logger.info(
+        "nativeUploadCreateFile: projectId: {}, localeId: {}, fileName: {}, tags: {}",
+        projectId,
+        localeId,
+        fileName,
+        tags);
+
+    return Mono.fromCallable(
+            () ->
+                nativeUploadCreateFile(
+                    projectId, localeId, fileFormat, fileName, fileContent, tags, formatOptions))
+        .retryWhen(
+            retryBackoffSpec.doBeforeRetry(
+                doBeforeRetry ->
+                    logAttempt(
+                        doBeforeRetry.failure(),
+                        "Retrying failed attempt to uploadCreate to Phrase, file: %s, project id: %s"
+                            .formatted(fileName, projectId))))
+        .doOnError(
+            throwable ->
+                rethrowExceptionWithLog(
+                    throwable,
+                    "Final error in UploadCreate from Phrase, file: %s, project id: %s"
+                        .formatted(fileName, projectId)))
+        .block();
+  }
+
+  /**
+   * The official SDK does not support format_options properly, so adding a replacement method base
+   * on pure Java client
+   */
+  public String nativeUploadCreateFile(
+      String projectId,
+      String localeId,
+      String fileFormat,
+      String fileName,
+      String fileContent,
+      List<String> tags,
+      Map<String, String> formatOptions) {
+
+    String urlString = String.format("%s/projects/%s/uploads", apiClient.getBasePath(), projectId);
+    String boundary = UUID.randomUUID().toString();
+    final String LINE_FEED = "\r\n";
+
+    StringBuilder multipartBody = new StringBuilder();
+
+    multipartBody.append("--").append(boundary).append(LINE_FEED);
+    multipartBody
+        .append("Content-Disposition: form-data; name=\"file\"; filename=\"")
+        .append(fileName)
+        .append("\"")
+        .append(LINE_FEED);
+    multipartBody.append("Content-Type: application/xml").append(LINE_FEED);
+    multipartBody.append(LINE_FEED);
+    multipartBody.append(fileContent).append(LINE_FEED);
+
+    addFormField(multipartBody, boundary, "locale_id", localeId);
+    addFormField(multipartBody, boundary, "file_format", fileFormat);
+    addFormField(multipartBody, boundary, "update_translations", "true");
+    addFormField(multipartBody, boundary, "update_descriptions", "true");
+
+    if (tags != null) {
+      String tagsString = String.join(",", tags);
+      addFormField(multipartBody, boundary, "tags", tagsString);
+    }
+
+    if (formatOptions != null) {
+      for (Map.Entry<String, String> e : formatOptions.entrySet()) {
+        addFormField(
+            multipartBody, boundary, "format_options[%s]".formatted(e.getKey()), e.getValue());
+      }
+    }
+    multipartBody.append("--").append(boundary).append("--").append(LINE_FEED);
+
+    String token = ((ApiKeyAuth) apiClient.getAuthentication("Token")).getApiKey();
+
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(urlString))
+            .header("Authorization", "token " + token)
+            .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+            .POST(
+                HttpRequest.BodyPublishers.ofString(
+                    multipartBody.toString(), StandardCharsets.UTF_8))
+            .build();
+
+    HttpResponse<String> response;
+    try (HttpClient client = HttpClient.newHttpClient()) {
+      response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    int statusCode = response.statusCode();
+    String responseBody = response.body();
+
+    if (statusCode == 201) {
+      JsonNode rootNode = new ObjectMapper().readTreeUnchecked(responseBody);
+      return rootNode.path("id").asText();
+    } else {
+      throw new RuntimeException("Server returned status code " + statusCode + ": " + responseBody);
+    }
+  }
+
+  /**
+   * Helper method to add a form field to the multipart body.
+   *
+   * @param builder The StringBuilder for the multipart body.
+   * @param boundary The boundary string.
+   * @param name The name of the form field.
+   * @param value The value of the form field.
+   */
+  private static void addFormField(
+      StringBuilder builder, String boundary, String name, String value) {
+    String LINE_FEED = "\r\n";
+    builder.append("--").append(boundary).append(LINE_FEED);
+    builder
+        .append("Content-Disposition: form-data; name=\"")
+        .append(name)
+        .append("\"")
+        .append(LINE_FEED);
+    builder.append(LINE_FEED);
+    builder.append(value).append(LINE_FEED);
+  }
+
   Upload uploadsApiUploadCreateWithRetry(
-      String projectId, String localeId, String fileFormat, List<String> tags, Path fileToUpload) {
+      String projectId,
+      String localeId,
+      String fileFormat,
+      List<String> tags,
+      Path fileToUpload,
+      String formatOptions) {
 
     return Mono.fromCallable(
             () ->
@@ -157,7 +324,7 @@ public class PhraseClient {
                         null,
                         null,
                         null,
-                        null,
+                        formatOptions,
                         null,
                         null,
                         null))

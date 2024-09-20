@@ -154,13 +154,45 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     String text = getFileContent(pluralSeparator, search, true, null);
 
     String tagForUpload = getTagForUpload(repository.getName());
-    phraseClient.uploadAndWait(
-        projectId,
-        repository.getSourceLocale().getBcp47Tag(),
-        "xml",
-        repository.getName() + "-strings.xml",
-        text,
-        ImmutableList.of(tagForUpload));
+
+    OptionsParser optionsParser = new OptionsParser(options);
+    Boolean nativeUpload = optionsParser.getBoolean("nativeUpload", false);
+    Boolean nativeUploadUnescapeTags = optionsParser.getBoolean("nativeUploadUnescapeTags", true);
+    Boolean nativeUploadUnescapeLineBreaks =
+        optionsParser.getBoolean("nativeUploadUnescapeLineBreaks", false);
+
+    if (nativeUpload) {
+      // convert_placeholder
+      // escape_linebreaks
+      // unescape_linebreaks
+      // unescape_tags
+      Map<String, String> formatOptions = new HashMap<>();
+      if (nativeUploadUnescapeTags) {
+        formatOptions.put("unescape_tags", "true");
+      }
+
+      if (nativeUploadUnescapeLineBreaks) {
+        formatOptions.put("unescape_linebreaks", "true");
+      }
+
+      phraseClient.nativeUploadAndWait(
+          projectId,
+          repository.getSourceLocale().getBcp47Tag(),
+          "xml",
+          repository.getName() + "-strings.xml",
+          text,
+          ImmutableList.of(tagForUpload),
+          formatOptions.isEmpty() ? null : formatOptions);
+    } else {
+      phraseClient.uploadAndWait(
+          projectId,
+          repository.getSourceLocale().getBcp47Tag(),
+          "xml",
+          repository.getName() + "-strings.xml",
+          text,
+          ImmutableList.of(tagForUpload),
+          null);
+    }
 
     removeUnusedKeysAndTags(projectId, repository.getName(), tagForUpload);
   }
@@ -472,6 +504,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
             "xml",
             repository.getName() + "-strings.xml",
             fileContent,
+            null,
             null);
       }
     }
