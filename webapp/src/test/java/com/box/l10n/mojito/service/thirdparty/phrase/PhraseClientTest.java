@@ -6,7 +6,10 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocument;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.phrase.client.model.Tag;
+import com.phrase.client.model.Upload;
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -40,6 +43,8 @@ public class PhraseClientTest {
 
   @Value("${test.phrase-client.projectId:}")
   String testProjectId;
+
+  @Autowired private PhraseClientConfig phraseClientConfig;
 
   @Test
   public void testRemoveTag() {
@@ -88,57 +93,84 @@ public class PhraseClientTest {
   }
 
   @Test
-  public void test() {
+  public void test() throws IOException, InterruptedException {
     Assume.assumeNotNull(testProjectId);
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 1; i < 2; i++) {
       AndroidStringDocument source = new AndroidStringDocument();
       source.addSingular(
-          new AndroidSingular(11L, i + "string1", "some <a>link</a> to a page", "test comment1"));
+          new AndroidSingular(11L, i + "-string1", "some <a>link</a> to a page", "test comment1"));
       source.addSingular(
           new AndroidSingular(
               12L,
-              i + "string2",
+              i + "-string2",
               "some <a href=\"http://test.com/\">link</a> to a page",
               "test comment2"));
       source.addSingular(
           new AndroidSingular(
               13L,
-              i + "string3",
+              i + "-string3",
               "If that is your IP address <a href=\"{{ url }}\">click here</a> to unblock it.",
               "test comment2"));
 
       source.addSingular(
           new AndroidSingular(
               14L,
-              i + "string4",
+              i + "-string4",
               "If that is your IP address <a href=\"{ url }\">click here</a> to unblock it.",
               "test comment2"));
 
       source.addSingular(
           new AndroidSingular(
               15L,
-              i + "string5",
+              i + "-string5",
               "If that is your IP address <a href=\"url\">click here</a> to unblock it.",
               "test comment2"));
 
       source.addSingular(
           new AndroidSingular(
               16L,
-              i + "string6",
+              i + "-string6",
               "visit your <annotation url=\"settings\">settings</annotation>",
               "test comment2"));
 
+      source.addSingular(
+          new AndroidSingular(17L, i + "-string7", "a string\nwith return line", "test comment2"));
+
+      source.addSingular(
+          new AndroidSingular(
+              18L, i + "-string9", "a string\n\nwith two return line", "test comment2"));
+
+      source.addSingular(
+          new AndroidSingular(
+              19L, i + "-string10", "a string & and the &amp; escape", "test comment2"));
+
+      source.addSingular(
+          new AndroidSingular(20L, i + "-string11", "simple <i>tag</i>", "test comment2"));
+
       String androidFile = new AndroidStringDocumentWriter(source, i % 2 == 0).toText();
       System.out.println(androidFile);
+      Upload upload =
+          phraseClient.nativeUploadAndWait(
+              testProjectId,
+              "en",
+              "xml",
+              "strings.xml",
+              androidFile,
+              ImmutableList.of(i % 2 == 0 ? "test-escaping" : "test-no-escaping"),
+              ImmutableMap.of("unescape_tags", "true"));
 
-      phraseClient.uploadAndWait(
-          testProjectId,
-          "en",
-          "xml",
-          "strings.xml",
-          androidFile,
-          ImmutableList.of(i % 2 == 0 ? "test-escaping" : "test-no-escaping"));
+      //      Upload upload =
+      //          phraseClient.uploadAndWait(
+      //              testProjectId,
+      //              "en",
+      //              "xml",
+      //              "strings.xml",
+      //              androidFile,
+      //              ImmutableList.of(i % 2 == 0 ? "test-escaping" : "test-no-escaping"),
+      //                null);
+
+      System.out.println(upload);
 
       String s =
           phraseClient.localeDownload(

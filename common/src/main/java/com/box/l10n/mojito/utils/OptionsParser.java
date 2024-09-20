@@ -43,6 +43,16 @@ public class OptionsParser {
     return value;
   }
 
+  public String getString(String key, String defaultValue) {
+    String value = defaultValue;
+
+    if (this.options.containsKey(key)) {
+      value = this.options.get(key);
+    }
+
+    return value;
+  }
+
   public void getInteger(String key, Consumer<Integer> consumer) {
     if (this.options.containsKey(key)) {
       consumer.accept(Integer.valueOf(this.options.get(key)));
