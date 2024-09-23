@@ -433,6 +433,16 @@ public class GithubClient {
     }
   }
 
+  public void addLabelsToPR(GHPullRequest pullRequest, List<String> labels) {
+    if (labels != null) {
+      try {
+        pullRequest.addLabels(labels.toArray(new String[0]));
+      } catch (IOException e) {
+        throw new GithubException("Can't add labels to PR", e);
+      }
+    }
+  }
+
   public String getOwner() {
     return owner;
   }
