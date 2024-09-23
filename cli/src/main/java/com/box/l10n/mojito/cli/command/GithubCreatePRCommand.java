@@ -83,6 +83,13 @@ public class GithubCreatePRCommand extends Command {
       description = "Enable auto-merge with the specified method")
   EnableAutoMergeType enableAutoMerge = EnableAutoMergeType.NONE;
 
+  @Parameter(
+      names = {"--labels"},
+      required = false,
+      variableArity = true,
+      description = "The PR labels")
+  List<String> labels;
+
   enum EnableAutoMergeType {
     SQUASH,
     MERGE,
@@ -98,12 +105,17 @@ public class GithubCreatePRCommand extends Command {
   protected void execute() throws CommandException {
     try {
 
-      GHPullRequest pr =
-          githubClients.getClient(owner).createPR(repository, title, head, base, body, reviewers);
+      GithubClient githubClient = githubClients.getClient(owner);
+
+      GHPullRequest pr = githubClient.createPR(repository, title, head, base, body, reviewers);
+
       consoleWriter.a("PR created: ").fg(Ansi.Color.CYAN).a(pr.getHtmlUrl().toString()).println();
       if (!EnableAutoMergeType.NONE.equals(enableAutoMerge)) {
-        githubClients.getClient(owner).enableAutoMerge(pr, GithubClient.AutoMergeType.SQUASH);
+        githubClient.enableAutoMerge(pr, GithubClient.AutoMergeType.SQUASH);
       }
+
+      githubClient.addLabelsToPR(pr, labels);
+
     } catch (GithubException e) {
       throw new CommandException(e);
     }
