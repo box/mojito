@@ -20,6 +20,7 @@ import com.phrase.client.model.Upload;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -28,9 +29,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -440,6 +443,100 @@ public class PhraseClient {
               logger.debug("File: {}, Content: {}", file.toPath(), localeDownloadContent);
 
               return localeDownloadContent;
+            })
+        .retryWhen(
+            retryBackoffSpec.doBeforeRetry(
+                doBeforeRetry -> {
+                  logAttempt(
+                      doBeforeRetry.failure(),
+                      "Retrying failed attempt to localeDownload from Phrase, project id: %s, locale: %s"
+                          .formatted(projectId, locale));
+
+                  if (onTagErrorRefreshCallback != null
+                      && getErrorMessageFromOptionalApiException(doBeforeRetry.failure())
+                          .contains("Invalid Download Options. Parameter tags ")) {
+                    String newTags = onTagErrorRefreshCallback.get();
+                    logger.warn(
+                        "Replacing old tags: {} with new tags: {} for download locale",
+                        refTags.get(),
+                        newTags);
+                    refTags.set(newTags);
+                  }
+                }))
+        .doOnError(
+            throwable ->
+                rethrowExceptionWithLog(
+                    throwable,
+                    "Final error to localeDownload from Phrase, project id: %s, locale: %s"
+                        .formatted(projectId, locale)))
+        .block();
+  }
+
+  public String nativeLocaleDownload(
+      String projectId,
+      String locale,
+      String fileFormat,
+      String tags,
+      Map<String, String> formatOptions,
+      Supplier<String> onTagErrorRefreshCallback) {
+    AtomicReference<String> refTags = new AtomicReference<>(tags);
+    return Mono.fromCallable(
+            () -> {
+              logger.info(
+                  "Native Downloading locale: {} from project id: {} in file format: {}",
+                  locale,
+                  projectId,
+                  fileFormat);
+
+              Map<String, String> parameters = new HashMap<>();
+              parameters.put("file_format", fileFormat);
+              parameters.put("tags", refTags.get());
+              for (Map.Entry<String, String> e : formatOptions.entrySet()) {
+                parameters.put("format_options[%s]".formatted(e.getKey()), e.getValue());
+              }
+
+              StringJoiner queryJoiner = new StringJoiner("&");
+              for (Map.Entry<String, String> entry : parameters.entrySet()) {
+                queryJoiner.add(
+                    URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
+                        + "="
+                        + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+              }
+
+              String url =
+                  String.format(
+                      "%s/projects/%s/locales/%s/download?%s",
+                      apiClient.getBasePath(),
+                      URLEncoder.encode(projectId, StandardCharsets.UTF_8),
+                      URLEncoder.encode(locale, StandardCharsets.UTF_8),
+                      queryJoiner);
+
+              String token = ((ApiKeyAuth) apiClient.getAuthentication("Token")).getApiKey();
+
+              HttpRequest request =
+                  HttpRequest.newBuilder()
+                      .uri(URI.create(url))
+                      .header("Authorization", "token " + token)
+                      .header("Accept", "*")
+                      .GET()
+                      .build();
+
+              HttpResponse<String> response;
+              try (HttpClient client = HttpClient.newHttpClient()) {
+                response = client.send(request, HttpResponse.BodyHandlers.ofString());
+              } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+              }
+
+              int statusCode = response.statusCode();
+              String responseBody = response.body();
+
+              if (statusCode == 200) {
+                return responseBody;
+              } else {
+                throw new RuntimeException(
+                    "Can't download locale. status code " + statusCode + ": " + responseBody);
+              }
             })
         .retryWhen(
             retryBackoffSpec.doBeforeRetry(
