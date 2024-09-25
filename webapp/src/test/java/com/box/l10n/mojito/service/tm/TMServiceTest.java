@@ -3666,14 +3666,7 @@ public class TMServiceTest extends ServiceTestBase {
             "key2" = "value2";
             """;
 
-    String expectedLocalizedAsset =
-        """
-            /* comment 1 */
-            "key1" = "";
-
-            /* comment 2 */
-            "key2" = "";
-            """;
+    String expectedLocalizedAsset = "\n";
 
     asset = assetService.createAssetWithContent(repo.getId(), "Localizable.strings", assetContent);
     asset = assetRepository.findById(asset.getId()).orElse(null);
