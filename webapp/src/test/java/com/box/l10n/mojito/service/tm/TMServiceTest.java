@@ -2143,7 +2143,7 @@ public class TMServiceTest extends ServiceTestBase {
     assetResult.get();
 
     String expectedLocalized =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!-- comment after prolog -->"
             + "<resources/>\n";
 

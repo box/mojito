@@ -43,7 +43,6 @@ public class TranslateStep extends AbstractMd5ComputationStep {
   Status status;
   InheritanceMode inheritanceMode;
   RawDocument rawDocument;
-  boolean rawDocumentProcessingEnabled = false;
   boolean saveUsedTmTextUnitVariantIds = false;
 
   /**
@@ -147,7 +146,7 @@ public class TranslateStep extends AbstractMd5ComputationStep {
             textUnit.setTarget(
                 targetLocale,
                 new TextContainer(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER));
-            enableOutputDocumentPostProcessing();
+            setOutputDocumentPostProcessingRemoveUntranslated();
             break;
         }
 
@@ -195,12 +194,11 @@ public class TranslateStep extends AbstractMd5ComputationStep {
     return event;
   }
 
-  void enableOutputDocumentPostProcessing() {
+  void setOutputDocumentPostProcessingRemoveUntranslated() {
     OutputDocumentPostProcessingAnnotation annotation =
         rawDocument.getAnnotation(OutputDocumentPostProcessingAnnotation.class);
-    if (annotation != null && !rawDocumentProcessingEnabled) {
-      annotation.setEnabled(true);
-      rawDocumentProcessingEnabled = true;
+    if (annotation != null && annotation.getOutputDocumentPostProcessor() != null) {
+      annotation.getOutputDocumentPostProcessor().setRemoveUntranslated(true);
     }
   }
 

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.okapi.filters;
 
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
+import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation.OutputDocumentPostProcessorBase;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -117,6 +118,12 @@ public class AndroidFilter extends XMLFilter {
 
   int postProcessIndent = 2;
 
+  /**
+   * Historically there was no processing if no option was passed. We want to keep this behavior to
+   * avoid output change.
+   */
+  boolean shouldApplyPostProcessingRemoveUntranslatedExcluded = false;
+
   @Override
   public void open(RawDocument input) {
     super.open(input);
@@ -126,17 +133,14 @@ public class AndroidFilter extends XMLFilter {
     input.setAnnotation(
         new RemoveUntranslatedStategyAnnotation(
             RemoveUntranslatedStrategy.PLACEHOLDER_AND_POST_PROCESSING));
-    // The post processing is optionally enable based on the removed description option. Contrary to
-    // a filter like
-    // JsonFilter the post-processing where the post processing is always disable by default, and
-    // then activated
-    // in the TranslateStep
     input.setAnnotation(
         new OutputDocumentPostProcessingAnnotation(
-            new AndroidFilePostProcessing(
-                    removeDescription, postProcessIndent, removeTranslatableFalse)
-                ::execute,
-            removeDescription));
+            new AndroidFilePostProcessor(
+                false,
+                removeDescription,
+                postProcessIndent,
+                removeTranslatableFalse,
+                shouldApplyPostProcessingRemoveUntranslatedExcluded)));
   }
 
   void applyFilterOptions(RawDocument input) {
@@ -157,18 +161,21 @@ public class AndroidFilter extends XMLFilter {
           REMOVE_DESCRIPTION,
           b -> {
             removeDescription = b;
+            shouldApplyPostProcessingRemoveUntranslatedExcluded = true;
           });
 
       filterOptions.getBoolean(
           POST_PROCESS_REMOVE_TRANSLATABLE_FALSE,
           b -> {
             removeTranslatableFalse = b;
+            shouldApplyPostProcessingRemoveUntranslatedExcluded = true;
           });
 
       filterOptions.getInteger(
           POST_PROCESS_INDENT,
           i -> {
             postProcessIndent = i;
+            shouldApplyPostProcessingRemoveUntranslatedExcluded = true;
           });
     }
   }
@@ -434,22 +441,32 @@ public class AndroidFilter extends XMLFilter {
     }
   }
 
-  static class AndroidFilePostProcessing {
+  static class AndroidFilePostProcessor extends OutputDocumentPostProcessorBase {
     static final String DESCRIPTION_ATTRIBUTE = "description";
     boolean removeDescription;
     boolean removeTranslatableFalse;
     int indent;
+    boolean shouldApplyPostProcessingRemoveUntranslatedExcluded;
 
-    AndroidFilePostProcessing(
-        boolean removeDescription, int indent, boolean removeTranslatableFalse) {
+    AndroidFilePostProcessor(
+        boolean removeUntranslated,
+        boolean removeDescription,
+        int indent,
+        boolean removeTranslatableFalse,
+        boolean shouldApplyPostProcessingRemoveUntranslatedExcluded) {
+      this.setRemoveUntranslated(removeUntranslated);
       this.removeDescription = removeDescription;
       this.removeTranslatableFalse = removeTranslatableFalse;
       this.indent = indent;
+      this.shouldApplyPostProcessingRemoveUntranslatedExcluded =
+          shouldApplyPostProcessingRemoveUntranslatedExcluded;
     }
 
-    String execute(String xmlContent) {
+    public String execute(String xmlContent) {
 
-      if (xmlContent == null || xmlContent.isBlank()) {
+      if (xmlContent == null
+          || xmlContent.isBlank()
+          || (!shouldApplyPostProcessingRemoveUntranslatedExcluded && !removeTranslatableFalse)) {
         return xmlContent;
       }
 
@@ -464,9 +481,10 @@ public class AndroidFilter extends XMLFilter {
           Node node = stringElements.item(i);
           if (node.getNodeType() == Node.ELEMENT_NODE) {
             Element element = (Element) node;
-            if (element
-                .getTextContent()
-                .equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
+            if (hasRemoveUntranslated()
+                && element
+                    .getTextContent()
+                    .equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
               element.getParentNode().removeChild(element);
               i--;
             }
@@ -487,7 +505,9 @@ public class AndroidFilter extends XMLFilter {
 
           for (int j = 0; j < items.getLength(); j++) {
             Element item = (Element) items.item(j);
-            if (item.getTextContent().equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
+            if (hasRemoveUntranslated()
+                && item.getTextContent()
+                    .equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
               item.getParentNode().removeChild(item);
               j--;
             } else {

@@ -112,8 +112,8 @@ public class AndroidFilterTest {
 
   @Test
   public void testPostProcessingKeepDescription() {
-    AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(false, 2, false);
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, false, 2, false, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -135,7 +135,7 @@ public class AndroidFilterTest {
                 </plurals>
             </resources>
             """;
-    String output = androidFilePostProcessing.execute(input);
+    String output = androidFilePostProcessor.execute(input);
     String expected =
         """
             <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -156,8 +156,8 @@ public class AndroidFilterTest {
 
   @Test
   public void testPostProcessingRemoveDescription() {
-    AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2, false);
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -179,7 +179,7 @@ public class AndroidFilterTest {
                 </plurals>
             </resources>
             """;
-    String output = androidFilePostProcessing.execute(input);
+    String output = androidFilePostProcessor.execute(input);
     String expected =
         """
             <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -200,18 +200,18 @@ public class AndroidFilterTest {
 
   @Test
   public void testPostProcessingEmptyFile() {
-    AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2, false);
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false);
     String input = "";
-    String output = androidFilePostProcessing.execute(input);
+    String output = androidFilePostProcessor.execute(input);
     String expected = "";
     assertEquals(expected, output);
   }
 
   @Test
   public void testPostProcessingNoProlog() {
-    AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2, false);
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false);
     String input =
         """
             <resources>
@@ -219,7 +219,7 @@ public class AndroidFilterTest {
                 <string name="pinterest">@#$untranslated$#@</string>
             </resources>
             """;
-    String output = androidFilePostProcessing.execute(input);
+    String output = androidFilePostProcessor.execute(input);
     String expected =
         """
             <resources>
@@ -231,8 +231,8 @@ public class AndroidFilterTest {
 
   @Test
   public void testPostProcessingRemoveTranslatableFalse() {
-    AndroidFilter.AndroidFilePostProcessing androidFilePostProcessing =
-        new AndroidFilter.AndroidFilePostProcessing(true, 2, true);
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -254,7 +254,7 @@ public class AndroidFilterTest {
                 </plurals>
             </resources>
             """;
-    String output = androidFilePostProcessing.execute(input);
+    String output = androidFilePostProcessor.execute(input);
     String expected =
         """
              <?xml version="1.0" encoding="UTF-8" standalone="no"?>

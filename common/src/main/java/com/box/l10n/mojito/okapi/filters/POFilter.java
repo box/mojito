@@ -106,10 +106,18 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     input.setAnnotation(
         new RemoveUntranslatedStategyAnnotation(
             RemoveUntranslatedStrategy.PLACEHOLDER_AND_POST_PROCESSING));
-    // Post processing is disable for now, it will be enabled by the TranslsateStep if there are
-    // actual text unit to remove
+
     input.setAnnotation(
-        new OutputDocumentPostProcessingAnnotation(POFilter::removeUntranslated, false));
+        new OutputDocumentPostProcessingAnnotation(
+            new OutputDocumentPostProcessingAnnotation.OutputDocumentPostProcessorBase() {
+              @Override
+              public String execute(String content) {
+                if (hasRemoveUntranslated()) {
+                  content = removeUntranslated(content);
+                }
+                return content;
+              }
+            }));
   }
 
   @Override

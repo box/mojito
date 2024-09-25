@@ -924,12 +924,22 @@ public class AndroidStringDocumentMapperTest {
     assertThat(textUnits)
         .filteredOn(tu -> tu.getName().equalsIgnoreCase("show_options"))
         .extracting("name", "target", "comment")
-        .containsOnly(tuple("show_options", "Mer \" dela", "Options"));
+        .containsOnly(tuple("show_options", "Mer \" dela", null));
 
     assertThat(textUnits)
         .filteredOn(tu -> tu.getName().equalsIgnoreCase("without_comment"))
         .extracting("target", "comment")
         .containsOnly(tuple("ei ' kommentteja", null));
+
+    assertThat(textUnits)
+        .filteredOn(tu -> tu.getName().equalsIgnoreCase("show_options2"))
+        .extracting("name", "target", "comment")
+        .containsOnly(tuple("show_options2", "Mer \\\" dela", "Options"));
+
+    assertThat(textUnits)
+        .filteredOn(tu -> tu.getName().equalsIgnoreCase("without_comment2"))
+        .extracting("target", "comment")
+        .containsOnly(tuple("ei \\' kommentteja", null));
 
     assertThat(textUnits)
         .filteredOn(tu -> tu.getName().equalsIgnoreCase("line_break"))
