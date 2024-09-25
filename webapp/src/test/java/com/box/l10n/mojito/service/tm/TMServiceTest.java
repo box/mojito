@@ -3647,6 +3647,100 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testLocalizeMacStringsRemoveUntranslated() throws Exception {
+
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale;
+    try {
+      repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+    } catch (RepositoryLocaleCreationException e) {
+      throw new RuntimeException(e);
+    }
+
+    String assetContent =
+        """
+            /* comment 1 */
+            "key1" = "value1";
+
+            /* comment 2 */
+            "key2" = "value2";
+            """;
+
+    String expectedLocalizedAsset =
+        """
+            /* comment 1 */
+            "key1" = "";
+
+            /* comment 2 */
+            "key2" = "";
+            """;
+
+    asset = assetService.createAssetWithContent(repo.getId(), "Localizable.strings", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null, null);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "ja-JP",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.REMOVE_UNTRANSLATED,
+            null);
+    logger.debug("localized=\n{}\nEOL", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+
+    String forImport =
+        """
+            /* comment 1 */
+            "key1" = "value1-jp";
+
+            /* comment 2 */
+            "key2" = "value2-jp";
+            """;
+
+    logger.debug("formimport=\n{}", forImport);
+
+    tmService
+        .importLocalizedAssetAsync(
+            assetId,
+            forImport,
+            repoLocale.getLocale().getId(),
+            StatusForEqualTarget.TRANSLATION_NEEDED,
+            null,
+            null)
+        .get();
+
+    localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "ja-JP",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.REMOVE_UNTRANSLATED,
+            null);
+    logger.info("localized after import=\n{}", localizedAsset);
+    assertEquals(forImport, localizedAsset);
+  }
+
+  @Test
   public void testLocalizeMacStringsNamessNotEnclosedInDoubleQuotes() throws Exception {
 
     Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
