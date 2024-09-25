@@ -469,6 +469,52 @@ public class PhraseClient {
         .block();
   }
 
+  public String nativeLocaleDownload(
+      String projectId,
+      String locale,
+      String fileFormat,
+      String tags,
+      Supplier<String> onTagErrorRefreshCallback) {
+    AtomicReference<String> refTags = new AtomicReference<>(tags);
+    return Mono.fromCallable(
+            () -> {
+              logger.info(
+                  "Native Downloading locale: {} from project id: {} in file format: {}",
+                  locale,
+                  projectId,
+                  fileFormat);
+
+              String localeDownloadContent = null;
+              return localeDownloadContent;
+            })
+        .retryWhen(
+            retryBackoffSpec.doBeforeRetry(
+                doBeforeRetry -> {
+                  logAttempt(
+                      doBeforeRetry.failure(),
+                      "Retrying failed attempt to localeDownload from Phrase, project id: %s, locale: %s"
+                          .formatted(projectId, locale));
+
+                  if (onTagErrorRefreshCallback != null
+                      && getErrorMessageFromOptionalApiException(doBeforeRetry.failure())
+                          .contains("Invalid Download Options. Parameter tags ")) {
+                    String newTags = onTagErrorRefreshCallback.get();
+                    logger.warn(
+                        "Replacing old tags: {} with new tags: {} for download locale",
+                        refTags.get(),
+                        newTags);
+                    refTags.set(newTags);
+                  }
+                }))
+        .doOnError(
+            throwable ->
+                rethrowExceptionWithLog(
+                    throwable,
+                    "Final error to localeDownload from Phrase, project id: %s, locale: %s"
+                        .formatted(projectId, locale)))
+        .block();
+  }
+
   public List<TranslationKey> getKeys(String projectId, String tags) {
     KeysApi keysApi = new KeysApi(apiClient);
     AtomicInteger page = new AtomicInteger(0);
