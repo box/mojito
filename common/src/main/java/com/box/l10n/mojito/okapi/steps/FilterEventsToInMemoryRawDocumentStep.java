@@ -126,9 +126,11 @@ public class FilterEventsToInMemoryRawDocumentStep extends BasePipelineStep {
     OutputDocumentPostProcessingAnnotation outputDocumentPostProcessingAnnotation =
         rawDocument.getAnnotation(OutputDocumentPostProcessingAnnotation.class);
     if (outputDocumentPostProcessingAnnotation != null
-        && outputDocumentPostProcessingAnnotation.isEnabled()) {
+        && outputDocumentPostProcessingAnnotation.getOutputDocumentPostProcessor() != null) {
       outputDocument =
-          outputDocumentPostProcessingAnnotation.getPostProcessing().apply(outputDocument);
+          outputDocumentPostProcessingAnnotation
+              .getOutputDocumentPostProcessor()
+              .execute(outputDocument);
     }
 
     return outputDocument;

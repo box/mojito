@@ -1,31 +1,38 @@
 package com.box.l10n.mojito.okapi.steps;
 
-import java.util.function.Function;
 import net.sf.okapi.common.annotation.IAnnotation;
 
 public class OutputDocumentPostProcessingAnnotation implements IAnnotation {
-  Function<String, String> postProcessing;
-  boolean enabled;
+  OutputDocumentPostProcessor outputDocumentPostProcessor;
 
   public OutputDocumentPostProcessingAnnotation(
-      Function<String, String> postProcessing, boolean enabled) {
-    this.postProcessing = postProcessing;
-    this.enabled = enabled;
+      OutputDocumentPostProcessor outputDocumentPostProcessor) {
+    this.outputDocumentPostProcessor = outputDocumentPostProcessor;
   }
 
-  public Function<String, String> getPostProcessing() {
-    return postProcessing;
+  public OutputDocumentPostProcessor getOutputDocumentPostProcessor() {
+    return outputDocumentPostProcessor;
   }
 
-  public void setPostProcessing(Function<String, String> postProcessing) {
-    this.postProcessing = postProcessing;
+  public interface OutputDocumentPostProcessor {
+    String execute(String content);
+
+    boolean hasRemoveUntranslated();
+
+    void setRemoveUntranslated(boolean removeUntranslated);
   }
 
-  public boolean isEnabled() {
-    return enabled;
-  }
+  public abstract static class OutputDocumentPostProcessorBase
+      implements OutputDocumentPostProcessor {
+    boolean removeUntranslated = false;
 
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
+    public boolean hasRemoveUntranslated() {
+      return removeUntranslated;
+    }
+
+    @Override
+    public void setRemoveUntranslated(boolean removeUntranslated) {
+      this.removeUntranslated = removeUntranslated;
+    }
   }
 }
