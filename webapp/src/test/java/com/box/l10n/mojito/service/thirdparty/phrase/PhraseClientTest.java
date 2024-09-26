@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty.phrase;
 
+import static com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter.EscapeType.NONE;
+
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.android.strings.AndroidSingular;
 import com.box.l10n.mojito.android.strings.AndroidStringDocument;
@@ -148,8 +150,9 @@ public class PhraseClientTest {
       source.addSingular(
           new AndroidSingular(20L, i + "-string11", "simple <i>tag</i>", "test comment2"));
 
-      String androidFile = new AndroidStringDocumentWriter(source, i % 2 == 0).toText();
+      String androidFile = new AndroidStringDocumentWriter(source, NONE).toText();
       System.out.println(androidFile);
+
       Upload upload =
           phraseClient.nativeUploadAndWait(
               testProjectId,
@@ -180,6 +183,19 @@ public class PhraseClientTest {
               i % 2 == 0 ? "test-escaping" : "test-no-escaping",
               () -> null);
       System.out.println(s);
+
+      String ns =
+          phraseClient.nativeLocaleDownload(
+              testProjectId,
+              "en",
+              "xml",
+              i % 2 == 0 ? "test-escaping" : "test-no-escaping",
+              ImmutableMap.of("escape_tags", "true"),
+              () -> null);
+
+      System.out.println(ns);
+
+      //      Assert.assertEquals(androidFile, ns);
     }
 
     //    for (int i = 0; i < 3; i++) {
