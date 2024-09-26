@@ -5,10 +5,10 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocument;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentReader;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
+import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter.EscapeType;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
-import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.thirdparty.phrase.PhraseClient;
@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,33 +149,20 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       String skipAssetsWithPathPattern,
       List<String> options) {
 
+    OptionsParser optionsParser = new OptionsParser(options);
+    Boolean nativeClient = optionsParser.getBoolean("nativeClient", false);
+    Map<String, String> formatOptions = getFormatOptions(optionsParser);
+    final AtomicReference<EscapeType> escapeType =
+        getEscapeTypeAtomicReference(nativeClient, optionsParser);
+
     List<TextUnitDTO> search =
         getSourceTextUnitDTOs(repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
-
-    String text = getFileContent(pluralSeparator, search, true, null);
+    String text = getFileContent(pluralSeparator, search, true, null, escapeType.get());
 
     String tagForUpload = getTagForUpload(repository.getName());
 
-    OptionsParser optionsParser = new OptionsParser(options);
-    Boolean nativeUpload = optionsParser.getBoolean("nativeUpload", false);
-    Boolean nativeUploadUnescapeTags = optionsParser.getBoolean("nativeUploadUnescapeTags", true);
-    Boolean nativeUploadUnescapeLineBreaks =
-        optionsParser.getBoolean("nativeUploadUnescapeLineBreaks", false);
-
-    if (nativeUpload) {
-      // convert_placeholder
-      // escape_linebreaks
-      // unescape_linebreaks
-      // unescape_tags
-      Map<String, String> formatOptions = new HashMap<>();
-      if (nativeUploadUnescapeTags) {
-        formatOptions.put("unescape_tags", "true");
-      }
-
-      if (nativeUploadUnescapeLineBreaks) {
-        formatOptions.put("unescape_linebreaks", "true");
-      }
-
+    if (nativeClient) {
+      logger.info("Pushing with native and options: {}", formatOptions);
       phraseClient.nativeUploadAndWait(
           projectId,
           repository.getSourceLocale().getBcp47Tag(),
@@ -341,7 +329,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
                     locale,
                     pluralSeparator,
                     currentTags,
-                    integrityCheckKeepStatusIfFailedAndSameTarget));
+                    integrityCheckKeepStatusIfFailedAndSameTarget,
+                    optionList));
 
     return null;
   }
@@ -352,7 +341,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       RepositoryLocale repositoryLocale,
       String pluralSeparator,
       String currentTags,
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+      boolean integrityCheckKeepStatusIfFailedAndSameTarget,
+      List<String> optionList) {
     try (var timer =
         Timer.resource(meterRegistry, "ThirdPartyTMSPhrase.pullLocale")
             .tag("repository", repository.getName())) {
@@ -363,7 +353,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
           repositoryLocale,
           pluralSeparator,
           currentTags,
-          integrityCheckKeepStatusIfFailedAndSameTarget);
+          integrityCheckKeepStatusIfFailedAndSameTarget,
+          optionList);
     }
   }
 
@@ -373,19 +364,49 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       RepositoryLocale repositoryLocale,
       String pluralSeparator,
       String currentTags,
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+      boolean integrityCheckKeepStatusIfFailedAndSameTarget,
+      List<String> optionList) {
 
     String localeTag = repositoryLocale.getLocale().getBcp47Tag();
     logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
 
+    OptionsParser optionsParser = new OptionsParser(optionList);
+    Boolean nativeClient = optionsParser.getBoolean("nativeClient", false);
+    Boolean escapeTags = optionsParser.getBoolean("escapeTags", true);
+    Boolean escapeLineBreaks = optionsParser.getBoolean("escapeLineBreaks", false);
+    Map<String, String> formatOptions = new HashMap<>();
+    if (escapeTags) {
+      formatOptions.put("escape_tags", "true");
+    }
+    if (escapeLineBreaks) {
+      formatOptions.put("escape_linebreaks", "true");
+    }
+    final AtomicReference<EscapeType> escapeTypeAtomicReference =
+        getEscapeTypeAtomicReference(nativeClient, optionsParser);
+
     Stopwatch localeDownloadStopWatch = Stopwatch.createStarted();
-    String fileContent =
-        phraseClient.localeDownload(
-            projectId,
-            localeTag,
-            "xml",
-            currentTags,
-            () -> getCurrentTagsForRepository(repository, projectId));
+    String fileContent;
+
+    if (nativeClient) {
+      logger.info("Pulling locale with native and options: {}", formatOptions);
+
+      fileContent =
+          phraseClient.nativeLocaleDownload(
+              projectId,
+              localeTag,
+              "xml",
+              currentTags,
+              formatOptions,
+              () -> getCurrentTagsForRepository(repository, projectId));
+    } else {
+      fileContent =
+          phraseClient.localeDownload(
+              projectId,
+              localeTag,
+              "xml",
+              currentTags,
+              () -> getCurrentTagsForRepository(repository, projectId));
+    }
 
     logger.info("Phrase locale download took: {}", localeDownloadStopWatch.elapsed());
 
@@ -398,6 +419,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     List<TextUnitDTO> textUnitDTOS =
         mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
 
+    // TODO(ja) that should not be necessary since the TextUnitBatchImporterService was fixed?
     // make sure that the source comment does not get replicated to all translations. Eventually
     // we may want to
     // communicate some comments, but anyway it should not be the source comment
@@ -440,6 +462,16 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       String skipAssetsWithPathPattern,
       String includeTextUnitsWithPattern,
       List<String> optionList) {
+
+    OptionsParser optionsParser = new OptionsParser(optionList);
+    Boolean nativeClient = optionsParser.getBoolean("nativeClient", false);
+    Map<String, String> formatOptions = getFormatOptions(optionsParser);
+
+    final AtomicReference<EscapeType> escapeType =
+        getEscapeTypeAtomicReference(nativeClient, optionsParser);
+
+    List<TextUnitDTO> search =
+        getSourceTextUnitDTOs(repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
 
     List<TextUnitDTO> pluralTextUnitDTOs =
         getSourceTextUnitDTOsPluralOnly(
@@ -486,26 +518,31 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       if (textUnitDTOS.isEmpty()) {
         logger.info("Not translation, skip upload");
       } else {
-
-        logger.info("Print text unit for {}", repositoryLocale.getLocale().getBcp47Tag());
-        textUnitDTOS.forEach(
-            textUnitDTO ->
-                logger.info(
-                    "Textunit: {}",
-                    ObjectMapper.withIndentedOutput().writeValueAsStringUnchecked(textUnitDTO)));
-
         String fileContent =
-            getFileContent(pluralSeparator, textUnitDTOS, false, pluralFormToCommaId);
+            getFileContent(
+                pluralSeparator, textUnitDTOS, false, pluralFormToCommaId, escapeType.get());
         logger.info("Push translation to phrase:\n{}", fileContent);
 
-        phraseClient.uploadAndWait(
-            projectId,
-            repositoryLocale.getLocale().getBcp47Tag(),
-            "xml",
-            repository.getName() + "-strings.xml",
-            fileContent,
-            null,
-            null);
+        if (nativeClient) {
+          logger.info("Pushing translations with native and options: {}", formatOptions);
+          phraseClient.nativeUploadAndWait(
+              projectId,
+              repositoryLocale.getLocale().getBcp47Tag(),
+              "xml",
+              repository.getName() + "-strings.xml",
+              fileContent,
+              null,
+              formatOptions.isEmpty() ? null : formatOptions);
+        } else {
+          phraseClient.uploadAndWait(
+              projectId,
+              repositoryLocale.getLocale().getBcp47Tag(),
+              "xml",
+              repository.getName() + "-strings.xml",
+              fileContent,
+              null,
+              null);
+        }
       }
     }
   }
@@ -533,7 +570,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       String pluralSeparator,
       List<TextUnitDTO> textUnitDTOS,
       boolean useSource,
-      Map<String, String> pluralFormToCommaId) {
+      Map<String, String> pluralFormToCommaId,
+      EscapeType escapeType) {
 
     AndroidStringDocumentMapper androidStringDocumentMapper =
         new AndroidStringDocumentMapper(
@@ -542,7 +580,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     AndroidStringDocument androidStringDocument =
         androidStringDocumentMapper.readFromTextUnits(textUnitDTOS, useSource);
 
-    return new AndroidStringDocumentWriter(androidStringDocument).toText();
+    return new AndroidStringDocumentWriter(androidStringDocument, escapeType).toText();
   }
 
   @Override
@@ -552,6 +590,31 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       List<String> optionList,
       Map<String, String> localeMapping) {
     throw new UnsupportedOperationException("Pull source is not supported");
+  }
+
+  private static Map<String, String> getFormatOptions(OptionsParser optionsParser) {
+    Boolean unescapeTags = optionsParser.getBoolean("unescapeTags", true);
+    Boolean unescapeLineBreaks = optionsParser.getBoolean("unescapeLineBreaks", false);
+    Map<String, String> formatOptions = new HashMap<>();
+    if (unescapeTags) {
+      formatOptions.put("unescape_tags", "true");
+    }
+
+    if (unescapeLineBreaks) {
+      formatOptions.put("unescape_linebreaks", "true");
+    }
+    return formatOptions;
+  }
+
+  private static AtomicReference<EscapeType> getEscapeTypeAtomicReference(
+      Boolean nativeClient, OptionsParser optionsParser) {
+    final AtomicReference<EscapeType> escapeType =
+        new AtomicReference<>(EscapeType.QUOTE_AND_NEW_LINE);
+    if (nativeClient) {
+      escapeType.set(EscapeType.NEW_LINE);
+    }
+    optionsParser.getString("escapeType", s -> escapeType.set(EscapeType.valueOf(s)));
+    return escapeType;
   }
 
   static class ByPluralFormComparator implements Comparator<TextUnitDTO> {
