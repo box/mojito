@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <plurals name="plural_recipe_cook_hours">
     <item formatted="false" quantity="other">所要時間：%1$,d 時間</item>

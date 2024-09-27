@@ -137,7 +137,7 @@ public class AndroidStringDocumentWriter {
 
   private void setContent(Element element, String content) {
     if (!Strings.isNullOrEmpty(content)) {
-      element.setTextContent(escapeQuotes(content));
+      element.setTextContent(escapeQuotes(content, escapeType));
     }
   }
 
@@ -159,7 +159,7 @@ public class AndroidStringDocumentWriter {
     }
   }
 
-  String escapeQuotes(String str) {
+  static String escapeQuotes(String str, EscapeType escapeType) {
     String escaped = str;
     if (!Strings.isNullOrEmpty(str)) {
       escaped =
