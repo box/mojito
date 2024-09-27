@@ -1,10 +1,7 @@
 package com.box.l10n.mojito.android.strings;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.ArrayList;
 import java.util.List;
-import org.w3c.dom.Node;
 
 public class AndroidStringDocument {
 
@@ -29,46 +26,8 @@ public class AndroidStringDocument {
     strings.add(string);
   }
 
-  public void addSingular(AndroidStringElement element, Node comment) {
-
-    checkArgument(element.isSingular(), "element should be singular");
-
-    addSingular(
-        new AndroidSingular(
-            element.getIdAttribute(),
-            element.getNameAttribute(),
-            element.getUnescapedContent(),
-            comment != null ? comment.getTextContent() : null));
-  }
-
   public void addPlural(AndroidPlural plural) {
     plurals.add(plural);
     strings.add(plural);
-  }
-
-  public void addPlural(AndroidStringElement element, Node comment) {
-
-    checkArgument(element.isPlural(), "element should be plural");
-
-    AndroidPlural.AndroidPluralBuilder builder = AndroidPlural.builder();
-    builder.setName(element.getNameAttribute());
-    if (comment != null) {
-      builder.setComment(comment.getTextContent());
-    }
-
-    element.forEachPluralItem(builder::addItem);
-
-    addPlural(builder.build());
-  }
-
-  public void addElement(Node node, Node comment) {
-
-    AndroidStringElement element = new AndroidStringElement(node);
-
-    if (element.isSingular()) {
-      addSingular(element, comment);
-    } else if (element.isPlural()) {
-      addPlural(element, comment);
-    }
   }
 }
