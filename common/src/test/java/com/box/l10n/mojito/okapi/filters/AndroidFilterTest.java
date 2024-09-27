@@ -138,7 +138,7 @@ public class AndroidFilterTest {
     String output = androidFilePostProcessor.execute(input);
     String expected =
         """
-            <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <?xml version="1.0" encoding="UTF-8"?>
             <resources>
               <string description="a description" name="pinterest2">somestring to keep</string>
               <!--testing plural-->
@@ -182,7 +182,7 @@ public class AndroidFilterTest {
     String output = androidFilePostProcessor.execute(input);
     String expected =
         """
-            <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <?xml version="1.0" encoding="UTF-8"?>
             <resources>
               <string name="pinterest2">somestring to keep</string>
               <!--testing plural-->
@@ -257,7 +257,7 @@ public class AndroidFilterTest {
     String output = androidFilePostProcessor.execute(input);
     String expected =
         """
-             <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+             <?xml version="1.0" encoding="UTF-8"?>
              <resources>
                <!--testing plural-->
                <plurals name="pins2">
@@ -265,6 +265,84 @@ public class AndroidFilterTest {
                </plurals>
              </resources>
              """;
+    assertEquals(expected, output);
+  }
+
+  @Test
+  public void testPostProcessingStandaloneNo() {
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+    String input =
+        """
+                <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                <resources>
+                    <string name="pinterest2" description="a description" translatable="false">somestring to keep</string>
+                    <string name="pinterest">@#$untranslated$#@</string>
+                    <!--testing plural-->
+                    <plurals name="pins">
+                        <item quantity="one">@#$untranslated$#@</item>
+                        <item quantity="other">@#$untranslated$#@</item>
+                    </plurals>
+                    <plurals description="testing plural attr" name="pins2">
+                        <item quantity="one">translated</item>
+                        <item quantity="other">@#$untranslated$#@</item>
+                    </plurals>
+                    <plurals name="pins3" translatable="false">
+                        <item quantity="one">pin fr</item>
+                        <item quantity="other">pins fr</item>
+                    </plurals>
+                </resources>
+                """;
+    String output = androidFilePostProcessor.execute(input);
+    String expected =
+        """
+                 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                 <resources>
+                   <!--testing plural-->
+                   <plurals name="pins2">
+                     <item quantity="one">translated</item>
+                   </plurals>
+                 </resources>
+                 """;
+    assertEquals(expected, output);
+  }
+
+  @Test
+  public void testPostProcessingStandaloneYes() {
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+    String input =
+        """
+                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <resources>
+                    <string name="pinterest2" description="a description" translatable="false">somestring to keep</string>
+                    <string name="pinterest">@#$untranslated$#@</string>
+                    <!--testing plural-->
+                    <plurals name="pins">
+                        <item quantity="one">@#$untranslated$#@</item>
+                        <item quantity="other">@#$untranslated$#@</item>
+                    </plurals>
+                    <plurals description="testing plural attr" name="pins2">
+                        <item quantity="one">translated</item>
+                        <item quantity="other">@#$untranslated$#@</item>
+                    </plurals>
+                    <plurals name="pins3" translatable="false">
+                        <item quantity="one">pin fr</item>
+                        <item quantity="other">pins fr</item>
+                    </plurals>
+                </resources>
+                """;
+    String output = androidFilePostProcessor.execute(input);
+    String expected =
+        """
+                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                 <resources>
+                   <!--testing plural-->
+                   <plurals name="pins2">
+                     <item quantity="one">translated</item>
+                   </plurals>
+                 </resources>
+                 """;
     assertEquals(expected, output);
   }
 }

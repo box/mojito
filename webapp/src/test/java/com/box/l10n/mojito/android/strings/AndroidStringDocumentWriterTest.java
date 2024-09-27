@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.android.strings;
 
+import static com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter.escapeQuotes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
@@ -289,12 +290,14 @@ public class AndroidStringDocumentWriterTest {
 
   @Test
   public void testEscapeQuotes() {
-    assertThat(writer.escapeQuotes(null)).isEqualTo("");
-    assertThat(writer.escapeQuotes("")).isEqualTo("");
-    assertThat(writer.escapeQuotes("String")).isEqualTo("String");
-    assertThat(writer.escapeQuotes("second\\\"String")).isEqualTo("second\\\\\"String");
-    assertThat(writer.escapeQuotes("third\nString")).isEqualTo("third\\nString");
-    assertThat(writer.escapeQuotes("fourth\ntest\\\"String\\\""))
+    AndroidStringDocumentWriter.EscapeType escapeType =
+        AndroidStringDocumentWriter.EscapeType.QUOTE_AND_NEW_LINE;
+    assertThat(escapeQuotes(null, escapeType)).isEqualTo(null);
+    assertThat(escapeQuotes("", escapeType)).isEqualTo("");
+    assertThat(escapeQuotes("String", escapeType)).isEqualTo("String");
+    assertThat(escapeQuotes("second\\\"String", escapeType)).isEqualTo("second\\\\\"String");
+    assertThat(escapeQuotes("third\nString", escapeType)).isEqualTo("third\\nString");
+    assertThat(escapeQuotes("fourth\ntest\\\"String\\\"", escapeType))
         .isEqualTo("fourth\\ntest\\\\\"String\\\\\"");
   }
 
