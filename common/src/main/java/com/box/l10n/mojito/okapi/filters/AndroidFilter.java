@@ -466,7 +466,7 @@ public class AndroidFilter extends XMLFilter {
 
       if (xmlContent == null
           || xmlContent.isBlank()
-          || (!shouldApplyPostProcessingRemoveUntranslatedExcluded && !removeTranslatableFalse)) {
+          || (!shouldApplyPostProcessingRemoveUntranslatedExcluded && !hasRemoveUntranslated())) {
         return xmlContent;
       }
 
@@ -553,6 +553,11 @@ public class AndroidFilter extends XMLFilter {
         StreamResult streamResult = new StreamResult(new StringWriter());
         transformer.transform(domSource, streamResult);
         String processedXmlContent = streamResult.getWriter().toString();
+
+        if (!hasStandalone) {
+          processedXmlContent = processedXmlContent.replace(" standalone=\"no\"", "");
+        }
+
         return processedXmlContent;
 
       } catch (ParserConfigurationException | SAXException | IOException | TransformerException e) {
