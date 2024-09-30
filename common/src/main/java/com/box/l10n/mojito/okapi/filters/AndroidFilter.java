@@ -561,6 +561,7 @@ public class AndroidFilter extends XMLFilter {
         return processedXmlContent;
 
       } catch (ParserConfigurationException | SAXException | IOException | TransformerException e) {
+        logger.error("Can't post-process Android XML:\n{}", xmlContent);
         throw new RuntimeException(e);
       }
     }
