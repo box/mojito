@@ -3,6 +3,9 @@ package com.box.l10n.mojito.service.branch;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +21,9 @@ public interface BranchTextUnitStatisticRepository
         JpaSpecificationExecutor<BranchTextUnitStatistic> {
 
   BranchTextUnitStatistic getByBranchStatisticIdAndTmTextUnitId(long id, long tmTextUnitId);
+
+  @EntityGraph(value = "BranchTextUnitStatisticGraph", type = EntityGraph.EntityGraphType.FETCH)
+  Page<BranchTextUnitStatistic> getByBranchStatisticId(long id, Pageable pageable);
 
   @Query(
       """

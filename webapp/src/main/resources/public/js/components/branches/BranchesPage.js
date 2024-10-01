@@ -25,6 +25,10 @@ import RepositoryStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 import AuthorityService from "../../utils/AuthorityService";
+import BranchTextUnitsParamActions from "../../actions/branches/BranchTextUnitsParamActions";
+import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions";
+import BranchTextUnitsStore from "../../stores/branches/BranchTextUnitsStore";
+import BranchTextUnitsParamStore from "../../stores/branches/BranchTextUnitsParamStore";
 
 
 class BranchesPage extends React.Component {
@@ -150,18 +154,31 @@ class BranchesPage extends React.Component {
                         }}/>
                 </AltContainer>
 
-                <AltContainer store={BranchesStore}>
+                <AltContainer stores={{ branchesStore: BranchesStore, branchTextUnitsStore: BranchTextUnitsStore}}>
                     <BranchesSearchResults
                         onChangeSelectedBranchTextUnits={(selectedBranchTextUnitIds) => {
                             BranchesPageActions.changeSelectedBranchTextUnitIds(selectedBranchTextUnitIds);
                         }}
 
-                        onChangeOpenBranchStatistic={(branchStatisticId) => {
+                        onChangeOpenBranchStatistic={(branchStatistic) => {
+                            BranchTextUnitsPageActions.resetBranchTextUnitsSearchParams();
+                            const branchStatisticId = branchStatistic ? branchStatistic.id : null;
+                            BranchTextUnitsParamActions.changeBranchStatisticId(branchStatisticId);
+                            const isPaginated = branchStatistic ? branchStatistic.isPaginated : false;
+                            if (isPaginated) {
+                                BranchTextUnitsPageActions.getBranchTextUnits();
+                            }
                             BranchesPageActions.changeOpenBranchStatistic(branchStatisticId);
                             BranchesPageActions.changeSelectedBranchTextUnitIds([]);
                         }}
 
-                        onShowBranchScreenshotsClick={(branchStatisticId) => {
+                        onShowBranchScreenshotsClick={(branchStatistic) => {
+                            BranchTextUnitsPageActions.resetBranchTextUnitsSearchParams();
+                            const { id : branchStatisticId, isPaginated } = branchStatistic;
+                            BranchTextUnitsParamActions.changeBranchStatisticId(branchStatisticId);
+                            if (isPaginated) {
+                                BranchTextUnitsPageActions.getBranchTextUnits();
+                            }
                             BranchesPageActions.changeOpenBranchStatistic(branchStatisticId);
                             BranchesScreenshotViewerActions.openScreenshotsViewer(branchStatisticId);
                         }}

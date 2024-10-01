@@ -14,10 +14,12 @@ import static org.springframework.data.jpa.domain.Specification.where;
 
 import com.box.l10n.mojito.aspect.StopWatch;
 import com.box.l10n.mojito.entity.BranchStatistic;
+import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
+import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
 import com.box.l10n.mojito.service.branch.SparseBranchStatisticRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.time.ZonedDateTime;
@@ -30,6 +32,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,6 +52,8 @@ public class BranchStatisticWS {
   @Autowired BranchStatisticRepository branchStatisticRepository;
 
   @Autowired SparseBranchStatisticRepository sparseBranchStatisticRepository;
+
+  @Autowired BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
   @JsonView(View.BranchStatistic.class)
   @RequestMapping(value = "/api/branchStatistics", method = RequestMethod.GET)
@@ -113,6 +118,19 @@ public class BranchStatisticWS {
             branchStatistics,
             branchStatisticIds.getPageable(),
             branchStatisticIds.getTotalElements());
+    return new PageView<>(page);
+  }
+
+  @JsonView(View.BranchTextUnitStatistic.class)
+  @RequestMapping(
+      value = "/api/branchStatistics/{id}/branchTextUnitStatistics",
+      method = RequestMethod.GET)
+  @StopWatch
+  public Page<BranchTextUnitStatistic> getBranchTextUnitStatisticsOfBranch(
+      @PathVariable("id") long id,
+      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+    Page<BranchTextUnitStatistic> page =
+        this.branchTextUnitStatisticRepository.getByBranchStatisticId(id, pageable);
     return new PageView<>(page);
   }
 }

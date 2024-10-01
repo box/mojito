@@ -10,6 +10,8 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 
 /**
@@ -26,6 +28,9 @@ import jakarta.persistence.Table;
           columnList = "branch_statistic_id, tm_text_unit_id",
           unique = true)
     })
+@NamedEntityGraph(
+    name = "BranchTextUnitStatisticGraph",
+    attributeNodes = {@NamedAttributeNode(value = "tmTextUnit")})
 public class BranchTextUnitStatistic extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -35,18 +40,18 @@ public class BranchTextUnitStatistic extends BaseEntity {
       foreignKey = @ForeignKey(name = "FK__BTU_STAT__BRANCH_STATISTIC__ID"))
   private BranchStatistic branchStatistic;
 
-  @JsonView(View.BranchStatistic.class)
+  @JsonView({View.BranchStatistic.class, View.BranchTextUnitStatistic.class})
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "tm_text_unit_id",
       foreignKey = @ForeignKey(name = "FK__BTU_STAT_BRANCH__TM_TEXT_UNIT__ID"))
   private TMTextUnit tmTextUnit;
 
-  @JsonView(View.BranchStatistic.class)
+  @JsonView({View.BranchStatistic.class, View.BranchTextUnitStatistic.class})
   @Column(name = "for_translation_count")
   private Long forTranslationCount = 0L;
 
-  @JsonView(View.BranchStatistic.class)
+  @JsonView({View.BranchStatistic.class, View.BranchTextUnitStatistic.class})
   @Column(name = "total_count")
   private Long totalCount = 0L;
 

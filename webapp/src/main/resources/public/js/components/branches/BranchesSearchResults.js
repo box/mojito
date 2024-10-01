@@ -6,15 +6,19 @@ import {Link, withRouter} from "react-router";
 import ClassNames from "classnames";
 import {withAppConfig} from "../../utils/AppConfig";
 import LinkHelper from "../../utils/LinkHelper";
+import Paginator from "../widgets/Paginator";
+import AltContainer from "alt-container";
+import BranchTextUnitsPaginatorStore from "../../stores/branches/BranchTextUnitsPaginatorStore";
+import BranchTextUnitsPaginatorActions from "../../actions/branches/BranchTextUnitsPaginatorActions";
+import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 
 
 class BranchesSearchResults extends React.Component {
 
     static propTypes = {
-        "branchStatistics": PropTypes.array.isRequired,
-        "openBranchStatisticId": PropTypes.number,
-        "selectedBranchTextUnitIds": PropTypes.array.isRequired,
-        "textUnitsWithScreenshotsByBranchStatisticId": PropTypes.any.isRequired,
+        "branchesStore": PropTypes.object.isRequired,
+        "branchTextUnitsStore": PropTypes.object.isRequired,
         "onChangeOpenBranchStatistic": PropTypes.func.isRequired,
         "onChangeSelectedBranchTextUnits": PropTypes.func.isRequired,
         "onShowBranchScreenshotsClick": PropTypes.func.isRequired,
@@ -23,13 +27,14 @@ class BranchesSearchResults extends React.Component {
     };
 
     isBranchStatisticOpen(branchStatistic) {
-        return this.props.openBranchStatisticId === branchStatistic.id;
+        return this.props.branchesStore.openBranchStatisticId === branchStatistic.id;
     }
 
     renderScreenshotPreview(branchStatistic) {
 
-        let numberOfScreenshots = this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size;
-        let expectedNumberOfScreenshots = branchStatistic.branchTextUnitStatistics.length;
+        let numberOfScreenshots =
+            this.props.branchesStore.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size;
+        let { textUnitTotalCount : expectedNumberOfScreenshots} = branchStatistic;
         let needScreenshot = Math.max(expectedNumberOfScreenshots - numberOfScreenshots, 0);
 
         return <div>
@@ -66,18 +71,43 @@ class BranchesSearchResults extends React.Component {
         );
     }
 
+    renderBranchTextUnitsPagination() {
+        return (
+            <Row>
+                <AltContainer store={BranchTextUnitsPaginatorStore}>
+                    <Paginator
+                        onPreviousPageClicked={() => {
+                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                            BranchTextUnitsPaginatorActions.goToPreviousPage();
+                            BranchTextUnitsPageActions.getBranchTextUnits();
+                        }}
+                        onNextPageClicked={() => {
+                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                            BranchTextUnitsPaginatorActions.goToNextPage();
+                            BranchTextUnitsPageActions.getBranchTextUnits();
+                        }}/>
+                </AltContainer>
+            </Row>
+        );
+    }
+
     renderBranchStatistic(branchStatistic) {
         let rows = [];
 
         rows.push(this.renderBranchStatisticSummary(branchStatistic));
 
-        if (branchStatistic.isTruncated === false){
+        if (branchStatistic.isPaginated === false){
             branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic) => {
                 rows.push(this.renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic));
             });
-        }
-        else {
-            rows.push(this.renderBranchTruncatedNotification(branchStatistic));
+        } else {
+            if (this.isBranchStatisticOpen(branchStatistic)) {
+                rows.push(this.renderBranchTextUnitsPagination());
+            }
+            const { branchTextUnitStatistics } = this.props.branchTextUnitsStore;
+            branchTextUnitStatistics.map((branchTextUnitStatistic) => {
+                rows.push(this.renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic));
+            });
         }
 
         rows.push(this.renderBranchStatisticSeparator(branchStatistic));
@@ -94,7 +124,7 @@ class BranchesSearchResults extends React.Component {
     };
 
     hasScreenshot(branchStatistic) {
-        return this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size > 0;
+        return this.props.branchesStore.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size > 0;
     }
 
     renderBranchName(branch) {
@@ -118,7 +148,7 @@ class BranchesSearchResults extends React.Component {
                 <Button bsStyle="default"
                         style={disabled ? {pointerEvents: "none"} : {}}
                         bsSize="small" disabled={disabled}
-                        onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)}>
+                        onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic)}>
                     <Glyphicon className="branches-branchstatistic-col1-screenshot" glyph="picture"/>
                 </Button>
             </div>
@@ -148,7 +178,7 @@ class BranchesSearchResults extends React.Component {
                         <Col md={4}>
                             <Button bsSize="xsmall"
                                     onClick={() =>
-                                        this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic.id)
+                                        this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic)
                                     }>
                                 <Glyphicon glyph={isBranchStatisticOpen ? "chevron-down" : "chevron-right"}
                                            className="color-gray-light"/>
@@ -203,7 +233,8 @@ class BranchesSearchResults extends React.Component {
 
     renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic) {
 
-        let isTextUnitChecked = this.props.selectedBranchTextUnitIds.indexOf(branchTextUnitStatistic.id) !== -1;
+        let isTextUnitChecked =
+            this.props.branchesStore.selectedBranchTextUnitIds.indexOf(branchTextUnitStatistic.id) !== -1;
 
         let className = ClassNames("branches-branchstatistic-textunit", {"branches-branchstatistic-textunit-open": this.isBranchStatisticOpen(branchStatistic)});
 
@@ -218,7 +249,7 @@ class BranchesSearchResults extends React.Component {
                                     type="checkbox"
                                     checked={isTextUnitChecked}
                                     onClick={(e) => {
-                                        let newSelected = this.props.selectedBranchTextUnitIds.slice();
+                                        let newSelected = this.props.branchesStore.selectedBranchTextUnitIds.slice();
 
                                         let index = newSelected.indexOf(branchTextUnitStatistic.id);
 
@@ -258,7 +289,7 @@ class BranchesSearchResults extends React.Component {
                     </Col>
                     <Col md={2}>
                         <div>
-                            {this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].has(branchTextUnitStatistic.tmTextUnit.id) ?
+                            {this.props.branchesStore.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].has(branchTextUnitStatistic.tmTextUnit.id) ?
                                 "" :
                                 "1"}
                         </div>
@@ -276,21 +307,13 @@ class BranchesSearchResults extends React.Component {
         );
     }
 
-    renderBranchTruncatedNotification(branchStatistic) {
-        return (
-            <Collapse key={`renderBranchStatisticSeparator-${branchStatistic.id}`} in={this.isBranchStatisticOpen(branchStatistic)}>
-                <Row className="mbl"><FormattedMessage id="branches.searchResults.truncated"></FormattedMessage></Row>
-            </Collapse>
-        );
-    }
-
     render() {
         return (
             <div>
                 <div className="mll mrl" className="branches-branchstatistic">
                     <Grid fluid={true}>
                         {this.renderGridHeader()}
-                        {this.props.branchStatistics.map(this.renderBranchStatistic.bind(this))}
+                        {this.props.branchesStore.branchStatistics.map(this.renderBranchStatistic.bind(this))}
                     </Grid>
                 </div>
             </div>

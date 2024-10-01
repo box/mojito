@@ -5,6 +5,7 @@ import BranchesScreenshotUploadActions from "./BranchesScreenshotUploadActions";
 import BranchesStore from "../../stores/branches/BranchesStore";
 import Screenshot, {TextUnit, TmTextUnit} from "../../sdk/entity/Screenshot";
 import uuidv4 from "uuid/v4";
+import BranchTextUnitsStore from "../../stores/branches/BranchTextUnitsStore";
 
 const BranchesScreenshotUploadDataSource = {
 
@@ -34,7 +35,8 @@ const BranchesScreenshotUploadDataSource = {
             screenshot.locale = repository.sourceLocale;
             screenshot.branch = branchStatistic.branch;
 
-            branchStatistic.branchTextUnitStatistics.forEach(branchTextUnitStatistic => {
+            const { branchTextUnitStatistics } = BranchTextUnitsStore.getState();
+            branchTextUnitStatistics.forEach(branchTextUnitStatistic => {
                 if (BranchesStoreState.selectedBranchTextUnitIds.indexOf(branchTextUnitStatistic.id) >= 0) {
                     screenshot.textUnits.push(new TextUnit(new TmTextUnit(branchTextUnitStatistic.tmTextUnit.id)));
                 }

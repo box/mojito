@@ -25,6 +25,12 @@ export default class BranchStatisticsContent {
 
         /**
          *
+         * @type {number}
+         */
+        this.textUnitTotalCount = 0;
+
+        /**
+         *
          * @type {BigInt}
          */
         this.forTranslationCount = null;
@@ -39,7 +45,7 @@ export default class BranchStatisticsContent {
          *
          * @type {boolean}
          */
-        this.isTruncated = false;
+        this.isPaginated = false;
 
     }
 
@@ -50,12 +56,14 @@ export default class BranchStatisticsContent {
             result.branch = Branch.toBranch(json.branch);
             result.forTranslationCount = json.forTranslationCount;
             result.totalCount = json.totalCount;
-
+            const branchTextUnitStatistics =
+                BranchTextUnitStatistics.toBranchTextUnitStatisticsList(json.branchTextUnitStatistics);
+            result.textUnitTotalCount = branchTextUnitStatistics.length;
             if (result.totalCount > totalCountLte){
-                result.isTruncated = true;
+                result.isPaginated = true;
             }
             else {
-                result.branchTextUnitStatistics = BranchTextUnitStatistics.toBranchTextUnitStatisticsList(json.branchTextUnitStatistics);
+                result.branchTextUnitStatistics = branchTextUnitStatistics;
             }
         }
 
