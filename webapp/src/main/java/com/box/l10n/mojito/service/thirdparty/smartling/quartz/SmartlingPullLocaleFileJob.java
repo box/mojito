@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty.smartling.quartz;
 
 import static com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSUtils.isFileEqualToPreviousRun;
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
 
 import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
@@ -111,7 +112,8 @@ public class SmartlingPullLocaleFileJob
 
       if (!input.isDryRun()) {
         logger.debug("Importing text units for locale: {}", smartlingLocale);
-        textUnitBatchImporterService.importTextUnits(textUnits, false, true);
+
+        textUnitBatchImporterService.importTextUnits(textUnits, fromLegacy(false, true));
       }
     }
     return null;

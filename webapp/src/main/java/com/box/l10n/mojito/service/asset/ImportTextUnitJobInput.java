@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.asset;
 
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import java.util.List;
 
@@ -8,26 +9,16 @@ import java.util.List;
  */
 public class ImportTextUnitJobInput {
 
-  boolean integrityCheckSkipped;
-  boolean integrityCheckKeepStatusIfFailedAndSameTarget;
   List<TextUnitDTO> textUnitDTOs;
+  TextUnitBatchImporterService.IntegrityChecksType integrityChecksType;
 
-  public boolean isIntegrityCheckSkipped() {
-    return integrityCheckSkipped;
+  public TextUnitBatchImporterService.IntegrityChecksType getIntegrityChecksType() {
+    return integrityChecksType;
   }
 
-  public void setIntegrityCheckSkipped(boolean integrityCheckSkipped) {
-    this.integrityCheckSkipped = integrityCheckSkipped;
-  }
-
-  public boolean isIntegrityCheckKeepStatusIfFailedAndSameTarget() {
-    return integrityCheckKeepStatusIfFailedAndSameTarget;
-  }
-
-  public void setIntegrityCheckKeepStatusIfFailedAndSameTarget(
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
-    this.integrityCheckKeepStatusIfFailedAndSameTarget =
-        integrityCheckKeepStatusIfFailedAndSameTarget;
+  public void setIntegrityChecksType(
+      TextUnitBatchImporterService.IntegrityChecksType integrityChecksType) {
+    this.integrityChecksType = integrityChecksType;
   }
 
   public List<TextUnitDTO> getTextUnitDTOs() {
