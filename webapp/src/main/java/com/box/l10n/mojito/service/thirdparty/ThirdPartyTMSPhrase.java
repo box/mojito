@@ -53,6 +53,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
   static final String TAG_PREFIX = "push_";
   static final String TAG_PREFIX_WITH_REPOSITORY = "push_%s";
+  static final boolean NATIVE_CLIENT_DEFAULT_VALUE = false;
 
   static Logger logger = LoggerFactory.getLogger(ThirdPartyTMSPhrase.class);
 
@@ -152,7 +153,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       List<String> options) {
 
     OptionsParser optionsParser = new OptionsParser(options);
-    Boolean nativeClient = optionsParser.getBoolean("nativeClient", false);
+    Boolean nativeClient = optionsParser.getBoolean("nativeClient", NATIVE_CLIENT_DEFAULT_VALUE);
     Map<String, String> formatOptions = getFormatOptions(optionsParser);
     final AtomicReference<EscapeType> escapeType =
         getEscapeTypeAtomicReference(nativeClient, optionsParser);
@@ -373,7 +374,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     logger.info("Downloading locale: {} from Phrase with tags: {}", localeTag, currentTags);
 
     OptionsParser optionsParser = new OptionsParser(optionList);
-    Boolean nativeClient = optionsParser.getBoolean("nativeClient", false);
+    Boolean nativeClient = optionsParser.getBoolean("nativeClient", NATIVE_CLIENT_DEFAULT_VALUE);
     Boolean escapeTags = optionsParser.getBoolean("escapeTags", true);
     Boolean escapeLineBreaks = optionsParser.getBoolean("escapeLineBreaks", false);
     Map<String, String> formatOptions = new HashMap<>();
@@ -467,7 +468,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       List<String> optionList) {
 
     OptionsParser optionsParser = new OptionsParser(optionList);
-    Boolean nativeClient = optionsParser.getBoolean("nativeClient", false);
+    Boolean nativeClient = optionsParser.getBoolean("nativeClient", NATIVE_CLIENT_DEFAULT_VALUE);
     Map<String, String> formatOptions = getFormatOptions(optionsParser);
 
     final AtomicReference<EscapeType> escapeType =
