@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.textunit;
 
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
+
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.BaseEntity;
@@ -310,9 +312,9 @@ public class TextUnitWS {
     PollableFuture<Void> pollableFuture =
         textUnitBatchImporterService.asyncImportTextUnits(
             importTextUnitsBatch.getTextUnits(),
-            importTextUnitsBatch.isIntegrityCheckSkipped(),
-            importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget());
-
+            fromLegacy(
+                importTextUnitsBatch.isIntegrityCheckSkipped(),
+                importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget()));
     return pollableFuture.getPollableTask();
   }
 

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.asset;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Asset;
@@ -341,7 +342,8 @@ public class VirtualAssetService {
       textUnitDTOs.add(textUnitDTO);
     }
 
-    return textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOs, false, false);
+    return textUnitBatchImporterService.asyncImportTextUnits(
+        textUnitDTOs, fromLegacy(false, false));
   }
 
   @Transactional

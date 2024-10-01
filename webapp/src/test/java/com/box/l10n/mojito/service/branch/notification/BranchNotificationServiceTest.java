@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.branch.notification;
 
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
+
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
@@ -152,8 +154,9 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     textUnitBatchImporterService
         .asyncImportTextUnits(
             importTextUnitsBatch.getTextUnits(),
-            importTextUnitsBatch.isIntegrityCheckSkipped(),
-            importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget())
+            fromLegacy(
+                importTextUnitsBatch.isIntegrityCheckSkipped(),
+                importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget()))
         .get();
 
     // make sure the stats are ready for whatever is done next in notificaiton

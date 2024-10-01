@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.machinetranslation;
 
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
+
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -127,7 +129,7 @@ public class RepositoryMachineTranslationService {
                         .collect(Collectors.toList());
 
                 textUnitBatchImporterService.importTextUnits(
-                    machineTranslatedTextUnitDTOs, false, true);
+                    machineTranslatedTextUnitDTOs, fromLegacy(false, true));
               });
     }
 

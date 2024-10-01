@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.tm.importer;
 
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -103,7 +104,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         Arrays.asList(textUnitDTO, textUnitDTO2, textUnitDTO3);
 
     PollableFuture<Void> asyncImportTextUnits =
-        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
+        textUnitBatchImporterService.asyncImportTextUnits(
+            textUnitDTOsForImport, fromLegacy(false, false));
 
     pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
@@ -150,7 +152,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     PollableFuture<Void> asyncImportTextUnits =
-        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
+        textUnitBatchImporterService.asyncImportTextUnits(
+            textUnitDTOsForImport, fromLegacy(false, false));
     pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -200,7 +203,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     PollableFuture<Void> asyncImportTextUnits =
-        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
+        textUnitBatchImporterService.asyncImportTextUnits(
+            textUnitDTOsForImport, fromLegacy(false, false));
     pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -254,7 +258,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     textUnitDTOsForImport.add(duplicatedEntry);
 
     PollableFuture<Void> asyncImportTextUnits =
-        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
+        textUnitBatchImporterService.asyncImportTextUnits(
+            textUnitDTOsForImport, fromLegacy(false, false));
     pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -326,7 +331,9 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
               + textUnitDTO.getName());
     }
 
-    textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false).get();
+    textUnitBatchImporterService
+        .asyncImportTextUnits(textUnitDTOsForImport, fromLegacy(false, false))
+        .get();
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
     assertFalse(textUnitDTOs.isEmpty());
@@ -385,7 +392,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     textUnitDTO.setTarget("v1");
 
     textUnitBatchImporterService
-        .asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false)
+        .asyncImportTextUnits(Arrays.asList(textUnitDTO), fromLegacy(false, false))
         .get();
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -417,7 +424,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     textUnitDTO.setTarget("v2");
 
     textUnitBatchImporterService
-        .asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false)
+        .asyncImportTextUnits(Arrays.asList(textUnitDTO), fromLegacy(false, false))
         .get();
 
     textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -432,7 +439,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         .addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit))
         .get();
     textUnitBatchImporterService
-        .asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false)
+        .asyncImportTextUnits(Arrays.asList(textUnitDTO), fromLegacy(false, false))
         .get();
 
     textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -477,7 +484,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     textUnitDTO.setTarget("with some broken {placeholder");
 
     PollableFuture<Void> asyncImportTextUnits =
-        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false);
+        textUnitBatchImporterService.asyncImportTextUnits(
+            Arrays.asList(textUnitDTO), fromLegacy(false, false));
     pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
     TextUnitSearcherParameters textUnitSearcherParameters =
@@ -495,7 +503,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
     textUnitDTO.setTarget("with fixed {placeholder}");
     asyncImportTextUnits =
-        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false);
+        textUnitBatchImporterService.asyncImportTextUnits(
+            Arrays.asList(textUnitDTO), fromLegacy(false, false));
     pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
     textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
