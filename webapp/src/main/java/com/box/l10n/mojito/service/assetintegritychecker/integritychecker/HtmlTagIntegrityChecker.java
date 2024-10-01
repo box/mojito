@@ -73,6 +73,19 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
     if (!isValidTagOrder(targetHtmlTags)) {
       throw new HtmlTagIntegrityCheckerException("HTML tags in target are not in valid order");
     }
+
+    logger.debug("Ad-hoc checks");
+    checkDoubleAnnotationElements(sourceContent, targetContent);
+  }
+
+  /** Adhoc check to unblock. Eventually needs a better solution. */
+  void checkDoubleAnnotationElements(String sourceContent, String targetContent) {
+    String doubleAnnotationString = "<annotation <annotation";
+    if (!sourceContent.contains(doubleAnnotationString)
+        && targetContent.contains(doubleAnnotationString)) {
+      throw new HtmlTagIntegrityCheckerException(
+          "Target must not contain: '%s'".formatted(doubleAnnotationString));
+    }
   }
 
   /**
