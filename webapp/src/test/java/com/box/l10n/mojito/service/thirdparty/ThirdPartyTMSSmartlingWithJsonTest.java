@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
@@ -147,7 +148,9 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
                             return textUnitDTO;
                           })
                       .collect(ImmutableList.toImmutableList());
-              textUnitBatchImporterService.importTextUnits(localizedTextUnitDTOs, false, false);
+
+              textUnitBatchImporterService.importTextUnits(
+                  localizedTextUnitDTOs, fromLegacy(false, false));
             });
 
     SmartlingOptions smartlingOptions = SmartlingOptions.parseList(ImmutableList.of());
@@ -386,7 +389,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
     ArgumentCaptor<ImmutableList<TextUnitDTO>> dtoListCaptor =
         ArgumentCaptor.forClass(ImmutableList.class);
     Mockito.verify(textUnitBatchImporterServiceMock, times(1))
-        .importTextUnits(dtoListCaptor.capture(), anyBoolean(), anyBoolean());
+        .importTextUnits(dtoListCaptor.capture(), any());
     ImmutableList<TextUnitDTO> translatedUnits = dtoListCaptor.getValue();
 
     // Expecting two fully translated units
@@ -409,7 +412,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
     dtoListCaptor = ArgumentCaptor.forClass(ImmutableList.class);
     Mockito.verify(textUnitBatchImporterServiceMock, times(2))
-        .importTextUnits(dtoListCaptor.capture(), anyBoolean(), anyBoolean());
+        .importTextUnits(dtoListCaptor.capture(), any());
     translatedUnits = dtoListCaptor.getValue();
 
     // Expecting two fully translated units

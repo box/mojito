@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.thirdparty;
 
 import static com.box.l10n.mojito.android.strings.AndroidStringDocumentReader.fromText;
 import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -199,8 +200,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             anyString());
     doReturn(null)
         .when(mockTextUnitBatchImporterService)
-        .importTextUnits(any(), eq(false), eq(true));
-
+        .importTextUnits(any(), eq(fromLegacy(false, true)));
     resultProcessor = new StubSmartlingResultProcessor();
     tmsSmartling =
         new ThirdPartyTMSSmartling(
