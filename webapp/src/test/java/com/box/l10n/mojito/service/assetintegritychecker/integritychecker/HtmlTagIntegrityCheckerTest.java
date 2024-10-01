@@ -193,6 +193,14 @@ public class HtmlTagIntegrityCheckerTest {
     checker.check(source, target);
   }
 
+  @Test(expected = HtmlTagIntegrityCheckerException.class)
+  public void testHtmlTagCheckWithDuplicatedAnnotation() {
+    String source = "<annotation url=\"https://something.com\">text</annotation>";
+    String target = "<annotation <annotation url=\"https://something.com\">text</annotation>";
+
+    checker.check(source, target);
+  }
+
   @Test
   public void testHtmlTagCheckNonTagLessThanDoesntConfuseThings() {
     String source = "Upload is <10% complete.";
