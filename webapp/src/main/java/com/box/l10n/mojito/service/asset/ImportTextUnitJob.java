@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.asset;
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +26,9 @@ public class ImportTextUnitJob extends QuartzPollableJob<ImportTextUnitJobInput,
   @Override
   public Void call(ImportTextUnitJobInput input) throws Exception {
     logger.debug("Run ImportTextUnitJob");
-    textUnitBatchImporterService.importTextUnits(
-        input.getTextUnitDTOs(),
-        input.isIntegrityCheckSkipped(),
-        input.isIntegrityCheckKeepStatusIfFailedAndSameTarget());
+    List<TextUnitDTO> textUnitDTOs = input.getTextUnitDTOs();
+
+    textUnitBatchImporterService.importTextUnits(textUnitDTOs, input.getIntegrityChecksType());
     return null;
   }
 }

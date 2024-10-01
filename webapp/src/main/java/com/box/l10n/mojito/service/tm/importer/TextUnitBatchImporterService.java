@@ -96,6 +96,40 @@ public class TextUnitBatchImporterService {
   @Value("${l10n.textUnitBatchImporterService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
+  public enum IntegrityChecksType {
+    /** Don't run integrity checks */
+    SKIP,
+    /** Always use the status from the integrity checker (legacy behavior 1) */
+    ALWAYS,
+    /**
+     * Run integrity checks. If it fails and the target is the same, keep the current status;
+     * otherwise, reject (legacy behavior 2).
+     */
+    KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET,
+    /**
+     * Run integrity checks. If the target is the same, keep the current status.
+     *
+     * <p>This is an extension of the legacy behavior that allows marking a translation as invalid
+     * when the integrity check did not catch the issue, eventually causing a build failure.
+     */
+    KEEP_STATUS_IF_SAME_TARGET;
+
+    public static IntegrityChecksType fromLegacy(
+        boolean integrityCheckSkipped, boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+      IntegrityChecksType legacy = IntegrityChecksType.SKIP;
+
+      if (!integrityCheckSkipped) {
+        if (!integrityCheckKeepStatusIfFailedAndSameTarget) {
+          legacy = ALWAYS;
+        } else {
+          legacy = KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET;
+        }
+      }
+
+      return legacy;
+    }
+  }
+
   /**
    * Imports a batch of text units.
    *
@@ -115,15 +149,11 @@ public class TextUnitBatchImporterService {
    * @return
    */
   public PollableFuture<Void> asyncImportTextUnits(
-      List<TextUnitDTO> textUnitDTOs,
-      boolean integrityCheckSkipped,
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+      List<TextUnitDTO> textUnitDTOs, IntegrityChecksType integrityChecksType) {
 
     ImportTextUnitJobInput importTextUnitJobInput = new ImportTextUnitJobInput();
     importTextUnitJobInput.setTextUnitDTOs(textUnitDTOs);
-    importTextUnitJobInput.setIntegrityCheckSkipped(integrityCheckSkipped);
-    importTextUnitJobInput.setIntegrityCheckKeepStatusIfFailedAndSameTarget(
-        integrityCheckKeepStatusIfFailedAndSameTarget);
+    importTextUnitJobInput.setIntegrityChecksType(integrityChecksType);
 
     return quartzPollableTaskScheduler.scheduleJob(
         ImportTextUnitJob.class, importTextUnitJobInput, schedulerName);
@@ -131,9 +161,7 @@ public class TextUnitBatchImporterService {
 
   @StopWatch
   public PollableFuture<Void> importTextUnits(
-      List<TextUnitDTO> textUnitDTOs,
-      boolean integrityCheckSkipped,
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+      List<TextUnitDTO> textUnitDTOs, IntegrityChecksType integrityChecksType) {
 
     return meterRegistry
         .timer("TextUnitBatchImporterService.importTextUnits")
@@ -164,7 +192,7 @@ public class TextUnitBatchImporterService {
 
                             mapTextUnitsToImportWithExistingTextUnits(
                                 locale, asset, textUnitsForBatchImport);
-                            if (!integrityCheckSkipped) {
+                            if (!IntegrityChecksType.SKIP.equals(integrityChecksType)) {
                               try (var timer2 =
                                   Timer.resource(
                                           meterRegistry,
@@ -173,9 +201,7 @@ public class TextUnitBatchImporterService {
                                       .tag("asset", asset.getPath())) {
 
                                 applyIntegrityChecks(
-                                    asset,
-                                    textUnitsForBatchImport,
-                                    integrityCheckKeepStatusIfFailedAndSameTarget);
+                                    asset, textUnitsForBatchImport, integrityChecksType);
                               }
                             }
                             importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
@@ -314,7 +340,7 @@ public class TextUnitBatchImporterService {
   void applyIntegrityChecks(
       Asset asset,
       List<TextUnitForBatchMatcherImport> textUnitsForBatchImport,
-      boolean keepStatusIfCheckFailedAndSameTarget) {
+      IntegrityChecksType integrityChecksType) {
 
     Set<TextUnitIntegrityChecker> textUnitCheckers =
         integrityCheckerFactory.getTextUnitCheckers(asset);
@@ -338,7 +364,7 @@ public class TextUnitBatchImporterService {
           boolean hasSameTarget =
               textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
 
-          if (hasSameTarget && keepStatusIfCheckFailedAndSameTarget) {
+          if (hasSameTarget && !IntegrityChecksType.ALWAYS.equals(integrityChecksType)) {
             textUnitForBatchImport.setIncludedInLocalizedFile(
                 currentTextUnit.isIncludedInLocalizedFile());
             textUnitForBatchImport.setStatus(currentTextUnit.getStatus());

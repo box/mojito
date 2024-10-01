@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.thirdparty;
 
 import static com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSUtils.isFileEqualToPreviousRun;
 import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
@@ -250,7 +251,9 @@ public class ThirdPartyTMSSmartlingWithJson {
                               t.setRepositoryName(repository.getName());
                               t.setTargetLocale(repositoryLocale.getLocale().getBcp47Tag());
                             });
-                    textUnitBatchImporterService.importTextUnits(textUnitDTOS, false, true);
+
+                    textUnitBatchImporterService.importTextUnits(
+                        textUnitDTOS, fromLegacy(false, true));
                   });
         });
   }
