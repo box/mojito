@@ -4,6 +4,7 @@ import TextUnitClient from "../../sdk/TextUnitClient";
 import WorkbenchActions from "./WorkbenchActions";
 import GitBlameActions from "./GitBlameActions";
 import TranslationHistoryActions from "./TranslationHistoryActions";
+import AiReviewActions from "./AiReviewActions";
 
 const TextUnitDataSource = {
     performSaveTextUnit: {
@@ -69,6 +70,14 @@ const TextUnitDataSource = {
         },
         success: TranslationHistoryActions.getTranslationHistorySuccess,
         error: TranslationHistoryActions.getTranslationHistoryError
+    },
+
+    getAiReview: {
+        remote(aiReviewStoreState, textUnit) {
+            return TextUnitClient.getAiReview(textUnit);
+        },
+        success: AiReviewActions.getAiReviewSuccess,
+        error: AiReviewActions.getAiReviewError
     }
 };
 
