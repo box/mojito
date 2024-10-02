@@ -100,7 +100,7 @@ public class TextUnitBatchImporterService {
     /** Don't run integrity checks */
     SKIP,
     /** Always use the status from the integrity checker (legacy behavior 1) */
-    ALWAYS,
+    ALWAYS_USE_INTEGRITY_CHECKER_STATUS,
     /**
      * Run integrity checks. If it fails and the target is the same, keep the current status;
      * otherwise, reject (legacy behavior 2).
@@ -120,7 +120,7 @@ public class TextUnitBatchImporterService {
 
       if (!integrityCheckSkipped) {
         if (!integrityCheckKeepStatusIfFailedAndSameTarget) {
-          legacy = ALWAYS;
+          legacy = ALWAYS_USE_INTEGRITY_CHECKER_STATUS;
         } else {
           legacy = KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET;
         }
@@ -356,34 +356,43 @@ public class TextUnitBatchImporterService {
       textUnitForBatchImport.setIncludedInLocalizedFile(true);
       textUnitForBatchImport.setStatus(APPROVED);
 
+      boolean hasSameTarget =
+          textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
+
       for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
         try {
           textUnitChecker.check(currentTextUnit.getSource(), textUnitForBatchImport.getContent());
-        } catch (IntegrityCheckException ice) {
 
-          boolean hasSameTarget =
-              textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
-
-          if (hasSameTarget && !IntegrityChecksType.ALWAYS.equals(integrityChecksType)) {
+          if (hasSameTarget
+              && !IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET.equals(integrityChecksType)) {
             textUnitForBatchImport.setIncludedInLocalizedFile(
                 currentTextUnit.isIncludedInLocalizedFile());
             textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
-          } else {
-            logger.info(
-                "Integrity check failed for string with source:\n{}\n\nand content:\n{}",
-                currentTextUnit.getSource(),
-                textUnitForBatchImport.getContent(),
-                ice);
-            textUnitForBatchImport.setIncludedInLocalizedFile(false);
-            textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
+          }
+        } catch (IntegrityCheckException ice) {
+          logger.info(
+              "Integrity check failed for string with source:\n{}\n\nand content:\n{}",
+              currentTextUnit.getSource(),
+              textUnitForBatchImport.getContent(),
+              ice);
+          textUnitForBatchImport.setIncludedInLocalizedFile(false);
+          textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
 
-            TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
-            tmTextUnitVariantComment.setSeverity(Severity.ERROR);
-            tmTextUnitVariantComment.setContent(ice.getMessage());
-            textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
+          if (hasSameTarget) {
+            switch (integrityChecksType) {
+              case KEEP_STATUS_IF_SAME_TARGET:
+              case KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET:
+                textUnitForBatchImport.setIncludedInLocalizedFile(
+                    currentTextUnit.isIncludedInLocalizedFile());
+                textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
+                break;
+            }
           }
 
-          break;
+          TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
+          tmTextUnitVariantComment.setSeverity(Severity.ERROR);
+          tmTextUnitVariantComment.setContent(ice.getMessage());
+          textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
         }
       }
     }
