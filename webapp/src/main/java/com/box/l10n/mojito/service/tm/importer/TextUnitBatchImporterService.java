@@ -37,6 +37,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
+import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -63,6 +64,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 public class TextUnitBatchImporterService {
+
+  static final String FALSE_POSITIVE_TAG_FOR_STATUS = "false positive";
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(TextUnitBatchImporterService.class);
@@ -101,6 +104,14 @@ public class TextUnitBatchImporterService {
     SKIP,
     /** Always use the status from the integrity checker (legacy behavior 1) */
     ALWAYS_USE_INTEGRITY_CHECKER_STATUS,
+
+    /**
+     * Use the status from the integrity check unless the current translation has a tag in the
+     * comment saying this was a false positive.
+     *
+     * <p>In case of false positive, we don't want to change the status back
+     */
+    UNLESS_TAGGED_USE_INTEGRITY_CHECKER_STATUS,
     /**
      * Run integrity checks. If it fails and the target is the same, keep the current status;
      * otherwise, reject (legacy behavior 2).
@@ -380,6 +391,12 @@ public class TextUnitBatchImporterService {
 
           if (hasSameTarget) {
             switch (integrityChecksType) {
+              case UNLESS_TAGGED_USE_INTEGRITY_CHECKER_STATUS:
+                if (!Strings.nullToEmpty(currentTextUnit.getTargetComment())
+                    .toLowerCase()
+                    .contains(FALSE_POSITIVE_TAG_FOR_STATUS)) {
+                  break;
+                }
               case KEEP_STATUS_IF_SAME_TARGET:
               case KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET:
                 textUnitForBatchImport.setIncludedInLocalizedFile(
