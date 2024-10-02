@@ -110,6 +110,12 @@ class TextUnitClient extends BaseClient {
         });
     }
 
+    getAiReview(textUnit) {
+        return this.get(this.baseUrl + "proto-ai-review", {
+            "tmTextUnitVariantId": textUnit.getTmTextUnitVariantId()
+        });
+    }
+
     getEntityName() {
         return 'textunits';
     }
