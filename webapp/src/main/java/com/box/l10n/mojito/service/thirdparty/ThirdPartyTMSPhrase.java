@@ -1,7 +1,5 @@
 package com.box.l10n.mojito.service.thirdparty;
 
-import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType.fromLegacy;
-
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.android.strings.AndroidStringDocument;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
@@ -15,6 +13,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.thirdparty.phrase.PhraseClient;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.IntegrityChecksType;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -320,6 +319,11 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     Boolean integrityCheckKeepStatusIfFailedAndSameTarget =
         optionsParser.getBoolean("integrityCheckKeepStatusIfFailedAndSameTarget", true);
 
+    AtomicReference<IntegrityChecksType> integrityChecksType =
+        new AtomicReference<>(IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+    optionsParser.getString(
+        "integrityChecksType", s -> integrityChecksType.set(IntegrityChecksType.valueOf(s)));
+
     // may already hit rate limit, according it is 4 qps ... there is a retry in the locale client
     // though.
     // but 4 qps is very low to download 64 locales.
@@ -332,7 +336,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
                     locale,
                     pluralSeparator,
                     currentTags,
-                    integrityCheckKeepStatusIfFailedAndSameTarget,
+                    integrityChecksType.get(),
                     optionList));
 
     return null;
@@ -344,7 +348,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       RepositoryLocale repositoryLocale,
       String pluralSeparator,
       String currentTags,
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget,
+      IntegrityChecksType integrityChecksType,
       List<String> optionList) {
     try (var timer =
         Timer.resource(meterRegistry, "ThirdPartyTMSPhrase.pullLocale")
@@ -356,7 +360,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
           repositoryLocale,
           pluralSeparator,
           currentTags,
-          integrityCheckKeepStatusIfFailedAndSameTarget,
+          integrityChecksType,
           optionList);
     }
   }
@@ -367,7 +371,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
       RepositoryLocale repositoryLocale,
       String pluralSeparator,
       String currentTags,
-      boolean integrityCheckKeepStatusIfFailedAndSameTarget,
+      IntegrityChecksType integrityChecksType,
       List<String> optionList) {
 
     String localeTag = repositoryLocale.getLocale().getBcp47Tag();
@@ -430,8 +434,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     Stopwatch importStopWatch = Stopwatch.createStarted();
 
-    textUnitBatchImporterService.importTextUnits(
-        textUnitDTOS, fromLegacy(false, integrityCheckKeepStatusIfFailedAndSameTarget));
+    textUnitBatchImporterService.importTextUnits(textUnitDTOS, integrityChecksType);
     logger.info("Time importing text units: {}", importStopWatch.elapsed());
   }
 
