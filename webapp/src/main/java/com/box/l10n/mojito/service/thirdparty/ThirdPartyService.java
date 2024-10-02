@@ -309,14 +309,17 @@ public class ThirdPartyService {
       String pluralSeparator,
       boolean deleteCurrentMapping) {
     logger.debug("Map third party text units to text unit DTOs for asset: {}", asset.getId());
-    Set<Long> alreadyMappedTmTextUnitId =
-        thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
+
+    Set<Long> alreadyMappedTmTextUnitId;
 
     if (deleteCurrentMapping) {
       logger.info("Delete existing ThirdPartyTextUnit mapping for asset id: {}", asset.getId());
       int deletedCount = thirdPartyTextUnitRepository.deleteByAssetId(asset.getId());
       logger.info(
           "Deleted {} ThirdPartyTextUnit mappings for asset id: {}", deletedCount, asset.getId());
+      alreadyMappedTmTextUnitId = Collections.emptySet();
+    } else {
+      alreadyMappedTmTextUnitId = thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
     }
 
     boolean allWithTmTextUnitId =
