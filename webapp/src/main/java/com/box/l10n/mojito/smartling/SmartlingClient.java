@@ -346,6 +346,9 @@ public class SmartlingClient {
 
       try (CloseableHttpResponse response = httpclient.execute(uploadFileMethod)) {
         String responseBody = EntityUtils.toString(response.getEntity());
+        if (response.getCode() != 200 && response.getCode() != 202) {
+          logger.error("Error uploading file with code '{}': {}", response.getCode(), responseBody);
+        }
         FileUploadResponse fileUploadResponse =
             objectMapper.readValue(responseBody, FileUploadResponse.class);
 

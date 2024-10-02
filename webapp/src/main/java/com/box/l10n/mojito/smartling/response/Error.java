@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.smartling.response;
 
-public class Errors {
+public class Error {
   private String key;
   private String message;
   private String details;
