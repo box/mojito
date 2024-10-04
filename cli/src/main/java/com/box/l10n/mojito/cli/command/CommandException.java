@@ -11,6 +11,8 @@ package com.box.l10n.mojito.cli.command;
  */
 public class CommandException extends RuntimeException {
 
+  private boolean sendAlert = true;
+
   public CommandException(Throwable cause) {
     super(cause);
   }
@@ -21,5 +23,14 @@ public class CommandException extends RuntimeException {
 
   public CommandException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public CommandException(String message, boolean sendAlert) {
+    super(message);
+    this.sendAlert = sendAlert;
+  }
+
+  public boolean isSendAlert() {
+    return this.sendAlert;
   }
 }

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffNotificationSender;
+import com.box.l10n.mojito.cli.command.utils.SlackNotificationSender;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -549,11 +549,12 @@ public class ExtractionDiffCommandTest extends CLITestBase {
 
     ExtractionDiffCommandForTest extractionDiffCommandForTest =
         l10nJCommander.getCommand(ExtractionDiffCommandForTest.class);
-    Optional<ExtractionDiffNotificationSender> mockedNotificationSender =
+    Optional<SlackNotificationSender> mockedNotificationSender =
         extractionDiffCommandForTest.getMockedNotificationSender();
     assertTrue(mockedNotificationSender.isPresent());
     verify(mockedNotificationSender.get(), times(1))
         .sendMessage(
+            "CHANNEL_ID",
             String.format(ExtractionDiffCommand.MAX_STRINGS_ADDED_BLOCK_MESSAGE, "branch", 3, 2));
     Assert.assertEquals(1L, l10nJCommander.getExitCode());
     Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))
@@ -607,6 +608,7 @@ public class ExtractionDiffCommandTest extends CLITestBase {
     assertTrue(mockedNotificationSender.isPresent());
     verify(mockedNotificationSender.get(), times(1))
         .sendMessage(
+            "CHANNEL_ID",
             String.format(ExtractionDiffCommand.MAX_STRINGS_REMOVED_BLOCK_MESSAGE, "branch", 3, 2));
     Assert.assertEquals(1L, l10nJCommander.getExitCode());
     Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))

@@ -6,18 +6,19 @@ import static java.util.Optional.of;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffNotificationSender;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryException;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.command.utils.SlackNotificationSender;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.shell.Shell;
+import com.box.l10n.mojito.slack.SlackClient;
 import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -237,12 +238,15 @@ public class ExtractionDiffCommand extends Command {
 
   @Autowired PushService pushService;
 
-  private Optional<ExtractionDiffNotificationSender> notificationSender;
+  @Autowired(required = false)
+  private SlackClient slackClient;
+
+  private Optional<SlackNotificationSender> notificationSender;
 
   // Method for testing purposes
-  protected Optional<ExtractionDiffNotificationSender> getNotificationSender() {
+  protected Optional<SlackNotificationSender> getNotificationSender() {
     if (!Strings.isNullOrEmpty(this.slackNotificationChannel)) {
-      return of(new ExtractionDiffNotificationSender(this.slackNotificationChannel));
+      return of(new SlackNotificationSender(this.slackClient));
     }
     return empty();
   }
@@ -271,6 +275,7 @@ public class ExtractionDiffCommand extends Command {
         this.notificationSender.ifPresent(
             notificationSender ->
                 notificationSender.sendMessage(
+                    this.slackNotificationChannel,
                     String.format(
                         MAX_STRINGS_ADDED_BLOCK_MESSAGE,
                         this.pushToBranchName,
@@ -284,6 +289,7 @@ public class ExtractionDiffCommand extends Command {
         this.notificationSender.ifPresent(
             notificationSender ->
                 notificationSender.sendMessage(
+                    this.slackNotificationChannel,
                     String.format(
                         MAX_STRINGS_REMOVED_BLOCK_MESSAGE,
                         this.pushToBranchName,

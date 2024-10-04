@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.cli.command.extraction;
+package com.box.l10n.mojito.cli.command.utils;
 
 import static com.box.l10n.mojito.slack.SlackClient.COLOR_WARNING;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,10 +26,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(
     classes = {
-      ExtractionDiffNotificationSenderTest.class,
-      ExtractionDiffNotificationSenderTest.ExtractionDiffNotificationSenderTestConfiguration.class
+      SlackNotificationSenderTest.class,
+      SlackNotificationSenderTest.ExtractionDiffNotificationSenderTestConfiguration.class
     })
-public class ExtractionDiffNotificationSenderTest {
+public class SlackNotificationSenderTest {
   @TestConfiguration
   static class ExtractionDiffNotificationSenderTestConfiguration {
     @Bean(name = "mockedSlackClient")
@@ -48,18 +48,17 @@ public class ExtractionDiffNotificationSenderTest {
 
   @Captor ArgumentCaptor<Message> messageArgumentCaptor;
 
-  ExtractionDiffNotificationSender extractionDiffNotificationSender;
+  SlackNotificationSender slackNotificationSender;
 
   @Before
   public void setup() {
-    this.extractionDiffNotificationSender = new ExtractionDiffNotificationSender(CHANNEL_ID);
-    this.extractionDiffNotificationSender.slackClient = this.slackClientMock;
+    this.slackNotificationSender = new SlackNotificationSender(this.slackClientMock);
     Mockito.reset(this.slackClientMock);
   }
 
   @Test
   public void testSendMessageSuccess() throws SlackClientException {
-    this.extractionDiffNotificationSender.sendMessage(MESSAGE);
+    this.slackNotificationSender.sendMessage(CHANNEL_ID, MESSAGE);
     verify(this.slackClientMock, times(1)).sendInstantMessage(this.messageArgumentCaptor.capture());
     Message slackMessage = this.messageArgumentCaptor.getValue();
     Assert.assertEquals(CHANNEL_ID, slackMessage.getChannel());
@@ -70,22 +69,20 @@ public class ExtractionDiffNotificationSenderTest {
   }
 
   @Test
-  public void testSendMessageWithoutChannel() throws SlackClientException {
-    this.extractionDiffNotificationSender.setChannel(null);
+  public void testSendMessageWithoutChannel() {
     Assert.assertThrows(
-        ExtractionDiffNotificationSenderException.class,
-        () -> this.extractionDiffNotificationSender.sendMessage(MESSAGE));
-    this.extractionDiffNotificationSender.setChannel("");
+        SlackNotificationSenderException.class,
+        () -> this.slackNotificationSender.sendMessage(null, MESSAGE));
     Assert.assertThrows(
-        ExtractionDiffNotificationSenderException.class,
-        () -> this.extractionDiffNotificationSender.sendMessage(MESSAGE));
+        SlackNotificationSenderException.class,
+        () -> this.slackNotificationSender.sendMessage("", MESSAGE));
   }
 
   @Test
   public void testSendMessageWithoutMessage() throws SlackClientException {
-    this.extractionDiffNotificationSender.sendMessage(null);
+    this.slackNotificationSender.sendMessage(CHANNEL_ID, null);
     verify(this.slackClientMock, times(0)).sendInstantMessage(any());
-    this.extractionDiffNotificationSender.sendMessage("");
+    this.slackNotificationSender.sendMessage(CHANNEL_ID, "");
     verify(this.slackClientMock, times(0)).sendInstantMessage(any());
   }
 }

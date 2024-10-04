@@ -499,7 +499,7 @@ public class ExtractionCheckCommand extends Command {
       sendFailureNotifications(
           results.stream().filter(result -> !result.isSuccessful()).collect(Collectors.toList()),
           true);
-      throw new CommandException(cliFailureString);
+      throw new CommandException(cliFailureString, false);
     }
   }
 

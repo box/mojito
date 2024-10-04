@@ -24,6 +24,13 @@ public abstract class Command {
       description = HELP_DESCRIPTION)
   private boolean help;
 
+  @Parameter(
+      names = {"--failure-slack-notification-channel", "-fsnc"},
+      arity = 1,
+      description =
+          "Slack channel to which notifications are sent, required if sending Slack notifications when CLI fails.")
+  private String failureSlackNotificationChannel;
+
   /**
    * Method to be overridden to implement the business logic of this command
    *
@@ -113,5 +120,9 @@ public abstract class Command {
 
   public void setOriginalArgs(List<String> originalArgs) {
     this.originalArgs = originalArgs;
+  }
+
+  public String getFailureSlackNotificationChannel() {
+    return this.failureSlackNotificationChannel;
   }
 }
