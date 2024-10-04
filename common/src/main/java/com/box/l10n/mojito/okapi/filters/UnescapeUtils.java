@@ -19,6 +19,8 @@ public class UnescapeUtils {
   private static final Pattern ESCAPED_QUOTES = Pattern.compile("\\\\(\"|')");
   private static final Pattern ESCAPED_BACKQUOTES = Pattern.compile("\\\\(`)");
   private static final Pattern ESCAPED_CHARACTERS = Pattern.compile("\\\\(.)?");
+  private static final Pattern ESCAPED_UNICODE_WITHOUT_SPACE =
+      Pattern.compile("\\\\u(?!0020)([0-9a-fA-F]{4})");
   private static final Pattern ESCAPED_UNICODE = Pattern.compile("\\\\u([0-9a-fA-F]{4})");
   private static final Pattern SPACES = Pattern.compile("\\s+");
   private static final Pattern LINE_FEED = Pattern.compile("\n");
@@ -73,8 +75,9 @@ public class UnescapeUtils {
    * @param text
    * @return
    */
-  String replaceEscapedUnicode(String text) {
-    return ESCAPED_UNICODE
+  String replaceEscapedUnicodeExceptSpace(String text, boolean shouldIgnoreSpace) {
+    Pattern relevantPattern = shouldIgnoreSpace ? ESCAPED_UNICODE_WITHOUT_SPACE : ESCAPED_UNICODE;
+    return relevantPattern
         .matcher(text)
         .replaceAll(match -> new String(Character.toChars(Integer.parseInt(match.group(1), 16))));
   }

@@ -157,7 +157,8 @@ public class AndroidFilter extends XMLFilter {
     String unescapedSourceString;
 
     unescapedSourceString = sourceString.trim();
-    unescapedSourceString = unescapeUtils.replaceEscapedUnicode(unescapedSourceString);
+    unescapedSourceString =
+        unescapeUtils.replaceEscapedUnicodeExceptSpace(unescapedSourceString, true);
 
     if (StringUtils.startsWith(unescapedSourceString, "\"")
         && StringUtils.endsWith(unescapedSourceString, "\"")) {
@@ -166,6 +167,8 @@ public class AndroidFilter extends XMLFilter {
     } else {
       unescapedSourceString = unescapeUtils.replaceLineFeedWithSpace(unescapedSourceString);
       unescapedSourceString = unescapeUtils.collapseSpaces(unescapedSourceString).trim();
+      unescapedSourceString =
+          unescapeUtils.replaceEscapedUnicodeExceptSpace(unescapedSourceString, false);
     }
 
     unescapedSourceString = unescapeUtils.replaceEscapedLineFeed(unescapedSourceString);

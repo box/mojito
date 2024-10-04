@@ -100,6 +100,16 @@ public class AndroidFilterTest {
     // unicode escape
     var str = "Unicode\\u00A0escape";
     testUnescaping("Unicode\\u00A0escape", "Unicode\u00A0escape");
+
+    testUnescaping("\na\nb\nc\n", "a b c");
+    testUnescaping("\n\n\n\na\n\n\nb\nc\n\n\n", "a b c");
+
+    testUnescaping("\\u0020", " ");
+    testUnescaping("\\u0020\\u0020\\u0020", "   ");
+    testUnescaping("\\u0020test\\u0020", " test ");
+    testUnescaping(
+        "\\u0020\n\n\n\na\n\n\nb\nc\n\n\n\\u0020",
+        "  a b c  "); // note that spaces are preserved, but the line feeds are turned into spaces
   }
 
   void testUnescaping(String input, String expected) {
