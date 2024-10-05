@@ -6,8 +6,10 @@ import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.github.GithubException;
+import java.io.IOException;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
+import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHPullRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -90,6 +92,13 @@ public class GithubCreatePRCommand extends Command {
       description = "The PR labels")
   List<String> labels;
 
+  @Parameter(
+      names = {"--also-close-prefixed"},
+      description =
+          "Closes all PRs that start with the specified prefix. Use this to manage PRs that are part of a batch or related by a common feature.",
+      required = false)
+  String alsoClosePrefixed = null;
+
   enum EnableAutoMergeType {
     SQUASH,
     MERGE,
@@ -107,6 +116,10 @@ public class GithubCreatePRCommand extends Command {
 
       GithubClient githubClient = githubClients.getClient(owner);
 
+      if (alsoClosePrefixed != null) {
+        closePRPrefixedWith(githubClient, alsoClosePrefixed);
+      }
+
       GHPullRequest pr = githubClient.createPR(repository, title, head, base, body, reviewers);
 
       consoleWriter.a("PR created: ").fg(Ansi.Color.CYAN).a(pr.getHtmlUrl().toString()).println();
@@ -119,5 +132,23 @@ public class GithubCreatePRCommand extends Command {
     } catch (GithubException e) {
       throw new CommandException(e);
     }
+  }
+
+  void closePRPrefixedWith(GithubClient githubClient, String alsoClosePrefixed) {
+    githubClient.listPR(repository, GHIssueState.OPEN).stream()
+        .filter(pr -> pr.getTitle().startsWith(alsoClosePrefixed))
+        .forEach(
+            pullRequest -> {
+              try {
+                consoleWriter
+                    .a("Closing: ")
+                    .fg(Ansi.Color.CYAN)
+                    .a(pullRequest.getHtmlUrl().toString())
+                    .println();
+                pullRequest.close();
+              } catch (IOException e) {
+                throw new CommandException(e);
+              }
+            });
   }
 }
