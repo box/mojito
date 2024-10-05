@@ -27,7 +27,7 @@ public class NormalizationUtilsTest {
               stopwatchICU.stop();
 
               Stopwatch stopwatchJDK = Stopwatch.createStarted();
-              // JDK can get very slow for langauge like hi-IN (ICU: PT0.043746286S , JDK:
+              // JDK can get very slow for language like hi-IN (ICU: PT0.043746286S , JDK:
               // PT27.087855617S) and bn_IN (ICU: PT0.08280765S , JDK: PT3M52.119210107S)
               String normalize2 = Normalizer.normalize(content, Normalizer.Form.NFC);
               stopwatchJDK.stop();

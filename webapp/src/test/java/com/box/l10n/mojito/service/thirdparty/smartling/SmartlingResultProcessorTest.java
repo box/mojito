@@ -97,7 +97,7 @@ public class SmartlingResultProcessorTest {
         SmartlingOptions.parseList(ImmutableList.of("dry-run=true", "request-id=" + requestId));
 
     assertThatThrownBy(() -> processor.processPush(files, smartlingOptions))
-        .hasMessageContaining("An error ocurred when uploading a push result zip file")
+        .hasMessageContaining("An error occurred when uploading a push result zip file")
         .isInstanceOf(RuntimeException.class);
   }
 

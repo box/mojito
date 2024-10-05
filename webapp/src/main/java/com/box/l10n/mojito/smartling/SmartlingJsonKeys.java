@@ -18,7 +18,7 @@ public class SmartlingJsonKeys {
     Preconditions.checkNotNull(string);
     String[] split = string.split(DELIMITER, 3);
     if (split.length != 3) {
-      throw new IllegalArgumentException("must contain 2 delimters: #@#");
+      throw new IllegalArgumentException("must contain 2 delimiters: #@#");
     }
 
     return new Key(Long.valueOf(split[0]), split[1], split[2]);

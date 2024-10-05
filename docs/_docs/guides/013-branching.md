@@ -169,7 +169,7 @@ or if the source strings are changed:
 
 ### Branch dashboard
 
-The branch dashboard is the place where developpers can check the translation status of their pull request and upload 
+The branch dashboard is the place where developers can check the translation status of their pull request and upload 
 screenshots for the strings that were created.
     
 #### Search branches
