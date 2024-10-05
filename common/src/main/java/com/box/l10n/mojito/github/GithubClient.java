@@ -23,6 +23,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
@@ -314,10 +315,12 @@ public class GithubClient {
     }
   }
 
-  public void listPR(String repository) {
+  public List<GHPullRequest> listPR(String repository, GHIssueState state) {
     try {
-      GitHub gc = getGithubClient(repository);
-      gc.getRepository(repository);
+      String repoFullPath = getRepositoryPath(repository);
+      return getGithubClient(repository)
+          .getRepository(repoFullPath)
+          .getPullRequests(GHIssueState.OPEN);
     } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new RuntimeException(e);
     }
