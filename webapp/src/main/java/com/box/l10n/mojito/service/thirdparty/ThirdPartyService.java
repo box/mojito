@@ -451,7 +451,7 @@ public class ThirdPartyService {
     } else {
       logger.debug(
           "No text units to be mapped so we don't upload the image (might be late to perform the mapping and/or it"
-              + "is not usefull to send the image)");
+              + "is not useful to send the image)");
     }
   }
 
@@ -460,7 +460,7 @@ public class ThirdPartyService {
    *
    * <p>We want to upload image only if we have mapped text units (if not it is probably because the
    * sync is delayed or failed and so there is no point uploading the image) so we need to build
-   * that list first eventhough the imageId is not available yet. The imageId will be set after the
+   * that list first even though the imageId is not available yet. The imageId will be set after the
    * image has been uploaded
    *
    * @param screenshot

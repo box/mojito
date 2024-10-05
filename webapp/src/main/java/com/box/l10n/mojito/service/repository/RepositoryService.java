@@ -159,7 +159,7 @@ public class RepositoryService {
 
   /**
    * Adds the {@link com.box.l10n.mojito.entity.ScreenshotRun} that will be used to store
-   * screenshots uploaded by developpers/manually.
+   * screenshots uploaded by developers/manually.
    *
    * <p>This run stays with {@link ScreenshotRun#lastSuccessfulRun} set to {@code false}.
    *
