@@ -6,6 +6,7 @@ import static com.box.l10n.mojito.io.Files.write;
 
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.phrase.client.ApiClient;
 import com.phrase.client.ApiException;
@@ -92,9 +93,10 @@ public class PhraseClient {
 
   Upload waitForUploadToFinish(String projectId, String uploadId) {
     UploadsApi uploadsApi = new UploadsApi(apiClient);
-
     try {
       logger.debug("Waiting for upload to finish: {}", uploadId);
+
+      Stopwatch stopwatch = Stopwatch.createStarted();
 
       Upload upload = uploadsApi.uploadShow(projectId, uploadId, null, null);
       logger.debug(
@@ -116,6 +118,8 @@ public class PhraseClient {
         throw new PhraseClientException(
             "Upload failed: %s".formatted(new ObjectMapper().writeValueAsStringUnchecked(upload)));
       }
+
+      logger.info("Waited: {} for upload: {} to finish", stopwatch.elapsed(), uploadId);
 
       return upload;
     } catch (ApiException e) {
@@ -216,6 +220,8 @@ public class PhraseClient {
       List<String> tags,
       Map<String, String> formatOptions) {
 
+    Stopwatch stopwatch = Stopwatch.createStarted();
+
     String urlString = String.format("%s/projects/%s/uploads", apiClient.getBasePath(), projectId);
     String boundary = UUID.randomUUID().toString();
     final String LINE_FEED = "\r\n";
@@ -268,6 +274,8 @@ public class PhraseClient {
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
+
+    logger.info("nativeUploadCreateFile took: {}", stopwatch.elapsed());
 
     int statusCode = response.statusCode();
     String responseBody = response.body();

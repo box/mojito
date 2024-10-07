@@ -28,11 +28,13 @@ public class AiReviewWS {
 
   TextUnitSearcher textUnitSearcher;
 
-  AiReviewConfig aiReviewConfig;
+  AiReviewConfigurationProperties aiReviewConfigurationProperties;
 
-  public AiReviewWS(TextUnitSearcher textUnitSearcher, AiReviewConfig aiReviewConfig) {
+  public AiReviewWS(
+      TextUnitSearcher textUnitSearcher,
+      AiReviewConfigurationProperties aiReviewConfigurationProperties) {
     this.textUnitSearcher = textUnitSearcher;
-    this.aiReviewConfig = aiReviewConfig;
+    this.aiReviewConfigurationProperties = aiReviewConfigurationProperties;
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/proto-ai-review")
@@ -80,7 +82,9 @@ public class AiReviewWS {
     logger.info(objectMapper.writeValueAsStringUnchecked(chatCompletionsRequest));
 
     OpenAIClient openAIClient =
-        OpenAIClient.builder().apiKey(aiReviewConfig.getOpenaiClientToken()).build();
+        OpenAIClient.builder()
+            .apiKey(aiReviewConfigurationProperties.getOpenaiClientToken())
+            .build();
 
     OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
         openAIClient.getChatCompletions(chatCompletionsRequest).join();
@@ -136,6 +140,7 @@ public class AiReviewWS {
 
               •	If the source is colloquial, keep the translation colloquial; if it’s formal, maintain formality in the translation.
               •	Pay attention to regional variations specified in the "locale" field (e.g., “es” vs. “es-419”, “fr” vs. “fr-CA”, “zh” vs. “zh-Hant”), and ensure the translation length remains similar to the source text.
+              •	Aim to provide the best translation, while compromising on length to ensure it remains close to the original text length
 
           Handling Tags and Code:
 
