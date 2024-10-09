@@ -28,6 +28,10 @@ class AuthorityService {
         return level;
     }
 
+    static canEditTransalationRoles() {
+        return this.componentName2AuthorityLevel("edit-translations");
+    }
+
     static canViewUserManagement() {
         return this.userHasPermission("user-management");
     }
@@ -42,6 +46,16 @@ class AuthorityService {
 
     static canEditScreenshots() {
         return this.userHasPermission("edit-screenshots");
+    }
+
+    static canTranslateLocale(tag) {
+        if (!this.canEditTranslations()) {
+            return false;
+        }
+        if (APP_CONFIG.user.canTranslateAllLocales) {
+            return true;
+        }
+        return APP_CONFIG.user.userLocales.includes(tag);
     }
 }
 

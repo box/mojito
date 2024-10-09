@@ -1,10 +1,11 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
-import {Button, FormControl, Modal, Form, FormGroup, ControlLabel, Alert, Collapse, Glyphicon} from "react-bootstrap";
+import {Button, FormControl, Modal, Form, FormGroup, ControlLabel, Alert, Collapse, Glyphicon, Dropdown, MenuItem, DropdownButton} from "react-bootstrap";
 import UserStatics from "../../utils/UserStatics";
 import UserActions from "../../actions/users/UserActions";
 import UserModalActions from "../../actions/users/UserModalActions";
 import {roleToIntlKey} from "./UserRole";
+import AuthorityService from "../../utils/AuthorityService";
 
 class UserModal extends React.Component{
 
@@ -26,6 +27,53 @@ class UserModal extends React.Component{
             return 'error';
         }
         return 'success';
+    }
+
+    renderLocales() {
+        const options = [];
+        let freeTagList = []
+        for (let tag of this.props.locales.allLocales.map((x) => x.bcp47Tag).toSorted()) {
+            if (this.props.modal.localeTags.includes(tag) || (this.props.modal.localeFilter && !tag.toLowerCase().includes(this.props.modal.localeFilter.toLowerCase()))) {
+                continue;
+            }
+            options.push(<option key={tag} value={tag} />);
+            freeTagList.push(tag);
+        }
+
+        let localeElements = [];
+        for (let tag of this.props.modal.localeTags.toSorted()) {
+            localeElements.push(
+                <Button key={tag + "-btn"} bsStyle="danger" onClick={() => UserModalActions.removeLocaleFromList(tag)}>
+                    <span className="glyphicon glyphicon-trash foreWhite" aria-label={"remove locale " + tag}/>
+                </Button>
+            );
+            localeElements.push(<span key={tag + "-display"}>{tag}</span>);
+        }
+
+        return (
+            <div className="mtm users-locale-select-root">
+                <div className="locales-list panel panel-default">
+                    {localeElements}
+                </div>
+                <FormControl
+                    onChange={(e) => UserModalActions.updateLocaleInput(e.target.value)}
+                    type="text"
+                    value={this.props.modal.localeInput}
+                    style={{gridArea: 'new-select'}}
+                    placeholder="de-DE"
+                    id="new-locale-input"
+                    list="new-locale-options"
+                />
+                <datalist id="new-locale-options">
+                    {options}
+                </datalist>
+                <div style={{gridArea: "new-btn", justifySelf: "start"}}>
+                    <Button bsStyle="primary" onClick={UserModalActions.pushCurrentLocale} disabled={!freeTagList.includes(this.props.modal.localeInput)}>
+                        <span className="glyphicon glyphicon-plus foreWhite" aria-label="add locale for user"/>
+                    </Button>
+                </div>
+            </div>
+        );
     }
 
     renderForm() {
@@ -63,9 +111,12 @@ class UserModal extends React.Component{
         }
 
         let options = []
-        for (let i of [UserStatics.authorityPm(), UserStatics.authorityTranslator(), UserStatics.authorityAdmin(), UserStatics.authorityUser()]) {
+        for (let i of [UserStatics.authorityUser(), UserStatics.authorityTranslator(), UserStatics.authorityPm(), UserStatics.authorityAdmin()]) {
             options.push(<option key={i} value={i}>{this.props.intl.formatMessage({id: roleToIntlKey(i)})}</option>)
         }
+
+        const roleCanTranslate = AuthorityService.canEditTransalationRoles().includes(this.props.modal.role);
+        const roleName = this.props.modal.role ? this.props.intl.formatMessage({id: roleToIntlKey(this.props.modal.role)}) : '';
 
         return (
             <Form>
@@ -117,6 +168,20 @@ class UserModal extends React.Component{
                         value={this.props.modal.passwordValidation || ''}
                         placeholder={this.props.intl.formatMessage({ id: "userEditModal.form.placeholder.passwordValidation" })}
                     />
+                </FormGroup>
+                <hr/>
+                <FormGroup>
+                    <input
+                        id="canTranslateAllLocales"
+                        onChange={(e) => UserModalActions.updateCanTranslateAllLocales(e.target.checked)}
+                        type="checkbox"
+                        checked={this.props.modal.canTranslateAllLocales}
+                        value={<FormattedMessage id="userEditModal.form.canTranslateAllLocales"/>}
+                        disabled={!roleCanTranslate}
+                    />
+                    <label className={"mls" + (roleCanTranslate ? "" : " text-muted")} htmlFor="canTranslateAllLocales"><FormattedMessage id="userEditModal.form.canTranslateAllLocales"/></label>
+                    {!roleCanTranslate && <div className="text-right pull-right"><FormattedMessage id="userEditModal.form.localesDisabled" values={{role: roleName}}/></div>}
+                    {!this.props.modal.canTranslateAllLocales && roleCanTranslate && this.renderLocales()}
                 </FormGroup>
                 <hr style={{marginBottom: "0px"}}/>
                 <FormGroup>
@@ -189,6 +254,8 @@ class UserModal extends React.Component{
                 "surname": (this.props.modal.surname || '').trim(),
                 "commonName": (this.props.modal.commonName || '').trim(),
                 "password": this.props.modal.password,
+                "canTranslateAllLocales": this.props.modal.canTranslateAllLocales,
+                "userLocales": this.props.modal.localeTags.map((x) => {return {"locale": {"bcp47Tag": x}};}),
                 "authorities": [{
                     "authority": this.props.modal.role
                 }],
@@ -205,9 +272,7 @@ class UserModal extends React.Component{
                     break;
             }
         } else {
-            this.setState({
-                alertCollapse: true
-            });
+            UserModalActions.showValueAlert();
         }
     }
 
@@ -231,7 +296,7 @@ class UserModal extends React.Component{
 
     renderValueAlert() {
         return (
-            <Collapse in={this.props.modal.alertCollapse}>
+            <Collapse in={this.props.modal.valueAlert}>
                 <div>
                     <Alert bsStyle="danger">
                         <p className="text-center text-muted"><FormattedMessage id="userEditModal.alertMessage"/></p>

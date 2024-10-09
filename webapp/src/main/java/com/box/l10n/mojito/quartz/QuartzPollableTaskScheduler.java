@@ -85,8 +85,8 @@ public class QuartzPollableTaskScheduler {
    * @param expectedSubTaskNumber set on the pollable task
    * @param triggerStartDate date at which the job should be started
    * @param uniqueId optional id used to generate the job keyname. If not provided the pollable task
-   *     id is used. Pollable id keeps changing, unique id can be used for recurring jobs (eg. update
-   *     stats of repository xyz)
+   *     id is used. Pollable id keeps changing, unique id can be used for recurring jobs (eg.
+   *     update stats of repository xyz)
    * @param inlineInput to inline the input in quartz data or save it in the blobstorage
    * @param <I>
    * @param <O>
