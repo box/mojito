@@ -26,7 +26,12 @@ import AuthorityService from "../../utils/AuthorityService";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
-
+    componentWillUnmount() {
+        GitBlameActions.close();
+        GitBlameScreenshotViewerActions.closeScreenshotsViewer();
+        TranslationHistoryActions.close();
+        ShareSearchParamsModalActions.close();
+    },
     render: function () {
         return (
             <div>
