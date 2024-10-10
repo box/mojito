@@ -1,9 +1,11 @@
 package com.box.l10n.mojito.smartling.response;
 
+import java.util.Map;
+
 public class Error {
   private String key;
   private String message;
-  private String details;
+  private Map<String, String> details;
 
   public void setKey(String key) {
     this.key = key;
@@ -21,11 +23,11 @@ public class Error {
     return this.message;
   }
 
-  public void setDetails(String details) {
+  public void setDetails(Map<String, String> details) {
     this.details = details;
   }
 
-  public String getDetails() {
+  public Map<String, String> getDetails() {
     return this.details;
   }
 }
