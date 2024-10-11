@@ -12,6 +12,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +35,21 @@ public class OpenAIClient {
 
   final Map<String, String> customHeaders;
 
+  final Duration requestTimeout;
+
   OpenAIClient(
       String apiKey,
       String host,
       ObjectMapper objectMapper,
       HttpClient httpClient,
-      Map<String, String> customHeaders) {
+      Map<String, String> customHeaders,
+      Duration requestTimeout) {
     this.apiKey = apiKey;
     this.host = Objects.requireNonNull(host);
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.httpClient = Objects.requireNonNull(httpClient);
     this.customHeaders = customHeaders;
+    this.requestTimeout = requestTimeout;
   }
 
   public static class Builder {
@@ -58,6 +63,8 @@ public class OpenAIClient {
     private HttpClient httpClient;
 
     private Map<String, String> customHeaders;
+
+    private Duration requestTimeout = Duration.ofSeconds(60);
 
     public Builder() {}
 
@@ -86,6 +93,11 @@ public class OpenAIClient {
       return this;
     }
 
+    public Builder timeout(Duration timeout) {
+      this.requestTimeout = timeout;
+      return this;
+    }
+
     public OpenAIClient build() {
 
       if (objectMapper == null) {
@@ -94,7 +106,8 @@ public class OpenAIClient {
       if (httpClient == null) {
         httpClient = createHttpClient();
       }
-      return new OpenAIClient(apiKey, host, objectMapper, httpClient, customHeaders);
+      return new OpenAIClient(
+          apiKey, host, objectMapper, httpClient, customHeaders, requestTimeout);
     }
 
     private HttpClient createHttpClient() {
@@ -133,6 +146,7 @@ public class OpenAIClient {
         HttpRequest.newBuilder()
             .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
             .headers(getHeaders())
+            .timeout(requestTimeout)
             .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
             .build();
 

@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.ai.openai;
 
 import com.box.l10n.mojito.openai.OpenAIClient;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,8 @@ public class OpenAIConfig {
 
   List<String> allowRestrictedHeaders;
 
+  Duration requestTimeout = Duration.ofSeconds(60);
+
   public void setApiKey(String apiKey) {
     this.apiKey = apiKey;
   }
@@ -31,6 +34,10 @@ public class OpenAIConfig {
 
   public void setHost(String host) {
     this.host = host;
+  }
+
+  public void setRequestTimeout(Duration requestTimeout) {
+    this.requestTimeout = requestTimeout;
   }
 
   public void setAllowRestrictedHeaders(List<String> allowRestrictedHeaders) {
