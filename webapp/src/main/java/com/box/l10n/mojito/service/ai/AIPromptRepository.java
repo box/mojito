@@ -12,9 +12,9 @@ public interface AIPromptRepository extends JpaRepository<AIPrompt, Long> {
 
   @Query(
       "SELECT ap FROM AIPrompt ap "
-          + "JOIN RepositoryAIPrompt rap ON ap.id = rap.aiPromptId "
-          + "JOIN AIPromptType apt ON rap.promptTypeId = apt.id "
-          + "WHERE rap.repositoryId = :repositoryId AND apt.name = :promptTypeName AND ap.deleted = false")
+          + "JOIN RepositoryLocaleAIPrompt rlap ON ap.id = rlap.aiPrompt.id "
+          + "JOIN AIPromptType apt ON ap.promptType.id = apt.id "
+          + "WHERE rlap.repository.id = :repositoryId AND apt.name = :promptTypeName AND ap.deleted = false")
   List<AIPrompt> findByRepositoryIdAndPromptTypeName(
       @Param("repositoryId") Long repositoryId, @Param("promptTypeName") String promptTypeName);
 
@@ -22,7 +22,7 @@ public interface AIPromptRepository extends JpaRepository<AIPrompt, Long> {
 
   @Query(
       "SELECT ap FROM AIPrompt ap "
-          + "JOIN RepositoryAIPrompt rap ON ap.id = rap.aiPromptId "
-          + "WHERE rap.repositoryId = :repositoryId AND ap.deleted = false")
+          + "JOIN RepositoryLocaleAIPrompt rlap ON ap.id = rlap.aiPrompt.id "
+          + "WHERE rlap.repository.id = :repositoryId AND ap.deleted = false")
   List<AIPrompt> findByRepositoryIdAndDeletedFalse(Long repositoryId);
 }

@@ -1,0 +1,2 @@
+ALTER TABLE repository_locale_ai_prompt
+ADD UNIQUE KEY UK__REPOSITORY_LOCALE_AI_PROMPT__REPO_ID__LOCALE_ID__AI_PROMPT (repository_id, locale_id, ai_prompt_id);

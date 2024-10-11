@@ -4,6 +4,7 @@ import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.AIPrompt;
 import com.box.l10n.mojito.entity.AIStringCheck;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.rest.ai.AICheckRequest;
 import com.box.l10n.mojito.rest.ai.AICheckResponse;
@@ -14,6 +15,9 @@ public interface LLMService {
   String SOURCE_STRING_PLACEHOLDER = "[mojito_source_string]";
   String COMMENT_STRING_PLACEHOLDER = "[mojito_comment_string]";
   String CONTEXT_STRING_PLACEHOLDER = "[mojito_context_string]";
+  String SOURCE_LOCALE_PLACEHOLDER = "[mojito_source_locale]";
+  String TARGET_LOCALE_PLACEHOLDER = "[mojito_target_locale]";
+  String PLURAL_FORM_PLACEHOLDER = "[mojito_plural_form]";
 
   /**
    * Executes AI checks on the provided text units.
@@ -51,4 +55,7 @@ public interface LLMService {
     aiStringCheck.setStringName(textUnit.getName());
     aiStringCheckRepository.save(aiStringCheck);
   }
+
+  String translate(
+      TMTextUnit tmTextUnit, String sourceBcp47Tag, String targetBcp47Tag, AIPrompt prompt);
 }

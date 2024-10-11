@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.ai.openai;
+package com.box.l10n.mojito.service.ai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,12 +12,9 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.entity.AIPrompt;
 import com.box.l10n.mojito.entity.AIPromptType;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryAIPrompt;
+import com.box.l10n.mojito.entity.RepositoryLocaleAIPrompt;
 import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.rest.ai.AIPromptCreateRequest;
-import com.box.l10n.mojito.service.ai.AIPromptRepository;
-import com.box.l10n.mojito.service.ai.AIPromptTypeRepository;
-import com.box.l10n.mojito.service.ai.RepositoryAIPromptRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,11 +31,11 @@ public class LLMPromptServiceTest {
 
   @Mock AIPromptTypeRepository aiPromptTypeRepository;
 
-  @Mock RepositoryAIPromptRepository repositoryAIPromptRepository;
+  @Mock RepositoryLocaleAIPromptRepository repositoryLocaleAIPromptRepository;
 
   @Mock RepositoryRepository repositoryRepository;
 
-  @Captor ArgumentCaptor<RepositoryAIPrompt> repositoryAIPromptCaptor;
+  @Captor ArgumentCaptor<RepositoryLocaleAIPrompt> repositoryAIPromptCaptor;
 
   @InjectMocks LLMPromptService LLMPromptService;
 
@@ -51,8 +48,8 @@ public class LLMPromptServiceTest {
   void testPromptCreation() {
     Repository repository = new Repository();
     repository.setId(1L);
-    RepositoryAIPrompt repositoryAIPrompt = new RepositoryAIPrompt();
-    repositoryAIPrompt.setId(1L);
+    RepositoryLocaleAIPrompt repositoryLocaleAIPrompt = new RepositoryLocaleAIPrompt();
+    repositoryLocaleAIPrompt.setId(1L);
     AIPromptType promptType = new AIPromptType();
     promptType.setId(1L);
     AIPrompt prompt = new AIPrompt();
@@ -69,13 +66,13 @@ public class LLMPromptServiceTest {
     when(aiPromptRepository.save(any())).thenReturn(prompt);
     when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
     when(aiPromptTypeRepository.findByName("SOURCE_STRING_CHECKER")).thenReturn(promptType);
-    when(repositoryAIPromptRepository.save(any())).thenReturn(repositoryAIPrompt);
+    when(repositoryLocaleAIPromptRepository.save(any())).thenReturn(repositoryLocaleAIPrompt);
 
     LLMPromptService.createPrompt(AIPromptCreateRequest);
 
     verify(aiPromptTypeRepository, times(1)).findByName("SOURCE_STRING_CHECKER");
     verify(aiPromptRepository, times(1)).save(any());
-    verify(repositoryAIPromptRepository, times(1)).save(any());
+    verify(repositoryLocaleAIPromptRepository, times(1)).save(any());
   }
 
   @Test
@@ -95,7 +92,7 @@ public class LLMPromptServiceTest {
     when(aiPromptRepository.save(any())).thenReturn(prompt);
     when(repositoryRepository.findByName("testRepo")).thenReturn(new Repository());
     when(aiPromptTypeRepository.findByName("SOURCE_STRING_CHECKER")).thenReturn(null);
-    when(repositoryAIPromptRepository.save(any())).thenReturn(1L);
+    when(repositoryLocaleAIPromptRepository.save(any())).thenReturn(1L);
 
     AIException exception =
         assertThrows(AIException.class, () -> LLMPromptService.createPrompt(AIPromptCreateRequest));
@@ -103,7 +100,7 @@ public class LLMPromptServiceTest {
 
     verify(aiPromptTypeRepository, times(1)).findByName("SOURCE_STRING_CHECKER");
     verify(aiPromptTypeRepository, times(0)).save(any());
-    verify(repositoryAIPromptRepository, times(0)).save(any());
+    verify(repositoryLocaleAIPromptRepository, times(0)).save(any());
   }
 
   @Test
@@ -153,9 +150,8 @@ public class LLMPromptServiceTest {
     when(aiPromptRepository.findById(1L)).thenReturn(Optional.of(aiPrompt));
     LLMPromptService.addPromptToRepository(1L, "testRepo", "SOURCE_STRING_CHECKER");
     verify(aiPromptTypeRepository, times(1)).findByName("SOURCE_STRING_CHECKER");
-    verify(repositoryAIPromptRepository, times(1)).save(repositoryAIPromptCaptor.capture());
-    assertEquals(1L, repositoryAIPromptCaptor.getValue().getAiPromptId());
-    assertEquals(2L, repositoryAIPromptCaptor.getValue().getRepositoryId());
-    assertEquals(3L, repositoryAIPromptCaptor.getValue().getPromptTypeId());
+    verify(repositoryLocaleAIPromptRepository, times(1)).save(repositoryAIPromptCaptor.capture());
+    assertEquals(1L, repositoryAIPromptCaptor.getValue().getAiPrompt().getId());
+    assertEquals(2L, repositoryAIPromptCaptor.getValue().getRepository().getId());
   }
 }

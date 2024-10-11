@@ -1,11 +1,14 @@
 package com.box.l10n.mojito.service.tm;
 
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
@@ -29,4 +32,12 @@ public interface TMTextUnitCurrentVariantRepository
       where ttucv.asset.id = ?1 and ttucv.locale.id = ?2
       """)
   List<TMTextUnitCurrentVariantDTO> findByAsset_idAndLocale_Id(Long assetId, Long localeId);
+
+  @Query(
+      """
+      select l from TMTextUnitCurrentVariant ttucv
+      join ttucv.locale l
+      where ttucv.tmTextUnit.id = :tmTextUnitId
+      """)
+  Set<Locale> findLocalesWithVariantByTmTextUnit_Id(@Param("tmTextUnitId") Long tmTextUnitId);
 }

@@ -31,6 +31,7 @@ import com.box.l10n.mojito.okapi.extractor.AssetExtractor;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.service.ai.translation.AITranslationService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -92,6 +93,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -167,6 +169,9 @@ public class AssetExtractionService {
 
   @Autowired LocalBranchToEntityBranchConverter localBranchToEntityBranchConverter;
 
+  @Autowired(required = false)
+  AITranslationService aiTranslationService;
+
   private RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler;
 
   @Value("${l10n.assetExtraction.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
@@ -214,7 +219,9 @@ public class AssetExtractionService {
         asset, createdTextUnitsResult.getUpdatedState(), currentTask);
     updatePushRun(asset, createdTextUnitsResult.getUpdatedState(), pushRunId, currentTask);
     performLeveraging(createdTextUnitsResult.getLeveragingMatches(), currentTask);
-
+    if (aiTranslationService != null) {
+      scheduleAITranslation(asset.getRepository().getId(), createdTextUnitsResult);
+    }
     logger.info("Done processing asset content id: {}", assetContentId);
     return new PollableFutureTaskResult<>(asset);
   }
@@ -266,6 +273,15 @@ public class AssetExtractionService {
             .collect(Collectors.toList());
 
     pushRunService.associatePushRunToTextUnitIds(pushRun, asset, textUnitIds);
+  }
+
+  @Async
+  void scheduleAITranslation(Long repositoryId, CreateTextUnitsResult createTextUnitsResult) {
+    Set<Long> tmTextUnitIds =
+        createTextUnitsResult.getCreatedTextUnits().stream()
+            .map(BranchStateTextUnit::getTmTextUnitId)
+            .collect(Collectors.toSet());
+    aiTranslationService.createPendingMTEntitiesInBatches(repositoryId, tmTextUnitIds);
   }
 
   MultiBranchState updateAssetExtractionWithState(

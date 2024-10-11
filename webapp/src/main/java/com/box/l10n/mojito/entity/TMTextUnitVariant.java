@@ -68,6 +68,10 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
      * TRANSLATION_NEEDED status along with a comment.
      */
     REVIEW_NEEDED,
+
+    MT_TRANSLATED,
+
+    MT_REVIEW,
     /** A string that doesn't need any work to be performed on it. */
     APPROVED;
   };

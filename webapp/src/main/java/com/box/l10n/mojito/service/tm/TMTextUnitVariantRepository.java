@@ -5,9 +5,11 @@ import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.service.ai.translation.LocaleVariantDTO;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -143,4 +145,21 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
       @Param("pushRunIds") List<Long> pushRunIds,
       @Param("pullRunIds") List<Long> pullRunIds,
       @Param("translationsFromDate") ZonedDateTime translationsFromDate);
+
+  @Query(
+      """
+          select l from TMTextUnitVariant ttuv
+          join ttuv.locale l
+          where ttuv.tmTextUnit.id = :tmTextUnitId
+          """)
+  Set<Locale> findLocalesWithVariantByTmTextUnit_Id(@Param("tmTextUnitId") Long tmTextUnitId);
+
+  @Query(
+      """
+              SELECT new com.box.l10n.mojito.service.ai.translation.LocaleVariantDTO(ttuv.locale.id, ttuv.id)
+              FROM TMTextUnitVariant ttuv
+              WHERE ttuv.tmTextUnit.id = :tmTextUnitId
+              """)
+  List<LocaleVariantDTO> findLocaleVariantDTOsByTmTextUnitId(
+      @Param("tmTextUnitId") Long tmTextUnitId);
 }

@@ -20,7 +20,7 @@ public class CreateAIPromptCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(CreateAIPromptCommand.class);
 
-  @Autowired AIServiceClient AIServiceClient;
+  @Autowired AIServiceClient aiServiceClient;
 
   @Parameter(
       names = {"--repository-name", "-r"},
@@ -58,6 +58,18 @@ public class CreateAIPromptCommand extends Command {
       description = "The temperature to use for the prompt")
   float promptTemperature = 0.0F;
 
+  @Parameter(
+      names = {"--is-json-response", "-ijr"},
+      required = false,
+      description = "The prompt response is expected to be in JSON format from the LLM")
+  boolean isJsonResponse = false;
+
+  @Parameter(
+      names = {"--json-response-key", "-jrk"},
+      required = false,
+      description = "The key to use to extract the translation from the JSON response")
+  String jsonResponseKey;
+
   @Autowired private ConsoleWriter consoleWriter;
 
   @Override
@@ -67,14 +79,19 @@ public class CreateAIPromptCommand extends Command {
 
   private void createPrompt() {
     logger.debug("Received request to create prompt");
-    AIPromptCreateRequest AIPromptCreateRequest = new AIPromptCreateRequest();
-    AIPromptCreateRequest.setRepositoryName(repository);
-    AIPromptCreateRequest.setSystemPrompt(systemPromptText);
-    AIPromptCreateRequest.setUserPrompt(userPromptText);
-    AIPromptCreateRequest.setModelName(modelName);
-    AIPromptCreateRequest.setPromptType(promptType);
-    AIPromptCreateRequest.setPromptTemperature(promptTemperature);
-    long promptId = AIServiceClient.createPrompt(AIPromptCreateRequest);
+    AIPromptCreateRequest aiPromptCreateRequest = new AIPromptCreateRequest();
+    aiPromptCreateRequest.setRepositoryName(repository);
+    aiPromptCreateRequest.setSystemPrompt(systemPromptText);
+    aiPromptCreateRequest.setUserPrompt(userPromptText);
+    aiPromptCreateRequest.setModelName(modelName);
+    aiPromptCreateRequest.setPromptType(promptType);
+    aiPromptCreateRequest.setPromptTemperature(promptTemperature);
+    aiPromptCreateRequest.setJsonResponse(isJsonResponse);
+    if (isJsonResponse && jsonResponseKey == null) {
+      throw new CommandException("jsonResponseKey is required when isJsonResponse is true");
+    }
+    aiPromptCreateRequest.setJsonResponseKey(jsonResponseKey);
+    long promptId = aiServiceClient.createPrompt(aiPromptCreateRequest);
     consoleWriter.newLine().a("Prompt created with id: " + promptId).println();
   }
 }

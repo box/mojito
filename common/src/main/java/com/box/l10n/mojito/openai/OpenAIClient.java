@@ -428,7 +428,11 @@ public class OpenAIClient {
         int index, Delta delta, @JsonProperty("finish_reason") String finishReason) {
 
       public enum FinishReasons {
-        STOP("stop");
+        STOP("stop"),
+        LENGTH("length"),
+        FUNCTION_CALL("function_call"),
+        CONTENT_FILTER("content_filter"),
+        NULL("null");
 
         String value;
 

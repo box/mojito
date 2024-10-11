@@ -3,6 +3,8 @@ package com.box.l10n.mojito.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
@@ -31,6 +33,10 @@ public class AIPrompt extends BaseEntity {
   @Column(name = "deleted")
   private boolean deleted;
 
+  @ManyToOne
+  @JoinColumn(name = "prompt_type_id")
+  private AIPromptType promptType;
+
   @CreatedDate
   @Column(name = "created_date")
   private ZonedDateTime createdDate;
@@ -43,6 +49,12 @@ public class AIPrompt extends BaseEntity {
   @Where(clause = "deleted = false")
   @OrderBy("orderIndex ASC")
   List<AIPromptContextMessage> contextMessages;
+
+  @Column(name = "json_response")
+  private boolean jsonResponse;
+
+  @Column(name = "json_response_key")
+  private String jsonResponseKey;
 
   public String getModelName() {
     return modelName;
@@ -106,5 +118,29 @@ public class AIPrompt extends BaseEntity {
 
   public void setLastModifiedDate(ZonedDateTime lastModifiedDate) {
     this.lastModifiedDate = lastModifiedDate;
+  }
+
+  public AIPromptType getPromptType() {
+    return promptType;
+  }
+
+  public void setPromptType(AIPromptType promptType) {
+    this.promptType = promptType;
+  }
+
+  public boolean isJsonResponse() {
+    return jsonResponse;
+  }
+
+  public void setJsonResponse(boolean jsonResponse) {
+    this.jsonResponse = jsonResponse;
+  }
+
+  public String getJsonResponseKey() {
+    return jsonResponseKey;
+  }
+
+  public void setJsonResponseKey(String jsonResponseKey) {
+    this.jsonResponseKey = jsonResponseKey;
   }
 }

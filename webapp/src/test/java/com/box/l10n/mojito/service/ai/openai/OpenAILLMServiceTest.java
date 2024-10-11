@@ -5,14 +5,19 @@ import static org.mockito.Mockito.*;
 
 import com.box.l10n.mojito.entity.AIPrompt;
 import com.box.l10n.mojito.entity.AIPromptContextMessage;
+import com.box.l10n.mojito.entity.AIPromptType;
+import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PromptType;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.rest.ai.AICheckRequest;
 import com.box.l10n.mojito.rest.ai.AICheckResponse;
+import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.service.ai.AIStringCheckRepository;
+import com.box.l10n.mojito.service.ai.LLMPromptService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
@@ -49,7 +54,13 @@ class OpenAILLMServiceTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
     openAILLMService.persistResults = true;
+    openAILLMService.retryMaxAttempts = 1;
+    openAILLMService.retryMinDurationSeconds = 0;
+    openAILLMService.retryMaxBackoffDurationSeconds = 0;
+    openAILLMService.init();
     when(meterRegistry.counter(anyString(), any(String[].class)))
+        .thenReturn(mock(io.micrometer.core.instrument.Counter.class));
+    when(meterRegistry.counter(anyString(), any(Iterable.class)))
         .thenReturn(mock(io.micrometer.core.instrument.Counter.class));
   }
 
@@ -299,6 +310,9 @@ class OpenAILLMServiceTest {
     prompt.setUserPrompt("Check strings for spelling");
     prompt.setModelName("gtp-3.5-turbo");
     prompt.setPromptTemperature(0.0F);
+    AIPromptType promptType = new AIPromptType();
+    promptType.setName("SOURCE_STRING_CHECKER");
+    prompt.setPromptType(promptType);
 
     AIPromptContextMessage testSystemContextMessage = new AIPromptContextMessage();
     testSystemContextMessage.setContent("A test system context message");
@@ -414,5 +428,406 @@ class OpenAILLMServiceTest {
     verify(aiStringCheckRepository, times(1)).save(any());
     verify(meterRegistry, times(1))
         .counter("OpenAILLMService.checks.result", "success", "true", "repository", "testRepo");
+  }
+
+  @Test
+  void testTranslateSuccess() {
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("Greeting");
+
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setSystemPrompt("Translate the following text:");
+    prompt.setUserPrompt("Translate this text to French:");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+
+    OpenAIClient.ChatCompletionsResponse.Choice choice =
+        new OpenAIClient.ChatCompletionsResponse.Choice(
+            0, new OpenAIClient.ChatCompletionsResponse.Choice.Message("test", "Bonjour"), "stop");
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        new OpenAIClient.ChatCompletionsResponse(
+            null, null, null, null, List.of(choice), null, null);
+    CompletableFuture<OpenAIClient.ChatCompletionsResponse> futureResponse =
+        CompletableFuture.completedFuture(chatCompletionsResponse);
+    when(openAIClient.getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class)))
+        .thenReturn(futureResponse);
+
+    String translation = openAILLMService.translate(tmTextUnit, "en", "fr", prompt);
+    assertEquals("Bonjour", translation);
+  }
+
+  @Test
+  void testTranslateResponseNonStopFinishReason() {
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("Greeting");
+
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setSystemPrompt("Translate the following text:");
+    prompt.setUserPrompt("Translate this text to French:");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+
+    OpenAIClient.ChatCompletionsResponse.Choice choice =
+        new OpenAIClient.ChatCompletionsResponse.Choice(
+            0,
+            new OpenAIClient.ChatCompletionsResponse.Choice.Message("test", "Bonjour"),
+            "length");
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        new OpenAIClient.ChatCompletionsResponse(
+            null, null, null, null, List.of(choice), null, null);
+    CompletableFuture<OpenAIClient.ChatCompletionsResponse> futureResponse =
+        CompletableFuture.completedFuture(chatCompletionsResponse);
+    when(openAIClient.getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class)))
+        .thenReturn(futureResponse);
+
+    assertThrows(
+        AIException.class, () -> openAILLMService.translate(tmTextUnit, "en", "fr", prompt));
+  }
+
+  @Test
+  void testTranslateStripTranslationFromJsonKey() {
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("Greeting");
+
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setSystemPrompt("Translate the following text:");
+    prompt.setUserPrompt("Translate this text to French:");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+    prompt.setJsonResponseKey("translation");
+    prompt.setJsonResponse(true);
+
+    OpenAIClient.ChatCompletionsResponse.Choice choice =
+        new OpenAIClient.ChatCompletionsResponse.Choice(
+            0,
+            new OpenAIClient.ChatCompletionsResponse.Choice.Message(
+                "test", "{\"translation\": \"Bonjour\"}"),
+            "stop");
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        new OpenAIClient.ChatCompletionsResponse(
+            null, null, null, null, List.of(choice), null, null);
+    CompletableFuture<OpenAIClient.ChatCompletionsResponse> futureResponse =
+        CompletableFuture.completedFuture(chatCompletionsResponse);
+    when(openAIClient.getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class)))
+        .thenReturn(futureResponse);
+
+    String translation = openAILLMService.translate(tmTextUnit, "en", "fr", prompt);
+    assertEquals("Bonjour", translation);
+  }
+
+  @Test
+  void testTranslateStripTranslationFromInvalidJson() {
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("Greeting");
+
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setSystemPrompt("Translate the following text:");
+    prompt.setUserPrompt("Translate this text to French:");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+    prompt.setJsonResponseKey("translation");
+    prompt.setJsonResponse(true);
+
+    OpenAIClient.ChatCompletionsResponse.Choice choice =
+        new OpenAIClient.ChatCompletionsResponse.Choice(
+            0,
+            new OpenAIClient.ChatCompletionsResponse.Choice.Message(
+                "test", "invalid: {\"translation\": \"Bonjour\"}"),
+            null);
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        new OpenAIClient.ChatCompletionsResponse(
+            null, null, null, null, List.of(choice), null, null);
+    CompletableFuture<OpenAIClient.ChatCompletionsResponse> futureResponse =
+        CompletableFuture.completedFuture(chatCompletionsResponse);
+    when(openAIClient.getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class)))
+        .thenReturn(futureResponse);
+
+    assertThrows(Exception.class, () -> openAILLMService.translate(tmTextUnit, "en", "fr", prompt));
+  }
+
+  @Test
+  void testTranslateError() {
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("Greeting");
+
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setSystemPrompt("Translate the following text:");
+    prompt.setUserPrompt("Translate this text to French:");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+
+    when(openAIClient.getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class)))
+        .thenThrow(new RuntimeException("OpenAI service error"));
+
+    assertThrows(Exception.class, () -> openAILLMService.translate(tmTextUnit, "en", "fr", prompt));
+  }
+
+  @Test
+  void testPromptTemplatingAllValuesInjected() {
+    String promptText =
+        """
+         Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+         Source string: [mojito_source_string]
+         {{optional: Comment: [mojito_comment_string]}}
+         {{optional: Context: [mojito_context_string]}}
+         {{optional: Plural form: [mojito_plural_form]}}
+         """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setName("Hello --- some.id");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+         Translate the following source string from en to fr:
+         Source string: Hello
+         Comment: A friendly greeting
+         Context: some.id
+         Plural form: one""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingNoContextValue() {
+    String promptText =
+        """
+             Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+             Source string: [mojito_source_string]
+             {{optional: Comment: [mojito_comment_string]}}
+             {{optional: Context: [mojito_context_string]}}
+             {{optional: Plural form: [mojito_plural_form]}}
+             """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setName("Hello");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+             Translate the following source string from en to fr:
+             Source string: Hello
+             Comment: A friendly greeting
+             Plural form: one""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingNoPluralValue() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 {{optional: Comment: [mojito_comment_string]}}
+                 {{optional: Context: [mojito_context_string]}}
+                 {{optional: Plural form: [mojito_plural_form]}}
+                 """;
+
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setName("Hello --- some.id");
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+                 Translate the following source string from en to fr:
+                 Source string: Hello
+                 Comment: A friendly greeting
+                 Context: some.id""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingNoCommentValue() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 {{optional: Comment: [mojito_comment_string]}}
+                 {{optional: Context: [mojito_context_string]}}
+                 {{optional: Plural form: [mojito_plural_form]}}
+                 """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setName("Hello --- some.id");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+             Translate the following source string from en to fr:
+             Source string: Hello
+             Context: some.id
+             Plural form: one""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingInlineNoCommentValue() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 {{optional: Comment: [mojito_comment_string]}} {{optional: Context: [mojito_context_string]}} {{optional: Plural form: [mojito_plural_form]}}
+                 """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setName("Hello --- some.id");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+             Translate the following source string from en to fr:
+             Source string: Hello
+             Context: some.id Plural form: one""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingInlineNoContextValue() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 {{optional: Comment: [mojito_comment_string]}} {{optional: Context: [mojito_context_string]}} {{optional: Plural form: [mojito_plural_form]}}
+                 """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+             Translate the following source string from en to fr:
+             Source string: Hello
+             Comment: A friendly greeting Plural form: one""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingJsonInPrompt() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 { {{optional: "comment": "[mojito_comment_string]",}} {{optional: "context": "[mojito_context_string]",}} {{optional: "plural_form": "[mojito_plural_form]"}} }
+                 """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setName("Hello --- some.id");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+             Translate the following source string from en to fr:
+             Source string: Hello
+             { "comment": "A friendly greeting", "context": "some.id", "plural_form": "one" }""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingJsonInPromptContextMissing() {
+    String promptText =
+        """
+                     Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                     Source string: [mojito_source_string]
+                     {{{optional: "comment": "[mojito_comment_string]",}} {{optional: "context": "[mojito_context_string]",}} {{optional: "plural_form": "[mojito_plural_form]"}}}
+                     """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+                 Translate the following source string from en to fr:
+                 Source string: Hello
+                 {"comment": "A friendly greeting", "plural_form": "one"}""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingInlineSentence() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 {{optional: The comment is: [mojito_comment_string]. }}{{optional: The context is: [mojito_context_string]. }}{{optional: The plural form is: [mojito_plural_form]. }}
+                 """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setName("Hello");
+    tmTextUnit.setPluralForm(one);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+    assertEquals(
+        """
+                 Translate the following source string from en to fr:
+                 Source string: Hello
+                 The comment is: A friendly greeting. The plural form is: one.""",
+        prompt);
   }
 }

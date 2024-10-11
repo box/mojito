@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
@@ -48,4 +49,8 @@ public interface TMTextUnitRepository extends JpaRepository<TMTextUnit, Long> {
   List<Long> getTextUnitIdsByAssetId(Long assetId);
 
   TMTextUnit findByMd5AndTmIdAndAssetId(String contentMd5, Long tmId, Long assetId);
+
+  @Query(
+      "SELECT t FROM TMTextUnit t JOIN FETCH t.asset a JOIN FETCH a.repository JOIN FETCH t.tm WHERE t.id = :id")
+  Optional<TMTextUnit> findByIdWithAssetAndRepositoryAndTMFetched(@Param("id") Long id);
 }

@@ -6,8 +6,10 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.PluralForm;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.service.ai.translation.AITranslationService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -31,7 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +73,9 @@ public class VirtualTextUnitBatchUpdaterService {
   @Autowired TextUnitDTOsCacheService textUnitDTOsCacheService;
 
   @Autowired LocaleService localeService;
+
+  @Autowired(required = false)
+  AITranslationService aiTranslationService;
 
   @Transactional
   public void updateTextUnits(
@@ -114,6 +122,10 @@ public class VirtualTextUnitBatchUpdaterService {
             md5ToVirtualTextUnits, md5ToTextUnitDTOs, nameToUsedtextUnitDTOs, asset, replace);
 
     performLeveraging(savedTextUnits, nameToUsedtextUnitDTOs, contentToTextUnitDTOs);
+
+    if (aiTranslationService != null) {
+      scheduleAITranslation(savedTextUnits.keySet(), asset.getRepository());
+    }
 
     if (replace) {
       deleteOldAssetTextUnits(md5ToTextUnitDTOs, md5ToVirtualTextUnits);
@@ -312,5 +324,11 @@ public class VirtualTextUnitBatchUpdaterService {
     assetTextUnitToTMTextUnit.setAssetTextUnit(assetTextUnit);
     assetTextUnitToTMTextUnit.setTmTextUnit(tmTextUnitRepository.getOne(tmTextUnitId));
     assetTextUnitToTMTextUnitRepository.save(assetTextUnitToTMTextUnit);
+  }
+
+  @Async
+  void scheduleAITranslation(Set<TMTextUnit> textUnits, Repository repository) {
+    Set<Long> tmTextUnitIds = textUnits.stream().map(TMTextUnit::getId).collect(Collectors.toSet());
+    aiTranslationService.createPendingMTEntitiesInBatches(repository.getId(), tmTextUnitIds);
   }
 }

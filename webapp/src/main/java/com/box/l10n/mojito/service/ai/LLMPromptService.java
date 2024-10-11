@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.ai.openai;
+package com.box.l10n.mojito.service.ai;
 
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.AIPrompt;
@@ -6,15 +6,11 @@ import com.box.l10n.mojito.entity.AIPromptContextMessage;
 import com.box.l10n.mojito.entity.AIPromptType;
 import com.box.l10n.mojito.entity.PromptType;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryAIPrompt;
+import com.box.l10n.mojito.entity.RepositoryLocaleAIPrompt;
 import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.rest.ai.AIPromptContextMessageCreateRequest;
 import com.box.l10n.mojito.rest.ai.AIPromptCreateRequest;
-import com.box.l10n.mojito.service.ai.AIPromptContextMessageRepository;
-import com.box.l10n.mojito.service.ai.AIPromptRepository;
-import com.box.l10n.mojito.service.ai.AIPromptTypeRepository;
-import com.box.l10n.mojito.service.ai.PromptService;
-import com.box.l10n.mojito.service.ai.RepositoryAIPromptRepository;
+import com.box.l10n.mojito.service.ai.openai.OpenAIPromptContextMessageType;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import io.micrometer.core.annotation.Timed;
 import jakarta.transaction.Transactional;
@@ -38,7 +34,7 @@ public class LLMPromptService implements PromptService {
 
   @Autowired AIPromptTypeRepository aiPromptTypeRepository;
 
-  @Autowired RepositoryAIPromptRepository repositoryAIPromptRepository;
+  @Autowired RepositoryLocaleAIPromptRepository repositoryLocaleAIPromptRepository;
 
   @Autowired AIPromptContextMessageRepository aiPromptContextMessageRepository;
 
@@ -66,18 +62,20 @@ public class LLMPromptService implements PromptService {
     aiPrompt.setUserPrompt(AIPromptCreateRequest.getUserPrompt());
     aiPrompt.setPromptTemperature(AIPromptCreateRequest.getPromptTemperature());
     aiPrompt.setModelName(AIPromptCreateRequest.getModelName());
+    aiPrompt.setPromptType(aiPromptType);
     ZonedDateTime now = JSR310Migration.dateTimeNow();
     aiPrompt.setCreatedDate(now);
     aiPrompt.setLastModifiedDate(now);
+    aiPrompt.setJsonResponse(AIPromptCreateRequest.isJsonResponse());
+    aiPrompt.setJsonResponseKey(AIPromptCreateRequest.getJsonResponseKey());
     aiPromptRepository.save(aiPrompt);
     logger.debug("Created prompt with id: {}", aiPrompt.getId());
 
-    RepositoryAIPrompt repositoryAIPrompt = new RepositoryAIPrompt();
-    repositoryAIPrompt.setRepositoryId(repository.getId());
-    repositoryAIPrompt.setAiPromptId(aiPrompt.getId());
-    repositoryAIPrompt.setPromptTypeId(aiPromptType.getId());
-    repositoryAIPromptRepository.save(repositoryAIPrompt);
-    logger.debug("Created repository prompt with id: {}", repositoryAIPrompt.getId());
+    RepositoryLocaleAIPrompt repositoryLocaleAIPrompt = new RepositoryLocaleAIPrompt();
+    repositoryLocaleAIPrompt.setRepository(repository);
+    repositoryLocaleAIPrompt.setAiPrompt(aiPrompt);
+    repositoryLocaleAIPromptRepository.save(repositoryLocaleAIPrompt);
+    logger.debug("Created repository prompt with id: {}", repositoryLocaleAIPrompt.getId());
 
     return aiPrompt.getId();
   }
@@ -102,12 +100,11 @@ public class LLMPromptService implements PromptService {
             .findById(promptId)
             .orElseThrow(() -> new AIException("Prompt not found: " + promptId));
 
-    RepositoryAIPrompt repositoryAIPrompt = new RepositoryAIPrompt();
-    repositoryAIPrompt.setRepositoryId(repository.getId());
-    repositoryAIPrompt.setAiPromptId(aiPrompt.getId());
-    repositoryAIPrompt.setPromptTypeId(aiPromptType.getId());
-    repositoryAIPromptRepository.save(repositoryAIPrompt);
-    logger.debug("Created repository prompt with id: {}", repositoryAIPrompt.getId());
+    RepositoryLocaleAIPrompt repositoryLocaleAIPrompt = new RepositoryLocaleAIPrompt();
+    repositoryLocaleAIPrompt.setRepository(repository);
+    repositoryLocaleAIPrompt.setAiPrompt(aiPrompt);
+    repositoryLocaleAIPromptRepository.save(repositoryLocaleAIPrompt);
+    logger.debug("Created repository prompt with id: {}", repositoryLocaleAIPrompt.getId());
   }
 
   @Timed("LLMPromptService.getPromptsByRepositoryAndPromptType")

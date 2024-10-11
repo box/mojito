@@ -1,0 +1,3 @@
+ALTER TABLE ai_prompt
+ADD COLUMN json_response BOOLEAN DEFAULT FALSE,
+ADD COLUMN json_response_key VARCHAR(255) DEFAULT NULL;
