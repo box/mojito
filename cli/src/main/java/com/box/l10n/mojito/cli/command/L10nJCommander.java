@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.web.client.HttpClientErrorException;
@@ -47,6 +48,12 @@ public class L10nJCommander {
 
   @Autowired(required = false)
   SlackClient slackClient;
+
+  @Value("${FAILURE_SLACK_NOTIFICATION_CHANNEL:#{null}}")
+  String failureSlackNotificationChannel;
+
+  @Value("${FAILURE_URL:#{null}}")
+  String failureUrl;
 
   static final String PROGRAM_NAME = "mojito";
 
@@ -98,15 +105,17 @@ public class L10nJCommander {
   }
 
   private void notifyFailure(Command command, String[] args, String errorMessage) {
-    boolean shouldNotifyFailure =
-        !Strings.isNullOrEmpty(command.getFailureSlackNotificationChannel());
+    boolean shouldNotifyFailure = !Strings.isNullOrEmpty(this.failureSlackNotificationChannel);
     if (shouldNotifyFailure && this.slackClient != null) {
       new SlackNotificationSender(this.slackClient)
           .sendMessage(
-              command.getFailureSlackNotificationChannel(),
+              this.failureSlackNotificationChannel,
               String.format(
-                  ":warning: *%s* command has failed\n\n*ARGUMENTS:*\n%s\n\n*ERROR MESSAGE:*\n%s",
-                  command.getName(), String.join(", ", args), errorMessage));
+                  ":warning: *%s* command has failed\n\n*ARGUMENTS:*\n%s\n\n*URL:*\n%s\n\n*ERROR MESSAGE:*\n%s",
+                  command.getName(),
+                  String.join(", ", args),
+                  this.failureUrl == null ? "" : this.failureUrl,
+                  errorMessage));
     } else if (shouldNotifyFailure) {
       logger.error(
           String.format(

@@ -34,8 +34,9 @@ public class L10nJCommanderTest extends CLITestBase {
     Mockito.reset(this.slackClientMock);
     Mockito.reset(this.commandMock);
     when(this.commandMock.getName()).thenReturn("repo-create");
-    when(this.commandMock.getFailureSlackNotificationChannel()).thenReturn("@testslackchannel");
     L10nJCommander commander = Mockito.spy(this.getL10nJCommander());
+    commander.failureSlackNotificationChannel = "@username";
+    commander.failureUrl = "https://example.com";
     when(commander.getCommand(anyString())).thenReturn(this.commandMock);
     commander.slackClient = this.slackClientMock;
     return commander;
@@ -101,8 +102,9 @@ public class L10nJCommanderTest extends CLITestBase {
     assertEquals(1, commander.getExitCode());
 
     commander = this.getL10nJCommanderSpy();
+    commander.failureSlackNotificationChannel = null;
+    commander.failureUrl = null;
     doThrow(new ResourceAccessException("error message")).when(this.commandMock).run();
-    when(this.commandMock.getFailureSlackNotificationChannel()).thenReturn(null);
     commander.run("repo-create", "-n", "test_repo", "-l", "ar-SA");
 
     verify(this.slackClientMock, times(0)).sendInstantMessage(any());
