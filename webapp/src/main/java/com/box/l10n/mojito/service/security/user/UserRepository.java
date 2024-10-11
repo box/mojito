@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
@@ -37,4 +39,21 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
   @Override
   @EntityGraph(value = "User.legacy", type = EntityGraphType.FETCH)
   Optional<User> findById(Long aLong);
+
+  @Query(
+      """
+      select u
+      from User u
+      where (:username is null or u.username = :username)
+        and ((:search is null or :search = '')
+             or (lower(u.username) like lower(concat('%', :search, '%'))
+                 or (u.commonName is not null
+                     and u.commonName <> ''
+                     and lower(u.commonName) like lower(concat('%', :search, '%')))
+                 or ((u.commonName is null or u.commonName = '')
+                      and lower(concat(u.givenName, ' ', u.surname)) like lower(concat('%', :search, '%')))))
+        and u.enabled = true
+      """)
+  Page<User> findByUsernameOrName(
+      @Param("username") String username, @Param("search") String search, Pageable pageable);
 }

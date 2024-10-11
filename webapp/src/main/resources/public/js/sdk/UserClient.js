@@ -3,21 +3,8 @@ import User from "./entity/User";
 import UserPage from "./UsersPage";
 
 class UserClient extends BaseClient {
-
-    /**
-     * @param {Number} page
-     * @param {Number} size
-     * @returns {UserPage}
-     */
-    getUsers(page = 0, size = 5) {
-        let promise = this.get(this.getUrl(), {
-            "page": page,
-            "size": size
-        });
-
-        return promise.then(function (result) {
-            return UserPage.toUserPage(result);
-        });
+    getUsers(userSearcherParameters) {
+        return this.get(this.getUrl(), userSearcherParameters.getParams());
     }
 
     checkUsernameTaken(username) {

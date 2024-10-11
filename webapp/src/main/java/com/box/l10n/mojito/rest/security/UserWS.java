@@ -1,10 +1,6 @@
 package com.box.l10n.mojito.rest.security;
 
-import static com.box.l10n.mojito.rest.security.UserSpecification.enabledEquals;
-import static com.box.l10n.mojito.rest.security.UserSpecification.usernameEquals;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.data.jpa.domain.Specification.where;
 
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
@@ -48,11 +44,9 @@ public class UserWS {
   @RequestMapping(value = "/api/users", method = RequestMethod.GET)
   public Page<User> getUsers(
       @RequestParam(value = "username", required = false) String username,
+      @RequestParam(value = "search", required = false) String search,
       @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
-    Page<User> users =
-        userService.findAll(
-            where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)), pageable);
-    return users;
+    return userService.findByUsernameOrName(username, search, pageable);
   }
 
   /**

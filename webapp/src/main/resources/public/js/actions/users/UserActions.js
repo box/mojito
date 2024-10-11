@@ -14,9 +14,6 @@ class UserActions {
             "checkUsernameTaken",
             "checkUsernameTakenSuccess",
             "checkUsernameTakenError",
-            "getAllUsers",
-            "getAllUsersSuccess",
-            "getAllUsersError",
             "deleteRequest",
             "deleteRequestSuccess",
             "deleteRequestError",
@@ -26,6 +23,9 @@ class UserActions {
             "saveEditRequest",
             "saveEditRequestSuccess",
             "saveEditRequestError",
+            "getUsers",
+            "getUsersSuccess",
+            "getUsersError",
         );
     }
 }

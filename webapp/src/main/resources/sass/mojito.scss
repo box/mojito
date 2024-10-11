@@ -1003,10 +1003,10 @@ label.current-pageNumber {
 
 .users-root {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 2fr 1fr;
     grid-template-rows: min-content min-content min-content;
     grid-template-areas:
-        "count   .       pages"
+        "count   search  pages"
         "main    main    main"
         "newUser .       ."
     ;

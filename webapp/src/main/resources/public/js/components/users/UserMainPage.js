@@ -1,9 +1,8 @@
 import React from "react";
-import {FormattedMessage, FormattedDate, FormattedTime, injectIntl, __esModule} from "react-intl";
+import {FormattedMessage, FormattedDate, FormattedTime, injectIntl} from "react-intl";
 import {Table, Button, OverlayTrigger, Popover, DropdownButton, MenuItem} from "react-bootstrap";
 import UserActions from "../../actions/users/UserActions";
 import UserStore from "../../stores/users/UserStore";
-import User from "../../sdk/entity/User";
 import UserModal from "./UserModal";
 import UserDeleteModal from "./UserDeleteModal";
 import { UserRole } from "./UserRole";
@@ -11,6 +10,9 @@ import UserErrorModal from "./UserErrorModal";
 import AltContainer from "alt-container";
 import UserModalStore from "../../stores/users/UserModalStore";
 import UserModalActions from "../../actions/users/UserModalActions";
+import SearchText from "../common/SearchText";
+import UserSearchParamActions from "../../actions/users/UserSearchParamActions";
+import UserSearchParamStore from "../../stores/users/UserSearchParamStore";
 
 class UserMainPage extends React.Component {
 
@@ -167,6 +169,13 @@ class UserMainPage extends React.Component {
             <div className="users-root mll mrl">
                 <div style={{gridArea: "count", justifySelf: "start"}} className="mbl">
                     <h4><FormattedMessage values={{numUsers: this.numUsers()}} id="users.count" /></h4>
+                </div>
+                <div style={{gridArea: "search", justifySelf: "center", width: "100%"}}>
+                    <AltContainer store={UserSearchParamStore}>
+                        <SearchText onSearchTextChanged={(text) => UserSearchParamActions.changeSearchText(text)}
+                                    onPerformSearch={() => UserActions.getUsers()}
+                                    placeholderTextId="user.searchtext" />
+                    </AltContainer>
                 </div>
                 {this.renderPageBar()}
                 {this.renderUsersTable()}

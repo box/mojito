@@ -1,15 +1,20 @@
 import UserClient from "../../sdk/UserClient";
 import UserActions from "./UserActions";
 import UserModalActions from "./UserModalActions";
+import UserSearcherParameters from "../../sdk/UserSearcherParameters";
+import UserSearchParamStore from "../../stores/users/UserSearchParamStore";
 
 const UserDataSource = {
-    getAllUsers: {
+    getUsers: {
         remote(userStoreState, pageRequestParams) {
-            return UserClient.getUsers(pageRequestParams.page, pageRequestParams.size);
+            const userSearcherParameters = new UserSearcherParameters();
+            const { searchText } = UserSearchParamStore.getState();
+            const { page, size } = pageRequestParams;
+            userSearcherParameters.search(searchText).page(page).size(size);
+            return UserClient.getUsers(userSearcherParameters);
         },
-
-        success: UserActions.getAllUsersSuccess,
-        error: UserActions.getAllUsersError
+        success: UserActions.getUsersSuccess,
+        error: UserActions.getUsersError
     },
 
     checkUsernameTakenRequest: {

@@ -5,6 +5,7 @@ import User from "../../sdk/entity/User";
 import UserPage from "../../sdk/UsersPage";
 import UserStatics from "../../utils/UserStatics";
 import PageRequestParams from "../../sdk/PageRequestParams";
+import UserSearchParamStore from "./UserSearchParamStore";
 
 class UserStore {
     constructor() {
@@ -25,6 +26,8 @@ class UserStore {
 
         /** @type {Number} */
         this.lastErrorCode = 0;
+
+        this.isSearching = false;
 
         this.bindActions(UserActions);
         this.registerAsync(UserDataSource);
@@ -61,7 +64,7 @@ class UserStore {
         const pageSize = this.userPage ? this.userPage.size : 10;
 
         const pageRequestParams = new PageRequestParams(prevPage, pageSize);
-        this.getInstance().getAllUsers(pageRequestParams);
+        this.getInstance().getUsers(pageRequestParams);
     }
 
     nextPage() {
@@ -69,14 +72,14 @@ class UserStore {
         const pageSize = this.userPage ? this.userPage.size : 10;
 
         const pageRequestParams = new PageRequestParams(nextPage, pageSize);
-        this.getInstance().getAllUsers(pageRequestParams);
+        this.getInstance().getUsers(pageRequestParams);
     }
 
     updatePageSize(newSize) {
         const currPage = this.userPage ? this.userPage.number : 0;
 
         const pageRequestParams = new PageRequestParams(currPage, newSize);
-        this.getInstance().getAllUsers(pageRequestParams);
+        this.getInstance().getUsers(pageRequestParams);
     }
 
 
@@ -85,26 +88,8 @@ class UserStore {
         const pageSize = this.userPage ? this.userPage.size : 10;
 
         const pageRequestParams = new PageRequestParams(currPage, pageSize);
-        this.getInstance().getAllUsers(pageRequestParams);
+        this.getInstance().getUsers(pageRequestParams);
     }
-
-    onGetAllUsers(pageRequestParams) {
-        this.getInstance().getAllUsers(pageRequestParams);
-    }
-
-    /**
-     * @param {UserPage} userPage
-     */
-    onGetAllUsersSuccess(userPage) {
-        this.userPage = userPage;
-    }
-
-    onGetAllUsersError(err) {
-        this.lastErrorKey = "userErrorModal.load";
-        this.lastErrorCode = err.response.status;
-        console.log("error fetching users", err);
-    }
-
 
     onDeleteRequest(id) {
         this.getInstance().deleteRequest(id);
@@ -164,6 +149,28 @@ class UserStore {
 
     onSavePasswordError(err) {
         console.log("error changing password", err);
+    }
+
+    getUsers() {
+        this.waitFor(UserSearchParamStore);
+
+        const currPage = 0;
+        const pageSize = this.userPage ? this.userPage.size : 10;
+
+        const pageRequestParams = new PageRequestParams(currPage, pageSize);
+
+        this.getInstance().getUsers(pageRequestParams);
+        this.isSearching = true;
+    }
+
+    getUsersSuccess(users) {
+        this.userPage = UserPage.toUserPage(users)
+        this.isSearching = false;
+    }
+
+    getUsersError() {
+        this.lastErrorKey = "userErrorModal.load";
+        this.lastErrorCode = err.response.status;
     }
 }
 

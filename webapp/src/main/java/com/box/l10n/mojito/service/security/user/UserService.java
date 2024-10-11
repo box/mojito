@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -367,11 +366,12 @@ public class UserService {
    * Cannot use an EntityGraph with pagination as it triggers the following warning: HHH90003004:
    * firstResult/maxResults specified with collection fetch; applying in memory
    *
-   * @param spec
+   * @param username
+   * @param search
    * @param pageable
    */
-  public Page<User> findAll(Specification<User> spec, Pageable pageable) {
-    final Page<User> users = userRepository.findAll(spec, pageable);
+  public Page<User> findByUsernameOrName(String username, String search, Pageable pageable) {
+    final Page<User> users = userRepository.findByUsernameOrName(username, search, pageable);
     users.forEach(
         u -> {
           Hibernate.initialize(u.getAuthorities());
