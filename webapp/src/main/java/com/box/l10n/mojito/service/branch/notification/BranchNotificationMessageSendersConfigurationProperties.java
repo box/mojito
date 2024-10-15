@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.branch.notification;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -73,6 +75,8 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
     boolean githubPR = false;
 
+    List<String> blockedUsernames = new ArrayList<>();
+
     public String getSlackClientId() {
       return slackClientId;
     }
@@ -111,6 +115,14 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
     public void setGithubPR(boolean githubPR) {
       this.githubPR = githubPR;
+    }
+
+    public List<String> getBlockedUsernames() {
+      return blockedUsernames;
+    }
+
+    public void setBlockedUsernames(List<String> blockedUsernames) {
+      this.blockedUsernames = blockedUsernames;
     }
 
     public static class MessageBuilderConfigurationProperties {

@@ -17,4 +17,6 @@ public interface BranchNotificationMessageSender {
       throws BranchNotificationMessageSenderException;
 
   String getId();
+
+  boolean isUserAllowed(String username);
 }

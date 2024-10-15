@@ -49,4 +49,9 @@ public class BranchNotificationMessageSenderNoop implements BranchNotificationMe
   public String getId() {
     return id;
   }
+
+  @Override
+  public boolean isUserAllowed(String username) {
+    return true;
+  }
 }

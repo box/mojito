@@ -104,4 +104,9 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
   public String getId() {
     return id;
   }
+
+  @Override
+  public boolean isUserAllowed(String username) {
+    return true;
+  }
 }

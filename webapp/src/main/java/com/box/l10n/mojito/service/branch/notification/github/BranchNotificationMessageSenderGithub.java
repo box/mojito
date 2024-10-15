@@ -134,4 +134,9 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   public String getId() {
     return id;
   }
+
+  @Override
+  public boolean isUserAllowed(String username) {
+    return true;
+  }
 }

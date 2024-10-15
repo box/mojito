@@ -20,6 +20,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -145,6 +146,14 @@ public class BranchNotificationService {
       BranchNotificationMessageSender branchNotificationMessageSender,
       Branch branch,
       BranchNotificationInfo branchNotificationInfo) {
+    // Check if the username for the Slack notification is in the block list
+
+    String username = getUsername(branch);
+    if (Strings.isNullOrEmpty(username)
+        || !branchNotificationMessageSender.isUserAllowed(username)) {
+      return;
+    }
+
     String notifierId = branchNotificationMessageSender.getId();
 
     logger.debug(

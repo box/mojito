@@ -11,6 +11,7 @@ import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import com.box.l10n.mojito.thirdpartynotification.slack.SlackChannels;
 import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 
 public class BranchNotificationMessageSenderSlack implements BranchNotificationMessageSender {
@@ -29,6 +30,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
   boolean useDirectMessage;
   boolean githubPR;
 
+  List<Pattern> blockedUserPatterns;
+
   public BranchNotificationMessageSenderSlack(
       String id,
       SlackClient slackClient,
@@ -36,7 +39,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
       BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack,
       String userEmailPattern,
       boolean useDirectMessage,
-      boolean isGithubPR) {
+      boolean isGithubPR,
+      List<Pattern> blockedUserPatterns) {
     this.id = id;
     this.slackClient = Preconditions.checkNotNull(slackClient);
     this.slackChannels = Preconditions.checkNotNull(slackChannels);
@@ -45,6 +49,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     this.userEmailPattern = Preconditions.checkNotNull(userEmailPattern);
     this.useDirectMessage = useDirectMessage;
     this.githubPR = isGithubPR;
+    this.blockedUserPatterns = blockedUserPatterns;
   }
 
   @Override
@@ -129,5 +134,15 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
   @Override
   public String getId() {
     return id;
+  }
+
+  @Override
+  public boolean isUserAllowed(String username) {
+    for (Pattern blockedUserPattern : blockedUserPatterns) {
+      if (blockedUserPattern.matcher(username).matches()) {
+        return false;
+      }
+    }
+    return true;
   }
 }

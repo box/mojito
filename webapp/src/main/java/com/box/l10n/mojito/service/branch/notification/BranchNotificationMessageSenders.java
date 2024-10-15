@@ -22,8 +22,11 @@ import com.box.l10n.mojito.slack.SlackClients;
 import com.box.l10n.mojito.thirdpartynotification.slack.SlackChannels;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -128,12 +131,31 @@ public class BranchNotificationMessageSenders {
           branchNotificationMessageSendersConfigurationProperties,
       SlackClients slackClients,
       BranchUrlBuilder branchUrlBuilder) {
+
     Map<String, BranchNotificationMessageSenderSlack> slack =
         branchNotificationMessageSendersConfigurationProperties.getSlack().entrySet().stream()
             .map(
                 e -> {
                   String id = e.getKey();
                   SlackConfigurationProperties slackConfigurationProperties = e.getValue();
+
+                  List<Pattern> blockedUserPatterns =
+                      slackConfigurationProperties.getBlockedUsernames().stream()
+                          .map(
+                              regex -> {
+                                try {
+                                  return Pattern.compile(regex);
+                                } catch (PatternSyntaxException ex) {
+                                  throw new IllegalStateException(
+                                      "Invalid regex: '"
+                                          + regex
+                                          + "' in blocked usernames list for Slack client '"
+                                          + slackConfigurationProperties.getSlackClientId()
+                                          + "'",
+                                      ex);
+                                }
+                              })
+                          .collect(Collectors.toList());
 
                   SlackClient slackClient =
                       slackClients.getById(slackConfigurationProperties.getSlackClientId());
@@ -160,7 +182,8 @@ public class BranchNotificationMessageSenders {
                           branchNotificationMessageBuilderSlack,
                           slackConfigurationProperties.getUserEmailPattern(),
                           slackConfigurationProperties.isUseDirectMessage(),
-                          slackConfigurationProperties.isGithubPR());
+                          slackConfigurationProperties.isGithubPR(),
+                          blockedUserPatterns);
 
                   return new SimpleEntry<String, BranchNotificationMessageSenderSlack>(
                       id, branchNotificationMessageSenderSlack);
