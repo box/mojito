@@ -50,7 +50,10 @@
     "style-loader": "^0.18.2",
     "uglify-js": "^2.8.29",
     "url-loader": "^0.6.2",
-    "webpack": "^2.6.1"
+    "webpack": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "^1.2.13"
   },
   "scripts": {
     "start-dev": "npm run start-server & npm run watch",
