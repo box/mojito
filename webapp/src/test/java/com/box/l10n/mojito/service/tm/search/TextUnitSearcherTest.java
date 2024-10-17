@@ -23,6 +23,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.assertj.core.api.Condition;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -839,6 +841,68 @@ public class TextUnitSearcherTest extends ServiceTestBase {
   @Test
   public void testILikeLocationUsageByUsages() {
     testSearchText("usage", "%USAGE_%TEST", SearchType.ILIKE, List.of("usage_test"), true);
+  }
+
+  @Test
+  @Transactional
+  public void testExclusionOfPendingMTTextUnits() {
+
+    TMTestData tmTestData = new TMTestData(testIdWatcher, false, "pendingMT", true);
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+    textUnitSearcherParameters.setExcludeUnexpiredPendingMT(true);
+    textUnitSearcherParameters.setAiTranslationExpiryDuration(Duration.ofMinutes(10));
+
+    List<TextUnitDTO> results = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(4, results.size());
+    assertThat(results)
+        .extracting(TextUnitDTO::getTmTextUnitId)
+        .doesNotContain(tmTestData.addTMTextUnit1.getId());
+
+    textUnitSearcherParameters.setExcludeUnexpiredPendingMT(false);
+    results = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(8, results.size());
+    assertThat(results)
+        .extracting(TextUnitDTO::getTmTextUnitId)
+        .has(
+            new Condition<>(
+                ids -> ids.contains(tmTestData.addTMTextUnit1.getId()),
+                "TmTextUnit id is present"));
+  }
+
+  @Test
+  @Transactional
+  public void testExpiredPendingMTIsIncludedInResults() {
+
+    TMTestData tmTestData =
+        new TMTestData(
+            testIdWatcher,
+            false,
+            "expiredPendingMT",
+            true,
+            ZonedDateTime.now().minus(Duration.ofMinutes(30)));
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+    textUnitSearcherParameters.setExcludeUnexpiredPendingMT(true);
+    textUnitSearcherParameters.setAiTranslationExpiryDuration(Duration.ofMinutes(45));
+
+    List<TextUnitDTO> results = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(4, results.size());
+    assertThat(results)
+        .extracting(TextUnitDTO::getTmTextUnitId)
+        .doesNotContain(tmTestData.addTMTextUnit1.getId());
+
+    textUnitSearcherParameters.setAiTranslationExpiryDuration(Duration.ofMinutes(10));
+    results = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(8, results.size());
+    assertThat(results)
+        .extracting(TextUnitDTO::getTmTextUnitId)
+        .has(
+            new Condition<>(
+                ids -> ids.contains(tmTestData.addTMTextUnit1.getId()),
+                "TmTextUnit id is present"));
   }
 
   private List<AssetTextUnitToTMTextUnit> getAssetTextUnitToTMTextUnit(

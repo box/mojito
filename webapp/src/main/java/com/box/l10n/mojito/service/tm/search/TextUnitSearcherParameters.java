@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.tm.search;
 
 import com.box.l10n.mojito.service.NormalizationUtils;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +51,8 @@ public class TextUnitSearcherParameters {
   String skipTextUnitWithPattern;
   String includeTextUnitsWithPattern;
   String skipAssetPathWithPattern;
+  boolean isExcludeUnexpiredPendingMT = false;
+  Duration aiTranslationExpiryDuration;
 
   public String getName() {
     return name;
@@ -326,5 +329,21 @@ public class TextUnitSearcherParameters {
 
   public void setOrderByTextUnitID(boolean ordered) {
     isOrderedByTextUnitID = ordered;
+  }
+
+  public boolean isExcludeUnexpiredPendingMT() {
+    return isExcludeUnexpiredPendingMT;
+  }
+
+  public void setExcludeUnexpiredPendingMT(boolean excludeUnexpiredPendingMT) {
+    isExcludeUnexpiredPendingMT = excludeUnexpiredPendingMT;
+  }
+
+  public Duration getAiTranslationExpiryDuration() {
+    return aiTranslationExpiryDuration;
+  }
+
+  public void setAiTranslationExpiryDuration(Duration aiTranslationExpiryDuration) {
+    this.aiTranslationExpiryDuration = aiTranslationExpiryDuration;
   }
 }

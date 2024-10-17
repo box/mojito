@@ -30,6 +30,8 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
    */
   boolean namePluralPrefix;
 
+  String uploadedFileUri;
+
   public String getId() {
     return id;
   }
@@ -79,5 +81,13 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
 
   public void setNamePluralPrefix(boolean namePluralPrefix) {
     this.namePluralPrefix = namePluralPrefix;
+  }
+
+  public String getUploadedFileUri() {
+    return uploadedFileUri;
+  }
+
+  public void setUploadedFileUri(String uploadedFileUri) {
+    this.uploadedFileUri = uploadedFileUri;
   }
 }

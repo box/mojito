@@ -41,6 +41,9 @@ public class ThirdPartyTextUnit extends AuditableEntity {
       foreignKey = @ForeignKey(name = "FK__THIRD_PARTY_TEXT_UNIT__TM_TEXT_UNIT__ID"))
   TMTextUnit tmTextUnit;
 
+  @Column(name = "uploaded_file_uri")
+  String uploadedFileUri;
+
   public String getThirdPartyId() {
     return thirdPartyId;
   }
@@ -63,5 +66,13 @@ public class ThirdPartyTextUnit extends AuditableEntity {
 
   public void setAsset(Asset asset) {
     this.asset = asset;
+  }
+
+  public String getUploadedFileUri() {
+    return uploadedFileUri;
+  }
+
+  public void setUploadedFileUri(String uploadedFileUri) {
+    this.uploadedFileUri = uploadedFileUri;
   }
 }

@@ -12,6 +12,8 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TmTextUnitPendingMT;
+import com.box.l10n.mojito.service.ai.translation.TmTextUnitPendingMTRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
@@ -62,6 +64,8 @@ public class TMTestData {
 
   @Autowired PluralFormService pluralFormService;
 
+  @Autowired TmTextUnitPendingMTRepository tmTextUnitPendingMTRepository;
+
   public Repository repository;
   public TM tm;
   public TMTextUnit addTMTextUnit1;
@@ -88,13 +92,46 @@ public class TMTestData {
 
   private boolean addUsage;
 
+  private boolean addPendingMTs;
+
+  private ZonedDateTime pendingMTCreatedDate;
+
+  private String repositoryName;
+
   public TMTestData(TestIdWatcher testIdWatcher) {
     this.testIdWatcher = testIdWatcher;
+    this.repositoryName = testIdWatcher.getEntityName("repository");
   }
 
   public TMTestData(TestIdWatcher testIdWatcher, boolean addUsage) {
     this(testIdWatcher);
     this.addUsage = addUsage;
+  }
+
+  public TMTestData(TestIdWatcher testIdWatcher, boolean addUsage, String repositoryName) {
+    this(testIdWatcher, addUsage);
+    this.repositoryName = testIdWatcher.getEntityName(repositoryName);
+  }
+
+  public TMTestData(
+      TestIdWatcher testIdWatcher, boolean addUsage, String repositoryName, boolean addPendingMTs) {
+    this(
+        testIdWatcher,
+        addUsage,
+        repositoryName,
+        addPendingMTs,
+        JSR310Migration.newDateTimeEmptyCtor());
+  }
+
+  public TMTestData(
+      TestIdWatcher testIdWatcher,
+      boolean addUsage,
+      String repositoryName,
+      boolean addPendingMTs,
+      ZonedDateTime pendingMTCreatedDate) {
+    this(testIdWatcher, addUsage, repositoryName);
+    this.addPendingMTs = addPendingMTs;
+    this.pendingMTCreatedDate = pendingMTCreatedDate;
   }
 
   @PostConstruct
@@ -127,7 +164,8 @@ public class TMTestData {
             assetExtractionOther, "TEST2", "Content2", "Comment2");
 
     // This is the actual data that should be proccessed
-    repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    repository = repositoryService.createRepository(repositoryName);
+
     repoLocaleKoKR = repositoryService.addRepositoryLocale(repository, koKR.getBcp47Tag());
     repoLocaleFrFR = repositoryService.addRepositoryLocale(repository, frFR.getBcp47Tag());
     repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
@@ -202,6 +240,13 @@ public class TMTestData {
     addCurrentTMTextUnitVariant3FrCA =
         tmService.addCurrentTMTextUnitVariant(
             addTMTextUnit3.getId(), frCA.getId(), "Content3 fr-CA");
+
+    if (addPendingMTs) {
+      TmTextUnitPendingMT tmTextUnitPendingMT = new TmTextUnitPendingMT();
+      tmTextUnitPendingMT.setTmTextUnitId(addTMTextUnit1.getId());
+      tmTextUnitPendingMT.setCreatedDate(pendingMTCreatedDate);
+      tmTextUnitPendingMTRepository.save(tmTextUnitPendingMT);
+    }
   }
 
   public ImmutableMap<String, TMTextUnit> addPluralString(String basename) {

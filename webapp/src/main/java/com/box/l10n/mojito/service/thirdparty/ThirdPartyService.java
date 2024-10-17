@@ -361,6 +361,8 @@ public class ThirdPartyService {
                             thirdPartyTextUnit.setThirdPartyId(
                                 thirdPartyTextUnitForMapping.getId());
                             thirdPartyTextUnit.setAsset(asset);
+                            thirdPartyTextUnit.setUploadedFileUri(
+                                thirdPartyTextUnitForMapping.getUploadedFileUri());
                             TMTextUnit tmTextUnit = tmTextUnitRepository.getOne(tmTextUnitId);
 
                             if (tmTextUnitAlreadySaved.containsKey(tmTextUnitId)) {

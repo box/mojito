@@ -34,6 +34,7 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.quartz.QuartzSchedulerManager;
+import com.box.l10n.mojito.service.ai.translation.AITranslationConfiguration;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
@@ -161,6 +162,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
   @Mock TextUnitBatchImporterService mockTextUnitBatchImporterService;
 
+  @Mock AITranslationConfiguration aiTranslationConfiguration;
+
   @Captor ArgumentCaptor<List<TextUnitDTO>> textUnitListCaptor;
 
   @Captor
@@ -216,7 +219,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     mapper = new AndroidStringDocumentMapper(pluralSep, null);
     RetryBackoffSpec retryConfiguration =
@@ -292,7 +296,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -346,7 +351,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
     // throw timeout exception for first request, following request should be successful
     when(smartlingClient.uploadFile(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(
@@ -412,7 +418,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -463,7 +470,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -522,7 +530,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -737,7 +746,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -809,7 +819,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -872,7 +883,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -1461,7 +1473,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
     Locale frCA = localeService.findByBcp47Tag("fr-CA");
@@ -1615,7 +1628,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             3,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -1638,7 +1652,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             35,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -1659,7 +1674,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             4231,
             meterRegistry,
-            mockQuartzPollableTaskScheduler);
+            mockQuartzPollableTaskScheduler,
+            aiTranslationConfiguration);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);

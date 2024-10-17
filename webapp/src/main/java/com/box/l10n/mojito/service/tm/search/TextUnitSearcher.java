@@ -24,6 +24,7 @@ import com.github.pnowy.nc.core.expressions.NativeOrderExp;
 import com.github.pnowy.nc.core.expressions.NativeProjection;
 import com.github.pnowy.nc.core.mappers.CriteriaResultTransformer;
 import com.google.common.base.Preconditions;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -172,6 +173,11 @@ public class TextUnitSearcher {
     c.addJoin(NativeExps.crossJoin("locale", "l"));
     c.addJoin(NativeExps.innerJoin("asset", "a", "a.id", "tu.asset_id"));
     c.addJoin(NativeExps.innerJoin("repository", "r", "r.id", "a.repository_id"));
+    if (searchParameters.isExcludeUnexpiredPendingMT()) {
+      c.addJoin(
+          NativeExps.leftJoin(
+              "tm_text_unit_pending_mt", "tmtupmt", "tmtupmt.tm_text_unit_id", "tu.id"));
+    }
 
     NativeJunctionExp onClauseRepositoryLocale = NativeExps.conjunction();
     onClauseRepositoryLocale.add(new NativeColumnEqExp("rl.locale_id", "l.id"));
@@ -376,6 +382,18 @@ public class TextUnitSearcher {
     if (searchParameters.getSkipAssetPathWithPattern() != null) {
       conjunction.add(
           new NativeNotILikeExp("a.path", searchParameters.getSkipAssetPathWithPattern()));
+    }
+
+    if (searchParameters.isExcludeUnexpiredPendingMT()) {
+      ZonedDateTime durationThreshold =
+          ZonedDateTime.now().minus(searchParameters.getAiTranslationExpiryDuration());
+
+      // Include rows where the id in the left table is null (i.e. no match) or the created_date is
+      // outside the configured expiry duration
+      NativeJunctionExp mtExclusionFilter = NativeExps.disjunction();
+      mtExclusionFilter.add(NativeExps.isNull("tmtupmt.id"));
+      mtExclusionFilter.add(new NativeDateLteExp("tmtupmt.created_date", durationThreshold));
+      conjunction.add(mtExclusionFilter);
     }
 
     StatusFilter statusFilter = searchParameters.getStatusFilter();

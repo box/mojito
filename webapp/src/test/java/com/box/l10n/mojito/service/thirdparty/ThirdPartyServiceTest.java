@@ -197,34 +197,49 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         .extracting(
             t -> t.getAsset().getId(),
             com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
-            t -> t.getTmTextUnit().getId())
+            t -> t.getTmTextUnit().getId(),
+            com.box.l10n.mojito.entity.ThirdPartyTextUnit::getUploadedFileUri)
         .containsExactly(
-            tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
-            tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-hello",
+                thirdPartyServiceTestData.tmTextUnitHello.getId(),
+                "testFileUri"),
+            tuple(
+                asset.getId(),
+                "3rd-bye",
+                thirdPartyServiceTestData.tmTextUnitBye.getId(),
+                "testFileUri"),
             tuple(
                 asset.getId(),
                 "3rd-plural_things",
-                thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
+                thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId(),
+                "testFileUri"),
             tuple(
                 asset.getId(),
                 "3rd-plural_things",
-                thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
+                thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId(),
+                "testFileUri"),
             tuple(
                 asset.getId(),
                 "3rd-plural_things",
-                thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
+                thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId(),
+                "testFileUri"),
             tuple(
                 asset.getId(),
                 "3rd-plural_things",
-                thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
+                thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId(),
+                "testFileUri"),
             tuple(
                 asset.getId(),
                 "3rd-plural_things",
-                thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
+                thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId(),
+                "testFileUri"),
             tuple(
                 asset.getId(),
                 "3rd-plural_things",
-                thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId()));
+                thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId(),
+                "testFileUri"));
 
     logger.debug("Verify behavior");
     verify(thirdPartyTMSMock, times(3))
@@ -741,6 +756,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     thirdPartyTextUnit.setId(id);
     thirdPartyTextUnit.setName(name);
     thirdPartyTextUnit.setNamePluralPrefix(isNamePluralPrefix);
+    thirdPartyTextUnit.setUploadedFileUri("testFileUri");
     return thirdPartyTextUnit;
   }
 }
