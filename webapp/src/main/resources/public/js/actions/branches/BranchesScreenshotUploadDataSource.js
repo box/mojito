@@ -35,9 +35,15 @@ const BranchesScreenshotUploadDataSource = {
             screenshot.locale = repository.sourceLocale;
             screenshot.branch = branchStatistic.branch;
 
-            const { branchTextUnitStatistics } = BranchTextUnitsStore.getState();
+            let branchTextUnitStatistics;
+            if (branchStatistic.isPaginated) {
+                branchTextUnitStatistics = BranchTextUnitsStore.getState().branchTextUnitStatistics;
+            } else {
+                branchTextUnitStatistics = branchStatistic.branchTextUnitStatistics;
+            }
             branchTextUnitStatistics.forEach(branchTextUnitStatistic => {
                 if (BranchesStoreState.selectedBranchTextUnitIds.indexOf(branchTextUnitStatistic.id) >= 0) {
+
                     screenshot.textUnits.push(new TextUnit(new TmTextUnit(branchTextUnitStatistic.tmTextUnit.id)));
                 }
             });
