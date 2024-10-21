@@ -38,8 +38,8 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.24.1",
     "css-loader": "^3.6.0",
-    "file-loader": "^0.11.2",
-    "html-webpack-plugin": "^2.29.0",
+    "file-loader": "^1.1.11",
+    "html-webpack-plugin": "^3.2.0",
     "image-webpack-loader": "^6.0.0",
     "json-loader": "^0.5.4",
     "kind-of": "^6.0.3",
@@ -50,7 +50,8 @@
     "style-loader": "^0.18.2",
     "uglify-js": "^2.8.29",
     "url-loader": "^0.6.2",
-    "webpack": "^3.0.0"
+    "webpack": "^4.0.0",
+    "webpack-cli": "^4.10.0"
   },
   "optionalDependencies": {
     "fsevents": "^1.2.13"
@@ -63,10 +64,10 @@
     "start-server-nofe": "mvn spring-boot:run -P '!frontend' -Dspring-boot.run.jvmArguments=\"-Dspring.config.additional-location=optional:file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
     "start-server-nofe-debug": "mvn spring-boot:run -P '!frontend' -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.additional-location=optional:file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
     "start-server-nofe-debugn": "mvn spring-boot:run -P '!frontend' -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.config.additional-location=optional:file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
-    "watch": "webpack --config webpack.config.js --progress --colors --watch --env.inlineSourceMap",
-    "watch-ict": "webpack --config webpack.config_ict.js --progress --colors --watch --env.inlineSourceMap",
-    "build": "webpack --config webpack.config.js --progress --env.production",
-    "build-ict": "webpack --config webpack.config_ict.js --progress --env.production",
+    "watch": "webpack --config webpack.config.js --progress --color --watch --env inlineSourceMap",
+    "watch-ict": "webpack --config webpack.config_ict.js --progress --color --watch --env inlineSourceMap",
+    "build": "webpack --config webpack.config.js --progress --env production",
+    "build-ict": "webpack --config webpack.config_ict.js --progress --env production",
     "mojito-tm-import": "java -jar ../cli/target/mojito-cli-*.jar tm-import -r Mojito -s src/main/resources/xliff/",
     "mojito-tm-export": "java -jar ../cli/target/mojito-cli-*.jar tm-export -r Mojito -t src/main/resources/xliff/",
     "mojito-push": "java -jar ../cli/target/mojito-cli-*.jar push -r Mojito -s src/main/resources/properties/ -ft PROPERTIES_NOBASENAME",

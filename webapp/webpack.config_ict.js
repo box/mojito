@@ -2,7 +2,6 @@ var path = require('path');
 var webpack = require("webpack");
 
 module.exports = function (env) {
-
     env = env || {};
 
     var config = {
@@ -14,6 +13,11 @@ module.exports = function (env) {
             path: path.resolve(__dirname, '../chromeextension'),
             filename: '[name]-bundle.js',
         },
+        performance: {
+            maxEntrypointSize: 900000, // 90KB
+            maxAssetSize: 900000 // 90KB
+        },
+        mode: env.production ? 'production' : 'development',
         module: {
             rules: [
                 {
@@ -108,8 +112,6 @@ module.exports = function (env) {
                         'NODE_ENV': JSON.stringify('production')
                     }
                 }));
-
-        config.plugins.push(new webpack.optimize.UglifyJsPlugin());
     }
 
     if (env.inlineSourceMap) {

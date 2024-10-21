@@ -2,10 +2,9 @@ var path = require('path');
 var webpack = require("webpack");
 
 module.exports = function (env) {
-
     env = env || {};
 
-    var config = {
+    const config = {
         entry: {
             'app': path.resolve(__dirname, './src/main/resources/public/js/app.js'),
             'css': path.resolve(__dirname, './src/main/resources/sass/mojito.scss')
@@ -16,6 +15,7 @@ module.exports = function (env) {
             filename: 'js/[name]-[hash].js',
             chunkFilename: 'js/[name]-[chunkhash].js'
         },
+        mode: env.production ? 'production' : 'development',
         module: {
             rules: [
                 {
@@ -104,7 +104,7 @@ module.exports = function (env) {
     };
 
 
-    var HtmlWebpackPlugin = require('html-webpack-plugin');
+    const HtmlWebpackPlugin = require('html-webpack-plugin');
     config.plugins.push(new HtmlWebpackPlugin({
         filename: path.resolve(__dirname, './target/classes/templates/index.html'),
         template: 'src/main/resources/templates/index.html',
@@ -118,8 +118,6 @@ module.exports = function (env) {
                         'NODE_ENV': JSON.stringify('production')
                     }
                 }));
-
-        config.plugins.push(new webpack.optimize.UglifyJsPlugin());
     }
 
     if (env.inlineSourceMap) {
