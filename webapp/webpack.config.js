@@ -93,7 +93,9 @@ module.exports = function (env) {
                         }, {
                             loader: "sass-loader",
                             options: {
-                                precision: 8,
+                                sassOptions: {
+                                    precision: 8
+                                },
                                 sourceMap: true
                             }
                         }]

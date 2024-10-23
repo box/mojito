@@ -13,8 +13,7 @@
     <body>
         {{& analyticsHtmlInclude }}
         <div id="app"></div>
-        <script type="text/javascript" src="{{contextPath}}<%= htmlWebpackPlugin.files.js[0] %>"></script>
-        <script type="text/javascript" src="{{contextPath}}<%= htmlWebpackPlugin.files.js[1] %>"></script>
+        <%= htmlWebpackPlugin.tags.bodyTags %>
     </body>
 
 </html>
