@@ -37,7 +37,7 @@ public class SingleBracesPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "placeholder"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form placeholder:<description>"));
+                + " in comment. Please add a description in the string comment in the form `placeholder:<description>`"));
   }
 
   @Test
@@ -52,7 +52,7 @@ public class SingleBracesPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "placeholder"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form placeholder:<description>"));
+                + " in comment. Please add a description in the string comment in the form `placeholder:<description>`"));
   }
 
   @Test
@@ -77,7 +77,7 @@ public class SingleBracesPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "another"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form another:<description>"));
+                + " in comment. Please add a description in the string comment in the form `another:<description>`"));
   }
 
   @Test
@@ -93,7 +93,7 @@ public class SingleBracesPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "numFiles"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form numFiles:<description>"));
+                + " in comment. Please add a description in the string comment in the form `numFiles:<description>`"));
   }
 
   @Test
@@ -110,7 +110,7 @@ public class SingleBracesPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "0"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form 0:<description>"));
+                + " in comment. Please add a description in the string comment in the form `0:<description>`"));
   }
 
   @Test

@@ -20,8 +20,10 @@ public abstract class AbstractPlaceholderDescriptionCheck {
               + placeholder
               + QUOTE_MARKER
               + " in comment. Please add a description in the string comment in the form "
+              + QUOTE_MARKER
               + placeholder
-              + ":<description>";
+              + ":<description>"
+              + QUOTE_MARKER;
     } else if (!placeholder.trim().isEmpty()) {
       failureText =
           "Missing description for placeholder with name "
@@ -29,8 +31,10 @@ public abstract class AbstractPlaceholderDescriptionCheck {
               + placeholder
               + QUOTE_MARKER
               + " in comment. Please add a description in the string comment in the form "
+              + QUOTE_MARKER
               + placeholder
-              + ":<description>";
+              + ":<description>"
+              + QUOTE_MARKER;
     }
     return Optional.ofNullable(failureText);
   }

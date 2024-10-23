@@ -146,7 +146,7 @@ public class PlaceholderCommentCheckerTest {
             + QUOTE_MARKER
             + "another"
             + QUOTE_MARKER
-            + " in comment. Please add a description in the string comment in the form another:<description>",
+            + " in comment. Please add a description in the string comment in the form `another:<description>`",
         result.getNotificationText());
   }
 
@@ -270,17 +270,17 @@ public class PlaceholderCommentCheckerTest {
         result
             .getNotificationText()
             .contains(
-                "Please add a description in the string comment in the form %1$@:<description>"));
+                "Please add a description in the string comment in the form `%1$@:<description>`"));
     Assert.assertTrue(
         result
             .getNotificationText()
             .contains(
-                "Please add a description in the string comment in the form %@:<description>"));
+                "Please add a description in the string comment in the form `%@:<description>`"));
     Assert.assertTrue(
         result
             .getNotificationText()
             .contains(
-                "Please add a description in the string comment in the form %2$@ld:<description>"));
+                "Please add a description in the string comment in the form `%2$@ld:<description>`"));
   }
 
   @Test

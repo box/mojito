@@ -42,7 +42,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "%1"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form %1:<description>"));
+                + " in comment. Please add a description in the string comment in the form `%1:<description>`"));
   }
 
   @Test
@@ -58,7 +58,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "%1"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form %1:<description>"));
+                + " in comment. Please add a description in the string comment in the form `%1:<description>`"));
   }
 
   @Test
@@ -74,7 +74,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "%2"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form %2:<description>"));
+                + " in comment. Please add a description in the string comment in the form `%2:<description>`"));
   }
 
   @Test
@@ -103,7 +103,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "%d"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form %d:<description>"));
+                + " in comment. Please add a description in the string comment in the form `%d:<description>`"));
   }
 
   @Test
@@ -121,6 +121,6 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "%s"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form %s:<description>"));
+                + " in comment. Please add a description in the string comment in the form `%s:<description>`"));
   }
 }

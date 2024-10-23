@@ -52,7 +52,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "count"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form count:<description>"));
+                + " in comment. Please add a description in the string comment in the form `count:<description>`"));
   }
 
   @Test
@@ -69,7 +69,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "count"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form count:<description>"));
+                + " in comment. Please add a description in the string comment in the form `count:<description>`"));
   }
 
   @Test
@@ -86,7 +86,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "count"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form count:<description>"));
+                + " in comment. Please add a description in the string comment in the form `count:<description>`"));
   }
 
   @Test
@@ -103,7 +103,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
                 + QUOTE_MARKER
                 + "shelf_count"
                 + QUOTE_MARKER
-                + " in comment. Please add a description in the string comment in the form shelf_count:<description>"));
+                + " in comment. Please add a description in the string comment in the form `shelf_count:<description>`"));
   }
 
   @Test
