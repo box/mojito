@@ -13,11 +13,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
+import com.box.l10n.mojito.openai.OpenAIClient.OpenAIClientResponseException;
+import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
+import com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
@@ -28,11 +35,10 @@ class OpenAIClientTest {
 
   static {
     try {
-      //      API_KEY =
-      //
-      // Files.readString(Paths.get(System.getProperty("user.home")).resolve(".keys/openai"))
-      //              .trim();
-      API_KEY = "test-api-key";
+      API_KEY =
+          Files.readString(Paths.get(System.getProperty("user.home")).resolve(".keys/openai"))
+              .trim();
+      //      API_KEY = "test-api-key";
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
@@ -221,5 +227,336 @@ class OpenAIClientTest {
             () -> openAIClient.getChatCompletions(chatCompletionsRequest).join());
     assertEquals(
         "Can't deserialize ChatCompletionsResponse", completionException.getCause().getMessage());
+  }
+
+  @Test
+  public void testUploadFileSuccess() throws Exception {
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.body())
+        .thenReturn(
+            """
+{
+  "id": "file-123",
+  "filename": "example.jsonl",
+  "status": "uploaded",
+  "created_at": 1690000000
+}""");
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    UploadFileRequest fileUploadRequest = UploadFileRequest.forBatch("example.jsonl", "{}\n{}\n");
+
+    UploadFileResponse uploadFileResponse = openAIClient.uploadFile(fileUploadRequest);
+
+    assertNotNull(uploadFileResponse);
+    assertEquals("file-123", uploadFileResponse.id());
+    assertEquals("example.jsonl", uploadFileResponse.filename());
+    assertEquals("uploaded", uploadFileResponse.status());
+    assertEquals(1690000000, uploadFileResponse.createdAt());
+  }
+
+  @Test
+  public void testUploadFileError() throws Exception {
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(400);
+    String errorMessage =
+        """
+      {
+        "error": {
+          "message": "Invalid file format for Batch API. Must be .jsonl",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": null
+        }
+      }
+      """;
+    when(mockResponse.body()).thenReturn(errorMessage);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    UploadFileRequest fileUploadRequest =
+        UploadFileRequest.forBatch(
+            "example.jsonl",
+            """
+        {
+          "a" : "b"
+        }
+        """);
+
+    OpenAIClientResponseException openAIClientResponseException =
+        assertThrows(
+            OpenAIClientResponseException.class, () -> openAIClient.uploadFile(fileUploadRequest));
+    assertEquals(openAIClientResponseException.httpResponse.statusCode(), 400);
+    assertEquals(openAIClientResponseException.httpResponse.body(), errorMessage);
+  }
+
+  @Test
+  public void testFileUploadRequestMultiPartBody() {
+    UploadFileRequest uploadFileRequest = UploadFileRequest.forBatch("test.jsonl", "{}\n{}");
+    String actual = uploadFileRequest.getMultipartBody("test-boundary");
+    assertEquals(
+        """
+                  --test-boundary\r
+                  Content-Disposition: form-data; name="purpose"\r
+                  \r
+                  batch\r
+                  --test-boundary\r
+                  Content-Disposition: form-data; name="file"; filename="test.jsonl"\r
+                  Content-Type: application/json\r
+                  \r
+                  {}
+                  {}\r
+                  --test-boundary--\r
+                  """,
+        actual);
+  }
+
+  @Test
+  public void testDownloadFileContentSuccess() throws IOException, InterruptedException {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(200);
+    String fileContent =
+        """
+      {"a" : "b"}
+      {"c" : "d"}
+      """;
+    when(mockResponse.body()).thenReturn(fileContent);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClient.DownloadFileContentResponse downloadFileContentResponse =
+        openAIClient.downloadFileContent(
+            new OpenAIClient.DownloadFileContentRequest("id-for-test"));
+
+    assertEquals(fileContent, downloadFileContentResponse.content());
+  }
+
+  @Test
+  public void testDownloadFileContentError() throws IOException, InterruptedException {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(404);
+    String body =
+        """
+      {
+        "error": {
+          "message": "No such File object: id-for-test",
+          "type": "invalid_request_error",
+          "param": "id",
+          "code": null
+        }
+      }
+      """;
+    when(mockResponse.body()).thenReturn(body);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClientResponseException openAIClientResponseException =
+        assertThrows(
+            OpenAIClientResponseException.class,
+            () ->
+                openAIClient.downloadFileContent(
+                    new OpenAIClient.DownloadFileContentRequest("id-for-test")));
+    assertEquals(body, openAIClientResponseException.httpResponse.body());
+    assertEquals(404, openAIClientResponseException.httpResponse.statusCode());
+  }
+
+  @Test
+  public void testCreateBatchSuccess() throws IOException, InterruptedException {
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(200);
+    String body =
+        """
+      {
+        "id": "batch_67199315c20081909074e442115938a2",
+        "object": "batch",
+        "endpoint": "/v1/chat/completions",
+        "errors": null,
+        "input_file_id": "file-pp1I2zv79eAnm47wt6rCNL5a",
+        "completion_window": "24h",
+        "status": "validating",
+        "output_file_id": null,
+        "error_file_id": null,
+        "created_at": 1729729301,
+        "in_progress_at": null,
+        "expires_at": 1729815701,
+        "finalizing_at": null,
+        "completed_at": null,
+        "failed_at": null,
+        "expired_at": null,
+        "cancelling_at": null,
+        "cancelled_at": null,
+        "request_counts": {
+          "total": 0,
+          "completed": 0,
+          "failed": 0
+        },
+        "metadata": {
+          "k1": "v1",
+          "k2": "v2"
+        }
+      }
+      """;
+    when(mockResponse.body()).thenReturn(body);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClient.CreateBatchResponse batch =
+        openAIClient.createBatch(
+            OpenAIClient.CreateBatchRequest.forChatCompletion(
+                "file-pp1I2zv79eAnm47wt6rCNL5a", Map.of("k1", "v1", "k2", "v2")));
+    assertEquals("batch_67199315c20081909074e442115938a2", batch.id());
+    assertEquals("file-pp1I2zv79eAnm47wt6rCNL5a", batch.inputFileId());
+    assertEquals("v1", batch.metadata().get("k1"));
+  }
+
+  @Test
+  public void testCreateBatchError() throws IOException, InterruptedException {
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(400);
+    String body =
+        """
+      {
+        "error": {
+          "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
+          "type": "invalid_request_error",
+          "param": "input_file_id",
+          "code": "invalid_value"
+        }
+      }""";
+    when(mockResponse.body()).thenReturn(body);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClientResponseException openAIClientResponseException =
+        assertThrows(
+            OpenAIClientResponseException.class,
+            () ->
+                openAIClient.createBatch(
+                    OpenAIClient.CreateBatchRequest.forChatCompletion("wrong-id", null)));
+    assertEquals(body, openAIClientResponseException.httpResponse.body());
+    assertEquals(400, openAIClientResponseException.httpResponse.statusCode());
+  }
+
+  @Test
+  public void testRetrieveBatchSuccess() throws IOException, InterruptedException {
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(200);
+    String body =
+        """
+      {
+        "id": "batch_67199315c20081909074e442115938a2",
+        "object": "batch",
+        "endpoint": "/v1/chat/completions",
+        "errors": null,
+        "input_file_id": "file-pp1I2zv79eAnm47wt6rCNL5a",
+        "completion_window": "24h",
+        "status": "validating",
+        "output_file_id": null,
+        "error_file_id": null,
+        "created_at": 1729729301,
+        "in_progress_at": null,
+        "expires_at": 1729815701,
+        "finalizing_at": null,
+        "completed_at": null,
+        "failed_at": null,
+        "expired_at": null,
+        "cancelling_at": null,
+        "cancelled_at": null,
+        "request_counts": {
+          "total": 0,
+          "completed": 0,
+          "failed": 0
+        },
+        "metadata": {
+          "k1": "v1",
+          "k2": "v2"
+        }
+      }
+      """;
+    when(mockResponse.body()).thenReturn(body);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClient.RetrieveBatchResponse batch =
+        openAIClient.retrieveBatch(
+            new OpenAIClient.RetrieveBatchRequest("batch_67199315c20081909074e442115938a2"));
+    assertEquals("batch_67199315c20081909074e442115938a2", batch.id());
+    assertEquals("file-pp1I2zv79eAnm47wt6rCNL5a", batch.inputFileId());
+    assertEquals("v1", batch.metadata().get("k1"));
+  }
+
+  @Test
+  public void testRetrieveBatchError() throws IOException, InterruptedException {
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+    when(mockResponse.statusCode()).thenReturn(400);
+    String body =
+        """
+      {
+        "error": {
+          "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
+          "type": "invalid_request_error",
+          "param": "input_file_id",
+          "code": "invalid_value"
+        }
+      }""";
+    when(mockResponse.body()).thenReturn(body);
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockResponse);
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClientResponseException openAIClientResponseException =
+        assertThrows(
+            OpenAIClientResponseException.class,
+            () ->
+                openAIClient.createBatch(
+                    OpenAIClient.CreateBatchRequest.forChatCompletion("wrong-id", null)));
+    assertEquals(body, openAIClientResponseException.httpResponse.body());
+    assertEquals(400, openAIClientResponseException.httpResponse.statusCode());
   }
 }
