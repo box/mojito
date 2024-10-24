@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -22,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -611,19 +613,307 @@ public class OpenAIClient {
         @JsonProperty("total_tokens") int totalTokens) {}
   }
 
+  public UploadFileResponse uploadFile(UploadFileRequest uploadFileRequest) {
+
+    final String boundary = UUID.randomUUID().toString();
+
+    String body = uploadFileRequest.getMultipartBody(boundary);
+
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(getUriForEndpoint(UploadFileRequest.ENDPOINT))
+            .header("Authorization", "Bearer " + apiKey)
+            .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build();
+
+    HttpResponse<String> response;
+    try {
+      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (response.statusCode() != 200) {
+      throw new OpenAIClientResponseException("Can't upload file", response);
+    }
+
+    UploadFileResponse uploadFileResponse;
+    try {
+      uploadFileResponse = objectMapper.readValue(response.body(), UploadFileResponse.class);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+    return uploadFileResponse;
+  }
+
+  public record UploadFileRequest(
+      String purpose, String filename, String content, String contentType) {
+
+    static final String ENDPOINT = "/v1/files";
+
+    public static UploadFileRequest forBatch(String filename, String content) {
+      return new UploadFileRequest(Purpose.BATCH.toString(), filename, content, "application/json");
+    }
+
+    enum Purpose {
+      BATCH("batch"),
+      ASSISTANTS("assistants"),
+      FINE_TUNE("fine-tune"),
+      VISION("vision");
+
+      private final String purposeCode;
+
+      Purpose(String purposeCode) {
+        this.purposeCode = purposeCode;
+      }
+
+      public String getPurposeCode() {
+        return purposeCode;
+      }
+
+      @Override
+      public String toString() {
+        return purposeCode;
+      }
+
+      public static Purpose fromCode(String purposeCode) {
+        for (Purpose purpose : Purpose.values()) {
+          if (purpose.purposeCode.equalsIgnoreCase(purposeCode)) {
+            return purpose;
+          }
+        }
+        throw new IllegalArgumentException("Unknown purpose: " + purposeCode);
+      }
+    }
+
+    String getMultipartBody(String boundary) {
+      String body =
+          """
+      --%1$s\r
+      Content-Disposition: form-data; name="purpose"\r
+      \r
+      %5$s\r
+      --%1$s\r
+      Content-Disposition: form-data; name="file"; filename="%2$s"\r
+      Content-Type: %3$s\r
+      \r
+      %4$s\r
+      --%1$s--\r
+      """
+              .formatted(boundary, filename, contentType, content, purpose);
+      return body;
+    }
+  }
+
+  public record UploadFileResponse(
+      String object,
+      String id,
+      String purpose,
+      String filename,
+      int bytes,
+      @JsonProperty("created_at") long createdAt,
+      String status,
+      @JsonProperty("status_details") String statusDetails) {}
+
+  public record RequestBatchFileLine(
+      @JsonProperty("custom_id") String customId, String method, String url, Object body) {
+
+    public static RequestBatchFileLine forChatCompletion(
+        String customId, ChatCompletionsRequest chatCompletionsRequest) {
+      return new RequestBatchFileLine(
+          customId, "POST", "/v1/chat/completions", chatCompletionsRequest);
+    }
+  }
+
+  public record ChatCompletionResponseBatchFileLine(
+      String id, @JsonProperty("custom_id") String customId, Response response) {
+    public record Response(
+        @JsonProperty("status_code") int statusCode,
+        @JsonProperty("request_id") String requestId,
+        @JsonProperty("body") ChatCompletionsResponse chatCompletionsResponse) {}
+  }
+
+  public DownloadFileContentResponse downloadFileContent(
+      DownloadFileContentRequest downloadFileContentRequest) {
+    HttpResponse<String> response;
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(
+                getUriForEndpoint(
+                    DownloadFileContentRequest.ENDPOINT.formatted(
+                        downloadFileContentRequest.fileId())))
+            .header("Authorization", "Bearer " + apiKey)
+            .header("Content-Type", "application/json")
+            .GET()
+            .build();
+
+    try {
+      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(
+          "Error while sending the request to download the file: "
+              + downloadFileContentRequest.fileId(),
+          e);
+    }
+
+    if (response.statusCode() != 200) {
+      throw new OpenAIClientResponseException("Can't download file content", response);
+    }
+
+    return new DownloadFileContentResponse(response.body());
+  }
+
+  public record DownloadFileContentRequest(String fileId) {
+    static final String ENDPOINT = "/v1/files/%s/content";
+  }
+
+  public record DownloadFileContentResponse(String content) {}
+
+  public CreateBatchResponse createBatch(CreateBatchRequest createBatchRequest) {
+
+    String jsonBody;
+    try {
+      jsonBody = objectMapper.writeValueAsString(createBatchRequest);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(getUriForEndpoint(CreateBatchRequest.ENDPOINT))
+            .header("Authorization", "Bearer " + apiKey)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+            .build();
+
+    HttpResponse<String> response;
+    try {
+      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (response.statusCode() != 200) {
+      throw new OpenAIClientResponseException("Can't create batch", response);
+    }
+
+    CreateBatchResponse createBatchResponse;
+    try {
+      createBatchResponse = objectMapper.readValue(response.body(), CreateBatchResponse.class);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+
+    return createBatchResponse;
+  }
+
+  public record CreateBatchRequest(
+      @JsonProperty("input_file_id") String inputFileId,
+      String endpoint,
+      @JsonProperty("completion_window") String completionWindow,
+      Map<String, String> metadata) {
+
+    public static final String ENDPOINT = "/v1/batches";
+
+    public static CreateBatchRequest forChatCompletion(
+        String fileId, Map<String, String> metadata) {
+      return new CreateBatchRequest(fileId, "/v1/chat/completions", "24h", metadata);
+    }
+  }
+
+  public record CreateBatchResponse(
+      String id,
+      String object,
+      String endpoint,
+      String errors,
+      @JsonProperty("input_file_id") String inputFileId,
+      @JsonProperty("completion_window") String completionWindow,
+      String status,
+      @JsonProperty("output_file_id") String outputFileId,
+      @JsonProperty("error_file_id") String errorFileId,
+      @JsonProperty("created_at") long createdAt,
+      @JsonProperty("in_progress_at") Long inProgressAt,
+      @JsonProperty("expires_at") long expiresAt,
+      @JsonProperty("completed_at") Long completedAt,
+      @JsonProperty("failed_at") Long failedAt,
+      @JsonProperty("expired_at") Long expiredAt,
+      @JsonProperty("request_counts") RequestCounts requestCounts,
+      Map<String, String> metadata) {
+    record RequestCounts(int total, int completed, int failed) {}
+  }
+
+  public RetrieveBatchResponse retrieveBatch(RetrieveBatchRequest retrieveBatchRequest) {
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(
+                getUriForEndpoint(
+                    RetrieveBatchRequest.ENDPOINT.formatted(retrieveBatchRequest.batchId())))
+            .header("Authorization", "Bearer " + apiKey)
+            .header("Content-Type", "application/json")
+            .GET()
+            .build();
+
+    HttpResponse<String> response;
+    try {
+      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (response.statusCode() != 200) {
+      throw new OpenAIClientResponseException("Can't retrieve batch", response);
+    }
+
+    RetrieveBatchResponse retrieveBatchResponse;
+    try {
+      retrieveBatchResponse = objectMapper.readValue(response.body(), RetrieveBatchResponse.class);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+
+    return retrieveBatchResponse;
+  }
+
+  public record RetrieveBatchRequest(String batchId) {
+    public static final String ENDPOINT = "/v1/batches/%s";
+  }
+
+  public record RetrieveBatchResponse(
+      String id,
+      String object,
+      String endpoint,
+      String errors,
+      @JsonProperty("input_file_id") String inputFileId,
+      @JsonProperty("completion_window") String completionWindow,
+      String status,
+      @JsonProperty("output_file_id") String outputFileId,
+      @JsonProperty("error_file_id") String errorFileId,
+      @JsonProperty("created_at") long createdAt,
+      @JsonProperty("in_progress_at") Long inProgressAt,
+      @JsonProperty("expires_at") long expiresAt,
+      @JsonProperty("completed_at") Long completedAt,
+      @JsonProperty("failed_at") Long failedAt,
+      @JsonProperty("expired_at") Long expiredAt,
+      @JsonProperty("request_counts") RequestCounts requestCounts,
+      Map<String, String> metadata) {
+    record RequestCounts(int total, int completed, int failed) {}
+  }
+
   private URI getUriForEndpoint(String endpoint) {
     return URI.create(host).resolve(endpoint);
   }
 
-  public class OpenAIClientResponseException extends RuntimeException {
-    HttpResponse httpResponse;
+  public static class OpenAIClientResponseException extends RuntimeException {
+    HttpResponse<?> httpResponse;
 
-    public OpenAIClientResponseException(String message, HttpResponse httpResponse) {
+    public OpenAIClientResponseException(String message, HttpResponse<?> httpResponse) {
       super(message);
       this.httpResponse = Objects.requireNonNull(httpResponse);
     }
 
-    public OpenAIClientResponseException(String message, Exception e, HttpResponse httpResponse) {
+    public OpenAIClientResponseException(
+        String message, Exception e, HttpResponse<?> httpResponse) {
       super(message, e);
       this.httpResponse = Objects.requireNonNull(httpResponse);
     }
