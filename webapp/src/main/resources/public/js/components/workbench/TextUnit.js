@@ -363,6 +363,10 @@ let TextUnit = createReactClass({
                 textUnit.setIncludedInLocalizedFile(true);
                 textUnit.setStatus(TextUnitSDK.STATUS.TRANSLATION_NEEDED);
                 break;
+            case "overridden":
+                textUnit.setIncludedInLocalizedFile(true);
+                textUnit.setStatus(TextUnitSDK.STATUS.OVERRIDDEN);
+                break;
         }
 
         WorkbenchActions.saveTextUnit(textUnit);

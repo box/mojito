@@ -103,8 +103,8 @@ let StatusDropdown = createReactClass({
     },
 
     setStateAndCallSearchParamChanged(searchFilterParam, searchFilterParamValue) {
-        
         let state = {};
+
         state[searchFilterParam] = searchFilterParamValue;
         
         this.setState(state, function () {
@@ -170,6 +170,8 @@ let StatusDropdown = createReactClass({
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.needsReview" });
             case SearchParamsStore.STATUS.REJECTED:
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.rejected" });
+            case SearchParamsStore.STATUS.OVERRIDDEN:
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.overridden" });
         }
     },
 
@@ -263,6 +265,7 @@ let StatusDropdown = createReactClass({
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.FOR_TRANSLATION)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REVIEW_NEEDED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REJECTED)}
+                    {this.renderStatusMenuItem(SearchParamsStore.STATUS.OVERRIDDEN)}
 
                 <MenuItem divider />
 

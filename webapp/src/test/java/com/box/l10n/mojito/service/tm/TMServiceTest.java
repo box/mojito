@@ -43,6 +43,7 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParametersForTesting;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -4755,5 +4756,56 @@ public class TMServiceTest extends ServiceTestBase {
         localizedAsset.replace(
             "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">", "");
     assertEquals(assetContent, localizedAsset);
+  }
+
+  @Test
+  public void testAddTMTextUnitWithOverriddenStatus() throws RepositoryNameAlreadyUsedException {
+    createTestData();
+
+    Long textUnitId =
+        addTextUnitAndCheck(
+            this.tmId,
+            this.assetId,
+            "name",
+            "this is the content",
+            "some comment",
+            "3063c39d3cf8ab69bcabbbc5d7187dc9",
+            "cf8ea6b6848f23345648038bc3abf324");
+
+    Locale targetLocale = this.localeService.findByBcp47Tag("fr-FR");
+
+    this.tmService.addTMTextUnitCurrentVariant(
+        textUnitId,
+        targetLocale.getId(),
+        "this is the new content",
+        "some comment",
+        TMTextUnitVariant.Status.OVERRIDDEN,
+        true);
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParametersForTesting();
+    textUnitSearcherParameters.setRepositoryNames(
+        Collections.singletonList(this.repository.getName()));
+    textUnitSearcherParameters.setAssetPath(this.asset.getPath());
+    textUnitSearcherParameters.setLocaleTags(List.of(targetLocale.getBcp47Tag()));
+
+    TextUnitDTO textUnitDTOFromSearch =
+        this.textUnitSearcher.search(textUnitSearcherParameters).getFirst();
+
+    assertEquals("this is the new content", textUnitDTOFromSearch.getTarget());
+    assertEquals(TMTextUnitVariant.Status.OVERRIDDEN, textUnitDTOFromSearch.getStatus());
+
+    this.tmService.addTMTextUnitCurrentVariant(
+        textUnitId,
+        targetLocale.getId(),
+        "this is the newest content",
+        "some comment",
+        TMTextUnitVariant.Status.APPROVED,
+        true);
+
+    textUnitDTOFromSearch = this.textUnitSearcher.search(textUnitSearcherParameters).getFirst();
+
+    assertEquals("this is the newest content", textUnitDTOFromSearch.getTarget());
+    assertEquals(TMTextUnitVariant.Status.APPROVED, textUnitDTOFromSearch.getStatus());
   }
 }

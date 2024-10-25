@@ -446,7 +446,10 @@ SearchParamsStore.STATUS = {
      * TextUnits that are not rejected, ie includedInLocalizedFile is true.
      */
     "NOT_REJECTED": "NOT_REJECTED",
-
+    /**
+     * TextUnits with status OVERRIDDEN.
+     */
+    "OVERRIDDEN": "OVERRIDDEN",
 };
 
 export default alt.createStore(SearchParamsStore, 'SearchParamsStore');

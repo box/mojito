@@ -20,7 +20,8 @@ class TextUnitsreviewModal extends React.Component {
         this.REVIEW = "review";
         this.REJECT = "reject";
         this.ACCEPT = "accept";
-        this.TRANSLATE = "translate";
+        this.TRANSLATE = "translate"
+        this.OVERRIDDEN = "overridden";
 
         this.state = {
             "currentReviewState": this.getInitialReviewStateOfTextUnits(),
@@ -99,6 +100,15 @@ class TextUnitsreviewModal extends React.Component {
         );
     };
 
+    getOverriddenButton = () => {
+        return (
+            <Button active={this.state.currentReviewState === this.OVERRIDDEN}
+                    onClick={this.optionClicked.bind(this, this.OVERRIDDEN)}>
+                <FormattedMessage id="textUnit.reviewModal.overridden"/>
+            </Button>
+        );
+    };
+
     /**
      * @returns {JSX} The JSX for the translate button with class active set according to the current component state
      */
@@ -166,6 +176,8 @@ class TextUnitsreviewModal extends React.Component {
                 currentReviewState = this.REVIEW;
             } else if (textUnit.getStatus() === TextUnit.STATUS.TRANSLATION_NEEDED) {
                 currentReviewState = this.TRANSLATE;
+            } else if (textUnit.getStatus() === TextUnit.STATUS.OVERRIDDEN) {
+                currentReviewState = this.OVERRIDDEN;
             }
 
         }
@@ -216,6 +228,7 @@ class TextUnitsreviewModal extends React.Component {
                             {this.getTranslateButton()}
                             {this.getReviewButton()}
                             {this.getAcceptButton()}
+                            {this.getOverriddenButton()}
                         </ButtonGroup>
                     </ButtonToolbar>
                 </Modal.Body>

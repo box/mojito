@@ -12,6 +12,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
 import com.box.l10n.mojito.service.asset.VirtualAssetBadRequestException;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
@@ -36,6 +37,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.junit.Rule;
@@ -501,5 +503,97 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     assertTrue(
         "should be included with proper placeholder",
         textUnitDTOs.get(0).isIncludedInLocalizedFile());
+  }
+
+  @Test
+  public void testImportTextUnits() throws InterruptedException {
+    TMTestData tmTestData = new TMTestData(this.testIdWatcher);
+
+    TextUnitDTO textUnitDTO = new TextUnitDTO();
+    textUnitDTO.setRepositoryName(tmTestData.repository.getName());
+    textUnitDTO.setTargetLocale(tmTestData.frFR.getBcp47Tag());
+    textUnitDTO.setAssetPath(tmTestData.asset.getPath());
+    textUnitDTO.setName("TEST2");
+    textUnitDTO.setTarget("New TEST2 translation for fr");
+    textUnitDTO.setStatus(TMTextUnitVariant.Status.OVERRIDDEN);
+
+    TextUnitDTO textUnitDTO2 = new TextUnitDTO();
+    textUnitDTO2.setRepositoryName(tmTestData.repository.getName());
+    textUnitDTO2.setTargetLocale(tmTestData.frFR.getBcp47Tag());
+    textUnitDTO2.setAssetPath(tmTestData.asset.getPath());
+    textUnitDTO2.setName("TEST3");
+    textUnitDTO2.setTarget("New TEST3 translation for fr");
+
+    List<TextUnitDTO> textUnitDTOsForImport = Arrays.asList(textUnitDTO, textUnitDTO2);
+
+    this.textUnitBatchImporterService.importTextUnits(textUnitDTOsForImport, true, false);
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParametersForTesting();
+    textUnitSearcherParameters.setRepositoryNames(
+        Collections.singletonList(tmTestData.repository.getName()));
+    textUnitSearcherParameters.setAssetPath(tmTestData.asset.getPath());
+    textUnitSearcherParameters.setLocaleTags(List.of("fr-FR"));
+
+    List<TextUnitDTO> textUnitDTOsFromSearch =
+        this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    int i = 1;
+    assertEquals("TEST2", textUnitDTOsFromSearch.get(i).getName());
+    assertEquals("New TEST2 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
+    assertEquals(TMTextUnitVariant.Status.OVERRIDDEN, textUnitDTOsFromSearch.get(i).getStatus());
+    i++;
+    assertEquals("TEST3", textUnitDTOsFromSearch.get(i).getName());
+    assertEquals("New TEST3 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
+    assertEquals(TMTextUnitVariant.Status.APPROVED, textUnitDTOsFromSearch.get(i).getStatus());
+
+    textUnitDTO = new TextUnitDTO();
+    textUnitDTO.setRepositoryName(tmTestData.repository.getName());
+    textUnitDTO.setTargetLocale(tmTestData.frFR.getBcp47Tag());
+    textUnitDTO.setAssetPath(tmTestData.asset.getPath());
+    textUnitDTO.setName("TEST2");
+    textUnitDTO.setTarget("The newest TEST2 translation for fr");
+
+    textUnitDTO2 = new TextUnitDTO();
+    textUnitDTO2.setRepositoryName(tmTestData.repository.getName());
+    textUnitDTO2.setTargetLocale(tmTestData.frFR.getBcp47Tag());
+    textUnitDTO2.setAssetPath(tmTestData.asset.getPath());
+    textUnitDTO2.setName("TEST3");
+    textUnitDTO2.setTarget("The newest TEST3 translation for fr");
+
+    textUnitDTOsForImport = Arrays.asList(textUnitDTO, textUnitDTO2);
+
+    this.textUnitBatchImporterService.importTextUnits(textUnitDTOsForImport, false, false);
+
+    textUnitDTOsFromSearch = this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    i = 1;
+    assertEquals("TEST2", textUnitDTOsFromSearch.get(i).getName());
+    assertEquals("New TEST2 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
+    assertEquals(TMTextUnitVariant.Status.OVERRIDDEN, textUnitDTOsFromSearch.get(i).getStatus());
+    i++;
+    assertEquals("TEST3", textUnitDTOsFromSearch.get(i).getName());
+    assertEquals("The newest TEST3 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
+    assertEquals(TMTextUnitVariant.Status.APPROVED, textUnitDTOsFromSearch.get(i).getStatus());
+
+    // Set status to APPROVED
+    this.tmService.addTMTextUnitCurrentVariant(
+        textUnitDTOsFromSearch.get(1).getTmTextUnitId(),
+        textUnitDTOsFromSearch.get(1).getLocaleId(),
+        "Reverted TEST2 translation for fr",
+        textUnitDTOsFromSearch.get(1).getComment(),
+        TMTextUnitVariant.Status.APPROVED,
+        true);
+
+    textUnitDTOsFromSearch = this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    i = 1;
+    assertEquals("TEST2", textUnitDTOsFromSearch.get(i).getName());
+    assertEquals("Reverted TEST2 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
+    assertEquals(TMTextUnitVariant.Status.APPROVED, textUnitDTOsFromSearch.get(i).getStatus());
+    i++;
+    assertEquals("TEST3", textUnitDTOsFromSearch.get(i).getName());
+    assertEquals("The newest TEST3 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
+    assertEquals(TMTextUnitVariant.Status.APPROVED, textUnitDTOsFromSearch.get(i).getStatus());
   }
 }

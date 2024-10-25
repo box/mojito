@@ -263,7 +263,8 @@ public class TextUnitBatchImporterService {
                       textUnitForBatchImport.getStatus(),
                       textUnitForBatchImport.isIncludedInLocalizedFile(),
                       importTime,
-                      importedBy);
+                      importedBy,
+                      true);
 
               if (addTMTextUnitCurrentVariantResult.isTmTextUnitCurrentVariantUpdated()) {
 

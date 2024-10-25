@@ -568,7 +568,8 @@ public class TMService {
       TMTextUnitVariant.Status status,
       boolean includedInLocalizedFile,
       ZonedDateTime createdDate,
-      User createdBy) {
+      User createdBy,
+      boolean checkOverridden) {
 
     boolean noUpdate = false;
 
@@ -604,16 +605,20 @@ public class TMService {
     } else {
       logger.debug("There is a current text unit variant, check if an update is needed");
       TMTextUnitVariant currentTmTextUnitVariant = tmTextUnitCurrentVariant.getTmTextUnitVariant();
+      boolean overridden =
+          checkOverridden
+              && currentTmTextUnitVariant.getStatus() == TMTextUnitVariant.Status.OVERRIDDEN;
       boolean updateNeeded =
-          isUpdateNeededForTmTextUnitVariant(
-              currentTmTextUnitVariant.getStatus(),
-              currentTmTextUnitVariant.getContentMD5(),
-              currentTmTextUnitVariant.isIncludedInLocalizedFile(),
-              currentTmTextUnitVariant.getComment(),
-              status,
-              DigestUtils.md5Hex(content),
-              includedInLocalizedFile,
-              comment);
+          !overridden
+              && isUpdateNeededForTmTextUnitVariant(
+                  currentTmTextUnitVariant.getStatus(),
+                  currentTmTextUnitVariant.getContentMD5(),
+                  currentTmTextUnitVariant.isIncludedInLocalizedFile(),
+                  currentTmTextUnitVariant.getComment(),
+                  status,
+                  DigestUtils.md5Hex(content),
+                  includedInLocalizedFile,
+                  comment);
 
       if (updateNeeded) {
         logger.debug(
@@ -638,12 +643,41 @@ public class TMService {
         tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
       } else {
         logger.debug(
-            "The current text unit variant has same content, comment and review status, don't add entities and return it instead");
+            overridden
+                ? "The current text unit variant is kept because it has the OVERRIDDEN status"
+                : "The current text unit variant has same content, comment and review status, don't add entities and return it instead");
         noUpdate = true;
       }
     }
 
     return new AddTMTextUnitCurrentVariantResult(!noUpdate, tmTextUnitCurrentVariant);
+  }
+
+  public AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult(
+      TMTextUnitCurrentVariant tmTextUnitCurrentVariant,
+      Long tmId,
+      Long assetId,
+      Long tmTextUnitId,
+      Long localeId,
+      String content,
+      String comment,
+      TMTextUnitVariant.Status status,
+      boolean includedInLocalizedFile,
+      ZonedDateTime createdDate,
+      User createdBy) {
+    return this.addTMTextUnitCurrentVariantWithResult(
+        tmTextUnitCurrentVariant,
+        tmId,
+        assetId,
+        tmTextUnitId,
+        localeId,
+        content,
+        comment,
+        status,
+        includedInLocalizedFile,
+        createdDate,
+        createdBy,
+        false);
   }
 
   /**
