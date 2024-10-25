@@ -35,6 +35,11 @@ class BranchTextUnitsPaginatorStore extends PaginatorStore {
             this.resetBranchTextUnitsSearchParams();
         }
     }
+
+    changePageSize(pageSize) {
+        this.resetBranchTextUnitsSearchParams();
+        this.limit = pageSize;
+    }
 }
 
 export default alt.createStore(BranchTextUnitsPaginatorStore, 'BranchTextUnitsPaginatorStore');

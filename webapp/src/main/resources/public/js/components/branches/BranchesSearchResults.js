@@ -1,7 +1,19 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
-import {Button, Col, Collapse, Glyphicon, Grid, Label, OverlayTrigger, Row, Tooltip} from "react-bootstrap";
+import {
+    Button,
+    Col,
+    Collapse,
+    DropdownButton,
+    Glyphicon,
+    Grid,
+    Label,
+    MenuItem,
+    OverlayTrigger,
+    Row,
+    Tooltip
+} from "react-bootstrap";
 import {Link, withRouter} from "react-router";
 import ClassNames from "classnames";
 import {withAppConfig} from "../../utils/AppConfig";
@@ -12,6 +24,7 @@ import BranchTextUnitsPaginatorStore from "../../stores/branches/BranchTextUnits
 import BranchTextUnitsPaginatorActions from "../../actions/branches/BranchTextUnitsPaginatorActions";
 import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
+import BranchesPaginatorActions from "../../actions/branches/BranchesPaginatorActions";
 
 
 class BranchesSearchResults extends React.Component {
@@ -72,21 +85,44 @@ class BranchesSearchResults extends React.Component {
     }
 
     renderBranchTextUnitsPagination() {
+        const branchTextUnitsPaginatorState = BranchTextUnitsPaginatorStore.getState();
+        let pageSizes = [];
+        for (let i of [10, 25, 50, 100]) {
+            pageSizes.push(
+                <MenuItem
+                    key={i}
+                    eventKey={i}
+                    active={i === branchTextUnitsPaginatorState.limit}
+                    onSelect={(s, _) => {
+                        BranchTextUnitsPaginatorActions.changePageSize(s);
+                        BranchTextUnitsPageActions.getBranchTextUnits();
+                    }
+                }>
+                    {i}
+                </MenuItem>
+            );
+        }
+        const title = <FormattedMessage values={{"pageSize": branchTextUnitsPaginatorState.limit}} id="search.unitsPerPage" />;
         return (
             <Row>
-                <AltContainer store={BranchTextUnitsPaginatorStore}>
-                    <Paginator
-                        onPreviousPageClicked={() => {
-                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
-                            BranchTextUnitsPaginatorActions.goToPreviousPage();
-                            BranchTextUnitsPageActions.getBranchTextUnits();
-                        }}
-                        onNextPageClicked={() => {
-                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
-                            BranchTextUnitsPaginatorActions.goToNextPage();
-                            BranchTextUnitsPageActions.getBranchTextUnits();
-                        }}/>
-                </AltContainer>
+                <div className="pull-right" style={{display: "flex", alignItems: "center", "gap": "15px"}}>
+                    <DropdownButton id="branch-text-units-per-page" title={title}>
+                        {pageSizes}
+                    </DropdownButton>
+                    <AltContainer store={BranchTextUnitsPaginatorStore}>
+                        <Paginator
+                            onPreviousPageClicked={() => {
+                                BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                                BranchTextUnitsPaginatorActions.goToPreviousPage();
+                                BranchTextUnitsPageActions.getBranchTextUnits();
+                            }}
+                            onNextPageClicked={() => {
+                                BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                                BranchTextUnitsPaginatorActions.goToNextPage();
+                                BranchTextUnitsPageActions.getBranchTextUnits();
+                            }}/>
+                    </AltContainer>
+                </div>
             </Row>
         );
     }

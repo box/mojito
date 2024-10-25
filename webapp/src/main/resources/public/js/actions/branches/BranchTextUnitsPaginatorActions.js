@@ -5,7 +5,7 @@ class BranchTextUnitsPaginatorActions {
         this.generateActions(
             "goToNextPage",
             "goToPreviousPage",
-            "changeCurrentPageNumber"
+            "changePageSize",
         );
     }
 }
