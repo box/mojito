@@ -1,9 +1,11 @@
-var path = require('path');
-var webpack = require("webpack");
+const path = require('path');
+const webpack = require("webpack");
+const TerserPlugin = require("terser-webpack-plugin");
 
-module.exports = function (env) {
+module.exports = (env) => {
     env = env || {};
 
+    const isProdEnv = Boolean(env.production)
     const config = {
         entry: {
             'app': path.resolve(__dirname, './src/main/resources/public/js/app.js'),
@@ -12,10 +14,10 @@ module.exports = function (env) {
         output: {
             path: path.resolve(__dirname, './target/classes/public'),
             publicPath: '/',
-            filename: 'js/[name]-[hash].js',
+            filename: 'js/[name]-[contenthash].js',
             chunkFilename: 'js/[name]-[chunkhash].js'
         },
-        mode: env.production ? 'production' : 'development',
+        mode: isProdEnv ? 'production' : 'development',
         module: {
             rules: [
                 {
@@ -30,17 +32,17 @@ module.exports = function (env) {
                 },
                 {
                     test: /\.(gif|png|jpe?g|svg)$/i,
-                    loaders: [
+                    use: [
                         {
                             loader: 'file-loader',
                             options: {
-                                name: 'img/[name]-[hash].[ext]',
+                                name: 'img/[name]-[contenthash].[ext]',
                             }
                         },
                         {
                             loader: 'image-webpack-loader',
-                            query: {
-                                name: 'img/[name]-[hash].[ext]',
+                            options: {
+                                name: 'img/[name]-[contenthash].[ext]',
                                 query: {
                                     mozjpeg: {
                                         progressive: true
@@ -75,12 +77,12 @@ module.exports = function (env) {
                     // to the font are invalid if mojito is deployed with a
                     // specific deploy path.
                     // hardcoded for deploy path for test -->
-                    //    name: '{deployPath}/fonts/[name]-[hash].[ext]'
+                    //    name: '{deployPath}/fonts/[name]-[contenthash].[ext]'
 
                     test: /\.(eot|ttf|woff|woff2)$/,
                     loader: 'url-loader',
                     options: {
-                        name: 'fonts/[name]-[hash].[ext]'
+                        name: 'fonts/[name]-[contenthash].[ext]'
                     }
                 },
 
@@ -102,9 +104,17 @@ module.exports = function (env) {
                 },
             ]
         },
+        optimization: {
+            minimizer: [new TerserPlugin()],
+            minimize: isProdEnv,
+        },
+        performance: {
+            hints: 'error',
+            maxEntrypointSize: 1_800_000, // 1.8MB
+            maxAssetSize: 1_800_000 // 1.8MB
+        },
         plugins: []
     };
-
 
     const HtmlWebpackPlugin = require('html-webpack-plugin');
     config.plugins.push(new HtmlWebpackPlugin({
@@ -113,7 +123,7 @@ module.exports = function (env) {
         inject: false
     }));
 
-    if (env.production) {
+    if (isProdEnv) {
         config.plugins.push(
                 new webpack.DefinePlugin({
                     'process.env': {
