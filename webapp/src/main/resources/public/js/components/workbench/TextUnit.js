@@ -34,6 +34,7 @@ import {
     Tooltip
 } from "react-bootstrap";
 import ViewModeStore from "../../stores/workbench/ViewModeStore";
+import AiReviewActions from "../../actions/workbench/AiReviewActions";
 
 
 let TextUnit = createReactClass({
@@ -658,6 +659,13 @@ let TextUnit = createReactClass({
         TranslationHistoryActions.openWithTextUnit(this.props.textUnit);
     },
 
+    onAiReviewClick(e){
+
+        e.stopPropagation();
+
+        AiReviewActions.openWithTextUnit(this.props.textUnit);
+    },
+
     /**
      * Handle click on the asset path icon: stop event propagation (no need to bubble
      * up as we're reloading the workbench with new data) and update the search
@@ -859,6 +867,10 @@ let TextUnit = createReactClass({
         let assetPathTranslationHistoryTooltip =
             <Tooltip id={`${id}-${locale}-translation-history`}>{this.props.intl.formatMessage( {id: 'workbench.translationHistoryModal.info'} )}</Tooltip>;
 
+        let aiReviewTooltip =
+            <Tooltip id={`${id}-${locale}-ai-review`}>{this.props.intl.formatMessage( {id: 'workbench.aiReviewModal.info'} )}</Tooltip>;
+
+
         // Only show the overlay trigger for the translation history if there is a current text unit variant (ie. there is
         // at least one translation) If not, we have no history to show anyways!
         return (<span className="clickable textunit-name"
@@ -880,6 +892,11 @@ let TextUnit = createReactClass({
                     <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
                         <span className="textunit-translation-history glyphicon glyphicon-time mls"
                               onClick={this.onTranslationHistoryClick} />
+                    </OverlayTrigger>
+
+                    <OverlayTrigger placement="top" overlay={aiReviewTooltip}>
+                        <span className="textunit-ai-review glyphicon glyphicon-flash mls"
+                              onClick={this.onAiReviewClick} />
                     </OverlayTrigger>
                 </span>
         );
