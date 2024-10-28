@@ -89,7 +89,6 @@ public class TextUnitSearcherTest extends ServiceTestBase {
     textUnitSearcherParameters.setSource("Please enter a valid state, region or province");
     textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
     textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
-    textUnitSearcherParameters.setLocationUsage("fake_for_test");
 
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
@@ -112,7 +111,6 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         tmTestData.addCurrentTMTextUnitVariant1KoKR.getId(), next.getTmTextUnitVariantId());
     assertTrue(next.isTranslated());
     assertTrue(next.isUsed());
-    assertEquals("fake_for_test", next.getAssetPath());
 
     assertFalse(iterator.hasNext());
   }
@@ -814,21 +812,6 @@ public class TextUnitSearcherTest extends ServiceTestBase {
   }
 
   @Test
-  public void testExactMatchLocationUsageByAssetPath() {
-    testSearchText("assetPath", "fake_for_test", SearchType.EXACT, List.of("fake_for_test"));
-  }
-
-  @Test
-  public void testContainsLocationUsageByAssetPath() {
-    testSearchText("assetPath", "fake", SearchType.CONTAINS, List.of("fake_for_test"));
-  }
-
-  @Test
-  public void testILikeLocationUsageByAssetPath() {
-    testSearchText("assetPath", "%FAKE_FOR_%test", SearchType.ILIKE, List.of("fake_for_test"));
-  }
-
-  @Test
   public void testExactMatchLocationUsageByUsages() {
     testSearchText("usage", "usage_test", SearchType.EXACT, List.of("usage_test"), true);
   }
@@ -933,7 +916,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
       textUnitSearcherParameters.setSource(value);
     } else if ("target".equals(attribute)) {
       textUnitSearcherParameters.setTarget(value);
-    } else if ("usage".equals(attribute) || "assetPath".equals(attribute)) {
+    } else if ("usage".equals(attribute)) {
       textUnitSearcherParameters.setLocationUsage(value);
     } else {
       throw new RuntimeException();
@@ -962,8 +945,6 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         attributeToCheck = textUnitDTO.getSource();
       } else if ("target".equals(attribute)) {
         attributeToCheck = textUnitDTO.getTarget();
-      } else if ("assetPath".equals(attribute)) {
-        attributeToCheck = textUnitDTO.getAssetPath();
       } else {
         Optional<String> optionalUsage =
             assetTextUnitToTMTextUnits.stream()
