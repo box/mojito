@@ -157,14 +157,17 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     final AtomicReference<EscapeType> escapeType =
         getEscapeTypeAtomicReference(nativeClient, optionsParser);
 
+    Stopwatch stopwatchGetTextUnitDTO = Stopwatch.createStarted();
     List<TextUnitDTO> search =
         getSourceTextUnitDTOs(repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
+    logger.info("Get Source TextUnitDTO for push took: {}", stopwatchGetTextUnitDTO.elapsed());
     String text = getFileContent(pluralSeparator, search, true, null, escapeType.get());
 
     String tagForUpload = getTagForUpload(repository.getName());
 
     if (nativeClient) {
-      logger.info("Pushing with native and options: {}", formatOptions);
+      logger.debug("Pushing with native and options: {}", formatOptions);
+      Stopwatch stopWatchPhaseNativePush = Stopwatch.createStarted();
       phraseClient.nativeUploadAndWait(
           projectId,
           repository.getSourceLocale().getBcp47Tag(),
@@ -173,6 +176,10 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
           text,
           ImmutableList.of(tagForUpload),
           formatOptions.isEmpty() ? null : formatOptions);
+      logger.info(
+          "Pushing with native and options: {}, took: {}",
+          formatOptions,
+          stopWatchPhaseNativePush.elapsed());
     } else {
       phraseClient.uploadAndWait(
           projectId,
@@ -214,6 +221,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
   public void removeUnusedKeysAndTags(
       String projectId, String repositoryName, String tagForUpload) {
 
+    Stopwatch stopwatchRemoveUnusedKeysAndTags = Stopwatch.createStarted();
+
     List<String> tagsForOtherRepositories =
         phraseClient.listTags(projectId).stream()
             .map(Tag::getName)
@@ -225,7 +234,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     List<String> allActiveTags = new ArrayList<>(tagsForOtherRepositories);
     allActiveTags.add(tagForUpload);
 
-    logger.info("All active tags: {}", allActiveTags);
+    logger.debug("All active tags: {}", allActiveTags);
     phraseClient.removeKeysNotTaggedWith(projectId, allActiveTags);
 
     List<String> pushTagsToDelete =
@@ -238,6 +247,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     logger.info("Tags to delete: {}", pushTagsToDelete);
     phraseClient.deleteTags(projectId, pushTagsToDelete);
+
+    logger.info("removeUnusedKeysAndTags took: {}", stopwatchRemoveUnusedKeysAndTags);
   }
 
   private List<TextUnitDTO> getSourceTextUnitDTOs(
