@@ -50,6 +50,8 @@ public class TextUnitSearcherParameters {
   String includeTextUnitsWithPattern;
   String skipAssetPathWithPattern;
 
+  Long tmTextUnitVariantId;
+
   public String getName() {
     return name;
   }
@@ -285,6 +287,14 @@ public class TextUnitSearcherParameters {
     if (!filtered.isEmpty()) {
       this.tmTextUnitIds = filtered;
     }
+  }
+
+  public Long getTmTextUnitVariantId() {
+    return tmTextUnitVariantId;
+  }
+
+  public void setTmTextUnitVariantId(Long tmTextUnitVariantId) {
+    this.tmTextUnitVariantId = tmTextUnitVariantId;
   }
 
   public String getSkipTextUnitWithPattern() {
