@@ -430,6 +430,10 @@ public class TextUnitSearcher {
           new NativeDateGteExp("tu.created_date", searchParameters.getTmTextUnitCreatedAfter()));
     }
 
+    if (searchParameters.getTmTextUnitVariantId() != null) {
+      conjunction.add(new NativeEqExpFix("tuv.id", searchParameters.getTmTextUnitVariantId()));
+    }
+
     if (!conjunction.toSQL().isEmpty()) {
       c.add(conjunction);
     }
