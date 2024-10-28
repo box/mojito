@@ -5,15 +5,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -214,7 +221,8 @@ public class OpenAIClient {
       @JsonProperty("max_tokens") int maxTokens,
       @JsonProperty("top_p") float topP,
       @JsonProperty("frequency_penalty") float frequencyPenalty,
-      @JsonProperty("presence_penalty") float presencePenalty) {
+      @JsonProperty("presence_penalty") float presencePenalty,
+      @JsonProperty("response_format") ResponseFormat responseFormat) {
 
     static String ENDPOINT = "/v1/chat/completions";
 
@@ -225,6 +233,79 @@ public class OpenAIClient {
 
       Models(String name) {
         this.name = name;
+      }
+    }
+
+    public interface ResponseFormat {}
+
+    public record JsonFormat(String type, @JsonProperty("json_schema") JsonSchema jsonSchema)
+        implements ResponseFormat {
+
+      public record JsonSchema(boolean strict, String name, Object schema) {
+
+        public static ObjectNode createJsonSchema(Class<?> type) {
+          ObjectMapper objectMapper = new ObjectMapper();
+          JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(objectMapper);
+          com.fasterxml.jackson.module.jsonSchema.JsonSchema baseSchema = null;
+          try {
+            baseSchema = schemaGen.generateSchema(type);
+          } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+          }
+          JsonNode schemaNode = objectMapper.valueToTree(baseSchema);
+          ObjectNode rootNode = (ObjectNode) schemaNode;
+          enhanceSchema(rootNode);
+          return rootNode;
+        }
+
+        private static void enhanceSchema(ObjectNode objectNode) {
+
+          if (!objectNode.has("type")) {
+            objectNode.put("type", "object");
+          }
+          objectNode.put("additionalProperties", false);
+
+          if (objectNode.has("properties")) {
+            ObjectNode propertiesNode = (ObjectNode) objectNode.get("properties");
+            ArrayNode requiredFields = objectNode.putArray("required");
+
+            Iterator<Map.Entry<String, JsonNode>> fields = propertiesNode.fields();
+            while (fields.hasNext()) {
+              Map.Entry<String, JsonNode> field = fields.next();
+              String fieldName = field.getKey();
+              requiredFields.add(fieldName);
+
+              JsonNode fieldSchema = field.getValue();
+              if (fieldSchema.isObject()) {
+                ObjectNode fieldObjectNode = (ObjectNode) fieldSchema;
+
+                String fieldType =
+                    fieldObjectNode.has("type") ? fieldObjectNode.get("type").asText() : null;
+
+                if ("object".equals(fieldType) && fieldObjectNode.has("properties")) {
+                  enhanceSchema(fieldObjectNode);
+                } else if ("array".equals(fieldType) && fieldObjectNode.has("items")) {
+                  enhanceArrayItems(fieldObjectNode);
+                }
+              }
+            }
+          }
+        }
+
+        private static void enhanceArrayItems(ObjectNode arrayNode) {
+          JsonNode itemsNode = arrayNode.get("items");
+          if (itemsNode != null && itemsNode.isObject()) {
+            ObjectNode itemsObjectNode = (ObjectNode) itemsNode;
+
+            if (itemsObjectNode.has("properties")) {
+              enhanceSchema(itemsObjectNode);
+            }
+
+            if (!itemsObjectNode.has("additionalProperties")) {
+              itemsObjectNode.put("additionalProperties", false);
+            }
+          }
+        }
       }
     }
 
@@ -314,6 +395,7 @@ public class OpenAIClient {
       private float topP;
       private float frequencyPenalty;
       private float presencePenalty;
+      private ResponseFormat responseFormat;
 
       public Builder model(Models model) {
         return model(model.name);
@@ -364,6 +446,11 @@ public class OpenAIClient {
         return this;
       }
 
+      public Builder responseFormat(ResponseFormat responseFormat) {
+        this.responseFormat = responseFormat;
+        return this;
+      }
+
       public ChatCompletionsRequest build() {
         return new ChatCompletionsRequest(
             model,
@@ -374,7 +461,8 @@ public class OpenAIClient {
             maxTokens,
             topP,
             frequencyPenalty,
-            presencePenalty);
+            presencePenalty,
+            responseFormat);
       }
     }
 
