@@ -23,6 +23,9 @@ import ShareSearchParamsModal from "./ShareSearchParamsModal";
 import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions";
 import ShareSearchParamsButton from "./ShareSearchParamsButton";
 import AuthorityService from "../../utils/AuthorityService";
+import AIReviewModal from "./AIReviewModal";
+import AiReviewActions from "../../actions/workbench/AiReviewActions";
+import AIReviewStore from "../../stores/workbench/AiReviewStore";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -48,6 +51,11 @@ let Workbench = createReactClass({
                         onViewScreenshotClick={(branchScreenshots) => {
                             GitBlameScreenshotViewerActions.openScreenshotsViewer(branchScreenshots);
                         }}/>
+                </AltContainer>
+                <AltContainer store={AIReviewStore}>
+                    <AIReviewModal
+                        onCloseModal={AiReviewActions.close}
+                    />
                 </AltContainer>
                 <AltContainer store={GitBlameScreenshotViewerStore}>
                     <ScreenshotViewerModal

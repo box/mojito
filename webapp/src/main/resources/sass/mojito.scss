@@ -442,6 +442,15 @@ div.textunit label {
     color: $brand-success;
 }
 
+.textunit:hover .textunit-assetpath, .textunit:hover .textunit-ai-review {
+    visibility: visible;
+}
+
+.textunit-name .textunit-assetpath, .textunit-name .textunit-ai-review {
+    visibility: hidden;
+    color: $brand-success;
+}
+
 .textunit-returnline {
     color: $brand-primary;
     font-size: 10px;
@@ -464,6 +473,164 @@ div.textunit label {
 
 .textunit-comment {
     white-space: pre-wrap;
+}
+
+.ai-review-modal {
+}
+
+.ai-review-modal .modal-dialog {
+    max-width: 100%;
+    width: 90%;
+}
+
+
+.ai-review-root2 {
+
+}
+
+.ai-review-root2 .section-title {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.ai-review-root2 .text-unit {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "header header"
+        "left right";
+}
+
+.ai-review-root2 .text-unit .right {
+    align-self: center;
+    display: grid;
+    grid-template-columns: 1fr min-content 10px;
+    grid-template-areas:
+        "target status ."
+}
+
+.ai-review-root2 .grid-2c {
+    display: grid;
+    grid-template-columns: 1fr 11fr;
+    grid-template-areas: "left right";
+}
+
+.ai-review-root2 .grid-2c .left {
+    grid-area: left;
+    text-align: center;
+}
+
+.ai-review-root2 .grid-2c .right {
+    grid-area: right;
+}
+
+
+
+//////
+
+
+.ai-review-root {
+    display: grid;
+    grid-gap: 20px;
+    grid-template-columns: min-content 2fr 1fr;
+    grid-template:
+            "header     header-right"
+            "source     target"
+            "comment    target"
+            "ratings ratings"
+            "comment-rating target-rating"
+            "suggestions suggestions"
+            "suggestion1 suggestion2"
+
+}
+
+.ai-review-root .locale {
+    grid-area: locale;
+}
+
+.ai-review-root .header {
+    grid-area: header;
+    display: flex;
+    gap: 10px;
+}
+
+.ai-review-root .header-right {
+    grid-area: header-right;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    align-content: space-around;
+}
+
+.ai-review-root .source {
+    grid-area: source;
+}
+
+.ai-review-root .target {
+    grid-area: target;
+    align-content: center;
+}
+
+.ai-review-root .target-status {
+    grid-area: target-status;
+    text-align: right;
+    align-content: center;
+}
+
+
+.ai-review-root .comment {
+    grid-area: comment;
+}
+
+.ai-review-root .comment-rating {
+    grid-area: comment-rating;
+    align-content: center;
+}
+
+.ai-review-root .target-rating {
+    grid-area: target-rating;
+    align-content: center;
+}
+
+.ai-review-root .ratings {
+    grid-area: ratings;
+    align-content: center;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.ai-review-root .rating {
+    display: grid;
+    grid-template-columns: 1fr 11fr;
+    grid-gap: 5px;
+}
+
+
+.ai-review-root .suggestions {
+    display: grid;
+    grid-area: suggestions;
+    margin-top: 10px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.ai-review-root .suggestion1 {
+    grid-area: suggestion1;
+}
+
+.ai-review-root .suggestion2 {
+    grid-area: suggestion2;
+}
+
+
+.ai-review-modal .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 75px;
 }
 
 .text-unit-root {
