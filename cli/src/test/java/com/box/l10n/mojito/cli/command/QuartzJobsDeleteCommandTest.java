@@ -10,8 +10,8 @@ import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.quartz.QuartzService;
 import java.time.ZonedDateTime;
+import java.util.function.Predicate;
 import org.junit.Test;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,22 +26,7 @@ public class QuartzJobsDeleteCommandTest extends CLITestBase {
   @Autowired QuartzService quartzService;
 
   @Test
-  public void testDeleteAllDynamicJobs() throws Exception {
-    waitForCondition(
-        "Should be no dynamic jobs",
-        () -> {
-          boolean result = false;
-          try {
-            result = quartzService.getDynamicJobs().isEmpty();
-          } catch (SchedulerException e) {
-          }
-          return result;
-        });
-
-    getL10nJCommander().run("quartz-jobs-view");
-    assertTrue("Should show no jobs", outputCapture.toString().contains("None"));
-    assertTrue(quartzService.getDynamicJobs().isEmpty());
-
+  public void testDeleteDynamicJobs() throws Exception {
     String testJobName1 = testIdWatcher.getEntityName("1");
     String testJobName2 = testIdWatcher.getEntityName("2");
 
@@ -59,11 +44,16 @@ public class QuartzJobsDeleteCommandTest extends CLITestBase {
     getL10nJCommander().run("quartz-jobs-view");
     assertTrue("Should show 1 job", outputCapture.toString().contains("AJob_" + testJobName1));
     assertTrue("Should show 1 job", outputCapture.toString().contains("AJob_" + testJobName2));
-    assertEquals(2L, quartzService.getDynamicJobs().size());
 
+    Predicate<String> jobsFilter =
+        job -> job.contains("AJob_" + testJobName1) || job.contains("AJob_" + testJobName2);
+
+    assertEquals(2L, quartzService.getDynamicJobs().stream().filter(jobsFilter).count());
     getL10nJCommander().run("quartz-jobs-delete");
-    getL10nJCommander().run("quartz-jobs-view");
-    assertEquals(0L, quartzService.getDynamicJobs().size());
+    // Although all jobs should be deleted, they must be filtered as the dynamic
+    // RepositoryStatistics job could have started after the deletion which would make this test
+    // flaky
+    assertEquals(0L, quartzService.getDynamicJobs().stream().filter(jobsFilter).count());
   }
 
   public static class AJob extends QuartzPollableJob<Void, Void> {
