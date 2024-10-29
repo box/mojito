@@ -42,13 +42,18 @@ public class AiTranslateWS {
             new AiTranslateInput(
                 protoAiTranslateRequest.repositoryName(),
                 protoAiTranslateRequest.targetBcp47tags(),
-                protoAiTranslateRequest.sourceTextMaxCountPerLocale()));
+                protoAiTranslateRequest.sourceTextMaxCountPerLocale(),
+                protoAiTranslateRequest.useBatch()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
 
   public record ProtoAiTranslateRequest(
-      String repositoryName, List<String> targetBcp47tags, int sourceTextMaxCountPerLocale) {}
+      String repositoryName,
+      List<String> targetBcp47tags,
+      int sourceTextMaxCountPerLocale,
+      boolean useBatch,
+      boolean allLocales) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 }

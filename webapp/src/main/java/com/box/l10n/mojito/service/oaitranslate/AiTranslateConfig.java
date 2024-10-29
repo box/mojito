@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.oaitranslate;
 
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
+import com.box.l10n.mojito.openai.OpenAIClientPool;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,17 @@ public class AiTranslateConfig {
       return null;
     }
     return new OpenAIClient.Builder().apiKey(openaiClientToken).build();
+  }
+
+  @Bean
+  @Qualifier("AiTranslate")
+  OpenAIClientPool openAIClientPool() {
+    String openaiClientToken = aiTranslateConfigurationProperties.getOpenaiClientToken();
+    if (openaiClientToken == null) {
+      return null;
+    }
+    return new OpenAIClientPool(
+        10, 50, 5, aiTranslateConfigurationProperties.getOpenaiClientToken());
   }
 
   @Bean

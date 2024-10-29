@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,11 +41,19 @@ public class OpenAIClient {
 
   final HttpClient httpClient;
 
-  OpenAIClient(String apiKey, String host, ObjectMapper objectMapper, HttpClient httpClient) {
+  final Executor asyncExecutor;
+
+  OpenAIClient(
+      String apiKey,
+      String host,
+      ObjectMapper objectMapper,
+      HttpClient httpClient,
+      Executor asyncExecutor) {
     this.apiKey = Objects.requireNonNull(apiKey);
     this.host = Objects.requireNonNull(host);
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.httpClient = Objects.requireNonNull(httpClient);
+    this.asyncExecutor = Objects.requireNonNull(asyncExecutor);
   }
 
   public static class Builder {
@@ -55,6 +65,8 @@ public class OpenAIClient {
     private ObjectMapper objectMapper;
 
     private HttpClient httpClient;
+
+    private Executor asyncExecutor;
 
     public Builder() {}
 
@@ -78,6 +90,11 @@ public class OpenAIClient {
       return this;
     }
 
+    public Builder asyncExecutor(Executor asyncExecutor) {
+      this.asyncExecutor = asyncExecutor;
+      return this;
+    }
+
     public OpenAIClient build() {
       if (apiKey == null) {
         throw new IllegalStateException("API key must be provided");
@@ -89,11 +106,16 @@ public class OpenAIClient {
       if (httpClient == null) {
         httpClient = createHttpClient();
       }
-      return new OpenAIClient(apiKey, host, objectMapper, httpClient);
+
+      if (asyncExecutor == null) {
+        asyncExecutor = ForkJoinPool.commonPool();
+      }
+
+      return new OpenAIClient(apiKey, host, objectMapper, httpClient, asyncExecutor);
     }
 
     private HttpClient createHttpClient() {
-      return HttpClient.newHttpClient();
+      return HttpClient.newBuilder().build();
     }
 
     private ObjectMapper createObjectMapper() {
@@ -135,7 +157,7 @@ public class OpenAIClient {
     CompletableFuture<ChatCompletionsResponse> chatCompletionsResponse =
         httpClient
             .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApply(
+            .thenApplyAsync(
                 httpResponse -> {
                   if (httpResponse.statusCode() != 200) {
                     throw new OpenAIClientResponseException("ChatCompletion failed", httpResponse);
@@ -148,7 +170,8 @@ public class OpenAIClient {
                           "Can't deserialize ChatCompletionsResponse", e, httpResponse);
                     }
                   }
-                });
+                },
+                asyncExecutor);
 
     return chatCompletionsResponse;
   }

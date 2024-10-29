@@ -21,12 +21,15 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
+import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.CreateBatchResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.RequestBatchFileLine;
+import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateService.CompletionInput.ExistingTarget;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -41,12 +44,17 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -54,7 +62,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 @Service
@@ -75,6 +85,8 @@ public class AiTranslateService {
 
   OpenAIClient openAIClient;
 
+  OpenAIClientPool openAIClientPool;
+
   TextUnitBatchImporterService textUnitBatchImporterService;
 
   StructuredBlobStorage structuredBlobStorage;
@@ -93,6 +105,7 @@ public class AiTranslateService {
       StructuredBlobStorage structuredBlobStorage,
       AiTranslateConfigurationProperties aiTranslateConfigurationProperties,
       @Qualifier("AiTranslate") @Autowired(required = false) OpenAIClient openAIClient,
+      @Qualifier("AiTranslate") @Autowired(required = false) OpenAIClientPool openAIClientPool,
       @Qualifier("AiTranslate") ObjectMapper objectMapper,
       @Qualifier("AiTranslate") RetryBackoffSpec retryBackoffSpec,
       QuartzPollableTaskScheduler quartzPollableTaskScheduler) {
@@ -104,12 +117,16 @@ public class AiTranslateService {
     this.aiTranslateConfigurationProperties = aiTranslateConfigurationProperties;
     this.objectMapper = objectMapper;
     this.openAIClient = openAIClient;
+    this.openAIClientPool = openAIClientPool;
     this.retryBackoffSpec = retryBackoffSpec;
     this.quartzPollableTaskScheduler = quartzPollableTaskScheduler;
   }
 
   public record AiTranslateInput(
-      String repositoryName, List<String> targetBcp47tags, int sourceTextMaxCountPerLocale) {}
+      String repositoryName,
+      List<String> targetBcp47tags,
+      int sourceTextMaxCountPerLocale,
+      boolean useBatch) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -124,26 +141,183 @@ public class AiTranslateService {
   }
 
   public void aiTranslate(AiTranslateInput aiTranslateInput) throws AiTranslateException {
-
-    Repository repository = repositoryRepository.findByName(aiTranslateInput.repositoryName());
-
-    if (repository == null) {
-      throw new RepositoryNameNotFoundException(
-          String.format(
-              "Repository with name '%s' can not be found!", aiTranslateInput.repositoryName()));
+    if (aiTranslateInput.useBatch()) {
+      aiTranslateBatch(aiTranslateInput);
+    } else {
+      aiTranslateNoBatch(aiTranslateInput);
     }
+  }
+
+  public void aiTranslateNoBatch(AiTranslateInput aiTranslateInput) {
+
+    Repository repository = getRepository(aiTranslateInput);
+
+    logger.info("Start AI Translation (no batch) for repository: {}", repository.getName());
+
+    Set<RepositoryLocale> filteredRepositoryLocales =
+        getFilteredRepositoryLocales(aiTranslateInput, repository);
+
+    Flux.fromIterable(filteredRepositoryLocales)
+        .flatMap(
+            rl ->
+                asyncProcessLocale(
+                    rl, aiTranslateInput.sourceTextMaxCountPerLocale(), openAIClientPool),
+            10)
+        .then()
+        .doOnTerminate(
+            () ->
+                logger.info(
+                    "Done with AI Translation (no batch) for repository: {}", repository.getName()))
+        .block();
+  }
+
+  Mono<Void> asyncProcessLocale(
+      RepositoryLocale repositoryLocale,
+      int sourceTextMaxCountPerLocale,
+      OpenAIClientPool openAIClientPool) {
+
+    Repository repository = repositoryLocale.getRepository();
+
+    logger.info(
+        "Get untranslated strings for locale: '{}' in repository: '{}'",
+        repositoryLocale.getLocale().getBcp47Tag(),
+        repository.getName());
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repository.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
+    textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
+
+    List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+    if (textUnitDTOS.isEmpty()) {
+      logger.debug(
+          "Nothing to translate for locale: {}", repositoryLocale.getLocale().getBcp47Tag());
+      return Mono.empty();
+    }
+
+    logger.info(
+        "Starting parallel processing for each string in locale: {}, count: {}",
+        repositoryLocale.getLocale().getBcp47Tag(),
+        textUnitDTOS.size());
+
+    return Flux.fromIterable(textUnitDTOS)
+        .buffer(500)
+        .concatMap(
+            batch ->
+                Flux.fromIterable(batch)
+                    .flatMap(
+                        textUnitDTO ->
+                            getChatCompletionForTextUnitDTO(textUnitDTO, openAIClientPool)
+                                .retryWhen(
+                                    Retry.backoff(5, Duration.ofSeconds(1))
+                                        .filter(this::isRetriableException)
+                                        .doBeforeRetry(
+                                            retrySignal -> {
+                                              logger.warn(
+                                                  "Retrying request for TextUnitDTO {} due to exception of type {}",
+                                                  textUnitDTO.getTmTextUnitId(),
+                                                  retrySignal.failure().getMessage());
+                                            }))
+                                .onErrorResume(
+                                    error -> {
+                                      logger.error(
+                                          "Request for TextUnitDTO {} failed after retries: {}",
+                                          textUnitDTO.getTmTextUnitId(),
+                                          error.getMessage());
+                                      return Mono.empty();
+                                    }))
+                    .collectList()
+                    .flatMap(this::submitForImport)
+                    .doOnTerminate(() -> logger.info("Done submitting for processing")))
+        .then();
+  }
+
+  record MyRecord(TextUnitDTO textUnitDTO, ChatCompletionsResponse chatCompletionsResponse) {}
+
+  private Mono<Void> submitForImport(List<MyRecord> results) {
+    logger.info("Submit for import for locale {}", results.get(0).textUnitDTO().getTargetLocale());
+    List<TextUnitDTO> forImport =
+        results.stream()
+            .map(
+                myRecord -> {
+                  TextUnitDTO textUnitDTO = myRecord.textUnitDTO();
+                  ChatCompletionsResponse chatCompletionsResponse =
+                      myRecord.chatCompletionsResponse();
+
+                  String completionOutputAsJson =
+                      chatCompletionsResponse.choices().getFirst().message().content();
+
+                  CompletionOutput completionOutput =
+                      objectMapper.readValueUnchecked(
+                          completionOutputAsJson, CompletionOutput.class);
+
+                  textUnitDTO.setTarget(completionOutput.target().content());
+                  textUnitDTO.setTargetComment("ai-translate");
+                  return textUnitDTO;
+                })
+            .collect(Collectors.toList());
+
+    textUnitBatchImporterService.importTextUnits(
+        forImport,
+        TextUnitBatchImporterService.IntegrityChecksType.ALWAYS_USE_INTEGRITY_CHECKER_STATUS);
+
+    return Mono.empty();
+  }
+
+  private Mono<MyRecord> getChatCompletionForTextUnitDTO(
+      TextUnitDTO textUnitDTO, OpenAIClientPool openAIClientPool) {
+
+    CompletionInput completionInput =
+        new CompletionInput(
+            textUnitDTO.getTargetLocale(),
+            textUnitDTO.getSource(),
+            textUnitDTO.getComment(),
+            textUnitDTO.getTarget() == null
+                ? null
+                : new ExistingTarget(
+                    textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
+
+    String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(completionInput);
+    ObjectNode jsonSchema = createJsonSchema(CompletionOutput.class);
+
+    ChatCompletionsRequest chatCompletionsRequest =
+        chatCompletionsRequest()
+            .model("gpt-4o-2024-08-06")
+            .maxTokens(16384)
+            .messages(
+                List.of(
+                    systemMessageBuilder().content(PROMPT).build(),
+                    userMessageBuilder().content(inputAsJsonString).build()))
+            .responseFormat(
+                new ChatCompletionsRequest.JsonFormat(
+                    "json_schema",
+                    new ChatCompletionsRequest.JsonFormat.JsonSchema(
+                        true, "request_json_format", jsonSchema)))
+            .build();
+
+    CompletableFuture<ChatCompletionsResponse> futureResult =
+        openAIClientPool.submit(
+            (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
+    return Mono.fromFuture(futureResult)
+        .map(chatCompletionsResponse -> new MyRecord(textUnitDTO, chatCompletionsResponse));
+  }
+
+  private boolean isRetriableException(Throwable throwable) {
+    Throwable cause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
+    return cause instanceof IOException || cause instanceof TimeoutException;
+  }
+
+  public void aiTranslateBatch(AiTranslateInput aiTranslateInput) throws AiTranslateException {
+
+    Repository repository = getRepository(aiTranslateInput);
 
     logger.debug("Start AI Translation for repository: {}", repository.getName());
 
     try {
       Set<RepositoryLocale> repositoryLocalesWithoutRootLocale =
-          repositoryService.getRepositoryLocalesWithoutRootLocale(repository).stream()
-              .filter(
-                  rl ->
-                      aiTranslateInput.targetBcp47tags == null
-                          || aiTranslateInput.targetBcp47tags.contains(
-                              rl.getLocale().getBcp47Tag()))
-              .collect(Collectors.toSet());
+          getFilteredRepositoryLocales(aiTranslateInput, repository);
 
       logger.debug("Create batches for repository: {}", repository.getName());
       ArrayDeque<CreateBatchResponse> batches =
@@ -165,6 +339,27 @@ public class AiTranslateService {
           openAIClientResponseException);
       throw new AiTranslateException(openAIClientResponseException);
     }
+  }
+
+  private Set<RepositoryLocale> getFilteredRepositoryLocales(
+      AiTranslateInput aiTranslateInput, Repository repository) {
+    return repositoryService.getRepositoryLocalesWithoutRootLocale(repository).stream()
+        .filter(
+            rl ->
+                aiTranslateInput.targetBcp47tags == null
+                    || aiTranslateInput.targetBcp47tags.contains(rl.getLocale().getBcp47Tag()))
+        .collect(Collectors.toSet());
+  }
+
+  private Repository getRepository(AiTranslateInput aiTranslateInput) {
+    Repository repository = repositoryRepository.findByName(aiTranslateInput.repositoryName());
+
+    if (repository == null) {
+      throw new RepositoryNameNotFoundException(
+          String.format(
+              "Repository with name '%s' can not be found!", aiTranslateInput.repositoryName()));
+    }
+    return repository;
   }
 
   void importBatch(RetrieveBatchResponse retrieveBatchResponse) {
@@ -208,7 +403,7 @@ public class AiTranslateService {
                         "Response batch file line failed: " + chatCompletionResponseBatchFileLine);
                   }
 
-                  String aiTranslateOutputAsJson =
+                  String completionOutputAsJson =
                       chatCompletionResponseBatchFileLine
                           .response()
                           .chatCompletionsResponse()
@@ -217,14 +412,14 @@ public class AiTranslateService {
                           .message()
                           .content();
 
-                  AiTranslateOutput aiTranslateOutput =
+                  CompletionOutput completionOutput =
                       objectMapper.readValueUnchecked(
-                          aiTranslateOutputAsJson, AiTranslateOutput.class);
+                          completionOutputAsJson, CompletionOutput.class);
 
                   TextUnitDTO textUnitDTO =
                       tmTextUnitIdToTextUnitDTOs.get(
                           Long.valueOf(chatCompletionResponseBatchFileLine.customId()));
-                  textUnitDTO.setTarget(aiTranslateOutput.target().content());
+                  textUnitDTO.setTarget(completionOutput.target().content());
                   textUnitDTO.setTargetComment("ai-translate");
                   return textUnitDTO;
                 })
@@ -266,7 +461,6 @@ public class AiTranslateService {
         logger.debug("Generate the batch file content");
         String batchFileContent = generateBatchFileContent(textUnitDTOS);
 
-        logger.debug("Upload batch file content: {}", batchFileContent);
         UploadFileResponse uploadFileResponse =
             getOpenAIClient()
                 .uploadFile(
@@ -297,11 +491,13 @@ public class AiTranslateService {
                   new CompletionInput(
                       textUnitDTO.getTargetLocale(),
                       textUnitDTO.getSource(),
-                      textUnitDTO.getComment());
+                      textUnitDTO.getComment(),
+                      new ExistingTarget(
+                          textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
 
               String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(completionInput);
 
-              ObjectNode jsonSchema = createJsonSchema(AiTranslateOutput.class);
+              ObjectNode jsonSchema = createJsonSchema(CompletionOutput.class);
 
               ChatCompletionsRequest chatCompletionsRequest =
                   chatCompletionsRequest()
@@ -376,9 +572,12 @@ public class AiTranslateService {
         .block();
   }
 
-  record CompletionInput(String locale, String source, String sourceDescription) {}
+  record CompletionInput(
+      String locale, String source, String sourceDescription, ExistingTarget existingTarget) {
+    record ExistingTarget(String content, boolean hasBrokenPlaceholders) {}
+  }
 
-  record AiTranslateOutput(
+  record CompletionOutput(
       String source,
       Target target,
       DescriptionRating descriptionRating,
@@ -408,7 +607,7 @@ public class AiTranslateService {
           •	"source": The source text to be translated.
           •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
           •	"sourceDescription": A description providing context for the source text.
-          •	"existingTarget" (optional): An existing translation to review.
+          •	"existingTarget" (optional): An existing translation to review. Indicates if it has broken placeholders.
 
       Instructions:
 
@@ -422,6 +621,7 @@ public class AiTranslateService {
           •	Tags like {atag} remain untouched.
           •	In cases of nested content (e.g., <a href={url}>text that needs translation</a>), only translate the inner text while preserving the outer structure.
           •	Complex structures like ICU message formats should have placeholders or variables left intact (e.g., {count, plural, one {# item} other {# items}}), but translate any inner translatable text.
+          •	If an existing translation is provided and has broken placeholder, make sure to fix them in the new translation.
 
       Ambiguity and Context:
 
