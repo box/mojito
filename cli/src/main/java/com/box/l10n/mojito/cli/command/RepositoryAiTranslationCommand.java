@@ -43,8 +43,8 @@ public class RepositoryAiTranslationCommand extends Command {
   @Parameter(
       names = {Param.REPOSITORY_LOCALES_LONG, Param.REPOSITORY_LOCALES_SHORT},
       variableArity = true,
-      required = true,
-      description = "List of locales (bcp47 tags) to machine translate")
+      description =
+          "List of locales (bcp47 tags) to translate, if not provided translate all locales in the repository")
   List<String> locales;
 
   @Parameter(
@@ -54,6 +54,12 @@ public class RepositoryAiTranslationCommand extends Command {
           "Source text max count per locale sent to MT (this param is used to avoid "
               + "sending too many strings to MT)")
   int sourceTextMaxCount = 100;
+
+  @Parameter(
+      names = {"--use-batch"},
+      arity = 1,
+      description = "To use the batch API or not")
+  boolean useBatch = false;
 
   @Autowired CommandHelper commandHelper;
 
@@ -75,13 +81,13 @@ public class RepositoryAiTranslationCommand extends Command {
         .reset()
         .a(" for locales: ")
         .fg(Color.CYAN)
-        .a(locales.stream().collect(Collectors.joining(", ", "[", "]")))
+        .a(locales == null ? "<all>" : locales.stream().collect(Collectors.joining(", ", "[", "]")))
         .println(2);
 
     ProtoAiTranslateResponse protoAiTranslateResponse =
         repositoryAiTranslateClient.translateRepository(
             new RepositoryAiTranslateClient.ProtoAiTranslateRequest(
-                repositoryParam, locales, sourceTextMaxCount));
+                repositoryParam, locales, sourceTextMaxCount, useBatch));
 
     PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
     commandHelper.waitForPollableTask(pollableTask.getId());

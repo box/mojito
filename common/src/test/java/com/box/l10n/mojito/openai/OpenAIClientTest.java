@@ -13,7 +13,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.OpenAIClientResponseException;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
@@ -22,23 +21,23 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
 
-class OpenAIClientTest {
+public class OpenAIClientTest {
 
   static final String API_KEY;
 
   static {
     try {
-      API_KEY =
-          Files.readString(Paths.get(System.getProperty("user.home")).resolve(".keys/openai"))
-              .trim();
-      //      API_KEY = "test-api-key";
+      //      API_KEY =
+      //
+      // Files.readString(Paths.get(System.getProperty("user.home")).resolve(".keys/openai"))
+      //              .trim();
+      API_KEY = "test-api-key";
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
@@ -66,29 +65,29 @@ class OpenAIClientTest {
 
     String jsonResponse =
         """
-                {
-                  "id": "chatcmpl-9DNYjOkXJxILUK3NXFv9MCZV0P8jZ",
-                  "object": "chat.completion",
-                  "created": 1712975853,
-                  "model": "gpt-3.5-turbo-0125",
-                  "choices": [
-                    {
-                      "index": 0,
-                      "message": {
-                        "role": "assistant",
-                        "content": "Il s'agit d'un test unitaire"
-                      },
-                      "logprobs": null,
-                      "finish_reason": "stop"
-                    }
-                  ],
-                  "usage": {
-                    "prompt_tokens": 24,
-                    "completion_tokens": 9,
-                    "total_tokens": 33
-                  },
-                  "system_fingerprint": "fp_c2295e73ad"
-                }""";
+        {
+          "id": "chatcmpl-9DNYjOkXJxILUK3NXFv9MCZV0P8jZ",
+          "object": "chat.completion",
+          "created": 1712975853,
+          "model": "gpt-3.5-turbo-0125",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "Il s'agit d'un test unitaire"
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 24,
+            "completion_tokens": 9,
+            "total_tokens": 33
+          },
+          "system_fingerprint": "fp_c2295e73ad"
+        }""";
 
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
@@ -132,14 +131,14 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(400);
     String errorMsg =
         """
-                {
-                    "error": {
-                        "message": "The model `invalid-model` does not exist or you do not have access to it.",
-                        "type": "invalid_request_error",
-                        "param": null,
-                        "code": "model_not_found"
-                    }
-                }""";
+        {
+            "error": {
+                "message": "The model `invalid-model` does not exist or you do not have access to it.",
+                "type": "invalid_request_error",
+                "param": null,
+                "code": "model_not_found"
+            }
+        }""";
     when(mockResponse.body()).thenReturn(errorMsg);
 
     HttpClient mockHttpClient = mock(HttpClient.class);
@@ -159,12 +158,12 @@ class OpenAIClientTest {
             .getMessage()
             .contains(
                 """
-                "error": {
-                        "message": "The model `invalid-model` does not exist or you do not have access to it.",
-                        "type": "invalid_request_error",
-                        "param": null,
-                        "code": "model_not_found"
-                    }"""));
+            "error": {
+                    "message": "The model `invalid-model` does not exist or you do not have access to it.",
+                    "type": "invalid_request_error",
+                    "param": null,
+                    "code": "model_not_found"
+                }"""));
   }
 
   @Test
@@ -186,29 +185,29 @@ class OpenAIClientTest {
 
     String jsonResponse =
         """
-                {
-                  "id": "chatcmpl-9DNYjOkXJxILUK3NXFv9MCZV0P8jZ",
-                  "object": "chat.completion",
-                  "created": "invalid date to break deserialization",
-                  "model": "gpt-3.5-turbo-0125",
-                  "choices": [
-                    {
-                      "index": 0,
-                      "message": {
-                        "role": "assistant",
-                        "content": "Il s'agit d'un test unitaire"
-                      },
-                      "logprobs": null,
-                      "finish_reason": "stop"
-                    }
-                  ],
-                  "usage": {
-                    "prompt_tokens": 24,
-                    "completion_tokens": 9,
-                    "total_tokens": 33
-                  },
-                  "system_fingerprint": "fp_c2295e73ad"
-                }""";
+        {
+          "id": "chatcmpl-9DNYjOkXJxILUK3NXFv9MCZV0P8jZ",
+          "object": "chat.completion",
+          "created": "invalid date to break deserialization",
+          "model": "gpt-3.5-turbo-0125",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "Il s'agit d'un test unitaire"
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 24,
+            "completion_tokens": 9,
+            "total_tokens": 33
+          },
+          "system_fingerprint": "fp_c2295e73ad"
+        }""";
 
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
@@ -239,12 +238,12 @@ class OpenAIClientTest {
     when(mockResponse.body())
         .thenReturn(
             """
-{
-  "id": "file-123",
-  "filename": "example.jsonl",
-  "status": "uploaded",
-  "created_at": 1690000000
-}""");
+          {
+            "id": "file-123",
+            "filename": "example.jsonl",
+            "status": "uploaded",
+            "created_at": 1690000000
+          }""");
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
 
@@ -271,15 +270,15 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(400);
     String errorMessage =
         """
-      {
-        "error": {
-          "message": "Invalid file format for Batch API. Must be .jsonl",
-          "type": "invalid_request_error",
-          "param": null,
-          "code": null
+        {
+          "error": {
+            "message": "Invalid file format for Batch API. Must be .jsonl",
+            "type": "invalid_request_error",
+            "param": null,
+            "code": null
+          }
         }
-      }
-      """;
+        """;
     when(mockResponse.body()).thenReturn(errorMessage);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
@@ -291,10 +290,10 @@ class OpenAIClientTest {
         UploadFileRequest.forBatch(
             "example.jsonl",
             """
-        {
-          "a" : "b"
-        }
-        """);
+          {
+            "a" : "b"
+          }
+          """);
 
     OpenAIClientResponseException openAIClientResponseException =
         assertThrows(
@@ -309,18 +308,18 @@ class OpenAIClientTest {
     String actual = uploadFileRequest.getMultipartBody("test-boundary");
     assertEquals(
         """
-                  --test-boundary\r
-                  Content-Disposition: form-data; name="purpose"\r
-                  \r
-                  batch\r
-                  --test-boundary\r
-                  Content-Disposition: form-data; name="file"; filename="test.jsonl"\r
-                  Content-Type: application/json\r
-                  \r
-                  {}
-                  {}\r
-                  --test-boundary--\r
-                  """,
+        --test-boundary\r
+        Content-Disposition: form-data; name="purpose"\r
+        \r
+        batch\r
+        --test-boundary\r
+        Content-Disposition: form-data; name="file"; filename="test.jsonl"\r
+        Content-Type: application/json\r
+        \r
+        {}
+        {}\r
+        --test-boundary--\r
+        """,
         actual);
   }
 
@@ -332,9 +331,9 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(200);
     String fileContent =
         """
-      {"a" : "b"}
-      {"c" : "d"}
-      """;
+        {"a" : "b"}
+        {"c" : "d"}
+        """;
     when(mockResponse.body()).thenReturn(fileContent);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
@@ -357,15 +356,15 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(404);
     String body =
         """
-      {
-        "error": {
-          "message": "No such File object: id-for-test",
-          "type": "invalid_request_error",
-          "param": "id",
-          "code": null
+        {
+          "error": {
+            "message": "No such File object: id-for-test",
+            "type": "invalid_request_error",
+            "param": "id",
+            "code": null
+          }
         }
-      }
-      """;
+        """;
     when(mockResponse.body()).thenReturn(body);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
@@ -392,36 +391,36 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(200);
     String body =
         """
-      {
-        "id": "batch_67199315c20081909074e442115938a2",
-        "object": "batch",
-        "endpoint": "/v1/chat/completions",
-        "errors": null,
-        "input_file_id": "file-pp1I2zv79eAnm47wt6rCNL5a",
-        "completion_window": "24h",
-        "status": "validating",
-        "output_file_id": null,
-        "error_file_id": null,
-        "created_at": 1729729301,
-        "in_progress_at": null,
-        "expires_at": 1729815701,
-        "finalizing_at": null,
-        "completed_at": null,
-        "failed_at": null,
-        "expired_at": null,
-        "cancelling_at": null,
-        "cancelled_at": null,
-        "request_counts": {
-          "total": 0,
-          "completed": 0,
-          "failed": 0
-        },
-        "metadata": {
-          "k1": "v1",
-          "k2": "v2"
+        {
+          "id": "batch_67199315c20081909074e442115938a2",
+          "object": "batch",
+          "endpoint": "/v1/chat/completions",
+          "errors": null,
+          "input_file_id": "file-pp1I2zv79eAnm47wt6rCNL5a",
+          "completion_window": "24h",
+          "status": "validating",
+          "output_file_id": null,
+          "error_file_id": null,
+          "created_at": 1729729301,
+          "in_progress_at": null,
+          "expires_at": 1729815701,
+          "finalizing_at": null,
+          "completed_at": null,
+          "failed_at": null,
+          "expired_at": null,
+          "cancelling_at": null,
+          "cancelled_at": null,
+          "request_counts": {
+            "total": 0,
+            "completed": 0,
+            "failed": 0
+          },
+          "metadata": {
+            "k1": "v1",
+            "k2": "v2"
+          }
         }
-      }
-      """;
+        """;
     when(mockResponse.body()).thenReturn(body);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
@@ -447,14 +446,14 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(400);
     String body =
         """
-      {
-        "error": {
-          "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
-          "type": "invalid_request_error",
-          "param": "input_file_id",
-          "code": "invalid_value"
-        }
-      }""";
+        {
+          "error": {
+            "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
+            "type": "invalid_request_error",
+            "param": "input_file_id",
+            "code": "invalid_value"
+          }
+        }""";
     when(mockResponse.body()).thenReturn(body);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
@@ -481,36 +480,36 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(200);
     String body =
         """
-      {
-        "id": "batch_67199315c20081909074e442115938a2",
-        "object": "batch",
-        "endpoint": "/v1/chat/completions",
-        "errors": null,
-        "input_file_id": "file-pp1I2zv79eAnm47wt6rCNL5a",
-        "completion_window": "24h",
-        "status": "validating",
-        "output_file_id": null,
-        "error_file_id": null,
-        "created_at": 1729729301,
-        "in_progress_at": null,
-        "expires_at": 1729815701,
-        "finalizing_at": null,
-        "completed_at": null,
-        "failed_at": null,
-        "expired_at": null,
-        "cancelling_at": null,
-        "cancelled_at": null,
-        "request_counts": {
-          "total": 0,
-          "completed": 0,
-          "failed": 0
-        },
-        "metadata": {
-          "k1": "v1",
-          "k2": "v2"
+        {
+          "id": "batch_67199315c20081909074e442115938a2",
+          "object": "batch",
+          "endpoint": "/v1/chat/completions",
+          "errors": null,
+          "input_file_id": "file-pp1I2zv79eAnm47wt6rCNL5a",
+          "completion_window": "24h",
+          "status": "validating",
+          "output_file_id": null,
+          "error_file_id": null,
+          "created_at": 1729729301,
+          "in_progress_at": null,
+          "expires_at": 1729815701,
+          "finalizing_at": null,
+          "completed_at": null,
+          "failed_at": null,
+          "expired_at": null,
+          "cancelling_at": null,
+          "cancelled_at": null,
+          "request_counts": {
+            "total": 0,
+            "completed": 0,
+            "failed": 0
+          },
+          "metadata": {
+            "k1": "v1",
+            "k2": "v2"
+          }
         }
-      }
-      """;
+        """;
     when(mockResponse.body()).thenReturn(body);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);
@@ -535,14 +534,14 @@ class OpenAIClientTest {
     when(mockResponse.statusCode()).thenReturn(400);
     String body =
         """
-      {
-        "error": {
-          "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
-          "type": "invalid_request_error",
-          "param": "input_file_id",
-          "code": "invalid_value"
-        }
-      }""";
+        {
+          "error": {
+            "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
+            "type": "invalid_request_error",
+            "param": "input_file_id",
+            "code": "invalid_value"
+          }
+        }""";
     when(mockResponse.body()).thenReturn(body);
     when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(mockResponse);

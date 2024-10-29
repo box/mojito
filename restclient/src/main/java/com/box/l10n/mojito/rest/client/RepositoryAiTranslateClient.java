@@ -29,7 +29,10 @@ public class RepositoryAiTranslateClient extends BaseClient {
   }
 
   public record ProtoAiTranslateRequest(
-      String repositoryName, List<String> targetBcp47tags, int sourceTextMaxCountPerLocale) {}
+      String repositoryName,
+      List<String> targetBcp47tags,
+      int sourceTextMaxCountPerLocale,
+      boolean useBatch) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 }
