@@ -502,9 +502,17 @@ public class AndroidFilter extends XMLFilter {
           Element plurals = (Element) pluralsElements.item(i);
           NodeList items = plurals.getElementsByTagName("item");
           boolean hasTranslated = false;
+          boolean hasOther = false;
 
           for (int j = 0; j < items.getLength(); j++) {
             Element item = (Element) items.item(j);
+
+            if ("other".equals(item.getAttribute("quantity"))) {
+              hasOther =
+                  !RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER.equals(
+                      item.getTextContent());
+            }
+
             if (hasRemoveUntranslated()
                 && item.getTextContent()
                     .equals(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER)) {
@@ -515,7 +523,7 @@ public class AndroidFilter extends XMLFilter {
             }
           }
 
-          if (!hasTranslated) {
+          if (!hasOther || !hasTranslated) {
             plurals.getParentNode().removeChild(plurals);
             i--;
           }
