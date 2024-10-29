@@ -191,7 +191,13 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
           null);
     }
 
-    removeUnusedKeysAndTags(projectId, repository.getName(), tagForUpload);
+    boolean skipRemoveUnusedKeysAndTags =
+        optionsParser.getBoolean("skipRemoveUnusedKeysAndTags", false);
+
+    if (!skipRemoveUnusedKeysAndTags) {
+      logger.info("Skipping removing unused keys and tags");
+      removeUnusedKeysAndTags(projectId, repository.getName(), tagForUpload);
+    }
   }
 
   /**
