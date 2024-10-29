@@ -126,8 +126,8 @@ public class AndroidFilterTest {
                     <item quantity="other">@#$untranslated$#@</item>
                 </plurals>
                 <plurals description="testing plural attr" name="pins2">
-                    <item quantity="one">translated</item>
-                    <item quantity="other">@#$untranslated$#@</item>
+                    <item quantity="one">@#$untranslated$#@</item>
+                    <item quantity="other">translated</item>
                 </plurals>
                 <plurals name="pins3">
                     <item quantity="one">pin fr</item>
@@ -143,7 +143,7 @@ public class AndroidFilterTest {
               <string description="a description" name="pinterest2">somestring to keep</string>
               <!--testing plural-->
               <plurals description="testing plural attr" name="pins2">
-                <item quantity="one">translated</item>
+                <item quantity="other">translated</item>
               </plurals>
               <plurals name="pins3">
                 <item quantity="one">pin fr</item>
@@ -170,8 +170,8 @@ public class AndroidFilterTest {
                     <item quantity="other">@#$untranslated$#@</item>
                 </plurals>
                 <plurals description="testing plural attr" name="pins2">
-                    <item quantity="one">translated</item>
-                    <item quantity="other">@#$untranslated$#@</item>
+                    <item quantity="one">@#$untranslated$#@</item>
+                    <item quantity="other">translated</item>
                 </plurals>
                 <plurals name="pins3">
                     <item quantity="one">pin fr</item>
@@ -187,7 +187,7 @@ public class AndroidFilterTest {
               <string name="pinterest2">somestring to keep</string>
               <!--testing plural-->
               <plurals name="pins2">
-                <item quantity="one">translated</item>
+                <item quantity="other">translated</item>
               </plurals>
               <plurals name="pins3">
                 <item quantity="one">pin fr</item>
@@ -245,8 +245,8 @@ public class AndroidFilterTest {
                     <item quantity="other">@#$untranslated$#@</item>
                 </plurals>
                 <plurals description="testing plural attr" name="pins2">
-                    <item quantity="one">translated</item>
-                    <item quantity="other">@#$untranslated$#@</item>
+                    <item quantity="one">@#$untranslated$#@</item>
+                    <item quantity="other">translated</item>
                 </plurals>
                 <plurals name="pins3" translatable="false">
                     <item quantity="one">pin fr</item>
@@ -261,10 +261,55 @@ public class AndroidFilterTest {
              <resources>
                <!--testing plural-->
                <plurals name="pins2">
-                 <item quantity="one">translated</item>
+                 <item quantity="other">translated</item>
                </plurals>
              </resources>
              """;
+    assertEquals(expected, output);
+  }
+
+  @Test
+  public void testPostProcessingRemoveMissingOther() {
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+    String input =
+        """
+          <?xml version="1.0" encoding="UTF-8"?>
+          <resources>
+              <plurals name="pins">
+                  <item quantity="one">pin fr</item>
+              </plurals>
+          </resources>
+          """;
+    String output = androidFilePostProcessor.execute(input);
+    String expected =
+        """
+           <?xml version="1.0" encoding="UTF-8"?>
+           <resources/>
+           """;
+    assertEquals(expected, output);
+  }
+
+  @Test
+  public void testPostProcessingRemoveMissingOtherUntranslated() {
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+    String input =
+        """
+          <?xml version="1.0" encoding="UTF-8"?>
+          <resources>
+              <plurals name="pins">
+                  <item quantity="one">pin fr</item>
+                  <item quantity="other">@#$untranslated$#@</item>
+              </plurals>
+          </resources>
+          """;
+    String output = androidFilePostProcessor.execute(input);
+    String expected =
+        """
+           <?xml version="1.0" encoding="UTF-8"?>
+           <resources/>
+           """;
     assertEquals(expected, output);
   }
 
@@ -284,8 +329,8 @@ public class AndroidFilterTest {
                         <item quantity="other">@#$untranslated$#@</item>
                     </plurals>
                     <plurals description="testing plural attr" name="pins2">
-                        <item quantity="one">translated</item>
-                        <item quantity="other">@#$untranslated$#@</item>
+                        <item quantity="one">@#$untranslated$#@</item>
+                        <item quantity="other">translated</item>
                     </plurals>
                     <plurals name="pins3" translatable="false">
                         <item quantity="one">pin fr</item>
@@ -300,7 +345,7 @@ public class AndroidFilterTest {
                  <resources>
                    <!--testing plural-->
                    <plurals name="pins2">
-                     <item quantity="one">translated</item>
+                     <item quantity="other">translated</item>
                    </plurals>
                  </resources>
                  """;
@@ -323,8 +368,8 @@ public class AndroidFilterTest {
                         <item quantity="other">@#$untranslated$#@</item>
                     </plurals>
                     <plurals description="testing plural attr" name="pins2">
-                        <item quantity="one">translated</item>
-                        <item quantity="other">@#$untranslated$#@</item>
+                        <item quantity="one">@#$untranslated$#@</item>
+                        <item quantity="other">translated</item>
                     </plurals>
                     <plurals name="pins3" translatable="false">
                         <item quantity="one">pin fr</item>
@@ -339,7 +384,7 @@ public class AndroidFilterTest {
                  <resources>
                    <!--testing plural-->
                    <plurals name="pins2">
-                     <item quantity="one">translated</item>
+                     <item quantity="other">translated</item>
                    </plurals>
                  </resources>
                  """;
