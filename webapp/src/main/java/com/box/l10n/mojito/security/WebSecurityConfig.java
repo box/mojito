@@ -64,9 +64,6 @@ public class WebSecurityConfig {
   Filter oauth2Filter;
 
   @Autowired(required = false)
-  RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
-
-  @Autowired(required = false)
   PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider;
 
   @Autowired UserService userService;
@@ -252,9 +249,12 @@ public class WebSecurityConfig {
         securityConfig.getAuthenticationType()) {
       switch (authenticationType) {
         case HEADER:
-          Preconditions.checkNotNull(
-              requestHeaderAuthenticationFilter,
-              "The requestHeaderAuthenticationFilter must be configured");
+          RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter =
+              new RequestHeaderAuthenticationFilter();
+          requestHeaderAuthenticationFilter.setPrincipalRequestHeader("x-forwarded-user");
+          requestHeaderAuthenticationFilter.setExceptionIfHeaderMissing(false);
+          requestHeaderAuthenticationFilter.setAuthenticationManager(
+              authenticationConfiguration.getAuthenticationManager());
           logger.debug("Add request header Auth filter");
           requestHeaderAuthenticationFilter.setAuthenticationManager(
               authenticationConfiguration.getAuthenticationManager());
