@@ -4,6 +4,7 @@ import com.box.l10n.mojito.service.NormalizationUtils;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -38,7 +39,6 @@ public class TextUnitSearcherParameters {
   boolean forRootLocale = false;
   boolean rootLocaleExcluded = true;
   Boolean toBeFullyTranslatedFilter;
-  boolean untranslatedOrTranslationNeeded = false;
   boolean pluralFormsFiltered = true;
   boolean pluralFormsExcluded = false;
 
@@ -345,5 +345,273 @@ public class TextUnitSearcherParameters {
 
   public void setAiTranslationExpiryDuration(Duration aiTranslationExpiryDuration) {
     this.aiTranslationExpiryDuration = aiTranslationExpiryDuration;
+  }
+
+  public static class Builder {
+    private String name;
+    private String source;
+    private String target;
+    private String assetPath;
+    private String pluralFormOther;
+    private String locationUsage;
+    private SearchType searchType;
+    private List<Long> repositoryIds;
+    private List<String> repositoryNames;
+    private List<Long> tmTextUnitIds;
+    private List<String> localeTags;
+    private Long localeId;
+    private UsedFilter usedFilter;
+    private StatusFilter statusFilter;
+    private Integer offset;
+    private Integer limit;
+    private Long assetId;
+    private Long tmId;
+    private String md5;
+    private boolean forRootLocale;
+    private boolean rootLocaleExcluded = true;
+    private Boolean toBeFullyTranslatedFilter;
+    private boolean pluralFormsFiltered = true;
+    private boolean pluralFormsExcluded;
+    private boolean isOrderedByTextUnitID;
+    private Long pluralFormId;
+    private Boolean doNotTranslateFilter;
+    private ZonedDateTime tmTextUnitCreatedBefore;
+    private ZonedDateTime tmTextUnitCreatedAfter;
+    private Long branchId;
+    private String skipTextUnitWithPattern;
+    private String includeTextUnitsWithPattern;
+    private String skipAssetPathWithPattern;
+    private boolean isExcludeUnexpiredPendingMT;
+    private Duration aiTranslationExpiryDuration;
+
+    public TextUnitSearcherParameters build() {
+      TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+      textUnitSearcherParameters.name = this.name;
+      textUnitSearcherParameters.source = this.source;
+      textUnitSearcherParameters.target = this.target;
+      textUnitSearcherParameters.assetPath = this.assetPath;
+      textUnitSearcherParameters.pluralFormOther = this.pluralFormOther;
+      textUnitSearcherParameters.locationUsage = this.locationUsage;
+      textUnitSearcherParameters.searchType = this.searchType;
+      textUnitSearcherParameters.repositoryIds = this.repositoryIds;
+      textUnitSearcherParameters.repositoryNames = this.repositoryNames;
+      textUnitSearcherParameters.tmTextUnitIds = this.tmTextUnitIds;
+      textUnitSearcherParameters.localeTags = this.localeTags;
+      textUnitSearcherParameters.localeId = this.localeId;
+      textUnitSearcherParameters.usedFilter = this.usedFilter;
+      textUnitSearcherParameters.statusFilter = this.statusFilter;
+      textUnitSearcherParameters.offset = this.offset;
+      textUnitSearcherParameters.limit = this.limit;
+      textUnitSearcherParameters.assetId = this.assetId;
+      textUnitSearcherParameters.tmId = this.tmId;
+      textUnitSearcherParameters.md5 = this.md5;
+      textUnitSearcherParameters.forRootLocale = this.forRootLocale;
+      textUnitSearcherParameters.rootLocaleExcluded = this.rootLocaleExcluded;
+      textUnitSearcherParameters.toBeFullyTranslatedFilter = this.toBeFullyTranslatedFilter;
+      textUnitSearcherParameters.pluralFormsFiltered = this.pluralFormsFiltered;
+      textUnitSearcherParameters.pluralFormsExcluded = this.pluralFormsExcluded;
+      textUnitSearcherParameters.isOrderedByTextUnitID = this.isOrderedByTextUnitID;
+      textUnitSearcherParameters.pluralFormId = this.pluralFormId;
+      textUnitSearcherParameters.doNotTranslateFilter = this.doNotTranslateFilter;
+      textUnitSearcherParameters.tmTextUnitCreatedBefore = this.tmTextUnitCreatedBefore;
+      textUnitSearcherParameters.tmTextUnitCreatedAfter = this.tmTextUnitCreatedAfter;
+      textUnitSearcherParameters.branchId = this.branchId;
+      textUnitSearcherParameters.skipTextUnitWithPattern = this.skipTextUnitWithPattern;
+      textUnitSearcherParameters.includeTextUnitsWithPattern = this.includeTextUnitsWithPattern;
+      textUnitSearcherParameters.skipAssetPathWithPattern = this.skipAssetPathWithPattern;
+      textUnitSearcherParameters.isExcludeUnexpiredPendingMT = this.isExcludeUnexpiredPendingMT;
+      textUnitSearcherParameters.aiTranslationExpiryDuration = this.aiTranslationExpiryDuration;
+      return textUnitSearcherParameters;
+    }
+
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public Builder source(String source) {
+      this.source = NormalizationUtils.normalize(source);
+      return this;
+    }
+
+    public Builder target(String target) {
+      this.target = NormalizationUtils.normalize(target);
+      return this;
+    }
+
+    public Builder assetPath(String assetPath) {
+      this.assetPath = assetPath;
+      return this;
+    }
+
+    public Builder pluralFormOther(String pluralFormOther) {
+      this.pluralFormOther = pluralFormOther;
+      return this;
+    }
+
+    public Builder locationUsage(String locationUsage) {
+      this.locationUsage = locationUsage;
+      return this;
+    }
+
+    public Builder searchType(SearchType searchType) {
+      this.searchType = searchType;
+      return this;
+    }
+
+    public Builder repositoryId(Long repositoryId) {
+      this.repositoryIds = Collections.singletonList(repositoryId);
+      return this;
+    }
+
+    public Builder repositoryIds(List<Long> repositoryIds) {
+      this.repositoryIds = repositoryIds;
+      return this;
+    }
+
+    public Builder repositoryNames(List<String> repositoryNames) {
+      this.repositoryNames = repositoryNames;
+      return this;
+    }
+
+    public Builder tmTextUnitIds(List<Long> tmTextUnitIds) {
+      this.tmTextUnitIds = tmTextUnitIds;
+      return this;
+    }
+
+    public Builder tmTextUnitIds(Long... tmTextUnitIds) {
+      List<Long> filtered =
+          Arrays.stream(tmTextUnitIds).filter(Objects::nonNull).collect(Collectors.toList());
+
+      if (!filtered.isEmpty()) {
+        this.tmTextUnitIds = filtered;
+      }
+      return this;
+    }
+
+    public Builder localeTags(List<String> localeTags) {
+      this.localeTags = localeTags;
+      return this;
+    }
+
+    public Builder localeId(Long localeId) {
+      this.localeId = localeId;
+      return this;
+    }
+
+    public Builder usedFilter(UsedFilter usedFilter) {
+      this.usedFilter = usedFilter;
+      return this;
+    }
+
+    public Builder statusFilter(StatusFilter statusFilter) {
+      this.statusFilter = statusFilter;
+      return this;
+    }
+
+    public Builder offset(Integer offset) {
+      this.offset = offset;
+      return this;
+    }
+
+    public Builder limit(Integer limit) {
+      this.limit = limit;
+      return this;
+    }
+
+    public Builder assetId(Long assetId) {
+      this.assetId = assetId;
+      return this;
+    }
+
+    public Builder tmId(Long tmId) {
+      this.tmId = tmId;
+      return this;
+    }
+
+    public Builder md5(String md5) {
+      this.md5 = md5;
+      return this;
+    }
+
+    public Builder forRootLocale(boolean forRootLocale) {
+      this.forRootLocale = forRootLocale;
+      return this;
+    }
+
+    public Builder rootLocaleExcluded(boolean rootLocaleExcluded) {
+      this.rootLocaleExcluded = rootLocaleExcluded;
+      return this;
+    }
+
+    public Builder toBeFullyTranslatedFilter(Boolean toBeFullyTranslatedFilter) {
+      this.toBeFullyTranslatedFilter = toBeFullyTranslatedFilter;
+      return this;
+    }
+
+    public Builder pluralFormsFiltered(boolean pluralFormsFiltered) {
+      this.pluralFormsFiltered = pluralFormsFiltered;
+      return this;
+    }
+
+    public Builder pluralFormsExcluded(boolean pluralFormsExcluded) {
+      this.pluralFormsExcluded = pluralFormsExcluded;
+      return this;
+    }
+
+    public Builder isOrderedByTextUnitID(boolean isOrderedByTextUnitID) {
+      this.isOrderedByTextUnitID = isOrderedByTextUnitID;
+      return this;
+    }
+
+    public Builder pluralFormId(Long pluralFormId) {
+      this.pluralFormId = pluralFormId;
+      return this;
+    }
+
+    public Builder doNotTranslateFilter(Boolean doNotTranslateFilter) {
+      this.doNotTranslateFilter = doNotTranslateFilter;
+      return this;
+    }
+
+    public Builder tmTextUnitCreatedBefore(ZonedDateTime tmTextUnitCreatedBefore) {
+      this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+      return this;
+    }
+
+    public Builder tmTextUnitCreatedAfter(ZonedDateTime tmTextUnitCreatedAfter) {
+      this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+      return this;
+    }
+
+    public Builder branchId(Long branchId) {
+      this.branchId = branchId;
+      return this;
+    }
+
+    public Builder skipTextUnitWithPattern(String skipTextUnitWithPattern) {
+      this.skipTextUnitWithPattern = skipTextUnitWithPattern;
+      return this;
+    }
+
+    public Builder includeTextUnitsWithPattern(String includeTextUnitsWithPattern) {
+      this.includeTextUnitsWithPattern = includeTextUnitsWithPattern;
+      return this;
+    }
+
+    public Builder skipAssetPathWithPattern(String skipAssetPathWithPattern) {
+      this.skipAssetPathWithPattern = skipAssetPathWithPattern;
+      return this;
+    }
+
+    public Builder isExcludeUnexpiredPendingMT(boolean isExcludeUnexpiredPendingMT) {
+      this.isExcludeUnexpiredPendingMT = isExcludeUnexpiredPendingMT;
+      return this;
+    }
+
+    public Builder aiTranslationExpiryDuration(Duration aiTranslationExpiryDuration) {
+      this.aiTranslationExpiryDuration = aiTranslationExpiryDuration;
+      return this;
+    }
   }
 }

@@ -35,7 +35,6 @@ import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.StringInfo;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -89,7 +88,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
   private final SmartlingClient smartlingClient;
   private final AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys;
-  private final TextUnitSearcher textUnitSearcher;
+  TextUnitSearcher textUnitSearcher;
   private final TextUnitBatchImporterService textUnitBatchImporterService;
   private final SmartlingResultProcessor resultProcessor;
   private final Integer batchSize;
@@ -827,15 +826,15 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipTextUnitsWithPattern,
       String skipAssetsWithPathPattern) {
     TextUnitSearcherParameters parameters =
-        baseParams(
-            repositoryId,
-            localeTag,
-            skipTextUnitsWithPattern,
-            skipAssetsWithPathPattern,
-            true,
-            true,
-            null);
-    parameters.setOrderByTextUnitID(true);
+        this.baseParams()
+            .repositoryId(repositoryId)
+            .localeTags(ImmutableList.of(localeTag))
+            .skipTextUnitWithPattern(skipTextUnitsWithPattern)
+            .skipAssetPathWithPattern(skipAssetsWithPathPattern)
+            .pluralFormsFiltered(true)
+            .pluralFormsExcluded(true)
+            .isOrderedByTextUnitID(true)
+            .build();
     return partitionedStream(parameters, textUnitSearcher::search);
   }
 
@@ -846,16 +845,16 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipAssetsWithPathPattern,
       String includeTextUnitWithPattern) {
     TextUnitSearcherParameters parameters =
-        baseParams(
-            repositoryId,
-            localeTag,
-            skipTextUnitsWithPattern,
-            skipAssetsWithPathPattern,
-            true,
-            true,
-            null,
-            includeTextUnitWithPattern);
-    parameters.setOrderByTextUnitID(true);
+        this.baseParams()
+            .repositoryId(repositoryId)
+            .localeTags(ImmutableList.of(localeTag))
+            .skipTextUnitWithPattern(skipTextUnitsWithPattern)
+            .skipAssetPathWithPattern(skipAssetsWithPathPattern)
+            .pluralFormsFiltered(true)
+            .pluralFormsExcluded(true)
+            .includeTextUnitsWithPattern(includeTextUnitWithPattern)
+            .isOrderedByTextUnitID(true)
+            .build();
     return partitionedStream(parameters, textUnitSearcher::search);
   }
 
@@ -865,15 +864,16 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipTextUnitsWithPattern,
       String skipAssetsWithPathPattern) {
     TextUnitSearcherParameters parameters =
-        baseParams(
-            repositoryId,
-            localeTag,
-            skipTextUnitsWithPattern,
-            skipAssetsWithPathPattern,
-            false,
-            false,
-            "%");
-    parameters.setOrderByTextUnitID(true);
+        this.baseParams()
+            .repositoryId(repositoryId)
+            .localeTags(ImmutableList.of(localeTag))
+            .skipTextUnitWithPattern(skipTextUnitsWithPattern)
+            .skipAssetPathWithPattern(skipAssetsWithPathPattern)
+            .pluralFormsFiltered(false)
+            .pluralFormsExcluded(false)
+            .pluralFormOther("%")
+            .isOrderedByTextUnitID(true)
+            .build();
     return partitionedStream(parameters, textUnitSearcher::search);
   }
 
@@ -898,17 +898,17 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     }
 
     TextUnitSearcherParameters parameters =
-        baseParams(
-            repositoryId,
-            localeTag,
-            skipTextUnitsWithPattern,
-            skipAssetsWithPathPattern,
-            false,
-            false,
-            "%",
-            includeTextUnitsWithPattern);
-
-    parameters.setOrderByTextUnitID(true);
+        this.baseParams()
+            .repositoryId(repositoryId)
+            .localeTags(ImmutableList.of(localeTag))
+            .skipTextUnitWithPattern(skipTextUnitsWithPattern)
+            .skipAssetPathWithPattern(skipAssetsWithPathPattern)
+            .pluralFormsFiltered(false)
+            .pluralFormsExcluded(false)
+            .pluralFormOther("%")
+            .includeTextUnitsWithPattern(includeTextUnitsWithPattern)
+            .isOrderedByTextUnitID(true)
+            .build();
 
     return partitionedStream(parameters, searchFunction);
   }
@@ -927,14 +927,14 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipAssetsWithPathPattern) {
     return textUnitSearcher
         .countTextUnitAndWordCount(
-            baseParams(
-                repositoryId,
-                localeTag,
-                skipTextUnitsWithPattern,
-                skipAssetsWithPathPattern,
-                true,
-                true,
-                null))
+            this.baseParams()
+                .repositoryId(repositoryId)
+                .localeTags(ImmutableList.of(localeTag))
+                .skipTextUnitWithPattern(skipTextUnitsWithPattern)
+                .skipAssetPathWithPattern(skipAssetsWithPathPattern)
+                .pluralFormsFiltered(true)
+                .pluralFormsExcluded(true)
+                .build())
         .getTextUnitCount();
   }
 
@@ -945,66 +945,27 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipAssetsWithPathPattern) {
     return textUnitSearcher
         .countTextUnitAndWordCount(
-            baseParams(
-                repositoryId,
-                localeTag,
-                skipTextUnitsWithPattern,
-                skipAssetsWithPathPattern,
-                false,
-                false,
-                "%"))
+            this.baseParams()
+                .repositoryId(repositoryId)
+                .localeTags(ImmutableList.of(localeTag))
+                .skipTextUnitWithPattern(skipTextUnitsWithPattern)
+                .skipAssetPathWithPattern(skipAssetsWithPathPattern)
+                .pluralFormsFiltered(false)
+                .pluralFormsExcluded(false)
+                .pluralFormOther("%")
+                .build())
         .getTextUnitCount();
   }
 
-  private TextUnitSearcherParameters baseParams(
-      Long repositoryId,
-      String localeTag,
-      String skipTextUnitsWithPattern,
-      String skipAssetsWithPathPattern,
-      boolean pluralFormsFiltered,
-      boolean pluralFormsExcluded,
-      String pluralFormOther) {
-    TextUnitSearcherParameters result = new TextUnitSearcherParameters();
-    result.setRepositoryIds(repositoryId);
-    result.setLocaleTags(ImmutableList.of(localeTag));
-    result.setRootLocaleExcluded(false);
-    result.setDoNotTranslateFilter(false);
-    result.setSearchType(SearchType.ILIKE);
-    result.setStatusFilter(StatusFilter.TRANSLATED);
-    result.setUsedFilter(UsedFilter.USED);
-    result.setPluralFormsFiltered(pluralFormsFiltered);
-    result.setPluralFormsExcluded(pluralFormsExcluded);
-    result.setSkipTextUnitWithPattern(skipTextUnitsWithPattern);
-    result.setSkipAssetPathWithPattern(skipAssetsWithPathPattern);
-    result.setExcludeUnexpiredPendingMT(aiTranslationConfiguration.isEnabled());
-    result.setAiTranslationExpiryDuration(aiTranslationConfiguration.getExpiryDuration());
-    if (!Strings.isNullOrEmpty(pluralFormOther)) {
-      result.setPluralFormOther(pluralFormOther);
-    }
-
-    return result;
-  }
-
-  private TextUnitSearcherParameters baseParams(
-      Long repositoryId,
-      String localeTag,
-      String skipTextUnitsWithPattern,
-      String skipAssetsWithPathPattern,
-      boolean pluralFormsFiltered,
-      boolean pluralFormsExcluded,
-      String pluralFormOther,
-      String includeTextUnitsWithPattern) {
-    TextUnitSearcherParameters result =
-        baseParams(
-            repositoryId,
-            localeTag,
-            skipTextUnitsWithPattern,
-            skipAssetsWithPathPattern,
-            pluralFormsFiltered,
-            pluralFormsExcluded,
-            pluralFormOther);
-    result.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
-    return result;
+  private TextUnitSearcherParameters.Builder baseParams() {
+    return new TextUnitSearcherParameters.Builder()
+        .rootLocaleExcluded(false)
+        .doNotTranslateFilter(false)
+        .searchType(SearchType.ILIKE)
+        .statusFilter(StatusFilter.TRANSLATED)
+        .usedFilter(UsedFilter.USED)
+        .isExcludeUnexpiredPendingMT(aiTranslationConfiguration.isEnabled())
+        .aiTranslationExpiryDuration(aiTranslationConfiguration.getExpiryDuration());
   }
 
   /**

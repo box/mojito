@@ -53,10 +53,13 @@ import com.box.l10n.mojito.service.thirdparty.smartling.quartz.SmartlingPullLoca
 import com.box.l10n.mojito.service.thirdparty.smartling.quartz.SmartlingPullTranslationsJobInput;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
@@ -168,6 +171,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
   @Captor
   ArgumentCaptor<QuartzJobInfo<SmartlingPullTranslationsJobInput, Void>> quartzJobInfoCaptor;
+
+  @Captor ArgumentCaptor<TextUnitSearcherParameters> textUnitSearcherParametersCaptor;
 
   ThirdPartyTMSSmartling tmsSmartling;
 
@@ -1690,6 +1695,274 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     params.setRootLocaleExcluded(false);
     params.setStatusFilter(StatusFilter.TRANSLATED);
     return searcher.search(params);
+  }
+
+  private void assertOtherParameters(TextUnitSearcherParameters textUnitSearcherParameters) {
+    assertThat(textUnitSearcherParameters.getName()).isNull();
+    assertThat(textUnitSearcherParameters.getSource()).isNull();
+    assertThat(textUnitSearcherParameters.getTarget()).isNull();
+    assertThat(textUnitSearcherParameters.getAssetPath()).isNull();
+    assertThat(textUnitSearcherParameters.getLocationUsage()).isNull();
+    assertThat(textUnitSearcherParameters.getRepositoryNames()).isNull();
+    assertThat(textUnitSearcherParameters.getTmTextUnitIds()).isNull();
+    assertThat(textUnitSearcherParameters.getLocaleId()).isNull();
+    assertThat(textUnitSearcherParameters.getOffset()).isNull();
+    assertThat(textUnitSearcherParameters.getLimit()).isNull();
+    assertThat(textUnitSearcherParameters.getAssetId()).isNull();
+    assertThat(textUnitSearcherParameters.getTmId()).isNull();
+    assertThat(textUnitSearcherParameters.getMd5()).isNull();
+    assertThat(textUnitSearcherParameters.isForRootLocale()).isFalse();
+    assertThat(textUnitSearcherParameters.getToBeFullyTranslatedFilter()).isNull();
+    assertThat(textUnitSearcherParameters.getPluralFormId()).isNull();
+    assertThat(textUnitSearcherParameters.getTmTextUnitCreatedBefore()).isNull();
+    assertThat(textUnitSearcherParameters.getTmTextUnitCreatedAfter()).isNull();
+    assertThat(textUnitSearcherParameters.getBranchId()).isNull();
+  }
+
+  @Test
+  public void testPushByVerifyingTextUnitSearcherParameters()
+      throws RepositoryNameAlreadyUsedException {
+
+    List<SmartlingFile> result;
+    Repository repository =
+        this.repositoryService.createRepository(this.testIdWatcher.getEntityName("batchRepo"));
+
+    this.tmsSmartling.textUnitSearcher = Mockito.mock(TextUnitSearcher.class);
+    this.tmsSmartling.push(
+        repository,
+        "projectId",
+        "_",
+        "skipTextUnitsWithPattern",
+        "skipAssetsWithPathPattern",
+        Collections.emptyList());
+    verify(this.tmsSmartling.textUnitSearcher, times(2))
+        .search(this.textUnitSearcherParametersCaptor.capture());
+
+    List<TextUnitSearcherParameters> allTextUnitSearcherParameters =
+        this.textUnitSearcherParametersCaptor.getAllValues();
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        allTextUnitSearcherParameters.getFirst();
+
+    assertThat(allTextUnitSearcherParameters.size()).isEqualTo(2);
+    assertThat(textUnitSearcherParameters.getRepositoryIds()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getRepositoryIds().getFirst())
+        .isEqualTo(repository.getId());
+    assertThat(textUnitSearcherParameters.getLocaleTags()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getLocaleTags().getFirst()).isEqualTo("en");
+    assertThat(textUnitSearcherParameters.getSkipTextUnitWithPattern())
+        .isEqualTo("skipTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.getSkipAssetPathWithPattern())
+        .isEqualTo("skipAssetsWithPathPattern");
+    assertThat(textUnitSearcherParameters.isPluralFormsFiltered()).isTrue();
+    assertThat(textUnitSearcherParameters.isPluralFormsExcluded()).isTrue();
+    assertThat(textUnitSearcherParameters.getPluralFormOther()).isNull();
+    assertThat(textUnitSearcherParameters.isOrderedByTextUnitID()).isTrue();
+
+    assertThat(textUnitSearcherParameters.isRootLocaleExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getDoNotTranslateFilter()).isFalse();
+    assertThat(textUnitSearcherParameters.getSearchType()).isEqualTo(SearchType.ILIKE);
+    assertThat(textUnitSearcherParameters.getStatusFilter()).isEqualTo(StatusFilter.TRANSLATED);
+    assertThat(textUnitSearcherParameters.getUsedFilter()).isEqualTo(UsedFilter.USED);
+    assertThat(textUnitSearcherParameters.isExcludeUnexpiredPendingMT()).isFalse();
+    assertThat(textUnitSearcherParameters.getAiTranslationExpiryDuration())
+        .isEqualTo(Duration.ZERO);
+    assertThat(textUnitSearcherParameters.getIncludeTextUnitsWithPattern()).isNull();
+    this.assertOtherParameters(textUnitSearcherParameters);
+
+    textUnitSearcherParameters = allTextUnitSearcherParameters.get(1);
+
+    assertThat(textUnitSearcherParameters.getRepositoryIds()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getRepositoryIds().getFirst())
+        .isEqualTo(repository.getId());
+    assertThat(textUnitSearcherParameters.getLocaleTags()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getLocaleTags().getFirst()).isEqualTo("en");
+    assertThat(textUnitSearcherParameters.getSkipTextUnitWithPattern())
+        .isEqualTo("skipTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.getSkipAssetPathWithPattern())
+        .isEqualTo("skipAssetsWithPathPattern");
+    assertThat(textUnitSearcherParameters.isPluralFormsFiltered()).isFalse();
+    assertThat(textUnitSearcherParameters.isPluralFormsExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getPluralFormOther()).isEqualTo("%");
+    assertThat(textUnitSearcherParameters.isOrderedByTextUnitID()).isTrue();
+
+    assertThat(textUnitSearcherParameters.isRootLocaleExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getDoNotTranslateFilter()).isFalse();
+    assertThat(textUnitSearcherParameters.getSearchType()).isEqualTo(SearchType.ILIKE);
+    assertThat(textUnitSearcherParameters.getStatusFilter()).isEqualTo(StatusFilter.TRANSLATED);
+    assertThat(textUnitSearcherParameters.getUsedFilter()).isEqualTo(UsedFilter.USED);
+    assertThat(textUnitSearcherParameters.isExcludeUnexpiredPendingMT()).isFalse();
+    assertThat(textUnitSearcherParameters.getAiTranslationExpiryDuration())
+        .isEqualTo(Duration.ZERO);
+    assertThat(textUnitSearcherParameters.getIncludeTextUnitsWithPattern()).isNull();
+    this.assertOtherParameters(textUnitSearcherParameters);
+  }
+
+  @Test
+  public void testPushTranslationsByVerifyingTextUnitSearcherParameters()
+      throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
+    Repository repository =
+        this.repositoryService.createRepository(this.testIdWatcher.getEntityName("batchRepo"));
+    Locale frCA = this.localeService.findByBcp47Tag("fr-CA");
+    this.repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+
+    this.tmsSmartling.textUnitSearcher = Mockito.mock(TextUnitSearcher.class);
+    this.tmsSmartling.pushTranslations(
+        repository,
+        "projectId",
+        this.pluralSep,
+        ImmutableMap.of(),
+        "skipTextUnitsWithPattern",
+        "skipAssetsWithPathPattern",
+        "includeTextUnitsWithPattern",
+        ImmutableList.of());
+
+    verify(this.tmsSmartling.textUnitSearcher, times(2))
+        .search(this.textUnitSearcherParametersCaptor.capture());
+
+    List<TextUnitSearcherParameters> allTextUnitSearcherParameters =
+        this.textUnitSearcherParametersCaptor.getAllValues();
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        allTextUnitSearcherParameters.getFirst();
+
+    assertThat(allTextUnitSearcherParameters.size()).isEqualTo(2);
+    assertThat(textUnitSearcherParameters.getRepositoryIds()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getRepositoryIds().getFirst())
+        .isEqualTo(repository.getId());
+    assertThat(textUnitSearcherParameters.getLocaleTags()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getLocaleTags().getFirst()).isEqualTo("fr-CA");
+    assertThat(textUnitSearcherParameters.getSkipTextUnitWithPattern())
+        .isEqualTo("skipTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.getSkipAssetPathWithPattern())
+        .isEqualTo("skipAssetsWithPathPattern");
+    assertThat(textUnitSearcherParameters.isPluralFormsFiltered()).isTrue();
+    assertThat(textUnitSearcherParameters.isPluralFormsExcluded()).isTrue();
+    assertThat(textUnitSearcherParameters.getPluralFormOther()).isNull();
+    assertThat(textUnitSearcherParameters.getIncludeTextUnitsWithPattern())
+        .isEqualTo("includeTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.isOrderedByTextUnitID()).isTrue();
+
+    assertThat(textUnitSearcherParameters.isRootLocaleExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getDoNotTranslateFilter()).isFalse();
+    assertThat(textUnitSearcherParameters.getSearchType()).isEqualTo(SearchType.ILIKE);
+    assertThat(textUnitSearcherParameters.getStatusFilter()).isEqualTo(StatusFilter.TRANSLATED);
+    assertThat(textUnitSearcherParameters.getUsedFilter()).isEqualTo(UsedFilter.USED);
+    assertThat(textUnitSearcherParameters.isExcludeUnexpiredPendingMT()).isFalse();
+    assertThat(textUnitSearcherParameters.getAiTranslationExpiryDuration())
+        .isEqualTo(Duration.ZERO);
+    this.assertOtherParameters(textUnitSearcherParameters);
+
+    textUnitSearcherParameters = allTextUnitSearcherParameters.get(1);
+
+    assertThat(textUnitSearcherParameters.getRepositoryIds()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getRepositoryIds().getFirst())
+        .isEqualTo(repository.getId());
+    assertThat(textUnitSearcherParameters.getLocaleTags()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getLocaleTags().getFirst()).isEqualTo("fr-CA");
+    assertThat(textUnitSearcherParameters.getSkipTextUnitWithPattern())
+        .isEqualTo("skipTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.getSkipAssetPathWithPattern())
+        .isEqualTo("skipAssetsWithPathPattern");
+    assertThat(textUnitSearcherParameters.isPluralFormsFiltered()).isFalse();
+    assertThat(textUnitSearcherParameters.isPluralFormsExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getPluralFormOther()).isEqualTo("%");
+    assertThat(textUnitSearcherParameters.getIncludeTextUnitsWithPattern())
+        .isEqualTo("includeTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.isOrderedByTextUnitID()).isTrue();
+
+    assertThat(textUnitSearcherParameters.isRootLocaleExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getDoNotTranslateFilter()).isFalse();
+    assertThat(textUnitSearcherParameters.getSearchType()).isEqualTo(SearchType.ILIKE);
+    assertThat(textUnitSearcherParameters.getStatusFilter()).isEqualTo(StatusFilter.TRANSLATED);
+    assertThat(textUnitSearcherParameters.getUsedFilter()).isEqualTo(UsedFilter.USED);
+    assertThat(textUnitSearcherParameters.isExcludeUnexpiredPendingMT()).isFalse();
+    assertThat(textUnitSearcherParameters.getAiTranslationExpiryDuration())
+        .isEqualTo(Duration.ZERO);
+    this.assertOtherParameters(textUnitSearcherParameters);
+  }
+
+  @Test
+  public void testPullByVerifyingTextUnitSearcherParameters()
+      throws RepositoryLocaleCreationException {
+    ThirdPartyServiceTestData testData = new ThirdPartyServiceTestData(this.testIdWatcher);
+    Repository repository = testData.repository;
+    Map<String, String> localeMapping = Collections.emptyMap();
+
+    TextUnitSearcher textUnitSearcherMock = Mockito.mock(TextUnitSearcher.class);
+    when(textUnitSearcherMock.countTextUnitAndWordCount(any()))
+        .thenReturn(new TextUnitAndWordCount(2, 4));
+    this.tmsSmartling.textUnitSearcher = textUnitSearcherMock;
+
+    this.tmsSmartling.pull(
+        repository,
+        "projectId",
+        pluralSep,
+        localeMapping,
+        "skipTextUnitsWithPattern",
+        "skipAssetsWithPathPattern",
+        Collections.emptyList(),
+        DEFAULT_SCHEDULER_NAME,
+        parent);
+
+    verify(textUnitSearcherMock, times(2))
+        .countTextUnitAndWordCount(this.textUnitSearcherParametersCaptor.capture());
+
+    List<TextUnitSearcherParameters> allTextUnitSearcherParameters =
+        this.textUnitSearcherParametersCaptor.getAllValues();
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        allTextUnitSearcherParameters.getFirst();
+
+    assertThat(allTextUnitSearcherParameters.size()).isEqualTo(2);
+    assertThat(textUnitSearcherParameters.getRepositoryIds()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getRepositoryIds().getFirst())
+        .isEqualTo(repository.getId());
+    assertThat(textUnitSearcherParameters.getLocaleTags()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getLocaleTags().getFirst()).isEqualTo("en");
+    assertThat(textUnitSearcherParameters.getSkipTextUnitWithPattern())
+        .isEqualTo("skipTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.getSkipAssetPathWithPattern())
+        .isEqualTo("skipAssetsWithPathPattern");
+    assertThat(textUnitSearcherParameters.isPluralFormsFiltered()).isTrue();
+    assertThat(textUnitSearcherParameters.isPluralFormsExcluded()).isTrue();
+
+    assertThat(textUnitSearcherParameters.getPluralFormOther()).isNull();
+    assertThat(textUnitSearcherParameters.getIncludeTextUnitsWithPattern()).isNull();
+    assertThat(textUnitSearcherParameters.isOrderedByTextUnitID()).isFalse();
+    assertThat(textUnitSearcherParameters.isRootLocaleExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getDoNotTranslateFilter()).isFalse();
+    assertThat(textUnitSearcherParameters.getSearchType()).isEqualTo(SearchType.ILIKE);
+    assertThat(textUnitSearcherParameters.getStatusFilter()).isEqualTo(StatusFilter.TRANSLATED);
+    assertThat(textUnitSearcherParameters.getUsedFilter()).isEqualTo(UsedFilter.USED);
+    assertThat(textUnitSearcherParameters.isExcludeUnexpiredPendingMT()).isFalse();
+    assertThat(textUnitSearcherParameters.getAiTranslationExpiryDuration())
+        .isEqualTo(Duration.ZERO);
+    this.assertOtherParameters(textUnitSearcherParameters);
+
+    textUnitSearcherParameters = allTextUnitSearcherParameters.get(1);
+
+    assertThat(textUnitSearcherParameters.getRepositoryIds()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getRepositoryIds().getFirst())
+        .isEqualTo(repository.getId());
+    assertThat(textUnitSearcherParameters.getLocaleTags()).hasSize(1);
+    assertThat(textUnitSearcherParameters.getLocaleTags().getFirst()).isEqualTo("en");
+    assertThat(textUnitSearcherParameters.getSkipTextUnitWithPattern())
+        .isEqualTo("skipTextUnitsWithPattern");
+    assertThat(textUnitSearcherParameters.getSkipAssetPathWithPattern())
+        .isEqualTo("skipAssetsWithPathPattern");
+    assertThat(textUnitSearcherParameters.isPluralFormsFiltered()).isFalse();
+    assertThat(textUnitSearcherParameters.isPluralFormsExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getPluralFormOther()).isEqualTo("%");
+
+    assertThat(textUnitSearcherParameters.getIncludeTextUnitsWithPattern()).isNull();
+    assertThat(textUnitSearcherParameters.isOrderedByTextUnitID()).isFalse();
+    assertThat(textUnitSearcherParameters.isRootLocaleExcluded()).isFalse();
+    assertThat(textUnitSearcherParameters.getDoNotTranslateFilter()).isFalse();
+    assertThat(textUnitSearcherParameters.getSearchType()).isEqualTo(SearchType.ILIKE);
+    assertThat(textUnitSearcherParameters.getStatusFilter()).isEqualTo(StatusFilter.TRANSLATED);
+    assertThat(textUnitSearcherParameters.getUsedFilter()).isEqualTo(UsedFilter.USED);
+    assertThat(textUnitSearcherParameters.isExcludeUnexpiredPendingMT()).isFalse();
+    assertThat(textUnitSearcherParameters.getAiTranslationExpiryDuration())
+        .isEqualTo(Duration.ZERO);
+    this.assertOtherParameters(textUnitSearcherParameters);
   }
 
   public String singularFileName(Repository repository, long num) {
