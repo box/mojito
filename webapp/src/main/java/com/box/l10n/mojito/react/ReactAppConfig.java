@@ -18,6 +18,8 @@ public class ReactAppConfig {
 
   String analyticsHtmlInclude;
 
+  boolean userMenuLogoutHidden;
+
   public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, ReactUser reactUser) {
     this.reactStaticAppConfig = reactStaticAppConfig;
     this.user = reactUser;
@@ -73,5 +75,13 @@ public class ReactAppConfig {
 
   public void setAnalyticsHtmlInclude(String analyticsHtmlInclude) {
     this.analyticsHtmlInclude = analyticsHtmlInclude;
+  }
+
+  public boolean isUserMenuLogoutHidden() {
+    return userMenuLogoutHidden;
+  }
+
+  public void setUserMenuLogoutHidden(boolean userMenuLogoutHidden) {
+    this.userMenuLogoutHidden = userMenuLogoutHidden;
   }
 }

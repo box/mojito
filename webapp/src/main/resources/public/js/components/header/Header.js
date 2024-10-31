@@ -133,12 +133,14 @@ class Header extends React.Component {
                             <Glyphicon glyph="pencil"/> <FormattedMessage id="header.change-pw"/>
                         </MenuItem>
 
-                        <MenuItem onSelect={this.logoutSelected}>
-                            <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
-                                <FormControl type="hidden" name="_csrf" value={this.props.appConfig.csrfToken}/>
-                                <Glyphicon glyph="log-out"/> <FormattedMessage id="header.loggedInUser.logout"/>
-                            </form>
-                        </MenuItem>
+                        {!APP_CONFIG.userMenuLogoutHidden && (
+                            <MenuItem onSelect={this.logoutSelected}>
+                                <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
+                                    <FormControl type="hidden" name="_csrf" value={this.props.appConfig.csrfToken}/>
+                                    <Glyphicon glyph="log-out"/> <FormattedMessage id="header.loggedInUser.logout"/>
+                                </form>
+                            </MenuItem>
+                        )}
                     </NavDropdown>
                 </Nav>
                 <LocaleSelectorModal key="headerLocaleSelectorModal" show={this.state.showLocaleSelectorModal}

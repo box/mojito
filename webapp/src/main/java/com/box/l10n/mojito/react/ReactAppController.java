@@ -72,6 +72,9 @@ public class ReactAppController {
   @Value("${l10n.webapp.analytics.html.include:}")
   String analyticsHtmlInclude;
 
+  @Value("${l10n.webapp.user-menu.logout.hide:false}")
+  boolean userMenuLogoutHidden;
+
   @Value("${server.contextPath:}")
   String contextPath = "";
 
@@ -102,6 +105,7 @@ public class ReactAppController {
     reactAppConfig.setCsrfToken(csrfTokenController.getCsrfToken(httpServletRequest));
     reactAppConfig.setContextPath(contextPath);
     reactAppConfig.setAnalyticsHtmlInclude(analyticsHtmlInclude);
+    reactAppConfig.setUserMenuLogoutHidden(this.userMenuLogoutHidden);
 
     index.appConfig = objectMapper.writeValueAsStringUnchecked(reactAppConfig);
     index.locale = reactAppConfig.locale;
