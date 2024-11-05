@@ -188,7 +188,7 @@ l10n.org.quartz.dataSource.myDS.URL=jdbc:mysql://localhost:3306/mojito_dev?chara
 Now the basic setup is done the project can be built
 
 ```sh
-git clone https://github.com/box/mojito.git ${PROJECT_DIR}
+git clone {{ site.github_url }}.git ${PROJECT_DIR}
 cd ${PROJECT_DIR}
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 mvn clean install -DskipTests=true

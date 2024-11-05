@@ -148,7 +148,7 @@ Depending on the file size that will be processed, it might be required to incre
 max_allowed_packet = 256M
 ```
     
-If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
+If using a older version of MySQL, there is a [known issue]({{site.github_url}}/issues/120) when creating the schema. One workaround is to use `utf8`
 instead `utf8mb4` but it has its limitation in term of character support.
 
 We recommand to run both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set

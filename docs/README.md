@@ -1,4 +1,7 @@
-Mojito Github pages 
-====
+# Mojito Github pages 
 
-Install `jekyll` with `sudo gem install jekyll` and run the site locally `jekyll serve`
+## Installation
+1. Install [jekyll](https://jekyllrb.com/docs/installation/) 
+
+## Running locally
+1. Run the site locally with `jekyll serve`
