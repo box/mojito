@@ -369,6 +369,26 @@ public class SmartlingClient {
       String fileContent,
       String placeholderFormat,
       String placeholderFormatCustom) {
+    return uploadLocalizedFile(
+        projectId,
+        fileUri,
+        fileType,
+        localeId,
+        fileContent,
+        placeholderFormat,
+        placeholderFormatCustom,
+        "PUBLISHED");
+  }
+
+  public FileUploadResponse uploadLocalizedFile(
+      String projectId,
+      String fileUri,
+      String fileType,
+      String localeId,
+      String fileContent,
+      String placeholderFormat,
+      String placeholderFormatCustom,
+      String translationState) {
 
     try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
       HttpPost uploadFileMethod =
@@ -387,7 +407,7 @@ public class SmartlingClient {
 
       multipartEntityBuilder.addTextBody("fileUri", fileUri);
       multipartEntityBuilder.addTextBody("fileType", fileType);
-      multipartEntityBuilder.addTextBody("translationState", "PUBLISHED");
+      multipartEntityBuilder.addTextBody("translationState", translationState);
       multipartEntityBuilder.addTextBody("overwrite", "true");
       if (!Strings.isNullOrEmpty(placeholderFormat)) {
         multipartEntityBuilder.addTextBody("smartling.placeholder_format", placeholderFormat);

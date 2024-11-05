@@ -56,6 +56,10 @@ public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUni
     String doNotTranslate = cr.getString(idx++);
     t.setDoNotTranslate(Boolean.valueOf(doNotTranslate));
 
+    if (cr.hasProperty("uploadedFileUri")) {
+      t.setUploadedFileUri(cr.getString(idx++));
+    }
+
     return t;
   }
 

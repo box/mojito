@@ -37,6 +37,10 @@ public class SmartlingResultProcessor {
     return processAction(files, options, "push_translations");
   }
 
+  public String processPushAiTranslations(List<SmartlingFile> files, SmartlingOptions options) {
+    return processAction(files, options, "push_ai_translations");
+  }
+
   private String processAction(List<SmartlingFile> files, SmartlingOptions options, String action) {
     String result = null;
 

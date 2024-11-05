@@ -34,6 +34,7 @@ public class TextUnitDTO {
   private Long assetTextUnitId;
   private ZonedDateTime tmTextUnitCreatedDate;
   private boolean doNotTranslate;
+  private String uploadedFileUri;
 
   public Long getTmTextUnitId() {
     return tmTextUnitId;
@@ -241,5 +242,13 @@ public class TextUnitDTO {
 
   public void setDoNotTranslate(boolean doNotTranslate) {
     this.doNotTranslate = doNotTranslate;
+  }
+
+  public String getUploadedFileUri() {
+    return uploadedFileUri;
+  }
+
+  public void setUploadedFileUri(String uploadedFileUri) {
+    this.uploadedFileUri = uploadedFileUri;
   }
 }

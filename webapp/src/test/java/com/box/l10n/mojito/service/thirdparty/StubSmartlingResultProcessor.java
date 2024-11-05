@@ -10,6 +10,7 @@ public class StubSmartlingResultProcessor extends SmartlingResultProcessor {
 
   List<SmartlingFile> pushFiles = new ArrayList<>();
   List<SmartlingFile> pushTranslationFiles = new ArrayList<>();
+  List<SmartlingFile> pushAITranslationFiles = new ArrayList<>();
   SmartlingOptions options;
 
   public StubSmartlingResultProcessor() {}
@@ -24,6 +25,13 @@ public class StubSmartlingResultProcessor extends SmartlingResultProcessor {
   @Override
   public String processPushTranslations(List<SmartlingFile> files, SmartlingOptions options) {
     this.pushTranslationFiles = files;
+    this.options = options;
+    return "";
+  }
+
+  @Override
+  public String processPushAiTranslations(List<SmartlingFile> files, SmartlingOptions options) {
+    this.pushAITranslationFiles = files;
     this.options = options;
     return "";
   }

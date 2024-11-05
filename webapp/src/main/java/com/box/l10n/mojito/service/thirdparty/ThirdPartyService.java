@@ -180,6 +180,18 @@ public class ThirdPartyService {
     if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
       uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId, currentTask);
     }
+    if (actions.contains(ThirdPartySyncAction.PUSH_AI_TRANSLATION)) {
+      pushAITranslations(
+          thirdPartyProjectId,
+          pluralSeparator,
+          localeMapping,
+          skipTextUnitsWithPattern,
+          skipAssetsWithPathPattern,
+          includeTextUnitsWithPattern,
+          options,
+          repository,
+          currentTask);
+    }
   }
 
   @Pollable(message = "Push source strings to third party service.")
@@ -288,6 +300,28 @@ public class ThirdPartyService {
         .filter(e -> e.getKey() != null)
         .forEach(
             e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue(), pluralSeparator));
+  }
+
+  @Pollable(message = "Push AI translations to third party service.")
+  void pushAITranslations(
+      String thirdPartyProjectId,
+      String pluralSeparator,
+      String localeMapping,
+      String skipTextUnitsWithPattern,
+      String skipAssetsWithPathPattern,
+      String includeTextUnitsWithPattern,
+      List<String> options,
+      Repository repository,
+      @ParentTask PollableTask currentTask) {
+    thirdPartyTMS.pushAITranslations(
+        repository,
+        thirdPartyProjectId,
+        pluralSeparator,
+        parseLocaleMapping(localeMapping),
+        skipTextUnitsWithPattern,
+        skipAssetsWithPathPattern,
+        includeTextUnitsWithPattern,
+        options);
   }
 
   void mapThirdPartyTextUnitsToTextUnitDTOs(

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 
 import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.service.ai.translation.AITranslationConfiguration;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -82,6 +83,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
   @Autowired TextUnitSearcher textUnitSearcher;
 
   @Mock ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepositoryMock;
+
+  @Mock AITranslationConfiguration aiTranslationConfiguration;
 
   SmartlingJsonConverter smartlingJsonConverter =
       new SmartlingJsonConverter(ObjectMapper.withIndentedOutput(), new SmartlingJsonKeys());
@@ -255,7 +258,14 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
     ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson =
         new ThirdPartyTMSSmartlingWithJson(
-            null, null, null, null, null, meterRegistryMock, thirdPartyFileChecksumRepositoryMock);
+            null,
+            null,
+            null,
+            null,
+            null,
+            meterRegistryMock,
+            thirdPartyFileChecksumRepositoryMock,
+            aiTranslationConfiguration);
 
     ImmutableList<TextUnitDTO> result =
         thirdPartyTMSSmartlingWithJson.getTranslatedUnits(

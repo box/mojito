@@ -53,6 +53,7 @@ public class TextUnitSearcherParameters {
   String skipAssetPathWithPattern;
   boolean isExcludeUnexpiredPendingMT = false;
   Duration aiTranslationExpiryDuration;
+  boolean shouldRetrieveUploadedFileUri = false;
 
   public String getName() {
     return name;
@@ -347,6 +348,14 @@ public class TextUnitSearcherParameters {
     this.aiTranslationExpiryDuration = aiTranslationExpiryDuration;
   }
 
+  public boolean shouldRetrieveUploadedFileUri() {
+    return shouldRetrieveUploadedFileUri;
+  }
+
+  public void setIsRetrieveUploadedFileUri(boolean retrieveUploadedFileUri) {
+    this.shouldRetrieveUploadedFileUri = retrieveUploadedFileUri;
+  }
+
   public static class Builder {
     private String name;
     private String source;
@@ -383,6 +392,7 @@ public class TextUnitSearcherParameters {
     private String skipAssetPathWithPattern;
     private boolean isExcludeUnexpiredPendingMT;
     private Duration aiTranslationExpiryDuration;
+    private boolean shouldRetrieveUploadedFileUri;
 
     public TextUnitSearcherParameters build() {
       TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -421,6 +431,7 @@ public class TextUnitSearcherParameters {
       textUnitSearcherParameters.skipAssetPathWithPattern = this.skipAssetPathWithPattern;
       textUnitSearcherParameters.isExcludeUnexpiredPendingMT = this.isExcludeUnexpiredPendingMT;
       textUnitSearcherParameters.aiTranslationExpiryDuration = this.aiTranslationExpiryDuration;
+      textUnitSearcherParameters.shouldRetrieveUploadedFileUri = this.shouldRetrieveUploadedFileUri;
       return textUnitSearcherParameters;
     }
 
@@ -611,6 +622,11 @@ public class TextUnitSearcherParameters {
 
     public Builder aiTranslationExpiryDuration(Duration aiTranslationExpiryDuration) {
       this.aiTranslationExpiryDuration = aiTranslationExpiryDuration;
+      return this;
+    }
+
+    public Builder shouldRetrieveUploadedFileUri(boolean shouldRetrieveUploadedFileUri) {
+      this.shouldRetrieveUploadedFileUri = shouldRetrieveUploadedFileUri;
       return this;
     }
   }

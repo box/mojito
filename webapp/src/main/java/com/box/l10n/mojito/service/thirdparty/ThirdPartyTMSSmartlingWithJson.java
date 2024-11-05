@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.iterators.PageFetcherOffsetAndLimitSplitIterator;
 import com.box.l10n.mojito.iterators.Spliterators;
+import com.box.l10n.mojito.service.ai.translation.AITranslationConfiguration;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingJsonConverter;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
@@ -32,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -61,6 +63,8 @@ public class ThirdPartyTMSSmartlingWithJson {
 
   ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepository;
 
+  AITranslationConfiguration aiTranslationConfiguration;
+
   int batchSize = 5000;
 
   public ThirdPartyTMSSmartlingWithJson(
@@ -70,7 +74,8 @@ public class ThirdPartyTMSSmartlingWithJson {
       TextUnitBatchImporterService textUnitBatchImporterService,
       SmartlingJsonKeys smartlingJsonKeys,
       MeterRegistry meterRegistry,
-      ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepository) {
+      ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepository,
+      AITranslationConfiguration aiTranslationConfiguration) {
     this.smartlingClient = smartlingClient;
     this.smartlingJsonConverter = smartlingJsonConverter;
     this.textUnitSearcher = textUnitSearcher;
@@ -78,6 +83,7 @@ public class ThirdPartyTMSSmartlingWithJson {
     this.smartlingJsonKeys = smartlingJsonKeys;
     this.meterRegistry = meterRegistry;
     this.thirdPartyFileChecksumRepository = thirdPartyFileChecksumRepository;
+    this.aiTranslationConfiguration = aiTranslationConfiguration;
   }
 
   void push(
@@ -255,6 +261,101 @@ public class ThirdPartyTMSSmartlingWithJson {
         });
   }
 
+  public void pushAiTranslations(
+      Repository repository,
+      String projectId,
+      Map<String, String> localeMapping,
+      String skipTextUnitsWithPattern,
+      String skipAssetsWithPathPattern,
+      String includeTextUnitsWithPattern) {
+
+    logger.info(
+        "Push AI translations from repository: {} into project: {}",
+        repository.getName(),
+        projectId);
+
+    try (var timer =
+        Timer.resource(meterRegistry, "ThirdPartyTMSSmartlingWithJson.pushAiTranslations")
+            .tag("repository", repository.getName())) {
+      getRepositoryLocaleWithoutRootStream(repository)
+          .forEach(
+              repositoryLocale -> {
+                Map<String, List<TextUnitDTO>> textUnitsByUploadedFileUri =
+                    StreamSupport.stream(
+                            getTargetTextUnitIterator(
+                                repository,
+                                repositoryLocale.getLocale().getId(),
+                                skipTextUnitsWithPattern,
+                                skipAssetsWithPathPattern,
+                                includeTextUnitsWithPattern,
+                                StatusFilter.MT_TRANSLATED),
+                            false)
+                        .collect(Collectors.groupingBy(TextUnitDTO::getUploadedFileUri));
+
+                textUnitsByUploadedFileUri.forEach(
+                    (uploadedFileUri, textUnitDTOS) -> {
+                      try (var timer2 =
+                          Timer.resource(
+                                  meterRegistry,
+                                  "ThirdPartyTMSSmartlingWithJson.pushAiTranslations.batch")
+                              .tag("repository", repository.getName())) {
+
+                        uploadLocalizedFile(
+                            projectId,
+                            localeMapping,
+                            repositoryLocale,
+                            uploadedFileUri,
+                            textUnitDTOS);
+                        meterRegistry
+                            .counter(
+                                "SmartlingSync.uploadAiTranslationsBatch",
+                                "repository",
+                                repository.getName(),
+                                "jsonSync",
+                                "true")
+                            .increment(textUnitDTOS.size());
+                      }
+                    });
+              });
+    }
+  }
+
+  private void uploadLocalizedFile(
+      String projectId,
+      Map<String, String> localeMapping,
+      RepositoryLocale repositoryLocale,
+      String uploadedFileUri,
+      List<TextUnitDTO> textUnitDTOS) {
+    String fileContent =
+        smartlingJsonConverter.textUnitDTOsToJsonString(textUnitDTOS, TextUnitDTO::getTarget);
+    String smartlingLocale = getSmartlingLocale(localeMapping, repositoryLocale);
+
+    Mono.fromCallable(
+            () ->
+                smartlingClient.uploadLocalizedFile(
+                    projectId, uploadedFileUri, "json", smartlingLocale, fileContent, null, null))
+        .retryWhen(
+            smartlingClient
+                .getRetryConfiguration()
+                .doBeforeRetry(
+                    e ->
+                        logger.info(
+                            String.format(
+                                "Retrying after failure to upload localized file %s in project %s",
+                                uploadedFileUri, projectId),
+                            e.failure())))
+        .doOnError(
+            e -> {
+              String msg =
+                  String.format(
+                      "Error uploading localized file %s in project %s",
+                      uploadedFileUri, projectId);
+              logger.error(msg, e);
+              throw new SmartlingClientException(msg, e);
+            })
+        .block();
+  }
+
   public void pushTranslations(
       Repository repository,
       String projectId,
@@ -291,41 +392,12 @@ public class ThirdPartyTMSSmartlingWithJson {
                                       .tag("repository", repository.getName())) {
 
                                 String fileName = getSourceFileName(repository.getName(), index);
-                                String fileContent =
-                                    smartlingJsonConverter.textUnitDTOsToJsonString(
-                                        textUnitDTOS, TextUnitDTO::getTarget);
-                                String smartlingLocale =
-                                    getSmartlingLocale(localeMapping, repositoryLocale);
-                                Mono.fromCallable(
-                                        () ->
-                                            smartlingClient.uploadLocalizedFile(
-                                                projectId,
-                                                fileName,
-                                                "json",
-                                                smartlingLocale,
-                                                fileContent,
-                                                null,
-                                                null))
-                                    .retryWhen(
-                                        smartlingClient
-                                            .getRetryConfiguration()
-                                            .doBeforeRetry(
-                                                e ->
-                                                    logger.info(
-                                                        String.format(
-                                                            "Retrying after failure to upload localized file %s in project %s",
-                                                            fileName, projectId),
-                                                        e.failure())))
-                                    .doOnError(
-                                        e -> {
-                                          String msg =
-                                              String.format(
-                                                  "Error uploading localized file %s in project %s",
-                                                  fileName, projectId);
-                                          logger.error(msg, e);
-                                          throw new SmartlingClientException(msg, e);
-                                        })
-                                    .block();
+                                uploadLocalizedFile(
+                                    projectId,
+                                    localeMapping,
+                                    repositoryLocale,
+                                    fileName,
+                                    textUnitDTOS);
                                 return index;
                               }
                             })
@@ -353,6 +425,41 @@ public class ThirdPartyTMSSmartlingWithJson {
                   parameters.setLimit(limit);
                   parameters.setPluralFormsFiltered(true);
                   parameters.setOrderByTextUnitID(true);
+                  parameters.setExcludeUnexpiredPendingMT(aiTranslationConfiguration.isEnabled());
+                  parameters.setAiTranslationExpiryDuration(
+                      aiTranslationConfiguration.getExpiryDuration());
+                  List<TextUnitDTO> search = textUnitSearcher.search(parameters);
+                  return search;
+                },
+                batchSize);
+
+    return textUnitDTOPageFetcherOffsetAndLimitSplitIterator;
+  }
+
+  PageFetcherOffsetAndLimitSplitIterator<TextUnitDTO> getTargetTextUnitIterator(
+      Repository repository,
+      Long localeId,
+      String skipTextUnitsWithPattern,
+      String skipAssetsWithPathPattern,
+      String includeTextUnitsWithPattern,
+      StatusFilter statusFilter) {
+
+    PageFetcherOffsetAndLimitSplitIterator<TextUnitDTO>
+        textUnitDTOPageFetcherOffsetAndLimitSplitIterator =
+            new PageFetcherOffsetAndLimitSplitIterator<>(
+                (offset, limit) -> {
+                  TextUnitSearcherParameters parameters = new TextUnitSearcherParameters();
+                  parameters.setRepositoryIds(repository.getId());
+                  parameters.setLocaleId(localeId);
+                  parameters.setDoNotTranslateFilter(false);
+                  parameters.setStatusFilter(statusFilter);
+                  parameters.setUsedFilter(UsedFilter.USED);
+                  parameters.setSkipTextUnitWithPattern(skipTextUnitsWithPattern);
+                  parameters.setSkipAssetPathWithPattern(skipAssetsWithPathPattern);
+                  parameters.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
+                  parameters.setOffset(offset);
+                  parameters.setLimit(limit);
+                  parameters.setPluralFormsFiltered(true);
                   List<TextUnitDTO> search = textUnitSearcher.search(parameters);
                   return search;
                 },

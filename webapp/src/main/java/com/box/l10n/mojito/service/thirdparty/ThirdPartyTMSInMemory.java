@@ -117,4 +117,15 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
       String projectId,
       List<String> optionList,
       Map<String, String> localeMapping) {}
+
+  @Override
+  public void pushAITranslations(
+      Repository repository,
+      String projectId,
+      String pluralSeparator,
+      Map<String, String> localeMapping,
+      String skipTextUnitsWithPattern,
+      String skipAssetsWithPathPattern,
+      String includeTextUnitsWithPattern,
+      List<String> optionList) {}
 }

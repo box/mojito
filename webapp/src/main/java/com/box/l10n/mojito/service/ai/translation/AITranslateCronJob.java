@@ -21,8 +21,10 @@ import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -271,6 +273,7 @@ public class AITranslateCronJob implements Job {
         pendingMTs =
             tmTextUnitPendingMTRepository.findBatch(aiTranslationConfiguration.getBatchSize());
         logger.info("Processing {} pending MTs", pendingMTs.size());
+        Queue<TmTextUnitPendingMT> textUnitsToClearPendingMT = new ConcurrentLinkedQueue<>();
 
         List<CompletableFuture<Void>> futures =
             pendingMTs.stream()
@@ -295,7 +298,7 @@ public class AITranslateCronJob implements Job {
                                   logger.debug(
                                       "Sending pending MT for tmTextUnitId: {} for deletion",
                                       pendingMT.getTmTextUnitId());
-                                  aiTranslationService.sendForDeletion(pendingMT);
+                                  textUnitsToClearPendingMT.add(pendingMT);
                                 }
                               }
                             },
@@ -304,6 +307,7 @@ public class AITranslateCronJob implements Job {
 
         // Wait for all tasks in this batch to complete
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        aiTranslationService.deleteBatch(textUnitsToClearPendingMT);
       } while (!pendingMTs.isEmpty());
     } finally {
       shutdownExecutor(executorService);

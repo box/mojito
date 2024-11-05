@@ -54,4 +54,6 @@ public enum StatusFilter {
   NOT_REJECTED,
   /** TextUnits with status ({@link TMTextUnitVariant.Status#OVERRIDDEN}). */
   OVERRIDDEN,
+  /** TextUnits with status (@link TMTextUnitVariant.Status#MT_TRANSLATED}). */
+  MT_TRANSLATED
 }
