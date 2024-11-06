@@ -215,6 +215,9 @@ public class AITranslateCronJobTest {
     List<AITranslation> aiTranslations = aiTranslationCaptor.getValue();
     assertEquals(3, aiTranslations.size());
     assertThat(aiTranslations).extracting("localeId").containsExactlyInAnyOrder(2L, 3L, 4L);
+    assertThat(aiTranslations)
+        .extracting("includedInLocalizedFile")
+        .containsExactlyInAnyOrder(false, false, false);
   }
 
   @Test
@@ -247,6 +250,9 @@ public class AITranslateCronJobTest {
     assertThat(aiTranslations)
         .extracting("translation")
         .containsExactlyInAnyOrder("content", "translated", "translated");
+    assertThat(aiTranslations)
+        .extracting("includedInLocalizedFile")
+        .containsExactlyInAnyOrder(false, false, false);
   }
 
   @Test
@@ -265,6 +271,9 @@ public class AITranslateCronJobTest {
     List<AITranslation> aiTranslations = aiTranslationCaptor.getValue();
     assertEquals(2, aiTranslations.size());
     assertThat(aiTranslations).extracting("localeId").containsExactlyInAnyOrder(2L, 4L);
+    assertThat(aiTranslations)
+        .extracting("includedInLocalizedFile")
+        .containsExactlyInAnyOrder(false, false);
   }
 
   @Test
@@ -368,6 +377,9 @@ public class AITranslateCronJobTest {
       aiTranslations = aiTranslationCaptor.getAllValues().get(i);
       assertEquals(3, aiTranslations.size());
       assertThat(aiTranslations).extracting("localeId").containsExactlyInAnyOrder(2L, 3L, 4L);
+      assertThat(aiTranslations)
+          .extracting("includedInLocalizedFile")
+          .containsExactlyInAnyOrder(false, false, false);
     }
     verify(aiTranslationService, times(3)).deleteBatch(isA(Queue.class));
   }
@@ -403,6 +415,9 @@ public class AITranslateCronJobTest {
       aiTranslations = aiTranslationCaptor.getAllValues().get(i);
       assertEquals(3, aiTranslations.size());
       assertThat(aiTranslations).extracting("localeId").containsExactlyInAnyOrder(2L, 3L, 4L);
+      assertThat(aiTranslations)
+          .extracting("includedInLocalizedFile")
+          .containsExactlyInAnyOrder(false, false, false);
     }
     verify(aiTranslationService, times(3)).deleteBatch(isA(Queue.class));
   }
@@ -437,6 +452,9 @@ public class AITranslateCronJobTest {
       aiTranslations = aiTranslationCaptor.getAllValues().get(i);
       assertEquals(3, aiTranslations.size());
       assertThat(aiTranslations).extracting("localeId").containsExactlyInAnyOrder(2L, 3L, 4L);
+      assertThat(aiTranslations)
+          .extracting("includedInLocalizedFile")
+          .containsExactlyInAnyOrder(false, false, false);
     }
     verify(aiTranslationService, times(2)).deleteBatch(isA(Queue.class));
   }
