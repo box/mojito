@@ -127,7 +127,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       MeterRegistry meterRegistry,
       QuartzPollableTaskScheduler quartzPollableTaskScheduler,
       AITranslationConfiguration aiTranslationConfiguration,
-      AITranslationService aiTranslationService) {
+      @Autowired(required = false) AITranslationService aiTranslationService) {
     this(
         smartlingClient,
         textUnitSearcher,
@@ -754,6 +754,10 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipAssetsWithPathPattern,
       String includeTextUnitsWithPattern,
       List<String> optionList) {
+    if (aiTranslationService == null) {
+      throw new UnsupportedOperationException(
+          "AI translation service is not supported as no AITranslationService bean is configured.");
+    }
     try (var timer =
         Timer.resource(meterRegistry, "SmartlingSync.pushAITranslations")
             .tag("repository", repository.getName())) {
