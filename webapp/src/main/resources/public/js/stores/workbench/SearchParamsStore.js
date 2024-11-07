@@ -450,6 +450,14 @@ SearchParamsStore.STATUS = {
      * TextUnits with status OVERRIDDEN.
      */
     "OVERRIDDEN": "OVERRIDDEN",
+    /**
+     * TextUnits with status MACHINE_TRANSLATED.
+     */
+    "MACHINE_TRANSLATED": "MT_TRANSLATED",
+    /**
+     * TextUnits with status MT_REVIEW_NEEDED.
+     */
+    "MT_REVIEW_NEEDED": "MT_REVIEW_NEEDED",
 };
 
 export default alt.createStore(SearchParamsStore, 'SearchParamsStore');

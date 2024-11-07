@@ -14,6 +14,8 @@ class StatusGlyph extends React.Component {
             TextUnitSDK.STATUS.APPROVED,
             TextUnitSDK.STATUS.REVIEW_NEEDED,
             TextUnitSDK.STATUS.TRANSLATION_NEEDED,
+            TextUnitSDK.STATUS.MACHINE_TRANSLATED,
+            TextUnitSDK.STATUS.MT_REVIEW_NEEDED,
             TextUnitSDK.STATUS.REJECTED]).isRequired,
         "onClick": PropTypes.func.isRequired,
         "noButton" : PropTypes.bool,
@@ -32,6 +34,12 @@ class StatusGlyph extends React.Component {
                 break;
             case TextUnitSDK.STATUS.TRANSLATION_NEEDED:
                 glyph = {type: 'edit', title: this.props.intl.formatMessage({id: "textUnit.reviewModal.translationNeeded"})};
+                break;
+            case TextUnitSDK.STATUS.MACHINE_TRANSLATED:
+                glyph = {type: 'asterisk', title: this.props.intl.formatMessage({id: "textUnit.reviewModal.mt"})};
+                break;
+            case TextUnitSDK.STATUS.MT_REVIEW_NEEDED:
+                glyph = {type: 'hourglass', title: this.props.intl.formatMessage({id: "textUnit.reviewModal.mtReview"})};
                 break;
             case TextUnitSDK.STATUS.REJECTED:
                 glyph = {type: 'alert', title: this.props.intl.formatMessage({id: "textUnit.reviewModal.rejected"})};

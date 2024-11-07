@@ -438,7 +438,15 @@ let TextUnit = createReactClass({
             let glyphType = "ok";
             let glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.accepted"});
 
-            if (!this.props.textUnit.isIncludedInLocalizedFile()) {
+            if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.MACHINE_TRANSLATED) {
+                glyphType = "asterisk";
+                glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.mt"});
+            }
+            else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.MT_REVIEW_NEEDED) {
+                glyphType = "hourglass";
+                glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.mtReview"});
+            }
+            else if (!this.props.textUnit.isIncludedInLocalizedFile()) {
 
                 glyphType = "alert";
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.rejected"});

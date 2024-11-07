@@ -19,6 +19,8 @@ class TextUnitsreviewModal extends React.Component {
         super(props, context);
         this.REVIEW = "review";
         this.REJECT = "reject";
+        this.MACHINE_TRANSLATED = "machine translated";
+        this.MT_REVIEW = "mt review needed";
         this.ACCEPT = "accept";
         this.TRANSLATE = "translate"
         this.OVERRIDDEN = "overridden";
@@ -27,6 +29,10 @@ class TextUnitsreviewModal extends React.Component {
             "currentReviewState": this.getInitialReviewStateOfTextUnits(),
             "comment": this.getInitialTargetCommentOfTextUnits()
         };
+    }
+
+    isMTState = () => {
+        return this.state.currentReviewState === this.MACHINE_TRANSLATED || this.state.currentReviewState === this.MT_REVIEW;
     }
 
     /**
@@ -67,9 +73,38 @@ class TextUnitsreviewModal extends React.Component {
     getRejectButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.REJECT}
-                    onClick={this.optionClicked.bind(this, this.REJECT)}>
+                    onClick={this.optionClicked.bind(this, this.REJECT)}
+                    disabled={this.isMTState()}>
 
                 <FormattedMessage id="textUnit.reviewModal.rejected"/>
+            </Button>
+        );
+    };
+
+    /**
+     * @returns {JSX} The JSX for the MT review button with class active set according to the current component state
+     */
+    getMTReviewNeededButton = () => {
+        return (
+            <Button active={this.state.currentReviewState === this.MT_REVIEW}
+                    onClick={this.optionClicked.bind(this, this.MT_REVIEW)}
+                    disabled={true}>
+
+                <FormattedMessage id="textUnit.reviewModal.mtReview"/>
+            </Button>
+        );
+    };
+
+    /**
+     * @returns {JSX} The JSX for the Machine Translated button with class active set according to the current component state
+     */
+    getMTButton = () => {
+        return (
+            <Button active={this.state.currentReviewState === this.MACHINE_TRANSLATED}
+                    onClick={this.optionClicked.bind(this, this.MACHINE_TRANSLATED)}
+                    disabled={true}>
+
+                <FormattedMessage id="textUnit.reviewModal.mt"/>
             </Button>
         );
     };
@@ -80,7 +115,8 @@ class TextUnitsreviewModal extends React.Component {
     getReviewButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.REVIEW}
-                    onClick={this.optionClicked.bind(this, this.REVIEW)}>
+                    onClick={this.optionClicked.bind(this, this.REVIEW)}
+                    disabled={this.isMTState()}>
 
                 <FormattedMessage id="textUnit.reviewModal.needsReview"/>
             </Button>
@@ -93,7 +129,8 @@ class TextUnitsreviewModal extends React.Component {
     getAcceptButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.ACCEPT}
-                    onClick={this.optionClicked.bind(this, this.ACCEPT)}>
+                    onClick={this.optionClicked.bind(this, this.ACCEPT)}
+                    disabled={this.isMTState()}>
 
                 <FormattedMessage id="textUnit.reviewModal.accepted"/>
             </Button>
@@ -103,7 +140,8 @@ class TextUnitsreviewModal extends React.Component {
     getOverriddenButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.OVERRIDDEN}
-                    onClick={this.optionClicked.bind(this, this.OVERRIDDEN)}>
+                    onClick={this.optionClicked.bind(this, this.OVERRIDDEN)}
+                    disabled={this.isMTState()}>
                 <FormattedMessage id="textUnit.reviewModal.overridden"/>
             </Button>
         );
@@ -115,7 +153,8 @@ class TextUnitsreviewModal extends React.Component {
     getTranslateButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.TRANSLATE}
-                    onClick={this.optionClicked.bind(this, this.TRANSLATE)}>
+                    onClick={this.optionClicked.bind(this, this.TRANSLATE)}
+                    disabled={this.isMTState()}>
 
                 <FormattedMessage id="textUnit.reviewModal.translationNeeded"/>
             </Button>
@@ -170,7 +209,13 @@ class TextUnitsreviewModal extends React.Component {
         let currentReviewState = "";
         if (typeof textUnit !== "undefined") {
             currentReviewState = this.ACCEPT;
-            if (!textUnit.isIncludedInLocalizedFile()) {
+            if (textUnit.getStatus() === TextUnit.STATUS.MACHINE_TRANSLATED) {
+                currentReviewState = this.MACHINE_TRANSLATED;
+            }
+            else if (textUnit.getStatus() === TextUnit.STATUS.MT_REVIEW_NEEDED) {
+                currentReviewState = this.MT_REVIEW;
+            }
+            else if (!textUnit.isIncludedInLocalizedFile()) {
                 currentReviewState = this.REJECT;
             } else if (textUnit.getStatus() === TextUnit.STATUS.REVIEW_NEEDED) {
                 currentReviewState = this.REVIEW;
@@ -226,6 +271,8 @@ class TextUnitsreviewModal extends React.Component {
                         <ButtonGroup ref="optionsGroup">
                             {this.getRejectButton()}
                             {this.getTranslateButton()}
+                            {this.getMTButton()}
+                            {this.getMTReviewNeededButton()}
                             {this.getReviewButton()}
                             {this.getAcceptButton()}
                             {this.getOverriddenButton()}
@@ -234,7 +281,7 @@ class TextUnitsreviewModal extends React.Component {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button bsStyle="primary" onClick={this.onReviewModalSaveClicked}
-                            disabled={this.state.currentReviewState === ""}>
+                            disabled={this.state.currentReviewState === "" || this.isMTState()} >
                         <FormattedMessage id="label.save"/>
                     </Button>
                     <Button onClick={this.closeModal}>

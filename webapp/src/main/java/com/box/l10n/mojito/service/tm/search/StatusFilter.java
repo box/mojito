@@ -55,5 +55,7 @@ public enum StatusFilter {
   /** TextUnits with status ({@link TMTextUnitVariant.Status#OVERRIDDEN}). */
   OVERRIDDEN,
   /** TextUnits with status (@link TMTextUnitVariant.Status#MT_TRANSLATED}). */
-  MT_TRANSLATED
+  MT_TRANSLATED,
+  /** TextUnits with status (@link TMTextUnitVariant.Status#MT_REVIEW_NEEDED}). */
+  MT_REVIEW_NEEDED,
 }

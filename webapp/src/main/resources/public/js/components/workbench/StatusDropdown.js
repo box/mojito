@@ -166,6 +166,10 @@ let StatusDropdown = createReactClass({
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.untranslated" });
             case SearchParamsStore.STATUS.FOR_TRANSLATION:
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.forTranslation" });
+            case SearchParamsStore.STATUS.MACHINE_TRANSLATED:
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.machineTranslated" });
+            case SearchParamsStore.STATUS.MT_REVIEW_NEEDED:
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.mtReviewNeeded" });
             case SearchParamsStore.STATUS.REVIEW_NEEDED:
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.needsReview" });
             case SearchParamsStore.STATUS.REJECTED:
@@ -263,6 +267,8 @@ let StatusDropdown = createReactClass({
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.TRANSLATED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.UNTRANSLATED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.FOR_TRANSLATION)}
+                    {this.renderStatusMenuItem(SearchParamsStore.STATUS.MACHINE_TRANSLATED)}
+                    {this.renderStatusMenuItem(SearchParamsStore.STATUS.MT_REVIEW_NEEDED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REVIEW_NEEDED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REJECTED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.OVERRIDDEN)}
