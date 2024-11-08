@@ -830,4 +830,68 @@ class OpenAILLMServiceTest {
                  The comment is: A friendly greeting. The plural form is: one.""",
         prompt);
   }
+
+  @Test
+  void testExecuteAIChecksWithSleepTime() {
+    AIPrompt prompt = new AIPrompt();
+    prompt.setId(1L);
+    prompt.setUserPrompt("Check strings for spelling");
+    prompt.setModelName("gtp-3.5-turbo");
+    prompt.setPromptTemperature(0.0F);
+    prompt.setContextMessages(new ArrayList<>());
+    AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+    assetExtractorTextUnit.setSource("A test string");
+    assetExtractorTextUnit.setName("A test string --- A test context");
+    assetExtractorTextUnit.setComments("A test comment");
+    AssetExtractorTextUnit assetExtractorTextUnit2 = new AssetExtractorTextUnit();
+    assetExtractorTextUnit2.setSource("A test string 2");
+    assetExtractorTextUnit2.setName("A test string --- A test context 2");
+    assetExtractorTextUnit2.setComments("A test comment 2");
+    List<AssetExtractorTextUnit> textUnits =
+        List.of(assetExtractorTextUnit, assetExtractorTextUnit2);
+    AICheckRequest aiCheckRequest = new AICheckRequest();
+    aiCheckRequest.setRepositoryName("testRepo");
+    aiCheckRequest.setTextUnits(textUnits);
+    List<OpenAIClient.ChatCompletionsResponse.Choice> choices =
+        List.of(
+            new OpenAIClient.ChatCompletionsResponse.Choice(
+                0,
+                new OpenAIClient.ChatCompletionsResponse.Choice.Message(
+                    "test", "{\"success\": true, \"suggestedFix\": \"\"}"),
+                null));
+    Repository repository = new Repository();
+    repository.setName("testRepo");
+    repository.setId(1L);
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        new OpenAIClient.ChatCompletionsResponse(null, null, null, null, choices, null, null);
+    CompletableFuture<OpenAIClient.ChatCompletionsResponse> futureResponse =
+        CompletableFuture.completedFuture(chatCompletionsResponse);
+    List<AIPrompt> prompts = List.of(prompt);
+
+    when(repositoryRepository.findByName("testRepo")).thenReturn(repository);
+    when(promptService.getPromptsByRepositoryAndPromptType(
+            repository, PromptType.SOURCE_STRING_CHECKER))
+        .thenReturn(prompts);
+    doAnswer(
+            invocation -> {
+              Thread.sleep(100);
+              return futureResponse;
+            })
+        .when(openAIClient)
+        .getChatCompletions(any(OpenAIClient.ChatCompletionsRequest.class));
+
+    AICheckResponse response = this.openAILLMService.executeAIChecks(aiCheckRequest);
+
+    assertNotNull(response);
+    assertEquals(2, response.getResults().size());
+    assertTrue(response.getResults().containsKey("A test string"));
+    assertTrue(response.getResults().get("A test string").getFirst().isSuccess());
+
+    assertTrue(response.getResults().containsKey("A test string 2"));
+    assertTrue(response.getResults().get("A test string 2").getFirst().isSuccess());
+
+    verify(aiStringCheckRepository, times(2)).save(any());
+    verify(meterRegistry, times(2))
+        .counter("OpenAILLMService.checks.result", "success", "true", "repository", "testRepo");
+  }
 }

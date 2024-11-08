@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -101,14 +103,45 @@ public class OpenAILLMService implements LLMService {
                     textUnit -> textUnit,
                     (existing, replacement) -> existing,
                     HashMap::new));
-    Map<String, List<AICheckResult>> results = new HashMap<>();
+
+    Map<String, CompletableFuture<List<AICheckResult>>> checkResultsBySource = new HashMap<>();
     textUnitsUniqueSource
         .values()
         .forEach(
             textUnit -> {
-              List<AICheckResult> aiCheckResults = checkString(textUnit, prompts, repository);
-              results.put(textUnit.getSource(), aiCheckResults);
+              CompletableFuture<List<AICheckResult>> checkResultFuture =
+                  CompletableFuture.supplyAsync(() -> checkString(textUnit, prompts, repository));
+              checkResultsBySource.put(textUnit.getSource(), checkResultFuture);
             });
+
+    CompletableFuture<Void> combinedCheckResults =
+        CompletableFuture.allOf(checkResultsBySource.values().toArray(new CompletableFuture[0]));
+
+    CompletableFuture<Map<String, List<AICheckResult>>> checkResults =
+        combinedCheckResults.thenApply(
+            v -> {
+              Map<String, List<AICheckResult>> allResultsList = new HashMap<>();
+              for (Map.Entry<String, CompletableFuture<List<AICheckResult>>>
+                  checkResultFutureBySource : checkResultsBySource.entrySet()) {
+                try {
+                  allResultsList.put(
+                      checkResultFutureBySource.getKey(),
+                      checkResultFutureBySource.getValue().get());
+                } catch (InterruptedException | ExecutionException e) {
+                  logger.error("Error while running a completable future", e);
+                }
+              }
+              return allResultsList;
+            });
+
+    Map<String, List<AICheckResult>> results = new HashMap<>();
+    checkResults.thenAccept(results::putAll);
+
+    try {
+      checkResults.get();
+    } catch (InterruptedException | ExecutionException e) {
+      logger.error("Error while running completable futures", e);
+    }
 
     AICheckResponse aiCheckResponse = new AICheckResponse();
     aiCheckResponse.setResults(results);
