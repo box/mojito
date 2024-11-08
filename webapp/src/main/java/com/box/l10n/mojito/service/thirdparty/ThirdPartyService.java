@@ -286,20 +286,20 @@ public class ThirdPartyService {
 
     logger.debug("Batch the third party text units by asset");
     LoadingCache<String, Optional<Asset>> assetCache = getAssetCache(repository);
+
     Map<Asset, List<ThirdPartyTextUnit>> thirdPartyTextUnitsByAsset =
         thirdPartyTextUnits.stream()
+            .filter(o -> assetCache.getUnchecked(o.getAssetPath()).isPresent())
             .collect(
                 groupingBy(
-                    o -> assetCache.getUnchecked(o.getAssetPath()).orElse(null),
+                    o -> assetCache.getUnchecked(o.getAssetPath()).get(),
                     LinkedHashMap::new,
                     toList()));
 
-    logger.debug(
-        "Perform mapping by asset (exclude null asset, that could appear if asset path didn't match)");
-    thirdPartyTextUnitsByAsset.entrySet().stream()
-        .filter(e -> e.getKey() != null)
-        .forEach(
-            e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue(), pluralSeparator));
+    logger.debug("Perform mapping by asset");
+    thirdPartyTextUnitsByAsset.forEach(
+        (asset, textUnits) ->
+            mapThirdPartyTextUnitsToTextUnitDTOs(asset, textUnits, pluralSeparator));
   }
 
   @Pollable(message = "Push AI translations to third party service.")
