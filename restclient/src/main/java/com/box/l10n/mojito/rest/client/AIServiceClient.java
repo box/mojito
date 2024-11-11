@@ -4,9 +4,13 @@ import com.box.l10n.mojito.rest.entity.AICheckRequest;
 import com.box.l10n.mojito.rest.entity.AICheckResponse;
 import com.box.l10n.mojito.rest.entity.AIPromptContextMessageCreateRequest;
 import com.box.l10n.mojito.rest.entity.AIPromptCreateRequest;
+import com.box.l10n.mojito.rest.entity.AITranslationLocalePromptOverridesRequest;
 import com.box.l10n.mojito.rest.entity.OpenAIPrompt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -63,5 +67,26 @@ public class AIServiceClient extends BaseClient {
         getBasePathForEntity() + "/prompts/" + promptId + "/" + repositoryName + "/" + promptType,
         null,
         Void.class);
+  }
+
+  public void createOrUpdateRepositoryLocalePromptOverrides(
+      AITranslationLocalePromptOverridesRequest aiTranslationLocalePromptOverridesRequest) {
+    logger.debug("Received request to create or update repository locale prompt overrides");
+    authenticatedRestTemplate.postForObject(
+        getBasePathForEntity() + "/prompts/translation/locale/overrides",
+        aiTranslationLocalePromptOverridesRequest,
+        Void.class);
+  }
+
+  public void deleteRepositoryLocalePromptOverrides(
+      AITranslationLocalePromptOverridesRequest aiTranslationLocalePromptOverridesRequest) {
+    logger.debug("Received request to delete repository locale prompt overrides");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<AITranslationLocalePromptOverridesRequest> entity =
+        new HttpEntity<>(aiTranslationLocalePromptOverridesRequest, headers);
+    authenticatedRestTemplate.deleteForObject(
+        getBasePathForEntity() + "/prompts/translation/locale/overrides", entity, Void.class);
   }
 }

@@ -178,13 +178,22 @@ public class AITranslateCronJob implements Job {
                   executeTranslationPrompt(
                       tmTextUnit, repository, targetLocale, repositoryLocaleAIPrompt));
             } else {
-              logger.debug(
-                  "No active translation prompt found for locale: {}, skipping AI translation.",
-                  targetLocale.getBcp47Tag());
-              meterRegistry.counter(
-                  "AITranslateCronJob.translate.noActivePrompt",
-                  Tags.of(
-                      "repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
+              if (repositoryLocaleAIPrompt != null && repositoryLocaleAIPrompt.isDisabled()) {
+                logger.debug(
+                    "AI translation is disabled for locale "
+                        + repositoryLocaleAIPrompt.getLocale().getBcp47Tag()
+                        + " in repository "
+                        + repository.getName()
+                        + ", skipping AI translation.");
+              } else {
+                logger.debug(
+                    "No active translation prompt found for locale: {}, skipping AI translation.",
+                    targetLocale.getBcp47Tag());
+                meterRegistry.counter(
+                    "AITranslateCronJob.translate.noActivePrompt",
+                    Tags.of(
+                        "repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
+              }
             }
           } catch (Exception e) {
             logger.error(

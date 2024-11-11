@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -89,6 +91,33 @@ public class AIPromptWS {
   public void deletePromptMessage(@PathVariable("context_message_id") Long contextMessageId) {
     logger.debug("Received request to delete prompt message id {}", contextMessageId);
     promptService.deletePromptContextMessage(contextMessageId);
+  }
+
+  @RequestMapping(
+      value = "/api/ai/prompts/translation/locale/overrides",
+      method = RequestMethod.POST)
+  @Timed("AIWS.createOrUpdateRepositoryLocalePromptOverrides")
+  public ResponseEntity<String> createOrUpdateRepositoryLocalePromptOverrides(
+      @RequestBody AITranslationLocalePromptOverridesRequest request) {
+    logger.debug("Received request to create or update repository locale prompt overrides");
+    promptService.createOrUpdateRepositoryLocaleTranslationPromptOverrides(
+        request.getRepositoryName(),
+        request.getLocales(),
+        request.getAiPromptId(),
+        request.isDisabled());
+    return new ResponseEntity<>(HttpStatus.CREATED);
+  }
+
+  @RequestMapping(
+      value = "/api/ai/prompts/translation/locale/overrides",
+      method = RequestMethod.DELETE)
+  @Timed("AIWS.deleteRepositoryLocalePromptOverrides")
+  public ResponseEntity<String> deleteRepositoryLocalePromptOverrides(
+      @RequestBody AITranslationLocalePromptOverridesRequest request) {
+    logger.debug("Received request to delete repository locale prompt overrides");
+    promptService.deleteRepositoryLocaleTranslationPromptOverride(
+        request.getRepositoryName(), request.getLocales());
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   private static AIPrompt buildOpenAIPromptDTO(com.box.l10n.mojito.entity.AIPrompt prompt) {
