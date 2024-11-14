@@ -154,7 +154,8 @@ public class AITranslateCronJob implements Job {
         targetLocale -> {
           try {
             String sourceLang = repository.getSourceLocale().getBcp47Tag().split("-")[0];
-            if (aiTranslationConfiguration
+            if (aiTranslationConfiguration.getRepositorySettings(repository.getName()) != null
+                && aiTranslationConfiguration
                     .getRepositorySettings(repository.getName())
                     .isReuseSourceOnLanguageMatch()
                 && targetLocale.getBcp47Tag().startsWith(sourceLang)) {
