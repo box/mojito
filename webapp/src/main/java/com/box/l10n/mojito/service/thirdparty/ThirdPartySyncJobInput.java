@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import com.box.l10n.mojito.entity.ScheduledJob;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
+import com.box.l10n.mojito.service.scheduledjob.jobs.ScheduledThirdPartySyncProperties;
 import java.util.List;
 
 /**
@@ -17,6 +19,31 @@ public class ThirdPartySyncJobInput {
   String skipAssetsWithPathPattern;
   String includeTextUnitsWithPattern;
   List<String> options;
+
+  public ThirdPartySyncJobInput() {}
+
+  public ThirdPartySyncJobInput(ScheduledJob job, ScheduledThirdPartySyncProperties properties) {
+    this.setRepositoryId(job.getRepository().getId());
+    this.setThirdPartyProjectId(properties.getThirdPartyProjectId());
+    this.setActions(properties.getActions());
+    this.setPluralSeparator(properties.getPluralSeparator());
+    this.setLocaleMapping(properties.getLocaleMapping());
+
+    this.setSkipTextUnitsWithPattern(
+        properties.getSkipTextUnitsWithPattern().isEmpty()
+            ? null
+            : properties.getSkipTextUnitsWithPattern());
+    this.setSkipAssetsWithPathPattern(
+        properties.getSkipAssetsWithPathPattern().isEmpty()
+            ? null
+            : properties.getSkipAssetsWithPathPattern());
+    this.setIncludeTextUnitsWithPattern(
+        properties.getIncludeTextUnitsWithPattern().isEmpty()
+            ? null
+            : properties.getIncludeTextUnitsWithPattern());
+
+    this.setOptions(properties.getOptions());
+  }
 
   public Long getRepositoryId() {
     return repositoryId;

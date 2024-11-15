@@ -1,48 +1,18 @@
-package com.box.l10n.mojito.service.thirdparty;
+package com.box.l10n.mojito.service.scheduledjob.jobs;
 
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobProperties;
 import java.util.List;
 
-/**
- * @author jaurambault
- */
-public class ThirdPartySyncJobConfig {
-
-  String uuid;
-  String cron;
-  String repository;
-  String thirdPartyProjectId;
-  List<ThirdPartySyncAction> actions;
-  String pluralSeparator;
-  String localeMapping;
-  String skipTextUnitsWithPattern;
-  String skipAssetsWithPathPattern;
-  String includeTextUnitsWithPattern;
-  List<String> options;
-
-  public String getUuid() {
-    return uuid;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public String getCron() {
-    return cron;
-  }
-
-  public void setCron(String cron) {
-    this.cron = cron;
-  }
-
-  public String getRepository() {
-    return repository;
-  }
-
-  public void setRepository(String repository) {
-    this.repository = repository;
-  }
+public class ScheduledThirdPartySyncProperties extends ScheduledJobProperties {
+  private String thirdPartyProjectId;
+  private List<ThirdPartySyncAction> actions;
+  private String pluralSeparator;
+  private String localeMapping;
+  private String skipTextUnitsWithPattern;
+  private String skipAssetsWithPathPattern;
+  private String includeTextUnitsWithPattern;
+  private List<String> options;
 
   public String getThirdPartyProjectId() {
     return thirdPartyProjectId;
