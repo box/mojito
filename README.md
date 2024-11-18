@@ -1,9 +1,4 @@
-Mojito 
-====
-
-[![Join the chat at https://gitter.im/box/mojito](https://badges.gitter.im/box/mojito.svg)](https://gitter.im/box/mojito?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Project Status](http://opensource.box.com/badges/active.svg)](http://opensource.box.com/badges)
-[![Build Status](https://travis-ci.org/box/mojito.svg?branch=master)](https://travis-ci.org/box/mojito/branches)
+# Mojito 
 
 Mojito is a continuous localization platform. Rely on continuous integration to collect all of your software strings in one place. Check what products need localization in real time. Create and import translation packages with a single click. Search and edit translations across all products and languages! And if you have a small dedicated translation team, they can work directly in mojito.
 
@@ -14,25 +9,18 @@ Mojito is a continuous localization platform. Rely on continuous integration to 
 - Uses previous translations to support refactoring (basic leveraging - no fuzzy)
 - Generates XLIFFs - files that translators know how to use
 
-## [Getting Started](http://opensource.box.com/mojito/docs/guides/getting-started/)
+## [Getting Started](https://pinterest.github.io/mojito/docs/guides/getting-started/)
 For instruction to jump start
 
-## [Full Documentation](http://opensource.box.com/mojito/docs/)
+## [Full Documentation](https://pinterest.github.io/mojito/docs/)
 For full documentation, examples, and other information.
 
-## Support
-
-Need to contact us directly? 
-- [![Join the chat at https://gitter.im/box/mojito](https://badges.gitter.im/box/mojito.svg)](https://gitter.im/box/mojito?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-- [GitHub Issues](https://github.com/Box/Mojito/issues)
-- [Email Discussion Group](mailto:mojito-global@googlegroups.com)
-
 ### Team
-- Hanna Kanabiajeuskaja (@hkanabiajeuskaja)
-- Jean Aurambault (@aurambaj)
-- Jee Yi (@jeeyi)
-- Adrien Loison (@adrilo)
-- Will Yau (@willyau)
+- George Arion (@garionpin)
+- Mark Allen (@maallen)
+- Byron Antak (@byronantak)
+- Matt Wilshire (@mattwilshire)
+- Darko Lopez (@darkhaos)
 
 ## Copyright and License
 
