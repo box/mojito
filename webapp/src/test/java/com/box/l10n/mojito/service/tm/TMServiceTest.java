@@ -48,6 +48,9 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +66,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -4807,5 +4811,235 @@ public class TMServiceTest extends ServiceTestBase {
 
     assertEquals("this is the newest content", textUnitDTOFromSearch.getTarget());
     assertEquals(TMTextUnitVariant.Status.APPROVED, textUnitDTOFromSearch.getStatus());
+  }
+
+  @Test
+  public void testMTReviewMetricsLoggingTranslationUpdatedMediumSimilarity()
+      throws RepositoryNameAlreadyUsedException {
+    MeterRegistry meterRegistry = Mockito.spy(new SimpleMeterRegistry());
+    this.tmService.meterRegistry = meterRegistry;
+    createTestData();
+
+    Long textUnitId =
+        addTextUnitAndCheck(
+            this.tmId,
+            this.assetId,
+            "mtReviewMetricsLogging",
+            "mt translation content",
+            "some comment",
+            "3212c3beb09db681379b7a1ed9f37bfe",
+            "5f3ca19eb49f50b55326065f4185dadd");
+
+    Locale targetLocale = this.localeService.findByBcp47Tag("fr-FR");
+
+    TMTextUnitCurrentVariant tmTextUnitCurrentVariant =
+        this.tmService.addTMTextUnitCurrentVariant(
+            textUnitId,
+            targetLocale.getId(),
+            "mt translation content",
+            "some comment",
+            TMTextUnitVariant.Status.MT_REVIEW_NEEDED,
+            false);
+
+    this.tmService.addTMTextUnitCurrentVariantWithResult(
+        tmTextUnitCurrentVariant,
+        this.tmId,
+        this.assetId,
+        textUnitId,
+        tmTextUnitCurrentVariant.getLocale().getId(),
+        "mt translation content changed",
+        "some comment",
+        TMTextUnitVariant.Status.APPROVED,
+        true,
+        JSR310Migration.dateTimeNow(),
+        null,
+        false);
+
+    Mockito.verify(meterRegistry, Mockito.times(1))
+        .counter("AiTranslation.review.similarity.medium", Tags.of("locale", "fr-FR"));
+  }
+
+  @Test
+  public void testMTReviewMetricsLoggingTranslationUpdatedHighSimilarity()
+      throws RepositoryNameAlreadyUsedException {
+    MeterRegistry meterRegistry = Mockito.spy(new SimpleMeterRegistry());
+    this.tmService.meterRegistry = meterRegistry;
+    createTestData();
+
+    Long textUnitId =
+        addTextUnitAndCheck(
+            this.tmId,
+            this.assetId,
+            "mtReviewMetricsLogging",
+            "mt translation content",
+            "some comment",
+            "3212c3beb09db681379b7a1ed9f37bfe",
+            "5f3ca19eb49f50b55326065f4185dadd");
+
+    Locale targetLocale = this.localeService.findByBcp47Tag("fr-FR");
+
+    TMTextUnitCurrentVariant tmTextUnitCurrentVariant =
+        this.tmService.addTMTextUnitCurrentVariant(
+            textUnitId,
+            targetLocale.getId(),
+            "mt translation content",
+            "some comment",
+            TMTextUnitVariant.Status.MT_REVIEW_NEEDED,
+            false);
+
+    this.tmService.addTMTextUnitCurrentVariantWithResult(
+        tmTextUnitCurrentVariant,
+        this.tmId,
+        this.assetId,
+        textUnitId,
+        tmTextUnitCurrentVariant.getLocale().getId(),
+        "mt translations content",
+        "some comment",
+        TMTextUnitVariant.Status.APPROVED,
+        true,
+        JSR310Migration.dateTimeNow(),
+        null,
+        false);
+
+    Mockito.verify(meterRegistry, Mockito.times(1))
+        .counter("AiTranslation.review.similarity.high", Tags.of("locale", "fr-FR"));
+  }
+
+  @Test
+  public void testMTReviewMetricsLoggingTranslationUpdatedLowSimilarity()
+      throws RepositoryNameAlreadyUsedException {
+    MeterRegistry meterRegistry = Mockito.spy(new SimpleMeterRegistry());
+    this.tmService.meterRegistry = meterRegistry;
+    createTestData();
+
+    Long textUnitId =
+        addTextUnitAndCheck(
+            this.tmId,
+            this.assetId,
+            "mtReviewMetricsLogging",
+            "mt translation content",
+            "some comment",
+            "3212c3beb09db681379b7a1ed9f37bfe",
+            "5f3ca19eb49f50b55326065f4185dadd");
+
+    Locale targetLocale = this.localeService.findByBcp47Tag("fr-FR");
+
+    TMTextUnitCurrentVariant tmTextUnitCurrentVariant =
+        this.tmService.addTMTextUnitCurrentVariant(
+            textUnitId,
+            targetLocale.getId(),
+            "mt translation content",
+            "some comment",
+            TMTextUnitVariant.Status.MT_REVIEW_NEEDED,
+            false);
+
+    this.tmService.addTMTextUnitCurrentVariantWithResult(
+        tmTextUnitCurrentVariant,
+        this.tmId,
+        this.assetId,
+        textUnitId,
+        tmTextUnitCurrentVariant.getLocale().getId(),
+        "completely different",
+        "some comment",
+        TMTextUnitVariant.Status.APPROVED,
+        true,
+        JSR310Migration.dateTimeNow(),
+        null,
+        false);
+
+    Mockito.verify(meterRegistry, Mockito.times(1))
+        .counter("AiTranslation.review.similarity.low", Tags.of("locale", "fr-FR"));
+  }
+
+  @Test
+  public void testMTReviewMetricsLoggingTranslationMatch()
+      throws RepositoryNameAlreadyUsedException {
+    MeterRegistry meterRegistry = Mockito.spy(new SimpleMeterRegistry());
+    this.tmService.meterRegistry = meterRegistry;
+    createTestData();
+
+    Long textUnitId =
+        addTextUnitAndCheck(
+            this.tmId,
+            this.assetId,
+            "mtReviewMetricsLogging",
+            "mt translation content",
+            "some comment",
+            "3212c3beb09db681379b7a1ed9f37bfe",
+            "5f3ca19eb49f50b55326065f4185dadd");
+
+    Locale targetLocale = this.localeService.findByBcp47Tag("fr-FR");
+
+    TMTextUnitCurrentVariant tmTextUnitCurrentVariant =
+        this.tmService.addTMTextUnitCurrentVariant(
+            textUnitId,
+            targetLocale.getId(),
+            "mt translation content",
+            "some comment",
+            TMTextUnitVariant.Status.MT_REVIEW_NEEDED,
+            false);
+
+    this.tmService.addTMTextUnitCurrentVariantWithResult(
+        tmTextUnitCurrentVariant,
+        this.tmId,
+        this.assetId,
+        textUnitId,
+        tmTextUnitCurrentVariant.getLocale().getId(),
+        "mt translation content",
+        "some comment",
+        TMTextUnitVariant.Status.APPROVED,
+        true,
+        JSR310Migration.dateTimeNow(),
+        null,
+        false);
+
+    Mockito.verify(meterRegistry, Mockito.times(1))
+        .counter("AiTranslation.review.similarity.match", Tags.of("locale", "fr-FR"));
+  }
+
+  @Test
+  public void testMTReviewMetricsLoggingTranslationNotApproved()
+      throws RepositoryNameAlreadyUsedException {
+    MeterRegistry meterRegistry = Mockito.spy(new SimpleMeterRegistry());
+    this.tmService.meterRegistry = meterRegistry;
+    createTestData();
+
+    Long textUnitId =
+        addTextUnitAndCheck(
+            this.tmId,
+            this.assetId,
+            "mtReviewMetricsLogging",
+            "mt translation content",
+            "some comment",
+            "3212c3beb09db681379b7a1ed9f37bfe",
+            "5f3ca19eb49f50b55326065f4185dadd");
+
+    Locale targetLocale = this.localeService.findByBcp47Tag("fr-FR");
+
+    TMTextUnitCurrentVariant tmTextUnitCurrentVariant =
+        this.tmService.addTMTextUnitCurrentVariant(
+            textUnitId,
+            targetLocale.getId(),
+            "mt translation content",
+            "some comment",
+            TMTextUnitVariant.Status.MT_REVIEW_NEEDED,
+            false);
+
+    this.tmService.addTMTextUnitCurrentVariantWithResult(
+        tmTextUnitCurrentVariant,
+        this.tmId,
+        this.assetId,
+        textUnitId,
+        tmTextUnitCurrentVariant.getLocale().getId(),
+        "mt translation content",
+        "some comment",
+        TMTextUnitVariant.Status.REVIEW_NEEDED,
+        true,
+        JSR310Migration.dateTimeNow(),
+        null,
+        false);
+
+    Mockito.verify(meterRegistry, Mockito.times(0))
+        .counter("AiTranslation.review.similarity.match", Tags.of("locale", "fr-FR"));
   }
 }

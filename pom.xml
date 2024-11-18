@@ -38,6 +38,7 @@
         <docker.compose.remove.volumes>true</docker.compose.remove.volumes>
         <aspectj.version>1.9.21</aspectj.version>
         <jackson.version>2.13.5</jackson.version>
+        <commons.text.version>1.12.0</commons.text.version>
     </properties>
 
     <dependencies>
@@ -78,6 +79,12 @@
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
             <version>${icu4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons.text.version}</version>
         </dependency>
 
     </dependencies>

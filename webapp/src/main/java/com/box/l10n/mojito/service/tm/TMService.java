@@ -61,6 +61,7 @@ import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
@@ -79,6 +80,7 @@ import net.sf.okapi.filters.xliff.XLIFFFilter;
 import net.sf.okapi.steps.common.FilterEventsWriterStep;
 import net.sf.okapi.steps.common.RawDocumentToFilterEventsStep;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,6 +151,15 @@ public class TMService {
 
   @Value("${l10n.tmService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
+
+  @Value("${l10n.ai.translation.review.similarity.editDistanceMax:50}")
+  int editDistanceMax;
+
+  @Value("${l10n.ai.translation.review.similarity.highPercentage:90}")
+  int aiTranslationSimilarityHighPercentage;
+
+  @Value("${l10n.ai.translation.review.similarity.mediumPercentage:70}")
+  int aiTranslationSimilarityMediumPercentage;
 
   /**
    * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -608,6 +619,10 @@ public class TMService {
       boolean overridden =
           checkOverridden
               && currentTmTextUnitVariant.getStatus() == TMTextUnitVariant.Status.OVERRIDDEN;
+      if (currentTmTextUnitVariant.getStatus() == TMTextUnitVariant.Status.MT_REVIEW_NEEDED
+          && status == TMTextUnitVariant.Status.APPROVED) {
+        logAiReviewMetrics(content, currentTmTextUnitVariant, localeId);
+      }
       boolean updateNeeded =
           !overridden
               && isUpdateNeededForTmTextUnitVariant(
@@ -651,6 +666,64 @@ public class TMService {
     }
 
     return new AddTMTextUnitCurrentVariantResult(!noUpdate, tmTextUnitCurrentVariant);
+  }
+
+  private void logAiReviewMetrics(
+      String reviewedTranslation, TMTextUnitVariant currentTmTextUnitVariant, Long localeId) {
+    if (currentTmTextUnitVariant.getContent().equals(reviewedTranslation)) {
+      meterRegistry
+          .counter(
+              "AiTranslation.review.similarity.match",
+              Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+          .increment();
+    } else {
+      // Translation has been updated in review, check similarity of original to new
+      logSimilarityMetrics(reviewedTranslation, currentTmTextUnitVariant, localeId);
+    }
+  }
+
+  private void logSimilarityMetrics(
+      String reviewedTranslation, TMTextUnitVariant currentTmTextUnitVariant, Long localeId) {
+    LevenshteinDistance levenshteinDistance = new LevenshteinDistance(editDistanceMax);
+    int editDistance =
+        levenshteinDistance.apply(currentTmTextUnitVariant.getContent(), reviewedTranslation);
+    if (editDistance < 0) {
+      // Negative edit distance means the edit distance threshold was exceeded, log as low
+      // similarity
+      meterRegistry
+          .counter(
+              "AiTranslation.review.similarity.low",
+              Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+          .increment();
+    } else {
+      double similarityPercentage =
+          calculateSimilarityPercentage(
+              currentTmTextUnitVariant.getContent(), reviewedTranslation, editDistance);
+      if (similarityPercentage >= aiTranslationSimilarityHighPercentage) {
+        meterRegistry
+            .counter(
+                "AiTranslation.review.similarity.high",
+                Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+            .increment();
+      } else if (similarityPercentage >= aiTranslationSimilarityMediumPercentage) {
+        meterRegistry
+            .counter(
+                "AiTranslation.review.similarity.medium",
+                Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+            .increment();
+      } else {
+        meterRegistry
+            .counter(
+                "AiTranslation.review.similarity.low",
+                Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+            .increment();
+      }
+    }
+  }
+
+  private double calculateSimilarityPercentage(String original, String updated, int editDistance) {
+    int maxLength = Math.max(original.length(), updated.length());
+    return ((double) (maxLength - editDistance) / maxLength) * 100;
   }
 
   public AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult(
