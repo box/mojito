@@ -34,4 +34,12 @@ public interface RepositoryLocaleAIPromptRepository
           + "WHERE rlap.repository = :repository AND rlap.locale IS NOT NULL AND aipt.name = 'TRANSLATION'")
   Optional<List<RepositoryLocaleAIPrompt>> getRepositoryLocaleTranslationPromptOverrides(
       @Param("repository") Repository repository);
+
+  @Query(
+      "SELECT rlap from RepositoryLocaleAIPrompt rlap "
+          + "JOIN rlap.aiPrompt aip "
+          + "JOIN aip.promptType aipt "
+          + "WHERE rlap.repository = :repository AND rlap.locale IS NULL AND aipt.name = 'TRANSLATION'")
+  Optional<RepositoryLocaleAIPrompt> getRepositoryDefaultTranslationPrompt(
+      @Param("repository") Repository repository);
 }

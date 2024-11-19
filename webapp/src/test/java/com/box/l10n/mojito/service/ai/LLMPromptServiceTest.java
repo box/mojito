@@ -63,6 +63,7 @@ public class LLMPromptServiceTest {
     repositoryLocaleAIPrompt.setId(1L);
     AIPromptType promptType = new AIPromptType();
     promptType.setId(1L);
+    promptType.setName("SOURCE_STRING_CHECKER");
     AIPrompt prompt = new AIPrompt();
     prompt.setId(1L);
     prompt.setUserPrompt("Check strings for spelling");

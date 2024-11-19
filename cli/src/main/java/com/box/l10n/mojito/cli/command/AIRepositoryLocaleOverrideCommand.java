@@ -45,7 +45,7 @@ public class AIRepositoryLocaleOverrideCommand extends Command {
       names = {"--disabled"},
       required = false,
       description =
-          "Indicates if the locales are disabled for AI translation. Setting to false means AI translation will be skipped for the relevant locales. Default is false")
+          "Indicates if the locales are disabled for AI translation. Setting to true means AI translation will be skipped for the relevant locales. Default is false")
   boolean disabled = false;
 
   @Parameter(

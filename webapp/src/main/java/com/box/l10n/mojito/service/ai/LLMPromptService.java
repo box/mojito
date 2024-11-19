@@ -51,7 +51,11 @@ public class LLMPromptService implements PromptService {
   @Transactional
   public Long createPrompt(AIPromptCreateRequest AIPromptCreateRequest) {
 
-    Repository repository = getRepository(AIPromptCreateRequest.getRepositoryName());
+    Repository repository = null;
+    if (AIPromptCreateRequest.getRepositoryName() != null
+        && !AIPromptCreateRequest.getRepositoryName().isEmpty()) {
+      repository = getRepository(AIPromptCreateRequest.getRepositoryName());
+    }
 
     AIPromptType aiPromptType =
         aiPromptTypeRepository.findByName(AIPromptCreateRequest.getPromptType());
@@ -74,11 +78,18 @@ public class LLMPromptService implements PromptService {
     aiPromptRepository.save(aiPrompt);
     logger.debug("Created prompt with id: {}", aiPrompt.getId());
 
-    RepositoryLocaleAIPrompt repositoryLocaleAIPrompt = new RepositoryLocaleAIPrompt();
-    repositoryLocaleAIPrompt.setRepository(repository);
-    repositoryLocaleAIPrompt.setAiPrompt(aiPrompt);
-    repositoryLocaleAIPromptRepository.save(repositoryLocaleAIPrompt);
-    logger.debug("Created repository prompt with id: {}", repositoryLocaleAIPrompt.getId());
+    if (repository != null) {
+      RepositoryLocaleAIPrompt repositoryLocaleAIPrompt =
+          aiPromptType.getName().equals(PromptType.TRANSLATION.name())
+              ? repositoryLocaleAIPromptRepository
+                  .getRepositoryDefaultTranslationPrompt(repository)
+                  .orElse(new RepositoryLocaleAIPrompt())
+              : new RepositoryLocaleAIPrompt();
+      repositoryLocaleAIPrompt.setRepository(repository);
+      repositoryLocaleAIPrompt.setAiPrompt(aiPrompt);
+      repositoryLocaleAIPromptRepository.save(repositoryLocaleAIPrompt);
+      logger.debug("Created repository prompt with id: {}", repositoryLocaleAIPrompt.getId());
+    }
 
     return aiPrompt.getId();
   }

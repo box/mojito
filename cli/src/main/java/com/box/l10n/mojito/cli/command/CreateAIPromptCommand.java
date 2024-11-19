@@ -24,7 +24,7 @@ public class CreateAIPromptCommand extends Command {
 
   @Parameter(
       names = {"--repository-name", "-r"},
-      required = true,
+      required = false,
       description = "Repository name")
   String repository;
 
