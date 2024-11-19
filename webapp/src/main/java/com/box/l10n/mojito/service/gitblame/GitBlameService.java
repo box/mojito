@@ -1,17 +1,22 @@
 package com.box.l10n.mojito.service.gitblame;
 
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.BranchSource;
 import com.box.l10n.mojito.entity.GitBlame;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.react.LinkConfig;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
+import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.branch.BranchSourceConfig;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartyTextUnitRepository;
+import com.box.l10n.mojito.service.tm.BranchSourceRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -54,6 +59,13 @@ public class GitBlameService {
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
   @Autowired ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
+
+  @Autowired BranchRepository branchRepository;
+
+  @Autowired LinkConfig linkConfig;
+  @Autowired private BranchSourceRepository branchSourceRepository;
+
+  @Autowired private BranchSourceConfig branchSourceConfig;
 
   /**
    * Gets the {@link GitBlameWithUsage} information that matches the search parameters.
@@ -111,6 +123,15 @@ public class GitBlameService {
       gitBlameWithUsage.setPluralForm(textUnitDTO.getPluralForm());
       gitBlameWithUsage.setContent(textUnitDTO.getSource());
       gitBlameWithUsage.setComment(textUnitDTO.getComment());
+
+      BranchSource branchSource =
+          branchSourceRepository.findByTextUnitId(textUnitDTO.getTmTextUnitId());
+      if (branchSource != null) {
+        gitBlameWithUsage.setIntroducedBy(branchSource.getUrl());
+      } else {
+        gitBlameWithUsage.setIntroducedBy(branchSourceConfig.getNotFound());
+      }
+
       gitBlameWithUsages.add(gitBlameWithUsage);
     }
     return gitBlameWithUsages;

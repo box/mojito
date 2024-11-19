@@ -4,13 +4,18 @@ import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULE
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.entity.BranchSource;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.tm.BranchSourceRepository;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.Set;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +38,10 @@ public class BranchService {
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
+  @Autowired BranchSourceRepository branchSourceRepository;
+
+  @Autowired BranchSourceConfig branchSourceConfig;
+
   @Value("${l10n.branchService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
@@ -47,6 +56,8 @@ public class BranchService {
     branch.setCreatedByUser(createdByUser);
     branch.setNotifiers(branchNotifierIds);
     branch = branchRepository.save(branch);
+
+    addBranchSource(branch);
 
     return branch;
   }
@@ -86,5 +97,30 @@ public class BranchService {
             .withScheduler(schedulerName)
             .build();
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+  }
+
+  public void addBranchSource(Branch branch) {
+    // Mojito push links text unit extractions to empty branch, don't attempt to update the source
+    if (branch.getName() == null) return;
+
+    com.box.l10n.mojito.service.branch.BranchSource branchSource =
+        branchSourceConfig.getRepoOverride().get(branch.getRepository().getName());
+
+    String sourceUrl = (branchSource != null) ? branchSource.getUrl() : branchSourceConfig.getUrl();
+    if (Strings.isNullOrEmpty(sourceUrl)) return;
+
+    String url =
+        StrSubstitutor.replace(
+            sourceUrl, ImmutableMap.of("branchName", branch.getName()), "{", "}");
+
+    BranchSource bSource = new BranchSource();
+    bSource.setBranch(branch);
+    bSource.setUrl(url);
+    try {
+      branchSourceRepository.save(bSource);
+    } catch (Exception e) {
+      logger.error(
+          "Failed to save branch source for branch '{}' with url '{}'", branch.getName(), url, e);
+    }
   }
 }

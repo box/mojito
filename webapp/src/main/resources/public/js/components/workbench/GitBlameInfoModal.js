@@ -101,6 +101,7 @@ class GitBlameInfoModal extends React.Component {
                     {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getLocationLinks())}
                     {this.shouldShowThirdPartyTMS() && this.displayInfoWithId("textUnit.gitBlameModal.thirdPartyTMS", this.getThirdPartyLink())}
                     {this.shouldShowCustomMd5() && this.displayInfoWithId("textUnit.gitBlameModal.customMd5", this.getCustomMd5Link())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.introducedBy", this.getIntroducedByLink())}
                 </div>
             );
     };
@@ -221,6 +222,14 @@ class GitBlameInfoModal extends React.Component {
         }
     };
 
+    getIntroducedBy = () => {
+        try {
+            return this.props.gitBlameWithUsage.introducedBy.toString();
+        } catch (e) {
+            return "-";
+        }
+    }
+
     /**
      * Base params are just a subset of text unit properties that can be used inside templates.
      *
@@ -280,6 +289,15 @@ class GitBlameInfoModal extends React.Component {
             this.getCustomMd5UrlTemplate(),
             this.getCustomMd5LabelTemplate(),
             this.getParamsForLinks());
+    };
+
+    getIntroducedByLink = () => {
+        try {
+            const parsedUrl = new URL(this.getIntroducedBy());
+            return <a href={parsedUrl.toString()}>{parsedUrl.toString()}</a>;
+        } catch (error) {
+            return this.getIntroducedBy();
+        }
     };
 
     getCustomMd5 = (baseParams) => {

@@ -17,6 +17,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnitToBranch;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.localtm.merger.AssetExtractorTextUnitsToMultiBranchStateConverter;
@@ -51,6 +52,7 @@ import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob
 import com.box.l10n.mojito.service.tm.TMRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitToBranchRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
@@ -172,6 +174,8 @@ public class AssetExtractionService {
   @Autowired(required = false)
   AITranslationService aiTranslationService;
 
+  @Autowired TMTextUnitToBranchRepository tmTextUnitToBranchRepository;
+
   private RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler;
 
   @Value("${l10n.assetExtraction.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
@@ -215,6 +219,9 @@ public class AssetExtractionService {
 
     updateBranchAssetExtraction(
         assetContent, createdTextUnitsResult.getUpdatedState(), filterOptions, currentTask);
+
+    updateTextUnitsToBranch(createdTextUnitsResult.getCreatedTextUnits(), assetContent.getBranch());
+
     updateLastSuccessfulAssetExtraction(
         asset, createdTextUnitsResult.getUpdatedState(), currentTask);
     updatePushRun(asset, createdTextUnitsResult.getUpdatedState(), pushRunId, currentTask);
@@ -1289,5 +1296,25 @@ public class AssetExtractionService {
     logger.trace("AssetTextUnit saved");
 
     return assetTextUnit;
+  }
+
+  public void updateTextUnitsToBranch(ImmutableList<BranchStateTextUnit> textUnits, Branch branch) {
+    // Map the text units to their branch
+    textUnits.forEach(
+        textUnit -> {
+          TMTextUnitToBranch textUnitToBranch = new TMTextUnitToBranch();
+          textUnitToBranch.setBranch(branch);
+          textUnitToBranch.setTmTextUnit(
+              tmTextUnitRepository.findById(textUnit.getTmTextUnitId()).get());
+          try {
+            tmTextUnitToBranchRepository.save(textUnitToBranch);
+          } catch (Exception e) {
+            logger.error(
+                "Failed to save text unit with id '{}' to text unit to branch table with branch id '{}'",
+                textUnit.getTmTextUnitId(),
+                branch.getId(),
+                e);
+          }
+        });
   }
 }
