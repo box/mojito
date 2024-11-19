@@ -1909,7 +1909,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                       eq("POST_TRANSLATION"));
             });
 
-    verify(aiTranslationService, times(4)).updateVariantStatusToMTReview(any());
+    verify(aiTranslationService, times(4)).updateVariantStatusToMTReviewNeeded(any());
   }
 
   @Test
@@ -2075,7 +2075,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
               }
             });
 
-    verify(aiTranslationService, times(20)).updateVariantStatusToMTReview(any());
+    verify(aiTranslationService, times(20)).updateVariantStatusToMTReviewNeeded(any());
   }
 
   private List<TextUnitDTO> searchTextUnits(List<Long> ids) {

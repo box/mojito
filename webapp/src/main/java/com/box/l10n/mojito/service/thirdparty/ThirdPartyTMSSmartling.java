@@ -76,6 +76,9 @@ import reactor.core.publisher.Mono;
 @Component
 public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
+  public static final String PUBLISHED = "PUBLISHED";
+  public static final String POST_TRANSLATION = "POST_TRANSLATION";
+
   static Logger logger = LoggerFactory.getLogger(ThirdPartyTMSSmartling.class);
 
   /*
@@ -110,9 +113,6 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   protected static String getSmartlingLocale(Map<String, String> localeMapping, String localeTag) {
     return localeMapping.getOrDefault(localeTag, localeTag);
   }
-
-  private final String PUBLISHED = "PUBLISHED";
-  private final String POST_TRANSLATION = "POST_TRANSLATION";
 
   @Autowired
   public ThirdPartyTMSSmartling(
@@ -869,7 +869,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             options,
             localeMapping,
             filterTmTextUnitIds);
-    aiTranslationService.updateVariantStatusToMTReview(
+    aiTranslationService.updateVariantStatusToMTReviewNeeded(
         batch.stream().map(TextUnitDTO::getTmTextUnitCurrentVariantId).toList());
     meterRegistry
         .counter(

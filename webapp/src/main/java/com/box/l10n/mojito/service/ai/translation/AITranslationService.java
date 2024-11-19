@@ -72,7 +72,7 @@ public class AITranslationService {
   }
 
   @Transactional
-  public void updateVariantStatusToMTReview(List<Long> currentVariantIds) {
+  public void updateVariantStatusToMTReviewNeeded(List<Long> currentVariantIds) {
 
     for (int i = 0; i < currentVariantIds.size(); i += batchSize) {
       logger.debug("Updating variant statuses to MT_REVIEW in batches of {}", batchSize);
