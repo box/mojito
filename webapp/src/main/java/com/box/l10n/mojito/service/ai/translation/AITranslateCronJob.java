@@ -12,6 +12,7 @@ import com.box.l10n.mojito.entity.TmTextUnitPendingMT;
 import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.service.ai.LLMService;
 import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
+import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.google.common.collect.Lists;
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
@@ -79,6 +81,8 @@ public class AITranslateCronJob implements Job {
   @Autowired AITranslationConfiguration aiTranslationConfiguration;
 
   @Autowired AITranslationService aiTranslationService;
+
+  @Lazy @Autowired TMService tmService;
 
   @Autowired TmTextUnitPendingMTRepository tmTextUnitPendingMTRepository;
 
@@ -207,7 +211,16 @@ public class AITranslateCronJob implements Job {
                 Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
           }
         });
-    aiTranslationService.insertMultiRowAITranslationVariant(tmTextUnit.getId(), aiTranslations);
+    for (AITranslation aiTranslation : aiTranslations) {
+      tmService.addTMTextUnitCurrentVariantWithResult(
+          aiTranslation.getTmTextUnit().getId(),
+          aiTranslation.getLocaleId(),
+          aiTranslation.getTranslation(),
+          aiTranslation.getComment(),
+          aiTranslation.getStatus(),
+          aiTranslation.isIncludedInLocalizedFile(),
+          aiTranslation.getCreatedDate());
+    }
   }
 
   private AITranslation reuseSourceStringAsTranslation(
@@ -247,6 +260,7 @@ public class AITranslateCronJob implements Job {
     aiTranslation.setContentMd5(DigestUtils.md5Hex(translation));
     aiTranslation.setLocaleId(locale.getId());
     aiTranslation.setTranslation(translation);
+    aiTranslation.setComment(tmTextUnit.getComment());
     aiTranslation.setIncludedInLocalizedFile(false);
     aiTranslation.setStatus(TMTextUnitVariant.Status.MT_TRANSLATED);
     aiTranslation.setCreatedDate(JSR310Migration.dateTimeNow());

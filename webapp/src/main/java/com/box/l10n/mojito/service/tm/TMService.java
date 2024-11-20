@@ -636,26 +636,41 @@ public class TMService {
                   comment);
 
       if (updateNeeded) {
-        logger.debug(
-            "The current text unit variant has different content, comment or needs review. Add entities");
-        tmTextUnitVariant =
-            addTMTextUnitVariant(
-                tmTextUnitId,
-                localeId,
-                content,
-                comment,
-                status,
-                includedInLocalizedFile,
-                createdDate,
-                createdBy);
-        logger.debug(
-            "Updating the current TextUnitVariant with id: {} current for locale: {}",
-            tmTextUnitVariant.getId(),
-            localeId);
+        if (currentTmTextUnitVariant.getStatus() == TMTextUnitVariant.Status.MT_REVIEW_NEEDED
+            && !isContentOrCommentUpdated(
+                currentTmTextUnitVariant.getContentMD5(),
+                currentTmTextUnitVariant.getComment(),
+                DigestUtils.md5Hex(content),
+                comment)) {
+          logger.debug(
+              "Content and comment are the same as existing, update the MT review needed text unit variant: {}",
+              currentTmTextUnitVariant.getId());
+          currentTmTextUnitVariant.setStatus(status);
+          currentTmTextUnitVariant.setIncludedInLocalizedFile(includedInLocalizedFile);
+          tmTextUnitVariantRepository.save(currentTmTextUnitVariant);
+        } else {
+          logger.debug(
+              "The current text unit variant has different content, comment or needs review. Add entities");
+          tmTextUnitVariant =
+              addTMTextUnitVariant(
+                  tmTextUnitId,
+                  localeId,
+                  content,
+                  comment,
+                  status,
+                  includedInLocalizedFile,
+                  createdDate,
+                  createdBy);
+          logger.debug(
+              "Updating the current TextUnitVariant with id: {} current for locale: {}",
+              tmTextUnitVariant.getId(),
+              localeId);
 
-        tmTextUnitCurrentVariantRepository.flush();
-        tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
-        tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
+          tmTextUnitCurrentVariantRepository.flush();
+          tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
+          tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
+        }
+
       } else {
         logger.debug(
             overridden
@@ -781,6 +796,27 @@ public class TMService {
         && currentStatus.equals(newStatus)
         && currentIncludedInLocalizedFile == newIncludedInLocalizedFile
         && Objects.equals(currentComment, newComment));
+  }
+
+  /**
+   * Indicates if only the {@link TMTextUnitVariant.Status} and includedInLocalizedFile boolean has
+   * changed to require an update for a {@link TMTextUnitVariant} by looking at new/old content,
+   * status, comments, etc
+   *
+   * <p>Used to avoid causing Auditing table update failures as a variant status change does not
+   * require the creation of a new variant.
+   *
+   * @param currentContentMd5
+   * @param currentComment
+   * @param newContentMd5
+   * @param newComment
+   * @return
+   */
+  public boolean isContentOrCommentUpdated(
+      String currentContentMd5, String currentComment, String newContentMd5, String newComment) {
+
+    return !(currentContentMd5.equals(newContentMd5)
+        || !Objects.equals(currentComment, newComment));
   }
 
   /**

@@ -131,18 +131,6 @@ public class AITranslationService {
     jdbcTemplate.update(sql);
   }
 
-  /**
-   * Inserts AI translations into the database.
-   *
-   * @param translationDTOs
-   */
-  @Transactional
-  protected void insertMultiRowAITranslationVariant(
-      Long tmTextUnitId, List<AITranslation> translationDTOs) {
-    insertMultiRowTextUnitVariants(tmTextUnitId, translationDTOs);
-    insertMultiRowTextUnitCurrentVariants(tmTextUnitId, translationDTOs);
-  }
-
   private void insertMultiRowTextUnitVariants(
       Long textUnitId, List<AITranslation> translationDTOs) {
     logger.debug(

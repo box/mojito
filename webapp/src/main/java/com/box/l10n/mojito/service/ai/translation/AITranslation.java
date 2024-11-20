@@ -13,6 +13,7 @@ public class AITranslation {
   TMTextUnitVariant.Status status;
   boolean includedInLocalizedFile;
   ZonedDateTime createdDate;
+  String comment;
 
   public TMTextUnit getTmTextUnit() {
     return tmTextUnit;
@@ -68,5 +69,13 @@ public class AITranslation {
 
   public void setContentMd5(String content_md5) {
     this.contentMd5 = content_md5;
+  }
+
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
   }
 }

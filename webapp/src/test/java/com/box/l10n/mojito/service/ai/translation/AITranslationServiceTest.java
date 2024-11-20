@@ -1,22 +1,15 @@
 package com.box.l10n.mojito.service.ai.translation;
 
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.box.l10n.mojito.JSR310Migration;
-import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.PromptType;
-import com.box.l10n.mojito.entity.TM;
-import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import java.time.Duration;
-import java.util.List;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,47 +91,5 @@ public class AITranslationServiceTest {
     aiTranslationService.createPendingMTEntitiesInBatches(1L, tmTextUnitIds);
 
     verify(jdbcTemplate, times(0)).update(anyString());
-  }
-
-  @Test
-  public void testMultiRowAITranslationVariantInserts() {
-    TM tm = new TM();
-    tm.setId(1L);
-    Asset asset = new Asset();
-    asset.setId(1L);
-    TMTextUnit tmTextUnit = new TMTextUnit();
-    tmTextUnit.setAsset(asset);
-    tmTextUnit.setTm(tm);
-    tmTextUnit.setId(1L);
-    tmTextUnit.setContent("content");
-    tmTextUnit.setContentMd5("md5");
-    AITranslation aiTranslation = new AITranslation();
-    aiTranslation.setTmTextUnit(tmTextUnit);
-    aiTranslation.setLocaleId(1L);
-    aiTranslation.setTranslation("translation");
-    aiTranslation.setStatus(TMTextUnitVariant.Status.MT_TRANSLATED);
-    aiTranslation.setCreatedDate(JSR310Migration.newDateTimeEmptyCtor());
-    aiTranslation.setIncludedInLocalizedFile(false);
-
-    AITranslation aiTranslation2 = new AITranslation();
-    aiTranslation2.setTmTextUnit(tmTextUnit);
-    aiTranslation2.setLocaleId(2L);
-    aiTranslation2.setTranslation("translation2");
-    aiTranslation2.setStatus(TMTextUnitVariant.Status.MT_TRANSLATED);
-    aiTranslation2.setCreatedDate(JSR310Migration.newDateTimeEmptyCtor());
-    aiTranslation2.setIncludedInLocalizedFile(false);
-
-    AITranslation aiTranslation3 = new AITranslation();
-    aiTranslation3.setTmTextUnit(tmTextUnit);
-    aiTranslation3.setLocaleId(3L);
-    aiTranslation3.setTranslation("translation3");
-    aiTranslation3.setStatus(TMTextUnitVariant.Status.MT_TRANSLATED);
-    aiTranslation3.setCreatedDate(JSR310Migration.newDateTimeEmptyCtor());
-    aiTranslation3.setIncludedInLocalizedFile(false);
-    List<AITranslation> translations = List.of(aiTranslation, aiTranslation2, aiTranslation3);
-
-    aiTranslationService.insertMultiRowAITranslationVariant(1L, translations);
-
-    verify(jdbcTemplate, times(2)).batchUpdate(anyString(), anyList());
   }
 }
