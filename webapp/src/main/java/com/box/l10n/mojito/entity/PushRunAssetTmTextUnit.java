@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -31,6 +32,7 @@ import org.hibernate.annotations.BatchSize;
 public class PushRunAssetTmTextUnit extends SettableAuditableEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
+  @Schema(hidden = true)
   @JoinColumn(
       name = "push_run_asset_id",
       foreignKey = @ForeignKey(name = "FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID"))
@@ -38,6 +40,7 @@ public class PushRunAssetTmTextUnit extends SettableAuditableEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
+  @Schema(hidden = true)
   @JoinColumn(
       name = "tm_text_unit_id",
       foreignKey = @ForeignKey(name = "FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__TM_TEXT_UNIT_ID"))

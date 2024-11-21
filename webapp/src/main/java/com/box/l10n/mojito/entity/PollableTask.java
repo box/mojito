@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,6 +59,7 @@ public class PollableTask extends AuditableEntity {
   @Column(name = "name")
   private String name;
 
+  @Schema(type = "integer", format = "int64", example = "1715699917000")
   @Column(name = "finished_date")
   private ZonedDateTime finishedDate;
 
@@ -82,6 +84,7 @@ public class PollableTask extends AuditableEntity {
   private Set<PollableTask> subTasks;
 
   @JsonBackReference
+  @Schema(hidden = true)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "parent_task_id",

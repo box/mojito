@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.rotation;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ public class RotationWS {
   /**
    * curl http://127.0.0.1:8080/api/rotation -X POST -H "Content-Type: application/json" -d "true"
    */
+  @Operation(summary = "Update Health rotation")
   @RequestMapping(method = RequestMethod.POST, value = "/api/rotation")
   @ResponseStatus(HttpStatus.OK)
   public void setRotation(@RequestBody Boolean rotation) throws InterruptedException {

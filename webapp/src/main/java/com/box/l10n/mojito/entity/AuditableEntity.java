@@ -3,6 +3,7 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.annotations.VisibleForTesting;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -22,11 +23,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditableEntity extends BaseEntity implements Serializable {
 
+  @Schema(type = "integer", format = "int64", example = "1715699917000")
   @CreatedDate
   @Column(name = "created_date")
   @JsonView(View.IdAndNameAndCreated.class)
   protected ZonedDateTime createdDate;
 
+  @Schema(type = "integer", format = "int64", example = "1715699917000")
   @LastModifiedDate
   @Column(name = "last_modified_date")
   @JsonView(View.Modified.class)

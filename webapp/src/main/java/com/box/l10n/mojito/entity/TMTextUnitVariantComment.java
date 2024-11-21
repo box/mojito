@@ -5,6 +5,7 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,6 +66,7 @@ public class TMTextUnitVariantComment extends AuditableEntity {
   }
 
   @JsonBackReference
+  @Schema(hidden = true)
   @Basic(optional = false)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(

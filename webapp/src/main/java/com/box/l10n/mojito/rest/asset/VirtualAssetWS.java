@@ -9,10 +9,12 @@ import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.asset.VirutalAssetMissingTextUnitException;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,13 +33,23 @@ public class VirtualAssetWS {
 
   @Autowired VirtualAssetService virtualAssetService;
 
-  @RequestMapping(value = "/api/virtualAssets", method = RequestMethod.POST)
+  @Operation(summary = "Create or update a new Virtual Asset")
+  @RequestMapping(
+      value = "/api/virtualAssets",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public VirtualAsset createOrUpdateVirtualAsset(@RequestBody VirtualAsset virtualAsset)
       throws VirtualAssetBadRequestException {
     return virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
   }
 
-  @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.POST)
+  @Operation(summary = "Create Text Units for a specific Virtual Asset asynchronously")
+  @RequestMapping(
+      value = "/api/virtualAssets/{assetId}/textUnits",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public PollableTask addTextUnits(
       @PathVariable("assetId") long assetId,
       @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits)
@@ -48,7 +60,12 @@ public class VirtualAssetWS {
     return addTextUnits.getPollableTask();
   }
 
-  @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.PUT)
+  @Operation(summary = "Update Text Units for a specific Virtual Asset asynchronously")
+  @RequestMapping(
+      value = "/api/virtualAssets/{assetId}/textUnits",
+      method = RequestMethod.PUT,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public PollableTask replaceTextUnits(
       @PathVariable("assetId") long assetId,
       @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits)
@@ -59,16 +76,22 @@ public class VirtualAssetWS {
     return replaceTextUnitsTask.getPollableTask();
   }
 
-  @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.DELETE)
+  @RequestMapping(
+      value = "/api/virtualAssets/{assetId}/textUnits",
+      method = RequestMethod.DELETE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   public void deleteTextUnit(
       @PathVariable("assetId") long assetId,
       @RequestBody VirtualAssetTextUnit virtualAssetTextUnit) {
     virtualAssetService.deleteTextUnit(assetId, virtualAssetTextUnit.getName());
   }
 
+  @Operation(summary = "Create Text Units for a specific Virtual Asset asynchronously")
   @RequestMapping(
       value = "/api/virtualAssets/{assetId}/locale/{localeId}/textUnits",
-      method = RequestMethod.POST)
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public PollableTask importLocalizedTextUnits(
       @PathVariable("assetId") long assetId,
       @PathVariable("localeId") long localeId,
@@ -80,7 +103,10 @@ public class VirtualAssetWS {
     return importLocalizedTextUnits.getPollableTask();
   }
 
-  @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.GET)
+  @RequestMapping(
+      value = "/api/virtualAssets/{assetId}/textUnits",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public List<VirtualAssetTextUnit> getTextUnits(
       @PathVariable("assetId") long assetId,
       @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter)
@@ -90,7 +116,8 @@ public class VirtualAssetWS {
 
   @RequestMapping(
       value = "/api/virtualAssets/{assetId}/locale/{localeId}/textUnits",
-      method = RequestMethod.GET)
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public List<VirtualAssetTextUnit> getLocalizedTextUnits(
       @PathVariable("assetId") long assetId,
       @PathVariable(value = "localeId") long localeId,

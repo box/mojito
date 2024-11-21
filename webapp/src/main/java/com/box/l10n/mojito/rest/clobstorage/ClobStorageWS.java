@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,11 @@ public class ClobStorageWS {
     this.structuredBlobStorage = Objects.requireNonNull(structuredBlobStorage);
   }
 
-  @RequestMapping(method = RequestMethod.POST, value = "/api/clobstorage")
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = "/api/clobstorage",
+      consumes = MediaType.TEXT_PLAIN_VALUE,
+      produces = MediaType.TEXT_PLAIN_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public UUID postClob(@RequestBody String content) throws InvalidTextUnitSearchParameterException {
 
@@ -42,7 +47,10 @@ public class ClobStorageWS {
     return uuid;
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/api/clobstorage/{uuid}")
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = "/api/clobstorage/{uuid}",
+      produces = MediaType.TEXT_PLAIN_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public String getClob(@PathVariable(value = "uuid") UUID uuid)
       throws InvalidTextUnitSearchParameterException {

@@ -4,6 +4,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.service.image.ImageService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -35,7 +36,16 @@ public class ImageWS {
 
   @Autowired ImageService imageService;
 
-  @RequestMapping(value = "/api/images/**", method = RequestMethod.GET)
+  @Operation(summary = "Get an image by its name (receive the image name as a path variable)")
+  @RequestMapping(
+      value = "/api/images/**",
+      method = RequestMethod.GET,
+      produces = {
+        MediaType.APPLICATION_OCTET_STREAM_VALUE,
+        MediaType.IMAGE_JPEG_VALUE,
+        MediaType.IMAGE_PNG_VALUE,
+        MediaType.IMAGE_GIF_VALUE
+      })
   @ResponseBody
   public ResponseEntity getImage(HttpServletRequest httpServletRequest) throws IOException {
 
@@ -52,7 +62,16 @@ public class ImageWS {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
-  @RequestMapping(value = "/api/images/**", method = RequestMethod.PUT)
+  @Operation(summary = "Upload an image (receive the image name as a path variable)")
+  @RequestMapping(
+      value = "/api/images/**",
+      method = RequestMethod.PUT,
+      consumes = {
+        MediaType.APPLICATION_OCTET_STREAM_VALUE,
+        MediaType.IMAGE_JPEG_VALUE,
+        MediaType.IMAGE_PNG_VALUE,
+        MediaType.IMAGE_GIF_VALUE
+      })
   @ResponseBody
   public void uploadImage(@RequestBody byte[] imageContent, HttpServletRequest httpServletRequest) {
     String imageName = getImageNameFromRequest(httpServletRequest);

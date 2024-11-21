@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -46,6 +47,7 @@ public class AssetExtractionByBranch extends AuditableEntity {
   private Branch branch;
 
   @JsonBackReference("assetExtractionByBranches")
+  @Schema(hidden = true)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_extraction_id",

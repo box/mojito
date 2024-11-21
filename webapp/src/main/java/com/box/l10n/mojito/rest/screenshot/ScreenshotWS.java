@@ -9,11 +9,13 @@ import com.box.l10n.mojito.service.screenshot.ScreenshotRunType;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -27,7 +29,12 @@ public class ScreenshotWS {
 
   @Autowired ScreenshotService screenshotService;
 
-  @RequestMapping(value = "/api/screenshots", method = RequestMethod.POST)
+  @Operation(summary = "Create or add a Screenshot Run")
+  @RequestMapping(
+      value = "/api/screenshots",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ScreenshotRun createOrAddToScreenshotRun(@RequestBody ScreenshotRun screenshotRun) {
     ScreenshotRun screenshotRunSaved =
         screenshotService.createOrAddToScreenshotRun(screenshotRun, true);
@@ -35,7 +42,10 @@ public class ScreenshotWS {
   }
 
   @JsonView(View.Screenshots.class)
-  @RequestMapping(value = "/api/screenshots", method = RequestMethod.GET)
+  @RequestMapping(
+      value = "/api/screenshots",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public List<Screenshot> getScreeenshots(
       @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
       @RequestParam(value = "bcp47Tags[]", required = false) ArrayList<String> bcp47Tags,
@@ -65,7 +75,10 @@ public class ScreenshotWS {
         limit);
   }
 
-  @RequestMapping(value = "/api/screenshots/{id}", method = RequestMethod.PUT)
+  @RequestMapping(
+      value = "/api/screenshots/{id}",
+      method = RequestMethod.PUT,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   public void updateScreenshot(@PathVariable Long id, @RequestBody Screenshot screenshot) {
     screenshot.setId(id);
     screenshotService.updateScreenshot(screenshot);

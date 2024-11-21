@@ -4,6 +4,7 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -28,6 +29,7 @@ import org.hibernate.annotations.BatchSize;
 public class CommitToPullRun extends SettableAuditableEntity {
   @OneToOne(fetch = FetchType.LAZY)
   @JsonBackReference
+  @Schema(hidden = true)
   @JoinColumn(
       name = "commit_id",
       foreignKey = @ForeignKey(name = "FK__COMMIT_TO_PULL_RUN__COMMIT_ID"))

@@ -6,8 +6,10 @@ import static org.springframework.data.jpa.domain.Specification.where;
 
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +23,11 @@ public class LocaleWS {
 
   @Autowired LocaleRepository localeRepository;
 
-  @RequestMapping(value = "/api/locales", method = RequestMethod.GET)
+  @Operation(summary = "Get Locales for specific BCP 47 Tags")
+  @RequestMapping(
+      value = "/api/locales",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public List<Locale> getLocales(
       @RequestParam(value = "bcp47Tag", required = false) String bcp47Tag) {
 

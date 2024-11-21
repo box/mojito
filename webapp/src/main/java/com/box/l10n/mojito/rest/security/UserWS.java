@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +43,11 @@ public class UserWS {
    * @param username
    * @return
    */
-  @RequestMapping(value = "/api/users", method = RequestMethod.GET)
+  @Operation(summary = "Get paginated Users")
+  @RequestMapping(
+      value = "/api/users",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<User> getUsers(
       @RequestParam(value = "username", required = false) String username,
       @RequestParam(value = "search", required = false) String search,
@@ -54,8 +60,9 @@ public class UserWS {
    *
    * @return a 200 response if the user session is active.
    */
+  @Operation(summary = "Check if session is active")
   @RequestMapping(value = "/api/users/session", method = RequestMethod.GET)
-  public ResponseEntity isSessionActive() {
+  public ResponseEntity<Void> isSessionActive() {
     return ResponseEntity.ok().build();
   }
 
@@ -65,7 +72,11 @@ public class UserWS {
    * @param user
    * @return
    */
-  @RequestMapping(value = "api/users", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "api/users",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<User> createUser(@RequestBody User user) {
 
     User existingUser = userRepository.findByUsername(user.getUsername());
@@ -122,7 +133,10 @@ public class UserWS {
    * @param user
    * @return
    */
-  @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.PATCH)
+  @RequestMapping(
+      value = "/api/users/{userId}",
+      method = RequestMethod.PATCH,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   public void updateUserByUserId(@PathVariable Long userId, @RequestBody User user)
       throws UserWithIdNotFoundException {
     logger.info("Updating user [{}]", userId);
@@ -148,7 +162,12 @@ public class UserWS {
         false);
   }
 
-  @RequestMapping(value = "/api/users/pw", method = RequestMethod.POST)
+  @Operation(summary = "Update a user password")
+  @RequestMapping(
+      value = "/api/users/pw",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<User> changePassword(@RequestBody PasswordChangeRequest requestDTO) {
     User user = userService.updatePassword(requestDTO.currentPassword(), requestDTO.newPassword());
     logger.info("Updated password for user [{}]", user.getId());

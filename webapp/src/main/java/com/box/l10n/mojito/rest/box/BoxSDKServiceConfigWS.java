@@ -11,6 +11,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,10 @@ public class BoxSDKServiceConfigWS {
 
   @Autowired BoxSDKServiceConfigEntityService boxSDKServiceConfigEntityService;
 
-  @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.GET)
+  @RequestMapping(
+      value = "/api/boxSDKServiceConfigs",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public List<BoxSDKServiceConfigEntity> getBoxSDKServiceConfig() {
     List<BoxSDKServiceConfigEntity> result = new ArrayList<>();
     BoxSDKServiceConfigEntity boxSDKServiceConfigEntity =
@@ -40,8 +44,13 @@ public class BoxSDKServiceConfigWS {
     return result;
   }
 
-  @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.POST)
-  public ResponseEntity setBoxSDKServiceConfig(@RequestBody BoxSDKServiceConfigEntity config) {
+  @RequestMapping(
+      value = "/api/boxSDKServiceConfigs",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PollableFuture<BoxSDKServiceConfigEntity>> setBoxSDKServiceConfig(
+      @RequestBody BoxSDKServiceConfigEntity config) {
     try {
       logger.debug("Delete if config already exist");
       boxSDKServiceConfigEntityService.deleteConfig();

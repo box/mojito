@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,7 +69,10 @@ public class DropWS {
    * @throws Exception
    */
   @JsonView(View.DropSummary.class)
-  @RequestMapping(method = RequestMethod.GET, value = "/api/drops")
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = "/api/drops",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<Drop> getDrops(
       @RequestParam(value = "repositoryId", required = false) Long repositoryId,
       @RequestParam(value = "imported", required = false) Boolean importedFilter,
@@ -93,7 +97,11 @@ public class DropWS {
    * @return The information about the exported drop, updated with a pollable task
    * @throws DropExporterException
    */
-  @RequestMapping(method = RequestMethod.POST, value = "/api/drops/export")
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = "/api/drops/export",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ExportDropConfig exportDrop(@RequestBody ExportDropConfig exportDropConfig)
       throws DropExporterException {
 
@@ -121,7 +129,11 @@ public class DropWS {
    * @return The information about the re-imported drop, updated with a pollable task
    * @throws Exception
    */
-  @RequestMapping(method = RequestMethod.POST, value = "/api/drops/import")
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = "/api/drops/import",
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   public ImportDropConfig importDrop(@RequestBody ImportDropConfig importDropConfig)
       throws Exception {
 
@@ -144,7 +156,11 @@ public class DropWS {
    * @return The information about the re-imported drop, updated with a pollable task
    * @throws Exception
    */
-  @RequestMapping(method = RequestMethod.POST, value = "/api/drops/cancel")
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = "/api/drops/cancel",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public CancelDropConfig cancelDrop(@RequestBody CancelDropConfig cancelDropConfig)
       throws Exception {
 
@@ -189,7 +205,11 @@ public class DropWS {
    * @return the imported XLIFF with information for each text unit about the import process.
    * @throws Exception
    */
-  @RequestMapping(method = RequestMethod.POST, value = "/api/drops/importXliff")
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = "/api/drops/importXliff",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ImportXliffBody importXliff(@RequestBody ImportXliffBody importXliffBody)
       throws Exception {
 

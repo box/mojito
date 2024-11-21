@@ -18,6 +18,7 @@ import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityManager;
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -76,7 +78,11 @@ public class DeltaWS {
    *
    * @return The delta of text unit variants, their translations and corresponding metadata.
    */
-  @RequestMapping(value = "/api/deltas/date", method = RequestMethod.GET)
+  @Operation(summary = "Get paginated Text Unit Variants Deltas for a given set of parameters")
+  @RequestMapping(
+      value = "/api/deltas/date",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<TextUnitVariantDeltaDTO> getDeltasFromDate(
       @RequestParam(value = "repositoryId") Long repositoryId,
       @RequestParam(value = "bcp47Tags", required = false) List<String> bcp47Tags,
@@ -100,7 +106,11 @@ public class DeltaWS {
         deltaService.getDeltasForDates(repository, locales, fromDate, toDate, pageable));
   }
 
-  @RequestMapping(value = "/api/deltas/state", method = RequestMethod.GET)
+  @Operation(summary = "Get Delta Content for a given set of parameters")
+  @RequestMapping(
+      value = "/api/deltas/state",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public DeltaResponseDTO getDeltasForRuns(
       @RequestParam(value = "repositoryId") Long repositoryId,
       @RequestParam(value = "pushRunIds") List<Long> pushRunIds,

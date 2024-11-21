@@ -6,6 +6,8 @@ import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.util.Json;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -50,6 +52,9 @@ public class Application {
   boolean shouldIndentJacksonOutput;
 
   public static void main(String[] args) throws IOException {
+    // Added a custom converter to hide fields that are not annotated with the @JsonView annotation
+    // in Swagger
+    ModelConverters.getInstance().addConverter(new JsonViewAwareModelResolver(Json.mapper()));
 
     XmlParsingConfiguration.disableXPathLimits();
 

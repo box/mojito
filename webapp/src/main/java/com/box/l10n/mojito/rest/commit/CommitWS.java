@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,7 +53,10 @@ public class CommitWS {
    * @return {@link com.box.l10n.mojito.rest.View.Commit}
    */
   @JsonView(View.CommitDetailed.class)
-  @RequestMapping(value = "/api/commits/detailed", method = RequestMethod.GET)
+  @RequestMapping(
+      value = "/api/commits/detailed",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<Commit> getCommitsDetailed(
       @RequestParam(value = "repositoryId") Long repositoryId,
       @RequestParam(value = "commitNames", required = false) List<String> commitNames,
@@ -72,7 +76,10 @@ public class CommitWS {
    * @return {@link Commit}
    */
   @JsonView(View.Commit.class)
-  @RequestMapping(value = "/api/commits", method = RequestMethod.GET)
+  @RequestMapping(
+      value = "/api/commits",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<Commit> getCommits(
       @RequestParam(value = "repositoryId") Long repositoryId,
       @RequestParam(value = "commitNames", required = false) List<String> commitNames,
@@ -100,7 +107,11 @@ public class CommitWS {
    * @return {@link View.Commit}
    */
   @JsonView(View.Commit.class)
-  @RequestMapping(value = "/api/commits/lastPushed/", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits/lastPushed/",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Commit getLastPushedCommit(
       @RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
     return commitService
@@ -121,7 +132,11 @@ public class CommitWS {
    * @return {@link View.Commit}
    */
   @JsonView(View.CommitDetailed.class)
-  @RequestMapping(value = "/api/commits/lastPushRun/", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits/lastPushRun/",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public PushRun getLastPushRun(
       @RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
     return commitService
@@ -142,7 +157,11 @@ public class CommitWS {
    * @return {@link View.Commit}
    */
   @JsonView(View.Commit.class)
-  @RequestMapping(value = "/api/commits/lastPulled/", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits/lastPulled/",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Commit getLastPulledCommit(
       @RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
     return commitService
@@ -163,7 +182,11 @@ public class CommitWS {
    * @return {@link View.Commit}
    */
   @JsonView(View.CommitDetailed.class)
-  @RequestMapping(value = "/api/commits/lastPullRun/", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits/lastPullRun/",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public PullRun getLastPullRun(
       @RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
     return commitService
@@ -181,7 +204,11 @@ public class CommitWS {
    * @throws RepositoryWithIdNotFoundException if the repository ID is not found.
    */
   @JsonView(View.Commit.class)
-  @RequestMapping(value = "/api/commits", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Commit createCommit(@RequestBody CommitBody commitBody)
       throws RepositoryWithIdNotFoundException, SaveCommitMismatchedExistingDataException {
     Repository repository =
@@ -207,7 +234,10 @@ public class CommitWS {
    * @throws PushRunWithNameNotFoundException if the push run can not be found.
    * @throws CommitWithNameNotFoundException if the commit name can not be found.
    */
-  @RequestMapping(value = "/api/commits/pushRun", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits/pushRun",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   public void associateCommitToPushRun(@RequestBody CommitToPushRunBody commitToPushRunBody)
       throws RepositoryWithIdNotFoundException,
           PushRunWithNameNotFoundException,
@@ -228,7 +258,10 @@ public class CommitWS {
    * @throws PullRunWithNameNotFoundException if the pull run can not be found.
    * @throws CommitWithNameNotFoundException if the commit name can not be found.
    */
-  @RequestMapping(value = "/api/commits/pullRun", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/api/commits/pullRun",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   public void associateCommitToPullRun(@RequestBody CommitToPullRunBody commitToPullRunBody)
       throws RepositoryNameNotFoundException,
           CommitWithNameNotFoundException,
