@@ -251,4 +251,9 @@ public class TextUnitDTO {
   public void setUploadedFileUri(String uploadedFileUri) {
     this.uploadedFileUri = uploadedFileUri;
   }
+
+  public boolean isAiTranslateStatus() {
+    return status == TMTextUnitVariant.Status.MT_TRANSLATED
+        || status == TMTextUnitVariant.Status.MT_REVIEW_NEEDED;
+  }
 }

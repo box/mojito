@@ -227,7 +227,8 @@ public class OpenAILLMService implements LLMService {
             })
         .doOnError(
             e -> {
-              logger.error("Error translating text unit {}", tmTextUnit.getId(), e);
+              logger.error(
+                  "Error translating text unit {} to {}", tmTextUnit.getId(), targetBcp47Tag, e);
               meterRegistry
                   .counter(
                       "OpenAILLMService.translate.result",
@@ -237,7 +238,8 @@ public class OpenAILLMService implements LLMService {
         .retryWhen(llmTranslateRetryConfig)
         .doOnError(
             e -> {
-              logger.error("Error translating text unit {}", tmTextUnit.getId(), e);
+              logger.error(
+                  "Error translating text unit {} to {}", tmTextUnit.getId(), targetBcp47Tag, e);
               meterRegistry
                   .counter(
                       "OpenAILLMService.translate.result",
@@ -245,7 +247,10 @@ public class OpenAILLMService implements LLMService {
                   .increment();
             })
         .blockOptional()
-        .orElseThrow(() -> new AIException("Error translating text unit " + tmTextUnit.getId()));
+        .orElseThrow(
+            () ->
+                new AIException(
+                    "Error translating text unit " + tmTextUnit.getId() + " to " + targetBcp47Tag));
   }
 
   @Timed("OpenAILLMService.checkString")

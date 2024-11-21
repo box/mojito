@@ -35,6 +35,7 @@ import jakarta.persistence.EntityManager;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -359,6 +360,7 @@ public class RepositoryStatisticService {
                         textUnitDTOsForLocaleByMD5.values().stream()
                             .filter(TextUnitDTO::isTranslated)
                             .filter(TextUnitDTO::isUsed)
+                            .filter(Predicate.not(TextUnitDTO::isAiTranslateStatus))
                             .peek(
                                 t ->
                                     logger.debug(
@@ -369,6 +371,7 @@ public class RepositoryStatisticService {
                         textUnitDTOsForLocaleByMD5.values().stream()
                             .filter(TextUnitDTO::isTranslated)
                             .filter(TextUnitDTO::isUsed)
+                            .filter(Predicate.not(TextUnitDTO::isAiTranslateStatus))
                             .mapToLong(wordCountFunction())
                             .sum());
 
@@ -422,6 +425,7 @@ public class RepositoryStatisticService {
                         textUnitDTOsForLocaleByMD5.values().stream()
                             .filter(TextUnitDTO::isUsed)
                             .filter(TextUnitDTO::isIncludedInLocalizedFile)
+                            .filter(Predicate.not(TextUnitDTO::isAiTranslateStatus))
                             .peek(
                                 t ->
                                     logger.debug(
@@ -434,6 +438,7 @@ public class RepositoryStatisticService {
                         textUnitDTOsForLocaleByMD5.values().stream()
                             .filter(TextUnitDTO::isUsed)
                             .filter(TextUnitDTO::isIncludedInLocalizedFile)
+                            .filter(Predicate.not(TextUnitDTO::isAiTranslateStatus))
                             .mapToLong(wordCountFunction())
                             .sum());
 
