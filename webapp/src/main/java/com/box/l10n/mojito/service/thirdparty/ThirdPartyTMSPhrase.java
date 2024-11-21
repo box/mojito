@@ -27,6 +27,8 @@ import com.phrase.client.model.Tag;
 import com.phrase.client.model.TranslationKey;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
@@ -52,6 +54,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
   static final String TAG_PREFIX = "push_";
   static final String TAG_PREFIX_WITH_REPOSITORY = "push_%s";
+  static final String TAG_DATE_FORMAT = "yyyy_MM_dd_HH_mm_ss_SSS";
   static final boolean NATIVE_CLIENT_DEFAULT_VALUE = false;
 
   static Logger logger = LoggerFactory.getLogger(ThirdPartyTMSPhrase.class);
@@ -249,12 +252,22 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
             .filter(Objects::nonNull)
             .filter(tagName -> tagName.startsWith(TAG_PREFIX))
             .filter(tagName -> !allActiveTags.contains(tagName))
+            // That's to handle concurrent sync and make sure a tag that was just pushed is not
+            // deleted before the  pull from the same sync is finished.
+            // We don't prevent syncs to run concurrently
+            .filter(tagName -> !areTagsWithin5Minutes(tagForUpload, tagName))
             .toList();
 
     logger.info("Tags to delete: {}", pushTagsToDelete);
     phraseClient.deleteTags(projectId, pushTagsToDelete);
+    logger.info("RemoveUnusedKeysAndTags took: {}", stopwatchRemoveUnusedKeysAndTags);
+  }
 
-    logger.info("removeUnusedKeysAndTags took: {}", stopwatchRemoveUnusedKeysAndTags);
+  static boolean areTagsWithin5Minutes(String tagName1, String tagName2) {
+    return Duration.between(uploadTagToLocalDateTime(tagName2), uploadTagToLocalDateTime(tagName1))
+            .abs()
+            .getSeconds()
+        < (60 * 5);
   }
 
   private List<TextUnitDTO> getSourceTextUnitDTOs(
@@ -293,7 +306,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
   public static String getTagForUpload(String repositoryName) {
     ZonedDateTime zonedDateTime = JSR310Migration.dateTimeNowInUTC();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss_SSS");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TAG_DATE_FORMAT);
     return normalizeTagName(
         "%s%s_%s_%s"
             .formatted(
@@ -301,6 +314,27 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
                 repositoryName,
                 formatter.format(zonedDateTime),
                 Math.abs(UUID.randomUUID().getLeastSignificantBits() % 1000)));
+  }
+
+  public static LocalDateTime uploadTagToLocalDateTime(String tag) {
+
+    if (tag == null || !tag.contains("_")) {
+      throw new IllegalArgumentException("Invalid tag format: " + tag);
+    }
+
+    int dateEndIndex = tag.lastIndexOf('_'); // last part is a random number
+    int dateStartIndex = dateEndIndex;
+
+    for (int i = 0; i < 7; i++) {
+      dateStartIndex = tag.lastIndexOf('_', dateStartIndex - 1);
+      if (dateStartIndex == -1) {
+        throw new IllegalArgumentException("Invalid tag format: " + tag);
+      }
+    }
+
+    String dateTimePart = tag.substring(dateStartIndex + 1, dateEndIndex);
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TAG_DATE_FORMAT);
+    return LocalDateTime.parse(dateTimePart, formatter);
   }
 
   private static String getTagNamePrefixForRepository(String repositoryName) {
