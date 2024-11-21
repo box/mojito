@@ -133,7 +133,7 @@ public class ScheduledThirdPartySync implements IScheduledJob {
 
               String scheduledJobUrl =
                   UriComponentsBuilder.fromHttpUrl(serverConfig.getUrl())
-                      .path("api/jobs/" + scheduledJob.getId())
+                      .path("api/jobs/" + scheduledJob.getUuid())
                       .build()
                       .toUriString();
 

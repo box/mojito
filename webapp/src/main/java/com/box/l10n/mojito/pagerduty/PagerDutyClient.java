@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.pagerduty;
 
+import com.box.l10n.mojito.entity.PagerDutyIncident;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.net.URI;
@@ -7,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -24,40 +26,54 @@ public class PagerDutyClient {
   static final String BASE_URL = "https://events.pagerduty.com";
   static final String ENQUEUE_PATH = "/v2/enqueue";
 
-  public static final int MAX_RETRIES = 3;
-
   private final HttpClient httpClient;
   private final String integrationKey;
   private final PagerDutyRetryConfiguration retryConfiguration;
+  private final String clientName;
+  private final PagerDutyIncidentRepository pagerDutyIncidentRepository;
 
   public PagerDutyClient(
       String integrationKey,
       HttpClient httpClient,
-      PagerDutyRetryConfiguration retryConfiguration) {
+      PagerDutyRetryConfiguration retryConfiguration,
+      String clientName,
+      PagerDutyIncidentRepository pagerDutyIncidentRepository) {
     if (integrationKey == null || integrationKey.isEmpty())
       throw new IllegalArgumentException("Pager Duty integration key is null or empty.");
     this.integrationKey = integrationKey;
     this.httpClient = httpClient;
     this.retryConfiguration = retryConfiguration;
+    this.clientName = clientName;
+    this.pagerDutyIncidentRepository = pagerDutyIncidentRepository;
   }
 
   /**
    * Trigger incident using a deduplication key and send PagerDutyPayload with it. The client will
-   * attempt to send the event request MAX_RETRIES times if an internal error is received from the
+   * attempt to send the event request 'maxRetries' times if an internal error is received from the
    * server. If the max number of retries is reached, a bad request is received or the payload
    * cannot be serialized a PagerDutyException is thrown.
    */
   public void triggerIncident(String dedupKey, PagerDutyPayload payload) throws PagerDutyException {
+    if (pagerDutyIncidentRepository.findOpenIncident(clientName, dedupKey).isPresent()) {
+      logger.debug(
+          "Open incident exists for deduplication key: '{}', ignoring trigger request.", dedupKey);
+      return;
+    }
     sendPayload(dedupKey, payload, PagerDutyPostData.EventAction.TRIGGER);
   }
 
   /**
    * Resolve incident using a deduplication key. The client will attempt to send the event request
-   * MAX_RETRIES times if an internal error is received from the server. If the max number of
+   * 'maxRetries' times if an internal error is received from the server. If the max number of
    * retries is reached, a bad request is received or the payload cannot be serialized a
    * PagerDutyException is thrown.
    */
   public void resolveIncident(String dedupKey) throws PagerDutyException {
+    if (pagerDutyIncidentRepository.findOpenIncident(clientName, dedupKey).isEmpty()) {
+      logger.debug(
+          "No open incident for deduplication key: '{}', ignoring resolve request.", dedupKey);
+      return;
+    }
     sendPayload(dedupKey, null, PagerDutyPostData.EventAction.RESOLVE);
   }
 
@@ -74,7 +90,7 @@ public class PagerDutyClient {
 
     try {
       HttpRequest request = buildRequest(postBody.serialize());
-      sendRequestWithRetries(request).block();
+      sendRequestWithRetries(request, dedupKey, eventAction).block();
     } catch (JsonProcessingException e) {
       throw new PagerDutyException("Failed to serialize PagerDutyPostRequest to a JSON string.");
     } catch (Exception e) {
@@ -86,8 +102,9 @@ public class PagerDutyClient {
     }
   }
 
-  private Mono<Void> sendRequestWithRetries(HttpRequest request) {
-    return Mono.fromCallable(() -> this.sendRequest(request))
+  private Mono<Void> sendRequestWithRetries(
+      HttpRequest request, String dedupKey, PagerDutyPostData.EventAction eventAction) {
+    return Mono.fromCallable(() -> this.sendRequest(request, dedupKey, eventAction))
         .retryWhen(
             Retry.backoff(
                     retryConfiguration.getMaxRetries(),
@@ -109,13 +126,28 @@ public class PagerDutyClient {
         .then();
   }
 
-  private HttpResponse<String> sendRequest(HttpRequest request) throws PagerDutyException {
+  private HttpResponse<String> sendRequest(
+      HttpRequest request, String dedupKey, PagerDutyPostData.EventAction eventAction)
+      throws PagerDutyException {
     try {
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
       int statusCode = response.statusCode();
-      if (statusCode == 200 || statusCode == 202) return response;
+      if (statusCode == 200 || statusCode == 202) {
+        PagerDutyIncident incident;
+        if (eventAction == PagerDutyPostData.EventAction.TRIGGER) {
+          incident = new PagerDutyIncident();
+          incident.setClientName(clientName);
+          incident.setDedupKey(dedupKey);
+          incident.setTriggeredAt(ZonedDateTime.now());
+        } else {
+          incident = pagerDutyIncidentRepository.findOpenIncident(clientName, dedupKey).get();
+          incident.setResolvedAt(ZonedDateTime.now());
+        }
+        pagerDutyIncidentRepository.save(incident);
+        return response;
+      }
 
       throw new PagerDutyException(statusCode, response.body());
     } catch (IOException | InterruptedException e) {

@@ -2,18 +2,21 @@ package com.box.l10n.mojito.pagerduty;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.box.l10n.mojito.entity.PagerDutyIncident;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,13 +32,17 @@ public class PagerDutyClientTest {
 
   private PagerDutyPayload samplePayload;
   private PagerDutyRetryConfiguration retryConfiguration = new PagerDutyRetryConfiguration();
+  private PagerDutyIncidentRepository pagerDutyIncidentRepository;
 
   @BeforeEach
   public void setup() {
     httpClient = mock(HttpClient.class);
     httpResponse = mock(HttpResponse.class);
+    pagerDutyIncidentRepository = mock(PagerDutyIncidentRepository.class);
 
-    pagerDutyClient = new PagerDutyClient("xxxyyyzzz", httpClient, retryConfiguration);
+    pagerDutyClient =
+        new PagerDutyClient(
+            "xxxyyyzzz", httpClient, retryConfiguration, "test", pagerDutyIncidentRepository);
 
     Map<String, String> customDetails = new HashMap<>();
     customDetails.put("Example Custom Details", "Example Value");
@@ -53,6 +60,10 @@ public class PagerDutyClientTest {
 
     try {
       pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
+
+      // Respond with fake open incident to allow resolve to go through.
+      when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
+          .thenReturn(Optional.of(new PagerDutyIncident()));
       pagerDutyClient.resolveIncident("dedupKey");
     } catch (PagerDutyException e) {
       fail("PagerDutyClient should not throw exception when the response code is 202.");
@@ -146,6 +157,9 @@ public class PagerDutyClientTest {
     assertThrows(
         PagerDutyException.class, () -> pagerDutyClient.triggerIncident("dedpuKey", samplePayload));
 
+    // Fake open incident
+    when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
+        .thenReturn(Optional.of(new PagerDutyIncident()));
     assertThrows(PagerDutyException.class, () -> pagerDutyClient.resolveIncident("dedupKey"));
 
     verify(httpClient, times(2))
@@ -162,6 +176,9 @@ public class PagerDutyClientTest {
     assertThrows(
         PagerDutyException.class, () -> pagerDutyClient.triggerIncident("", samplePayload));
 
+    // Respond with fake open incident to allow resolve to go through.
+    when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
+        .thenReturn(Optional.of(new PagerDutyIncident()));
     assertThrows(PagerDutyException.class, () -> pagerDutyClient.resolveIncident(null));
 
     verify(httpClient, never())
@@ -177,9 +194,36 @@ public class PagerDutyClientTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new PagerDutyClient(null, httpClient, retryConfiguration));
+        () ->
+            new PagerDutyClient(
+                null, httpClient, retryConfiguration, "test", pagerDutyIncidentRepository));
     assertThrows(
         IllegalArgumentException.class,
-        () -> new PagerDutyClient("", httpClient, retryConfiguration));
+        () ->
+            new PagerDutyClient(
+                "", httpClient, retryConfiguration, "test", pagerDutyIncidentRepository));
+  }
+
+  @Test
+  public void testDoesntSendPayload() throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(200);
+    when(httpClient.send(
+            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    try {
+      // There is an open incident, the client shouldn't send the trigger payload
+      when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
+          .thenReturn(Optional.of(new PagerDutyIncident()));
+      pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
+
+      // There is no open incident, the client shouldn't send the resolve payload
+      when(pagerDutyIncidentRepository.findOpenIncident(any(), any())).thenReturn(Optional.empty());
+      pagerDutyClient.resolveIncident("dedupKey");
+    } catch (PagerDutyException e) {
+      fail("PagerDutyClient should not throw exception when the response code is 202.");
+    }
+
+    verify(httpClient, times(0)).send(any(), any());
   }
 }

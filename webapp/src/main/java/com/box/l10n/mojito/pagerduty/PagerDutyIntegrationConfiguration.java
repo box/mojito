@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties("l10n.pagerduty")
 public class PagerDutyIntegrationConfiguration {
+  private String defaultIntegration;
+
   private Map<String, String> integrations = new HashMap<>();
 
   public Map<String, String> getIntegrations() {
@@ -16,5 +18,13 @@ public class PagerDutyIntegrationConfiguration {
 
   public void setIntegrations(Map<String, String> integrations) {
     this.integrations = integrations;
+  }
+
+  public String getDefaultIntegration() {
+    return defaultIntegration;
+  }
+
+  public void setDefaultIntegration(String defaultIntegration) {
+    this.defaultIntegration = defaultIntegration;
   }
 }
