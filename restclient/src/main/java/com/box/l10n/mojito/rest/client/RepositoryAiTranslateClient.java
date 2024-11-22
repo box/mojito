@@ -32,6 +32,7 @@ public class RepositoryAiTranslateClient extends BaseClient {
       String repositoryName,
       List<String> targetBcp47tags,
       int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds,
       boolean useBatch) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}

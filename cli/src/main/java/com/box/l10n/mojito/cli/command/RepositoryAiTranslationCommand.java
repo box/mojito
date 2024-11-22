@@ -56,6 +56,12 @@ public class RepositoryAiTranslationCommand extends Command {
   int sourceTextMaxCount = 100;
 
   @Parameter(
+      names = {"--text-unit-ids"},
+      arity = 1,
+      description = "The list of TmTextUnitIds to translate")
+  List<Long> textUnitIds;
+
+  @Parameter(
       names = {"--use-batch"},
       arity = 1,
       description = "To use the batch API or not")
@@ -87,7 +93,7 @@ public class RepositoryAiTranslationCommand extends Command {
     ProtoAiTranslateResponse protoAiTranslateResponse =
         repositoryAiTranslateClient.translateRepository(
             new RepositoryAiTranslateClient.ProtoAiTranslateRequest(
-                repositoryParam, locales, sourceTextMaxCount, useBatch));
+                repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch));
 
     PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
     commandHelper.waitForPollableTask(pollableTask.getId());

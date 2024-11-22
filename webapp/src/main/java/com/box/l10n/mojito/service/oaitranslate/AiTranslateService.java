@@ -126,6 +126,7 @@ public class AiTranslateService {
       String repositoryName,
       List<String> targetBcp47tags,
       int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds,
       boolean useBatch) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
@@ -161,7 +162,10 @@ public class AiTranslateService {
         .flatMap(
             rl ->
                 asyncProcessLocale(
-                    rl, aiTranslateInput.sourceTextMaxCountPerLocale(), openAIClientPool),
+                    rl,
+                    aiTranslateInput.sourceTextMaxCountPerLocale(),
+                    aiTranslateInput.tmTextUnitIds(),
+                    openAIClientPool),
             10)
         .then()
         .doOnTerminate(
@@ -174,6 +178,7 @@ public class AiTranslateService {
   Mono<Void> asyncProcessLocale(
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds,
       OpenAIClientPool openAIClientPool) {
 
     Repository repository = repositoryLocale.getRepository();
@@ -187,7 +192,15 @@ public class AiTranslateService {
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
     textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
     textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
-    textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
+    if (tmTextUnitIds != null) {
+      logger.debug(
+          "Using tmTextUnitIds: {} for ai translate repository: {}",
+          tmTextUnitIds,
+          repository.getName());
+      textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
+    } else {
+      textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
+    }
 
     List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
