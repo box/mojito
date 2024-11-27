@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.PluralIntegrityCheckerRelaxer;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ public class TMTextUnitIntegrityCheckService {
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
+  @Autowired PluralIntegrityCheckerRelaxer pluralIntegrityCheckerRelaxer;
+
   /**
    * Checks the integrity of the content given the {@link com.box.l10n.mojito.entity.TMTextUnit#id}
    *
@@ -46,7 +49,21 @@ public class TMTextUnitIntegrityCheckService {
       logger.debug("No designated checker for this asset.  Nothing to do");
     } else {
       for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
-        textUnitChecker.check(tmTextUnit.getContent(), contentToCheck);
+        try {
+          textUnitChecker.check(tmTextUnit.getContent(), contentToCheck);
+        } catch (IntegrityCheckException e) {
+          if (tmTextUnit.getPluralForm() != null && pluralIntegrityCheckerRelaxer.shouldRelaxIntegrityCheck(
+              tmTextUnit.getContent(),
+              contentToCheck,
+              tmTextUnit.getPluralForm().getName(),
+              textUnitChecker)) {
+            logger.debug(
+                "Relaxing the check for plural string with form: {}",
+                tmTextUnit.getPluralForm().getName());
+          } else {
+            throw e;
+          }
+        }
       }
     }
   }

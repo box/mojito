@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.asset.ImportTextUnitJob;
 import com.box.l10n.mojito.service.asset.ImportTextUnitJobInput;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.PluralIntegrityCheckerRelaxer;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -95,6 +96,8 @@ public class TextUnitBatchImporterService {
   @Autowired TMTextUnitVariantCommentService tmMTextUnitVariantCommentService;
 
   @Autowired MeterRegistry meterRegistry;
+
+  @Autowired PluralIntegrityCheckerRelaxer pluralIntegrityCheckerRelaxer;
 
   @Value("${l10n.textUnitBatchImporterService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
@@ -386,30 +389,41 @@ public class TextUnitBatchImporterService {
               currentTextUnit.getSource(),
               textUnitForBatchImport.getContent(),
               ice);
-          textUnitForBatchImport.setIncludedInLocalizedFile(false);
-          textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
 
-          if (hasSameTarget) {
-            switch (integrityChecksType) {
-              case UNLESS_TAGGED_USE_INTEGRITY_CHECKER_STATUS:
-                if (!Strings.nullToEmpty(currentTextUnit.getTargetComment())
-                    .toLowerCase()
-                    .contains(FALSE_POSITIVE_TAG_FOR_STATUS)) {
+          if (pluralIntegrityCheckerRelaxer.shouldRelaxIntegrityCheck(
+              currentTextUnit.getSource(),
+              textUnitForBatchImport.getContent(),
+              textUnitForBatchImport.getCurrentTextUnit().getPluralForm(),
+              textUnitChecker)) {
+            logger.debug(
+                "Relaxing the check for plural string with form: {}",
+                textUnitForBatchImport.getCurrentTextUnit().getPluralForm());
+          } else {
+            textUnitForBatchImport.setIncludedInLocalizedFile(false);
+            textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
+
+            if (hasSameTarget) {
+              switch (integrityChecksType) {
+                case UNLESS_TAGGED_USE_INTEGRITY_CHECKER_STATUS:
+                  if (!Strings.nullToEmpty(currentTextUnit.getTargetComment())
+                      .toLowerCase()
+                      .contains(FALSE_POSITIVE_TAG_FOR_STATUS)) {
+                    break;
+                  }
+                case KEEP_STATUS_IF_SAME_TARGET:
+                case KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET:
+                  textUnitForBatchImport.setIncludedInLocalizedFile(
+                      currentTextUnit.isIncludedInLocalizedFile());
+                  textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
                   break;
-                }
-              case KEEP_STATUS_IF_SAME_TARGET:
-              case KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET:
-                textUnitForBatchImport.setIncludedInLocalizedFile(
-                    currentTextUnit.isIncludedInLocalizedFile());
-                textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
-                break;
+              }
             }
-          }
 
-          TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
-          tmTextUnitVariantComment.setSeverity(Severity.ERROR);
-          tmTextUnitVariantComment.setContent(ice.getMessage());
-          textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
+            TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
+            tmTextUnitVariantComment.setSeverity(Severity.ERROR);
+            tmTextUnitVariantComment.setContent(ice.getMessage());
+            textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
+          }
         }
       }
     }
