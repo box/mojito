@@ -29,7 +29,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -69,6 +68,8 @@ public class WebSecurityConfig {
   @Autowired UserService userService;
 
   @Autowired UserDetailsServiceImpl userDetailsService;
+
+  @Autowired HeaderSecurityConfig headerSecurityConfig;
 
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -249,12 +250,8 @@ public class WebSecurityConfig {
         securityConfig.getAuthenticationType()) {
       switch (authenticationType) {
         case HEADER:
-          RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter =
-              new RequestHeaderAuthenticationFilter();
-          requestHeaderAuthenticationFilter.setPrincipalRequestHeader("x-forwarded-user");
-          requestHeaderAuthenticationFilter.setExceptionIfHeaderMissing(false);
-          requestHeaderAuthenticationFilter.setAuthenticationManager(
-              authenticationConfiguration.getAuthenticationManager());
+          HeaderPreAuthFilter requestHeaderAuthenticationFilter =
+              new HeaderPreAuthFilter(headerSecurityConfig);
           logger.debug("Add request header Auth filter");
           requestHeaderAuthenticationFilter.setAuthenticationManager(
               authenticationConfiguration.getAuthenticationManager());

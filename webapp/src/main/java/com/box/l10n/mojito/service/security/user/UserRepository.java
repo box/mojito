@@ -56,4 +56,17 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
       """)
   Page<User> findByUsernameOrName(
       @Param("username") String username, @Param("search") String search, Pageable pageable);
+
+  @Query(
+      value =
+          """
+    SELECT u FROM  User u
+      WHERE COALESCE(u.username, '') <> ''
+        AND LOWER(u.username) LIKE CONCAT(LOWER(:servicePrefix), '%')
+        AND LOWER(:serviceName) LIKE CONCAT(LOWER(u.username), '%')
+        AND u.enabled IS TRUE
+    """)
+  @EntityGraph(value = "User.legacy", type = EntityGraphType.FETCH)
+  List<User> findServicesByServiceNameAndPrefix(
+      @Param("serviceName") String serviceName, @Param("servicePrefix") String servicePrefix);
 }
