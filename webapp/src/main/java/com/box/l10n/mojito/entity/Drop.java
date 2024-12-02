@@ -5,7 +5,6 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -84,7 +83,6 @@ public class Drop extends AuditableEntity {
    * For now we keep track of the latest import only, actually import will be additive if we track
    * the status only in one place
    */
-  @Schema(type = "integer", format = "int64", example = "1715699917000")
   @Column(name = "last_imported_date")
   @JsonView(View.DropSummary.class)
   protected ZonedDateTime lastImportedDate;

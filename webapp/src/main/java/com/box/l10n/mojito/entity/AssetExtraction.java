@@ -3,7 +3,6 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -47,7 +46,6 @@ import org.springframework.data.annotation.CreatedBy;
 public class AssetExtraction extends AuditableEntity {
 
   @JsonBackReference("asset")
-  @Schema(hidden = true)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET__ID"))
   private Asset asset;
@@ -58,7 +56,6 @@ public class AssetExtraction extends AuditableEntity {
    * there)
    */
   @JsonBackReference("assetContent")
-  @Schema(hidden = true)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_content_id",

@@ -3,7 +3,6 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,7 +35,6 @@ public class BranchTextUnitStatistic extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
-  @Schema(hidden = true)
   @JoinColumn(
       name = "branch_statistic_id",
       foreignKey = @ForeignKey(name = "FK__BTU_STAT__BRANCH_STATISTIC__ID"))

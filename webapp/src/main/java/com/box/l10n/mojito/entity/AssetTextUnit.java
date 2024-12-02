@@ -2,7 +2,6 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -58,7 +57,6 @@ public class AssetTextUnit extends AuditableEntity {
   private String comment;
 
   @JsonBackReference("assetTextUnits")
-  @Schema(hidden = true)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "asset_extraction_id",

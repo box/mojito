@@ -4,7 +4,6 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,7 +37,6 @@ public class AssetIntegrityChecker extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
-  @Schema(hidden = true)
   @JoinColumn(
       name = "repository_id",
       foreignKey = @ForeignKey(name = "FK__ASSET_INTEGRITY_CHECKER__REPOSITORY__ID"),

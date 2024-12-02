@@ -20,7 +20,6 @@
         <frontend.maven.plugin.version>1.11.0</frontend.maven.plugin.version>
         <node.version>v20.18.0</node.version>
         <npm.version>8.2.0</npm.version>
-        <springdoc.version>2.6.0</springdoc.version>
     </properties>
 
     <dependencies>
@@ -139,12 +138,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-statsd</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${springdoc.version}</version>
         </dependency>
 
         <dependency>
@@ -315,6 +308,7 @@
                     </execution>
                 </executions>
             </plugin>
+
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

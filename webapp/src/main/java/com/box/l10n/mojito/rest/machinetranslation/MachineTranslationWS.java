@@ -12,14 +12,12 @@ import com.box.l10n.mojito.service.machinetranslation.RepositoryMachineTranslati
 import com.box.l10n.mojito.service.machinetranslation.TranslationDTO;
 import com.box.l10n.mojito.service.machinetranslation.TranslationsResponseDTO;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,12 +45,7 @@ public class MachineTranslationWS {
   @Value("${l10n.machineTranslation.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
-  @Operation(summary = "Generate translations asynchronously")
-  @RequestMapping(
-      method = RequestMethod.POST,
-      value = "/api/machine-translation-batch",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
   @ResponseStatus(HttpStatus.OK)
   @Cacheable(MACHINE_TRANSLATION)
   public PollableTask getTranslations(@RequestBody BatchTranslationRequestDTO translationRequest) {
@@ -67,12 +60,7 @@ public class MachineTranslationWS {
     return localizedAssetBodyPollableFuture.getPollableTask();
   }
 
-  @Operation(summary = "Return a single Translation")
-  @RequestMapping(
-      method = RequestMethod.POST,
-      value = "/api/machine-translation",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation")
   @ResponseStatus(HttpStatus.OK)
   @Cacheable(MACHINE_TRANSLATION)
   public TranslationDTO getSingleTranslation(
@@ -87,20 +75,13 @@ public class MachineTranslationWS {
         translationRequest.getRepositoryNames());
   }
 
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/api/machine-translation/config",
-      produces = MediaType.TEXT_PLAIN_VALUE)
+  @RequestMapping(method = RequestMethod.GET, value = "/api/machine-translation/config")
   @ResponseStatus(HttpStatus.OK)
   public String getMachineTranslationConfiguration() {
     return machineTranslationService.getConfiguredEngineSource().toString();
   }
 
-  @RequestMapping(
-      method = RequestMethod.POST,
-      value = "/api/machine-translation/repository",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation/repository")
   public RepositoryMachineTranslationBody translateRepository(
       @RequestBody RepositoryMachineTranslationBody repositoryMachineTranslationBody) {
 

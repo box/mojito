@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -67,7 +66,6 @@ public class Commit extends AuditableEntity {
    * The date when the commit was actually commited / merged to the target final branch, i.e.:
    * commit date instead of author date.
    */
-  @Schema(type = "integer", format = "int64", example = "1715699917000")
   @JsonView(View.Commit.class)
   @Column(name = "source_creation_date")
   private ZonedDateTime sourceCreationDate;

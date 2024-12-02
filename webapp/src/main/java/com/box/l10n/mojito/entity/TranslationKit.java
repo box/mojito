@@ -6,7 +6,6 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.translationkit.TranslationKitExportedImportedAndCurrentTUV;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ColumnResult;
@@ -90,7 +89,6 @@ public class TranslationKit extends AuditableEntity {
   private Locale locale;
 
   @JsonBackReference
-  @Schema(hidden = true)
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "drop_id", foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT__DROP__ID"))
   private Drop drop;

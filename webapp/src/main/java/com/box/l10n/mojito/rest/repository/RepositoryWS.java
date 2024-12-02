@@ -24,13 +24,11 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.Operation;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,10 +60,7 @@ public class RepositoryWS {
   @Autowired BranchService branchService;
 
   @JsonView(View.Repository.class)
-  @RequestMapping(
-      value = "/api/repositories/{repositoryId}",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
   public Repository getRepositoryById(@PathVariable Long repositoryId)
       throws RepositoryWithIdNotFoundException {
     Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
@@ -83,10 +78,7 @@ public class RepositoryWS {
    * @return List of {@link Repository}s
    */
   @JsonView(View.RepositorySummary.class)
-  @RequestMapping(
-      value = "/api/repositories",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
   public List<Repository> getRepositories() {
     return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
@@ -99,11 +91,7 @@ public class RepositoryWS {
    * @return List of {@link Repository}s
    */
   @JsonView(View.Repository.class)
-  @RequestMapping(
-      value = "/api/repositories",
-      params = "name",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/repositories", params = "name", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
   public List<Repository> getRepositories(
       @RequestParam(value = "name", required = true) String repositoryName) {
@@ -118,11 +106,7 @@ public class RepositoryWS {
    * @return
    */
   @JsonView(View.Repository.class)
-  @RequestMapping(
-      value = "/api/repositories",
-      method = RequestMethod.POST,
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/repositories", method = RequestMethod.POST)
   public ResponseEntity<Repository> createRepository(@RequestBody Repository repository) {
     logger.info("Creating repository");
 
@@ -159,11 +143,9 @@ public class RepositoryWS {
    * @param importRepositoryBody
    * @return
    */
-  @Operation(summary = "Import an entire Repository given an XLIFF")
   @RequestMapping(
       value = "/api/repositories/{repositoryId}/xliffImport",
-      method = RequestMethod.POST,
-      consumes = MediaType.APPLICATION_JSON_VALUE)
+      method = RequestMethod.POST)
   public ResponseEntity importRepository(
       @PathVariable Long repositoryId, @RequestBody ImportRepositoryBody importRepositoryBody) {
 
@@ -211,10 +193,7 @@ public class RepositoryWS {
    * @param repository
    * @return
    */
-  @RequestMapping(
-      value = "/api/repositories/{repositoryId}",
-      method = RequestMethod.PATCH,
-      consumes = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PATCH)
   public ResponseEntity updateRepository(
       @PathVariable Long repositoryId, @RequestBody Repository repository)
       throws RepositoryWithIdNotFoundException {
@@ -252,10 +231,7 @@ public class RepositoryWS {
   }
 
   @JsonView(View.BranchSummary.class)
-  @RequestMapping(
-      value = "/api/repositories/{repositoryId}/branches",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/repositories/{repositoryId}/branches", method = RequestMethod.GET)
   public List<Branch> getBranchesOfRepository(
       @PathVariable Long repositoryId,
       @RequestParam(value = "name", required = false) String branchName,
@@ -281,11 +257,9 @@ public class RepositoryWS {
     return branches;
   }
 
-  @Operation(summary = "Delete a Branch asynchronously")
   @RequestMapping(
       value = "/api/repositories/{repositoryId}/branches",
-      method = RequestMethod.DELETE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+      method = RequestMethod.DELETE)
   public PollableTask deleteBranch(
       @PathVariable(value = "repositoryId") Long repositoryId,
       @RequestParam(value = "branchId") Long branchId) {

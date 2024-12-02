@@ -4,7 +4,6 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -36,7 +35,6 @@ public class RepositoryLocaleStatistic extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
-  @Schema(hidden = true)
   @JoinColumn(
       name = "repository_statistic_id",
       foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE_STATISTIC__REPOSITORY__ID"))

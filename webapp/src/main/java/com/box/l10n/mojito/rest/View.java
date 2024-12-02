@@ -7,7 +7,6 @@ package com.box.l10n.mojito.rest;
  * @author jyi
  */
 public class View {
-
   /** This is used to get id and name of entity */
   public interface IdAndName {}
 

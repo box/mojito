@@ -4,13 +4,11 @@ import static com.box.l10n.mojito.CacheType.Names.AI_CHECKS;
 
 import com.box.l10n.mojito.service.ai.LLMService;
 import io.micrometer.core.annotation.Timed;
-import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,12 +22,7 @@ public class AIChecksWS {
 
   @Autowired LLMService llmService;
 
-  @Operation(summary = "Execute AI checks")
-  @RequestMapping(
-      value = "/api/ai/checks",
-      method = RequestMethod.POST,
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value = "/api/ai/checks", method = RequestMethod.POST)
   @Timed("AIWS.executeAIChecks")
   @Cacheable(AI_CHECKS)
   public AICheckResponse executeAIChecks(@RequestBody AICheckRequest AICheckRequest) {

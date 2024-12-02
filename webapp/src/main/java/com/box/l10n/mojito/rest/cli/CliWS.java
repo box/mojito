@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.rest.cli;
 
 import com.box.l10n.mojito.service.cli.CliService;
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -10,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,11 +38,7 @@ public class CliWS {
    * @return
    * @throws IOException
    */
-  @Operation(summary = "Get the mojito-cli.jar file")
-  @RequestMapping(
-      value = "/cli/mojito-cli.jar",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+  @RequestMapping(value = "/cli/mojito-cli.jar", method = RequestMethod.GET)
   @ResponseBody
   public FileSystemResource getFile(HttpServletResponse httpServletResponse) throws IOException {
 
@@ -73,11 +67,7 @@ public class CliWS {
    * @return
    * @throws IOException
    */
-  @Operation(summary = "Get the script to install the CLI")
-  @RequestMapping(
-      value = "/cli/install.sh",
-      method = RequestMethod.GET,
-      produces = MediaType.TEXT_PLAIN_VALUE)
+  @RequestMapping(value = "/cli/install.sh", method = RequestMethod.GET)
   @ResponseBody
   public String getInstallCliScript(
       HttpServletRequest httpServletRequest,
@@ -93,11 +83,7 @@ public class CliWS {
    *
    * @return
    */
-  @Operation(summary = "Get the CLI version")
-  @RequestMapping(
-      value = "/cli/version",
-      method = RequestMethod.GET,
-      produces = MediaType.TEXT_PLAIN_VALUE)
+  @RequestMapping(value = "/cli/version", method = RequestMethod.GET)
   public String getVersion() {
     return cliService.getVersion();
   }

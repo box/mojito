@@ -3,7 +3,6 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,7 +37,6 @@ public class ScreenshotTextUnit extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
-  @Schema(hidden = true)
   @JoinColumn(
       name = "screenshot_id",
       foreignKey = @ForeignKey(name = "FK__SCREENSHOT_TEXT_UNIT__SCREENSHOT__ID"),

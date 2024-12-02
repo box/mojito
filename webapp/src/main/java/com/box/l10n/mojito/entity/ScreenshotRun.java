@@ -2,7 +2,6 @@ package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -39,7 +38,6 @@ public class ScreenshotRun extends SettableAuditableEntity {
       foreignKey = @ForeignKey(name = "FK__SCREENSHOT_RUN__REPOSITORY__ID"),
       nullable = false)
   @JsonBackReference
-  @Schema(hidden = true)
   private Repository repository;
 
   @Column(name = "name")

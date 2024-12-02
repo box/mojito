@@ -4,7 +4,6 @@ import com.box.l10n.mojito.entity.AuditableEntity;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,7 +31,6 @@ public class Authority extends AuditableEntity implements Serializable {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonBackReference
-  @Schema(hidden = true)
   @JoinColumn(
       name = "user_id",
       foreignKey = @ForeignKey(name = "FK__AUTHORITY__USER__USER_ID"),

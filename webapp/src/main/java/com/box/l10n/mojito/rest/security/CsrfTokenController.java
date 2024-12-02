@@ -2,11 +2,9 @@ package com.box.l10n.mojito.rest.security;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,11 +26,7 @@ public class CsrfTokenController {
 
   public static final String CSRF_TOKEN_PATH = "/api/csrf-token";
 
-  @Operation(summary = "Get a CSRF Token")
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = CSRF_TOKEN_PATH,
-      produces = MediaType.TEXT_PLAIN_VALUE)
+  @RequestMapping(method = RequestMethod.GET, value = CSRF_TOKEN_PATH)
   @ResponseStatus(HttpStatus.OK)
   public String getCsrfToken(HttpServletRequest httpServletRequest) {
 

@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.tm.search;
 
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 
 /**
@@ -26,20 +25,14 @@ public class TextUnitDTO {
   private Long tmTextUnitCurrentVariantId;
   private TMTextUnitVariant.Status status;
   private boolean includedInLocalizedFile;
-
-  @Schema(type = "integer", format = "int64", example = "1715699917000")
   private ZonedDateTime createdDate;
-
   private boolean assetDeleted;
   private String pluralForm;
   private String pluralFormOther;
   private String repositoryName;
   private String assetPath;
   private Long assetTextUnitId;
-
-  @Schema(type = "integer", format = "int64", example = "1715699917000")
   private ZonedDateTime tmTextUnitCreatedDate;
-
   private boolean doNotTranslate;
   private String uploadedFileUri;
 
