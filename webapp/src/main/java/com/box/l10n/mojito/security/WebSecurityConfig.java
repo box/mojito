@@ -4,6 +4,7 @@ import com.box.l10n.mojito.ActuatorHealthLegacyConfig;
 import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Preconditions;
 import jakarta.servlet.Filter;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -161,8 +163,7 @@ public class WebSecurityConfig {
                 "/actuator/shutdown", "/actuator/loggers/**", "/api/rotation"));
 
     // matcher order matters - "everything else" mapping must be last
-
-    http.authorizeRequests(
+    http.authorizeHttpRequests(
         authorizeRequests ->
             authorizeRequests
                 .requestMatchers(
@@ -186,7 +187,19 @@ public class WebSecurityConfig {
                 .authenticated()
                 . // allow health entry points
                 requestMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
-                .hasIpAddress("127.0.0.1")
+                .access(
+                    (authentication, context) -> {
+                      String remoteAddress = context.getRequest().getRemoteAddr();
+                      try {
+                        InetAddress address = InetAddress.getByName(remoteAddress);
+                        return new AuthorizationDecision(address.isLoopbackAddress());
+                      } catch (Exception e) {
+                        logger.error(
+                            "Unable to determine host IP address. Defaulting to not granting access",
+                            e);
+                        return new AuthorizationDecision(false);
+                      }
+                    })
                 . // Everyone can access the session endpoint
                 requestMatchers("/api/users/session", "/api/users/pw")
                 .authenticated()
