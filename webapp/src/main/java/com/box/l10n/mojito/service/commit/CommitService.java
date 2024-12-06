@@ -148,7 +148,7 @@ public class CommitService {
       commit.setAuthorName(authorName);
       commit.setSourceCreationDate(sourceCreationDate);
 
-      System.out.printf("setSourceCreationDate: %s%n", commit.getSourceCreationDate());
+      logger.debug("setSourceCreationDate: {}", commit.getSourceCreationDate());
 
       commit = commitRepository.save(commit);
     }
