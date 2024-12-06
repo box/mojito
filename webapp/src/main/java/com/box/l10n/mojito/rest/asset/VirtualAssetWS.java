@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.asset.VirutalAssetMissingTextUnitException;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +32,14 @@ public class VirtualAssetWS {
 
   @Autowired VirtualAssetService virtualAssetService;
 
+  @Operation(summary = "Create or update a new Virtual Asset")
   @RequestMapping(value = "/api/virtualAssets", method = RequestMethod.POST)
   public VirtualAsset createOrUpdateVirtualAsset(@RequestBody VirtualAsset virtualAsset)
       throws VirtualAssetBadRequestException {
     return virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
   }
 
+  @Operation(summary = "Create Text Units for a specific Virtual Asset asynchronously")
   @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.POST)
   public PollableTask addTextUnits(
       @PathVariable("assetId") long assetId,
@@ -48,6 +51,7 @@ public class VirtualAssetWS {
     return addTextUnits.getPollableTask();
   }
 
+  @Operation(summary = "Update Text Units for a specific Virtual Asset asynchronously")
   @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.PUT)
   public PollableTask replaceTextUnits(
       @PathVariable("assetId") long assetId,
@@ -66,6 +70,7 @@ public class VirtualAssetWS {
     virtualAssetService.deleteTextUnit(assetId, virtualAssetTextUnit.getName());
   }
 
+  @Operation(summary = "Create Text Units for a specific Virtual Asset asynchronously")
   @RequestMapping(
       value = "/api/virtualAssets/{assetId}/locale/{localeId}/textUnits",
       method = RequestMethod.POST)

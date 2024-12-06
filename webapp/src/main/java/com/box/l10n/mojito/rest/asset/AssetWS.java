@@ -32,6 +32,7 @@ import com.github.pnowy.nc.utils.Strings;
 import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -110,6 +111,7 @@ public class AssetWS {
    * @throws java.util.concurrent.ExecutionException
    * @throws java.lang.InterruptedException
    */
+  @Operation(summary = "Create an Asset and kicks off extraction process")
   @RequestMapping(value = "/api/assets", method = RequestMethod.POST)
   public SourceAsset importSourceAsset(@RequestBody SourceAsset sourceAsset) throws Throwable {
     logger.debug("Importing source asset");
@@ -175,6 +177,7 @@ public class AssetWS {
    * @param localizedAssetBody the payload to be localized with optional parameters
    * @return the localized payload as a {@link LocalizedAssetBody}
    */
+  @Operation(summary = "Localize the payload content with translations of a given Asset")
   @RequestMapping(value = "/api/assets/{assetId}/localized/{localeId}", method = RequestMethod.POST)
   public LocalizedAssetBody getLocalizedAssetForContent(
       @PathVariable("assetId") long assetId,
@@ -222,6 +225,7 @@ public class AssetWS {
     return localizedAssetBody;
   }
 
+  @Operation(summary = "Get Localized Asset asynchronously")
   @RequestMapping(value = "/api/assets/{assetId}/localized", method = RequestMethod.POST)
   public PollableTask getLocalizedAssetForContentAsync(
       @PathVariable("assetId") long assetId, @RequestBody LocalizedAssetBody localizedAssetBody)
@@ -256,6 +260,8 @@ public class AssetWS {
    * @param multiLocalizedAssetBody
    * @return
    */
+  @Operation(
+      summary = "Localize the payload content with translations of a given Asset in parallel")
   @RequestMapping(value = "/api/assets/{assetId}/localized/parallel", method = RequestMethod.POST)
   public PollableTask getLocalizedAssetForContentParallel(
       @PathVariable("assetId") long assetId,
@@ -296,6 +302,7 @@ public class AssetWS {
    * @param localizedAssetBody the payload to be localized with optional parameters
    * @return the pseudo localized payload as a {@link LocalizedAssetBody}
    */
+  @Operation(summary = "Pseudo localize the payload content with translations of a given Asset")
   @RequestMapping(value = "/api/assets/{assetId}/pseudo", method = RequestMethod.POST)
   public LocalizedAssetBody getPseudoLocalizedAssetForContent(
       @PathVariable("assetId") long assetId, @RequestBody LocalizedAssetBody localizedAssetBody)
@@ -351,6 +358,7 @@ public class AssetWS {
    * @param tmXliffId {@link TMXliff#id}
    * @return an XLIFF that contains all the translations of the {@link Asset}
    */
+  @Operation(summary = "Exports all the translations (used and unused) of an Asset into XLIFF")
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/api/assets/{assetId}/xliffExport/{tmXliffId}")
@@ -372,6 +380,9 @@ public class AssetWS {
    * @param xliffExportBody
    * @return a {@link PollableTask} that generates XLIFF asynchronously in a {@link XliffExportBody}
    */
+  @Operation(
+      summary =
+          "Exports all the translations (used and unused) of an Asset into XLIFF asynchronously")
   @RequestMapping(method = RequestMethod.POST, value = "/api/assets/{assetId}/xliffExport")
   public XliffExportBody xliffExportAsync(
       @PathVariable("assetId") long assetId,
@@ -411,6 +422,7 @@ public class AssetWS {
    * @param ids
    * @return
    */
+  @Operation(summary = "Deletes multiple Assets for a given Branch asynchronously")
   @RequestMapping(value = "/api/assets", method = RequestMethod.DELETE)
   public PollableTask deleteAssetsOfBranches(
       @RequestParam(value = "branchId", required = false) Long branchId,

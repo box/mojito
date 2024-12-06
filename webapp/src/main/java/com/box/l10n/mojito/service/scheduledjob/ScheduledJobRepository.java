@@ -5,7 +5,9 @@ import java.util.Optional;
 import org.quartz.JobKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
+@RepositoryRestResource(exported = false)
 public interface ScheduledJobRepository extends JpaRepository<ScheduledJob, Long> {
 
   @Query("SELECT sj FROM ScheduledJob sj WHERE sj.uuid = :uuid AND sj.jobType.jobType = :jobType")

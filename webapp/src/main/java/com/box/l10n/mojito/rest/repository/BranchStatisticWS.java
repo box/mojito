@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
 import com.box.l10n.mojito.service.branch.SparseBranchStatisticRepository;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,6 +56,7 @@ public class BranchStatisticWS {
 
   @Autowired BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
+  @Operation(summary = "Get paginated Branch Statistics for a given set of parameters")
   @JsonView(View.BranchStatistic.class)
   @RequestMapping(value = "/api/branchStatistics", method = RequestMethod.GET)
   @StopWatch
@@ -121,6 +123,7 @@ public class BranchStatisticWS {
     return new PageView<>(page);
   }
 
+  @Operation(summary = "Get Branch Text Unit Statistics paginated for a specific Branch Statistic")
   @JsonView(View.BranchTextUnitStatistic.class)
   @RequestMapping(
       value = "/api/branchStatistics/{id}/branchTextUnitStatistics",

@@ -4,6 +4,7 @@ import static com.box.l10n.mojito.CacheType.Names.AI_CHECKS;
 
 import com.box.l10n.mojito.service.ai.LLMService;
 import io.micrometer.core.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ public class AIChecksWS {
 
   @Autowired LLMService llmService;
 
+  @Operation(summary = "Execute AI checks")
   @RequestMapping(value = "/api/ai/checks", method = RequestMethod.POST)
   @Timed("AIWS.executeAIChecks")
   @Cacheable(AI_CHECKS)

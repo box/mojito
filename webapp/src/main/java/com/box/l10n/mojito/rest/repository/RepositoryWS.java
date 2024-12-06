@@ -24,6 +24,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.slf4j.Logger;
@@ -73,28 +74,16 @@ public class RepositoryWS {
   }
 
   /**
-   * Gets all undeleted repositories with @{link View.RepositorySummary}
-   *
-   * @return List of {@link Repository}s
-   */
-  @JsonView(View.RepositorySummary.class)
-  @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
-  @ResponseStatus(HttpStatus.OK)
-  public List<Repository> getRepositories() {
-    return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
-  }
-
-  /**
    * Gets repository matching the given name
    *
    * @param repositoryName To filer on the name. Can be {@code null}
    * @return List of {@link Repository}s
    */
   @JsonView(View.Repository.class)
-  @RequestMapping(value = "/api/repositories", params = "name", method = RequestMethod.GET)
+  @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
   public List<Repository> getRepositories(
-      @RequestParam(value = "name", required = true) String repositoryName) {
+      @RequestParam(value = "name", required = false) String repositoryName) {
     return repositoryService.findRepositoriesIsNotDeletedOrderByName(repositoryName);
   }
 
@@ -143,6 +132,7 @@ public class RepositoryWS {
    * @param importRepositoryBody
    * @return
    */
+  @Operation(summary = "Import an entire Repository given an XLIFF")
   @RequestMapping(
       value = "/api/repositories/{repositoryId}/xliffImport",
       method = RequestMethod.POST)
@@ -257,6 +247,7 @@ public class RepositoryWS {
     return branches;
   }
 
+  @Operation(summary = "Delete a Branch asynchronously")
   @RequestMapping(
       value = "/api/repositories/{repositoryId}/branches",
       method = RequestMethod.DELETE)

@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.screenshot.ScreenshotRunType;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ public class ScreenshotWS {
 
   @Autowired ScreenshotService screenshotService;
 
+  @Operation(summary = "Create or add a Screenshot Run")
   @RequestMapping(value = "/api/screenshots", method = RequestMethod.POST)
   public ScreenshotRun createOrAddToScreenshotRun(@RequestBody ScreenshotRun screenshotRun) {
     ScreenshotRun screenshotRunSaved =

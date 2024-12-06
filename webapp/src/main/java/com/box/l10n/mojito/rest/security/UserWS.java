@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -41,6 +42,7 @@ public class UserWS {
    * @param username
    * @return
    */
+  @Operation(summary = "Get paginated Users")
   @RequestMapping(value = "/api/users", method = RequestMethod.GET)
   public Page<User> getUsers(
       @RequestParam(value = "username", required = false) String username,
@@ -54,8 +56,9 @@ public class UserWS {
    *
    * @return a 200 response if the user session is active.
    */
+  @Operation(summary = "Check if session is active")
   @RequestMapping(value = "/api/users/session", method = RequestMethod.GET)
-  public ResponseEntity isSessionActive() {
+  public ResponseEntity<Void> isSessionActive() {
     return ResponseEntity.ok().build();
   }
 
@@ -148,6 +151,7 @@ public class UserWS {
         false);
   }
 
+  @Operation(summary = "Update a user password")
   @RequestMapping(value = "/api/users/pw", method = RequestMethod.POST)
   public ResponseEntity<User> changePassword(@RequestBody PasswordChangeRequest requestDTO) {
     User user = userService.updatePassword(requestDTO.currentPassword(), requestDTO.newPassword());

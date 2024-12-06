@@ -6,6 +6,8 @@ import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.util.Json;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -50,6 +52,9 @@ public class Application {
   boolean shouldIndentJacksonOutput;
 
   public static void main(String[] args) throws IOException {
+    // Added a custom model converter to align generated Open API specification schemas with the
+    // actual structure of the requests and responses
+    ModelConverters.getInstance().addConverter(new CustomModelResolver(Json.mapper()));
 
     XmlParsingConfiguration.disableXPathLimits();
 

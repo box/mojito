@@ -12,6 +12,7 @@ import com.box.l10n.mojito.service.machinetranslation.RepositoryMachineTranslati
 import com.box.l10n.mojito.service.machinetranslation.TranslationDTO;
 import com.box.l10n.mojito.service.machinetranslation.TranslationsResponseDTO;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class MachineTranslationWS {
   @Value("${l10n.machineTranslation.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
+  @Operation(summary = "Generate translations asynchronously")
   @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
   @ResponseStatus(HttpStatus.OK)
   @Cacheable(MACHINE_TRANSLATION)
@@ -60,6 +62,7 @@ public class MachineTranslationWS {
     return localizedAssetBodyPollableFuture.getPollableTask();
   }
 
+  @Operation(summary = "Return a single Translation")
   @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation")
   @ResponseStatus(HttpStatus.OK)
   @Cacheable(MACHINE_TRANSLATION)

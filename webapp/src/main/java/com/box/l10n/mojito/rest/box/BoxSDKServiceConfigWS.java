@@ -41,7 +41,8 @@ public class BoxSDKServiceConfigWS {
   }
 
   @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.POST)
-  public ResponseEntity setBoxSDKServiceConfig(@RequestBody BoxSDKServiceConfigEntity config) {
+  public ResponseEntity<PollableFuture<BoxSDKServiceConfigEntity>> setBoxSDKServiceConfig(
+      @RequestBody BoxSDKServiceConfigEntity config) {
     try {
       logger.debug("Delete if config already exist");
       boxSDKServiceConfigEntityService.deleteConfig();

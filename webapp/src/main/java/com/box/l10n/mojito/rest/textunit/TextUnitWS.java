@@ -35,6 +35,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -167,6 +168,7 @@ public class TextUnitWS {
    * @return the translations that matches the search parameters
    * @throws InvalidTextUnitSearchParameterException
    */
+  @Operation(summary = "Get the translation history for a given text unit for a particular locale")
   @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/{tmTextUnitId}/history")
   @ResponseStatus(HttpStatus.OK)
   @JsonView(View.TranslationHistorySummary.class)
@@ -275,6 +277,7 @@ public class TextUnitWS {
    * @param textUnitDTOs
    * @return
    */
+  @Operation(summary = "Import batch of text units asynchronously")
   @RequestMapping(method = RequestMethod.POST, value = "/api/textunitsBatch")
   public PollableTask importTextUnitBatch(@RequestBody String string) {
 
@@ -317,6 +320,7 @@ public class TextUnitWS {
     tmTextUnitCurrentVariantService.removeCurrentVariant(textUnitId);
   }
 
+  @Operation(summary = "Run integrity checks on a Text Unit")
   @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/check")
   public TMTextUnitIntegrityCheckResult checkTMTextUnit(
       @RequestBody TextUnitCheckBody textUnitCheckBody) {
@@ -355,6 +359,7 @@ public class TextUnitWS {
    *     database.
    * @throws AssetPathNotFoundException If the asset path is not found in the database.
    */
+  @Operation(summary = "Update a bulk of text unit statistics information asynchronously")
   @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/statistics")
   public PollableTask importStatistics(
       @RequestParam(value = "repositoryName") String repositoryName,
@@ -460,6 +465,7 @@ public class TextUnitWS {
    * @param gitBlameWithUsages
    * @return
    */
+  @Operation(summary = "Save the GitBlame information of the text units asynchronously")
   @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/gitBlameWithUsagesBatch")
   public PollableTask saveGitBlameWithUsages(
       @RequestBody List<GitBlameWithUsage> gitBlameWithUsages) {

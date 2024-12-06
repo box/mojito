@@ -18,6 +18,7 @@ import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityManager;
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -76,6 +77,7 @@ public class DeltaWS {
    *
    * @return The delta of text unit variants, their translations and corresponding metadata.
    */
+  @Operation(summary = "Get paginated Text Unit Variants Deltas for a given set of parameters")
   @RequestMapping(value = "/api/deltas/date", method = RequestMethod.GET)
   public Page<TextUnitVariantDeltaDTO> getDeltasFromDate(
       @RequestParam(value = "repositoryId") Long repositoryId,
@@ -100,6 +102,7 @@ public class DeltaWS {
         deltaService.getDeltasForDates(repository, locales, fromDate, toDate, pageable));
   }
 
+  @Operation(summary = "Get Delta Content for a given set of parameters")
   @RequestMapping(value = "/api/deltas/state", method = RequestMethod.GET)
   public DeltaResponseDTO getDeltasForRuns(
       @RequestParam(value = "repositoryId") Long repositoryId,
