@@ -87,6 +87,11 @@
             <version>3.9</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
+
         <!-- Okapi -->
         <dependency>
             <groupId>net.sf.okapi</groupId>

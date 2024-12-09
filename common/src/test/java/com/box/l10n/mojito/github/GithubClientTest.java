@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.github;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Assume;
@@ -22,6 +24,7 @@ import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHCommit;
 import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHLabel;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
@@ -69,6 +72,17 @@ public class GithubClientTest {
     Assume.assumeNotNull(githubClient);
     githubClient.gitHubClient = gitHubMock;
     githubClient.githubAppInstallationToken = ghAppInstallationTokenMock;
+    githubClient.maxRetries = 3;
+    githubClient.retryMinBackoff = Duration.ofMillis(1);
+    githubClient.retryMaxBackoff = Duration.ofMillis(10);
+    Mockito.reset(
+        githubClient,
+        gitHubMock,
+        ghRepoMock,
+        ghPullRequestMock,
+        ghCommitMock,
+        ghCommitPointerMock,
+        ghUserMock);
     when(gitHubMock.isCredentialValid()).thenReturn(true);
     when(gitHubMock.getRepository(isA(String.class))).thenReturn(ghRepoMock);
     when(ghRepoMock.getPullRequest(isA(Integer.class))).thenReturn(ghPullRequestMock);
@@ -175,6 +189,43 @@ public class GithubClientTest {
     doReturn(gitHubMock).when(githubClient).createGithubClient(isA(String.class));
     assertEquals("mockSha", githubClient.getPRBaseCommit("testRepo", 1));
     verify(githubClient, times(1)).createGithubClient("testRepo");
+  }
+
+  @Test
+  public void testRetryLogicForAddCommentToPR() throws IOException {
+    when(gitHubMock.getRepository(isA(String.class)))
+        .thenThrow(new IOException("network issue"))
+        .thenThrow(new IOException("network issue"))
+        .thenReturn(ghRepoMock);
+
+    githubClient.addCommentToPR("testRepo", 1, "Test comment");
+
+    verify(gitHubMock, times(3)).getRepository("testOwner/testRepo");
+    verify(ghPullRequestMock, times(1)).comment("Test comment");
+  }
+
+  @Test
+  public void testAddLabelToPRWithRetry() throws IOException {
+
+    when(gitHubMock.getRepository(isA(String.class)))
+        .thenThrow(new IOException("network issue"))
+        .thenThrow(new IOException("network issue"))
+        .thenReturn(ghRepoMock);
+
+    githubClient.addLabelToPR("testRepo", 1, "new-label");
+
+    verify(gitHubMock, times(3)).getRepository("testOwner/testRepo");
+    verify(ghPullRequestMock, times(1)).addLabels("new-label");
+  }
+
+  @Test
+  public void testIsLabelAppliedToPRWithRetry() throws IOException {
+    GHLabel ghLabelMock = Mockito.mock(GHLabel.class);
+    when(ghLabelMock.getName()).thenReturn("bug");
+    when(ghPullRequestMock.getLabels())
+        .thenThrow(new GithubException("some error"))
+        .thenReturn(List.of(ghLabelMock));
+    assertTrue(githubClient.isLabelAppliedToPR("testOwner/testRepo", 1, "bug"));
   }
 
   @Configuration

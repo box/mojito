@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.github;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,10 @@ public class GithubClients {
                         e.getValue().getKey(),
                         e.getValue().getOwner(),
                         e.getValue().getTokenTTL(),
-                        e.getValue().getEndpoint())));
+                        e.getValue().getEndpoint(),
+                        e.getValue().getMaxRetries(),
+                        Duration.ofSeconds(e.getValue().getRetryMinBackoffSecs()),
+                        Duration.ofSeconds(e.getValue().getRetryMaxBackoffSecs()))));
   }
 
   public GithubClient getClient(String owner) {

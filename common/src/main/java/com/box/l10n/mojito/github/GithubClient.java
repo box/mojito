@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,8 @@ import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 public class GithubClient {
 
@@ -35,24 +38,28 @@ public class GithubClient {
   private static Logger logger = LoggerFactory.getLogger(GithubClient.class);
 
   private final String appId;
-
   private final String owner;
-
   private final long tokenTTL;
-
   private final String key;
-
   private GithubJWT githubJWT;
-
   private PrivateKey signingKey;
-
   private final String endpoint;
 
   protected GHAppInstallationToken githubAppInstallationToken;
-
   protected GitHub gitHubClient;
+  protected int maxRetries;
+  protected Duration retryMinBackoff;
+  protected Duration retryMaxBackoff;
 
-  public GithubClient(String appId, String key, String owner, long tokenTTL, String endpoint) {
+  public GithubClient(
+      String appId,
+      String key,
+      String owner,
+      long tokenTTL,
+      String endpoint,
+      int maxRetries,
+      Duration retryMinBackoff,
+      Duration retryMaxBackoff) {
     this.appId = appId;
     this.key = key;
     if (owner == null || owner.isEmpty()) {
@@ -63,10 +70,21 @@ public class GithubClient {
     this.tokenTTL = tokenTTL;
     this.endpoint =
         endpoint.endsWith("/") ? endpoint.substring(0, endpoint.length() - 1) : endpoint;
+    this.maxRetries = maxRetries;
+    this.retryMinBackoff = retryMinBackoff;
+    this.retryMaxBackoff = retryMaxBackoff;
   }
 
   public GithubClient(String appId, String key, String owner) {
-    this(appId, key, owner, 60000L, "https://api.github.com");
+    this(
+        appId,
+        key,
+        owner,
+        60000L,
+        "https://api.github.com",
+        3,
+        Duration.ofSeconds(5),
+        Duration.ofSeconds(60));
   }
 
   private PrivateKey createPrivateKey(String key)
@@ -79,48 +97,62 @@ public class GithubClient {
 
   public GHIssueComment addCommentToPR(String repository, int prNumber, String comment) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      return getGithubClient(repository)
-          .getRepository(getRepositoryPath(repository))
-          .getPullRequest(prNumber)
-          .comment(comment);
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      logger.error(
-          String.format(
-              "Error adding comment to PR %d in repository '%s': %s",
-              prNumber, repoFullPath, e.getMessage()),
-          e);
-    }
 
-    return null;
+    return Mono.fromCallable(
+            () ->
+                getGithubClient(repository)
+                    .getRepository(getRepositoryPath(repository))
+                    .getPullRequest(prNumber)
+                    .comment(comment))
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error adding comment to PR %d in repository '%s': %s",
+                        prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .block();
   }
 
   public GHIssueComment updateOrAddCommentToPR(
       String repository, int prNumber, String comment, String commentRegex) {
     Pattern commentPattern = Pattern.compile(commentRegex, Pattern.DOTALL);
-    try {
-      Optional<GHIssueComment> githubComment =
-          this.getGithubClient(repository)
-              .getRepository(this.getRepositoryPath(repository))
-              .getPullRequest(prNumber)
-              .getComments()
-              .stream()
-              .filter(actualComment -> commentPattern.matcher(actualComment.getBody()).matches())
-              .findFirst();
-      if (githubComment.isPresent()) {
-        githubComment.get().update(comment);
-        return githubComment.get();
-      } else {
-        return this.addCommentToPR(repository, prNumber, comment);
-      }
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      logger.error(
-          String.format(
-              "Error updating/adding a comment to PR %d in repository '%s': %s",
-              prNumber, this.getRepositoryPath(repository), e.getMessage()),
-          e);
-    }
-    return null;
+
+    return Mono.fromCallable(
+            () -> {
+              Optional<GHIssueComment> githubComment =
+                  this.getGithubClient(repository)
+                      .getRepository(this.getRepositoryPath(repository))
+                      .getPullRequest(prNumber)
+                      .getComments()
+                      .stream()
+                      .filter(
+                          actualComment ->
+                              commentPattern.matcher(actualComment.getBody()).matches())
+                      .findFirst();
+              if (githubComment.isPresent()) {
+                githubComment.get().update(comment);
+                return githubComment.get();
+              } else {
+                return this.addCommentToPR(repository, prNumber, comment);
+              }
+            })
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error updating/adding a comment to PR %d in repository '%s': %s",
+                        prNumber, this.getRepositoryPath(repository), e.getMessage()),
+                    e))
+        .block();
   }
 
   public void addStatusToCommit(
@@ -131,143 +163,234 @@ public class GithubClient {
       String statusContext,
       String targetUrl) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .createCommitStatus(commitSha, statusState, targetUrl, statusDescription, statusContext);
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error adding status to commit %s in repository '%s': %s",
-              commitSha, repoFullPath, e.getMessage());
-      logger.error(message);
-      throw new GithubException(message, e);
-    }
+
+    Mono.fromRunnable(
+            () -> {
+              try {
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .createCommitStatus(
+                        commitSha, statusState, targetUrl, statusDescription, statusContext);
+              } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                String message =
+                    String.format(
+                        "Error adding status to commit %s in repository '%s': %s",
+                        commitSha, repoFullPath, e.getMessage());
+                logger.error(message);
+                throw new GithubException(message, e);
+              }
+            })
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error adding status to commit %s in repository '%s': %s",
+                        commitSha, repoFullPath, e.getMessage()),
+                    e))
+        .block();
   }
 
   public void addCommentToCommit(String repository, String commitSha1, String comment) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      getGithubClient(repository)
-          .getRepository(getRepositoryPath(repository))
-          .getCommit(commitSha1)
-          .createComment(comment);
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error adding comment to commit %s in repository '%s': %s",
-              commitSha1, repoFullPath, e.getMessage());
-      logger.error(message, e);
-      throw new GithubException(message, e);
-    }
+
+    Mono.fromRunnable(
+            () -> {
+              try {
+                getGithubClient(repository)
+                    .getRepository(getRepositoryPath(repository))
+                    .getCommit(commitSha1)
+                    .createComment(comment);
+              } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                String message =
+                    String.format(
+                        "Error adding comment to commit %s in repository '%s': %s",
+                        commitSha1, repoFullPath, e.getMessage());
+                logger.error(message, e);
+                throw new GithubException(message, e);
+              }
+            })
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error adding comment to commit %s in repository '%s': %s",
+                        commitSha1, repoFullPath, e.getMessage()),
+                    e))
+        .block();
   }
 
   public String getPRBaseCommit(String repository, int prNumber) {
     String repoFullPath = getRepositoryPath(repository);
 
-    try {
-      return getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .getPullRequest(prNumber)
-          .getBase()
-          .getSha();
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error retrieving base commit for PR %d in repository '%s': %s",
-              prNumber, repoFullPath, e.getMessage());
-      logger.error(message, e);
-      throw new GithubException(message, e);
-    }
+    return Mono.fromCallable(
+            () ->
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .getPullRequest(prNumber)
+                    .getBase()
+                    .getSha())
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error retrieving base commit for PR %d in repository '%s': %s",
+                        prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .onErrorReturn("")
+        .block();
   }
 
   public String getPRAuthorEmail(String repository, int prNumber) {
     String repoFullPath = getRepositoryPath(repository);
 
-    try {
-      return getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .getPullRequest(prNumber)
-          .getUser()
-          .getEmail();
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error getting author email for PR %d in repository '%s': %s",
-              prNumber, repoFullPath, e.getMessage());
-      logger.error(message, e);
-      throw new GithubException(message, e);
-    }
+    return Mono.fromCallable(
+            () ->
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .getPullRequest(prNumber)
+                    .getUser()
+                    .getEmail())
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error getting author email for PR %d in repository '%s': %s",
+                        prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .onErrorReturn("")
+        .block();
   }
 
   public void addLabelToPR(String repository, int prNumber, String labelName) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .getPullRequest(prNumber)
-          .addLabels(labelName);
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error adding label '%s' to PR %d in repository '%s': %s",
-              labelName, prNumber, repoFullPath, e.getMessage());
-      logger.error(message, e);
-      throw new GithubException(message, e);
-    }
+
+    Mono.fromRunnable(
+            () -> {
+              try {
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .getPullRequest(prNumber)
+                    .addLabels(labelName);
+              } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                String message =
+                    String.format(
+                        "Error adding label '%s' to PR %d in repository '%s': %s",
+                        labelName, prNumber, repoFullPath, e.getMessage());
+                logger.error(message, e);
+                throw new GithubException(message, e);
+              }
+            })
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error adding label '%s' to PR %d in repository '%s': %s",
+                        labelName, prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .block();
   }
 
   public void removeLabelFromPR(String repository, int prNumber, String labelName) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .getPullRequest(prNumber)
-          .removeLabel(labelName);
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error removing label '%s' from PR %d in repository '%s': %s",
-              labelName, prNumber, repoFullPath, e.getMessage());
-      logger.error(message, e);
-      throw new GithubException(message, e);
-    }
+
+    Mono.fromRunnable(
+            () -> {
+              try {
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .getPullRequest(prNumber)
+                    .removeLabel(labelName);
+              } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                String message =
+                    String.format(
+                        "Error removing label '%s' from PR %d in repository '%s': %s",
+                        labelName, prNumber, repoFullPath, e.getMessage());
+                logger.error(message, e);
+                throw new GithubException(message, e);
+              }
+            })
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error removing label '%s' from PR %d in repository '%s': %s",
+                        labelName, prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .block();
   }
 
   public boolean isLabelAppliedToPR(String repository, int prNumber, String labelName) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      return getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .getPullRequest(prNumber)
-          .getLabels()
-          .stream()
-          .anyMatch(ghLabel -> ghLabel.getName().equals(labelName));
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error reading labels for PR %d in repository '%s' : '%s'",
-              prNumber, repoFullPath, e.getMessage());
-      logger.error(message);
-      throw new GithubException(message, e);
-    }
+
+    return Mono.fromCallable(
+            () ->
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .getPullRequest(prNumber)
+                    .getLabels()
+                    .stream()
+                    .anyMatch(ghLabel -> ghLabel.getName().equals(labelName)))
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error reading labels for PR %d in repository '%s' : '%s'",
+                        prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .onErrorReturn(false)
+        .block();
   }
 
   public List<GHIssueComment> getPRComments(String repository, int prNumber) {
     String repoFullPath = getRepositoryPath(repository);
-    try {
-      return getGithubClient(repository)
-          .getRepository(repoFullPath)
-          .getPullRequest(prNumber)
-          .getComments();
-    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      String message =
-          String.format(
-              "Error retrieving comments for PR %d in repository '%s': %s",
-              prNumber, repoFullPath, e.getMessage());
-      logger.error(message, e);
-      throw new GithubException(message, e);
-    }
+
+    return Mono.fromCallable(
+            () ->
+                getGithubClient(repository)
+                    .getRepository(repoFullPath)
+                    .getPullRequest(prNumber)
+                    .getComments())
+        .retryWhen(
+            Retry.backoff(maxRetries, (retryMinBackoff))
+                .maxBackoff(retryMaxBackoff)
+                .filter(e -> e instanceof IOException || e instanceof GithubException))
+        .doOnError(
+            e ->
+                logger.error(
+                    String.format(
+                        "Error retrieving comments for PR %d in repository '%s': %s",
+                        prNumber, repoFullPath, e.getMessage()),
+                    e))
+        .onErrorReturn(List.of())
+        .block();
   }
 
   public String getOwner() {
@@ -287,7 +410,6 @@ public class GithubClient {
     if (githubAppInstallationToken == null
         || githubAppInstallationToken.getExpiresAt().getTime()
             <= System.currentTimeMillis() - 30000) {
-      // Existing installation token has less than 30 seconds before expiry, get new token
       GitHub gitHub =
           new GitHubBuilder()
               .withEndpoint(getEndpoint())
@@ -296,7 +418,6 @@ public class GithubClient {
       githubAppInstallationToken =
           gitHub.getApp().getInstallationByRepository(owner, repository).createToken().create();
     }
-
     return githubAppInstallationToken;
   }
 
@@ -320,10 +441,8 @@ public class GithubClient {
     if (githubJWT != null && now.getTime() <= (githubJWT.getExpiryTime().getTime() - 30000)) {
       return githubJWT;
     } else {
-      // Existing JWT has less than 30 seconds before expiry, create new token
       githubJWT = createGithubJWT(ttlMillis, now);
     }
-
     return githubJWT;
   }
 
@@ -350,7 +469,6 @@ public class GithubClient {
     if (signingKey == null) {
       signingKey = createPrivateKey(key);
     }
-
     return signingKey;
   }
 
@@ -359,7 +477,6 @@ public class GithubClient {
     if (gitHubClient == null || !gitHubClient.isCredentialValid()) {
       gitHubClient = createGithubClient(repository);
     }
-
     return gitHubClient;
   }
 }

@@ -12,6 +12,12 @@ public class GithubClientConfiguration {
 
   String endpoint = "https://api.github.com";
 
+  int maxRetries = 3;
+
+  int retryMinBackoffSecs = 5;
+
+  int retryMaxBackoffSecs = 60;
+
   public String getAppId() {
     return appId;
   }
@@ -50,5 +56,29 @@ public class GithubClientConfiguration {
 
   public void setEndpoint(String endpoint) {
     this.endpoint = endpoint;
+  }
+
+  public int getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(int maxRetries) {
+    this.maxRetries = maxRetries;
+  }
+
+  public int getRetryMinBackoffSecs() {
+    return retryMinBackoffSecs;
+  }
+
+  public void setRetryMinBackoffSecs(int retryMinBackoffSecs) {
+    this.retryMinBackoffSecs = retryMinBackoffSecs;
+  }
+
+  public int getRetryMaxBackoffSecs() {
+    return retryMaxBackoffSecs;
+  }
+
+  public void setRetryMaxBackoffSecs(int retryMaxBackoffSecs) {
+    this.retryMaxBackoffSecs = retryMaxBackoffSecs;
   }
 }
