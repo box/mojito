@@ -55,16 +55,16 @@ public class AITranslationService {
 
   @Transactional
   public void createPendingMTEntitiesInBatches(Long repositoryId, Set<Long> tmTextUnitIds) {
-    if (tmTextUnitIds.size() > maxTextUnitsAIRequest) {
-      logger.warn(
-          "Number of text units ({}) exceeds the maximum number of text units that can be sent for AI translation per request ({}). AI translation will be skipped.",
-          tmTextUnitIds.size(),
-          maxTextUnitsAIRequest);
-      return;
-    }
     if (repositoryLocaleAIPromptRepository.findCountOfActiveRepositoryPromptsByType(
             repositoryId, PromptType.TRANSLATION.toString())
         > 0) {
+      if (tmTextUnitIds.size() > maxTextUnitsAIRequest) {
+        logger.warn(
+            "Number of text units ({}) exceeds the maximum number of text units that can be sent for AI translation per request ({}). AI translation will be skipped.",
+            tmTextUnitIds.size(),
+            maxTextUnitsAIRequest);
+        return;
+      }
       createPendingMTEntitiesInBatches(tmTextUnitIds);
     } else {
       logger.debug("No active prompts for repository: {}, no job scheduled", repositoryId);
