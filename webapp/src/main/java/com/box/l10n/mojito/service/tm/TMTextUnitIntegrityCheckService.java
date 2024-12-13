@@ -52,11 +52,12 @@ public class TMTextUnitIntegrityCheckService {
         try {
           textUnitChecker.check(tmTextUnit.getContent(), contentToCheck);
         } catch (IntegrityCheckException e) {
-          if (tmTextUnit.getPluralForm() != null && pluralIntegrityCheckerRelaxer.shouldRelaxIntegrityCheck(
-              tmTextUnit.getContent(),
-              contentToCheck,
-              tmTextUnit.getPluralForm().getName(),
-              textUnitChecker)) {
+          if (tmTextUnit.getPluralForm() != null
+              && pluralIntegrityCheckerRelaxer.shouldRelaxIntegrityCheck(
+                  tmTextUnit.getContent(),
+                  contentToCheck,
+                  tmTextUnit.getPluralForm().getName(),
+                  textUnitChecker)) {
             logger.debug(
                 "Relaxing the check for plural string with form: {}",
                 tmTextUnit.getPluralForm().getName());

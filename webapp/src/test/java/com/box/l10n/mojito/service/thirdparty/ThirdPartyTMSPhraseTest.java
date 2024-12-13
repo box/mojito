@@ -110,10 +110,9 @@ public class ThirdPartyTMSPhraseTest extends ServiceTestBase {
   public void testUploadTagToLocalDateTimeValid() {
     LocalDateTime localDateTime = uploadTagToLocalDateTime("push_test_2024_11_21_18_55_38_004_502");
     assertEquals(
-      "Parsed LocalDateTime does not match the expected value",
-      "2024-11-21T18:55:38.004",
-        localDateTime.format(DateTimeFormatter.ISO_DATE_TIME)
-       );
+        "Parsed LocalDateTime does not match the expected value",
+        "2024-11-21T18:55:38.004",
+        localDateTime.format(DateTimeFormatter.ISO_DATE_TIME));
   }
 
   @Test
