@@ -193,6 +193,7 @@ public class AiTranslateService {
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
     textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
     textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
+    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
     if (tmTextUnitIds != null) {
       logger.debug(
           "Using tmTextUnitIds: {} for ai translate repository: {}",
