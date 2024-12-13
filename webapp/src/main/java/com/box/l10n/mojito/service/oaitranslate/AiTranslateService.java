@@ -39,6 +39,7 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -456,6 +457,7 @@ public class AiTranslateService {
       textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
       textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
       textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
+      textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
       List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
       CreateBatchResponse createBatchResponse = null;
