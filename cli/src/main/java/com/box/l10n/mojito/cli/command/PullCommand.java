@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -302,12 +301,6 @@ public class PullCommand extends Command {
       throws CommandException {
 
     logger.debug("Generate localized files with locale mapping");
-
-    List<RepositoryLocale> repositoryLocales =
-        localeMappings.entrySet().stream()
-            .map(entry -> getRepositoryLocaleForOutputBcp47Tag(entry.getKey()))
-            .distinct()
-            .collect(Collectors.toList());
 
     for (Map.Entry<String, String> localeMapping : localeMappings.entrySet()) {
       String outputBcp47tag = localeMapping.getKey();
