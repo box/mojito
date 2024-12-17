@@ -49,7 +49,7 @@ export default class User {
      * @returns {String}
      */
     getRole() {
-        if (this.authorities.length == 1) {
+        if (this.authorities.length === 1) {
             return this.authorities[0].authority;
         }
         return UserStatics.authorityUser();

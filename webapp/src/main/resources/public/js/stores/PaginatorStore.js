@@ -1,6 +1,6 @@
 class PaginatorStore {
 
-    constructor(actions) {
+    constructor() {
         this.setDefaultState();
     }
 

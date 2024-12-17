@@ -18,7 +18,7 @@ class BranchesHistoryStore {
 
     setDefaultState() {
         // use to skip location update (Initiated by the BranchesPage) when
-        // this store is initializing from the browser location or to do 
+        // this store is initializing from the browser location or to do
         // group updates together
         this.skipLocationHistoryUpdate = false;
 
@@ -46,11 +46,11 @@ class BranchesHistoryStore {
     }
 
     changeCreatedBefore(createdBefore) {
-        this.createdBefore = createdBefore
+        this.createdBefore = createdBefore;
     }
 
     changeCreatedAfter(createdAfter) {
-        this.createdAfter = createdAfter
+        this.createdAfter = createdAfter;
     }
 
     changeSearchText(searchText) {
@@ -90,14 +90,15 @@ class BranchesHistoryStore {
     }
 
     static getQueryParams() {
-        let params = this.getState();
+        const params = this.getState();
         delete params.skipLocationHistoryUpdate;
         return params;
     }
 
     static initStoreFromLocationQuery(query) {
-        let {
-            openBranchStatistic, currentPageNumber = 1, searchText,
+        let { searchText } = query;
+        const {
+            openBranchStatistic, currentPageNumber = 1,
             deleted = "false", undeleted = "true", empty = "true", notEmpty = "true", onlyMyBranches = "true",
             createdBefore = null, createdAfter = null
         } = query;
@@ -129,10 +130,10 @@ class BranchesHistoryStore {
         BranchesSearchParamsActions.changeNotEmpty(notEmpty === "true");
         BranchesSearchParamsActions.changeOnlyMyBranches(onlyMyBranches === "true");
         if (createdBefore !== null) {
-            BranchesSearchParamsActions.changeCreatedBefore(createdBefore)
+            BranchesSearchParamsActions.changeCreatedBefore(createdBefore);
         }
         if (createdAfter !== null) {
-            BranchesSearchParamsActions.changeCreatedAfter(createdAfter)
+            BranchesSearchParamsActions.changeCreatedAfter(createdAfter);
         }
 
         if (openBranchStatistic) {

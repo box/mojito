@@ -1,4 +1,4 @@
-import Branch from "./Branch"
+import Branch from "./Branch";
 import BranchTextUnitStatistics from "./BranchTextUnitStatistics";
 const totalCountLte = 30000;
 
@@ -50,7 +50,7 @@ export default class BranchStatisticsContent {
     }
 
     static toContent(json) {
-        let result = new BranchStatisticsContent();
+        const result = new BranchStatisticsContent();
         if (json) {
             result.id = json.id;
             result.branch = Branch.toBranch(json.branch);
@@ -75,10 +75,10 @@ export default class BranchStatisticsContent {
      * @return {RepositoryLocaleStatistic[]}
      */
     static toContentList(jsons) {
-        let results = [];
+        const results = [];
 
         if (jsons && jsons.length > 0) {
-            for (let json of jsons) {
+            for (const json of jsons) {
                 results.push(this.toContent(json));
             }
         }

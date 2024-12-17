@@ -96,7 +96,7 @@ export default class Drop {
         return this.status;
     }
 
-    setStatus(status) {
+    setStatus() {
         return this.status;
     }
 
@@ -213,12 +213,12 @@ export default class Drop {
      * @return {Drop}
      */
     static toDrop(json) {
-        let result = new Drop();
+        const result = new Drop();
 
         result.id = json.id;
 
         // @NOTE dropExporterConfig can be null.  This is because before Drops are done processing but after it was first
-        // created, this property is null. 
+        // created, this property is null.
         if (json.dropExporterConfig) {
             result.dropExporterConfig = DropExporterConfig.toDropExporterConfig(json.dropExporterConfig);
         }
@@ -268,7 +268,7 @@ export default class Drop {
 
         var results = [];
 
-        for (let drop of jsons) {
+        for (const drop of jsons) {
             results.push(Drop.toDrop(drop));
         }
 

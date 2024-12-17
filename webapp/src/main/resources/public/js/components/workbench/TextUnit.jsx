@@ -20,13 +20,9 @@ import TranslationHistoryActions from "../../actions/workbench/TranslationHistor
 import Locales from "../../utils/Locales";
 import AuthorityService from "../../utils/AuthorityService";
 import {
-    Grid,
-    Row,
-    Col,
     Button,
     ButtonToolbar,
     FormControl,
-    Input,
     Label,
     Glyphicon,
     Modal,

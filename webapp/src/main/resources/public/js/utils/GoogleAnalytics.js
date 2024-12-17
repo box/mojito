@@ -22,7 +22,7 @@ class GoogleAnalytics {
         let hash = 0;
 
         for (let i = 0; i < string.length; i++) {
-            let chr = string.charCodeAt(i);
+            const chr = string.charCodeAt(i);
             hash = ((hash << 5) - hash) + chr;
             hash |= 0;
         }

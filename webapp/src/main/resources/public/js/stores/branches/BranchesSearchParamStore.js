@@ -24,11 +24,11 @@ class BranchesSearchParamStore {
     }
 
     changeCreatedBefore(createdBefore) {
-        this.createdBefore = createdBefore
+        this.createdBefore = createdBefore;
     }
 
     changeCreatedAfter(createdAfter) {
-        this.createdAfter = createdAfter
+        this.createdAfter = createdAfter;
     }
 
     changeDeleted(deleted) {

@@ -5,5 +5,5 @@ export default class PageRequestParams {
 
         /** @type {Number} */
         this.size = size;
-    } 
+    }
 }

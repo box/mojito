@@ -38,7 +38,7 @@ chrome.storage.onChanged.addListener((changes) => {
         }
 
         if (key === 'mtEnabled' && config[key]) {
-            ict.setMTEnabled(config.mtEnabled)
+            ict.setMTEnabled(config.mtEnabled);
         }
     }
 });

@@ -1,6 +1,5 @@
 import alt from "../../alt";
 
-import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigDataSource from "./BoxSDKConfigDataSource";
 import PollableTaskClient from "../../sdk/PollableTaskClient";
@@ -14,7 +13,7 @@ class BoxSDKConfigStore {
 
         /** @type {PollableTaskFuture} */
         this.boxSDKConfigPollableTaskFuture = null;
-        
+
         /** @Type {Boolean} */
         this.isBeingProcessed = false;
 
@@ -33,11 +32,11 @@ class BoxSDKConfigStore {
      * @param {BoxSDKConfig} result
      */
     onGetConfigSuccess(result) {
-        this.setState({"boxSDKConfig": result});
+        this.setState({ "boxSDKConfig": result });
     }
 
     onGetConfigError() {
-        
+
     }
 
     /**
@@ -53,13 +52,13 @@ class BoxSDKConfigStore {
     onSetConfigSuccess(pollableTaskFuture) {
         this.boxSDKConfigPollableTaskFuture = pollableTaskFuture;
 
-        let pollableTask = pollableTaskFuture.pollableTask;
+        const pollableTask = pollableTaskFuture.pollableTask;
         if (!pollableTask.isAllFinished) {
-            this.setState({"isBeingProcessed": true});
+            this.setState({ "isBeingProcessed": true });
             PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id)
                 .then(() => {
                     this.onGetConfig();
-                    this.setState({"isBeingProcessed": false});
+                    this.setState({ "isBeingProcessed": false });
                 });
         } else {
             this.isBeingProcessed = false;

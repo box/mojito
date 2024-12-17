@@ -32,7 +32,7 @@ class SearchParamsStore {
      */
     static convertQueryToSearchParams(query) {
 
-        let {
+        const {
             searchAttribute, searchText, searchType,
             status, used, unUsed, translate, doNotTranslate, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter,
             pageSize, currentPageNumber, pageOffset,
@@ -68,7 +68,7 @@ class SearchParamsStore {
             }
         }
 
-        let converted = {
+        const converted = {
             "changedParam": SearchConstants.UPDATE_ALL_LOCATION_UPDATE,
             "repoIds": typeof repoIds !== "undefined" ? repoIds : null,
             "repoNames": typeof repoNames !== "undefined" ? repoNames : null,
@@ -99,7 +99,7 @@ class SearchParamsStore {
      * repositories.
      */
     filterBcp47TagsForSelectedRepositories() {
-        let bcp47TagsOfSelectedRepository = RepositoryStore.getAllBcp47TagsForRepositoryIds(this.repoIds);
+        const bcp47TagsOfSelectedRepository = RepositoryStore.getAllBcp47TagsForRepositoryIds(this.repoIds);
         this.bcp47Tags = _.intersection(this.bcp47Tags, bcp47TagsOfSelectedRepository);
     }
 
@@ -198,7 +198,7 @@ class SearchParamsStore {
         if (isAdding) {
             this.pushIfNotExist(arrayState, newValue);
         } else {
-            let foundIndex = arrayState.indexOf(newValue);
+            const foundIndex = arrayState.indexOf(newValue);
             if (foundIndex >= 0) {
                 arrayState.splice(foundIndex, 1);
             }
@@ -339,7 +339,7 @@ class SearchParamsStore {
             this.pageOffset = pageOffset;
     }
 
-    getAllRepositoriesSuccess(repositories) {
+    getAllRepositoriesSuccess() {
         if (this.repoNames && this.repoNames.length > 0) {
             this.waitFor(RepositoryStore);
             this.repoIds = [];

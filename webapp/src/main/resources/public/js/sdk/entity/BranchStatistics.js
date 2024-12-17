@@ -16,7 +16,7 @@ export default class BranchStatistics {
     }
 
     static toBranchStatistics(json) {
-        let result = new BranchStatistics();
+        const result = new BranchStatistics();
 
         if (json) {
             result.hasNext = json.hasNext;

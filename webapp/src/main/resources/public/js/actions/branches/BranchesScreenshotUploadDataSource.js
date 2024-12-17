@@ -3,7 +3,7 @@ import ScreenshotClient from "../../sdk/ScreenshotClient";
 import ScreenshotRun from "../../sdk/entity/ScreenshotRun";
 import BranchesScreenshotUploadActions from "./BranchesScreenshotUploadActions";
 import BranchesStore from "../../stores/branches/BranchesStore";
-import Screenshot, {TextUnit, TmTextUnit} from "../../sdk/entity/Screenshot";
+import Screenshot, { TextUnit, TmTextUnit } from "../../sdk/entity/Screenshot";
 import uuidv4 from "uuid/v4";
 import BranchTextUnitsStore from "../../stores/branches/BranchTextUnitsStore";
 
@@ -19,15 +19,15 @@ const BranchesScreenshotUploadDataSource = {
 
     performUploadScreenshot: {
         remote(state) {
-            let BranchesStoreState = BranchesStore.getState();
+            const BranchesStoreState = BranchesStore.getState();
 
-            let branchStatistic = BranchesStore.getSelectedBranchStatistic();
-            let repository = branchStatistic.branch.repository;
+            const branchStatistic = BranchesStore.getSelectedBranchStatistic();
+            const repository = branchStatistic.branch.repository;
 
-            let screenshotRun =  new ScreenshotRun();
+            const screenshotRun =  new ScreenshotRun();
             screenshotRun.id = repository.manualScreenshotRun.id;
 
-            let screenshot = new Screenshot();
+            const screenshot = new Screenshot();
             screenshotRun.screenshots.push(screenshot);
 
             screenshot.name = uuidv4();

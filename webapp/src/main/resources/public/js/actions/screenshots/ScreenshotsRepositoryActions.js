@@ -1,7 +1,7 @@
 import alt from "../../alt";
 
 class ScreenshotsRepositoryActions {
-    
+
     constructor() {
         this.generateActions(
             "getAllRepositories",

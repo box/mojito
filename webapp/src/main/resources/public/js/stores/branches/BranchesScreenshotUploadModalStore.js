@@ -10,7 +10,7 @@ class BranchesScreenshotUploadModalStore {
         this.setDefaultState();
         this.bindActions(BranchesScreenshotUploadActions);
         this.registerAsync(BranchesScreenshotUploadDataSource);
-        this.supportedImageExtensionsSet = new Set([".png", ".gif", ".tiff", ".jpg",".jpeg"])
+        this.supportedImageExtensionsSet = new Set([".png", ".gif", ".tiff", ".jpg",".jpeg"]);
     }
 
     setDefaultState() {
@@ -32,7 +32,7 @@ class BranchesScreenshotUploadModalStore {
         this.errorMessage = null;
     }
 
-    openWithBranch(branch) {
+    openWithBranch() {
         this.show = true;
     }
 
@@ -42,12 +42,12 @@ class BranchesScreenshotUploadModalStore {
 
     uploadScreenshotImage() {
         if (this.isImageExtensionSupported(this.fileToUpload.name)) {
-            let generatedUuid = v4() + this.fileToUpload.name;
+            const generatedUuid = v4() + this.fileToUpload.name;
             this.screenshotSrc = 'api/images/' + generatedUuid;
             this.uploadInProgress = true;
             this.getInstance().performUploadScreenshotImage(generatedUuid);
         } else {
-            this.errorMessage =  this.fileToUpload.name + " is not in .png, .gif, .tiff, .jpg or .jpeg format."
+            this.errorMessage =  this.fileToUpload.name + " is not in .png, .gif, .tiff, .jpg or .jpeg format.";
         }
     }
 
@@ -93,16 +93,16 @@ class BranchesScreenshotUploadModalStore {
         this.imageForUpload = imageForUpload;
     }
 
-    isImageExtensionSupported(name) {
-        let fileExtension = this.fileToUpload.name.substring(this.fileToUpload.name.lastIndexOf(".")).toLowerCase();
+    isImageExtensionSupported() {
+        const fileExtension = this.fileToUpload.name.substring(this.fileToUpload.name.lastIndexOf(".")).toLowerCase();
         return this.supportedImageExtensionsSet.has(fileExtension);
     }
 
     loadImage() {
       if (this.fileToUpload) {
 
-            let readerPreview = new FileReader();
-            let readerUpload = new FileReader();
+            const readerPreview = new FileReader();
+            const readerUpload = new FileReader();
 
             readerPreview.onloadend = () => {
                 BranchesScreenshotUploadActions.changeImageForPreview(readerPreview.result);

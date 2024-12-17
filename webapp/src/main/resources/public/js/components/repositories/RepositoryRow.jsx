@@ -1,6 +1,6 @@
 import React from "react";
-import {ProgressBar, Tooltip, OverlayTrigger, Label, Glyphicon} from "react-bootstrap";
-import {FormattedMessage, FormattedDate, FormattedNumber} from "react-intl";
+import {Tooltip, OverlayTrigger, Label, Glyphicon} from "react-bootstrap";
+import {FormattedMessage, FormattedNumber} from "react-intl";
 import {Link} from "react-router";
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchConstants from "../../utils/SearchConstants";

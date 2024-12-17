@@ -9,12 +9,12 @@ class UrlHelper {
     }
 
     toQueryString(params) {
-        let encodedParams = [];
+        const encodedParams = [];
         for (const key in params)
             if (params.hasOwnProperty(key)) {
-                let value = params[key];
+                const value = params[key];
                 if (value instanceof Array) {
-                    let arrayKey = key + '[]';
+                    const arrayKey = key + '[]';
                     value.forEach(v => encodedParams.push(encodeURIComponent(arrayKey) + '=' + encodeURIComponent(v)));
                 } else if (value !== null) {
                     encodedParams.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));

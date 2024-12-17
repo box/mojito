@@ -1,10 +1,5 @@
 import alt from "../../alt";
-import Error from "../../utils/Error";
-import TextUnit from "../../sdk/TextUnit";
 import TextUnitDataSource from "../../actions/workbench/TextUnitDataSource";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import SearchParamsStore from "./SearchParamsStore";
-import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
 import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
 
 class TranslationHistoryStore {
@@ -40,7 +35,7 @@ class TranslationHistoryStore {
         this.loading = false;
     }
 
-    onGetTranslationHistoryError(errorResponse) {
+    onGetTranslationHistoryError() {
         this.loading = false;
     }
 

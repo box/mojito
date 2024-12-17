@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React from "react";
 import ReactDOM from "react-dom";
-import {IndexRoute, Route, Router, useRouterHistory} from "react-router";
+import {Route, Router, useRouterHistory} from "react-router";
 import {createHistory} from 'history'
 import {Button, Modal} from "react-bootstrap";
 import {addLocaleData, FormattedMessage, IntlProvider} from "react-intl";
@@ -49,7 +49,6 @@ import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
 import enMessages from '../../properties/en.properties';
 import GoogleAnalytics from "./utils/GoogleAnalytics";
 import ShareSearchParamsModalActions from "./actions/workbench/ShareSearchParamsModalActions";
-import AuthorityService from "./utils/AuthorityService";
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 

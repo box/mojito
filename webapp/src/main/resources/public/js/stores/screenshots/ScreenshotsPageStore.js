@@ -12,22 +12,22 @@ class ScreenshotsPageStore {
 
         this.registerAsync(ScreenshotsPageDataSource);
     }
-    
+
     setDefaultState() {
         this.selectedScreenshotIdx = 0;
-        this.screenshotsData = []; 
+        this.screenshotsData = [];
         this.searching = false;
     }
-    
+
     resetScreenshotSearchParams() {
         this.setDefaultState();
     }
-    
+
     performSearch() {
         this.getInstance().performScreenshotSearch();
         this.searching = true;
     }
-    
+
     changeSelectedScreenshotIdx(selectedScreenshotIdx) {
         this.selectedScreenshotIdx = selectedScreenshotIdx;
     }
@@ -39,23 +39,23 @@ class ScreenshotsPageStore {
         }
         this.searching = false;
     }
-    
+
     changeStatusSuccess(res) {
         if (this.screenshotsData[res.idx]) {
-            this.screenshotsData[res.idx].status = res.status; 
-            this.screenshotsData[res.idx].comment = res.comment; 
+            this.screenshotsData[res.idx].status = res.status;
+            this.screenshotsData[res.idx].comment = res.comment;
         }
     }
-    
+
     static getScreenshotByIdx(screenshotIdx) {
-    
+
         let screenshot = null;
-        let state = this.getState();
-        
+        const state = this.getState();
+
         if(!(screenshotIdx >= state.screenshotsData.length)) {
            screenshot = state.screenshotsData[screenshotIdx];
         }
-        
+
         return screenshot;
     }
 }

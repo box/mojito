@@ -45,10 +45,10 @@ class ScreenshotsRepositoryStore {
      * @return {object} the repository with the id.  null if not found.
      */
     static getRepositoryById(id) {
-        let state = this.getState();
+        const state = this.getState();
         let result = null;
 
-        for (let key of Object.keys(state.repositories)) {
+        for (const key of Object.keys(state.repositories)) {
             if (state.repositories[key].id === id) {
                 result = state.repositories[key];
                 break;
@@ -66,14 +66,14 @@ class ScreenshotsRepositoryStore {
      */
     static getAllBcp47TagsForRepositories(repositories, filteredByFullyTranslated = false, filterRootLocale = false) {
 
-        let bcp47Tags = [];
+        const bcp47Tags = [];
 
         repositories.forEach(repository => {
             if (repository) {
                 repository.repositoryLocales.forEach(repositoryLocale => {
 
-                    let toFilter = (filterRootLocale && RepositoryLocale.isRootLocale(repositoryLocale)) ||
-                        (filteredByFullyTranslated && repositoryLocale.toBeFullyTranslated)
+                    const toFilter = (filterRootLocale && RepositoryLocale.isRootLocale(repositoryLocale)) ||
+                        (filteredByFullyTranslated && repositoryLocale.toBeFullyTranslated);
 
                     if (!toFilter) {
                         bcp47Tags[repositoryLocale.locale.bcp47Tag] = null;
@@ -91,7 +91,7 @@ class ScreenshotsRepositoryStore {
      * @return {string[]}
      */
     static getAllBcp47TagsForRepo(repositoryId) {
-        let repository = this.getRepositoryById(repositoryId);
+        const repository = this.getRepositoryById(repositoryId);
         return this.getAllBcp47TagsForRepositories([repository], false, false);
     }
 
@@ -101,7 +101,7 @@ class ScreenshotsRepositoryStore {
      * @return {string[]}
      */
     static getAllToBeFullyTranslatedBcp47TagsForRepo(repositoryId) {
-        let repository = this.getRepositoryById(repositoryId);
+        const repository = this.getRepositoryById(repositoryId);
         return this.getAllBcp47TagsForRepositories([repository], true, false);
     }
 
@@ -113,7 +113,7 @@ class ScreenshotsRepositoryStore {
      */
     static getAllBcp47TagsForRepositoryIds(repositoryIds, filteredByFullyTranslated = false, filterRootLocale = false) {
 
-        let repositories = [];
+        const repositories = [];
 
         repositoryIds.forEach(repositoryId => repositories.push(this.getRepositoryById(repositoryId)));
 

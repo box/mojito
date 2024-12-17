@@ -1,4 +1,4 @@
-import TmTextUnit from "./TmTextUnit"
+import TmTextUnit from "./TmTextUnit";
 
 export default class BranchTextUnitStatistics {
     constructor() {
@@ -28,7 +28,7 @@ export default class BranchTextUnitStatistics {
     }
 
     static toBranchTextUnitStatistics(json) {
-        let result = new BranchTextUnitStatistics();
+        const result = new BranchTextUnitStatistics();
 
         if (json) {
             result.id = json.id;
@@ -41,10 +41,10 @@ export default class BranchTextUnitStatistics {
     }
 
     static toBranchTextUnitStatisticsList(jsons) {
-        let result = [];
+        const result = [];
 
         if (jsons && jsons.length > 0) {
-            for (let json of jsons) {
+            for (const json of jsons) {
                 result.push(BranchTextUnitStatistics.toBranchTextUnitStatistics(json));
             }
         }

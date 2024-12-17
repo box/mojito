@@ -18,7 +18,7 @@ export default class RepositoryLocale {
      * @return {RepositoryLocale}
      */
     static toRepositoryLocale(json) {
-        let result = new RepositoryLocale();
+        const result = new RepositoryLocale();
 
         result.locale = Locale.toLocale(json.locale);
 
@@ -39,7 +39,7 @@ export default class RepositoryLocale {
         let results = null;
         if (jsons) {
             results = [];
-            for (let json of jsons) {
+            for (const json of jsons) {
                 results.push(RepositoryLocale.toRepositoryLocale(json));
             }
         }

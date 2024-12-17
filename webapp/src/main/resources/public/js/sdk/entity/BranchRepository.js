@@ -24,7 +24,7 @@ export default class BranchRepository {
      * @return {Repository}
      */
     static toBranchRepository(json) {
-        let result = new BranchRepository();
+        const result = new BranchRepository();
 
         if (json) {
             result.id = json.id;

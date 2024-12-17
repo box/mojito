@@ -122,7 +122,7 @@ class TextUnitStore {
      * @returns {Error} The error object for the errorId passed in.
      */
     createErrorObject(errorId) {
-        let error = new Error();
+        const error = new Error();
         error.setErrorId(errorId);
         return error;
     }
@@ -140,7 +140,7 @@ class TextUnitStore {
      * @param {ReviewTextUnitsDTO} reviewTextUnitsDTO
      */
     onReviewTextUnits(reviewTextUnitsDTO) {
-        let {textUnits, comment, textUnitAction} = reviewTextUnitsDTO;
+        const { comment, textUnitAction } = reviewTextUnitsDTO;
 
         reviewTextUnitsDTO.textUnits.forEach(textUnit => {
             textUnit.setTargetComment(comment);

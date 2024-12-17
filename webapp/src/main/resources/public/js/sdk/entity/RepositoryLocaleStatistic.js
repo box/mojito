@@ -22,20 +22,20 @@ export default class RepositoryLocaleStatistic {
         this.reviewNeededCount = 0;
 
         /** @type {Number} */
-        this.reviewNeededWordCount = 0
-        
+        this.reviewNeededWordCount = 0;
+
         /** @type {Number} */
         this.forTranslationCount = 0;
 
         /** @type {Number} */
-        this.forTranslationWordCount = 0
+        this.forTranslationWordCount = 0;
 
         /** @type {Number} */
         this.includeInFileCount = 0;
 
         /** @type {Number} */
         this.includeInFileWordCount = 0;
-        
+
          /** @type {Number} */
         this.diffToSourcePluralCount = 0;
     }
@@ -45,7 +45,7 @@ export default class RepositoryLocaleStatistic {
      * @return {RepositoryLocaleStatistic}
      */
     static toRepositoryLocaleStatistic(json) {
-        let result = new RepositoryLocaleStatistic();
+        const result = new RepositoryLocaleStatistic();
 
         result.locale = Locale.toLocale(json.locale);
         result.translatedCount = json.translatedCount;
@@ -68,9 +68,9 @@ export default class RepositoryLocaleStatistic {
      * @return {RepositoryLocaleStatistic[]}
      */
     static toRepositoryLocaleStatistics(jsons) {
-        let results = [];
+        const results = [];
 
-        for (let json of jsons) {
+        for (const json of jsons) {
             results.push(RepositoryLocaleStatistic.toRepositoryLocaleStatistic(json));
         }
 

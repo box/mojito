@@ -18,7 +18,7 @@ export default class BranchStatisticScreenshot {
      * @return {Repository}
      */
     static toBranchStatisticScreenshot(json) {
-        let result = new BranchStatisticScreenshot();
+        const result = new BranchStatisticScreenshot();
         if (json) {
             result.id = json.id;
             result.src = json.src;
@@ -29,10 +29,10 @@ export default class BranchStatisticScreenshot {
     }
 
     static toBranchStatisticScreenshotList(jsons) {
-        let results = [];
+        const results = [];
 
         if (jsons && jsons.length > 0) {
-            for (let json of jsons) {
+            for (const json of jsons) {
                 results.push(this.toBranchStatisticScreenshot(json));
             }
         }
@@ -49,7 +49,7 @@ class TextUnit {
     }
 
     static toTextUnit(json) {
-        let result = new TextUnit();
+        const result = new TextUnit();
         if (json) {
             result.id = json.id;
             result.tmTextUnit = TmTextUnit.toTmTextUnit(json.tmTextUnit);
@@ -59,10 +59,10 @@ class TextUnit {
     }
 
     static toTextUnits(jsons) {
-        let result = [];
+        const result = [];
 
         if (jsons && jsons.length > 0) {
-            for (let json of jsons) {
+            for (const json of jsons) {
                 result.push(TextUnit.toTextUnit(json));
             }
         }

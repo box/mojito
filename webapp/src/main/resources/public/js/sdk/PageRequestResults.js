@@ -5,8 +5,8 @@ export default class PageRequestResults {
 
         /** @type {Number} */
         this.currentPageNumber = currentPageNumber;
-        
+
         /** @type {Boolean} */
         this.hasMoreResults = hasMoreResults;
-    } 
+    }
 }

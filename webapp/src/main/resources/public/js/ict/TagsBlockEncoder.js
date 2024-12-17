@@ -1,5 +1,5 @@
 class TagsBlockEncoder {
-    
+
     unicodeToTagsBlock(id) {
         var base64 = this.b64EncodeUnicode(id);
         return this.asciiToTagsBlock(base64);
@@ -18,7 +18,7 @@ class TagsBlockEncoder {
 
         return res;
     }
-    
+
     b64EncodeUnicode(str) {
         // from MDN: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
         // first we use encodeURIComponent to get percent-encoded UTF-8,

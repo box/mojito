@@ -5,7 +5,6 @@ import SearchDataSource from "../../actions/workbench/SearchDataSource";
 import SearchParamsStore from "./SearchParamsStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import RepositoryActions from "../../actions/RepositoryActions";
-import TextUnit from "../../sdk/TextUnit";
 import textUnitStore from "./TextUnitStore";
 
 class SearchResultsStore {
@@ -45,10 +44,10 @@ class SearchResultsStore {
     onSearchParamsChanged() {
         this.waitFor(SearchParamsStore);
 
-        let searchParamsStoreState = SearchParamsStore.getState();
-        
+        const searchParamsStoreState = SearchParamsStore.getState();
+
         if (SearchParamsStore.isReadyForSearching(searchParamsStoreState)) {
-            let newState = {
+            const newState = {
                 "noMoreResults": false,
                 "isSearching": true,
                 "searchHadNoResults": false
@@ -76,7 +75,6 @@ class SearchResultsStore {
      */
     onSearchResultsReceivedSuccess(response) {
         this.waitFor(SearchParamsStore);
-        let paramsStoreState = SearchParamsStore.getState();
         this.noMoreResults = !response.hasMore;
         this.searchResults = response.textUnits;
         this.isSearching = false;
@@ -91,7 +89,7 @@ class SearchResultsStore {
         this.searchResults = [];
         this.noMoreResults = true;
         this.isSearching = false;
-        let errorObject = this.createErrorObject(Error.IDS.SEARCH_QUERY_FAILED);
+        const errorObject = this.createErrorObject(Error.IDS.SEARCH_QUERY_FAILED);
         this.setErrorState(errorObject, errorResponse);
     }
 
@@ -102,9 +100,9 @@ class SearchResultsStore {
      */
     onTextUnitSelection(textUnit) {
 
-        for (let textUnitInStore of this.searchResults) {
+        for (const textUnitInStore of this.searchResults) {
             if (textUnitInStore.equals(textUnit)) {
-                let textUnitInStoreId = textUnitInStore.getTextUnitKey();
+                const textUnitInStoreId = textUnitInStore.getTextUnitKey();
                 if (typeof this.selectedTextUnitsMap[textUnitInStoreId] === "undefined") {
                     this.selectedTextUnitsMap[textUnitInStoreId] = textUnitInStore;
                 } else {
@@ -119,19 +117,19 @@ class SearchResultsStore {
      * @param {TextUnit[]} textUnits
      */
     onDeleteTextUnits(textUnits) {
-        
+
         this.waitFor(textUnitStore.dispatchToken);
 
         textUnits.forEach(textUnit => {
-            let deletedTextUnit = textUnit;
-            let currentSearchParams = SearchParamsStore.getState();
+            const deletedTextUnit = textUnit;
+            const currentSearchParams = SearchParamsStore.getState();
 
             if (currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED ||
                 currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED_AND_NOT_REJECTED) {
 
                 // remove it from the list of result because now it doesn't have a translation anymore
                 for (let index = 0; index < this.searchResults.length; index++) {
-                    let textUnitInStore = this.searchResults[index];
+                    const textUnitInStore = this.searchResults[index];
                     if (textUnitInStore.getTmTextUnitVariantId() === deletedTextUnit.getTmTextUnitVariantId()) {
                         this.searchResults.splice(index, 1);
                         break;
@@ -144,14 +142,14 @@ class SearchResultsStore {
     /**
      * @param {TextUnit} textUnit response The response sent by the promise when the delete request succeeds
      */
-    onDeleteTextUnitsSuccess(textUnit) {
+    onDeleteTextUnitsSuccess() {
         console.log("SearchResultsStore::onDeleteTextUnitsSuccess");
     }
 
     /**
      * @param {TextUnitError} errorResponse
      */
-    onDeleteTextUnitsError(errorResponse) {
+    onDeleteTextUnitsError() {
         console.log("SearchResultsStore::onDeleteTextUnitsError");
     }
 
@@ -183,7 +181,7 @@ class SearchResultsStore {
      * Action handler to remove the textunits in the current page from the selectedTextUnits map.
      */
     onResetSelectedTextUnitsInCurrentPage() {
-        for (let textUnit of this.searchResults) {
+        for (const textUnit of this.searchResults) {
             delete this.selectedTextUnitsMap[textUnit.getTextUnitKey()];
         }
     }
@@ -216,7 +214,7 @@ class SearchResultsStore {
      */
     updateSearchResultsWithTextUnit(textUnit) {
         for (let index = 0; index < this.searchResults.length; index++) {
-            let textUnitInStore = this.searchResults[index];
+            const textUnitInStore = this.searchResults[index];
             if (textUnitInStore.getTextUnitKey() === textUnit.getTextUnitKey()) {
                 this.searchResults[index] = textUnit;
                 break;
@@ -228,12 +226,12 @@ class SearchResultsStore {
      * Action handler to add all textunits in the current page to the selectedTextUnitsMap.
      */
     onSelectAllTextUnitsInCurrentPage() {
-        for (let textUnit of this.searchResults) {
+        for (const textUnit of this.searchResults) {
             this.selectedTextUnitsMap[textUnit.getTextUnitKey()] = textUnit;
         }
     }
-   
-    getAllRepositoriesSuccess(repositories) {
+
+    getAllRepositoriesSuccess() {
         this.onSearchParamsChanged();
     }
 
@@ -249,8 +247,8 @@ class SearchResultsStore {
      * @return {TextUnit[]}
      */
     static getSelectedTextUnits() {
-        let result = [];
-        Object.keys(this.getState().selectedTextUnitsMap).forEach((key, i) => {
+        const result = [];
+        Object.keys(this.getState().selectedTextUnitsMap).forEach((key) => {
             result.push(this.getState().selectedTextUnitsMap[key]);
         });
 
@@ -262,7 +260,7 @@ class SearchResultsStore {
      * @returns {Error} The error object for the errorId passed in.
      */
     createErrorObject(errorId) {
-        let error = new Error();
+        const error = new Error();
         error.setErrorId(errorId);
         return error;
     }

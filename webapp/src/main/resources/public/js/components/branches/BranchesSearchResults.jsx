@@ -24,7 +24,6 @@ import BranchTextUnitsPaginatorStore from "../../stores/branches/BranchTextUnits
 import BranchTextUnitsPaginatorActions from "../../actions/branches/BranchTextUnitsPaginatorActions";
 import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
-import BranchesPaginatorActions from "../../actions/branches/BranchesPaginatorActions";
 
 
 class BranchesSearchResults extends React.Component {

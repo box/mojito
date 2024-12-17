@@ -1,4 +1,4 @@
-import User from "./User"
+import User from "./User";
 import BranchRepository from "./BranchRepository";
 import BranchStatisticScreenshot from "./BranchStatisticScreenshot";
 
@@ -37,7 +37,7 @@ export default class Branch {
     }
 
     static toBranch(json) {
-        let result = new Branch();
+        const result = new Branch();
 
         if (json) {
             result.id = json.id;

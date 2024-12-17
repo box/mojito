@@ -3,7 +3,7 @@ import alt from "../../alt";
 class ScreenshotsPageActions {
 
     constructor() {
-        this.generateActions( 
+        this.generateActions(
             "changeSelectedScreenshotIdx",
             "performSearch",
             "screenshotsSearchResultsReceivedSuccess",

@@ -5,7 +5,7 @@ class LocationHistory {
     /**
      * Updates the browser location for a given pathname and query params
      *
-     * If the URL is only the pathname replace the history state 
+     * If the URL is only the pathname replace the history state
      * (to reflect the params) else if the query has changed
      * push a new state to keep track of the change param modification.
      *
@@ -14,7 +14,7 @@ class LocationHistory {
      */
     updateLocation(router, pathname, params) {
         if (window.location.pathname === UrlHelper.getUrlWithContextPath(pathname)) {
-            let newQuery = this.buildQuery(params);
+            const newQuery = this.buildQuery(params);
 
             if (window.location.search === "") {
                 router.replace(pathname + "?" + newQuery, null, null);
@@ -39,7 +39,7 @@ class LocationHistory {
      * @return {*}
      */
     buildQuery(params) {
-        let cloneParam = _.clone(params);
+        const cloneParam = _.clone(params);
         delete cloneParam["changedParam"]; // this is workbench specific
         return UrlHelper.toQueryString(cloneParam);
     }

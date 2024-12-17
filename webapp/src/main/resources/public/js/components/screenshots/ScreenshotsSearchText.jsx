@@ -4,7 +4,6 @@ import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import {DropdownButton, FormGroup, FormControl, InputGroup, MenuItem, Button, Glyphicon} from "react-bootstrap";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import SearchConstants from "../../utils/SearchConstants";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
 
 class ScreenshotsSearchText extends React.Component {

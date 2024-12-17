@@ -1,5 +1,5 @@
 import React from "react";
-import {FormattedMessage, injectIntl} from "react-intl";
+import {injectIntl} from "react-intl";
 
 class RepositoryHeaderColumn extends React.Component {
     render() {

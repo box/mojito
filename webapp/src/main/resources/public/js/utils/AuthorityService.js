@@ -2,17 +2,16 @@ import UserStatics from "./UserStatics";
 
 class AuthorityService {
     static userHasPermission(componentName) {
-        let authorityLevel = this.componentName2AuthorityLevel(componentName);
+        const authorityLevel = this.componentName2AuthorityLevel(componentName);
         return authorityLevel.includes(APP_CONFIG.user.role);
     }
 
     static componentName2AuthorityLevel(componentName){
-        let admin = UserStatics.authorityAdmin();
-        let pm = UserStatics.authorityPm();
-        let translator = UserStatics.authorityTranslator();
-        let user = UserStatics.authorityUser();
+        const admin = UserStatics.authorityAdmin();
+        const pm = UserStatics.authorityPm();
+        const translator = UserStatics.authorityTranslator();
 
-        let level=[];
+        const level=[];
 
         switch (componentName) {
             case "edit-screenshots":

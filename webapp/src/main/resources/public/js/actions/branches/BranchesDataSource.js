@@ -9,9 +9,9 @@ const BranchesDataSource = {
         remote() {
             let returnEmpty = false;
 
-            let branchesSearchParamState = BranchesSearchParamStore.getState();
-            let branchesPaginatorState = BranchesPaginatorStore.getState();
-            let branchStatisticSearcherParameters = new BranchStatisticSearcherParameters();
+            const branchesSearchParamState = BranchesSearchParamStore.getState();
+            const branchesPaginatorState = BranchesPaginatorStore.getState();
+            const branchStatisticSearcherParameters = new BranchStatisticSearcherParameters();
 
             if (branchesSearchParamState.searchText) {
                 branchStatisticSearcherParameters.search(branchesSearchParamState.searchText);
@@ -56,7 +56,7 @@ const BranchesDataSource = {
             let promise;
 
             if (returnEmpty) {
-                promise = new Promise(function (resolve, reject) {
+                promise = new Promise(function (resolve) {
                     resolve({
                         "hasNext": false,
                         "size": 10,

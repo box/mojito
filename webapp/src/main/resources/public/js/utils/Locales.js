@@ -138,7 +138,7 @@ class Locales {
      * @returns {string} the locale display name
      */
     getDisplayName(bcp47Tag) {
-        const localeSubTags = this.getLocaleSubTags(bcp47Tag)
+        const localeSubTags = this.getLocaleSubTags(bcp47Tag);
 
         const languageDisplay = this.cldr.main("localeDisplayNames/languages/" + localeSubTags.language);
         const scriptDisplay = this.cldr.main("localeDisplayNames/scripts/" + localeSubTags.script);
@@ -206,7 +206,7 @@ class Locales {
     sortByDisplayName(objects, getBcp47Tag) {
         return objects
             .map(object => {
-                let bcp47Tag = getBcp47Tag(object);
+                const bcp47Tag = getBcp47Tag(object);
                 object.localeDisplayName = this.getDisplayName(bcp47Tag);
                 return object;
             })
@@ -221,7 +221,7 @@ class Locales {
             territory: subtags[2] === "ZZ" ? null : subtags[2],
             variant: subtags[3],
             unicodeLocaleExtensions: subtags[4]
-        }
+        };
     }
 
     /**

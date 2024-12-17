@@ -4,7 +4,7 @@ export default class SourceLocale {
     }
 
     static toSourceLocale(json) {
-        let result = new SourceLocale();
+        const result = new SourceLocale();
 
         result.id = json.id;
 

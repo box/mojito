@@ -1,6 +1,6 @@
 import keymirror from "keymirror";
 
-let SearchConstants = keymirror({
+const SearchConstants = keymirror({
     "REPOSITORIES_CHANGED": null,
     "LOCALES_CHANGED": null,
     "SEARCHTEXT_CHANGED": null,

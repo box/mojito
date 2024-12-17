@@ -2,7 +2,7 @@ import React from "react";
 import {withRouter} from "react-router";
 import AltContainer from "alt-container";
 
-import BranchesAddScreenshotButton from ".//BranchesAddScreenshotButton";
+import BranchesAddScreenshotButton from "./BranchesAddScreenshotButton";
 import BranchesStore from "../../stores/branches/BranchesStore";
 import BranchesSearchText from "./BranchesSearchText";
 import BranchesStatusDropdown from "./BranchesStatusDropdown";

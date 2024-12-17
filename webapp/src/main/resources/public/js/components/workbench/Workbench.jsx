@@ -2,7 +2,6 @@ import _ from "lodash";
 import React from "react";
 import createReactClass from 'create-react-class';
 import {withRouter} from "react-router";
-import FluxyMixin from "alt-mixins/FluxyMixin";
 import LocalesDropdown from "./LocalesDropdown";
 import RepositoryDropDown from "./RepositoryDropdown";
 import SearchResults from "./SearchResults";

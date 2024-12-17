@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {Image} from "react";
+import React from "react";
 import {injectIntl} from 'react-intl';
 import {Label} from "react-bootstrap";
 import ReactDOM from "react-dom";

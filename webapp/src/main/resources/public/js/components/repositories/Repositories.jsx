@@ -5,7 +5,7 @@ import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import RepositoryStore from "../../stores/RepositoryStore";
 import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
 import RepositoryRow from "./RepositoryRow";
-import RepositoryStatistic from "../../components/repositories/RepositoryStatistic";
+import RepositoryStatistic from "./RepositoryStatistic";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 
 let Repositories = createReactClass({

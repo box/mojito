@@ -9,7 +9,7 @@ const BranchTextUnitsDataSource = {
         remote() {
             const { branchStatisticId } = BranchTextUnitsParamStore.getState();
             if (!branchStatisticId) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function (resolve) {
                     resolve({
                         "hasNext": false,
                         "size": 10,

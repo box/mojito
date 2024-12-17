@@ -5,7 +5,7 @@ const ShareSearchParamsDataSource = {
 
     saveSearchParams: {
         remote(store, searchParams) {
-            let promise = ClobStorageClient.saveClob(searchParams).then(function (uuid) {
+            const promise = ClobStorageClient.saveClob(searchParams).then(function (uuid) {
                 return uuid;
             });
 
@@ -16,7 +16,7 @@ const ShareSearchParamsDataSource = {
     },
     getSearchParams: {
         remote(store, uuid) {
-            let promise = ClobStorageClient.getClob(uuid).then(function (searchParams) {
+            const promise = ClobStorageClient.getClob(uuid).then(function (searchParams) {
                 return {
                     uuid: uuid,
                     searchParams: searchParams

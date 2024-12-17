@@ -16,7 +16,7 @@ export default class AssetIntegrityChecker {
      * @return {AssetIntegrityChecker}
      */
     static toAssetIntegrityChecker(json) {
-        let result = new AssetIntegrityChecker();
+        const result = new AssetIntegrityChecker();
 
         result.assetExtension = json.assetExtension;
         result.id = json.id;
@@ -33,7 +33,7 @@ export default class AssetIntegrityChecker {
         let results = null;
         if (jsons) {
             results = [];
-            for (let json of jsons) {
+            for (const json of jsons) {
                 results.push(AssetIntegrityChecker.toAssetIntegrityChecker(json));
             }
         }

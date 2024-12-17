@@ -1,14 +1,14 @@
 class TagsBlockDecoder {
-    
+
     tagsBlockToUnicode(id) {
         var base64 = this.tagsBlockToAscii(id);
         return this.b64DecodeUnicode(base64);
     }
-    
+
     removeTagsBlock(string) {
         return string.replace(/\udb40[\udc00-\udc7e]/g, '');
     }
-    
+
     tagsBlockToAscii(string) {
         var res = '';
 
@@ -22,7 +22,7 @@ class TagsBlockDecoder {
 
         return res;
     }
-    
+
     b64DecodeUnicode(str) {
         // from MDN: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
         // Going backwards: from bytestream, to percent-encoding, to original string.

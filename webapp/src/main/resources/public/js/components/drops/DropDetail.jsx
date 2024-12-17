@@ -1,12 +1,11 @@
 import PropTypes from 'prop-types';
 import React from "react";
-import {Table, ProgressBar, Button, Label} from "react-bootstrap";
-import {History, Link} from "react-router";
+import {Table, Label} from "react-bootstrap";
+import {Link} from "react-router";
 import {FormattedMessage, FormattedNumber} from "react-intl";
-import Locales from "../../utils/Locales";
-import RepositoryStore from "../../stores/RepositoryStore";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import SearchConstants from "../../utils/SearchConstants";
+import Locales from "../../utils/Locales.js";
+import WorkbenchActions from "../../actions/workbench/WorkbenchActions.js";
+import SearchConstants from "../../utils/SearchConstants.js";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
 
 class DropDetail extends React.Component {

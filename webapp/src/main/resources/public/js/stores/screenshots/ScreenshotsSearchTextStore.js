@@ -2,7 +2,7 @@ import alt from "../../alt";
 import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
+import { StatusCommonTypes } from "../../components/screenshots/StatusCommon";
 
 class ScreenshotsSearchTextStore {
 
@@ -24,7 +24,7 @@ class ScreenshotsSearchTextStore {
     resetScreenshotSearchParams() {
         this.setDefaultState();
     }
-    
+
     changeSearchAttribute(searchAttribute) {
         this.searchAttribute = searchAttribute;
     }
@@ -64,6 +64,6 @@ ScreenshotsSearchTextStore.SEARCH_ATTRIBUTES_SCREENSHOT = "screenshot";
 ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES = {
     "LAST_SUCCESSFUL_RUN": "LAST_SUCCESSFUL_RUN",
     "MANUAL_RUN" : "MANUAL_RUN"
-}
+};
 
 export default alt.createStore(ScreenshotsSearchTextStore, 'ScreenshotsSearchTextStore');

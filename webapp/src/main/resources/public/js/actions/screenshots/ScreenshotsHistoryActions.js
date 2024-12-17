@@ -3,7 +3,7 @@ import alt from "../../alt";
 class ScreenshotsHistoryActions {
 
     constructor() {
-        this.generateActions( 
+        this.generateActions(
             "enableHistoryUpdate",
             "disableHistoryUpdate",
         );

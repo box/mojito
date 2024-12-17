@@ -143,7 +143,7 @@ class UserStore {
         this.getInstance().savePassword(userParams);
     }
 
-    onSavePasswordSuccess(updatedUser) {
+    onSavePasswordSuccess() {
         this.onReloadCurrentPage();
     }
 
@@ -164,7 +164,7 @@ class UserStore {
     }
 
     getUsersSuccess(users) {
-        this.userPage = UserPage.toUserPage(users)
+        this.userPage = UserPage.toUserPage(users);
         this.isSearching = false;
     }
 

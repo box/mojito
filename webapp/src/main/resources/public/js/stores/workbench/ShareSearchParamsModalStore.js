@@ -82,7 +82,7 @@ class ShareSearchParamsModalStore {
     }
 
     getUrlForUUID(uuid) {
-        return new URL(UrlHelper.getUrlWithContextPath("/workbench?") + UrlHelper.toQueryString({"link": uuid}), location.origin).href
+        return new URL(UrlHelper.getUrlWithContextPath("/workbench?") + UrlHelper.toQueryString({"link": uuid}), location.origin).href;
     }
 }
 

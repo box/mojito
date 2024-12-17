@@ -50,7 +50,7 @@ export default class TranslationKit {
      * @return {TranslationKit}
      */
     static toTranslationKit(json) {
-        let result = new TranslationKit();
+        const result = new TranslationKit();
 
         result.createdByUser = User.toUser(json.createdByUser);
         result.createdDate = new Date(json.createdDate);
@@ -74,10 +74,10 @@ export default class TranslationKit {
      * @return {TranslationKit[]}
      */
     static toTranslationKits(jsons) {
-        let results = [];
+        const results = [];
 
         if (jsons) {
-            for (let json of jsons) {
+            for (const json of jsons) {
                 results.push(TranslationKit.toTranslationKit(json));
             }
         }

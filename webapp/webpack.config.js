@@ -8,7 +8,7 @@ module.exports = (env) => {
     const isProdEnv = Boolean(env.production)
     const config = {
         entry: {
-            'app': path.resolve(__dirname, './src/main/resources/public/js/app.js'),
+            'app': path.resolve(__dirname, './src/main/resources/public/js/app.jsx'),
             'css': path.resolve(__dirname, './src/main/resources/sass/mojito.scss')
         },
         output: {
@@ -113,7 +113,10 @@ module.exports = (env) => {
             maxEntrypointSize: 1_800_000, // 1.8MB
             maxAssetSize: 1_800_000 // 1.8MB
         },
-        plugins: []
+        plugins: [],
+        resolve: {
+            extensions: ['.js', '.jsx']
+        }
     };
 
     const HtmlWebpackPlugin = require('html-webpack-plugin');

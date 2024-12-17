@@ -15,7 +15,7 @@ export default class Authority {
         let authorities = null;
         if (jsonAuthorities) {
             authorities = [];
-            for (let jsonAuth of jsonAuthorities) {
+            for (const jsonAuth of jsonAuthorities) {
                 authorities.push(Authority.toAuthority(jsonAuth));
             }
         }
@@ -27,7 +27,7 @@ export default class Authority {
      * @return {Authority}
      */
     static toAuthority(jsonAuthority) {
-        let authority = new Authority();
+        const authority = new Authority();
         authority.id = jsonAuthority.id;
         authority.authority = jsonAuthority.authority;
 

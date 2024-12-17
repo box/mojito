@@ -25,7 +25,7 @@ class ScreenshotViewerStore {
         if (this.branchStatisticScreenshots.length > 0) {
             this.number = number;
             this.total = this.branchStatisticScreenshots.length;
-            let branchStatisticScreenshot = this.branchStatisticScreenshots[this.number - 1];
+            const branchStatisticScreenshot = this.branchStatisticScreenshots[this.number - 1];
             this.src = branchStatisticScreenshot.src;
             this.textUnits = branchStatisticScreenshot.textUnits;
         }
@@ -50,24 +50,24 @@ class ScreenshotViewerStore {
     delete() {
         this.isDeleting = true;
         this.error = false;
-        this.getInstance().delete()
+        this.getInstance().delete();
     }
 
     onDeleteScreenshotSuccess() {
-        this.branchStatisticScreenshots.splice(this.number - 1, 1)
+        this.branchStatisticScreenshots.splice(this.number - 1, 1);
 
         if (this.branchStatisticScreenshots.length) {
-            this.loadScreenshot(1)
+            this.loadScreenshot(1);
         } else {
-            this.closeScreenshotsViewer()
+            this.closeScreenshotsViewer();
         }
-        this.isDeleting = false
+        this.isDeleting = false;
         console.log("ScreenshotViewerStore::onDeleteScreenshotSuccess");
     }
 
-    onDeleteScreenshotFailure({response}) {
-        this.isDeleting = false
-        this.error = true
+    onDeleteScreenshotFailure({ response }) {
+        this.isDeleting = false;
+        this.error = true;
         console.log("ScreenshotViewerStore::onDeleteScreenshotFailure", response);
     }
 }

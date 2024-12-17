@@ -13,7 +13,7 @@ export default class Locale {
      * @return {Locale}
      */
     static toLocale(json) {
-        let result = new Locale();
+        const result = new Locale();
 
         result.id = 1;
         result.bcp47Tag = json.bcp47Tag;
@@ -26,9 +26,9 @@ export default class Locale {
      * @return {Locale[]}
      */
     static toLocales(jsons) {
-        let results = [];
+        const results = [];
 
-        for (let json of jsons) {
+        for (const json of jsons) {
             results.push(Locale.toLocale(json));
         }
 

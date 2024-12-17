@@ -9,7 +9,7 @@ const TextUnitDataSource = {
     performSaveTextUnit: {
         remote(searchResultsStoreState, textUnit) {
             return TextUnitClient.saveTextUnit(textUnit)
-                .catch(error => {
+                .catch(() => {
                     throw new TextUnitError(Error.IDS.TEXTUNIT_SAVE_FAILED, textUnit);
                 });
         },
@@ -25,7 +25,7 @@ const TextUnitDataSource = {
                     }
                 }).then(() => {
                     return TextUnitClient.saveTextUnit(textUnit)
-                        .catch(error => {
+                        .catch(() => {
                             throw new TextUnitError(Error.IDS.TEXTUNIT_SAVE_FAILED, textUnit);
                         });
                 });
@@ -36,7 +36,7 @@ const TextUnitDataSource = {
     deleteTextUnit: {
         remote(searchResultsStoreState, textUnit) {
             return TextUnitClient.deleteCurrentTranslation(textUnit)
-                .catch(error => {
+                .catch(() => {
                     throw new TextUnitError(Error.IDS.TEXTUNIT_DELETE_FAILED, textUnit);
                 });
         },
@@ -47,7 +47,7 @@ const TextUnitDataSource = {
     saveVirtualAssetTextUnit: {
         remote(searchResultsStoreState, textUnit) {
             return TextUnitClient.saveVirtualAssetTextUnit(textUnit)
-                .catch(error => {
+                .catch(() => {
                     throw new TextUnitError(Error.IDS.VIRTUAL_ASSET_TEXTUNIT_SAVE_FAILED, textUnit);
                 });
         },

@@ -16,13 +16,13 @@ class BranchesStore {
     }
 
     static getBranchStatisticById(branchStatisticId) {
-        let state = this.getState();
-        let branchStatistics = state.branchStatistics.filter((b) => b.id === branchStatisticId);
+        const state = this.getState();
+        const branchStatistics = state.branchStatistics.filter((b) => b.id === branchStatisticId);
         return branchStatistics.length > 0 ? branchStatistics[0] : null;
     }
 
     static getSelectedBranchStatistic() {
-        let state = this.getState();
+        const state = this.getState();
         return this.getBranchStatisticById(state.openBranchStatisticId);
     }
 
@@ -58,12 +58,12 @@ class BranchesStore {
 
     computeTextUnitsWithScreenshotsByBranchStatisticId() {
         for (let i = 0; i < this.branchStatistics.length; i++) {
-            let textUnitsWithScreenshots = new Set();
+            const textUnitsWithScreenshots = new Set();
             this.textUnitsWithScreenshotsByBranchStatisticId[this.branchStatistics[i].id] = textUnitsWithScreenshots;
 
             for (let j = 0; j < this.branchStatistics[i].branch.screenshots.length; j++) {
                 for (let k = 0; k < this.branchStatistics[i].branch.screenshots[j].textUnits.length; k++) {
-                    let tmTextUnitId = this.branchStatistics[i].branch.screenshots[j].textUnits[k].tmTextUnit.id
+                    const tmTextUnitId = this.branchStatistics[i].branch.screenshots[j].textUnits[k].tmTextUnit.id;
                     textUnitsWithScreenshots.add(tmTextUnitId);
                 }
             }
@@ -83,9 +83,9 @@ class BranchesStore {
     }
 
     onDeleteScreenshotSuccess() {
-        this.branchStatistics.find(branch => branch.id === this.openBranchStatisticId).branch.screenshots = GitBlameScreenshotViewerStore.state.branchStatisticScreenshots
+        this.branchStatistics.find(branch => branch.id === this.openBranchStatisticId).branch.screenshots = GitBlameScreenshotViewerStore.state.branchStatisticScreenshots;
         this.computeTextUnitsWithScreenshotsByBranchStatisticId();
     }
 }
 
-export default alt.createStore(BranchesStore, "BranchesStore")
+export default alt.createStore(BranchesStore, "BranchesStore");

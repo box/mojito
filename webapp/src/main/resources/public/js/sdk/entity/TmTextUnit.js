@@ -26,7 +26,7 @@ export default class TmTextUnit {
     }
 
     static toTmTextUnit(json) {
-        let result = new TmTextUnit();
+        const result = new TmTextUnit();
 
         if (json) {
             result.id = json.id;

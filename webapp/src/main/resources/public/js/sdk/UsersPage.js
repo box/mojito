@@ -38,7 +38,7 @@ export default class UserPage {
         if (jsonUserPage) {
             userPage = new UserPage();
             userPage.content = [];
-            for (let jsonUser of jsonUserPage.content) {
+            for (const jsonUser of jsonUserPage.content) {
                 userPage.content.push(User.toUser(jsonUser));
             }
 

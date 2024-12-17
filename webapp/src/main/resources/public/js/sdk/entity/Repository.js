@@ -51,7 +51,7 @@ export default class Repository {
      * @return {Repository}
      */
     static toRepository(json) {
-        let result = new Repository();
+        const result = new Repository();
 
         result.assetIntegrityCheckers = AssetIntegrityChecker.toAssetIntegrityCheckers(json.assetIntegrityCheckers);
         result.createdByUser = User.toUser(json.createdByUser);
@@ -74,9 +74,9 @@ export default class Repository {
      * @return {Repository[]}
      */
     static toRepositorys(jsons) {
-        let results = [];
+        const results = [];
 
-        for (let json of jsons) {
+        for (const json of jsons) {
             results.push(Repository.toRepository(json));
         }
 

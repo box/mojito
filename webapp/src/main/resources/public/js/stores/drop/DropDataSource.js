@@ -10,7 +10,7 @@ const DropDataSource = {
         success: DropActions.getAllInProcessSuccess,
         error: DropActions.getAllInProcessError
     },
-    
+
     getAllImported: {
         remote(dropStoreState, pageRequestParams) {
             return DropClient.getDrops(null, true, false, pageRequestParams.page, pageRequestParams.size);

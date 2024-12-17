@@ -70,9 +70,9 @@ export default class BoxSDKConfig {
      * @return {BoxSDKConfig[]}
      */
     static toBoxSDKConfigs(jsons) {
-        let results = [];
+        const results = [];
 
-        for (let json of jsons) {
+        for (const json of jsons) {
             results.push(BoxSDKConfig.toBoxSDKConfig(json));
         }
 

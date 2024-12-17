@@ -4,16 +4,16 @@ import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleSt
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
 import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
 import ScreenshotClient from "../../sdk/ScreenshotClient";
-import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
+import { StatusCommonTypes } from "../../components/screenshots/StatusCommon";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
 const ScreenshotsPageDataSource = {
     performScreenshotSearch: {
-        remote(state) {
-            let screenshotsRepositoryStoreState = ScreenshotsRepositoryStore.getState();
-            let screenshotsLocaleStoreState = ScreenshotsLocaleStore.getState();
-            let screenshotsSearchTextStoreState = ScreenshotsSearchTextStore.getState();
-            let screenshotsPaginatorStoreState = ScreenshotsPaginatorStore.getState();
+        remote() {
+            const screenshotsRepositoryStoreState = ScreenshotsRepositoryStore.getState();
+            const screenshotsLocaleStoreState = ScreenshotsLocaleStore.getState();
+            const screenshotsSearchTextStoreState = ScreenshotsSearchTextStore.getState();
+            const screenshotsPaginatorStoreState = ScreenshotsPaginatorStore.getState();
 
             let promise;
 
@@ -22,11 +22,11 @@ const ScreenshotsPageDataSource = {
 
                 promise = new Promise((resolve) => {
                     setTimeout(function () {
-                        resolve({'content': [], 'hasNext': false, 'size': 0});
+                        resolve({ 'content': [], 'hasNext': false, 'size': 0 });
                     }, 0);
                 });
             } else {
-                let params = {
+                const params = {
                     repositoryIds: screenshotsRepositoryStoreState.selectedRepositoryIds,
                     bcp47Tags: screenshotsLocaleStoreState.selectedBcp47Tags,
                     status: screenshotsSearchTextStoreState.status === StatusCommonTypes.ALL ? null : screenshotsSearchTextStoreState.status,
@@ -59,7 +59,7 @@ const ScreenshotsPageDataSource = {
                         screenshots = screenshots.slice(0, screenshotsPaginatorStoreState.limit);
                     }
 
-                    return {'content': screenshots, 'hasNext': hasNext, 'size': screenshots.length};
+                    return { 'content': screenshots, 'hasNext': hasNext, 'size': screenshots.length };
                 });
             }
 
@@ -68,6 +68,6 @@ const ScreenshotsPageDataSource = {
         success: ScreenshotsPageActions.screenshotsSearchResultsReceivedSuccess,
         error: ScreenshotsPageActions.screenshotsSearchResultsReceivedError
     },
-}
+};
 
 export default ScreenshotsPageDataSource;

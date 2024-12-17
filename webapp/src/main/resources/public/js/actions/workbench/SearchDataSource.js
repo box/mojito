@@ -8,11 +8,11 @@ const SearchDataSource = {
         remote(searchResultsStoreState, searchParams) {
             let returnEmpty = false;
 
-            let repositoryIds = searchParams.repoIds;
+            const repositoryIds = searchParams.repoIds;
 
-            let bcp47Tags = searchParams.bcp47Tags;
+            const bcp47Tags = searchParams.bcp47Tags;
 
-            let textUnitSearcherParameters = new TextUnitSearcherParameters();
+            const textUnitSearcherParameters = new TextUnitSearcherParameters();
 
             if (!SearchParamsStore.isReadyForSearching(searchParams)) {
                 returnEmpty = true;
@@ -76,15 +76,15 @@ const SearchDataSource = {
             }
 
             // ask for one extra text unit to know if there are more text units
-            let limit = searchParams.pageSize + 1;
+            const limit = searchParams.pageSize + 1;
 
             textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags).offset(searchParams.pageOffset).limit(limit);
 
             let promise;
 
             if (returnEmpty) {
-                promise = new Promise(function (resolve, reject) {
-                    resolve({textUnits: [], hasMore: false});
+                promise = new Promise(function (resolve) {
+                    resolve({ textUnits: [], hasMore: false });
                 });
             } else {
                 promise = TextUnitClient.getTextUnits(textUnitSearcherParameters).then(function (textUnits) {
@@ -96,7 +96,7 @@ const SearchDataSource = {
                         textUnits = textUnits.slice(0, limit - 1);
                     }
 
-                    return {textUnits, hasMore};
+                    return { textUnits, hasMore };
                 });
             }
 

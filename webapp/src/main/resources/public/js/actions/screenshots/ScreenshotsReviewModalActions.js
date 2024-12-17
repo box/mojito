@@ -3,7 +3,7 @@ import alt from "../../alt";
 class ScreenshotsReviewModalActions {
 
     constructor() {
-        this.generateActions( 
+        this.generateActions(
             "openWithScreenshot",
             "changeComment",
             "changeStatus",

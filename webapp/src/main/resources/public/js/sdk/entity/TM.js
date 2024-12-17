@@ -37,9 +37,9 @@ export default class TM {
      * @return {TM[]}
      */
     static toTMs(jsons) {
-        let results = [];
+        const results = [];
 
-        for (let json of jsons) {
+        for (const json of jsons) {
             results.push(TM.toTM(json));
         }
 

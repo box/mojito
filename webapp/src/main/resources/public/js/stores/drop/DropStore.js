@@ -1,6 +1,5 @@
 import alt from "../../alt";
 
-import PageRequestResults from "../../sdk/PageRequestResults"
 import DropActions from "../../actions/drop/dropActions";
 import DropDataSource from "./DropDataSource";
 
@@ -41,7 +40,7 @@ class DropStore {
      * @param {PageRequestParams} pageRequestParams
      */
     onGetAllImported(pageRequestParams) {
-        this.getInstance().getAllImported(pageRequestParams);     
+        this.getInstance().getAllImported(pageRequestParams);
     }
 
     /**
@@ -57,7 +56,7 @@ class DropStore {
      * @param {PageRequestParams} pageRequestParams
      */
     onGetAll(pageRequestParams) {
-        this.getInstance().getAll(pageRequestParams);     
+        this.getInstance().getAll(pageRequestParams);
     }
 
     /**
@@ -68,7 +67,7 @@ class DropStore {
         this.currentPageNumber = pageRequestResults.currentPageNumber;
         this.hasMoreDrops = pageRequestResults.hasMoreResults;
     }
-    
+
     /**
      * @param {ExportDropConfig} exportDropConfig
      */

@@ -30,7 +30,7 @@ class DropExporterConfig {
      * @return {DropExporterConfig}
      */
     static toDropExporterConfig(json) {
-        let result = new DropExporterConfig();
+        const result = new DropExporterConfig();
 
         result.dropFolderId = json.dropFolderId;
         result.importedFolderId = json.importedFolderId;
@@ -52,7 +52,7 @@ class DropExporterConfig {
 
         var results = [];
 
-        for (let DropExporterConfig of jsons) {
+        for (const DropExporterConfig of jsons) {
             results.push(DropExporterConfig.toDropExporterConfig(DropExporterConfig));
         }
 

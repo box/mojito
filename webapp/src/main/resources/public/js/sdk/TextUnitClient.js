@@ -17,7 +17,7 @@ class TextUnitClient extends BaseClient {
      * @returns {Promise.<TextUnit[]|err>} a promise that retuns an array of text units
      */
     getTextUnits(textUnitSearcherParameters) {
-        let promise = this.post(this.getUrl() + '/search', textUnitSearcherParameters.getParams());
+        const promise = this.post(this.getUrl() + '/search', textUnitSearcherParameters.getParams());
 
         return promise.then(function (result) {
             return TextUnit.toTextUnits(result);
@@ -57,7 +57,7 @@ class TextUnitClient extends BaseClient {
      * @returns {Promise<TextUnitIntegrityCheckResult, err>} a promise that returns the updated or created text unit
      */
     checkTextUnitIntegrity(textUnit) {
-        let request = new TextUnitIntegrityCheckRequest();
+        const request = new TextUnitIntegrityCheckRequest();
         request.content = textUnit.getTarget();
         request.tmTextUnitId = textUnit.getTmTextUnitId();
 
@@ -101,7 +101,7 @@ class TextUnitClient extends BaseClient {
      * @returns {Promise}
      */
     getGitBlameInfo(textUnit) {
-        return this.get(this.getUrl() + "/gitBlameWithUsages", {"tmTextUnitId": textUnit.getTmTextUnitId()});
+        return this.get(this.getUrl() + "/gitBlameWithUsages", { "tmTextUnitId": textUnit.getTmTextUnitId() });
     }
 
     getTranslationHistory(textUnit) {

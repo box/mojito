@@ -1,5 +1,3 @@
-import StatusFilter from "../entity/StatusFilter";
-
 export default class ImportDropConfig {
     /**
      * @param {Number} repoId

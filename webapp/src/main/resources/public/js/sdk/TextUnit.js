@@ -1,5 +1,3 @@
-import _ from "lodash";
-
 /**
  * Used to communicate with textunits WS (search for translated/untranslated strings, create/update new translation)
  *
@@ -88,7 +86,7 @@ class TextUnit {
     setName(name) {
         this.data.name = name;
     }
-    
+
     getAssetPath() {
         return this.data.assetPath;
     }
@@ -231,7 +229,7 @@ class TextUnit {
     setPluralForm(pluralForm) {
         this.data.pluralForm = pluralForm;
     }
-    
+
     getPluralFormOther() {
         return this.data.pluralFormOther;
     }
@@ -291,7 +289,7 @@ class TextUnit {
 
         var textUnits = [];
 
-        for (let textUnit of jsonTextUnits) {
+        for (const textUnit of jsonTextUnits) {
             textUnits.push(TextUnit.toTextUnit(textUnit));
         }
 

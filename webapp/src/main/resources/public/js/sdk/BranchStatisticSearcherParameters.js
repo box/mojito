@@ -28,11 +28,11 @@ export default class BranchStatisticSearcherParameters {
     }
 
     createdBefore(createdBefore) {
-        this.params.createdBefore = createdBefore
+        this.params.createdBefore = createdBefore;
     }
 
     createdAfter(createdAfter) {
-        this.params.createdAfter = createdAfter
+        this.params.createdAfter = createdAfter;
     }
 
     empty(empty) {

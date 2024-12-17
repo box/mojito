@@ -9,7 +9,7 @@ class BoxSDKConfigClient extends BaseClient {
      * @return {Promise.<BoxSDKConfig>}
      */
     getConfig() {
-        let promise = this.get(this.getUrl(), {});
+        const promise = this.get(this.getUrl(), {});
 
         return promise.then(results => {
             let result = null;
@@ -27,7 +27,7 @@ class BoxSDKConfigClient extends BaseClient {
      * @return {Promise.<PollableTaskFuture>}
      */
     setConfig(boxSDKConfig) {
-        let promise = this.post(this.getUrl(), boxSDKConfig);
+        const promise = this.post(this.getUrl(), boxSDKConfig);
         return promise.then((pollableTaskFuture) => {
             return PollableTaskFuture.toPollableTaskFuture(pollableTaskFuture);
         });

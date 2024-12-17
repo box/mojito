@@ -9,8 +9,8 @@ module.exports = function (env) {
     const isProdEnv = Boolean(env.production)
     const config = {
         entry: {
-            'ict-popup': path.resolve(__dirname, './src/main/resources/public/js/ict/chrome-ict-popup.js'),
-            'ict': path.resolve(__dirname, './src/main/resources/public/js/ict/chrome-ict.js')
+            'ict-popup': path.resolve(__dirname, './src/main/resources/public/js/ict/chrome-ict-popup.jsx'),
+            'ict': path.resolve(__dirname, './src/main/resources/public/js/ict/chrome-ict.jsx')
         },
         output: {
             path: path.resolve(__dirname, '../chromeextension'),
@@ -112,7 +112,10 @@ module.exports = function (env) {
             maxEntrypointSize: 900_000, // 90KB
             maxAssetSize: 900_000 // 90KB
         },
-        plugins: []
+        plugins: [],
+        resolve: {
+            extensions: ['.js', '.jsx']
+        }
     };
     
     if (env.production) {

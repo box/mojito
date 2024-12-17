@@ -1,5 +1,4 @@
 import BaseClient from "./BaseClient";
-import User from "./entity/User";
 import UserPage from "./UsersPage";
 
 class UserClient extends BaseClient {
@@ -8,7 +7,7 @@ class UserClient extends BaseClient {
     }
 
     checkUsernameTaken(username) {
-        let promise = this.get(this.getUrl(), {
+        const promise = this.get(this.getUrl(), {
             "username": username,
             "page": 0,
             "size": 10

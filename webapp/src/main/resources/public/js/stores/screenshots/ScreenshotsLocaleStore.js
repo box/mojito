@@ -6,10 +6,10 @@ import ScreenshotsRepositoryStore from "./ScreenshotsRepositoryStore";
 
 class ScreenshotsLocaleStore {
 
-    constructor() {       
-        this.setDefaultState();        
+    constructor() {
+        this.setDefaultState();
         this.bindActions(ScreenshotsPageActions);
-        
+
         this.bindListeners({
             changeSelectedBcp47Tags : ScreenshotsLocaleActions.CHANGE_SELECTED_BCP47TAGS,
             changeDropdownOpen: ScreenshotsLocaleActions.CHANGE_DROPDOWN_OPEN,
@@ -17,7 +17,7 @@ class ScreenshotsLocaleStore {
             changeSelectedRepositoryIds: ScreenshotsRepositoryActions.CHANGE_SELECTED_REPOSITORY_IDS
         });
     }
-    
+
     setDefaultState() {
         this.bcp47Tags = [];
         this.fullyTranslatedBcp47Tags = [];
@@ -25,33 +25,33 @@ class ScreenshotsLocaleStore {
         this.isDisabled = true;
         this.dropdownOpen = false;
     }
-    
+
     resetScreenshotSearchParams() {
         this.setDefaultState();
     }
-        
+
     getAllRepositoriesSuccess() {
         this.waitFor(ScreenshotsRepositoryStore);
-        let selectedRepositoryIds = ScreenshotsRepositoryStore.getState().selectedRepositoryIds;
+        const selectedRepositoryIds = ScreenshotsRepositoryStore.getState().selectedRepositoryIds;
         this.bcp47Tags = this.getSortedBcp47TagsFromStore(selectedRepositoryIds);
         this.fullyTranslatedBcp47Tags = this.getSortedFullyTranslatedBcp47TagsFromStore(selectedRepositoryIds);
     }
-    
+
     changeSelectedRepositoryIds(selectedRepositoryIds) {
-        this.waitFor(ScreenshotsRepositoryStore);     
+        this.waitFor(ScreenshotsRepositoryStore);
         this.bcp47Tags = this.getSortedBcp47TagsFromStore(selectedRepositoryIds);
         this.fullyTranslatedBcp47Tags = this.getSortedFullyTranslatedBcp47TagsFromStore(selectedRepositoryIds);
-        
+
         if (selectedRepositoryIds.length === 0) {
             this.selectedBcp47Tags = [];
         }
     }
-    
+
     changeSelectedBcp47Tags(selectedBcp47Tags) {
         this.selectedBcp47Tags = selectedBcp47Tags.slice().sort();
     }
-     
-    changeDropdownOpen(dropdownOpen) { 
+
+    changeDropdownOpen(dropdownOpen) {
         this.dropdownOpen = dropdownOpen;
     }
 
