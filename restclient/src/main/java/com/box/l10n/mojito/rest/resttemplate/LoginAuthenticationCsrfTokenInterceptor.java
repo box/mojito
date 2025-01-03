@@ -4,10 +4,11 @@ import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.slf4j.Logger;
@@ -36,10 +37,10 @@ import org.springframework.web.client.RestTemplate;
  * @author wyau
  */
 @Component
-public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRequestInterceptor {
+public class LoginAuthenticationCsrfTokenInterceptor implements ClientHttpRequestInterceptor {
 
   /** logger */
-  Logger logger = LoggerFactory.getLogger(FormLoginAuthenticationCsrfTokenInterceptor.class);
+  Logger logger = LoggerFactory.getLogger(LoginAuthenticationCsrfTokenInterceptor.class);
 
   public static final String CSRF_PARAM_NAME = "_csrf";
   public static final String CSRF_HEADER_NAME = "X-CSRF-TOKEN";
@@ -77,6 +78,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
   /** Will delegate calls to the {@link RestTemplate} instance that was configured */
   @Autowired CookieStoreRestTemplate restTemplate;
 
+  @Autowired(required = false)
+  ProxyOutboundRequestInterceptor proxyOutboundRequestInterceptor;
+
   /** Init */
   @PostConstruct
   protected void init() {
@@ -89,19 +93,22 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     restTemplate.setCookieStoreAndUpdateRequestFactory(cookieStore);
 
     List<ClientHttpRequestInterceptor> interceptors =
-        Collections.singletonList(
-            new ClientHttpRequestInterceptor() {
-              @Override
-              public ClientHttpResponse intercept(
-                  HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
-                  throws IOException {
-                if (latestCsrfToken != null) {
-                  // At the beginning of auth flow, there's no token yet
-                  injectCsrfTokenIntoHeader(request, latestCsrfToken);
-                }
-                return execution.execute(request, body);
-              }
-            });
+        Stream.of(
+                proxyOutboundRequestInterceptor,
+                new ClientHttpRequestInterceptor() {
+                  @Override
+                  public ClientHttpResponse intercept(
+                      HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+                      throws IOException {
+                    if (latestCsrfToken != null) {
+                      // At the beginning of auth flow, there's no token yet
+                      injectCsrfTokenIntoHeader(request, latestCsrfToken);
+                    }
+                    return execution.execute(request, body);
+                  }
+                })
+            .filter(Objects::nonNull)
+            .toList();
 
     restTemplateForAuthenticationFlow.setRequestFactory(
         new InterceptingClientHttpRequestFactory(
@@ -140,8 +147,8 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
   /**
    * Handle http response from the intercept. It will check to see if the initial response was
-   * successful (ie. error status such as 301, 403). If so, it'll try the authentication flow again.
-   * If it further encounters an unsuccessful response, then it'll throw a {@link
+   * successful (i.e. error status such as 301, 403). If so, it'll try the authentication flow
+   * again. If it further encounters an unsuccessful response, then it'll throw a {@link
    * RestClientException}
    *
    * @param request
@@ -202,7 +209,8 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
   protected void startAuthenticationAndInjectCsrfToken(HttpRequest request) {
     logger.debug(
         "Authenticate because no session is found in cookie store or it doesn't match with the one used to get the CSRF token we have.");
-    startAuthenticationFlow();
+    // TODO: Remove logic once PreAuth logic is configured on all environments
+    startAuthenticationFlow(resttemplateConfig.usesLoginAuthentication());
 
     logger.debug("Injecting CSRF token");
     injectCsrfTokenIntoHeader(request, latestCsrfToken);
@@ -248,72 +256,87 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     }
 
     logger.debug(
-        "Injecting CSRF token into request {} header: {}", request.getURI(), csrfToken.getToken());
+        "Injecting CSRF token into request {} token: {}", request.getURI(), csrfToken.getToken());
     request.getHeaders().add(csrfToken.getHeaderName(), csrfToken.getToken());
   }
 
   /**
-   * Starts the traditioanl form login authentication flow handshake. Consequencially, the cookie
-   * store (which contains the session id) and the CSRF token will be updated.
+   * If preAuthentication is enabled, then we merely get the CSRF token If preAuthentication is not
+   * enabled, start the traditional form login authentication flow handshake.
+   *
+   * <p>Consequentially, the cookie store (which contains the session id) and the CSRF token will be
+   * updated.
    *
    * @throws AuthenticationException
    */
-  protected synchronized void startAuthenticationFlow() throws AuthenticationException {
+  protected synchronized void startAuthenticationFlow(boolean usesLoginAuthentication)
+      throws AuthenticationException {
     logger.debug("Getting authenticated session");
 
-    logger.debug(
-        "Start by loading up the login form to get a valid unauthenticated session and CSRF token");
-    ResponseEntity<String> loginResponseEntity =
-        restTemplateForAuthenticationFlow.getForEntity(
-            restTemplateUtil.getURIForResource(formLoginConfig.getLoginFormPath()), String.class);
+    if (usesLoginAuthentication) {
+      logger.debug(
+          "Start by loading up the login form to get a valid unauthenticated session and CSRF token");
+      ResponseEntity<String> loginResponseEntity =
+          restTemplateForAuthenticationFlow.getForEntity(
+              restTemplateUtil.getURIForResource(formLoginConfig.getLoginFormPath()), String.class);
 
-    latestCsrfToken = getCsrfTokenFromLoginHtml(loginResponseEntity.getBody());
-    latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
-    logger.debug(
-        "Update CSRF token for interceptor ({}) from login form", latestCsrfToken.getToken());
+      logger.debug("login Resonse status code {}", loginResponseEntity.getStatusCode());
+      if (!loginResponseEntity.hasBody()) {
+        throw new SessionAuthenticationException(
+            "Authentication failed: no CSRF token could be found.  GET login status code = "
+                + loginResponseEntity.getStatusCode());
+      }
 
-    MultiValueMap<String, Object> loginPostParams = new LinkedMultiValueMap<>();
-    loginPostParams.add("username", credentialProvider.getUsername());
-    loginPostParams.add("password", credentialProvider.getPassword());
-
-    logger.debug(
-        "Post to login url to startAuthenticationFlow with user={}, pwd={}",
-        credentialProvider.getUsername(),
-        credentialProvider.getPassword());
-    ResponseEntity<String> postLoginResponseEntity =
-        restTemplateForAuthenticationFlow.postForEntity(
-            restTemplateUtil.getURIForResource(formLoginConfig.getLoginFormPath()),
-            loginPostParams,
-            String.class);
-
-    // TODO(P1) This current way of checking if authentication is successful is somewhat
-    // hacky. Bascailly it says that authentication is successful if a 302 is returned
-    // and the redirect (from location header) maps to the login redirect path from the config.
-    URI locationURI = URI.create(postLoginResponseEntity.getHeaders().get("Location").get(0));
-    String expectedLocation =
-        resttemplateConfig.getContextPath() + "/" + formLoginConfig.getLoginRedirectPath();
-
-    if (postLoginResponseEntity.getStatusCode().equals(HttpStatus.FOUND)
-        && expectedLocation.equals(locationURI.getPath())) {
-
-      latestCsrfToken =
-          getCsrfTokenFromEndpoint(
-              restTemplateUtil.getURIForResource(formLoginConfig.getCsrfTokenPath()));
+      latestCsrfToken = getCsrfTokenFromLoginHtml(loginResponseEntity.getBody());
       latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
+      logger.debug(
+          "Update CSRF token for interceptor ({}) from login form", latestCsrfToken.getToken());
+
+      MultiValueMap<String, Object> loginPostParams = new LinkedMultiValueMap<>();
+      loginPostParams.add("username", credentialProvider.getUsername());
+      loginPostParams.add("password", credentialProvider.getPassword());
+      loginPostParams.add("_csrf", latestCsrfToken.getToken());
 
       logger.debug(
-          "Update CSRF token interceptor in AuthRestTempplate ({})", latestCsrfToken.getToken());
+          "Post to login url to startAuthenticationFlow with user={}, pwd={}",
+          credentialProvider.getUsername(),
+          credentialProvider.getPassword());
+      ResponseEntity<String> postLoginResponseEntity =
+          restTemplateForAuthenticationFlow.postForEntity(
+              restTemplateUtil.getURIForResource(formLoginConfig.getLoginFormPath()),
+              loginPostParams,
+              String.class);
 
-    } else {
-      throw new SessionAuthenticationException(
-          "Authentication failed.  Post login status code = "
-              + postLoginResponseEntity.getStatusCode()
-              + ", location = ["
-              + locationURI.getPath()
-              + "], expected location = ["
-              + expectedLocation
-              + "]");
+      // TODO(P1) This current way of checking if authentication is successful is somewhat
+      // hacky. Basically it says that authentication is successful if a 302 is returned
+      // and the redirect (from location header) maps to the login redirect path from the config.
+      URI locationURI = URI.create(postLoginResponseEntity.getHeaders().get("Location").get(0));
+      String expectedLocation =
+          resttemplateConfig.getContextPath() + "/" + formLoginConfig.getLoginRedirectPath();
+
+      boolean isAuthenticated =
+          postLoginResponseEntity.getStatusCode().equals(HttpStatus.FOUND)
+              && expectedLocation.equals(locationURI.getPath());
+
+      if (!isAuthenticated) {
+        throw new SessionAuthenticationException(
+            "Authentication failed.  Post login status code = "
+                + postLoginResponseEntity.getStatusCode()
+                + ", location = ["
+                + locationURI.getPath()
+                + "], expected location = ["
+                + expectedLocation
+                + "]");
+      }
     }
+
+    latestCsrfToken =
+        getCsrfTokenFromEndpoint(
+            restTemplateUtil.getURIForResource(formLoginConfig.getCsrfTokenPath()));
+    latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
+
+    logger.debug(
+        "Update CSRF token interceptor in AuthRestTemplate ({})", latestCsrfToken.getToken());
   }
 
   /**
@@ -322,7 +345,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
    *
    * @param loginHtml The login page HTML which contains the csrf token. It is assumed that the CSRF
    *     token is embedded on the page inside an input field with name matching {@link
-   *     com.box.l10n.mojito.rest.resttemplate.FormLoginAuthenticationCsrfTokenInterceptor#CSRF_PARAM_NAME}
+   *     LoginAuthenticationCsrfTokenInterceptor#CSRF_PARAM_NAME}
    * @return
    * @throws AuthenticationException
    */
@@ -346,10 +369,20 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
    * @param csrfTokenUrl The full URL to which the CSRF token can be obtained
    * @return
    */
-  protected CsrfToken getCsrfTokenFromEndpoint(String csrfTokenUrl) {
+  protected CsrfToken getCsrfTokenFromEndpoint(String csrfTokenUrl)
+      throws SessionAuthenticationException {
     ResponseEntity<String> csrfTokenEntity =
         restTemplateForAuthenticationFlow.getForEntity(csrfTokenUrl, String.class, "");
     logger.debug("CSRF token from {} is {}", csrfTokenUrl, csrfTokenEntity.getBody());
+    if (csrfTokenEntity.getStatusCode().isError()) {
+      throw new SessionAuthenticationException(
+          "Authentication failed.  GET login status code = "
+              + csrfTokenEntity.getStatusCode()
+              + ", location = ["
+              + csrfTokenUrl
+              + "]");
+    }
+
     return new DefaultCsrfToken(CSRF_HEADER_NAME, CSRF_PARAM_NAME, csrfTokenEntity.getBody());
   }
 

@@ -16,6 +16,7 @@ public class ResttemplateConfig {
   Integer port = 8080;
   String scheme = "http";
   String contextPath = "";
+  boolean usesLoginAuthentication = true;
 
   Authentication authentication = new Authentication();
 
@@ -94,5 +95,13 @@ public class ResttemplateConfig {
 
   public void setContextPath(String contextPath) {
     this.contextPath = contextPath;
+  }
+
+  public boolean usesLoginAuthentication() {
+    return usesLoginAuthentication;
+  }
+
+  public void setUsesLoginAuthentication(boolean usesLoginAuthentication) {
+    this.usesLoginAuthentication = usesLoginAuthentication;
   }
 }

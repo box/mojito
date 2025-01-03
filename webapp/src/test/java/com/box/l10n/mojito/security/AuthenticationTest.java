@@ -2,7 +2,7 @@ package com.box.l10n.mojito.security;
 
 import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.resttemplate.CredentialProvider;
-import com.box.l10n.mojito.rest.resttemplate.FormLoginAuthenticationCsrfTokenInterceptor;
+import com.box.l10n.mojito.rest.resttemplate.LoginAuthenticationCsrfTokenInterceptor;
 import java.io.IOException;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.http.HttpStatus;
@@ -23,8 +23,7 @@ public class AuthenticationTest extends WSTestBase {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AuthenticationTest.class);
 
-  @Autowired
-  FormLoginAuthenticationCsrfTokenInterceptor formLoginAuthenticationCsrfTokenInterceptor;
+  @Autowired LoginAuthenticationCsrfTokenInterceptor loginAuthenticationCsrfTokenInterceptor;
 
   @Autowired CredentialProvider credentialProvider;
 
@@ -32,10 +31,10 @@ public class AuthenticationTest extends WSTestBase {
   public void before() {
     logger.debug(
         "Resetting authenticated session in rest template so the next time will have to re-auth");
-    formLoginAuthenticationCsrfTokenInterceptor.resetAuthentication();
+    loginAuthenticationCsrfTokenInterceptor.resetAuthentication();
 
     logger.debug("Resetting credential as it might have been polutted in another test");
-    formLoginAuthenticationCsrfTokenInterceptor.setCredentialProvider(credentialProvider);
+    loginAuthenticationCsrfTokenInterceptor.setCredentialProvider(credentialProvider);
   }
 
   @Test
@@ -70,7 +69,7 @@ public class AuthenticationTest extends WSTestBase {
 
   @Test(expected = SessionAuthenticationException.class)
   public void testUnsuccessfulAuthWithIncorrectUser() throws IOException {
-    formLoginAuthenticationCsrfTokenInterceptor.setCredentialProvider(
+    loginAuthenticationCsrfTokenInterceptor.setCredentialProvider(
         new CredentialProvider() {
           @Override
           public String getUsername() {
@@ -88,7 +87,7 @@ public class AuthenticationTest extends WSTestBase {
 
   @Test(expected = SessionAuthenticationException.class)
   public void testUnsuccessfulAuthWithIncorrectPassword() throws IOException {
-    formLoginAuthenticationCsrfTokenInterceptor.setCredentialProvider(
+    loginAuthenticationCsrfTokenInterceptor.setCredentialProvider(
         new CredentialProvider() {
           @Override
           public String getUsername() {

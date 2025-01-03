@@ -31,7 +31,7 @@ public class CookieStoreRestTemplate extends RestTemplate {
         HttpClientBuilder.create()
             .setDefaultCookieStore(cookieStore)
             // we have to turn off auto redirect in the rest template because
-            // when session expires, it will return a 302 and resttemplate
+            // when session expires, it will return a 302 and restTemplate
             // will automatically redirect to /login even before returning
             // the ClientHttpResponse in the interceptor
             .disableRedirectHandling()
