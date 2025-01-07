@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.ai.translation;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.google.common.collect.Maps;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.util.Map;
@@ -27,13 +28,12 @@ public class AITranslationTextUnitFilterService {
   @Autowired MeterRegistry meterRegistry;
 
   public boolean isTranslatable(TMTextUnit tmTextUnit, Repository repository) {
-    boolean isTranslatable = true;
 
     if (repository == null) {
       logger.warn(
           "Repository is null for text unit with id: {}, filtering will be skipped",
           tmTextUnit.getId());
-      return isTranslatable;
+      return true;
     }
 
     if (aiTranslationFilterConfiguration.getRepositoryConfig() == null
@@ -42,27 +42,40 @@ public class AITranslationTextUnitFilterService {
       logger.debug(
           "No configuration found for repository: {}, filtering will be skipped",
           repository.getName());
-      return isTranslatable;
+      return true;
     }
 
     AITranslationFilterConfiguration.RepositoryConfig repositoryConfig =
         aiTranslationFilterConfiguration.getRepositoryConfig().get(repository.getName());
 
     if (repositoryConfig.shouldExcludePlurals()) {
-      isTranslatable = !isPlural(tmTextUnit);
+      if (isPlural(tmTextUnit)) {
+        logger.debug(
+            "Text unit with name: {}, is a plural, AI translation will be skipped",
+            tmTextUnit.getName());
+        return false;
+      }
     }
 
     if (repositoryConfig.shouldExcludePlaceholders()) {
-      isTranslatable = isTranslatable && !containsPlaceholder(repository.getName(), tmTextUnit);
+      if (containsPlaceholder(repository.getName(), tmTextUnit)) {
+        logger.debug(
+            "Text unit with name: {}, contains a placeholder, AI translation will be skipped",
+            tmTextUnit.getName());
+        return false;
+      }
     }
 
     if (repositoryConfig.shouldExcludeHtmlTags()) {
-      isTranslatable = isTranslatable && !containsHtmlTag(tmTextUnit);
+      if (containsHtmlTag(tmTextUnit)) {
+        logger.debug(
+            "Text unit with name: {}, contains HTML tag, AI translation will be skipped",
+            tmTextUnit.getName());
+        return false;
+      }
     }
 
-    logger.debug(
-        "Text unit with name: {}, should be translated: {}", tmTextUnit.getName(), isTranslatable);
-    return isTranslatable;
+    return true;
   }
 
   private boolean containsPlaceholder(String repositoryName, TMTextUnit tmTextUnit) {
@@ -88,7 +101,7 @@ public class AITranslationTextUnitFilterService {
 
   @PostConstruct
   public void init() {
-    excludePlaceholdersPatternMap = Map.of();
+    excludePlaceholdersPatternMap = Maps.newHashMap();
     if (aiTranslationFilterConfiguration.getRepositoryConfig() != null) {
       for (Map.Entry<String, AITranslationFilterConfiguration.RepositoryConfig> entry :
           aiTranslationFilterConfiguration.getRepositoryConfig().entrySet()) {
