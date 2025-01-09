@@ -31,6 +31,7 @@ class ShareSearchParamsModalStore {
 
     open() {
         this.show = true;
+        // eslint-disable-next-line eqeqeq
         if (!this.isLoadingParams && this.url == null) {
             this.waitFor(SearchParamsStore);
             this.isLoadingParams = true;
@@ -41,6 +42,7 @@ class ShareSearchParamsModalStore {
     close() {
         this.show = false;
 
+        // eslint-disable-next-line eqeqeq
         if (this.errorType != null) {
             this.errorType = null;
             this.url = null;
@@ -72,7 +74,7 @@ class ShareSearchParamsModalStore {
         this.errorType = ShareSearchParamsModalStore.ERROR_TYPES.SAVE_SEARCH_PARAMS;
     }
 
-    onSearchParamsChanged(searchParams) {
+    onSearchParamsChanged() {
         this.isLoadingParams = false;
         this.url = null;
     }
@@ -82,7 +84,7 @@ class ShareSearchParamsModalStore {
     }
 
     getUrlForUUID(uuid) {
-        return new URL(UrlHelper.getUrlWithContextPath("/workbench?") + UrlHelper.toQueryString({"link": uuid}), location.origin).href;
+        return new URL(UrlHelper.getUrlWithContextPath("/workbench?") + UrlHelper.toQueryString({ "link": uuid }), location.origin).href;
     }
 }
 

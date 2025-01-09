@@ -53,6 +53,7 @@ export default class RepositoryLocale {
      * @return {boolean}
      */
     static isRootLocale(repositoryLocale) {
+        // eslint-disable-next-line eqeqeq
         return (repositoryLocale.parentLocale == null);
     }
 }

@@ -67,10 +67,12 @@ const SearchDataSource = {
                 textUnitSearcherParameters.tmTextUnitCreatedAfter(searchParams.tmTextUnitCreatedAfter);
             }
 
+            // eslint-disable-next-line eqeqeq
             if (searchParams.tmTextUnitIds != null && searchParams.tmTextUnitIds.length > 0) {
                 textUnitSearcherParameters.tmTextUnitIds(searchParams.tmTextUnitIds);
             }
 
+            // eslint-disable-next-line eqeqeq
             if (searchParams.branchId != null) {
                 textUnitSearcherParameters.branchId(searchParams.branchId);
             }

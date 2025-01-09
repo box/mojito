@@ -151,10 +151,12 @@ class Locales {
         } else {
             localeDisplayName = languageDisplay;
 
+            // eslint-disable-next-line eqeqeq
             if (localeSubTags.script != null) {
                 localeDisplayName = `${localeDisplayName} - ${scriptDisplay}`;
             }
 
+            // eslint-disable-next-line eqeqeq
             if (localeSubTags.territory != null) {
                 localeDisplayName = `${localeDisplayName} (${territoryDisplay})`;
             }

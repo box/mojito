@@ -5,7 +5,7 @@ import esLintPluginReactHooks from "eslint-plugin-react-hooks";
 export default [
   {
     languageOptions: {
-        ecmaVersion: 2021,
+        ecmaVersion: 2022,
         sourceType: "module",
         globals: {
             ...globals.browser,

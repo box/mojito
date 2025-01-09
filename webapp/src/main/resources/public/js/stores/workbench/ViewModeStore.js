@@ -4,6 +4,7 @@ import ViewModeActions from "../../actions/workbench/ViewModeActions";
 class ViewModeStore {
     constructor() {
         this.viewMode = window.localStorage.getItem("viewMode");
+        // eslint-disable-next-line eqeqeq
         if (this.viewMode == null) {
             this.viewMode = ViewModeStore.VIEW_MODE.STANDARD;
             window.localStorage.setItem("viewMode", this.viewMode);

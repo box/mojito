@@ -279,10 +279,12 @@ class SearchParamsStore {
             this.repoIds = repoIds.slice();
         }
 
+        // eslint-disable-next-line eqeqeq
         if (branchId != null) {
             this.branchId = branchId;
         }
 
+        // eslint-disable-next-line eqeqeq
         if (tmTextUnitIds != null) {
             this.tmTextUnitIds = tmTextUnitIds;
         }
