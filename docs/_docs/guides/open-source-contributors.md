@@ -10,7 +10,7 @@ permalink: /docs/guides/open-source-contributors/
 The following requirements are needed to develop on {{ site.mojito_green }}: 
 
 1. [Git](https://git-scm.com/about)
-2. [JDK 17](https://adoptium.net/temurin/releases/?version=17) 
+2. [JDK 21](https://adoptium.net/temurin/releases/?version=21) 
 3. [Maven](https://maven.apache.org/download.cgi), or use the project Maven wrapper `mvnw` (version `3.8`)
 4. Optional but highly recommanded, [MySQL 8](https://dev.mysql.com/downloads/mysql/8.html) 
 
@@ -26,19 +26,13 @@ You can also get started by using a [docker image](#docker-image) that has the b
 
 Install `brew` following the website instructions: https://brew.sh/
 
-Ensure that you have added the `cask-versions` [tap](https://github.com/Homebrew/homebrew-cask-versions).
+Install `java 21` from `Temurin`:
 
 ```sh
-brew tap homebrew/cask-versions
+brew install --cask temurin@21
 ```
 
-Install `java 17` from `Temurin`:
-
-```sh
-brew install --cask temurin17
-```
-
-Check that `java 17` is now in use with `java -version`. If you need multiple versions of `java` consider using 
+Check that `java 21` is now in use with `java -version`. If you need multiple versions of `java` consider using 
 something like `jenv` (don't forget the plugins: `jenv enable-plugin maven` & `jenv enable-plugin export` ) or `sdkman`.
     
 Install `maven` (latest version should be fine):
@@ -58,13 +52,13 @@ Note, to install the exact same `maven` version as the wrapper: `brew install ma
  
 ### Install on Unbutu 18.4 LTS
 
-Install `java 17` from `OpenJDK`:
+Install `java 21` from `OpenJDK`:
 
 ```sh
-sudo apt-get install openjdk-17-jdk
+sudo apt-get install openjdk-21-jdk
 ```
-Check that `java 17` is now in use with `java -version`. If not you, can set it as default with 
-`sudo update-java-alternatives -s /usr/lib/jvm/java-1.17.0-openjdk-amd64` (To check the list
+Check that `java 21` is now in use with `java -version`. If not you, can set it as default with 
+`sudo update-java-alternatives -s /usr/lib/jvm/java-1.21.0-openjdk-amd64` (To check the list
 `sudo update-java-alternatives -l`). If you need multiple versions of `java` 
 consider using something like `jenv` or `sdkman`.
 
@@ -305,13 +299,13 @@ docker run -v $(pwd):/mnt/mojito -it aurambaj/mojito-dev mvn install -DskipTests
 
 ### Check Java version 
 
-Make sure you have Java 8 installed:
+Make sure you have Java 21 installed:
 
 ```sh
-[11:05:13] ~/code/mojito (fix_add_text_unit_plural) $ java -version
-openjdk version "17.0.9" 2023-10-17
-OpenJDK Runtime Environment Homebrew (build 17.0.9+0)
-OpenJDK 64-Bit Server VM Homebrew (build 17.0.9+0, mixed mode, sharing)
+~/code/mojito [master] $ java --version
+openjdk 21.0.4 2024-07-16 LTS
+OpenJDK Runtime Environment Temurin-21.0.4+7 (build 21.0.4+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.4+7 (build 21.0.4+7-LTS, mixed mode)
 ```
 
 ### Check Maven version

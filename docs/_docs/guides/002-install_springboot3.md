@@ -9,13 +9,13 @@ permalink: /docs/guides/install-springboot3/
 
 No binaries are available for the `Spring Boot 3` at the moment. It should be built from the `master` branch.
 
-Assuming `Java 17` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
+Assuming `Java 21` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
 
 For detail instructions on development environment setup, [see here]({{ site.url }}/docs/guides/open-source-contributors/). 
 
 ### Using Executable Jars
 
-`Java 17` is required.
+`Java 21` is required.
 
 Run the Webapp with:
 
