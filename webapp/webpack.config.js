@@ -123,6 +123,7 @@ module.exports = (env) => {
     config.plugins.push(new HtmlWebpackPlugin({
         filename: path.resolve(__dirname, './target/classes/templates/index.html'),
         template: 'src/main/resources/templates/index.html',
+        favicon: 'src/main/resources/favicon.ico',
         inject: false
     }));
 
