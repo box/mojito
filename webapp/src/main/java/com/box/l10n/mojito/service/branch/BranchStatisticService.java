@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -97,6 +99,11 @@ public class BranchStatisticService {
   @Value("${l10n.branchStatistic.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
+  @Value("${l10n.branchStatistic.branch.notify.regex:}")
+  String branchNotifyRegex;
+
+  Pattern branchNotifyPattern;
+
   /**
    * Compute statistics for all branches that are not deleted in a given repository.
    *
@@ -113,7 +120,15 @@ public class BranchStatisticService {
 
       List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
       computeAndSaveBranchStatistics(repositoryId, updateType, branchesToCheck);
-      sendBranchNotifications(branchesToCheck);
+      sendBranchNotifications(filterBranchesByNotifyRegex(branchesToCheck));
+    }
+  }
+
+  @PostConstruct
+  public void init() {
+    if (branchNotifyRegex != null && !branchNotifyRegex.isEmpty()) {
+      logger.info("Using branch notify regex: {}", branchNotifyRegex);
+      branchNotifyPattern = Pattern.compile(branchNotifyRegex);
     }
   }
 
@@ -471,6 +486,17 @@ public class BranchStatisticService {
     List<Branch> branches =
         branchRepository.findByRepositoryIdAndDeletedFalseAndNameNotNullAndNameNot(
             repositoryId, PRIMARY_BRANCH);
+    return branches;
+  }
+
+  protected List<Branch> filterBranchesByNotifyRegex(List<Branch> branches) {
+    if (branchNotifyPattern != null) {
+      logger.debug("Filtering branches to process based on branch notify regex");
+      branches =
+          branches.stream()
+              .filter(branch -> branchNotifyPattern.matcher(branch.getName()).matches())
+              .collect(Collectors.toList());
+    }
     return branches;
   }
 

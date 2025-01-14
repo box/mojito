@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -318,6 +319,23 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         getByBranchWithBranchTextUnitStatistics(branch1);
     assertEquals("branch1", branchStatisticForBranch1AfterDelete.getBranch().getName());
     assertTrue(branchStatisticForBranch1AfterDelete.getBranchTextUnitStatistics().isEmpty());
+  }
+
+  @Test
+  public void testFilterBranchNotifs() {
+    branchStatisticService.branchNotifyRegex = "^(?!do_not_notify$).*";
+    branchStatisticService.init();
+    Branch branch = new Branch();
+    branch.setName("branch1");
+    Branch branch2 = new Branch();
+    branch2.setName("branch2");
+    Branch branch3 = new Branch();
+    branch3.setName("do_not_notify");
+    List<Branch> branches = Lists.newArrayList(branch, branch2, branch3);
+    List<Branch> filteredBranches = branchStatisticService.filterBranchesByNotifyRegex(branches);
+    assertEquals(2, filteredBranches.size());
+    assertEquals("branch1", filteredBranches.get(0).getName());
+    assertEquals("branch2", filteredBranches.get(1).getName());
   }
 
   /**
