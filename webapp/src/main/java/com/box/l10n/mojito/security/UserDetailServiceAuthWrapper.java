@@ -15,11 +15,15 @@ public class UserDetailServiceAuthWrapper
 
   protected PrincipalDetailService userDetailsService = null;
   protected HeaderSecurityConfig headerSecurityConfig;
+  protected ServiceIdentifierParser serviceIdentifierParser;
 
   public UserDetailServiceAuthWrapper(
-      PrincipalDetailService userDetailsService, HeaderSecurityConfig headerSecurityConfig) {
+      PrincipalDetailService userDetailsService,
+      HeaderSecurityConfig headerSecurityConfig,
+      ServiceIdentifierParser serviceIdentifierParser) {
     this.userDetailsService = userDetailsService;
     this.headerSecurityConfig = headerSecurityConfig;
+    this.serviceIdentifierParser = serviceIdentifierParser;
   }
 
   @Override
@@ -29,9 +33,10 @@ public class UserDetailServiceAuthWrapper
     boolean isService =
         headerSecurityConfig != null && username.contains(headerSecurityConfig.servicePrefix);
     logger.debug("User identifier: {}", username);
-    logger.debug("Following service logic: {}", isService);
+    logger.debug("Is using service authentication flow: {}", isService);
     if (isService) {
-      return this.userDetailsService.loadServiceWithName(username);
+      String serviceName = serviceIdentifierParser.parseHeader(username);
+      return this.userDetailsService.loadServiceWithName(serviceName);
     } else {
       return this.userDetailsService.loadUserByUsername(username);
     }

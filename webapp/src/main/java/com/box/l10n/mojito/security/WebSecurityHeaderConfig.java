@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 @Configuration
 class WebSecurityHeaderConfig {
   @Autowired HeaderSecurityConfig headerSecurityConfig;
+  @Autowired ServiceIdentifierParser serviceIdentifierParser;
 
   @Bean
   PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider() {
@@ -19,7 +20,9 @@ class WebSecurityHeaderConfig {
         new PreAuthenticatedAuthenticationProvider();
     UserDetailServiceAuthWrapper userDetailsByNameServiceWrapper =
         new UserDetailServiceAuthWrapper(
-            getPrincipalDetailsServiceCreatePartial(), headerSecurityConfig);
+            getPrincipalDetailsServiceCreatePartial(),
+            headerSecurityConfig,
+            serviceIdentifierParser);
     preAuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(
         userDetailsByNameServiceWrapper);
     return preAuthenticatedAuthenticationProvider;
