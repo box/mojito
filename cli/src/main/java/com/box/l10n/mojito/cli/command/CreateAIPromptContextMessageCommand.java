@@ -2,9 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.AiPromptWsApiProxy;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.AIServiceClient;
-import com.box.l10n.mojito.rest.entity.AIPromptContextMessageCreateRequest;
+import com.box.l10n.mojito.cli.model.AIPromptContextMessageCreateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class CreateAIPromptContextMessageCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(CreateAIPromptContextMessageCommand.class);
 
-  @Autowired AIServiceClient aiServiceClient;
+  @Autowired AiPromptWsApiProxy aiServiceClient;
 
   @Parameter(
       names = {"--content", "-c"},
@@ -55,14 +55,14 @@ public class CreateAIPromptContextMessageCommand extends Command {
 
   private void createPromptContextMessage() {
     logger.debug("Received request to create prompt content message");
-    AIPromptContextMessageCreateRequest AIPromptContextMessageCreateRequest =
+    AIPromptContextMessageCreateRequest aiPromptContextMessageCreateRequest =
         new AIPromptContextMessageCreateRequest();
-    AIPromptContextMessageCreateRequest.setContent(content);
-    AIPromptContextMessageCreateRequest.setMessageType(messageType);
-    AIPromptContextMessageCreateRequest.setAiPromptId(promptId);
-    AIPromptContextMessageCreateRequest.setOrderIndex(orderIndex);
+    aiPromptContextMessageCreateRequest.setContent(content);
+    aiPromptContextMessageCreateRequest.setMessageType(messageType);
+    aiPromptContextMessageCreateRequest.setAiPromptId(promptId);
+    aiPromptContextMessageCreateRequest.setOrderIndex(orderIndex);
     long contextMessageId =
-        aiServiceClient.createPromptContextMessage(AIPromptContextMessageCreateRequest);
+        aiServiceClient.createPromptMessage(aiPromptContextMessageCreateRequest);
     consoleWriter
         .newLine()
         .a("Prompt context message created with id: " + contextMessageId)

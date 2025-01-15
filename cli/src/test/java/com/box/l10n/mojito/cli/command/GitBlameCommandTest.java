@@ -14,9 +14,9 @@ import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ChromeExtensionJSONFileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.POFileType;
+import com.box.l10n.mojito.cli.model.GitBlameGitBlameWithUsage;
+import com.box.l10n.mojito.cli.model.GitBlameWithUsageGitBlameWithUsage;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.entity.GitBlame;
-import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import java.io.File;
@@ -69,7 +69,7 @@ public class GitBlameCommandTest extends CLITestBase {
       assertNull(gitBlameWithUsage.getGitBlame());
     }
 
-    GitBlame gitBlame = new GitBlame();
+    GitBlameGitBlameWithUsage gitBlame = new GitBlameGitBlameWithUsage();
     gitBlame.setCommitName("37801193683d2e852a8a2b81e6dd05ca9ed13598");
     gitBlame.setCommitTime("1537568049");
     gitBlame.setAuthorName("Jean Aurambault");
@@ -104,7 +104,7 @@ public class GitBlameCommandTest extends CLITestBase {
       assertNull(gitBlameWithUsage.getGitBlame());
     }
 
-    GitBlame gitBlame = new GitBlame();
+    GitBlameGitBlameWithUsage gitBlame = new GitBlameGitBlameWithUsage();
     gitBlame.setCommitName("1a86b8a2003f4d20858bfb53770119f039520f79");
     gitBlame.setCommitTime("1537572147");
     gitBlame.setAuthorName("Liz Magalindan");
@@ -213,19 +213,20 @@ public class GitBlameCommandTest extends CLITestBase {
         new String[] {
           "<string name=\"test_0\">Test 0</string>\n", "    <string name=\"test_1\">Test 1</string>"
         };
-    GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage.setTextUnitName("test_0");
-    GitBlameWithUsage gitBlameWithUsage1 = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage1 =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage1.setTextUnitName("test_1");
 
-    List<GitBlameWithUsage> textUnitWithUsages = new ArrayList<>();
+    List<GitBlameWithUsageGitBlameWithUsage> textUnitWithUsages = new ArrayList<>();
     textUnitWithUsages.add(gitBlameWithUsage);
     textUnitWithUsages.add(gitBlameWithUsage1);
 
     GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
     for (int i = 0; i < lines.length; i++) {
-      List<GitBlameWithUsage> gitBlameWithUsages =
+      List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages =
           gitBlameCommand.getGitBlameWithUsagesFromLine(
               lines[i], textUnitWithUsages, new AndroidStringsFileType());
       assertEquals(textUnitWithUsages.get(i), gitBlameWithUsages.get(i));
@@ -236,20 +237,26 @@ public class GitBlameCommandTest extends CLITestBase {
   @Test
   public void getTextUnitNamePlural() {
     String line = "<plurals name=\"plural_tests\">\n";
-    GitBlameWithUsage gitBlameWithUsage_zero = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage_zero =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage_zero.setTextUnitName("plural_tests_zero");
-    GitBlameWithUsage gitBlameWithUsage_one = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage_one =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage_one.setTextUnitName("plural_tests_one");
-    GitBlameWithUsage gitBlameWithUsage_two = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage_two =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage_two.setTextUnitName("plural_tests_two");
-    GitBlameWithUsage gitBlameWithUsage_few = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage_few =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage_few.setTextUnitName("plural_tests_few");
-    GitBlameWithUsage gitBlameWithUsage_many = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage_many =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage_many.setTextUnitName("plural_tests_many");
-    GitBlameWithUsage gitBlameWithUsage_other = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage_other =
+        new GitBlameWithUsageGitBlameWithUsage();
     gitBlameWithUsage_other.setTextUnitName("plural_tests_other");
 
-    List<GitBlameWithUsage> gitBlameWithUsagesExpected = new ArrayList<>();
+    List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsagesExpected = new ArrayList<>();
     gitBlameWithUsagesExpected.add(gitBlameWithUsage_zero);
     gitBlameWithUsagesExpected.add(gitBlameWithUsage_one);
     gitBlameWithUsagesExpected.add(gitBlameWithUsage_two);
@@ -258,7 +265,7 @@ public class GitBlameCommandTest extends CLITestBase {
     gitBlameWithUsagesExpected.add(gitBlameWithUsage_other);
 
     GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    List<GitBlameWithUsage> gitBlameWithUsagesActual =
+    List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsagesActual =
         gitBlameCommand.getGitBlameWithUsagesFromLine(
             line, gitBlameWithUsagesExpected, new AndroidStringsFileType());
 
@@ -352,7 +359,7 @@ public class GitBlameCommandTest extends CLITestBase {
     gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
     gitBlameCommand.initGitRepository();
     BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("pom.xml");
-    GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsageGitBlameWithUsage();
     gitBlameCommand.updateBlameResultsInGitBlameWithUsage(100000, blameResult, gitBlameWithUsage);
     assertNull(gitBlameWithUsage.getGitBlame().getAuthorName());
   }
@@ -364,7 +371,7 @@ public class GitBlameCommandTest extends CLITestBase {
     gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
     gitBlameCommand.initGitRepository();
     BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("somemissginfile");
-    GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
+    GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsageGitBlameWithUsage();
     gitBlameCommand.updateBlameResultsInGitBlameWithUsage(10, blameResult, gitBlameWithUsage);
     assertNull(gitBlameWithUsage.getGitBlame().getAuthorName());
   }
@@ -384,13 +391,13 @@ public class GitBlameCommandTest extends CLITestBase {
   public void getGitBlameWithUsagesToProcess() {
     GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
-    ArrayList<GitBlameWithUsage> gitBlameWithUsages = new ArrayList<>();
-    GitBlameWithUsage toSkip = new GitBlameWithUsage();
-    toSkip.setGitBlame(new GitBlame());
+    ArrayList<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages = new ArrayList<>();
+    GitBlameWithUsageGitBlameWithUsage toSkip = new GitBlameWithUsageGitBlameWithUsage();
+    toSkip.setGitBlame(new GitBlameGitBlameWithUsage());
     gitBlameWithUsages.add(toSkip);
-    gitBlameWithUsages.add(new GitBlameWithUsage());
+    gitBlameWithUsages.add(new GitBlameWithUsageGitBlameWithUsage());
 
-    List<GitBlameWithUsage> gitBlameWithUsagesToProcess =
+    List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsagesToProcess =
         gitBlameCommand.getGitBlameWithUsagesToProcess(gitBlameWithUsages);
 
     assertEquals(1, gitBlameWithUsagesToProcess.size());
@@ -399,7 +406,7 @@ public class GitBlameCommandTest extends CLITestBase {
 
   void verifyGitBlame(
       List<com.box.l10n.mojito.service.gitblame.GitBlameWithUsage> gitBlameWithUsages,
-      GitBlame gitBlame) {
+      GitBlameGitBlameWithUsage gitBlame) {
     assertFalse(gitBlameWithUsages.isEmpty());
 
     gitBlameWithUsages.stream()
@@ -421,7 +428,8 @@ public class GitBlameCommandTest extends CLITestBase {
     }
   }
 
-  L10nJCommander getL10nJCommanderWithSpiedIfShallow(GitBlame gitBlame) throws Exception {
+  L10nJCommander getL10nJCommanderWithSpiedIfShallow(GitBlameGitBlameWithUsage gitBlame)
+      throws Exception {
     L10nJCommander l10nJCommander = getL10nJCommander();
 
     if (shallowClone) {

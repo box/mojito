@@ -12,15 +12,16 @@ import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_SHO
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_TRANSLATED_DESCRIPTION;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_TRANSLATED_LONG;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_TRANSLATED_SHORT;
+import static java.util.Optional.ofNullable;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.cli.model.BranchBranchSummary;
+import com.box.l10n.mojito.cli.model.PollableTask;
 import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Branch;
-import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -42,7 +43,7 @@ public class BranchDeleteCommand extends Command {
 
   @Autowired ConsoleWriter consoleWriter;
 
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Autowired AssetClient assetClient;
 
@@ -114,24 +115,24 @@ public class BranchDeleteCommand extends Command {
       }
     }
 
-    List<Branch> branches =
-        repositoryClient.getBranches(
+    List<BranchBranchSummary> branches =
+        repositoryClient.getBranchesOfRepository(
             repository.getId(),
             branchName,
             branchNameRegex,
             false,
             translated,
             includeNullBranch,
-            createdBeforeDateTime);
+            ofNullable(createdBeforeDateTime).map(ZonedDateTime::toOffsetDateTime).orElse(null));
 
-    for (Branch branch : branches) {
+    for (BranchBranchSummary branch : branches) {
       consoleWriter
           .newLine()
           .a("Delete branch: ")
           .fg(Ansi.Color.CYAN)
           .a(branch.getName())
           .println();
-      PollableTask pollableTask = repositoryClient.deleteBranch(branch.getId(), repository.getId());
+      PollableTask pollableTask = repositoryClient.deleteBranch(repository.getId(), branch.getId());
       commandHelper.waitForPollableTask(pollableTask.getId());
     }
 

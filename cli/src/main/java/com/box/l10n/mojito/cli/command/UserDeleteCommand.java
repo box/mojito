@@ -2,9 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.UserWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.UserClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException;
 import org.fusesource.jansi.Ansi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class UserDeleteCommand extends Command {
       description = Param.USERNAME_DESCRIPTION)
   String username;
 
-  @Autowired UserClient userClient;
+  @Autowired UserWsApiProxy userClient;
 
   @Override
   protected void execute() throws CommandException {

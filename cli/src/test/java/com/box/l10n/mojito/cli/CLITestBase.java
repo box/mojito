@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.Application;
+import com.box.l10n.mojito.cli.apiclient.ApiClientConfigurer;
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
@@ -74,10 +75,13 @@ public class CLITestBase extends IOTestBase {
 
   @LocalServerPort int port;
 
+  @Autowired ApiClientConfigurer apiClientConfigurer;
+
   @PostConstruct
   public void setPort() {
     logger.debug("Saving port number = {}", port);
     resttemplateConfig.setPort(port);
+    this.apiClientConfigurer.init();
 
     XmlParsingConfiguration.disableXPathLimits();
   }

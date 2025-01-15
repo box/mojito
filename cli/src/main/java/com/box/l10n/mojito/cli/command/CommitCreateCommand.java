@@ -1,13 +1,16 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.ofNullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.JSR310Migration;
+import com.box.l10n.mojito.cli.apiclient.CommitWsApi;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.CommitClient;
+import com.box.l10n.mojito.cli.model.CommitBody;
+import com.box.l10n.mojito.cli.model.CommitCommit;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Commit;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.collect.Streams;
 import java.io.IOException;
@@ -42,7 +45,7 @@ public class CommitCreateCommand extends Command {
 
   @Autowired CommandHelper commandHelper;
 
-  @Autowired CommitClient commitClient;
+  @Autowired CommitWsApi commitClient;
 
   @Autowired RepositoryClient repositoryClient;
 
@@ -105,13 +108,15 @@ public class CommitCreateCommand extends Command {
       commitInfo = new CommitInfo(commitHash, authorEmailParam, authorNameParam, creationDateParam);
     }
 
-    Commit commit =
-        commitClient.createCommit(
-            commitInfo.hash,
-            repository.getId(),
-            commitInfo.authorName,
-            commitInfo.authorEmail,
-            commitInfo.creationDate);
+    CommitBody commitBody = new CommitBody();
+    commitBody.setCommitName(commitInfo.hash);
+    commitBody.setRepositoryId(repository.getId());
+    commitBody.setAuthorName(commitInfo.authorName);
+    commitBody.setAuthorEmail(commitInfo.authorEmail);
+    Long creationDateMilliSeconds =
+        ofNullable(commitInfo.creationDate).map(JSR310Migration::getMillis).orElse(null);
+    commitBody.setSourceCreationDate(creationDateMilliSeconds);
+    CommitCommit commit = commitClient.createCommit(commitBody);
 
     consoleWriter
         .fg(Ansi.Color.GREEN)

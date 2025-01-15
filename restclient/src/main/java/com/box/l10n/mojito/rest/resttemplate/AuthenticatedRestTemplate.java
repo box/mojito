@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -117,7 +118,7 @@ public class AuthenticatedRestTemplate {
         logger.debug(
             "Setting supported media type to just JSON. The Accept header will be updated accordingly to application/json");
         mappingJackson2HttpMessageConverter.setSupportedMediaTypes(
-            Arrays.asList(MediaType.APPLICATION_JSON));
+            Arrays.asList(MediaType.APPLICATION_JSON, MediaTypes.HAL_JSON));
 
         logger.debug("Creating custom jackson2 objectmapper with serialization inclusion changes");
         Jackson2ObjectMapperFactoryBean jackson2ObjectMapperFactoryBean =

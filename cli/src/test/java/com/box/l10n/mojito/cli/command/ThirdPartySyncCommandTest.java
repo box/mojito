@@ -5,12 +5,12 @@ import static com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction.PUSH_SCRE
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.model.ThirdPartySync;
 import com.box.l10n.mojito.cli.utils.PollableTaskJobMatcher;
 import com.box.l10n.mojito.cli.utils.TestingJobListener;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.quartz.QuartzSchedulerManager;
-import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJob;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobInput;
 import java.util.Arrays;
@@ -103,7 +103,8 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
         .contains(
             "actions: "
                 + Arrays.asList(
-                        ThirdPartySyncAction.MAP_TEXTUNIT, ThirdPartySyncAction.PUSH_SCREENSHOT)
+                        ThirdPartySync.ActionsEnum.MAP_TEXTUNIT,
+                        ThirdPartySync.ActionsEnum.PUSH_SCREENSHOT)
                     .toString());
     assertThat(output).contains("skip-text-units-with-pattern: " + skipTextUnitPattern);
     assertThat(output).contains("skip-assets-path-pattern: " + skipAssetPattern);
@@ -130,9 +131,9 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
   @Test
   public void repalce() {
     ThirdPartySyncCommand thirdPartySyncCommand = new ThirdPartySyncCommand();
-    assertThat(thirdPartySyncCommand.unescpeUnicodeSpaceSequence("\\u0032")).isEqualTo(" ");
-    assertThat(thirdPartySyncCommand.unescpeUnicodeSpaceSequence("\\u0032a\\u0032"))
+    assertThat(thirdPartySyncCommand.unescapeUnicodeSpaceSequence("\\u0032")).isEqualTo(" ");
+    assertThat(thirdPartySyncCommand.unescapeUnicodeSpaceSequence("\\u0032a\\u0032"))
         .isEqualTo(" a ");
-    assertThat(thirdPartySyncCommand.unescpeUnicodeSpaceSequence("nop")).isEqualTo("nop");
+    assertThat(thirdPartySyncCommand.unescapeUnicodeSpaceSequence("nop")).isEqualTo("nop");
   }
 }

@@ -2,13 +2,13 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.VirtualAssetWsApi;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.cli.model.VirtualAsset;
 import com.box.l10n.mojito.rest.client.HttpClientErrorExceptionHelper;
 import com.box.l10n.mojito.rest.client.HttpClientErrorJson;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.client.VirtualAsset;
-import com.box.l10n.mojito.rest.client.VirtualAssetClient;
 import com.box.l10n.mojito.rest.entity.Repository;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class VirtualAssetCreateCommand extends Command {
       description = Param.REPOSITORY_DESCRIPTION)
   String pathParam;
 
-  @Autowired VirtualAssetClient virtualAssetClient;
+  @Autowired VirtualAssetWsApi virtualAssetClient;
 
   @Autowired RepositoryClient repositoryClient;
 
@@ -80,7 +80,7 @@ public class VirtualAssetCreateCommand extends Command {
 
     try {
       consoleWriter.a(" - Create virtual asset: ").fg(Ansi.Color.CYAN).a(pathParam).println();
-      virtualAsset = virtualAssetClient.createOrUpdate(virtualAsset);
+      virtualAsset = virtualAssetClient.createOrUpdateVirtualAsset(virtualAsset);
       consoleWriter.a(" --> asset id: ").fg(Ansi.Color.MAGENTA).a(virtualAsset.getId()).println();
       consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     } catch (HttpClientErrorException hcee) {

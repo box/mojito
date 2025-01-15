@@ -2,13 +2,14 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
+import com.box.l10n.mojito.cli.model.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
@@ -71,7 +72,7 @@ public class TMImportCommand extends Command {
 
   @Autowired AssetClient assetClient;
 
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Autowired CommandHelper commandHelper;
 
@@ -127,8 +128,10 @@ public class TMImportCommand extends Command {
           .a(" Running")
           .println();
 
-      repositoryClient.importRepository(
-          repository.getId(), getFileContent(fileMatch), updateTMParam);
+      ImportRepositoryBody importRepositoryBody = new ImportRepositoryBody();
+      importRepositoryBody.setUpdateTM(updateTMParam);
+      importRepositoryBody.setXliffContent(getFileContent(fileMatch));
+      repositoryClient.importRepository(importRepositoryBody, repository.getId());
 
       consoleWriter.erasePreviouslyPrintedLines();
       consoleWriter

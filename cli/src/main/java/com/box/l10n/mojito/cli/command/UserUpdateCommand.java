@@ -2,12 +2,16 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.UserWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.Console;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.UserClient;
+import com.box.l10n.mojito.cli.model.Authority;
+import com.box.l10n.mojito.cli.model.User;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException;
 import com.box.l10n.mojito.rest.entity.Role;
+import java.util.ArrayList;
+import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +36,7 @@ public class UserUpdateCommand extends Command {
 
   @Autowired ConsoleWriter consoleWriter;
 
-  @Autowired UserClient userClient;
+  @Autowired UserWsApiProxy userClient;
 
   @Parameter(
       names = {Param.USERNAME_LONG, Param.USERNAME_SHORT},
@@ -82,9 +86,21 @@ public class UserUpdateCommand extends Command {
     consoleWriter.a("Update user: ").fg(Ansi.Color.CYAN).a(username).println();
 
     try {
-      Role role = Role.fromString(rolename);
-      userClient.updateUserByUsername(
-          username, getPassword(), role, surname, givenName, commonName);
+      User user = new User();
+      user.setPassword(getPassword());
+      user.setSurname(surname);
+      user.setGivenName(givenName);
+      user.setCommonName(commonName);
+
+      Role role = Role.fromString(this.rolename);
+      List<Authority> authorities = new ArrayList<>();
+      if (role != null) {
+        Authority authority = new Authority();
+        authority.setAuthority(role.toString());
+        authorities.add(authority);
+      }
+      user.setAuthorities(authorities);
+      userClient.updateUserByUsername(user, this.username);
       consoleWriter.newLine().a("updated --> user: ").fg(Ansi.Color.MAGENTA).a(username).println();
     } catch (ResourceNotFoundException ex) {
       throw new CommandException(ex.getMessage(), ex);

@@ -11,13 +11,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.box.l10n.mojito.cli.apiclient.AiChecksWsApiProxy;
 import com.box.l10n.mojito.cli.command.CommandException;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
+import com.box.l10n.mojito.cli.model.AICheckResponse;
+import com.box.l10n.mojito.cli.model.AICheckResult;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.rest.ai.AIException;
-import com.box.l10n.mojito.rest.client.AIServiceClient;
-import com.box.l10n.mojito.rest.entity.AICheckResponse;
-import com.box.l10n.mojito.rest.entity.AICheckResult;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import java.time.Duration;
@@ -33,7 +33,7 @@ import reactor.util.retry.Retry;
 
 public class AICheckerTest {
 
-  @Mock AIServiceClient AIServiceClient;
+  @Mock AiChecksWsApiProxy aiServiceClient;
 
   List<AssetExtractionDiff> assetExtractionDiffs;
 
@@ -43,7 +43,7 @@ public class AICheckerTest {
   public void setup() {
     MockitoAnnotations.initMocks(this);
     AIChecker = new AIChecker();
-    AIChecker.AIServiceClient = AIServiceClient;
+    AIChecker.aiServiceClient = aiServiceClient;
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
     assetExtractorTextUnit.setName("Some string id --- Test context");
@@ -67,24 +67,24 @@ public class AICheckerTest {
 
   @Test
   public void testCheckSuccess() {
-    AICheckResponse AICheckResponse = new AICheckResponse();
-    AICheckResponse.setError(false);
-    AICheckResponse.setErrorMessage(null);
+    AICheckResponse aiCheckResponse = new AICheckResponse();
+    aiCheckResponse.setError(false);
+    aiCheckResponse.setErrorMessage(null);
     Map<String, List<AICheckResult>> checkResults = new HashMap<>();
     List<AICheckResult> results = new ArrayList<>();
 
-    AICheckResult AICheckResult = new AICheckResult();
-    AICheckResult.setSuccess(true);
-    AICheckResult.setSuggestedFix("");
+    AICheckResult aiCheckResult = new AICheckResult();
+    aiCheckResult.setSuccess(true);
+    aiCheckResult.setSuggestedFix("");
 
-    results.add(AICheckResult);
+    results.add(aiCheckResult);
     checkResults.put("A source string with no errors.", results);
-    AICheckResponse.setResults(checkResults);
+    aiCheckResponse.setResults(checkResults);
 
-    when(AIServiceClient.executeAIChecks(any())).thenReturn(AICheckResponse);
+    when(aiServiceClient.executeAIChecks(any())).thenReturn(aiCheckResponse);
     CliCheckResult result = AIChecker.run(assetExtractionDiffs);
 
-    verify(AIServiceClient, times(1)).executeAIChecks(any());
+    verify(aiServiceClient, times(1)).executeAIChecks(any());
     assertTrue(result.isSuccessful());
     assertTrue(result.getNotificationText().isEmpty());
   }
@@ -105,10 +105,10 @@ public class AICheckerTest {
     checkResults.put("A source string with no errors.", results);
     AICheckResponse.setResults(checkResults);
 
-    when(AIServiceClient.executeAIChecks(any())).thenReturn(AICheckResponse);
+    when(aiServiceClient.executeAIChecks(any())).thenReturn(AICheckResponse);
     CliCheckResult result = AIChecker.run(assetExtractionDiffs);
 
-    verify(AIServiceClient, times(1)).executeAIChecks(any());
+    verify(aiServiceClient, times(1)).executeAIChecks(any());
     assertFalse(result.isSuccessful());
     assertFalse(result.getNotificationText().isEmpty());
     assertTrue(
@@ -123,9 +123,9 @@ public class AICheckerTest {
   public void testRetryExhausted() {
     AIChecker.retryConfiguration =
         Retry.backoff(10, Duration.ofMillis(1)).maxBackoff(Duration.ofMillis(1));
-    when(AIServiceClient.executeAIChecks(any())).thenThrow(new AIException("Test error"));
+    when(aiServiceClient.executeAIChecks(any())).thenThrow(new AIException("Test error"));
     CliCheckResult result = AIChecker.run(assetExtractionDiffs);
-    verify(AIServiceClient, times(11)).executeAIChecks(any());
+    verify(aiServiceClient, times(11)).executeAIChecks(any());
     assertFalse(result.isSuccessful());
     assertTrue(result.getNotificationText().contains("Retries exhausted for OpenAI check"));
   }
@@ -152,7 +152,7 @@ public class AICheckerTest {
     AICheckResponse AICheckResponse = new AICheckResponse();
     AICheckResponse.setError(true);
     AICheckResponse.setErrorMessage("Some error message");
-    when(AIServiceClient.executeAIChecks(any())).thenReturn(AICheckResponse);
+    when(aiServiceClient.executeAIChecks(any())).thenReturn(AICheckResponse);
     CliCheckResult result = AIChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
     assertTrue(result.getNotificationText().contains("Retries exhausted for OpenAI check"));

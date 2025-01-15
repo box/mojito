@@ -5,18 +5,19 @@ import static org.fusesource.jansi.Ansi.Color.YELLOW;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.GitBlameWithUsageMapper;
+import com.box.l10n.mojito.cli.apiclient.TextUnitWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.GitBlameType;
+import com.box.l10n.mojito.cli.model.GitBlameGitBlameWithUsage;
+import com.box.l10n.mojito.cli.model.GitBlameWithUsageGitBlameWithUsage;
+import com.box.l10n.mojito.cli.model.PollableTask;
 import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.GitBlameWithUsageClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.GitBlame;
-import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
-import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -50,7 +51,7 @@ public class GitBlameCommand extends Command {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(GitBlameCommand.class);
 
-  /** Size of the batch when fetching {@link GitBlameWithUsage}s to be processed */
+  /** Size of the batch when fetching {@link GitBlameGitBlameWithUsage}s to be processed */
   static final int BATCH_SIZE = 500;
 
   /** {@link #textUnitNameToTextUnitNameInSource(String, FileType, boolean)} */
@@ -127,7 +128,7 @@ public class GitBlameCommand extends Command {
 
   @Autowired RepositoryClient repositoryClient;
 
-  @Autowired GitBlameWithUsageClient gitBlameWithUsageClient;
+  @Autowired TextUnitWsApiProxy gitBlameWithUsageClient;
 
   @Autowired CommandHelper commandHelper;
 
@@ -173,11 +174,12 @@ public class GitBlameCommand extends Command {
           .a("-")
           .a(offset + BATCH_SIZE)
           .println();
-      List<GitBlameWithUsage> gitBlameWithUsages =
-          gitBlameWithUsageClient.getGitBlameWithUsages(repository.getId(), offset, BATCH_SIZE);
+      List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages =
+          gitBlameWithUsageClient.getGitBlameWithUsages(
+              List.of(repository.getId()), null, null, null, null, null, BATCH_SIZE, offset);
       numGitBlameWithUsages = gitBlameWithUsages.size();
 
-      List<GitBlameWithUsage> getGitBlameWithUsagesToProcess =
+      List<GitBlameWithUsageGitBlameWithUsage> getGitBlameWithUsagesToProcess =
           getGitBlameWithUsagesToProcess(gitBlameWithUsages);
 
       logger.debug(
@@ -191,7 +193,10 @@ public class GitBlameCommand extends Command {
       blameSourceFiles(getGitBlameWithUsagesToProcess);
 
       pollableTasks.add(
-          gitBlameWithUsageClient.saveGitBlameWithUsages(getGitBlameWithUsagesToProcess));
+          gitBlameWithUsageClient.saveGitBlameWithUsages(
+              getGitBlameWithUsagesToProcess.stream()
+                  .map(GitBlameWithUsageMapper::mapToGitBlameWithUsage)
+                  .toList()));
     } while (numGitBlameWithUsages == BATCH_SIZE);
 
     try {
@@ -211,19 +216,19 @@ public class GitBlameCommand extends Command {
   }
 
   /**
-   * We just process {@link GitBlameWithUsage} that have no information at all. If there was a
-   * reccord saved with empty information it won't be recomputed.
+   * We just process {@link GitBlameWithUsageGitBlameWithUsage} that have no information at all. If
+   * there was a reccord saved with empty information it won't be recomputed.
    *
    * <p>We can later add an option to force update the content if needed
    *
    * @param gitBlameWithUsages
    * @return the entries to be processed
    */
-  public List<GitBlameWithUsage> getGitBlameWithUsagesToProcess(
-      List<GitBlameWithUsage> gitBlameWithUsages) {
-    List<GitBlameWithUsage> filteredGitBlameWithUsages = new ArrayList<>();
+  public List<GitBlameWithUsageGitBlameWithUsage> getGitBlameWithUsagesToProcess(
+      List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages) {
+    List<GitBlameWithUsageGitBlameWithUsage> filteredGitBlameWithUsages = new ArrayList<>();
 
-    for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+    for (GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
       if (gitBlameWithUsage.getGitBlame() == null
           || OverrideType.ALL.equals(overrideType)
           || (OverrideType.NO_INFO.equals(overrideType)
@@ -242,7 +247,8 @@ public class GitBlameCommand extends Command {
    * @param gitBlameWithUsages
    * @throws CommandException
    */
-  void blameSourceFiles(List<GitBlameWithUsage> gitBlameWithUsages) throws CommandException {
+  void blameSourceFiles(List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages)
+      throws CommandException {
     logger.debug("blameSourceFiles");
 
     ArrayList<FileMatch> sourceFileMatches =
@@ -273,10 +279,10 @@ public class GitBlameCommand extends Command {
         for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
           String lineText = blameResultForFile.getResultContents().getString(i);
 
-          List<GitBlameWithUsage> gitBlameWithUsageList =
+          List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsageList =
               getGitBlameWithUsagesFromLine(
                   lineText, gitBlameWithUsages, sourceFileMatch.getFileType());
-          for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
+          for (GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
             try {
               updateBlameResultsInGitBlameWithUsage(i, blameResultForFile, gitBlameWithUsage);
             } catch (LineMissingException lme) {
@@ -301,10 +307,11 @@ public class GitBlameCommand extends Command {
    * @param gitBlameWithUsages
    * @throws CommandException
    */
-  void blameWithTextUnitUsages(List<GitBlameWithUsage> gitBlameWithUsages) throws CommandException {
+  void blameWithTextUnitUsages(List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages)
+      throws CommandException {
     logger.debug("blameWithTextUnitUsages");
 
-    for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+    for (GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
 
       if (gitBlameWithUsage.getUsages() != null && gitBlameWithUsage.getUsages().size() > 0) {
 
@@ -338,9 +345,12 @@ public class GitBlameCommand extends Command {
   }
 
   void updateBlameResultsInGitBlameWithUsage(
-      int lineNumber, BlameResult blameResultForFile, GitBlameWithUsage gitBlameWithUsage)
+      int lineNumber,
+      BlameResult blameResultForFile,
+      GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage)
       throws LineMissingException {
-    GitBlame gitBlame = gitRepository.getBlameResults(lineNumber, blameResultForFile);
+    GitBlameGitBlameWithUsage gitBlame =
+        gitRepository.getBlameResults(lineNumber, blameResultForFile);
     gitBlameWithUsage.setGitBlame(gitBlame);
   }
 
@@ -386,13 +396,13 @@ public class GitBlameCommand extends Command {
    * @param fileType
    * @return list of GitBlameWithUsage objects that match current line
    */
-  List<GitBlameWithUsage> getGitBlameWithUsagesFromLine(
-      String line, List<GitBlameWithUsage> gitBlameWithUsages, FileType fileType) {
+  List<GitBlameWithUsageGitBlameWithUsage> getGitBlameWithUsagesFromLine(
+      String line, List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsages, FileType fileType) {
 
-    List<GitBlameWithUsage> gitBlameWithUsagesWithLine = new ArrayList<>();
+    List<GitBlameWithUsageGitBlameWithUsage> gitBlameWithUsagesWithLine = new ArrayList<>();
 
     if (line != null) {
-      for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+      for (GitBlameWithUsageGitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
         String textUnitNameInSource =
             textUnitNameToTextUnitNameInSource(
                 gitBlameWithUsage.getTextUnitName(),

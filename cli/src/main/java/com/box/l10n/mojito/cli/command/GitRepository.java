@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.box.l10n.mojito.rest.entity.GitBlame;
+import com.box.l10n.mojito.cli.model.GitBlameGitBlameWithUsage;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -45,10 +45,10 @@ public class GitRepository {
    * @param blameResultForFile
    * @return
    */
-  public GitBlame getBlameResults(int lineNumber, BlameResult blameResultForFile)
+  public GitBlameGitBlameWithUsage getBlameResults(int lineNumber, BlameResult blameResultForFile)
       throws LineMissingException {
 
-    GitBlame gitBlame = new GitBlame();
+    GitBlameGitBlameWithUsage gitBlame = new GitBlameGitBlameWithUsage();
 
     try {
       gitBlame.setAuthorName(blameResultForFile.getSourceAuthor(lineNumber).getName());
