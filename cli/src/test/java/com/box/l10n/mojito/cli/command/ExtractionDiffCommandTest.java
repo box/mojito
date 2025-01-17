@@ -2,13 +2,22 @@ package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.utils.SlackNotificationSender;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.github.GithubClient;
+import com.box.l10n.mojito.github.GithubClients;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -34,6 +43,8 @@ public class ExtractionDiffCommandTest extends CLITestBase {
   static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommandTest.class);
 
   @Autowired TextUnitSearcher textUnitSearcher;
+
+  @Autowired RepositoryClient repositoryClient;
 
   @Before
   public void init() {
@@ -339,6 +350,36 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         "source1",
         "--push-to",
         repository.getName());
+
+    // No failure expected as no database call should be made here
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+
+    l10nJCommander = getL10nJCommander();
+    ExtractionDiffCommand command = l10nJCommander.getCommand(ExtractionDiffCommand.class);
+    command.githubClients = mock(GithubClients.class);
+    GithubClient mockGithubClient = mock(GithubClient.class);
+    when(command.githubClients.getClient("testowner")).thenReturn(mockGithubClient);
+    when(mockGithubClient.isLabelAppliedToPR(anyString(), anyInt(), anyString())).thenReturn(false);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source1",
+        "-b",
+        "source1",
+        "--push-to",
+        repository.getName(),
+        "-pb",
+        "new_branch",
+        "--github-repository",
+        "github_repository",
+        "--github-pr-number",
+        "1",
+        "--github-repo-owner",
+        "testowner");
 
     // No failure expected as no database call should be made here
     Assert.assertEquals(0L, l10nJCommander.getExitCode());
@@ -793,5 +834,226 @@ public class ExtractionDiffCommandTest extends CLITestBase {
     Assert.assertEquals(1L, l10nJCommander.getExitCode());
     Mockito.verify(l10nJCommander.consoleWriter, Mockito.times(1))
         .a("There are more than 2 strings removed");
+  }
+
+  private L10nJCommander getL10nJCommanderWithGithubClient(
+      GithubClient githubClient, boolean labelAppliedToPR) {
+    L10nJCommander l10nJCommander = getL10nJCommander();
+    ExtractionDiffCommand command = l10nJCommander.getCommand(ExtractionDiffCommand.class);
+    command.githubClients = mock(GithubClients.class);
+    when(command.githubClients.getClient("testowner")).thenReturn(githubClient);
+    when(githubClient.isLabelAppliedToPR(anyString(), anyInt(), anyString()))
+        .thenReturn(labelAppliedToPR);
+    return l10nJCommander;
+  }
+
+  @Test
+  public void testDeleteBranchWithoutTextUnits() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source1").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source3").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source3");
+
+    L10nJCommander l10nJCommander = getL10nJCommander();
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source3",
+        "-b",
+        "source1",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "--github-repository",
+        "github_repository",
+        "--github-pr-number",
+        "1",
+        "--github-repo-owner",
+        "testowner");
+
+    Branch branch = this.repositoryClient.getBranch(repository.getId(), "branch");
+
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+    assertNotNull(branch);
+    assertFalse(branch.getDeleted());
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source2");
+
+    l10nJCommander = getL10nJCommander();
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source1",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "--github-repository",
+        "github_repository",
+        "--github-pr-number",
+        "1",
+        "--github-repo-owner",
+        "testowner");
+
+    branch = this.repositoryClient.getBranch(repository.getId(), "branch");
+
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+    assertNotNull(branch);
+    assertFalse(branch.getDeleted());
+
+    GithubClient mockGithubClient = mock(GithubClient.class);
+    l10nJCommander = this.getL10nJCommanderWithGithubClient(mockGithubClient, true);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source2",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "--github-repository",
+        "github_repository",
+        "--github-pr-number",
+        "1",
+        "--github-repo-owner",
+        "testowner");
+
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+
+    branch = this.repositoryClient.getBranch(repository.getId(), "branch");
+
+    verify(mockGithubClient, times(1)).isLabelAppliedToPR(anyString(), anyInt(), anyString());
+    assertTrue(branch.getDeleted());
+  }
+
+  private L10nJCommander getL10nJCommanderWithGithubClient(GithubClient githubClient) {
+    return this.getL10nJCommanderWithGithubClient(githubClient, false);
+  }
+
+  @Test
+  public void testBranchDeletionParams() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source2");
+
+    GithubClient mockGithubClient = mock(GithubClient.class);
+    L10nJCommander l10nJCommander = this.getL10nJCommanderWithGithubClient(mockGithubClient);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source2",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "--github-pr-number",
+        "1",
+        "--github-repo-owner",
+        "testowner");
+
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+    verify(mockGithubClient, times(0)).isLabelAppliedToPR(anyString(), anyInt(), anyString());
+
+    l10nJCommander = this.getL10nJCommanderWithGithubClient(mockGithubClient);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source2",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "--github-repository",
+        "github_repository",
+        "--github-repo-owner",
+        "testowner");
+
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+    verify(mockGithubClient, times(0)).isLabelAppliedToPR(anyString(), anyInt(), anyString());
+
+    l10nJCommander = this.getL10nJCommanderWithGithubClient(mockGithubClient);
+    l10nJCommander.run(
+        "extract-diff",
+        "-i",
+        getTargetTestDir("extractions").getAbsolutePath(),
+        "-o",
+        getTargetTestDir("extraction-diffs").getAbsolutePath(),
+        "-c",
+        "source2",
+        "-b",
+        "source2",
+        "-p",
+        repository.getName(),
+        "-pb",
+        "branch",
+        "--github-repository",
+        "github_repository",
+        "--github-pr-number",
+        "1");
+
+    Assert.assertEquals(0L, l10nJCommander.getExitCode());
+    verify(mockGithubClient, times(0)).isLabelAppliedToPR(anyString(), anyInt(), anyString());
   }
 }

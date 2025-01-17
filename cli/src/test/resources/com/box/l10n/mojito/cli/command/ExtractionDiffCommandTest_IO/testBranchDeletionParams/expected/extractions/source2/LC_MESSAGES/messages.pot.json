@@ -1,0 +1,69 @@
+{
+  "name" : "source2",
+  "textunits" : [ {
+    "name" : "100 character description: --- 100_character_description_",
+    "source" : "100 character description:",
+    "comments" : null,
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:2" ]
+  }, {
+    "name" : "1 month --- 1_month_duration",
+    "source" : "1 month",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:10" ]
+  }, {
+    "name" : "There is {number} car --- car _zero",
+    "source" : "There are {number} cars",
+    "comments" : "Test plural",
+    "pluralForm" : "zero",
+    "pluralFormOther" : "There is {number} car --- car _other",
+    "usages" : [ "file.js:20" ]
+  }, {
+    "name" : "There is {number} car --- car _one",
+    "source" : "There is {number} car",
+    "comments" : "Test plural",
+    "pluralForm" : "one",
+    "pluralFormOther" : "There is {number} car --- car _other",
+    "usages" : [ "file.js:20" ]
+  }, {
+    "name" : "There is {number} car --- car _two",
+    "source" : "There are {number} cars",
+    "comments" : "Test plural",
+    "pluralForm" : "two",
+    "pluralFormOther" : "There is {number} car --- car _other",
+    "usages" : [ "file.js:20" ]
+  }, {
+    "name" : "There is {number} car --- car _few",
+    "source" : "There are {number} cars",
+    "comments" : "Test plural",
+    "pluralForm" : "few",
+    "pluralFormOther" : "There is {number} car --- car _other",
+    "usages" : [ "file.js:20" ]
+  }, {
+    "name" : "There is {number} car --- car _many",
+    "source" : "There are {number} cars",
+    "comments" : "Test plural",
+    "pluralForm" : "many",
+    "pluralFormOther" : "There is {number} car --- car _other",
+    "usages" : [ "file.js:20" ]
+  }, {
+    "name" : "There is {number} car --- car _other",
+    "source" : "There are {number} cars",
+    "comments" : "Test plural",
+    "pluralForm" : "other",
+    "pluralFormOther" : "There is {number} car --- car _other",
+    "usages" : [ "file.js:20" ]
+  }, {
+    "name" : "1 year --- 1_year_duration",
+    "source" : "1 year",
+    "comments" : "File lock dialog duration",
+    "pluralForm" : null,
+    "pluralFormOther" : null,
+    "usages" : [ "file.js:40" ]
+  } ],
+  "filterConfigIdOverride" : null,
+  "filterOptions" : [ "sometestoption=value1" ]
+}

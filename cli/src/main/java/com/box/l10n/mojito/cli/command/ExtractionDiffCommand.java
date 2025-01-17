@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.github.PRLabel.TRANSLATIONS_REQUIRED;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
@@ -14,7 +15,12 @@ import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExce
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.command.utils.SlackNotificationSender;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.github.GithubClient;
+import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.rest.entity.Branch;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.shell.Shell;
@@ -230,6 +236,24 @@ public class ExtractionDiffCommand extends Command {
       description = Param.MAX_STRINGS_REMOVED_BLOCK_DESCRIPTION)
   Integer maxStringsRemovedBlock;
 
+  @Parameter(
+      names = "--github-repository",
+      arity = 1,
+      description = "The Github repository used to send the notification")
+  String githubRepository;
+
+  @Parameter(
+      names = "--github-pr-number",
+      arity = 1,
+      description = "The Github Pull Request number used to send the notification")
+  Integer githubPrNumber;
+
+  @Parameter(
+      names = {"--github-repo-owner"},
+      arity = 1,
+      description = "The Github repository owner")
+  String owner;
+
   @Autowired ExtractionDiffService extractionDiffService;
 
   @Autowired ObjectMapper objectMapper;
@@ -238,8 +262,13 @@ public class ExtractionDiffCommand extends Command {
 
   @Autowired PushService pushService;
 
+  @Autowired RepositoryClient repositoryClient;
+
   @Autowired(required = false)
   private SlackClient slackClient;
+
+  @Autowired(required = false)
+  GithubClients githubClients;
 
   private Optional<SlackNotificationSender> notificationSender;
 
@@ -253,6 +282,10 @@ public class ExtractionDiffCommand extends Command {
 
   @Override
   public void execute() throws CommandException {
+    if (this.owner != null && this.githubClients == null) {
+      throw new CommandException(
+          "Github must be configured with properties: l10n.githubClients.<client>.appId, l10n.githubClients.<client>.key and l10n.githubClients.<client>.owner");
+    }
     this.notificationSender = this.getNotificationSender();
     try {
       executeUnsafe();
@@ -301,6 +334,31 @@ public class ExtractionDiffCommand extends Command {
     }
   }
 
+  private void deleteBranchWithoutTextUnits() {
+    GithubClient github = this.githubClients.getClient(this.owner);
+    if (github == null) {
+      throw new CommandException(String.format("Github client with owner '%s' not found.", owner));
+    }
+    if (github.isLabelAppliedToPR(
+        this.githubRepository, this.githubPrNumber, TRANSLATIONS_REQUIRED.toString())) {
+      this.pushToRepository = getValidRepositoryName();
+      Repository repository = this.commandHelper.findRepositoryByName(this.pushToRepository);
+      Branch branch = this.repositoryClient.getBranch(repository.getId(), this.pushToBranchName);
+      if (branch != null) {
+        PollableTask pollableTask =
+            this.repositoryClient.deleteBranch(branch.getId(), repository.getId());
+        this.commandHelper.waitForPollableTask(pollableTask.getId());
+      }
+    }
+  }
+
+  private boolean isBranchWithoutTextUnitsDeleted() {
+    return this.githubRepository != null
+        && this.githubPrNumber != null
+        && this.pushToBranchName != null
+        && this.owner != null;
+  }
+
   void executeUnsafe() {
     consoleWriter
         .newLine()
@@ -346,6 +404,9 @@ public class ExtractionDiffCommand extends Command {
             .fg(Ansi.Color.CYAN)
             .a(pushToRepository)
             .println();
+        if (this.isBranchWithoutTextUnitsDeleted()) {
+          this.deleteBranchWithoutTextUnits();
+        }
       } else {
         pushToRepository = getValidRepositoryName();
         consoleWriter
