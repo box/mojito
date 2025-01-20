@@ -645,6 +645,12 @@ label.current-pageNumber {
     overflow-y: auto;
 }
 
+.branch-spinner {
+    display: flex;
+    justify-content: center;  
+    align-items: center;
+}
+
 .textunit-toolbar-clear {
     clear: both;
 }

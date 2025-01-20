@@ -2,7 +2,7 @@ import _ from "lodash";
 import React from "react";
 import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import {DropdownButton, MenuItem} from "react-bootstrap";
+import {DropdownButton, MenuItem, OverlayTrigger, Tooltip} from "react-bootstrap";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 
 import RepositoryStore from "../../stores/RepositoryStore";
@@ -262,18 +262,47 @@ let LocalesDropDown = createReactClass({
     },
 
     /**
+     * Whether there is no data for the dropdown
+     * 
+     * @returns {boolean}
+     */
+    hasLocaleData() {
+        return this.state.bcp47Tags.length > 0;
+    },
+
+    /**
      * Renders the locale menu item list.
      *
      * @returns {XML}
      */
     renderLocales() {
-        return this.getSortedLocales().map(
-                (locale) =>
-                        <MenuItem key={"Workbench.LocaleDropdown." + locale.displayName}
-                                  eventKey={locale}
-                                  active={locale.selected}
-                                  onSelect={this.onLocaleSelected}
-                        >{locale.displayName}</MenuItem>
+        return this.getSortedLocales().map((locale) => (
+          <MenuItem
+            key={"Workbench.LocaleDropdown." + locale.displayName}
+            eventKey={locale}
+            active={locale.selected}
+            onSelect={this.onLocaleSelected}
+          >
+            {locale.displayName}
+          </MenuItem>
+        ));
+    },
+
+    renderNoLocaleTooltip(wrappedComponent, hasLocaleData) {
+        if (hasLocaleData) {
+            return wrappedComponent;
+        }
+
+        return (
+            <OverlayTrigger
+                overlay={
+                    <Tooltip id="locale-dropdown-toolip">
+                        Please selected a repository first
+                    </Tooltip>
+                }
+            >
+                {wrappedComponent}
+            </OverlayTrigger>
         );
     },
 
@@ -281,16 +310,18 @@ let LocalesDropDown = createReactClass({
      * @return {JSX}
      */
     render() {
-
+        const hasLocaleData = this.hasLocaleData();
         return (
                 <span className="mlm locale-dropdown">
-                <DropdownButton id="WorkbenchLocaleDropdown" title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
-                    <MenuItem active={this.isToBeFullyTranslatedActive()} onSelect={this.onSelectToBeFullyTranslated}><FormattedMessage id="search.locale.selectToBeFullyTranslated"/></MenuItem>
-                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll"/></MenuItem>
-                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone"/></MenuItem>
-                    <MenuItem divider/>
-                    {this.renderLocales()}
-                </DropdownButton>
+                    {
+                        this.renderNoLocaleTooltip(
+                            <DropdownButton id="WorkbenchLocaleDropdown" disabled={!hasLocaleData} title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
+                                <MenuItem active={this.isToBeFullyTranslatedActive()} onSelect={this.onSelectToBeFullyTranslated}><FormattedMessage id="search.locale.selectToBeFullyTranslated"/></MenuItem>
+                                <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll"/></MenuItem>
+                                <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone"/></MenuItem>
+                                <MenuItem divider/>
+                                {this.renderLocales()}
+                            </DropdownButton>, hasLocaleData)} 
                 </span>
         );
 

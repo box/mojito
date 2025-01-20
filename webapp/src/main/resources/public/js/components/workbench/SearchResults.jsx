@@ -1,10 +1,15 @@
 import _ from "lodash";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import keycode from "keycode";
-import React from "react";
-import createReactClass from 'create-react-class';
-import {FormattedMessage, injectIntl} from "react-intl";
-import {Button, ButtonToolbar, DropdownButton, MenuItem} from "react-bootstrap";
+import React, { Fragment } from "react";
+import createReactClass from "create-react-class";
+import { FormattedMessage, injectIntl } from "react-intl";
+import {
+    Button,
+    ButtonToolbar,
+    DropdownButton,
+    MenuItem,
+} from "react-bootstrap";
 import Error from "../../utils/Error";
 import DeleteConfirmationModal from "../widgets/DeleteConfirmationModal";
 import ErrorModal from "../widgets/ErrorModal";
@@ -23,6 +28,7 @@ import ViewModeStore from "../../stores/workbench/ViewModeStore";
 import ViewModeDropdown from "./ViewModeDropdown";
 import ViewModeActions from "../../actions/workbench/ViewModeActions";
 import AuthorityService from "../../utils/AuthorityService";
+import DelayedSpinner from "../common/DelayedSpinner";
 
 let SearchResults = createReactClass({
     displayName: 'SearchResults',
@@ -38,57 +44,56 @@ let SearchResults = createReactClass({
      * @return {{searchResults: (*|Array|TextUnit[]), searchHadNoResults: boolean, noMoreResults: boolean, mustShowToolbar: boolean, currentPageNumber: (*|Number|number), activeTextUnitIndex: number, showDeleteModal: boolean, mustShowReviewModal: boolean, isErrorOccurred: boolean, errorObject: null, errorResponse: null, textUnitInEditMode: null}}
      */
     getInitialState() {
-
         let resultsStoreState = SearchResultsStore.getState();
         let searchParamsStoreState = SearchParamsStore.getState();
         return {
             /** @type [] Array of textunits in the current page of the search results. */
-            "searchResults": resultsStoreState.searchResults,
+            searchResults: resultsStoreState.searchResults,
 
             /** @type {Boolean} */
-            "isSearching": SearchResultsStore.getState().isSearching,
+            isSearching: SearchResultsStore.getState().isSearching,
 
             /** @type {Boolean} True if the minimum set of parameters are required for searching */
-            "isReadyForSearching": false,
+            isReadyForSearching: false,
 
             /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
-            "searchHadNoResults": false,
+            searchHadNoResults: false,
 
             /** @type {Boolean} Indicates that no more results exist for the search criteria. Helps maintain enabled status of toolbar buttons. */
-            "noMoreResults": false,
+            noMoreResults: false,
 
             /** @type {Boolean} If no results exist for the provided search criteria, this boolean helps to hide the workbench toolbar. */
-            "mustShowToolbar": false,
+            mustShowToolbar: false,
 
             /** @type {Number} Indicates the current page number of the search results. */
-            "currentPageNumber": searchParamsStoreState.currentPageNumber,
+            currentPageNumber: searchParamsStoreState.currentPageNumber,
 
             /** @type {Number} The number of items on each page. */
-            "pageSize": searchParamsStoreState.pageSize,
+            pageSize: searchParamsStoreState.pageSize,
 
             /** @type {Number}  The index of the currently active textunit. */
-            "activeTextUnitIndex": 0,
+            activeTextUnitIndex: 0,
 
             /** @type {Boolean} Displays the DeleteConfirmationModal when the delete button is clicked. */
-            "showDeleteModal": false,
+            showDeleteModal: false,
 
             /** @type {Boolean} Helps show the ErrorModal if set to true. */
-            "mustShowReviewModal": false,
+            mustShowReviewModal: false,
 
             /** @type {Boolean} Displays the TranslateModal when the delete button is clicked. */
-            "showTranslateModal": false,
+            showTranslateModal: false,
 
             /** @type {Boolean} */
-            "isErrorOccurred": false,
+            isErrorOccurred: false,
 
             /** @type {Boolean} The Error object created by the store.  */
-            "errorObject": null,
+            errorObject: null,
 
             /** @type {Boolean} The error object returned by the promise. This can be used to pass parameters to translate the error. See getErrorMessage() in this file for details. */
-            "errorResponse": null,
+            errorResponse: null,
 
             /** @type {TextUnit}   the text unit currently in edit mode if any*/
-            "textUnitInEditMode": null
+            textUnitInEditMode: null,
         };
     },
 
@@ -143,7 +148,7 @@ let SearchResults = createReactClass({
         let searchResultsLength = this.state.searchResults.length;
         if (activeTextUnitIndex >= searchResultsLength && !this.state.noMoreResults) {
             WorkbenchActions.searchParamsChanged({
-                "changedParam": SearchConstants.NEXT_PAGE_REQUESTED
+                changedParam: SearchConstants.NEXT_PAGE_REQUESTED,
             });
         } else if (activeTextUnitIndex >= searchResultsLength && this.state.noMoreResults) {
             // boundary condition for pressing down arrow on the last textunit of the last page
@@ -218,7 +223,7 @@ let SearchResults = createReactClass({
      */
     showReviewModal() {
         this.setState({
-            "mustShowReviewModal": true
+            mustShowReviewModal: true,
         });
     },
 
@@ -227,7 +232,7 @@ let SearchResults = createReactClass({
      */
     hideReviewModal() {
         this.setState({
-            "mustShowReviewModal": false
+            mustShowReviewModal: false,
         });
     },
 
@@ -236,7 +241,7 @@ let SearchResults = createReactClass({
      */
     showTranslateModal() {
         this.setState({
-            "showTranslateModal": true
+            showTranslateModal: true,
         });
     },
 
@@ -245,7 +250,7 @@ let SearchResults = createReactClass({
      */
     hideDoNotTranslateModal() {
         this.setState({
-            "showTranslateModal": false
+            showTranslateModal: false,
         });
     },
 
@@ -254,7 +259,7 @@ let SearchResults = createReactClass({
      */
     showDeleteModal() {
         this.setState({
-            "showDeleteModal": true
+            showDeleteModal: true,
         });
     },
 
@@ -263,7 +268,7 @@ let SearchResults = createReactClass({
      */
     hideDeleteModal() {
         this.setState({
-            "showDeleteModal": false
+            showDeleteModal: false,
         });
     },
 
@@ -312,7 +317,7 @@ let SearchResults = createReactClass({
      */
     onErrorModalClosed() {
         this.setState({
-            "isErrorOccurred": false
+            isErrorOccurred: false,
         });
         WorkbenchActions.resetErrorState();
     },
@@ -345,23 +350,22 @@ let SearchResults = createReactClass({
     onSearchResultsStoreUpdated() {
         let resultsStoreState = SearchResultsStore.getState();
         let paramsStoreState = SearchParamsStore.getState();
-        let resultsInComponent = this.state.searchResults;
         let mustShowToolbar = this.mustToolbarBeShown();
         let isReadyForSearching = SearchParamsStore.isReadyForSearching(paramsStoreState);
 
         this.setState({
-            "searchResults": resultsStoreState.searchResults,
-            "isReadyForSearching": isReadyForSearching,
-            "isSearching": resultsStoreState.isSearching,
-            "searchHadNoResults": resultsStoreState.searchHadNoResults,
-            "noMoreResults": resultsStoreState.noMoreResults,
-            "currentPageNumber": paramsStoreState.currentPageNumber,
-            "pageSize": paramsStoreState.pageSize,
-            "mustShowToolbar": mustShowToolbar,
-            "activeTextUnitIndex": this.getActiveTextUnitIndex(),
-            "isErrorOccurred": resultsStoreState.isErrorOccurred,
-            "errorObject": resultsStoreState.errorObject,
-            "textUnitInEditMode": this.state.textUnitInEditMode
+            searchResults: resultsStoreState.searchResults,
+            isReadyForSearching: isReadyForSearching,
+            isSearching: resultsStoreState.isSearching,
+            searchHadNoResults: resultsStoreState.searchHadNoResults,
+            noMoreResults: resultsStoreState.noMoreResults,
+            currentPageNumber: paramsStoreState.currentPageNumber,
+            pageSize: paramsStoreState.pageSize,
+            mustShowToolbar: mustShowToolbar,
+            activeTextUnitIndex: this.getActiveTextUnitIndex(),
+            isErrorOccurred: resultsStoreState.isErrorOccurred,
+            errorObject: resultsStoreState.errorObject,
+            textUnitInEditMode: this.state.textUnitInEditMode,
         });
     },
 
@@ -393,7 +397,7 @@ let SearchResults = createReactClass({
      */
     onTextUnitEditModeSetToFalse(textUnit) {
         // don't need to set "activeTextUnitIndex"
-        this.setState({"textUnitInEditMode": null});
+        this.setState({ textUnitInEditMode: null });
     },
 
     /**
@@ -401,8 +405,8 @@ let SearchResults = createReactClass({
      */
     setStateForEditingTextUnit(textUnit) {
         this.setState({
-            "textUnitInEditMode": textUnit,
-            "activeTextUnitIndex": textUnit.props.textUnitIndex
+            textUnitInEditMode: textUnit,
+            activeTextUnitIndex: textUnit.props.textUnitIndex,
         });
     },
 
@@ -411,11 +415,10 @@ let SearchResults = createReactClass({
      *  of search results.
      */
     onFetchNextPageClicked() {
-
         if (!this.state.noMoreResults) {
-            this.setState({"textUnitInEditMode": null}, () => {
+            this.setState({ textUnitInEditMode: null }, () => {
                 WorkbenchActions.searchParamsChanged({
-                    "changedParam": SearchConstants.NEXT_PAGE_REQUESTED
+                    changedParam: SearchConstants.NEXT_PAGE_REQUESTED,
                 });
             });
         }
@@ -426,11 +429,10 @@ let SearchResults = createReactClass({
      * page of search results if the currentPage is greater than one.
      */
     onFetchPreviousPageClicked() {
-
         if (this.state.currentPageNumber > 1) {
-            this.setState({"textUnitInEditMode": null}, () => {
+            this.setState({ textUnitInEditMode: null }, () => {
                 WorkbenchActions.searchParamsChanged({
-                    "changedParam": SearchConstants.PREVIOUS_PAGE_REQUESTED
+                    changedParam: SearchConstants.PREVIOUS_PAGE_REQUESTED,
                 });
             });
         }
@@ -441,7 +443,7 @@ let SearchResults = createReactClass({
      */
     setActiveTextUnitIndexState(activeTextUnitIndex) {
         this.setState({
-            "activeTextUnitIndex": activeTextUnitIndex
+            activeTextUnitIndex: activeTextUnitIndex,
         });
     },
 
@@ -497,7 +499,9 @@ let SearchResults = createReactClass({
         let errorMessage = "";
         //TODO: fill in the error message with parameter values if any.
         if (errorObject !== null) {
-            errorMessage = this.props.intl.formatMessage({id: Error.MESSAGEKEYS_MAP[errorObject.getErrorId()]});
+            errorMessage = this.props.intl.formatMessage({
+                id: Error.MESSAGEKEYS_MAP[errorObject.getErrorId()],
+            });
         }
         return errorMessage;
     },
@@ -520,16 +524,16 @@ let SearchResults = createReactClass({
      * @returns {JSX} The JSX to paint the TextUnit component.
      */
     createTextUnitComponent(textUnit, arrayIndex) {
-
         return (
-            <AltContainer key={this.getTextUnitComponentKey(textUnit)} stores={{"viewMode": ViewModeStore}}>
+            <AltContainer key={this.getTextUnitComponentKey(textUnit)} stores={{ viewMode: ViewModeStore }}>
                 <TextUnit
-                        textUnit={textUnit} textUnitIndex={arrayIndex}
-                        translation={textUnit.getTarget()}
-                        isActive={arrayIndex === this.state.activeTextUnitIndex}
-                        isSelected={this.isTextUnitSelected(textUnit)}
-                        onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}
-                        onEditModeSetToFalse={this.onTextUnitEditModeSetToFalse}
+                    textUnit={textUnit}
+                    textUnitIndex={arrayIndex}
+                    translation={textUnit.getTarget()}
+                    isActive={arrayIndex === this.state.activeTextUnitIndex}
+                    isSelected={this.isTextUnitSelected(textUnit)}
+                    onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}
+                    onEditModeSetToFalse={this.onTextUnitEditModeSetToFalse}
                 />
             </AltContainer>
         );
@@ -547,7 +551,12 @@ let SearchResults = createReactClass({
          * This forces the TextUnit component getInitialState to be called. This is desired behavior
          * because getInitialState resets the TextUnit component state.
          */
-        return textUnit.getTmTextUnitId() + '_' + textUnit.getLocaleId() + textUnit.getTmTextUnitVariantId();
+        return (
+            textUnit.getTmTextUnitId() +
+            "_" +
+            textUnit.getLocaleId() +
+            textUnit.getTmTextUnitVariantId()
+        );
     },
 
     /**
@@ -565,7 +574,8 @@ let SearchResults = createReactClass({
         let isAtLeastOneTextUnitSelected = numberOfSelectedTextUnits >= 1;
 
         let selectorCheckBoxDisabled = !AuthorityService.canEditTranslations();
-        let actionButtonsDisabled = isSearching || !isAtLeastOneTextUnitSelected || !AuthorityService.canEditTranslations();
+        const canEditTranslations = AuthorityService.canEditTranslations();
+        let actionButtonsDisabled = isSearching || !isAtLeastOneTextUnitSelected || !canEditTranslations;
         let nextPageButtonDisabled = isSearching || noMoreResults;
         let previousPageButtonDisabled = isSearching || isFirstPage;
 
@@ -591,50 +601,105 @@ let SearchResults = createReactClass({
                     <div>
                         <div className="pull-left">
                             <ButtonToolbar>
-                                <Button bsSize="small" disabled={actionButtonsDisabled}
-                                        onClick={this.onDeleteTextUnitsClicked}>
-                                    <FormattedMessage id="label.delete"/>
-                                </Button>
-                                <Button bsSize="small" bsStyle="primary" disabled={actionButtonsDisabled}
-                                        onClick={this.onStatusTextUnitsClicked}>
-                                    <FormattedMessage id="workbench.toolbar.status"/>
-                                </Button>
+                                {canEditTranslations && (
+                                    <Fragment>
+                                        <Button
+                                            bsSize="small"
+                                            disabled={actionButtonsDisabled}
+                                            onClick={
+                                                this.onDeleteTextUnitsClicked
+                                            }
+                                        >
+                                            <FormattedMessage id="label.delete" />
+                                        </Button>
+                                        <Button
+                                            bsSize="small"
+                                            bsStyle="primary"
+                                            disabled={actionButtonsDisabled}
+                                            onClick={
+                                                this.onStatusTextUnitsClicked
+                                            }
+                                        >
+                                            <FormattedMessage id="workbench.toolbar.status" />
+                                        </Button>
 
-                                <DropdownButton bsSize="small"
-                                                disabled={actionButtonsDisabled}
-                                                noCaret
-                                                id="dropdown-more-options"
-                                                title={(
-                                                    <span className="glyphicon glyphicon-option-horizontal"></span>)}>
-
-                                    <MenuItem header><FormattedMessage id="workbench.toolbar.textUnitsAttribute"/></MenuItem>
-                                    <MenuItem eventKey="1" onClick={this.onDoNotTranslateClick}><FormattedMessage id="workbench.toolbar.setTranslate"/></MenuItem>
-                                </DropdownButton>
+                                        <DropdownButton
+                                            bsSize="small"
+                                            disabled={actionButtonsDisabled}
+                                            noCaret
+                                            id="dropdown-more-options"
+                                            title={
+                                                <span className="glyphicon glyphicon-option-horizontal"></span>
+                                            }
+                                        >
+                                            <MenuItem header>
+                                                <FormattedMessage id="workbench.toolbar.textUnitsAttribute" />
+                                            </MenuItem>
+                                            <MenuItem
+                                                eventKey="1"
+                                                onClick={
+                                                    this.onDoNotTranslateClick
+                                                }
+                                            >
+                                                <FormattedMessage id="workbench.toolbar.setTranslate" />
+                                            </MenuItem>
+                                        </DropdownButton>
+                                    </Fragment>
+                                )}
                             </ButtonToolbar>
                         </div>
-                        <div className="pull-right" style={{display: "flex", alignItems: "center", "gap": "15px"}}>
+                        <div
+                            className="pull-right"
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "15px",
+                            }}
+                        >
                             <AltContainer store={ViewModeStore}>
-                                <ViewModeDropdown onModeSelected={(mode) => ViewModeActions.changeViewMode(mode)}/>
+                                <ViewModeDropdown
+                                    onModeSelected={(mode) =>
+                                        ViewModeActions.changeViewMode(mode)
+                                    }
+                                />
                             </AltContainer>
 
-                            <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits} disabled={selectorCheckBoxDisabled}/>
+                            {!selectorCheckBoxDisabled && (
+                                <TextUnitSelectorCheckBox
+                                    numberOfSelectedTextUnits={
+                                        numberOfSelectedTextUnits
+                                    }
+                                    disabled={selectorCheckBoxDisabled}
+                                />
+                            )}
 
-                            <DropdownButton id="text-units-per-page" title={title}>
+                            <DropdownButton
+                                id="text-units-per-page"
+                                title={title}
+                            >
                                 {pageSizes}
                             </DropdownButton>
-                            <Button bsSize="small" disabled={previousPageButtonDisabled}
-                                    onClick={this.onFetchPreviousPageClicked}><span
-                                className="glyphicon glyphicon-chevron-left"></span></Button>
+                            <Button
+                                bsSize="small"
+                                disabled={previousPageButtonDisabled}
+                                onClick={this.onFetchPreviousPageClicked}
+                            >
+                                <span className="glyphicon glyphicon-chevron-left"></span>
+                            </Button>
                             <label className="default-label current-pageNumber">
                                 {this.displayCurrentPageNumber()}
                             </label>
-                            <Button bsSize="small" disabled={nextPageButtonDisabled}
-                                    onClick={this.onFetchNextPageClicked}><span
-                                className="glyphicon glyphicon-chevron-right"></span></Button>
+                            <Button
+                                bsSize="small"
+                                disabled={nextPageButtonDisabled}
+                                onClick={this.onFetchNextPageClicked}
+                            >
+                                <span className="glyphicon glyphicon-chevron-right"></span>
+                            </Button>
                         </div>
                     </div>
 
-                    <div className="textunit-toolbar-clear"/>
+                    <div className="textunit-toolbar-clear" />
                 </div>
             );
         }
@@ -648,10 +713,12 @@ let SearchResults = createReactClass({
         let ui = "";
         if (this.state.mustShowReviewModal) {
             ui = (
-                <TextUnitsReviewModal isShowModal={this.state.mustShowReviewModal}
-                                      onReviewModalSaveClicked={this.onReviewModalSaveClicked}
-                                      textUnitsArray={this.getSelectedTextUnits()}
-                                      onCloseModal={this.hideReviewModal}/>
+                <TextUnitsReviewModal
+                    isShowModal={this.state.mustShowReviewModal}
+                    onReviewModalSaveClicked={this.onReviewModalSaveClicked}
+                    textUnitsArray={this.getSelectedTextUnits()}
+                    onCloseModal={this.hideReviewModal}
+                />
             );
         }
         return ui;
@@ -664,10 +731,12 @@ let SearchResults = createReactClass({
         let ui = "";
         if (this.state.showTranslateModal) {
             ui = (
-                <TranslateModal showModal={this.state.showTranslateModal}
-                                selectedTextArray={this.getSelectedTextUnits()}
-                                onSave={this.onTranslateModalSave}
-                                onCancel={this.onTranslateModalCancel}/>
+                <TranslateModal
+                    showModal={this.state.showTranslateModal}
+                    selectedTextArray={this.getSelectedTextUnits()}
+                    onSave={this.onTranslateModalSave}
+                    onCancel={this.onTranslateModalCancel}
+                />
             );
         }
         return ui;
@@ -703,24 +772,43 @@ let SearchResults = createReactClass({
      * @returns {JSX}
      */
     getEmptyStateContainerContent(messageId) {
-        return <div className="empty-search-container text-center center-block">
-            <div><FormattedMessage id={messageId}/></div>
-            <img className="empty-search-container-img" src={require('../../../img/magnifying-glass.svg')}/>
-        </div>;
+        return (
+            <div className="empty-search-container text-center center-block">
+                <div>
+                    <FormattedMessage id={messageId} />
+                </div>
+                <img
+                    className="empty-search-container-img"
+                    src={require("../../../img/magnifying-glass.svg")}
+                />
+            </div>
+        );
     },
 
     render() {
+        if (this.state.isSearching) {
+            return (
+                <div class="branch-spinner mtl mbl">
+                    <DelayedSpinner />
+                </div>
+            );
+        }
+
         return (
             <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>
                 {this.getTextUnitToolbarUI()}
                 {this.createTextUnitComponents()}
-                <DeleteConfirmationModal showModal={this.state.showDeleteModal}
-                                         modalBodyMessage="textUnits.bulk.deleteMessage"
-                                         onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
-                                         onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}/>
-                <ErrorModal showModal={this.state.isErrorOccurred}
-                            errorMessage={this.getErrorMessage()}
-                            onErrorModalClosed={this.onErrorModalClosed}/>
+                <DeleteConfirmationModal
+                    showModal={this.state.showDeleteModal}
+                    modalBodyMessage="textUnits.bulk.deleteMessage"
+                    onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
+                    onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}
+                />
+                <ErrorModal
+                    showModal={this.state.isErrorOccurred}
+                    errorMessage={this.getErrorMessage()}
+                    onErrorModalClosed={this.onErrorModalClosed}
+                />
                 {this.getTextUnitsTranslateModal()}
                 {this.getEmptyStateContainer()}
                 {this.getTextUnitsReviewModal()}

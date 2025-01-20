@@ -427,40 +427,63 @@ let TextUnit = createReactClass({
      * @returns {JSX}
      */
     renderReviewGlyph() {
-
         let ui = "";
         if (this.props.textUnit.isTranslated()) {
-
             let glyphType = "ok";
             let glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.accepted"});
+            let tooltipDescriptor = "Translated";
 
             if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.MACHINE_TRANSLATED) {
                 glyphType = "asterisk";
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.mt"});
+                tooltipDescriptor = "Machine Translated";
             }
             else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.MT_REVIEW_NEEDED) {
                 glyphType = "hourglass";
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.mtReview"});
+                tooltipDescriptor = "Machine Translated - Review Needed";
             }
             else if (!this.props.textUnit.isIncludedInLocalizedFile()) {
-
                 glyphType = "alert";
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.rejected"});
+                tooltipDescriptor = "Rejected";
 
             } else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.REVIEW_NEEDED) {
-
                 glyphType = "eye-open";
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.needsReview"});
+                tooltipDescriptor = "Needs Review";
 
             } else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.TRANSLATION_NEEDED) {
-
                 glyphType = "edit";
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.translationNeeded"});
+                tooltipDescriptor = "Translation Needed";
             }
+            console.log({tooltipDescriptor})
+
             ui = (
-                <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
-                           onClick={this.onTextUnitGlyphClicked} disabled={!AuthorityService.canEditTranslations()}/>
+                <Glyphicon
+                    glyph={glyphType}
+                    id="reviewStringButton"
+                    title={glyphTitle}
+                    className="btn"
+                    onClick={this.onTextUnitGlyphClicked}
+                    disabled={!AuthorityService.canEditTranslations()}
+                />
             );
+            if (tooltipDescriptor) {
+                ui = (
+                    <OverlayTrigger
+                        placement="top"
+                        overlay={
+                            <Tooltip className="text-center">
+                                {tooltipDescriptor}
+                            </Tooltip>
+                        }
+                    >
+                        {ui}
+                    </OverlayTrigger>
+                );
+            }
         }
 
         return ui;
@@ -574,7 +597,7 @@ let TextUnit = createReactClass({
 
             ui = (
                 <label className={targetClassName} onClick={this.editStringClicked} dir={dir} style={{margin: "0px"}}>
-                {leadingWhitespacesSymbol}{targetString}{trailingWhitespacesSymbol}
+                    {leadingWhitespacesSymbol}{targetString}{trailingWhitespacesSymbol}
                 </label>
             );
         }
@@ -1013,6 +1036,7 @@ let TextUnit = createReactClass({
             textunitClass = textunitClass + " textunit-selected";
         }
 
+        const canEditTranslations = AuthorityService.canEditTranslations()
         return (
             <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
                  onClick={this.onTextUnitClick}>
@@ -1020,9 +1044,9 @@ let TextUnit = createReactClass({
                 <div>
                     <div className="text-unit-root">
                         <div className="left mls">
-                            <span style={{gridArea: "cb"}} className="mrxs">
-                                <input type="checkbox" checked={isSelected} readOnly={true} disabled={!AuthorityService.canEditTranslations()}/>
-                            </span>
+                            {canEditTranslations && <span style={{gridArea: "cb"}} className="mrxs">
+                                <input type="checkbox" checked={isSelected} readOnly={true} disabled={!canEditTranslations}/>
+                            </span>}
                             <div style={{gridArea: "locale"}}>
                                 <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
                                     {this.props.textUnit.getTargetLocale()}

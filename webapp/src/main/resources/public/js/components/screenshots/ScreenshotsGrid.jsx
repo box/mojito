@@ -108,6 +108,14 @@ class ScreenshotsGrid extends React.Component {
                 </div>);
     }
 
+    renderSpinner() {
+        return (
+          <div class="branch-spinner mtl mbl">
+            <span className="glyphicon glyphicon-refresh spinning" />
+          </div>
+        );
+    }
+
     /**
      * @return {JSX}
      */
@@ -115,7 +123,7 @@ class ScreenshotsGrid extends React.Component {
         var res;
 
         if (this.props.searching) {
-            res = null;
+            res = this.renderSpinner();
         } else if (this.props.screenshotsData.length > 0) {
             res = this.renderWithResults();
         } else {

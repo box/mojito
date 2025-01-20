@@ -154,7 +154,7 @@ class BranchesPage extends React.Component {
                         }}/>
                 </AltContainer>
 
-                <AltContainer stores={{ branchesStore: BranchesStore, branchTextUnitsStore: BranchTextUnitsStore}}>
+                <AltContainer stores={{ branchesSearchParamStore: BranchesSearchParamStore, branchesStore: BranchesStore, branchTextUnitsStore: BranchTextUnitsStore}}>
                     <BranchesSearchResults
                         onChangeSelectedBranchTextUnits={(selectedBranchTextUnitIds) => {
                             BranchesPageActions.changeSelectedBranchTextUnitIds(selectedBranchTextUnitIds);
