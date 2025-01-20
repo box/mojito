@@ -30,8 +30,8 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -266,10 +266,11 @@ public class WebSecurityConfig {
         case HEADER:
           HeaderPreAuthFilter requestHeaderAuthenticationFilter =
               new HeaderPreAuthFilter(headerSecurityConfig);
-          logger.debug("Add request header Auth filter");
+          logger.debug("Add request header Auth filter with fallback");
           requestHeaderAuthenticationFilter.setAuthenticationManager(
               authenticationConfiguration.getAuthenticationManager());
-          http.addFilterBefore(requestHeaderAuthenticationFilter, BasicAuthenticationFilter.class);
+          http.addFilterBefore(
+              requestHeaderAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
           break;
         case OAUTH2:
           logger.debug("Configure OAuth2");
