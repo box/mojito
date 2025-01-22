@@ -1,14 +1,16 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.ofNullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.SourceAsset;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
+import com.box.l10n.mojito.cli.model.SourceAsset;
 import com.ibm.icu.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -147,7 +149,7 @@ public class PushCommand extends Command {
       converter = AssetMappingConverter.class)
   Map<String, String> assetMapping;
 
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Autowired CommandHelper commandHelper;
 
@@ -167,7 +169,7 @@ public class PushCommand extends Command {
         .a(repositoryParam)
         .println(2);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
     if (commitHash != null && StringUtils.isBlank(commitHash)) {
       throw new CommandException(
@@ -218,14 +220,19 @@ public class PushCommand extends Command {
                   SourceAsset sourceAsset = new SourceAsset();
                   sourceAsset.setBranch(branchName);
                   sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
-                  sourceAsset.setBranchNotifiers(pushToBranchNotifiers);
+                  sourceAsset.setBranchNotifiers(pushToBranchNotifiers.stream().toList());
                   sourceAsset.setPath(commandHelper.getMappedSourcePath(assetMapping, sourcePath));
                   sourceAsset.setContent(assetContent);
                   sourceAsset.setExtractedContent(false);
                   sourceAsset.setRepositoryId(repository.getId());
                   sourceAsset.setPushRunName(recordPushRun ? pushRunName : null);
                   sourceAsset.setFilterConfigIdOverride(
-                      sourceFileMatch.getFileType().getFilterConfigIdOverride());
+                      ofNullable(sourceFileMatch.getFileType().getFilterConfigIdOverride())
+                          .map(
+                              filterConfigIdOverride ->
+                                  SourceAsset.FilterConfigIdOverrideEnum.fromValue(
+                                      filterConfigIdOverride.name()))
+                          .orElse(null));
                   sourceAsset.setFilterOptions(
                       commandHelper.getFilterOptionsOrDefaults(
                           sourceFileMatch.getFileType(), filterOptionsParam));

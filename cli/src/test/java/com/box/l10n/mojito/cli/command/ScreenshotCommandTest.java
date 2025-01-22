@@ -4,9 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
+import com.box.l10n.mojito.cli.model.Locale;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Locale;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.Test;
@@ -19,7 +20,7 @@ public class ScreenshotCommandTest extends CLITestBase {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(ScreenshotCommandTest.class);
 
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Autowired CommandHelper commandHelper;
 
@@ -92,7 +93,7 @@ public class ScreenshotCommandTest extends CLITestBase {
   @Test
   public void testGetLocaleFromImagePathNoMapping() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
-    com.box.l10n.mojito.rest.entity.Repository repositoryByName =
+    RepositoryRepository repositoryByName =
         repositoryClient.getRepositoryByName(repository.getName());
     ScreenshotCommand screenshotCommand = new ScreenshotCommand();
     screenshotCommand.repositoryLocales =
@@ -106,7 +107,7 @@ public class ScreenshotCommandTest extends CLITestBase {
   @Test(expected = ScreenshotCommand.InvalidLocaleException.class)
   public void testGetLocaleFromImagePathNoMappingUnsupportedLocale() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
-    com.box.l10n.mojito.rest.entity.Repository repositoryByName =
+    RepositoryRepository repositoryByName =
         repositoryClient.getRepositoryByName(repository.getName());
     ScreenshotCommand screenshotCommand = new ScreenshotCommand();
     screenshotCommand.repositoryLocales =
@@ -120,7 +121,7 @@ public class ScreenshotCommandTest extends CLITestBase {
   @Test
   public void testGetLocaleFromImagePathMappedLocale() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
-    com.box.l10n.mojito.rest.entity.Repository repositoryByName =
+    RepositoryRepository repositoryByName =
         repositoryClient.getRepositoryByName(repository.getName());
     ScreenshotCommand screenshotCommand = new ScreenshotCommand();
     screenshotCommand.localeMappings = localeMappingHelper.getLocaleMapping("fr:fr-FR");

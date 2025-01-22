@@ -2,9 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class RepoDeleteCommand extends Command {
       description = Param.REPOSITORY_NAME_DESCRIPTION)
   String nameParam;
 
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Override
   protected void execute() throws CommandException {

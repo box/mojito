@@ -2,19 +2,18 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.cli.model.AssetAssetSummary;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
+import com.box.l10n.mojito.cli.model.XliffExportBody;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.box.l10n.mojito.rest.entity.XliffExportBody;
 import com.google.common.base.MoreObjects;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class TMExportCommand extends Command {
 
   @Autowired CommandHelper commandHelper;
 
-  @Autowired AssetClient assetClient;
+  @Autowired AssetWsApiProxy assetClient;
 
   CommandDirectories commandDirectories;
 
@@ -88,28 +87,30 @@ public class TMExportCommand extends Command {
     logger.debug("Initialize targetBasename (use repository if no target bases name is specified)");
     targetBasenameParam = MoreObjects.firstNonNull(targetBasenameParam, repositoryParam);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-    List<Asset> assets = assetClient.getAssetsByRepositoryId(repository.getId());
+    List<AssetAssetSummary> assets =
+        assetClient.getAssets(repository.getId(), null, null, null, null);
 
-    Set<RepositoryLocale> repositoryLocales = repository.getRepositoryLocales();
+    List<RepositoryLocaleRepository> repositoryLocales = repository.getRepositoryLocales();
 
     long assetNumber = 0;
 
-    for (Asset asset : assets) {
+    for (AssetAssetSummary asset : assets) {
       assetNumber++;
 
       consoleWriter.newLine().a("Asset: ").fg(Color.CYAN).a(asset.getPath()).println();
 
-      for (RepositoryLocale repositoryLocale : repositoryLocales) {
+      for (RepositoryLocaleRepository repositoryLocale : repositoryLocales) {
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
         if (bcp47tagsParam == null || bcp47tagsParam.contains(bcp47Tag)) {
           consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
 
+          XliffExportBody exportBody = new XliffExportBody();
           XliffExportBody xliffExport =
-              assetClient.exportAssetAsXLIFFAsync(asset.getId(), bcp47Tag);
+              assetClient.xliffExportAsync(exportBody, bcp47Tag, asset.getId());
           Long pollableTaskId = xliffExport.getPollableTask().getId();
 
           try {
@@ -119,7 +120,8 @@ public class TMExportCommand extends Command {
           }
 
           Path exportFile = getExportFile(repositoryLocale, assetNumber);
-          String export = assetClient.getExportedXLIFF(asset.getId(), xliffExport.getTmXliffId());
+          String export =
+              assetClient.xliffExport(asset.getId(), xliffExport.getTmXliffId()).getContent();
           commandHelper.writeFileContent(export, exportFile);
 
           consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
@@ -137,7 +139,7 @@ public class TMExportCommand extends Command {
    * @param assetNumber the asset number
    * @return the export file
    */
-  private Path getExportFile(RepositoryLocale repositoryLocale, long assetNumber)
+  private Path getExportFile(RepositoryLocaleRepository repositoryLocale, long assetNumber)
       throws CommandException {
     String filename;
 

@@ -1,13 +1,13 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
+import com.box.l10n.mojito.cli.model.AssetAssetSummary;
+import com.box.l10n.mojito.cli.model.LocalizedAssetBody;
+import com.box.l10n.mojito.cli.model.MultiLocalizedAssetBody;
+import com.box.l10n.mojito.cli.model.PollableTask;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
-import com.box.l10n.mojito.rest.entity.MultiLocalizedAssetBody;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -119,10 +119,10 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private PollableTask generateLocalizedFilesWithLocaleMappingParallel(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
+      RepositoryRepository repository, FileMatch sourceFileMatch, List<String> filterOptions)
       throws CommandException {
 
-    List<RepositoryLocale> repositoryLocales =
+    List<RepositoryLocaleRepository> repositoryLocales =
         localeMappings.entrySet().stream()
             .map(entry -> getRepositoryLocaleForOutputBcp47Tag(entry.getKey()))
             .distinct()
@@ -131,7 +131,7 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private PollableTask generateLocalizedFilesWithoutLocaleMappingParallel(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
+      RepositoryRepository repository, FileMatch sourceFileMatch, List<String> filterOptions)
       throws CommandException {
 
     logger.debug("Generate localized files (without locale mapping)");
@@ -174,7 +174,7 @@ public class PullCommandParallel extends PullCommand {
   }
 
   void generateLocalizedFilesWithoutLocaleMapping(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
+      RepositoryRepository repository, FileMatch sourceFileMatch, List<String> filterOptions)
       throws CommandException {
 
     logger.debug("Generate localized files (without locale mapping)");
@@ -187,11 +187,11 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private PollableTask generateLocalizedFiles(
-      Repository repository,
+      RepositoryRepository repository,
       FileMatch sourceFileMatch,
       List<String> filterOptions,
-      List<RepositoryLocale> repositoryLocales) {
-    Asset assetByPathAndRepositoryId;
+      List<RepositoryLocaleRepository> repositoryLocales) {
+    AssetAssetSummary assetByPathAndRepositoryId;
 
     String sourcePath =
         commandHelper.getMappedSourcePath(assetMapping, sourceFileMatch.getSourcePath());
@@ -219,13 +219,13 @@ public class PullCommandParallel extends PullCommand {
         commandHelper.getFileContentWithXcodePatch(sourceFileMatch));
   }
 
-  private Map<RepositoryLocale, List<String>> getRepoLocaleToOutputTagsMap() {
-    Map<RepositoryLocale, List<String>> localeIdToOutputTagsMap = new HashMap<>();
+  private Map<RepositoryLocaleRepository, List<String>> getRepoLocaleToOutputTagsMap() {
+    Map<RepositoryLocaleRepository, List<String>> localeIdToOutputTagsMap = new HashMap<>();
 
     if (localeMappings != null) {
       for (Map.Entry<String, String> mapping : localeMappings.entrySet()) {
         String outputBcp47tag = mapping.getKey();
-        RepositoryLocale locale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
+        RepositoryLocaleRepository locale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
         if (localeIdToOutputTagsMap.containsKey(locale)) {
           localeIdToOutputTagsMap.get(locale).add(outputBcp47tag);
         } else {
@@ -238,7 +238,7 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private boolean shouldGenerateLocalizedFileWithCliOutput(
-      FileMatch sourceFileMatch, RepositoryLocale repositoryLocale) {
+      FileMatch sourceFileMatch, RepositoryLocaleRepository repositoryLocale) {
     boolean localize = shouldGenerateLocalizedFile(repositoryLocale);
     if (!localize) {
       printLocaleSkippedToConsole(sourceFileMatch, repositoryLocale);
@@ -247,7 +247,7 @@ public class PullCommandParallel extends PullCommand {
   }
 
   private synchronized void printLocaleSkippedToConsole(
-      FileMatch sourceFileMatch, RepositoryLocale repositoryLocale) {
+      FileMatch sourceFileMatch, RepositoryLocaleRepository repositoryLocale) {
     consoleWriter
         .a("Skipping locale: ")
         .fg(Ansi.Color.CYAN)

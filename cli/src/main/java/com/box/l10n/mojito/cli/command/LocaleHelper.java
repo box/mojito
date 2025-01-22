@@ -1,11 +1,10 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.internal.Lists;
+import com.box.l10n.mojito.cli.apiclient.LocaleWsApiProxy;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.LocaleClient;
-import com.box.l10n.mojito.rest.entity.Locale;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import com.box.l10n.mojito.cli.model.Locale;
+import com.box.l10n.mojito.cli.model.RepositoryLocale;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,16 +34,16 @@ public class LocaleHelper {
 
   @Autowired ConsoleWriter consoleWriter;
 
-  @Autowired LocaleClient localeClient;
+  @Autowired LocaleWsApiProxy localeClient;
 
   /**
    * Extract {@link RepositoryLocale} set from {@link RepoCreateCommand#encodedBcp47Tags} to prep
-   * for {@link Repository} creation
+   * for {@link com.box.l10n.mojito.cli.model.Repository} creation
    *
    * @return
    * @throws CommandException
    */
-  protected Set<RepositoryLocale> extractRepositoryLocalesFromInput(
+  protected List<RepositoryLocale> extractRepositoryLocalesFromInput(
       List<String> encodedBcp47Tags, boolean doPrint) throws CommandException {
     Set<RepositoryLocale> repositoryLocales = new LinkedHashSet<>();
 
@@ -58,12 +57,12 @@ public class LocaleHelper {
         repositoryLocales.add(repositoryLocale);
       }
     }
-    return repositoryLocales;
+    return repositoryLocales.stream().toList();
   }
 
   /**
    * Convert encoded Bcp47 Tag into {@link RepositoryLocale} with all the parent relationships and
-   * {@link RepositoryLocale#toBeFullyTranslated} set
+   * {@link RepositoryLocale#isToBeFullyTranslated()} set
    *
    * @param encodedBcp47Tag
    * @return

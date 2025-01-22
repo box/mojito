@@ -1,17 +1,20 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.ofNullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
+import com.box.l10n.mojito.cli.apiclient.LeveragingWsApi;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.LeveragingClient;
+import com.box.l10n.mojito.cli.model.AssetAssetSummary;
+import com.box.l10n.mojito.cli.model.CopyTmConfig;
+import com.box.l10n.mojito.cli.model.PollableTask;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.CopyTmConfig;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +91,7 @@ public class LeveragingCommand extends Command {
               + "MD5 will perform matching based on the ID, content and comment. "
               + "EXACT match is only using the content.",
       converter = CopyTmConfigModeConverter.class)
-  CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
+  CopyTmConfig.ModeEnum mode = CopyTmConfig.ModeEnum.MD5;
 
   @Parameter(
       names = {"--tuids-mapping"},
@@ -102,14 +105,14 @@ public class LeveragingCommand extends Command {
 
   @Autowired CommandHelper commandHelper;
 
-  @Autowired LeveragingClient leveragingClient;
+  @Autowired LeveragingWsApi leveragingClient;
 
-  @Autowired AssetClient assetClient;
+  @Autowired AssetWsApiProxy assetClient;
 
   @Override
   public void execute() throws CommandException {
 
-    if (CopyTmConfig.Mode.TUIDS.equals(mode)) {
+    if (CopyTmConfig.ModeEnum.TUIDS.equals(mode)) {
       copyTranslationBetweenTextUnits();
     } else {
       copyTmBetweenRepositories();
@@ -135,8 +138,10 @@ public class LeveragingCommand extends Command {
         .a(targetRepositoryParam)
         .println(2);
 
-    Repository sourceRepository = commandHelper.findRepositoryByName(sourceRepositoryParam);
-    Repository targetRepository = commandHelper.findRepositoryByName(targetRepositoryParam);
+    RepositoryRepository sourceRepository =
+        commandHelper.findRepositoryByName(sourceRepositoryParam);
+    RepositoryRepository targetRepository =
+        commandHelper.findRepositoryByName(targetRepositoryParam);
 
     try {
       CopyTmConfig copyTmConfig = new CopyTmConfig();
@@ -150,14 +155,14 @@ public class LeveragingCommand extends Command {
       }
 
       if (targetAssetPathParam != null) {
-        Asset asset =
+        AssetAssetSummary asset =
             assetClient.getAssetByPathAndRepositoryId(
                 targetAssetPathParam, targetRepository.getId());
         copyTmConfig.setTargetAssetId(asset.getId());
       }
 
       if (sourceAssetPathParam != null) {
-        Asset asset =
+        AssetAssetSummary asset =
             assetClient.getAssetByPathAndRepositoryId(
                 sourceAssetPathParam, sourceRepository.getId());
         copyTmConfig.setSourceAssetId(asset.getId());
@@ -189,8 +194,16 @@ public class LeveragingCommand extends Command {
 
     CopyTmConfig copyTmConfig = new CopyTmConfig();
     copyTmConfig.setNameRegex(nameRegexParam);
-    copyTmConfig.setMode(CopyTmConfig.Mode.TUIDS);
-    copyTmConfig.setSourceToTargetTmTextUnitIds(sourceToTargetTmTextUnitMapping);
+    copyTmConfig.setMode(CopyTmConfig.ModeEnum.TUIDS);
+    copyTmConfig.setSourceToTargetTmTextUnitIds(
+        ofNullable(sourceToTargetTmTextUnitMapping)
+            .map(
+                sourceToTargetTmTextUnitMapping ->
+                    sourceToTargetTmTextUnitMapping.entrySet().stream()
+                        .collect(
+                            Collectors.toMap(
+                                entry -> String.valueOf(entry.getKey()), Map.Entry::getValue)))
+            .orElse(null));
 
     copyTmConfig = leveragingClient.copyTM(copyTmConfig);
 

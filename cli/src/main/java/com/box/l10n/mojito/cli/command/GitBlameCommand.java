@@ -15,10 +15,10 @@ import com.box.l10n.mojito.cli.filefinder.file.GitBlameType;
 import com.box.l10n.mojito.cli.model.GitBlameGitBlameWithUsage;
 import com.box.l10n.mojito.cli.model.GitBlameWithUsageGitBlameWithUsage;
 import com.box.l10n.mojito.cli.model.PollableTask;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.nio.file.NoSuchFileException;
@@ -154,7 +154,7 @@ public class GitBlameCommand extends Command {
 
     consoleWriter.newLine().a("Git blame for repository: ").fg(CYAN).a(repositoryParam).println(2);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
     List<PollableTask> pollableTasks = new ArrayList<>();
 
     initGitRepository();

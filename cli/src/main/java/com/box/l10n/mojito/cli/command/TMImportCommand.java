@@ -9,9 +9,8 @@ import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
 import com.box.l10n.mojito.cli.model.ImportRepositoryBody;
-import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
-import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
 import java.util.Arrays;
 import org.fusesource.jansi.Ansi;
@@ -70,13 +69,11 @@ public class TMImportCommand extends Command {
       description = "Skip the source file import")
   Boolean skipSourceImportParam = false;
 
-  @Autowired AssetClient assetClient;
-
   @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Autowired CommandHelper commandHelper;
 
-  Repository repository;
+  RepositoryRepository repository;
 
   CommandDirectories commandDirectories;
 

@@ -10,8 +10,7 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.model.CommitBody;
 import com.box.l10n.mojito.cli.model.CommitCommit;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Repository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.google.common.collect.Streams;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -46,8 +45,6 @@ public class CommitCreateCommand extends Command {
   @Autowired CommandHelper commandHelper;
 
   @Autowired CommitWsApi commitClient;
-
-  @Autowired RepositoryClient repositoryClient;
 
   @Parameter(
       names = {Param.COMMIT_HASH_LONG, Param.COMMIT_HASH_SHORT},
@@ -98,7 +95,7 @@ public class CommitCreateCommand extends Command {
         .a(repositoryParam)
         .println(2);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
     final CommitInfo commitInfo;
 

@@ -1,16 +1,20 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.ofNullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.LocaleMappingHelper;
+import com.box.l10n.mojito.cli.apiclient.ImageWsApiProxy;
+import com.box.l10n.mojito.cli.apiclient.RepositoryMapper;
+import com.box.l10n.mojito.cli.apiclient.ScreenshotWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.ImageClient;
-import com.box.l10n.mojito.rest.client.ScreenshotClient;
-import com.box.l10n.mojito.rest.entity.Locale;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.Screenshot;
-import com.box.l10n.mojito.rest.entity.ScreenshotRun;
+import com.box.l10n.mojito.cli.model.Locale;
+import com.box.l10n.mojito.cli.model.LocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
+import com.box.l10n.mojito.cli.model.Screenshot;
+import com.box.l10n.mojito.cli.model.ScreenshotRun;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -89,16 +93,16 @@ public class ScreenshotCommand extends Command {
 
   CommandDirectories commandDirectories;
 
-  @Autowired ImageClient imageClient;
+  @Autowired ImageWsApiProxy imageClient;
 
-  @Autowired ScreenshotClient screenshotClient;
+  @Autowired ScreenshotWsApiProxy screenshotClient;
 
   @Autowired LocaleMappingHelper localeMappingHelper;
 
   /** Contains a map of locale for generating localized file a locales defined in the repository. */
   Map<String, String> localeMappings;
 
-  Map<String, Locale> repositoryLocales;
+  Map<String, LocaleRepository> repositoryLocales;
 
   @Override
   public void execute() throws CommandException {
@@ -109,7 +113,7 @@ public class ScreenshotCommand extends Command {
         .fg(Color.CYAN)
         .a(repositoryParam)
         .println(2);
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
     commandDirectories = new CommandDirectories(sourceDirectoryParam);
     localeMappings = localeMappingHelper.getLocaleMapping(localeMappingParam);
@@ -119,7 +123,7 @@ public class ScreenshotCommand extends Command {
         commandDirectories.listFilesWithExtensionInSourceDirectory("png", "jpg", "jpeg", "gif");
 
     ScreenshotRun screenshotRun = new ScreenshotRun();
-    screenshotRun.setRepository(repository);
+    screenshotRun.setRepository(RepositoryMapper.mapToRepository(repository));
 
     if (screenshotRunName == null) {
       screenshotRun.setName(UUID.randomUUID().toString());
@@ -131,7 +135,7 @@ public class ScreenshotCommand extends Command {
       processImage(imagePath, screenshotRun);
     }
 
-    screenshotClient.uploadScreenshots(screenshotRun);
+    screenshotClient.createOrAddToScreenshotRun(screenshotRun);
   }
 
   void processImage(Path imagePath, ScreenshotRun screenshotRun) throws CommandException {
@@ -176,7 +180,9 @@ public class ScreenshotCommand extends Command {
             "The locale: " + localeStr + " is not supported by the repository");
       }
 
-      return repositoryLocales.get(localeStr);
+      return ofNullable(repositoryLocales.get(localeStr))
+          .map(RepositoryMapper::mapToLocale)
+          .orElse(null);
     } catch (IllegalArgumentException iae) {
       throw new InvalidLocaleException(
           "The image: "
@@ -205,7 +211,7 @@ public class ScreenshotCommand extends Command {
     logger.debug("Upload image: {} to path: {}", image.toString(), uploadPath);
     try {
       byte[] content = Files.readAllBytes(image);
-      imageClient.uploadImage(uploadPath, content);
+      imageClient.uploadImage(content, uploadPath);
     } catch (IOException ex) {
       throw new CommandException("Failed to upload image: " + image.toString(), ex);
     }

@@ -88,10 +88,12 @@ public class CLITestBase extends IOTestBase {
 
   public void resetHost() {
     resttemplateConfig.setHost("localhost");
+    this.apiClientConfigurer.init();
   }
 
   public void setNonExistentHost() {
     resttemplateConfig.setHost("nonExistentHostAddress");
+    this.apiClientConfigurer.init();
   }
 
   public L10nJCommander getL10nJCommander() {

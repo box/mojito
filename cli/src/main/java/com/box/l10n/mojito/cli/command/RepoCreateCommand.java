@@ -3,16 +3,16 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.LocaleWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
-import com.box.l10n.mojito.rest.client.LocaleClient;
+import com.box.l10n.mojito.cli.model.AssetIntegrityChecker;
+import com.box.l10n.mojito.cli.model.Locale;
+import com.box.l10n.mojito.cli.model.Repository;
+import com.box.l10n.mojito.cli.model.RepositoryLocale;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
-import com.box.l10n.mojito.rest.entity.IntegrityChecker;
-import com.box.l10n.mojito.rest.entity.Locale;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.List;
-import java.util.Set;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,16 +92,16 @@ public class RepoCreateCommand extends RepoCommand {
       description = INTEGRITY_CHECK_DESCRIPTION)
   String integrityCheckParam;
 
-  @Autowired LocaleClient localeClient;
+  @Autowired LocaleWsApiProxy localeClient;
 
   @Override
   public void execute() throws CommandException {
     consoleWriter.a("Create repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
     try {
-      Set<RepositoryLocale> repositoryLocales =
+      List<RepositoryLocale> repositoryLocales =
           localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
-      Set<IntegrityChecker> integrityCheckers =
+      List<AssetIntegrityChecker> integrityCheckers =
           extractIntegrityCheckersFromInput(integrityCheckParam, true);
 
       Locale sourceLocale = null;
@@ -110,14 +110,14 @@ public class RepoCreateCommand extends RepoCommand {
         sourceLocale = localeClient.getLocaleByBcp47Tag(sourceLocaleBcp47Tags);
       }
 
-      Repository repository =
-          repositoryClient.createRepository(
-              nameParam,
-              descriptionParam,
-              sourceLocale,
-              repositoryLocales,
-              integrityCheckers,
-              checkSLA);
+      Repository repositoryBody = new Repository();
+      repositoryBody.setName(nameParam);
+      repositoryBody.setDescription(descriptionParam);
+      repositoryBody.setSourceLocale(sourceLocale);
+      repositoryBody.setRepositoryLocales(repositoryLocales);
+      repositoryBody.setAssetIntegrityCheckers(integrityCheckers);
+      repositoryBody.setCheckSLA(checkSLA);
+      RepositoryRepository repository = repositoryClient.createRepository(repositoryBody);
       consoleWriter
           .newLine()
           .a("created --> repository id: ")

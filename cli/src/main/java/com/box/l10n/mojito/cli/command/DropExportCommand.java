@@ -2,15 +2,15 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.apiclient.DropWsApi;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.DropClient;
-import com.box.l10n.mojito.rest.entity.ExportDropConfig;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
-import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
+import com.box.l10n.mojito.cli.model.ExportDropConfig;
+import com.box.l10n.mojito.cli.model.PollableTask;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleStatisticRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
+import com.box.l10n.mojito.cli.model.RepositoryStatisticRepository;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +53,7 @@ public class DropExportCommand extends Command {
       required = false,
       description = "Type of export to perfom: TRANSLATION or REVIEW",
       converter = ExportDropConfigTypeConverter.class)
-  ExportDropConfig.Type typeParam;
+  ExportDropConfig.TypeEnum typeParam;
 
   @Parameter(
       names = {Param.EXPORT_LOCALES_LONG, Param.EXPORT_LOCALES_SHORT},
@@ -71,7 +71,7 @@ public class DropExportCommand extends Command {
 
   @Autowired CommandHelper commandHelper;
 
-  @Autowired DropClient dropClient;
+  @Autowired DropWsApi dropClient;
 
   @Override
   public void execute() throws CommandException {
@@ -83,17 +83,17 @@ public class DropExportCommand extends Command {
         .a(repositoryParam)
         .println(2);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-    if (useInheritance && typeParam != ExportDropConfig.Type.REVIEW) {
+    if (useInheritance && typeParam != ExportDropConfig.TypeEnum.REVIEW) {
       throw new CommandException("--use-inheritance can only be used with --type REVIEW");
     }
 
-    if (typeParam == ExportDropConfig.Type.REVIEW || shouldCreateDrop(repository)) {
+    if (typeParam == ExportDropConfig.TypeEnum.REVIEW || shouldCreateDrop(repository)) {
       ExportDropConfig exportDropConfig = new ExportDropConfig();
       exportDropConfig.setRepositoryId(repository.getId());
       exportDropConfig.setType(typeParam);
-      exportDropConfig.setBcp47Tags(getBcp47TagsForExport(repository));
+      exportDropConfig.setLocales(getBcp47TagsForExport(repository));
       exportDropConfig.setUseInheritance(useInheritance);
 
       exportDropConfig = dropClient.exportDrop(exportDropConfig);
@@ -122,7 +122,7 @@ public class DropExportCommand extends Command {
    * @param repository
    * @return list of Bcp47Tags for the drop
    */
-  List<String> getBcp47TagsForExport(Repository repository) throws CommandException {
+  List<String> getBcp47TagsForExport(RepositoryRepository repository) throws CommandException {
 
     List<String> bcp47tags;
 
@@ -142,11 +142,11 @@ public class DropExportCommand extends Command {
    * @return list of Bcp47Tags for the drop
    * @throws CommandException
    */
-  List<String> getBcp47TagsForExportFromRepository(Repository repository) {
+  List<String> getBcp47TagsForExportFromRepository(RepositoryRepository repository) {
 
     List<String> bcp47Tags = new ArrayList<>();
 
-    for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
+    for (RepositoryLocaleRepository repositoryLocale : repository.getRepositoryLocales()) {
       if (repositoryLocale.isToBeFullyTranslated()) {
         bcp47Tags.add(repositoryLocale.getLocale().getBcp47Tag());
       }
@@ -162,13 +162,14 @@ public class DropExportCommand extends Command {
    * @return list of Bcp47Tags for the drop
    * @throws CommandException
    */
-  List<String> getBcp47TagsForExportFromParam(Repository repository) throws CommandException {
+  List<String> getBcp47TagsForExportFromParam(RepositoryRepository repository)
+      throws CommandException {
 
     List<String> bcp47tags = new ArrayList<>();
 
     List<String> validTags = new ArrayList<>();
 
-    for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
+    for (RepositoryLocaleRepository repositoryLocale : repository.getRepositoryLocales()) {
       validTags.add(repositoryLocale.getLocale().getBcp47Tag());
     }
 
@@ -183,13 +184,14 @@ public class DropExportCommand extends Command {
     return bcp47tags;
   }
 
-  protected boolean shouldCreateDrop(Repository repository) {
+  protected boolean shouldCreateDrop(RepositoryRepository repository) {
     boolean createDrop = false;
     Set<String> bcp47TagsForTranslation =
         Sets.newHashSet(getBcp47TagsForExportFromRepository(repository));
-    RepositoryStatistic repoStat = repository.getRepositoryStatistic();
+    RepositoryStatisticRepository repoStat = repository.getRepositoryStatistic();
     if (repoStat != null) {
-      for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
+      for (RepositoryLocaleStatisticRepository repoLocaleStat :
+          repoStat.getRepositoryLocaleStatistics()) {
         if (bcp47TagsForTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag())
             && repoLocaleStat.getForTranslationCount() > 0L) {
           createDrop = true;

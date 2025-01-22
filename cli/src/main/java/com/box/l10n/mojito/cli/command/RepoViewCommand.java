@@ -3,10 +3,10 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.model.AssetIntegrityCheckerRepository;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
-import com.box.l10n.mojito.rest.entity.IntegrityChecker;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +43,7 @@ public class RepoViewCommand extends RepoCommand {
     consoleWriter.a("View repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
     try {
-      Repository repository = repositoryClient.getRepositoryByName(nameParam);
+      RepositoryRepository repository = repositoryClient.getRepositoryByName(nameParam);
       consoleWriter
           .newLine()
           .a("Repository id --> ")
@@ -58,15 +58,22 @@ public class RepoViewCommand extends RepoCommand {
     }
   }
 
-  private void printIntegrityChecker(Repository repository) {
-    if (repository.getIntegrityCheckers() != null && !repository.getIntegrityCheckers().isEmpty()) {
-      List<IntegrityChecker> integrityCheckers = new ArrayList<>();
-      integrityCheckers.addAll(repository.getIntegrityCheckers());
-      Collections.sort(integrityCheckers, IntegrityChecker.getComparator());
+  private void printIntegrityChecker(RepositoryRepository repository) {
+    if (repository.getAssetIntegrityCheckers() != null
+        && !repository.getAssetIntegrityCheckers().isEmpty()) {
+      List<AssetIntegrityCheckerRepository> integrityCheckers = new ArrayList<>();
+      integrityCheckers.addAll(repository.getAssetIntegrityCheckers());
+      Collections.sort(
+          integrityCheckers,
+          (integrityChecker1, integrityChecker2) -> {
+            String extension1 = integrityChecker1.getAssetExtension();
+            String extension2 = integrityChecker2.getAssetExtension();
+            return extension1.compareTo(extension2);
+          });
 
       consoleWriter.newLine().a("Integrity checkers --> ").fg(Ansi.Color.MAGENTA);
       for (int i = 0; i < integrityCheckers.size(); i++) {
-        IntegrityChecker integrityChecker = integrityCheckers.get(i);
+        AssetIntegrityCheckerRepository integrityChecker = integrityCheckers.get(i);
         consoleWriter
             .a(integrityChecker.getAssetExtension())
             .a(":")
@@ -80,20 +87,26 @@ public class RepoViewCommand extends RepoCommand {
     }
   }
 
-  private void printLocales(Repository repository) {
+  private void printLocales(RepositoryRepository repository) {
     if (repository.getRepositoryLocales() != null && !repository.getRepositoryLocales().isEmpty()) {
-      List<RepositoryLocale> repositoryLocales = new ArrayList<>();
+      List<RepositoryLocaleRepository> repositoryLocales = new ArrayList<>();
       repositoryLocales.addAll(repository.getRepositoryLocales());
-      Collections.sort(repositoryLocales, RepositoryLocale.getComparator());
+      Collections.sort(
+          repositoryLocales,
+          (repositoryLocale1, repositoryLocale2) -> {
+            String bcp47Tag1 = repositoryLocale1.getLocale().getBcp47Tag();
+            String bcp47Tag2 = repositoryLocale2.getLocale().getBcp47Tag();
+            return bcp47Tag1.compareTo(bcp47Tag2);
+          });
 
       consoleWriter.newLine().a("Repository locales --> ").fg(Ansi.Color.MAGENTA);
       for (int j = 0; j < repositoryLocales.size(); j++) {
-        RepositoryLocale repositoryLocale = repositoryLocales.get(j);
+        RepositoryLocaleRepository repositoryLocale = repositoryLocales.get(j);
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
         if (repositoryLocale.isToBeFullyTranslated()) {
           consoleWriter.a(bcp47Tag).a(" ");
         } else {
-          RepositoryLocale parentRepositoryLocale = repositoryLocale.getParentLocale();
+          RepositoryLocaleRepository parentRepositoryLocale = repositoryLocale.getParentLocale();
           if (parentRepositoryLocale != null) {
             String parentBcp47Tag = parentRepositoryLocale.getLocale().getBcp47Tag();
 

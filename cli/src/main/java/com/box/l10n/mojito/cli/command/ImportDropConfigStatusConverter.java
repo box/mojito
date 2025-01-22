@@ -1,14 +1,14 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.box.l10n.mojito.rest.entity.ImportDropConfig;
+import com.box.l10n.mojito.cli.model.ImportDropConfig;
 
 /**
  * @author jaurambault
  */
-public class ImportDropConfigStatusConverter extends EnumConverter<ImportDropConfig.Status> {
+public class ImportDropConfigStatusConverter extends EnumConverter<ImportDropConfig.StatusEnum> {
 
   @Override
-  protected Class<ImportDropConfig.Status> getGenericClass() {
-    return ImportDropConfig.Status.class;
+  protected Class<ImportDropConfig.StatusEnum> getGenericClass() {
+    return ImportDropConfig.StatusEnum.class;
   }
 }

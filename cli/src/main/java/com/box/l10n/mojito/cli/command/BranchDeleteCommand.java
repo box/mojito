@@ -21,8 +21,7 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.model.BranchBranchSummary;
 import com.box.l10n.mojito.cli.model.PollableTask;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.entity.Repository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
@@ -44,8 +43,6 @@ public class BranchDeleteCommand extends Command {
   @Autowired ConsoleWriter consoleWriter;
 
   @Autowired RepositoryWsApiProxy repositoryClient;
-
-  @Autowired AssetClient assetClient;
 
   @Autowired CommandHelper commandHelper;
 
@@ -100,7 +97,7 @@ public class BranchDeleteCommand extends Command {
         .fg(Ansi.Color.CYAN)
         .a(repositoryParam)
         .println();
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
     ZonedDateTime createdBeforeDateTime =
         this.commandHelper.getLastWeekDateIfTrue(this.beforeLastWeek);

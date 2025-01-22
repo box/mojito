@@ -3,20 +3,20 @@ package com.box.l10n.mojito.cli.command;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE;
 
 import com.box.l10n.mojito.JSR310Migration;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileFinder;
 import com.box.l10n.mojito.cli.filefinder.FileFinderException;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
+import com.box.l10n.mojito.cli.model.LocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
-import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
@@ -71,7 +71,7 @@ public class CommandHelper {
     ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE
   };
 
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired RepositoryWsApiProxy repositoryClient;
 
   @Autowired PollableTaskClient pollableTaskClient;
 
@@ -89,7 +89,7 @@ public class CommandHelper {
    * @param repositoryName Name of repository
    * @return
    */
-  public Repository findRepositoryByName(String repositoryName) throws CommandException {
+  public RepositoryRepository findRepositoryByName(String repositoryName) throws CommandException {
 
     try {
       Preconditions.checkNotNull(repositoryName, "Repository name can't be null");
@@ -104,7 +104,7 @@ public class CommandHelper {
    *
    * @return
    */
-  public List<Repository> getAllRepositories() {
+  public List<RepositoryRepository> getAllRepositories() {
     return repositoryClient.getRepositories(null);
   }
 
@@ -326,14 +326,15 @@ public class CommandHelper {
    * @param repository
    * @return
    */
-  public Map<String, Locale> getSortedRepositoryLocales(Repository repository) {
+  public Map<String, LocaleRepository> getSortedRepositoryLocales(RepositoryRepository repository) {
 
-    LinkedHashMap<String, Locale> locales = new LinkedHashMap<>();
+    LinkedHashMap<String, LocaleRepository> locales = new LinkedHashMap<>();
 
-    ArrayDeque<RepositoryLocale> toProcess = new ArrayDeque<>(repository.getRepositoryLocales());
-    Locale rootLocale = null;
+    ArrayDeque<RepositoryLocaleRepository> toProcess =
+        new ArrayDeque<>(repository.getRepositoryLocales());
+    LocaleRepository rootLocale = null;
 
-    for (RepositoryLocale rl : toProcess) {
+    for (RepositoryLocaleRepository rl : toProcess) {
       if (rl.getParentLocale() == null) {
         rootLocale = rl.getLocale();
         toProcess.remove(rl);
@@ -344,7 +345,7 @@ public class CommandHelper {
     Set<Long> localeIds = new HashSet<>();
 
     while (!toProcess.isEmpty()) {
-      RepositoryLocale rl = toProcess.removeFirst();
+      RepositoryLocaleRepository rl = toProcess.removeFirst();
       Long parentLocaleId = rl.getParentLocale().getLocale().getId();
       if (parentLocaleId.equals(rootLocale.getId()) || localeIds.contains(parentLocaleId)) {
         localeIds.add(rl.getLocale().getId());

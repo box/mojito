@@ -149,4 +149,13 @@ public class RepositoryWsApiProxy {
   public PollableTask deleteBranch(Long repositoryId, Long branchId) {
     return this.repositoryClient.deleteBranch(repositoryId, branchId);
   }
+
+  public List<RepositoryRepository> getRepositories(String name) {
+    return this.repositoryClient.getRepositories(name);
+  }
+
+  public RepositoryRepository getRepositoryById(Long repositoryId) {
+    logger.debug("Getting repository by id = [{}]", repositoryId);
+    return this.repositoryClient.getRepositoryById(repositoryId);
+  }
 }

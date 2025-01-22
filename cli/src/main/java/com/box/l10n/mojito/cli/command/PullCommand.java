@@ -1,23 +1,28 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.ofNullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.LocaleMappingHelper;
+import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.model.AssetAssetSummary;
+import com.box.l10n.mojito.cli.model.LocaleInfo;
+import com.box.l10n.mojito.cli.model.LocalizedAssetBody;
+import com.box.l10n.mojito.cli.model.MultiLocalizedAssetBody;
+import com.box.l10n.mojito.cli.model.PollableTask;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryLocaleStatisticRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
+import com.box.l10n.mojito.cli.model.RepositoryStatisticRepository;
 import com.box.l10n.mojito.json.ObjectMapper;
-import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
-import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,8 +126,8 @@ public class PullCommand extends Command {
       description =
           "Inheritance Mode. Used when there is no translations in the target locale for a text unit. (USE_PARENT to fallback to parent locale translation, REMOVE_UNTRANSLATED to remove the text unit from the file ",
       converter = LocalizedAssetBodyInheritanceModeConverter.class)
-  LocalizedAssetBody.InheritanceMode inheritanceMode =
-      LocalizedAssetBody.InheritanceMode.USE_PARENT;
+  LocalizedAssetBody.InheritanceModeEnum inheritanceMode =
+      LocalizedAssetBody.InheritanceModeEnum.USE_PARENT;
 
   @Parameter(
       names = {"--status"},
@@ -130,7 +135,7 @@ public class PullCommand extends Command {
       description =
           "To choose the translations used to generate the file based on their status. ACCEPTED: only includes translations that are accepted. ACCEPTED_OR_NEEDS_REVIEW: includes translations that are accepted or that need review. ALL: includes all translations available even if they need re-translation (\"rejected\" translations are always excluded as they are considered harmful).",
       converter = LocalizedAssetBodyStatusConverter.class)
-  LocalizedAssetBody.Status status = LocalizedAssetBody.Status.ALL;
+  LocalizedAssetBody.StatusEnum status = LocalizedAssetBody.StatusEnum.ALL;
 
   @Parameter(
       names = {"--asset-mapping", "-am"},
@@ -167,7 +172,7 @@ public class PullCommand extends Command {
           "Indicates that the pull should use parallel execution. This is run as an asynchronous request, if --async-ws is also specified it will be ignored.")
   Boolean isParallel = false;
 
-  @Autowired AssetClient assetClient;
+  @Autowired AssetWsApiProxy assetClient;
 
   @Autowired CommandHelper commandHelper;
 
@@ -175,11 +180,11 @@ public class PullCommand extends Command {
 
   @Autowired LocaleMappingHelper localeMappingHelper;
 
-  Map<String, RepositoryLocale> repositoryLocalesWithoutRootLocale;
+  Map<String, RepositoryLocaleRepository> repositoryLocalesWithoutRootLocale;
 
-  RepositoryLocale rootRepositoryLocale;
+  RepositoryLocaleRepository rootRepositoryLocale;
 
-  Repository repository;
+  RepositoryRepository repository;
 
   CommandDirectories commandDirectories;
 
@@ -277,12 +282,13 @@ public class PullCommand extends Command {
    * @throws CommandException
    */
   void generateLocalizedFilesWithoutLocaleMapping(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
+      RepositoryRepository repository, FileMatch sourceFileMatch, List<String> filterOptions)
       throws CommandException {
 
     logger.debug("Generate localized files (without locale mapping)");
 
-    for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale.values()) {
+    for (RepositoryLocaleRepository repositoryLocale :
+        repositoryLocalesWithoutRootLocale.values()) {
       generateLocalizedFile(repository, sourceFileMatch, filterOptions, null, repositoryLocale);
     }
   }
@@ -297,25 +303,26 @@ public class PullCommand extends Command {
    * @throws CommandException
    */
   void generateLocalizedFilesWithLocaleMaping(
-      Repository repository, FileMatch sourceFileMatch, List<String> filterOptions)
+      RepositoryRepository repository, FileMatch sourceFileMatch, List<String> filterOptions)
       throws CommandException {
 
     logger.debug("Generate localized files with locale mapping");
 
     for (Map.Entry<String, String> localeMapping : localeMappings.entrySet()) {
       String outputBcp47tag = localeMapping.getKey();
-      RepositoryLocale repositoryLocale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
+      RepositoryLocaleRepository repositoryLocale =
+          getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
       generateLocalizedFile(
           repository, sourceFileMatch, filterOptions, outputBcp47tag, repositoryLocale);
     }
   }
 
   void generateLocalizedFile(
-      Repository repository,
+      RepositoryRepository repository,
       FileMatch sourceFileMatch,
       List<String> filterOptions,
       String outputBcp47tag,
-      RepositoryLocale repositoryLocale)
+      RepositoryLocaleRepository repositoryLocale)
       throws CommandException {
     if (shouldGenerateLocalizedFile(repositoryLocale)) {
       LocalizedAssetBody localizedAsset =
@@ -333,19 +340,19 @@ public class PullCommand extends Command {
   }
 
   /**
-   * Gets the {@link RepositoryLocale} that correspond to the output BCP47 tag
+   * Gets the {@link RepositoryLocaleRepository} that correspond to the output BCP47 tag
    * based on the {@link #localeMappings
    *
    * @param outputBcp47tag
    * @return the repository locale to be used for the output BCP47 tag
    * @throws CommandException if the mapping is invalid
    */
-  RepositoryLocale getRepositoryLocaleForOutputBcp47Tag(String outputBcp47tag)
+  RepositoryLocaleRepository getRepositoryLocaleForOutputBcp47Tag(String outputBcp47tag)
       throws CommandException {
 
     String repositoryLocaleBcp47Tag = localeMappings.get(outputBcp47tag);
 
-    RepositoryLocale repositoryLocale;
+    RepositoryLocaleRepository repositoryLocale;
 
     if (rootRepositoryLocale.getLocale().getBcp47Tag().equals(outputBcp47tag)) {
       repositoryLocale = rootRepositoryLocale;
@@ -366,18 +373,18 @@ public class PullCommand extends Command {
   }
 
   /**
-   * Gets the list of {@link RepositoryLocale}s of a {@link Repository} excluding the root locale
-   * (the only locale that has no parent locale).
+   * Gets the list of {@link RepositoryLocaleRepository}s of a {@link RepositoryRepository}
+   * excluding the root locale (the only locale that has no parent locale).
    *
    * @param repository the repository
-   * @return the list of {@link RepositoryLocale}s excluding the root locale.
+   * @return the list of {@link RepositoryLocaleRepository}s excluding the root locale.
    */
-  private Map<String, RepositoryLocale> initRepositoryLocalesMapAndRootRepositoryLocale(
-      Repository repository) {
+  private Map<String, RepositoryLocaleRepository> initRepositoryLocalesMapAndRootRepositoryLocale(
+      RepositoryRepository repository) {
 
     repositoryLocalesWithoutRootLocale = new HashMap<>();
 
-    for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
+    for (RepositoryLocaleRepository repositoryLocale : repository.getRepositoryLocales()) {
       if (repositoryLocale.getParentLocale() != null) {
         repositoryLocalesWithoutRootLocale.put(
             repositoryLocale.getLocale().getBcp47Tag(), repositoryLocale);
@@ -404,9 +411,9 @@ public class PullCommand extends Command {
   }
 
   LocalizedAssetBody getLocalizedAsset(
-      Repository repository,
+      RepositoryRepository repository,
       FileMatch sourceFileMatch,
-      RepositoryLocale repositoryLocale,
+      RepositoryLocaleRepository repositoryLocale,
       String outputBcp47tag,
       List<String> filterOptions)
       throws CommandException {
@@ -419,7 +426,7 @@ public class PullCommand extends Command {
     String sourcePath =
         commandHelper.getMappedSourcePath(assetMapping, sourceFileMatch.getSourcePath());
 
-    Asset assetByPathAndRepositoryId;
+    AssetAssetSummary assetByPathAndRepositoryId;
 
     try {
       logger.debug(
@@ -464,12 +471,38 @@ public class PullCommand extends Command {
     return localizedAsset;
   }
 
-  LocalizedAssetBody getLocalizedAssetBodySync(
+  private LocalizedAssetBody getLocalizedAssetBody(
       FileMatch sourceFileMatch,
-      RepositoryLocale repositoryLocale,
+      RepositoryLocaleRepository repositoryLocale,
       String outputBcp47tag,
       List<String> filterOptions,
-      Asset assetByPathAndRepositoryId,
+      AssetAssetSummary assetByPathAndRepositoryId,
+      String assetContent) {
+    LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
+    localizedAssetBody.setAssetId(assetByPathAndRepositoryId.getId());
+    localizedAssetBody.setLocaleId(repositoryLocale.getLocale().getId());
+    localizedAssetBody.setContent(assetContent);
+    localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
+    localizedAssetBody.setFilterConfigIdOverride(
+        ofNullable(sourceFileMatch.getFileType().getFilterConfigIdOverride())
+            .map(
+                filterConfigIdOverride ->
+                    LocalizedAssetBody.FilterConfigIdOverrideEnum.fromValue(
+                        filterConfigIdOverride.name()))
+            .orElse(null));
+    localizedAssetBody.setFilterOptions(filterOptions);
+    localizedAssetBody.setInheritanceMode(inheritanceMode);
+    localizedAssetBody.setStatus(status);
+    localizedAssetBody.setPullRunName(pullRunName);
+    return localizedAssetBody;
+  }
+
+  LocalizedAssetBody getLocalizedAssetBodySync(
+      FileMatch sourceFileMatch,
+      RepositoryLocaleRepository repositoryLocale,
+      String outputBcp47tag,
+      List<String> filterOptions,
+      AssetAssetSummary assetByPathAndRepositoryId,
       String assetContent,
       LocalizedAssetBody localizedAsset)
       throws CommandException {
@@ -479,17 +512,19 @@ public class PullCommand extends Command {
     int maxCount = 5;
     while (localizedAsset == null && count < maxCount) {
       try {
+        LocalizedAssetBody localizedAssetBody =
+            this.getLocalizedAssetBody(
+                sourceFileMatch,
+                repositoryLocale,
+                outputBcp47tag,
+                filterOptions,
+                assetByPathAndRepositoryId,
+                assetContent);
         localizedAsset =
             assetClient.getLocalizedAssetForContent(
+                localizedAssetBody,
                 assetByPathAndRepositoryId.getId(),
-                repositoryLocale.getLocale().getId(),
-                assetContent,
-                outputBcp47tag,
-                sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-                filterOptions,
-                status,
-                inheritanceMode,
-                pullRunName);
+                repositoryLocale.getLocale().getId());
       } catch (Exception e) {
         count++;
         consoleWriter
@@ -513,47 +548,87 @@ public class PullCommand extends Command {
     return localizedAsset;
   }
 
+  private static List<LocaleInfo> mapRepoLocaleToLocaleInfos(
+      RepositoryLocaleRepository locale,
+      Map<RepositoryLocaleRepository, List<String>> repoLocaleToOutputTagsMap) {
+    List<LocaleInfo> localeInfos = new ArrayList<>();
+    if (repoLocaleToOutputTagsMap.containsKey(locale)) {
+      for (String outputTag : repoLocaleToOutputTagsMap.get(locale)) {
+        LocaleInfo localeInfo = new LocaleInfo();
+        localeInfo.setLocaleId(locale.getLocale().getId());
+        localeInfo.setOutputBcp47tag(outputTag);
+        localeInfos.add(localeInfo);
+      }
+    } else {
+      LocaleInfo localeInfo = new LocaleInfo();
+      localeInfo.setLocaleId(locale.getLocale().getId());
+      localeInfos.add(localeInfo);
+    }
+    return localeInfos;
+  }
+
   PollableTask getLocalizedAssetBodyParallel(
       FileMatch sourceFileMatch,
-      List<RepositoryLocale> repositoryLocales,
-      Map<RepositoryLocale, List<String>> localeIdToOutputTagsMap,
+      List<RepositoryLocaleRepository> repositoryLocales,
+      Map<RepositoryLocaleRepository, List<String>> localeIdToOutputTagsMap,
       List<String> filterOptions,
-      Asset assetByPathAndRepositoryId,
+      AssetAssetSummary assetByPathAndRepositoryId,
       String assetContent)
       throws CommandException {
-
+    List<LocaleInfo> localeInfos =
+        repositoryLocales.stream()
+            .map(locale -> mapRepoLocaleToLocaleInfos(locale, localeIdToOutputTagsMap))
+            .flatMap(List::stream)
+            .toList();
+    MultiLocalizedAssetBody multiLocalizedAssetBody = new MultiLocalizedAssetBody();
+    multiLocalizedAssetBody.setAssetId(assetByPathAndRepositoryId.getId());
+    multiLocalizedAssetBody.setSourceContent(assetContent);
+    multiLocalizedAssetBody.setLocaleInfos(localeInfos);
+    multiLocalizedAssetBody.setGenerateLocalizedAssetJobIds(new HashMap<>());
+    multiLocalizedAssetBody.setFilterConfigIdOverride(
+        ofNullable(sourceFileMatch.getFileType().getFilterConfigIdOverride())
+            .map(
+                filterConfigIdOverride ->
+                    MultiLocalizedAssetBody.FilterConfigIdOverrideEnum.fromValue(
+                        filterConfigIdOverride.name()))
+            .orElse(null));
+    multiLocalizedAssetBody.setFilterOptions(filterOptions);
+    multiLocalizedAssetBody.setInheritanceMode(
+        ofNullable(inheritanceMode)
+            .map(
+                inheritanceModeEnum ->
+                    MultiLocalizedAssetBody.InheritanceModeEnum.fromValue(
+                        inheritanceModeEnum.name()))
+            .orElse(null));
+    multiLocalizedAssetBody.setStatus(
+        ofNullable(status)
+            .map(statusEnum -> MultiLocalizedAssetBody.StatusEnum.fromValue(statusEnum.name()))
+            .orElse(null));
+    multiLocalizedAssetBody.setPullRunName(pullRunName);
     return assetClient.getLocalizedAssetForContentParallel(
-        assetByPathAndRepositoryId.getId(),
-        assetContent,
-        repositoryLocales,
-        localeIdToOutputTagsMap,
-        sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-        filterOptions,
-        status,
-        inheritanceMode,
-        pullRunName);
+        multiLocalizedAssetBody, assetByPathAndRepositoryId.getId());
   }
 
   LocalizedAssetBody getLocalizedAssetBodyAsync(
       FileMatch sourceFileMatch,
-      RepositoryLocale repositoryLocale,
+      RepositoryLocaleRepository repositoryLocale,
       String outputBcp47tag,
       List<String> filterOptions,
-      Asset assetByPathAndRepositoryId,
+      AssetAssetSummary assetByPathAndRepositoryId,
       String assetContent)
       throws CommandException {
+    LocalizedAssetBody localizedAssetBody =
+        this.getLocalizedAssetBody(
+            sourceFileMatch,
+            repositoryLocale,
+            outputBcp47tag,
+            filterOptions,
+            assetByPathAndRepositoryId,
+            assetContent);
     LocalizedAssetBody localizedAsset;
     PollableTask localizedAssetForContentAsync =
         assetClient.getLocalizedAssetForContentAsync(
-            assetByPathAndRepositoryId.getId(),
-            repositoryLocale.getLocale().getId(),
-            assetContent,
-            outputBcp47tag,
-            sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-            filterOptions,
-            status,
-            inheritanceMode,
-            pullRunName);
+            localizedAssetBody, assetByPathAndRepositoryId.getId());
     commandHelper.waitForPollableTask(localizedAssetForContentAsync.getId());
     String jsonOutput =
         commandHelper.pollableTaskClient.getPollableTaskOutput(
@@ -562,10 +637,11 @@ public class PullCommand extends Command {
     return localizedAsset;
   }
 
-  private void initLocaleFullyTranslatedMap(Repository repository) {
-    RepositoryStatistic repoStat = repository.getRepositoryStatistic();
+  private void initLocaleFullyTranslatedMap(RepositoryRepository repository) {
+    RepositoryStatisticRepository repoStat = repository.getRepositoryStatistic();
     if (repoStat != null) {
-      for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
+      for (RepositoryLocaleStatisticRepository repoLocaleStat :
+          repoStat.getRepositoryLocaleStatistics()) {
         localeFullyTranslated.put(
             repoLocaleStat.getLocale().getBcp47Tag(),
             repoLocaleStat.getForTranslationCount() == 0L);
@@ -573,7 +649,7 @@ public class PullCommand extends Command {
     }
   }
 
-  protected boolean shouldGenerateLocalizedFile(RepositoryLocale repositoryLocale) {
+  protected boolean shouldGenerateLocalizedFile(RepositoryLocaleRepository repositoryLocale) {
     boolean localize = true;
 
     if (onlyIfFullyTranslated) {

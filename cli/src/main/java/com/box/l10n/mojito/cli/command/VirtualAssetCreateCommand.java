@@ -5,11 +5,10 @@ import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.apiclient.VirtualAssetWsApi;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.model.VirtualAsset;
 import com.box.l10n.mojito.rest.client.HttpClientErrorExceptionHelper;
 import com.box.l10n.mojito.rest.client.HttpClientErrorJson;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Repository;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +48,6 @@ public class VirtualAssetCreateCommand extends Command {
 
   @Autowired VirtualAssetWsApi virtualAssetClient;
 
-  @Autowired RepositoryClient repositoryClient;
-
   @Autowired CommandHelper commandHelper;
 
   @Autowired HttpClientErrorExceptionHelper httpClientErrorExceptionHelper;
@@ -71,7 +68,7 @@ public class VirtualAssetCreateCommand extends Command {
         .a(repositoryParam)
         .println(2);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
     VirtualAsset virtualAsset = new VirtualAsset();
     virtualAsset.setPath(pathParam);

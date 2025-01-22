@@ -1,21 +1,19 @@
 package com.box.l10n.mojito.cli.command;
 
-import static com.box.l10n.mojito.cli.command.RepoCommand.INTEGRITY_CHECK_LONG_PARAM;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.model.AssetIntegrityChecker;
+import com.box.l10n.mojito.cli.model.Repository;
+import com.box.l10n.mojito.cli.model.RepositoryLocale;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
-import com.box.l10n.mojito.rest.entity.IntegrityChecker;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,22 +125,24 @@ public class RepoUpdateCommand extends RepoCommand {
 
   public void updateRepositoriesForRepositoryNames() throws CommandException {
     try {
-      List<Repository> repositoriesForUpdate = getRepositoriesToUpdateFromParams();
+      List<RepositoryRepository> repositoriesForUpdate = getRepositoriesToUpdateFromParams();
 
-      Set<RepositoryLocale> repositoryLocales =
+      List<RepositoryLocale> repositoryLocales =
           localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
-      Set<IntegrityChecker> integrityCheckers =
+      List<AssetIntegrityChecker> integrityCheckers =
           extractIntegrityCheckersFromInput(integrityCheckParam, true);
 
       consoleWriter.a("Update repositories").println();
-      for (Repository repository : repositoriesForUpdate) {
-        repositoryClient.updateRepository(
-            repository.getName(),
-            newNameParam,
-            descriptionParam,
-            checkSLA,
-            repositoryLocales,
-            integrityCheckers);
+      for (RepositoryRepository repository : repositoriesForUpdate) {
+        Repository repositoryBody = new Repository();
+        repositoryBody.setDescription(descriptionParam);
+        repositoryBody.setName(newNameParam);
+        repositoryBody.setRepositoryLocales(repositoryLocales);
+        repositoryBody.setCheckSLA(checkSLA);
+        if (integrityCheckers != null) {
+          repositoryBody.setAssetIntegrityCheckers(integrityCheckers);
+        }
+        repositoryClient.updateRepository(repository.getName(), repositoryBody);
         consoleWriter
             .newLine()
             .a("updated --> repository name: ")
@@ -156,14 +156,14 @@ public class RepoUpdateCommand extends RepoCommand {
     }
   }
 
-  List<Repository> getRepositoriesToUpdateFromParams() throws CommandException {
-    List<Repository> repositoriesForUpdate = new ArrayList<>();
+  List<RepositoryRepository> getRepositoriesToUpdateFromParams() throws CommandException {
+    List<RepositoryRepository> repositoriesForUpdate = new ArrayList<>();
 
-    List<Repository> allRepositories = repositoryClient.getRepositories(null);
+    List<RepositoryRepository> allRepositories = repositoryClient.getRepositories(null);
 
     if (repositoryNames != null) {
       HashSet<String> repositoryNamesAsSet = new HashSet<>(repositoryNames);
-      for (Repository allRepository : allRepositories) {
+      for (RepositoryRepository allRepository : allRepositories) {
         if (repositoryNamesAsSet.contains(allRepository.getName())) {
           repositoriesForUpdate.add(allRepository);
         }

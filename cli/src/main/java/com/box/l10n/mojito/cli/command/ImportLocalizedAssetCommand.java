@@ -1,22 +1,21 @@
 package com.box.l10n.mojito.cli.command;
 
+import static java.util.Optional.ofNullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.LocaleMappingHelper;
+import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.LocaleClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.cli.model.AssetAssetSummary;
+import com.box.l10n.mojito.cli.model.ImportLocalizedAssetBody;
+import com.box.l10n.mojito.cli.model.LocaleRepository;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
-import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForEqualTarget;
-import com.box.l10n.mojito.rest.entity.Locale;
-import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
@@ -122,19 +121,16 @@ public class ImportLocalizedAssetCommand extends Command {
           "Status of the imported translation when the target is the same as "
               + "the parent (SKIPPED for no import). Applies only to fully translated locales",
       converter = ImportLocalizedAssetBodyStatusForEqualTargetConverter.class)
-  StatusForEqualTarget statusForEqualTarget = StatusForEqualTarget.APPROVED;
+  ImportLocalizedAssetBody.StatusForEqualTargetEnum statusForEqualTarget =
+      ImportLocalizedAssetBody.StatusForEqualTargetEnum.APPROVED;
 
-  @Autowired AssetClient assetClient;
-
-  @Autowired LocaleClient localeClient;
-
-  @Autowired RepositoryClient repositoryClient;
+  @Autowired AssetWsApiProxy assetClient;
 
   @Autowired CommandHelper commandHelper;
 
   @Autowired LocaleMappingHelper localeMappingHelper;
 
-  Repository repository;
+  RepositoryRepository repository;
 
   CommandDirectories commandDirectories;
 
@@ -163,7 +159,7 @@ public class ImportLocalizedAssetCommand extends Command {
             sourcePathFilterRegex,
             directoriesIncludePatterns,
             directoriesExcludePatterns)) {
-      for (Locale locale : getLocalesForImport()) {
+      for (LocaleRepository locale : getLocalesForImport()) {
         doImportFileMatch(sourceFileMatch, locale);
       }
     }
@@ -171,7 +167,8 @@ public class ImportLocalizedAssetCommand extends Command {
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
   }
 
-  protected void doImportFileMatch(FileMatch fileMatch, Locale locale) throws CommandException {
+  protected void doImportFileMatch(FileMatch fileMatch, LocaleRepository locale)
+      throws CommandException {
     try {
       logger.info("Importing for locale: {}", locale.getBcp47Tag());
       Path targetPath = getTargetPath(fileMatch, locale);
@@ -182,18 +179,24 @@ public class ImportLocalizedAssetCommand extends Command {
           .a(targetPath.toString())
           .println();
 
-      Asset assetByPathAndRepositoryId =
+      AssetAssetSummary assetByPathAndRepositoryId =
           assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
 
+      ImportLocalizedAssetBody importLocalizedAssetBody = new ImportLocalizedAssetBody();
+      importLocalizedAssetBody.setContent(commandHelper.getFileContent(targetPath));
+      importLocalizedAssetBody.setStatusForEqualTarget(statusForEqualTarget);
+      importLocalizedAssetBody.setFilterConfigIdOverride(
+          ofNullable(fileMatch.getFileType().getFilterConfigIdOverride())
+              .map(
+                  filterConfigIdOverride ->
+                      ImportLocalizedAssetBody.FilterConfigIdOverrideEnum.fromValue(
+                          filterConfigIdOverride.name()))
+              .orElse(null));
+      importLocalizedAssetBody.setFilterOptions(
+          commandHelper.getFilterOptionsOrDefaults(fileMatch.getFileType(), filterOptionsParam));
       ImportLocalizedAssetBody importLocalizedAssetForContent =
-          assetClient.importLocalizedAssetForContent(
-              assetByPathAndRepositoryId.getId(),
-              locale.getId(),
-              commandHelper.getFileContent(targetPath),
-              statusForEqualTarget,
-              fileMatch.getFileType().getFilterConfigIdOverride(),
-              commandHelper.getFilterOptionsOrDefaults(
-                  fileMatch.getFileType(), filterOptionsParam));
+          assetClient.importLocalizedAsset(
+              importLocalizedAssetBody, assetByPathAndRepositoryId.getId(), locale.getId());
 
       try {
         commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
@@ -207,19 +210,19 @@ public class ImportLocalizedAssetCommand extends Command {
     }
   }
 
-  public Collection<Locale> getLocalesForImport() {
-    Collection<Locale> sortedRepositoryLocales =
+  public Collection<LocaleRepository> getLocalesForImport() {
+    Collection<LocaleRepository> sortedRepositoryLocales =
         commandHelper.getSortedRepositoryLocales(repository).values();
     filterLocalesWithMapping(sortedRepositoryLocales);
     return sortedRepositoryLocales;
   }
 
-  private void filterLocalesWithMapping(Collection<Locale> locales) {
+  private void filterLocalesWithMapping(Collection<LocaleRepository> locales) {
 
     if (inverseLocaleMapping != null) {
-      Iterator<Locale> iterator = locales.iterator();
+      Iterator<LocaleRepository> iterator = locales.iterator();
       while (iterator.hasNext()) {
-        Locale l = iterator.next();
+        LocaleRepository l = iterator.next();
         if (!inverseLocaleMapping.containsKey(l.getBcp47Tag())) {
           iterator.remove();
         }
@@ -227,7 +230,7 @@ public class ImportLocalizedAssetCommand extends Command {
     }
   }
 
-  private Path getTargetPath(FileMatch fileMatch, Locale locale) throws CommandException {
+  private Path getTargetPath(FileMatch fileMatch, LocaleRepository locale) throws CommandException {
 
     String targetLocale;
 

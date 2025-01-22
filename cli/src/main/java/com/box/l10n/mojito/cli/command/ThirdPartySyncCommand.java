@@ -8,8 +8,8 @@ import com.box.l10n.mojito.cli.apiclient.ThirdPartyWsApi;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.model.PollableTask;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.model.ThirdPartySync;
-import com.box.l10n.mojito.rest.entity.Repository;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -170,7 +170,7 @@ public class ThirdPartySyncCommand extends Command {
         .a(Objects.toString(options))
         .println(2);
 
-    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    RepositoryRepository repository = commandHelper.findRepositoryByName(repositoryParam);
 
     ThirdPartySync thirdPartySyncBody = new ThirdPartySync();
     thirdPartySyncBody.setRepositoryId(repository.getId());

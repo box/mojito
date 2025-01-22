@@ -11,12 +11,12 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.boxsdk.BoxSDKService;
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
+import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.console.Console;
+import com.box.l10n.mojito.cli.model.AssetAssetSummary;
 import com.box.l10n.mojito.entity.Drop;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.drop.DropRepository;
 import com.box.l10n.mojito.service.drop.DropService;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
@@ -53,7 +53,7 @@ public class DropImportCommandTest extends CLITestBase {
 
   @Autowired TMImportService tmImport;
 
-  @Autowired AssetClient assetClient;
+  @Autowired AssetWsApiProxy assetClient;
 
   @Autowired TMTextUnitCurrentVariantRepository textUnitCurrentVariantRepository;
 
@@ -67,7 +67,7 @@ public class DropImportCommandTest extends CLITestBase {
 
   @Autowired DropRepository dropRepository;
 
-  @Autowired private RepositoryClient repositoryClient;
+  @Autowired private RepositoryWsApiProxy repositoryClient;
 
   @Test
   public void dropImport() throws Exception {
@@ -82,12 +82,12 @@ public class DropImportCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-    Asset asset2 =
+    AssetAssetSummary asset2 =
         assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
     importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
     importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
@@ -161,12 +161,12 @@ public class DropImportCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-    Asset asset2 =
+    AssetAssetSummary asset2 =
         assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
     importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
     importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");

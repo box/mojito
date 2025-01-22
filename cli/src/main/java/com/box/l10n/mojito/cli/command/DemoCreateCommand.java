@@ -4,9 +4,11 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.model.ImportRepositoryBody;
+import com.box.l10n.mojito.cli.model.Repository;
+import com.box.l10n.mojito.cli.model.RepositoryLocale;
+import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import java.io.IOException;
@@ -16,7 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class DemoCreateCommand extends RepoCommand {
 
   Path outputDirectoryPath;
 
-  Repository repository;
+  RepositoryRepository repository;
 
   @Override
   public void execute() throws CommandException {
@@ -141,21 +142,22 @@ public class DemoCreateCommand extends RepoCommand {
         .println();
 
     try {
-      repository =
-          repositoryClient.createRepository(
-              nameParam,
-              "",
-              null,
-              getRepositoryLocales(),
-              extractIntegrityCheckersFromInput("properties:MESSAGE_FORMAT", false),
-              null);
+      Repository repositoryBody = new Repository();
+      repositoryBody.setName(nameParam);
+      repositoryBody.setDescription("");
+      repositoryBody.setSourceLocale(null);
+      repositoryBody.setRepositoryLocales(getRepositoryLocales());
+      repositoryBody.setAssetIntegrityCheckers(
+          extractIntegrityCheckersFromInput("properties:MESSAGE_FORMAT", false));
+      repositoryBody.setCheckSLA(null);
+      repository = repositoryClient.createRepository(repositoryBody);
 
     } catch (ParameterException | ResourceNotCreatedException rnce) {
       throw new CommandException(rnce.getMessage(), rnce);
     }
   }
 
-  Set<RepositoryLocale> getRepositoryLocales() throws CommandException {
+  List<RepositoryLocale> getRepositoryLocales() throws CommandException {
 
     List<String> encodedBcp47Tags = new ArrayList<>();
 
@@ -201,7 +203,10 @@ public class DemoCreateCommand extends RepoCommand {
 
     try {
       String tmFileContent = Resources.toString(getResourceURL(tmFileName), StandardCharsets.UTF_8);
-      repositoryClient.importRepository(repository.getId(), tmFileContent, false);
+      ImportRepositoryBody importRepositoryBody = new ImportRepositoryBody();
+      importRepositoryBody.setXliffContent(tmFileContent);
+      importRepositoryBody.setUpdateTM(false);
+      repositoryClient.importRepository(importRepositoryBody, repository.getId());
     } catch (IOException | ResourceNotCreatedException e) {
       throw new CommandException("Error importing file [" + tmFileName + "]", e);
     }
