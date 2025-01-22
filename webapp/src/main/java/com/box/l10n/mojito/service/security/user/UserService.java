@@ -417,7 +417,7 @@ public class UserService {
    * @param serviceName
    * @return
    */
-  public User getServiceAccountUser(String serviceName) {
+  public User getServiceAccountUser(String serviceName) throws UsernameNotFoundException {
     if (serviceDisambiguator == null) {
       logger.debug("Service Disambiguator is null. Falling back to regular exact match logic");
       return userRepository.findByUsername(serviceName);
@@ -437,7 +437,8 @@ public class UserService {
       logger.error(
           "Service '{}' attempted and failed authentication. No matching services found.",
           serviceName);
-      return null;
+      throw new UsernameNotFoundException(
+          "Service authentication failed. No matching services found");
     }
 
     User matchingUser = serviceDisambiguator.getServiceWithCommonAncestor(users, serviceName);
