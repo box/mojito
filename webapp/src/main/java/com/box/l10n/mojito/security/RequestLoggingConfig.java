@@ -1,42 +1,73 @@
 package com.box.l10n.mojito.security;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Component
+@ConfigurationProperties(prefix = "l10n.logging.requests")
 public class RequestLoggingConfig {
 
-  @Value("${l10n.logging.requests.includesQueryString:false}")
-  public boolean includesQueryString;
+  private boolean includesQueryString = true;
+  private boolean includesHeader = false;
+  private boolean includesPayload = true;
+  private int maxPayloadLength = 10000;
+  private String beforeMessagePrefix = "Request Data: [ ";
+  private String afterMessagePrefix = " ]";
+  private boolean enabled = false;
 
-  @Value("${l10n.logging.requests.includesHeader:false}")
-  public boolean includesHeader;
+  public boolean includesQueryString() {
+    return includesQueryString;
+  }
 
-  @Value("${l10n.logging.requests.includesPayload:true}")
-  public boolean includesPayload;
+  public void setIncludesQueryString(boolean includesQueryString) {
+    this.includesQueryString = includesQueryString;
+  }
 
-  @Value("${l10n.logging.requests.maxPayloadLength:10000}")
-  public int maxPayloadLength;
+  public boolean includesHeader() {
+    return includesHeader;
+  }
 
-  @Value("${l10n.logging.requests.beforeMessagePrefix:}")
-  public String beforeMessagePrefix;
+  public void setIncludesHeader(boolean includesHeader) {
+    this.includesHeader = includesHeader;
+  }
 
-  @Value("${l10n.logging.requests.afterMessagePrefix:Request Data: }")
-  public String afterMessagePrefix;
+  public boolean includesPayload() {
+    return includesPayload;
+  }
 
-  @Bean
-  @ConditionalOnProperty(value = "l10n.logging.requests.enabled", havingValue = "true")
-  public CommonsRequestLoggingFilter logFilter() {
-    CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
-    filter.setIncludeQueryString(includesQueryString);
-    filter.setIncludePayload(includesPayload);
-    filter.setMaxPayloadLength(maxPayloadLength);
-    filter.setIncludeHeaders(includesHeader);
-    filter.setBeforeMessagePrefix(beforeMessagePrefix);
-    filter.setAfterMessagePrefix(afterMessagePrefix);
-    return filter;
+  public void setIncludesPayload(boolean includesPayload) {
+    this.includesPayload = includesPayload;
+  }
+
+  public int getMaxPayloadLength() {
+    return maxPayloadLength;
+  }
+
+  public void setMaxPayloadLength(int maxPayloadLength) {
+    this.maxPayloadLength = maxPayloadLength;
+  }
+
+  public String getBeforeMessagePrefix() {
+    return beforeMessagePrefix;
+  }
+
+  public void setBeforeMessagePrefix(String beforeMessagePrefix) {
+    this.beforeMessagePrefix = beforeMessagePrefix;
+  }
+
+  public String getAfterMessagePrefix() {
+    return afterMessagePrefix;
+  }
+
+  public void setAfterMessagePrefix(String afterMessagePrefix) {
+    this.afterMessagePrefix = afterMessagePrefix;
+  }
+
+  public boolean isLoggingEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 }
