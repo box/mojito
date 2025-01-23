@@ -17,7 +17,7 @@ public class HeaderPreAuthFilter extends AbstractPreAuthenticatedProcessingFilte
   @Override
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
     String forwardedUser = request.getHeader(headerSecurityConfig.userIdentifyingHeader);
-    if (forwardedUser != null) {
+    if (forwardedUser != null && !forwardedUser.contains(headerSecurityConfig.servicePrefix)) {
       logger.debug("Forwarded user: {}", forwardedUser);
       if (!forwardedUser.isEmpty()) {
         return forwardedUser;
