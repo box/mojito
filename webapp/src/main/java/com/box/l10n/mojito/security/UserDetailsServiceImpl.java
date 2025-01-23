@@ -26,12 +26,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    logger.debug("Attempting user database authentication for username: {}", username);
     User user = userRepository.findByUsername(username);
 
     if (user == null) {
+      logger.debug("User not found: {}", username);
       throw new UsernameNotFoundException("User [" + username + "] is not found in the database.");
     }
 
+    logger.debug("Database authentication user found: {}", user.getUsername());
     return new UserDetailsImpl(user);
   }
 }

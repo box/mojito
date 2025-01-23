@@ -75,6 +75,7 @@ public class UserDetailImplOAuth2UserService
 
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    logger.debug("OAuth2UserRequest flow initiated");
     Assert.notNull(userRequest, "userRequest cannot be null");
 
     if (!StringUtils.hasText(
@@ -145,6 +146,7 @@ public class UserDetailImplOAuth2UserService
     Map<String, Object> userAttributes = response.getBody();
 
     // This is the part of the implementation that diverge from {@link DefaultOAuth2UserService}
+    logger.debug("Successful OAuth2UserRequest flow");
     logger.debug("user attributes: {}", userAttributes);
     return getOAuth2UserDetailsImpl(userRequest, userNameAttributeName, userAttributes);
   }
