@@ -11,6 +11,7 @@ import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobConfig;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobsConfig;
 import com.google.common.base.Strings;
 import jakarta.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -215,7 +216,10 @@ public class ScheduledJobManager {
     thirdPartySyncProperties.setSkipAssetsWithPathPattern(jobConfig.getSkipAssetsWithPathPattern());
     thirdPartySyncProperties.setIncludeTextUnitsWithPattern(
         jobConfig.getIncludeTextUnitsWithPattern());
-    thirdPartySyncProperties.setOptions(jobConfig.getOptions());
+
+    thirdPartySyncProperties.setOptions(
+        jobConfig.getOptions() != null ? jobConfig.getOptions() : new ArrayList<>());
+
     return thirdPartySyncProperties;
   }
 
