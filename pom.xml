@@ -86,7 +86,6 @@
             <artifactId>commons-text</artifactId>
             <version>${commons.text.version}</version>
         </dependency>
-
     </dependencies>
 
     <!-- SCM setup to push changes to the Github repo on release -->

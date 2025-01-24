@@ -21,6 +21,7 @@
         <node.version>v20.18.0</node.version>
         <npm.version>8.2.0</npm.version>
         <springdoc.version>2.6.0</springdoc.version>
+        <micrometer.registry.atlas.version>1.11.0</micrometer.registry.atlas.version>
     </properties>
 
     <dependencies>
@@ -296,6 +297,15 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-observation</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
