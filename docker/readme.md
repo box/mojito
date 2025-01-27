@@ -36,8 +36,15 @@ services:
 
 ## Common issues
 
-Incompatibility Mac/Linux for `node/` `node_modules/`, remove the directories before calling docker commands. Some
-`Dockerfile` remove the directories explicitly.
+```
+208.1 # A fatal error has been detected by the Java Runtime Environment:
+208.1 #
+208.1 #  SIGSEGV (0xb) at pc=0x00007fffe7f0f4d0, pid=7, tid=22
+```
+This is a result of not allocating enough disk space and or memory to the docker environment. Make sure to increase the memory limit and disk usage limit in docker desktop.
+
+~~Incompatibility Mac/Linux for `node/` `node_modules/`, remove the directories before calling docker commands. Some
+`Dockerfile` remove the directories explicitly.~~ (.dockerignore solves this)
 
 # One-off build and push 
 

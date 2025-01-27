@@ -1,4 +1,4 @@
-FROM adoptopenjdk:8-jre
+FROM amazoncorretto:21-alpine
 
 ENV MOJITO_BIN=/usr/local/mojito/bin
 ENV PATH $PATH:${MOJITO_BIN}

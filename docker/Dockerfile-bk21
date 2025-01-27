@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:experimental
+
+# Force the platform to ensure npm downloads the correct packages with the right architecture
+FROM --platform=linux/amd64 maven:3.9.9-eclipse-temurin-21 as build
+VOLUME ["/tmp"]
+
+WORKDIR /mnt/mojito
+COPY . /mnt/mojito
+
+ENV PATH="/mnt/mojito/webapp/node/:${PATH}"
+RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/mnt/mojito/node --mount=type=cache,target=/mnt/mojito/node_module mvn clean install -DskipTests
+
+FROM amazoncorretto:21-alpine
+VOLUME /tmp
+
+ENV MOJITO_BIN=/usr/local/mojito/bin
+ENV PATH $PATH:${MOJITO_BIN}
+ENV MOJITO_HOST=localhost
+ENV MOJITO_SCHEME=http
+ENV MOJITO_PORT=8080
+
+COPY --from=build /mnt/mojito/webapp/target/mojito-webapp-*-exec.jar ${MOJITO_BIN}/mojito-webapp.jar
+COPY --from=build /mnt/mojito/cli/target/mojito-cli-*-exec.jar ${MOJITO_BIN}/mojito-cli.jar
+RUN sh -c 'touch ${MOJITO_BIN}/mojito-webapp.jar'
+RUN sh -c 'touch ${MOJITO_BIN}/mojito-cli.jar'
+
+# Create the shell wrapper for the jar
+RUN /bin/echo -e "#!/bin/sh \n\
+java -Dl10n.resttemplate.host=\${MOJITO_HOST} \\\\\n \
+     -Dl10n.resttemplate.scheme=\${MOJITO_SCHEME} \\\\\n \
+     -Dl10n.resttemplate.port=\${MOJITO_PORT} \\\\\n \
+     -jar $MOJITO_BIN/mojito-cli.jar \"\${@}\"" \
+    >> /usr/local/mojito/bin/mojito && chmod +x $MOJITO_BIN/mojito
+
+ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar $MOJITO_BIN/mojito-webapp.jar
