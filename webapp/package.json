@@ -58,7 +58,7 @@
     "fsevents": "^1.2.13"
   },
   "scripts": {
-    "start-dev": "npm run start-server & npm run watch",
+    "start-dev": "npm run start-server-nofe & npm run watch",
     "start-server": "mvn spring-boot:run -Dspring-boot.run.jvmArguments=\"-Dspring.config.additional-location=optional:file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
     "start-server-debug": "mvn spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.additional-location=optional:file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
     "start-server-debugn": "mvn spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.config.additional-location=optional:file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",

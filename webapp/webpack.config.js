@@ -5,7 +5,9 @@ const TerserPlugin = require("terser-webpack-plugin");
 module.exports = (env) => {
     env = env || {};
 
-    const isProdEnv = Boolean(env.production)
+    const isProdEnv = Boolean(env.production);
+    const inlineSourceMap = Boolean(env.inlineSourceMap);
+
     const config = {
         entry: {
             'app': path.resolve(__dirname, './src/main/resources/public/js/app.jsx'),
@@ -18,6 +20,7 @@ module.exports = (env) => {
             chunkFilename: 'js/[name]-[chunkhash].js'
         },
         mode: isProdEnv ? 'production' : 'development',
+        devtool: inlineSourceMap ? "inline-source-map" : false,
         module: {
             rules: [
                 {
@@ -109,7 +112,7 @@ module.exports = (env) => {
             minimize: isProdEnv,
         },
         performance: {
-            hints: 'error',
+            hints: 'warning',
             maxEntrypointSize: 1_800_000, // 1.8MB
             maxAssetSize: 1_800_000 // 1.8MB
         },
@@ -134,10 +137,6 @@ module.exports = (env) => {
                         'NODE_ENV': JSON.stringify('production')
                     }
                 }));
-    }
-
-    if (env.inlineSourceMap) {
-        config.devtool = "inline-source-map";
     }
 
     return config;
