@@ -6,6 +6,7 @@ import SearchParamsStore from "./SearchParamsStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import RepositoryActions from "../../actions/RepositoryActions";
 import textUnitStore from "./TextUnitStore";
+import ShareSearchParamsModalStore from "./ShareSearchParamsModalStore";
 
 class SearchResultsStore {
 
@@ -232,7 +233,9 @@ class SearchResultsStore {
     }
 
     getAllRepositoriesSuccess() {
-        this.onSearchParamsChanged();
+        if(ShareSearchParamsModalStore.getState().url) {
+            this.onSearchParamsChanged();
+        }
     }
 
     /**
