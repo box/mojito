@@ -154,7 +154,7 @@ public class ScheduledJobManagerTest extends ServiceTestBase {
     scheduledJob.setEnabled(false);
     scheduledJob.setEndDate(null);
     scheduledJobRepository.save(scheduledJob);
-    ZonedDateTime start = scheduledJob.getStartDate();
+    ZonedDateTime start = getTestJob().getStartDate();
     // Let the job run
     Thread.sleep(JOB_WAIT_TIME_MS);
     assertEquals(start, getTestJob().getStartDate());
