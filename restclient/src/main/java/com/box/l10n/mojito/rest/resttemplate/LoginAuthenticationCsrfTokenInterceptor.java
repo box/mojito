@@ -14,6 +14,7 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -102,7 +103,8 @@ public class LoginAuthenticationCsrfTokenInterceptor implements ClientHttpReques
                       throws IOException {
                     if (latestCsrfToken != null) {
                       // At the beginning of auth flow, there's no token yet
-                      injectCsrfTokenIntoHeader(request, latestCsrfToken);
+                      HttpRequest newRequest = injectCsrfTokenIntoHeader(request, latestCsrfToken);
+                      return execution.execute(newRequest, body);
                     }
                     return execution.execute(request, body);
                   }
@@ -132,15 +134,16 @@ public class LoginAuthenticationCsrfTokenInterceptor implements ClientHttpReques
   @Override
   public ClientHttpResponse intercept(
       HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    HttpRequest modifiedRequest;
     if (doesSessionIdInCookieStoreExistAndMatchLatestSessionId()) {
-      injectCsrfTokenIntoHeader(request, latestCsrfToken);
+      modifiedRequest = injectCsrfTokenIntoHeader(request, latestCsrfToken);
     } else {
-      startAuthenticationAndInjectCsrfToken(request);
+      modifiedRequest = startAuthenticationAndInjectCsrfToken(request);
     }
 
-    ClientHttpResponse clientHttpResponse = execution.execute(request, body);
+    ClientHttpResponse clientHttpResponse = execution.execute(modifiedRequest, body);
 
-    clientHttpResponse = handleResponse(request, body, execution, clientHttpResponse);
+    clientHttpResponse = handleResponse(modifiedRequest, body, execution, clientHttpResponse);
 
     return clientHttpResponse;
   }
@@ -206,14 +209,14 @@ public class LoginAuthenticationCsrfTokenInterceptor implements ClientHttpReques
    *
    * @param request
    */
-  protected void startAuthenticationAndInjectCsrfToken(HttpRequest request) {
+  protected HttpRequest startAuthenticationAndInjectCsrfToken(HttpRequest request) {
     logger.debug(
         "Authenticate because no session is found in cookie store or it doesn't match with the one used to get the CSRF token we have.");
     // TODO: Remove logic once PreAuth logic is configured on all environments
     startAuthenticationFlow(resttemplateConfig.usesLoginAuthentication());
 
     logger.debug("Injecting CSRF token");
-    injectCsrfTokenIntoHeader(request, latestCsrfToken);
+    return injectCsrfTokenIntoHeader(request, latestCsrfToken);
   }
 
   /**
@@ -250,14 +253,16 @@ public class LoginAuthenticationCsrfTokenInterceptor implements ClientHttpReques
    * @param request the request, containing method, URI, and headers
    * @param csrfToken the CSRF token to be injected into the request header
    */
-  protected void injectCsrfTokenIntoHeader(HttpRequest request, CsrfToken csrfToken) {
+  protected HttpRequest injectCsrfTokenIntoHeader(HttpRequest request, CsrfToken csrfToken) {
     if (csrfToken == null) {
       throw new SessionAuthenticationException("There is no CSRF token to inject");
     }
 
     logger.debug(
         "Injecting CSRF token into request {} token: {}", request.getURI(), csrfToken.getToken());
-    request.getHeaders().add(csrfToken.getHeaderName(), csrfToken.getToken());
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(csrfToken.getHeaderName(), csrfToken.getToken());
+    return new CustomHttpRequestWrapper(request, headers);
   }
 
   /**
