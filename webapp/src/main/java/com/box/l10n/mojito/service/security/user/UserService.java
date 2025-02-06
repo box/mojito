@@ -12,6 +12,7 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.HeaderSecurityConfig;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.security.ServiceDisambiguator;
+import com.box.l10n.mojito.utils.ServerConfig;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -52,6 +53,8 @@ public class UserService {
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
   @Autowired MeterRegistry meterRegistry;
+
+  @Autowired ServerConfig serverConfig;
 
   @Autowired(required = false)
   ServiceDisambiguator serviceDisambiguator;
@@ -499,7 +502,10 @@ public class UserService {
         pagerDutyClient.triggerIncident(
             dedupKey,
             new PagerDutyPayload(
-                "Mojito unrecognized service attempting authentication: '" + serviceName + "'",
+                serverConfig.getUrl()
+                    + " - unrecognized service attempting authentication: '"
+                    + serviceName
+                    + "'",
                 serviceName,
                 PagerDutyPayload.Severity.ERROR,
                 ImmutableMap.of("serviceName", serviceName)));
