@@ -14,6 +14,7 @@ class AuthorityService {
         const level=[];
 
         switch (componentName) {
+            case "view-jobs":
             case "edit-screenshots":
             case "project-requests":
             case "user-management":
@@ -41,6 +42,10 @@ class AuthorityService {
 
     static canEditScreenshots() {
         return this.userHasPermission("edit-screenshots");
+    }
+
+    static canViewJobs() {
+        return this.userHasPermission("view-jobs");
     }
 }
 

@@ -1,30 +1,46 @@
 package com.box.l10n.mojito.service.scheduledjob;
 
 import com.box.l10n.mojito.entity.ScheduledJob;
+import java.text.ParseException;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Date;
+import org.quartz.CronExpression;
 
 /** Trimmed down version of the ScheduledJob entity for API responses. */
 public class ScheduledJobDTO {
   private String id;
   private String repository;
-  private ScheduledJobType jobType;
+  private ScheduledJobType type;
   private String cron;
   private ScheduledJobProperties properties;
-  private ScheduledJobStatus jobStatus;
+  private ScheduledJobStatus status;
   private ZonedDateTime startDate;
   private ZonedDateTime endDate;
+  private ZonedDateTime nextStartDate;
   private Boolean enabled;
 
   public ScheduledJobDTO(ScheduledJob scheduledJob) {
     this.id = scheduledJob.getUuid();
     this.repository = scheduledJob.getRepository().getName();
-    this.jobType = scheduledJob.getJobType().getEnum();
+    this.type = scheduledJob.getJobType().getEnum();
     this.cron = scheduledJob.getCron();
     this.properties = scheduledJob.getProperties();
-    this.jobStatus = scheduledJob.getJobStatus().getEnum();
+    this.status = scheduledJob.getJobStatus().getEnum();
     this.startDate = scheduledJob.getStartDate();
     this.endDate = scheduledJob.getEndDate();
     this.enabled = scheduledJob.isEnabled();
+
+    // Get the next start date using the cron expression
+    try {
+      CronExpression cron = new CronExpression(this.cron);
+      Date nextValidTime = cron.getNextValidTimeAfter(new Date());
+      this.nextStartDate =
+          ZonedDateTime.ofInstant(
+              nextValidTime.toInstant(), ZoneId.of(ZoneId.systemDefault().getId()));
+    } catch (ParseException ignored) {
+
+    }
   }
 
   public String getId() {
@@ -43,12 +59,12 @@ public class ScheduledJobDTO {
     this.repository = repository;
   }
 
-  public ScheduledJobType getJobType() {
-    return jobType;
+  public ScheduledJobType getType() {
+    return type;
   }
 
-  public void setJobType(ScheduledJobType jobType) {
-    this.jobType = jobType;
+  public void seType(ScheduledJobType type) {
+    this.type = type;
   }
 
   public String getCron() {
@@ -67,12 +83,12 @@ public class ScheduledJobDTO {
     this.properties = properties;
   }
 
-  public ScheduledJobStatus getJobStatus() {
-    return jobStatus;
+  public ScheduledJobStatus getStatus() {
+    return status;
   }
 
-  public void setJobStatus(ScheduledJobStatus jobStatus) {
-    this.jobStatus = jobStatus;
+  public void setStatus(ScheduledJobStatus status) {
+    this.status = status;
   }
 
   public ZonedDateTime getStartDate() {
@@ -97,5 +113,17 @@ public class ScheduledJobDTO {
 
   public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public ZonedDateTime getNextStartDate() {
+    return nextStartDate;
+  }
+
+  public void setNextStartDate(ZonedDateTime nextStartDate) {
+    this.nextStartDate = nextStartDate;
+  }
+
+  public Boolean getEnabled() {
+    return enabled;
   }
 }

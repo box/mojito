@@ -24,6 +24,7 @@
     "react-datetime": "^2.16.3",
     "react-dom": "^16.8.6",
     "react-ga": "^2.6.0",
+    "react-icons": "^5.4.0",
     "react-intl": "^2.9.0",
     "react-router": "^3.2.6",
     "react-router-bootstrap": "^0.23.3",

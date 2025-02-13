@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public class ScheduledJobResponse {
   private Status status;
   private String message;
+  private String jobId;
 
-  public ScheduledJobResponse(Status status, String message) {
+  public ScheduledJobResponse(Status status, String message, String jobId) {
     this.status = status;
     this.message = message;
+    this.jobId = jobId;
   }
 
   public enum Status {
@@ -35,5 +37,13 @@ public class ScheduledJobResponse {
 
   public void setMessage(String message) {
     this.message = message;
+  }
+
+  public String getJobId() {
+    return jobId;
+  }
+
+  public void setJobId(String jobId) {
+    this.jobId = jobId;
   }
 }

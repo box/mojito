@@ -18,6 +18,7 @@ $modal-backdrop-bg: #fff;
 $modal-backdrop-opacity: 0.9;
 $color-gray-light: #CCC;
 $color-white: #FFF;
+$color-dark-gray: #393939;
 $large-spacer: 20px;
 
 $icon-font-path: "../../../../node_modules/bootstrap-sass/assets/fonts/bootstrap/";
@@ -1016,4 +1017,166 @@ label.current-pageNumber {
         "main    main    main"
         "newUser .       ."
     ;
+}
+
+.job-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 auto;
+    border: 1px solid rgba($color-gray-light, 0.5);
+    min-width: 450px;
+    max-width: 700px;
+    color: #808080;
+    padding: 1.5em;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.job-inner-row {
+    display: flex;
+    text-align: left;
+    align-items: center;
+    gap: 8px;
+
+    > svg {
+        background-color: rgba($color-gray-light, 0.3);
+        padding: 0.5em;
+        width: 60px;
+        height: 60px;
+        border-radius: 5px;
+        padding-right: 0.5em;
+        color: rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+        color: #787878;
+        margin: 0;
+        font-size: 16px;
+        font-weight: bold;
+    }
+}
+
+.job-details {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 1em;
+    gap: 5px;
+    max-width: 400px;
+
+    .job-details-title {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: baseline;
+    }
+}
+
+.job-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 25px;
+    width: 100px;
+    font-size: 12px;
+    font-weight: bold;
+    font-weight: bold;
+    background-color: rgba(251, 52, 52, 0.25);
+    color: rgb(251, 52, 52);
+    border-radius: 5px;
+}
+
+.job-timings {
+    margin-left: auto;
+    text-align: left;
+    color: #b5b5b5;
+}
+
+.job-bottom-row {
+    color: #b5b5b5;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: end;
+}
+
+.job-button {
+    width: 75px;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    margin: 0 auto;
+
+    background-color: rgba($color-gray-light, 0.25);
+    color: rgba($color-dark-gray, 0.8);
+    border: 0.5px solid rgba($color-dark-gray, 0.5);
+
+    > svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.job-button:hover {
+    background-color: rgba(85, 151, 69, 0.75);
+    color: white;
+}
+
+.job-button.disabled {
+    background-color: #c2c2c257;
+    color: #a9a9a945;
+    border: 1px solid #c2c2c242;
+}
+
+.job-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.job-next-run-info {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+
+    > svg {
+        animation: spin 1s infinite linear;
+    }
+}
+
+.job-details-title-loading {
+    background: linear-gradient(
+        90deg,
+        rgba(111, 111, 111, 1) 0%,
+        rgba(111, 111, 111, 1) 45%,
+        rgb(180, 180, 180) 50%,
+        rgba(111, 111, 111, 1) 65%,
+        rgba(111, 111, 111, 1) 100%,
+    );
+
+    background-size: 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: loadingText 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .job-details-title-loading {
+        animation: none;
+    }
+}
+
+@keyframes loadingText {
+    0% {
+        background-position: 300% center;
+    }
+    100% {
+        background-position: -300% center;
+    }
+
 }

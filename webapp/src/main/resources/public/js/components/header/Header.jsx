@@ -18,6 +18,7 @@ import SearchConstants from "../../utils/SearchConstants";
 import {FormControl, Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem} from 'react-bootstrap';
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 import {withAppConfig} from "../../utils/AppConfig";
+import AuthorityService from "../../utils/AuthorityService";
 
 class Header extends React.Component {
     state = {
@@ -114,6 +115,13 @@ class Header extends React.Component {
                             ScreenshotsRepositoryActions.getAllRepositories();
                         }
                     }}><NavItem><FormattedMessage id="header.screenshots"/></NavItem></LinkContainer>
+
+                    { AuthorityService.canViewJobs() &&
+                    <LinkContainer to="/jobs">
+                        <NavItem>
+                            <FormattedMessage id="header.jobs"/>
+                        </NavItem>
+                    </LinkContainer> }
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={this.getUsernameDisplay()} id="user-menu">

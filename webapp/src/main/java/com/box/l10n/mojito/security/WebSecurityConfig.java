@@ -207,6 +207,8 @@ public class WebSecurityConfig {
                 . // user management is only allowed for ADMINs and PMs
                 requestMatchers("/api/users/**")
                 .hasAnyRole("PM", "ADMIN")
+                .requestMatchers("/api/jobs/**")
+                .hasAnyRole("PM", "ADMIN")
                 . // Read-only access is OK for users
                 requestMatchers(HttpMethod.GET, "/api/textunits/**")
                 .authenticated()

@@ -47,7 +47,7 @@ public class ScheduledJobWS {
 
   private final ResponseEntity<ScheduledJobResponse> notFoundResponse =
       createResponse(
-          HttpStatus.NOT_FOUND, ScheduledJobResponse.Status.FAILURE, "Job doesn't exist");
+          HttpStatus.NOT_FOUND, ScheduledJobResponse.Status.FAILURE, "Job doesn't exist", null);
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/jobs")
   @ResponseStatus(HttpStatus.OK)
@@ -82,7 +82,8 @@ public class ScheduledJobWS {
       return createResponse(
           HttpStatus.CONFLICT,
           ScheduledJobResponse.Status.FAILURE,
-          "Job is disabled, trigger request ignored");
+          "Job is disabled, trigger request ignored",
+          scheduledJob.getUuid());
 
     try {
       if (!scheduledJobManager.getScheduler().checkExists(jobKey)) return notFoundResponse;
@@ -100,7 +101,8 @@ public class ScheduledJobWS {
           return createResponse(
               HttpStatus.CONFLICT,
               ScheduledJobResponse.Status.FAILURE,
-              "Job is currently running, trigger request has been queued and will fire when the current job is finished running.");
+              "Job is currently running, trigger request has been queued and will fire when the current job is finished running.",
+              scheduledJob.getUuid());
         }
       }
 
@@ -110,12 +112,17 @@ public class ScheduledJobWS {
           scheduledJob.getJobType().getEnum(),
           scheduledJob.getRepository().getName());
       return ResponseEntity.status(HttpStatus.OK)
-          .body(new ScheduledJobResponse(ScheduledJobResponse.Status.SUCCESS, "Job triggered"));
+          .body(
+              new ScheduledJobResponse(
+                  ScheduledJobResponse.Status.SUCCESS, "Job triggered", scheduledJob.getUuid()));
     } catch (SchedulerException e) {
       logger.error(
           "Error triggering job manually, job: {}", jobKey.getName() + ":" + jobKey.getGroup(), e);
       return createResponse(
-          HttpStatus.INTERNAL_SERVER_ERROR, ScheduledJobResponse.Status.FAILURE, e.getMessage());
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ScheduledJobResponse.Status.FAILURE,
+          e.getMessage(),
+          scheduledJob.getUuid());
     }
   }
 
@@ -146,7 +153,8 @@ public class ScheduledJobWS {
         return createResponse(
             HttpStatus.ALREADY_REPORTED,
             ScheduledJobResponse.Status.SUCCESS,
-            "The job is already " + (active ? "enabled" : "disabled"));
+            "The job is already " + (active ? "enabled" : "disabled"),
+            scheduledJob.getUuid());
 
       scheduledJob.setEnabled(active);
       scheduledJobRepository.save(scheduledJob);
@@ -154,7 +162,8 @@ public class ScheduledJobWS {
       return createResponse(
           HttpStatus.OK,
           ScheduledJobResponse.Status.SUCCESS,
-          "Job is now " + (active ? "enabled" : "disabled"));
+          "Job is now " + (active ? "enabled" : "disabled"),
+          scheduledJob.getUuid());
     } catch (SchedulerException e) {
 
       logger.error(
@@ -170,8 +179,12 @@ public class ScheduledJobWS {
   }
 
   private ResponseEntity<ScheduledJobResponse> createResponse(
-      HttpStatus status, ScheduledJobResponse.Status jobResponseStatus, String message) {
-    return ResponseEntity.status(status).body(new ScheduledJobResponse(jobResponseStatus, message));
+      HttpStatus status,
+      ScheduledJobResponse.Status jobResponseStatus,
+      String message,
+      String jobId) {
+    return ResponseEntity.status(status)
+        .body(new ScheduledJobResponse(jobResponseStatus, message, jobId));
   }
 
   private boolean isPendingTrigger(JobKey jobKey) throws SchedulerException {
