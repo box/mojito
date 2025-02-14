@@ -702,15 +702,30 @@ public class TMService {
     LevenshteinDistance levenshteinDistance = new LevenshteinDistance(editDistanceMax);
     int editDistance =
         levenshteinDistance.apply(currentTmTextUnitVariant.getContent(), reviewedTranslation);
+    Locale locale = localeService.findById(localeId);
+    if (locale == null) {
+      logger.warn("Locale not found for id: {}", localeId);
+    }
     if (editDistance < 0) {
       // Negative edit distance means the edit distance threshold was exceeded, log as low
       // similarity
       meterRegistry
           .counter(
               "AiTranslation.review.similarity.low",
-              Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+              Tags.of("locale", locale != null ? locale.getBcp47Tag() : "null"))
           .increment();
+      // Log the max edit distance in this scenario as we know it is at least this large
+      meterRegistry
+          .counter(
+              "AiTranslation.review.editDistance",
+              Tags.of("locale", locale != null ? locale.getBcp47Tag() : "null"))
+          .increment(editDistanceMax);
     } else {
+      meterRegistry
+          .counter(
+              "AiTranslation.review.editDistance",
+              Tags.of("locale", locale != null ? locale.getBcp47Tag() : "null"))
+          .increment(editDistance);
       double similarityPercentage =
           calculateSimilarityPercentage(
               currentTmTextUnitVariant.getContent(), reviewedTranslation, editDistance);
@@ -718,19 +733,19 @@ public class TMService {
         meterRegistry
             .counter(
                 "AiTranslation.review.similarity.high",
-                Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+                Tags.of("locale", locale != null ? locale.getBcp47Tag() : "null"))
             .increment();
       } else if (similarityPercentage >= aiTranslationSimilarityMediumPercentage) {
         meterRegistry
             .counter(
                 "AiTranslation.review.similarity.medium",
-                Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+                Tags.of("locale", locale != null ? locale.getBcp47Tag() : "null"))
             .increment();
       } else {
         meterRegistry
             .counter(
                 "AiTranslation.review.similarity.low",
-                Tags.of("locale", localeService.findById(localeId).getBcp47Tag()))
+                Tags.of("locale", locale != null ? locale.getBcp47Tag() : "null"))
             .increment();
       }
     }
