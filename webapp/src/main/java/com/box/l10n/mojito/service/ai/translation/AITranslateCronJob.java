@@ -108,21 +108,25 @@ public class AITranslateCronJob implements Job {
             logger.debug(
                 "Text unit with name: {} should not be translated, skipping AI translation.",
                 tmTextUnit.getName());
-            meterRegistry.counter(
-                "AITranslateCronJob.translate.notTranslatable",
-                Tags.of("repository", repository.getName()));
+            meterRegistry
+                .counter(
+                    "AITranslateCronJob.translate.notTranslatable",
+                    Tags.of("repository", repository.getName()))
+                .increment();
           }
         } else {
           // If the pending MT is expired, log an error and delete it
           logger.error("Pending MT for tmTextUnitId: {} is expired", tmTextUnit.getId());
-          meterRegistry.counter(
-              "AITranslateCronJob.expired", Tags.of("repository", repository.getName()));
+          meterRegistry
+              .counter("AITranslateCronJob.expired", Tags.of("repository", repository.getName()))
+              .increment();
         }
       }
     } catch (Exception e) {
       logger.error("Error running job for text unit id {}", tmTextUnit.getId(), e);
-      meterRegistry.counter(
-          "AITranslateCronJob.error", Tags.of("repository", repository.getName()));
+      meterRegistry
+          .counter("AITranslateCronJob.error", Tags.of("repository", repository.getName()))
+          .increment();
     }
   }
 
@@ -194,10 +198,15 @@ public class AITranslateCronJob implements Job {
                 logger.debug(
                     "No active translation prompt found for locale: {}, skipping AI translation.",
                     targetLocale.getBcp47Tag());
-                meterRegistry.counter(
-                    "AITranslateCronJob.translate.noActivePrompt",
-                    Tags.of(
-                        "repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
+                meterRegistry
+                    .counter(
+                        "AITranslateCronJob.translate.noActivePrompt",
+                        Tags.of(
+                            "repository",
+                            repository.getName(),
+                            "locale",
+                            targetLocale.getBcp47Tag()))
+                    .increment();
               }
             }
           } catch (Exception e) {
@@ -206,9 +215,12 @@ public class AITranslateCronJob implements Job {
                 tmTextUnit.getId(),
                 targetLocale.getBcp47Tag(),
                 e);
-            meterRegistry.counter(
-                "AITranslateCronJob.translate.error",
-                Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
+            meterRegistry
+                .counter(
+                    "AITranslateCronJob.translate.error",
+                    Tags.of(
+                        "repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+                .increment();
           }
         });
     for (AITranslation aiTranslation : aiTranslations) {
@@ -229,9 +241,11 @@ public class AITranslateCronJob implements Job {
         "Target language {} matches source language {}, re-using source string as translation.",
         targetLocale.getBcp47Tag(),
         sourceLang);
-    meterRegistry.counter(
-        "AITranslateCronJob.translate.reuseSourceAsTranslation",
-        Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.reuseSourceAsTranslation",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment();
 
     return createAITranslationDTO(tmTextUnit, targetLocale, tmTextUnit.getContent());
   }
@@ -247,9 +261,11 @@ public class AITranslateCronJob implements Job {
             repository.getSourceLocale().getBcp47Tag(),
             targetLocale.getBcp47Tag(),
             repositoryLocaleAIPrompt.getAiPrompt());
-    meterRegistry.counter(
-        "AITranslateCronJob.translate.success",
-        Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()));
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.success",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment();
     return createAITranslationDTO(tmTextUnit, targetLocale, translation);
   }
 

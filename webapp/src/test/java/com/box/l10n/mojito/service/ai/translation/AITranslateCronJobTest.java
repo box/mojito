@@ -30,6 +30,7 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.google.common.collect.Sets;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
@@ -196,8 +197,9 @@ public class AITranslateCronJobTest {
         .thenReturn(mock(io.micrometer.core.instrument.Timer.class));
     when(tmTextUnitRepository.findByIdWithAssetAndRepositoryAndTMFetched(1L))
         .thenReturn(Optional.of(tmTextUnit));
-    when(meterRegistry.counter(anyString()))
-        .thenReturn(mock(io.micrometer.core.instrument.Counter.class));
+    Counter mockCounter = mock(Counter.class);
+    when(meterRegistry.counter(anyString())).thenReturn(mockCounter);
+    when(meterRegistry.counter(anyString(), isA(Iterable.class))).thenReturn(mockCounter);
   }
 
   @Test
