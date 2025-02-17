@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class AiTranslateConfigurationProperties {
   String openaiClientToken;
   String schedulerName = QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+  String modelName = "gpt-4o-2024-08-06";
 
   public String getOpenaiClientToken() {
     return openaiClientToken;
@@ -24,5 +25,13 @@ public class AiTranslateConfigurationProperties {
 
   public void setSchedulerName(String schedulerName) {
     this.schedulerName = schedulerName;
+  }
+
+  public String getModelName() {
+    return modelName;
+  }
+
+  public void setModelName(String modelName) {
+    this.modelName = modelName;
   }
 }

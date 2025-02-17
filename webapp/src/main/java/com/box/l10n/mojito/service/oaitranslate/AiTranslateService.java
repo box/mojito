@@ -299,7 +299,7 @@ public class AiTranslateService {
 
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
-            .model("gpt-4o-2024-08-06")
+            .model(aiTranslateConfigurationProperties.getModelName())
             .maxTokens(16384)
             .messages(
                 List.of(
@@ -517,7 +517,7 @@ public class AiTranslateService {
 
               ChatCompletionsRequest chatCompletionsRequest =
                   chatCompletionsRequest()
-                      .model("gpt-4o-2024-08-06")
+                      .model(aiTranslateConfigurationProperties.getModelName())
                       .maxTokens(16384)
                       .messages(
                           List.of(
