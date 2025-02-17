@@ -1820,6 +1820,57 @@ public class PullCommandTest extends CLITestBase {
   }
 
   @Test
+  public void pullJsonVSCodeExtension() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "VSCODE_EXTENSION_JSON");
+
+    Asset asset = assetClient.getAssetByPathAndRepositoryId("package.nls.json", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    Asset asset2 =
+        assetClient.getAssetByPathAndRepositoryId("l10n/bundle.l10n.json", repository.getId());
+    importTranslations(asset2.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset2.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "-ft",
+            "VSCODE_EXTENSION_JSON");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source_modified").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target_modified").getAbsolutePath(),
+            "-ft",
+            "VSCODE_EXTENSION_JSON");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void pullFullyTranslated() throws Exception {
 
     Repository repository = createTestRepoUsingRepoService();

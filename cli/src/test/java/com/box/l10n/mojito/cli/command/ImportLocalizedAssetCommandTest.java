@@ -907,6 +907,48 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
   }
 
   @Test
+  public void importJsonVSCodeExtension() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "VSCODE_EXTENSION_JSON");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "VSCODE_EXTENSION_JSON");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "VSCODE_EXTENSION_JSON");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void importXcodeXliff() throws Exception {
 
     Repository repository = createTestRepoUsingRepoService();
