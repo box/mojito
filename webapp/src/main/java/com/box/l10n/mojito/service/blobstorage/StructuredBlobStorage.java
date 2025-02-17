@@ -49,5 +49,6 @@ public class StructuredBlobStorage {
     TEXT_UNIT_DTOS_CACHE,
     CLOB_STORAGE_WS,
     AI_TRANSLATE_WS,
+    AI_REVIEW_WS
   }
 }

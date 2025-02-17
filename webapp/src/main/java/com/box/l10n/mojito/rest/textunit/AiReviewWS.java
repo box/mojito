@@ -1,20 +1,20 @@
 package com.box.l10n.mojito.rest.textunit;
 
-import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.JsonFormat.JsonSchema.createJsonSchema;
-import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.SystemMessage.systemMessageBuilder;
-import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.UserMessage.userMessageBuilder;
-import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.chatCompletionsRequest;
-
+import com.box.l10n.mojito.entity.AiReviewProto;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
-import com.box.l10n.mojito.openai.OpenAIClient;
+import com.box.l10n.mojito.service.oaireview.AiReviewService;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.tm.AiReviewProtoRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -26,23 +26,62 @@ public class AiReviewWS {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiReviewWS.class);
 
+  private final AiReviewProtoRepository aiReviewProtoRepository;
+  private final ObjectMapper objectMapper;
+
   TextUnitSearcher textUnitSearcher;
 
-  AiReviewConfigurationProperties aiReviewConfigurationProperties;
+  AiReviewService aiReviewService;
+
+  AiReviewProtoRepository AiReviewProtoRepository;
 
   public AiReviewWS(
       TextUnitSearcher textUnitSearcher,
-      AiReviewConfigurationProperties aiReviewConfigurationProperties) {
+      AiReviewService aiReviewService,
+      AiReviewProtoRepository AiReviewProtoRepository,
+      AiReviewProtoRepository aiReviewProtoRepository,
+      @Qualifier("AiTranslate") ObjectMapper objectMapper) {
     this.textUnitSearcher = textUnitSearcher;
-    this.aiReviewConfigurationProperties = aiReviewConfigurationProperties;
+    this.aiReviewService = aiReviewService;
+    this.AiReviewProtoRepository = AiReviewProtoRepository;
+    this.aiReviewProtoRepository = aiReviewProtoRepository;
+    this.objectMapper = objectMapper;
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/api/proto-ai-review")
+  @RequestMapping(method = RequestMethod.POST, value = "/api/proto-ai-review")
   @ResponseStatus(HttpStatus.OK)
-  public ProtoAiReviewResponse getTextUnitsWithGet(ProtoAiReviewRequest protoAiReviewRequest) {
+  public ProtoAiReviewResponse aiReview(@RequestBody ProtoAiReviewRequest protoAiReviewRequest) {
+
+    PollableFuture<Void> pollableFuture =
+        aiReviewService.aiReviewAsync(
+            new AiReviewService.AiReviewInput(
+                protoAiReviewRequest.repositoryName(),
+                protoAiReviewRequest.targetBcp47tags(),
+                protoAiReviewRequest.sourceTextMaxCountPerLocale(),
+                protoAiReviewRequest.tmTextUnitIds(),
+                protoAiReviewRequest.useBatch()));
+
+    return new ProtoAiReviewResponse(pollableFuture.getPollableTask());
+  }
+
+  public record ProtoAiReviewRequest(
+      String repositoryName,
+      List<String> targetBcp47tags,
+      int sourceTextMaxCountPerLocale,
+      boolean useBatch,
+      List<Long> tmTextUnitIds,
+      boolean allLocales) {}
+
+  public record ProtoAiReviewResponse(PollableTask pollableTask) {}
+
+  @RequestMapping(method = RequestMethod.GET, value = "/api/proto-ai-review-single-text-unit")
+  @ResponseStatus(HttpStatus.OK)
+  public ProtoAiReviewSingleTextUnitResponse getTextUnitsWithGet(
+      ProtoAiReviewSingleTextUnitRequest protoAiReviewSingleTextUnitRequest) {
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setTmTextUnitVariantId(protoAiReviewRequest.tmTextUnitVariantId);
+    textUnitSearcherParameters.setTmTextUnitVariantId(
+        protoAiReviewSingleTextUnitRequest.tmTextUnitVariantId);
 
     List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
     if (search.isEmpty()) {
@@ -51,139 +90,43 @@ public class AiReviewWS {
 
     TextUnitDTO textUnit = search.getFirst();
 
-    AiReviewInput input =
-        new AiReviewInput(
-            textUnit.getTargetLocale(),
-            textUnit.getSource(),
-            textUnit.getComment(),
-            new AiReviewInput.ExistingTarget(
-                textUnit.getTarget(), !textUnit.isIncludedInLocalizedFile()));
+    logger.info("Check for pre-computed review");
 
-    ObjectMapper objectMapper = ObjectMapper.withIndentedOutput();
-    String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(input);
+    AiReviewProto alreadyReviewed =
+        aiReviewProtoRepository.findByTmTextUnitVariantId(
+            protoAiReviewSingleTextUnitRequest.tmTextUnitVariantId());
 
-    ObjectNode jsonSchema = createJsonSchema(AiReviewOutput.class);
+    AiReviewService.AiReviewSingleTextUnitOutput aiReviewSingleTextUnitOutput = null;
 
-    OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
-        chatCompletionsRequest()
-            .model("gpt-4o-2024-08-06")
-            .maxTokens(16384)
-            .messages(
-                List.of(
-                    systemMessageBuilder().content(PROMPT).build(),
-                    userMessageBuilder().content(inputAsJsonString).build()))
-            .responseFormat(
-                new OpenAIClient.ChatCompletionsRequest.JsonFormat(
-                    "json_schema",
-                    new OpenAIClient.ChatCompletionsRequest.JsonFormat.JsonSchema(
-                        true, "request_json_format", jsonSchema)))
-            .build();
+    if (alreadyReviewed != null) {
+      try {
+        aiReviewSingleTextUnitOutput =
+            objectMapper.readValueUnchecked(
+                alreadyReviewed.getJsonReview(),
+                AiReviewService.AiReviewSingleTextUnitOutput.class);
+      } catch (RuntimeException e) {
+        logger.warn("Can't deserialize the existing review, we will recompute");
+      }
+    }
 
-    logger.info(objectMapper.writeValueAsStringUnchecked(chatCompletionsRequest));
+    if (aiReviewSingleTextUnitOutput == null) {
 
-    OpenAIClient openAIClient =
-        OpenAIClient.builder()
-            .apiKey(aiReviewConfigurationProperties.getOpenaiClientToken())
-            .build();
+      AiReviewService.AiReviewSingleTextUnitInput input =
+          new AiReviewService.AiReviewSingleTextUnitInput(
+              textUnit.getTargetLocale(),
+              textUnit.getSource(),
+              textUnit.getComment(),
+              new AiReviewService.AiReviewSingleTextUnitInput.ExistingTarget(
+                  textUnit.getTarget(), !textUnit.isIncludedInLocalizedFile()));
 
-    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
-        openAIClient.getChatCompletions(chatCompletionsRequest).join();
+      aiReviewSingleTextUnitOutput = aiReviewService.getAiReviewSingleTextUnit(input);
+    }
 
-    logger.info(objectMapper.writeValueAsStringUnchecked(chatCompletionsResponse));
-
-    String jsonResponse = chatCompletionsResponse.choices().getFirst().message().content();
-    AiReviewOutput review = objectMapper.readValueUnchecked(jsonResponse, AiReviewOutput.class);
-
-    return new ProtoAiReviewResponse(textUnit, review);
+    return new ProtoAiReviewSingleTextUnitResponse(textUnit, aiReviewSingleTextUnitOutput);
   }
 
-  public record ProtoAiReviewRequest(long tmTextUnitVariantId) {}
+  public record ProtoAiReviewSingleTextUnitRequest(long tmTextUnitVariantId) {}
 
-  public record ProtoAiReviewResponse(TextUnitDTO textUnitDTO, AiReviewOutput aiReviewOutput) {}
-
-  record AiReviewOutput(
-      String source,
-      Target target,
-      DescriptionRating descriptionRating,
-      AltTarget altTarget,
-      ExistingTargetRating existingTargetRating,
-      ReviewRequired reviewRequired) {
-    record Target(String content, String explanation, int confidenceLevel) {}
-
-    record AltTarget(String content, String explanation, int confidenceLevel) {}
-
-    record DescriptionRating(String explanation, int score) {}
-
-    record ExistingTargetRating(String explanation, int score) {}
-
-    record ReviewRequired(boolean required, String reason) {}
-  }
-
-  record AiReviewInput(
-      String locale, String source, String sourceDescription, ExistingTarget existingTarget) {
-    record ExistingTarget(String content, boolean hasBrokenPlaceholders) {}
-  }
-
-  static final String PROMPT =
-      """
-          Your role is to act as a translator.
-          You are tasked with translating provided source strings while preserving both the tone and the technical structure of the string. This includes protecting any tags, placeholders, or code elements that should not be translated.
-
-          The input will be provided in JSON format with the following fields:
-
-              •	"source": The source text to be translated.
-              •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
-              •	"sourceDescription": A description providing context for the source text.
-              •	"existingTarget" (optional): An existing translation to review.
-
-          Instructions:
-
-              •	If the source is colloquial, keep the translation colloquial; if it’s formal, maintain formality in the translation.
-              •	Pay attention to regional variations specified in the "locale" field (e.g., “es” vs. “es-419”, “fr” vs. “fr-CA”, “zh” vs. “zh-Hant”), and ensure the translation length remains similar to the source text.
-              •	Aim to provide the best translation, while compromising on length to ensure it remains close to the original text length
-
-          Handling Tags and Code:
-
-          Some strings contain code elements such as tags (e.g., {atag}, ICU message format, or HTML tags). You are provided with a inputs of tags that need to be protected. Ensure that:
-
-              •	Tags like {atag} remain untouched.
-              •	In cases of nested content (e.g., <a href={url}>text that needs translation</a>), only translate the inner text while preserving the outer structure.
-              •	Complex structures like ICU message formats should have placeholders or variables left intact (e.g., {count, plural, one {# item} other {# items}}), but translate any inner translatable text.
-
-          Ambiguity and Context:
-
-          After translating, assess the usefulness of the "sourceDescription" field:
-
-              •	Rate its usefulness on a scale of 0 to 2:
-              •	0 – Not helpful at all; irrelevant or misleading.
-              •	1 – Somewhat helpful; provides partial or unclear context but is useful to some extent.
-              •	2 – Very helpful; provides clear and sufficient guidance for the translation.
-
-          If the source is ambiguous—for example, if it could be interpreted as a noun or a verb—you must:
-
-              •	Indicate the ambiguity in your explanation.
-              •	Provide translations for all possible interpretations.
-              •	Set "reviewRequired" to true, and explain the need for review due to the ambiguity.
-
-          You will provide an output in JSON format with the following fields:
-
-              •	"source": The original source text.
-              •	"target": An object containing:
-              •	"content": The best translation.
-              •	"explanation": A brief explanation of your translation choices.
-              •	"confidenceLevel": Your confidence level (0-100%) in the translation.
-              •	"descriptionRating": An object containing:
-              •	"explanation": An explanation of how the "sourceDescription" aided your translation.
-              •	"score": The usefulness score (0-2).
-              •	"altTarget": An object containing:
-              •	"content": An alternative translation, if applicable. Focus on showcasing grammar differences,
-              •	"explanation": Explanation for the alternative translation.
-              •	"confidenceLevel": Your confidence level (0-100%) in the alternative translation.
-              •	"existingTargetRating" (if "existingTarget" is provided): An object containing:
-              •	"explanation": Feedback on the existing translation’s accuracy and quality.
-              •	"score": A rating score (0-2).
-              •	"reviewRequired": An object containing:
-              •	"required": true or false, indicating if review is needed.
-              •	"reason": A detailed explanation of why review is or isn’t needed.
-          """;
+  public record ProtoAiReviewSingleTextUnitResponse(
+      TextUnitDTO textUnitDTO, AiReviewService.AiReviewSingleTextUnitOutput aiReviewOutput) {}
 }
