@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -103,7 +102,9 @@ public class AITranslateCronJob implements Job {
             meterRegistry
                 .timer("AITranslateCronJob.timeToMT", Tags.of("repository", repository.getName()))
                 .record(
-                    Duration.between(JSR310Migration.dateTimeNow(), pendingMT.getCreatedDate()));
+                    JSR310Migration.getMillis(JSR310Migration.dateTimeNow())
+                        - JSR310Migration.getMillis(pendingMT.getCreatedDate()),
+                    TimeUnit.MILLISECONDS);
           } else {
             logger.debug(
                 "Text unit with name: {} should not be translated, skipping AI translation.",
@@ -310,6 +311,9 @@ public class AITranslateCronJob implements Job {
     List<TmTextUnitPendingMT> pendingMTs;
     try {
       do {
+        meterRegistry
+            .counter("AITranslateCronJob.pendingMT.queueSize")
+            .increment(tmTextUnitPendingMTRepository.count());
         pendingMTs =
             tmTextUnitPendingMTRepository.findBatch(aiTranslationConfiguration.getBatchSize());
         logger.info("Processing {} pending MTs", pendingMTs.size());
