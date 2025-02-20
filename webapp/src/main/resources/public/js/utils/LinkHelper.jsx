@@ -11,7 +11,10 @@ class LinkHelper {
         const paramsWithEncoded = Object.assign({}, params, this.getEncodedParameters(params));
 
         let label = TemplateHelper.renderTemplate(labelTemplate, paramsWithEncoded);
-        let url = TemplateHelper.renderTemplate(urlTemplate, paramsWithEncoded);
+        if (!label) {
+            label = 'Third Party System';
+        }
+        const url = TemplateHelper.renderTemplate(urlTemplate, paramsWithEncoded);
 
         if (url) {
             linkOrLabel = <a href={url}>{label}</a>;

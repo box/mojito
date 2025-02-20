@@ -20,7 +20,7 @@
     "prop-types": "^15.8.1",
     "properties": "^1.2.1",
     "react": "^16.14.0",
-    "react-bootstrap": "^0.31.5",
+    "react-bootstrap": "^0.33.0",
     "react-datetime": "^2.16.3",
     "react-dom": "^16.8.6",
     "react-ga": "^2.6.0",
