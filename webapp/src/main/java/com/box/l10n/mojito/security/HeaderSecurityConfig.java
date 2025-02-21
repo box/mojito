@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.security;
 
+import jakarta.annotation.PostConstruct;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,6 +25,18 @@ public class HeaderSecurityConfig {
 
   @Value("${l10n.spring.security.header.service.pagerduty.integration.name:#{null}}")
   protected String pagerDutyIntegrationName;
+
+  @Value("${l10n.spring.security.header.service.forbiddenRegex:#{null}}")
+  protected String forbiddenServiceRegex;
+
+  private Pattern forbiddenServicePattern;
+
+  @PostConstruct
+  public void init() {
+    if (forbiddenServiceRegex != null && !forbiddenServiceRegex.isEmpty()) {
+      forbiddenServicePattern = Pattern.compile(forbiddenServiceRegex);
+    }
+  }
 
   public boolean isPagerDutyEnabled() {
     return isPagerDutyEnabled;
@@ -70,5 +84,9 @@ public class HeaderSecurityConfig {
 
   public void setServiceDelimiter(String serviceDelimiter) {
     this.serviceDelimiter = serviceDelimiter;
+  }
+
+  public Pattern getForbiddenServicePattern() {
+    return forbiddenServicePattern;
   }
 }
