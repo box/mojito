@@ -238,7 +238,7 @@ public class OpenAIClient {
       boolean stream,
       float temperature,
       @JsonProperty("response_format") ResponseFormat responseFormat,
-      @JsonProperty("max_tokens") int maxTokens,
+      @JsonProperty("max_tokens") Integer maxTokens,
       @JsonProperty("top_p") float topP,
       @JsonProperty("frequency_penalty") float frequencyPenalty,
       @JsonProperty("presence_penalty") float presencePenalty) {
@@ -326,7 +326,7 @@ public class OpenAIClient {
       private int seed;
       private boolean stream = false;
       private float temperature;
-      private int maxTokens = 256;
+      private Integer maxTokens = null;
       private float topP;
       private float frequencyPenalty;
       private float presencePenalty;
