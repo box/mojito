@@ -103,11 +103,6 @@ public class AITranslateCronJob implements Job {
     try {
       if (pendingMT != null) {
         if (!isExpired(pendingMT)) {
-          if (!isUsed(tmTextUnit)) {
-            logger.info(
-                "Text unit with id: {} is not used, skipping AI translation.", tmTextUnit.getId());
-            return;
-          }
           if (aiTranslationTextUnitFilterService.isTranslatable(tmTextUnit, repository)) {
             translateLocales(tmTextUnit, repository, getLocalesForMT(repository, tmTextUnit));
             meterRegistry
@@ -303,12 +298,16 @@ public class AITranslateCronJob implements Job {
                 .minus(aiTranslationConfiguration.getExpiryDuration()));
   }
 
-  private boolean isUsed(TMTextUnit textUnit) {
+  private List<Long> getUnusedIds(List<TmTextUnitPendingMT> pendingMTList) {
     TextUnitSearcherParameters params = new TextUnitSearcherParameters();
-    params.setTmTextUnitIds(List.of(textUnit.getId()));
-    params.setUsedFilter(UsedFilter.USED);
-    List<TextUnitDTO> result = textUnitSearcher.search(params);
-    return !result.isEmpty();
+    params.setTmTextUnitIds(
+        pendingMTList.stream()
+            .map(TmTextUnitPendingMT::getTmTextUnitId)
+            .collect(Collectors.toList()));
+    params.setUsedFilter(UsedFilter.UNUSED);
+    return textUnitSearcher.search(params).stream()
+        .map(TextUnitDTO::getTmTextUnitId)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -335,11 +334,13 @@ public class AITranslateCronJob implements Job {
             .increment(tmTextUnitPendingMTRepository.count());
         pendingMTs =
             tmTextUnitPendingMTRepository.findBatch(aiTranslationConfiguration.getBatchSize());
+
         logger.info("Processing {} pending MTs", pendingMTs.size());
         Queue<TmTextUnitPendingMT> textUnitsToClearPendingMT = new ConcurrentLinkedQueue<>();
-
+        List<Long> unusedIds = getUnusedIds(pendingMTs);
         List<CompletableFuture<Void>> futures =
             pendingMTs.stream()
+                .filter(pendingMT -> !isUnused(pendingMT, unusedIds))
                 .map(
                     pendingMT ->
                         CompletableFuture.runAsync(
@@ -377,6 +378,16 @@ public class AITranslateCronJob implements Job {
     }
 
     logger.info("Finished executing AITranslateCronJob");
+  }
+
+  private static boolean isUnused(TmTextUnitPendingMT pendingMT, List<Long> unusedIds) {
+    boolean isUnused = unusedIds.contains(pendingMT.getTmTextUnitId());
+    if (isUnused) {
+      logger.info(
+          "Skipping AI translation for tmTextUnitId: {} as it is unused",
+          pendingMT.getTmTextUnitId());
+    }
+    return isUnused;
   }
 
   private static void shutdownExecutor(ExecutorService executorService) {

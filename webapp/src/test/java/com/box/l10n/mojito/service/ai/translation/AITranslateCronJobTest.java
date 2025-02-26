@@ -207,7 +207,7 @@ public class AITranslateCronJobTest {
     when(meterRegistry.counter(anyString())).thenReturn(mockCounter);
     when(meterRegistry.counter(anyString(), isA(Iterable.class))).thenReturn(mockCounter);
     when(textUnitSearcher.search(isA(TextUnitSearcherParameters.class)))
-        .thenReturn(List.of(new TextUnitDTO()));
+        .thenReturn(Collections.emptyList());
   }
 
   @Test
@@ -458,10 +458,22 @@ public class AITranslateCronJobTest {
   }
 
   @Test
-  public void skipTranslationIfTUNotUsed() {
-    when(textUnitSearcher.search(isA(TextUnitSearcherParameters.class)))
+  public void skipTranslationIfTUNotUsed() throws JobExecutionException {
+    List<TmTextUnitPendingMT> pendingMTList =
+        Lists.list(
+            tmTextUnitPendingMT,
+            tmTextUnitPendingMT,
+            tmTextUnitPendingMT,
+            tmTextUnitPendingMT,
+            tmTextUnitPendingMT);
+    when(tmTextUnitPendingMTRepository.findBatch(5))
+        .thenReturn(pendingMTList)
+        .thenReturn(pendingMTList)
         .thenReturn(Collections.emptyList());
-    aiTranslateCronJob.translate(repository, tmTextUnit, tmTextUnitPendingMT);
+    TextUnitDTO dto = new TextUnitDTO();
+    dto.setTmTextUnitId(tmTextUnitPendingMT.getId());
+    when(textUnitSearcher.search(isA(TextUnitSearcherParameters.class))).thenReturn(List.of(dto));
+    aiTranslateCronJob.execute(mock(JobExecutionContext.class));
     verify(llmService, times(0))
         .translate(
             isA(TMTextUnit.class), isA(String.class), isA(String.class), isA(AIPrompt.class));
