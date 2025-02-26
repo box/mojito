@@ -15,6 +15,10 @@ import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.collect.Lists;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -87,6 +91,8 @@ public class AITranslateCronJob implements Job {
 
   @Autowired JdbcTemplate jdbcTemplate;
 
+  @Autowired TextUnitSearcher textUnitSearcher;
+
   @Value("${l10n.ai.translation.job.threads:1}")
   int threads;
 
@@ -97,6 +103,11 @@ public class AITranslateCronJob implements Job {
     try {
       if (pendingMT != null) {
         if (!isExpired(pendingMT)) {
+          if (!isUsed(tmTextUnit)) {
+            logger.info(
+                "Text unit with id: {} is not used, skipping AI translation.", tmTextUnit.getId());
+            return;
+          }
           if (aiTranslationTextUnitFilterService.isTranslatable(tmTextUnit, repository)) {
             translateLocales(tmTextUnit, repository, getLocalesForMT(repository, tmTextUnit));
             meterRegistry
@@ -290,6 +301,14 @@ public class AITranslateCronJob implements Job {
         .isBefore(
             JSR310Migration.newDateTimeEmptyCtor()
                 .minus(aiTranslationConfiguration.getExpiryDuration()));
+  }
+
+  private boolean isUsed(TMTextUnit textUnit) {
+    TextUnitSearcherParameters params = new TextUnitSearcherParameters();
+    params.setTmTextUnitIds(List.of(textUnit.getId()));
+    params.setUsedFilter(UsedFilter.USED);
+    List<TextUnitDTO> result = textUnitSearcher.search(params);
+    return !result.isEmpty();
   }
 
   /**

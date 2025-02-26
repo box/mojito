@@ -29,6 +29,9 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.collect.Sets;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -75,6 +78,8 @@ public class AITranslateCronJobTest {
 
   @Mock AITranslationService aiTranslationService;
 
+  @Mock TextUnitSearcher textUnitSearcher;
+
   AITranslateCronJob aiTranslateCronJob;
 
   TMTextUnit tmTextUnit;
@@ -98,6 +103,7 @@ public class AITranslateCronJobTest {
     aiTranslateCronJob.aiTranslationTextUnitFilterService = aiTranslationTextUnitFilterService;
     aiTranslateCronJob.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     aiTranslateCronJob.aiTranslationService = aiTranslationService;
+    aiTranslateCronJob.textUnitSearcher = textUnitSearcher;
     aITranslationConfiguration = new AITranslationConfiguration();
     aITranslationConfiguration.setEnabled(true);
     aITranslationConfiguration.setCron("0 0/10 * * * ?");
@@ -200,6 +206,8 @@ public class AITranslateCronJobTest {
     Counter mockCounter = mock(Counter.class);
     when(meterRegistry.counter(anyString())).thenReturn(mockCounter);
     when(meterRegistry.counter(anyString(), isA(Iterable.class))).thenReturn(mockCounter);
+    when(textUnitSearcher.search(isA(TextUnitSearcherParameters.class)))
+        .thenReturn(List.of(new TextUnitDTO()));
   }
 
   @Test
@@ -447,5 +455,24 @@ public class AITranslateCronJobTest {
             eq(false),
             isA(ZonedDateTime.class));
     verify(aiTranslationService, times(2)).deleteBatch(isA(Queue.class));
+  }
+
+  @Test
+  public void skipTranslationIfTUNotUsed() {
+    when(textUnitSearcher.search(isA(TextUnitSearcherParameters.class)))
+        .thenReturn(Collections.emptyList());
+    aiTranslateCronJob.translate(repository, tmTextUnit, tmTextUnitPendingMT);
+    verify(llmService, times(0))
+        .translate(
+            isA(TMTextUnit.class), isA(String.class), isA(String.class), isA(AIPrompt.class));
+    verify(tmService, times(0))
+        .addTMTextUnitCurrentVariantWithResult(
+            anyLong(),
+            anyLong(),
+            anyString(),
+            anyString(),
+            eq(TMTextUnitVariant.Status.MT_TRANSLATED),
+            eq(false),
+            isA(ZonedDateTime.class));
   }
 }
