@@ -48,6 +48,7 @@ public class TextUnitSearcherParameters {
   ZonedDateTime tmTextUnitCreatedBefore;
   ZonedDateTime tmTextUnitCreatedAfter;
   Long branchId;
+  Long branchStatisticBranchId;
   String skipTextUnitWithPattern;
   String includeTextUnitsWithPattern;
   String skipAssetPathWithPattern;
@@ -283,6 +284,14 @@ public class TextUnitSearcherParameters {
     this.branchId = branchId;
   }
 
+  public Long getBranchStatisticBranchId() {
+    return branchStatisticBranchId;
+  }
+
+  public void setBranchStatisticBranchId(Long branchStatisticBranchId) {
+    this.branchStatisticBranchId = branchStatisticBranchId;
+  }
+
   public List<Long> getTmTextUnitIds() {
     return tmTextUnitIds;
   }
@@ -387,6 +396,7 @@ public class TextUnitSearcherParameters {
     private ZonedDateTime tmTextUnitCreatedBefore;
     private ZonedDateTime tmTextUnitCreatedAfter;
     private Long branchId;
+    private Long branchStatisticBranchId;
     private String skipTextUnitWithPattern;
     private String includeTextUnitsWithPattern;
     private String skipAssetPathWithPattern;
@@ -426,6 +436,7 @@ public class TextUnitSearcherParameters {
       textUnitSearcherParameters.tmTextUnitCreatedBefore = this.tmTextUnitCreatedBefore;
       textUnitSearcherParameters.tmTextUnitCreatedAfter = this.tmTextUnitCreatedAfter;
       textUnitSearcherParameters.branchId = this.branchId;
+      textUnitSearcherParameters.branchStatisticBranchId = this.branchStatisticBranchId;
       textUnitSearcherParameters.skipTextUnitWithPattern = this.skipTextUnitWithPattern;
       textUnitSearcherParameters.includeTextUnitsWithPattern = this.includeTextUnitsWithPattern;
       textUnitSearcherParameters.skipAssetPathWithPattern = this.skipAssetPathWithPattern;
@@ -597,6 +608,11 @@ public class TextUnitSearcherParameters {
 
     public Builder branchId(Long branchId) {
       this.branchId = branchId;
+      return this;
+    }
+
+    public Builder branchStatisticBranchId(Long branchStatisticBranchId) {
+      this.branchStatisticBranchId = branchStatisticBranchId;
       return this;
     }
 

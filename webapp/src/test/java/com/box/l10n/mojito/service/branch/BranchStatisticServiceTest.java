@@ -16,6 +16,7 @@ import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -58,6 +59,8 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
+  @Autowired BranchNotificationRepository branchNotificationRepository;
+
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
   @Test
@@ -73,14 +76,16 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
   @Test
   public void getBranchTextUnits() throws Exception {
+    String branchNotifierId = "noop-1";
     BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
-    logger.debug("In master branch");
-    List<TextUnitDTO> textUnitDTOsForBranchMaster =
-        branchStatisticService.getTextUnitDTOsForBranch(branchTestData.getMaster());
-    assertEquals("string1", textUnitDTOsForBranchMaster.get(0).getName());
-    assertEquals("string2", textUnitDTOsForBranchMaster.get(1).getName());
-    assertEquals(2, textUnitDTOsForBranchMaster.size());
+    waitForCondition(
+        "Branch1 new notification must be sent",
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
+                    .getNewMsgSentAt()
+                != null);
 
     logger.debug("In branch1");
     List<TextUnitDTO> textUnitDTOsForBranch1 =
@@ -88,6 +93,14 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
     assertEquals("string1", textUnitDTOsForBranch1.get(0).getName());
     assertEquals("string3", textUnitDTOsForBranch1.get(1).getName());
     assertEquals(2, textUnitDTOsForBranch1.size());
+
+    waitForCondition(
+        "Branch2 new notification must be sent",
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
+                    .getNewMsgSentAt()
+                != null);
 
     logger.debug("In branch2");
     List<TextUnitDTO> textUnitDTOsForBranch2 =

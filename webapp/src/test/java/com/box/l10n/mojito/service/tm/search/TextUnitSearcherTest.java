@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.entity.Asset;
@@ -15,6 +16,8 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.branch.BranchTestData;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
@@ -41,6 +44,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.ExhaustedRetryException;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -67,6 +71,8 @@ public class TextUnitSearcherTest extends ServiceTestBase {
   @Autowired AssetService assetService;
 
   @Autowired EntityManager entityManager;
+
+  @Autowired BranchNotificationRepository branchNotificationRepository;
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -886,6 +892,82 @@ public class TextUnitSearcherTest extends ServiceTestBase {
             new Condition<>(
                 ids -> ids.contains(tmTestData.addTMTextUnit1.getId()),
                 "TmTextUnit id is present"));
+  }
+
+  @Test
+  public void testSearchByBranchStatisticBranchId() throws InterruptedException {
+    String branchNotifierId = "noop-1";
+
+    BranchTestData branchTestData = new BranchTestData(testIdWatcher);
+
+    waitForCondition(
+        "Branch1 new notification must be sent",
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
+                    .getNewMsgSentAt()
+                != null);
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder()
+            .repositoryId(branchTestData.getBranch1().getRepository().getId())
+            .branchStatisticBranchId(branchTestData.getBranch1().getId())
+            .forRootLocale(true)
+            .build();
+
+    List<TextUnitDTO> textUnits = this.textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals("string1", textUnits.get(0).getName());
+    assertEquals("string3", textUnits.get(1).getName());
+    assertEquals(2, textUnits.size());
+
+    waitForCondition(
+        "Branch2 new notification must be sent",
+        () ->
+            branchNotificationRepository
+                    .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
+                    .getNewMsgSentAt()
+                != null);
+
+    textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder()
+            .repositoryId(branchTestData.getBranch2().getRepository().getId())
+            .branchStatisticBranchId(branchTestData.getBranch2().getId())
+            .forRootLocale(true)
+            .build();
+
+    textUnits = this.textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals("string1", textUnits.get(0).getName());
+    assertEquals("string2", textUnits.get(1).getName());
+    assertEquals("string4", textUnits.get(2).getName());
+    assertEquals("string5", textUnits.get(3).getName());
+    assertEquals(4, textUnits.size());
+  }
+
+  @Test
+  public void testSearchByBranchIdAndBranchStatisticBranchId() {
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder().repositoryId(1L).build();
+
+    this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder().repositoryId(1L).branchId(1L).build();
+
+    this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder()
+            .repositoryId(1L)
+            .branchStatisticBranchId(1L)
+            .build();
+
+    this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    TextUnitSearcherParameters wrongTextUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder().branchId(1L).branchStatisticBranchId(1L).build();
+    assertThrows(
+        ExhaustedRetryException.class,
+        () -> this.textUnitSearcher.search(wrongTextUnitSearcherParameters));
   }
 
   private List<AssetTextUnitToTMTextUnit> getAssetTextUnitToTMTextUnit(

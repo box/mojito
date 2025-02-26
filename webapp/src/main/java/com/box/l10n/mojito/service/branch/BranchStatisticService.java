@@ -525,19 +525,20 @@ public class BranchStatisticService {
     if (branchTmTextUnitIds.isEmpty()) {
       textUnitDTOS = Collections.emptyList();
     } else {
-      textUnitDTOS = getTextUnitDTOSForTmTextUnitIds(branch, branchTmTextUnitIds);
+      textUnitDTOS = getTextUnitDTOSForBranch(branch);
     }
 
     return textUnitDTOS;
   }
 
-  private List<TextUnitDTO> getTextUnitDTOSForTmTextUnitIds(
-      Branch branch, List<Long> tmTextUnitIds) {
+  private List<TextUnitDTO> getTextUnitDTOSForBranch(Branch branch) {
 
-    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setRepositoryIds(branch.getRepository().getId());
-    textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
-    textUnitSearcherParameters.setForRootLocale(true);
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder()
+            .repositoryId(branch.getRepository().getId())
+            .branchStatisticBranchId(branch.getId())
+            .forRootLocale(true)
+            .build();
 
     try (var timer =
         Timer.resource(meterRegistry, "BranchStatisticService.getTextUnitDTOSForTmTextUnitIds")

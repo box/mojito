@@ -150,8 +150,11 @@ public class TextUnitSearcher {
   }
 
   NativeCriteria getCriteriaForSearch(TextUnitSearcherParameters searchParameters) {
-
     Preconditions.checkNotNull(searchParameters, "Search parameters should not be null");
+    Preconditions.checkArgument(
+        searchParameters.getBranchId() == null
+            || searchParameters.getBranchStatisticBranchId() == null,
+        "Only one of branchId or branchStatisticBranchId should be provided, but both were given");
 
     logger.debug("Creating the native criteria with joins");
 
@@ -217,6 +220,24 @@ public class TextUnitSearcher {
     c.addJoin(
         new NativeJoin(
             "plural_form_for_locale", "pffl", NativeJoin.JoinType.LEFT_OUTER, onClausePluralForm));
+
+    if (searchParameters.getBranchStatisticBranchId() != null) {
+      NativeJunctionExp onClauseBranchTextUnitStatistic = NativeExps.conjunction();
+      onClauseBranchTextUnitStatistic.add(new NativeColumnEqExp("btus.tm_text_unit_id", "tu.id"));
+      c.addJoin(
+          new NativeJoin(
+              "branch_text_unit_statistic",
+              "btus",
+              NativeJoin.JoinType.INNER,
+              onClauseBranchTextUnitStatistic));
+      NativeJunctionExp onClauseBranchStatistic = NativeExps.conjunction();
+      onClauseBranchStatistic.add(new NativeColumnEqExp("bs.id", "btus.branch_statistic_id"));
+      onClauseBranchStatistic.add(
+          new NativeEqExpFix("bs.branch_id", searchParameters.getBranchStatisticBranchId()));
+      c.addJoin(
+          new NativeJoin(
+              "branch_statistic", "bs", NativeJoin.JoinType.INNER, onClauseBranchStatistic));
+    }
 
     logger.debug("Set projections");
     NativeProjection projection =

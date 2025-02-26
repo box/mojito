@@ -102,7 +102,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void allNotificationFail() {
+  public void allNotificationFail() throws InterruptedException {
     String exceptionMessage = "allNotificationFail - should not fail silently";
 
     BranchNotificationMessageSenderNoop branchNotificationMessageSenderNoopException =
@@ -141,6 +141,13 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         exceptionNotifierId, branchNotificationMessageSenderNoopException);
 
     BranchTestData branchTestData = new BranchTestData(testIdWatcher, Set.of(exceptionNotifierId));
+
+    waitForCondition(
+        "Branch1 must have associated text units",
+        () ->
+            !this.branchStatisticService
+                .getTextUnitDTOsForBranch(branchTestData.getBranch1())
+                .isEmpty());
 
     assertThatThrownBy(
             () ->
