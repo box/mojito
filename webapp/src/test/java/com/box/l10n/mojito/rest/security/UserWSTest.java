@@ -4,18 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.box.l10n.mojito.apiclient.UserClient;
+import com.box.l10n.mojito.apiclient.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.apiclient.exception.ResourceNotFoundException;
+import com.box.l10n.mojito.apiclient.model.Authority;
+import com.box.l10n.mojito.apiclient.model.Role;
+import com.box.l10n.mojito.apiclient.model.User;
 import com.box.l10n.mojito.bootstrap.BootstrapConfig;
 import com.box.l10n.mojito.rest.WSTestBase;
-import com.box.l10n.mojito.rest.client.UserClient;
-import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
-import com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException;
-import com.box.l10n.mojito.rest.entity.Authority;
-import com.box.l10n.mojito.rest.entity.Role;
-import com.box.l10n.mojito.rest.entity.User;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ public class UserWSTest extends WSTestBase {
 
   @Test
   public void testGetUsers() {
-    List<User> users = userClient.getUsers(null);
+    List<User> users = userClient.getUsersByUsername(null);
     assertFalse(users.isEmpty());
 
     for (User user : users) {
@@ -49,7 +48,8 @@ public class UserWSTest extends WSTestBase {
 
   @Test
   public void testGetDefaultUser() {
-    List<User> users = userClient.getUsers(bootstrapConfig.getDefaultUser().getUsername());
+    List<User> users =
+        userClient.getUsersByUsername(bootstrapConfig.getDefaultUser().getUsername());
     assertEquals(1, users.size());
     assertEquals(bootstrapConfig.getDefaultUser().getUsername(), users.get(0).getUsername());
   }
@@ -61,7 +61,7 @@ public class UserWSTest extends WSTestBase {
     String username = testIdWatcher.getEntityName("user");
     User user = createTestUser(username);
 
-    List<User> users = userClient.getUsers(username);
+    List<User> users = userClient.getUsersByUsername(username);
     assertEquals(username, users.get(0).getUsername());
 
     // try creating same user again
@@ -73,10 +73,10 @@ public class UserWSTest extends WSTestBase {
     }
     assertTrue(shouldFailToCreateWithExistingUsername);
 
-    users = userClient.getUsers(username);
+    users = userClient.getUsersByUsername(username);
     assertFalse(users.isEmpty());
     userClient.deleteUserByUsername(username);
-    users = userClient.getUsers(username);
+    users = userClient.getUsersByUsername(username);
     assertTrue(users.isEmpty());
 
     // try deleting same user again
@@ -100,8 +100,20 @@ public class UserWSTest extends WSTestBase {
     String givenName = "Test_updated";
     String commonName = "Test_updated Mojito_updated";
 
-    userClient.updateUserByUsername(username, password, role, surname, givenName, commonName);
-    List<User> users = userClient.getUsers(username);
+    User userBody = new User();
+    userBody.setPassword(password);
+    userBody.setSurname(surname);
+    userBody.setGivenName(givenName);
+    userBody.setCommonName(commonName);
+
+    List<Authority> authorities = new ArrayList<>();
+    Authority authority = new Authority();
+    authority.setAuthority(role.toString());
+    authorities.add(authority);
+    userBody.setAuthorities(authorities);
+
+    userClient.updateUserByUsername(userBody, username);
+    List<User> users = userClient.getUsersByUsername(username);
     assertFalse(users.isEmpty());
     User updatedUser = users.get(0);
     assertEquals(user.getId(), updatedUser.getId());
@@ -121,8 +133,18 @@ public class UserWSTest extends WSTestBase {
     String givenName = "Test";
     String commonName = "Test Mojito";
 
-    User user =
-        userClient.createUser(username, password, Role.ROLE_USER, surname, givenName, commonName);
+    User userBody = new User();
+    userBody.setUsername(username);
+    userBody.setPassword(password);
+    userBody.setSurname(surname);
+    userBody.setGivenName(givenName);
+    userBody.setCommonName(commonName);
+
+    Authority authority = new Authority();
+    authority.setAuthority(role.toString());
+    userBody.setAuthorities(List.of(authority));
+
+    User user = userClient.createUser(userBody);
     assertEquals(username, user.getUsername());
     assertEquals(role.name(), user.getAuthorities().iterator().next().getAuthority());
     assertEquals(surname, user.getSurname());
@@ -132,7 +154,7 @@ public class UserWSTest extends WSTestBase {
     return user;
   }
 
-  private String authoritiesToString(Set<Authority> authorities) {
+  private String authoritiesToString(List<Authority> authorities) {
     List<String> list = new ArrayList<>();
     for (Authority authority : authorities) {
       list.add(authority.getAuthority());

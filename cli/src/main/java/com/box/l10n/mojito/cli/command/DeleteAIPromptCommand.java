@@ -2,7 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.AiPromptWsApiProxy;
+import com.box.l10n.mojito.apiclient.AIServiceClient;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ public class DeleteAIPromptCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(DeleteAIPromptCommand.class);
 
-  @Autowired AiPromptWsApiProxy AIServiceClient;
+  @Autowired AIServiceClient AIServiceClient;
 
   @Parameter(
       names = {"--prompt-id", "-pi"},

@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.box.l10n.mojito.cli.model.ImportLocalizedAssetBody;
+import com.box.l10n.mojito.apiclient.model.ImportLocalizedAssetBody;
 
 /**
  * @author jaurambault

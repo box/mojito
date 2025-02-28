@@ -1,8 +1,8 @@
 package com.box.l10n.mojito.security;
 
 import com.box.l10n.mojito.rest.WSTestBase;
-import com.box.l10n.mojito.rest.resttemplate.CredentialProvider;
-import com.box.l10n.mojito.rest.resttemplate.LoginAuthenticationCsrfTokenInterceptor;
+import com.box.l10n.mojito.resttemplate.CredentialProvider;
+import com.box.l10n.mojito.resttemplate.LoginAuthenticationCsrfTokenInterceptor;
 import java.io.IOException;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.http.HttpStatus;

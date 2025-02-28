@@ -7,7 +7,11 @@ import static java.util.Optional.ofNullable;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.model.BranchBranchSummary;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.SourceAsset;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
@@ -17,10 +21,6 @@ import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExce
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.command.utils.SlackNotificationSender;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.BranchBranchSummary;
-import com.box.l10n.mojito.cli.model.PollableTask;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.cli.model.SourceAsset;
 import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.json.ObjectMapper;
@@ -263,7 +263,7 @@ public class ExtractionDiffCommand extends Command {
 
   @Autowired PushService pushService;
 
-  @Autowired RepositoryWsApiProxy repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
   @Autowired(required = false)
   private SlackClient slackClient;

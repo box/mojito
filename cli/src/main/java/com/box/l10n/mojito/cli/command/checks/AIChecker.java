@@ -3,12 +3,12 @@ package com.box.l10n.mojito.cli.command.checks;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static java.util.stream.Collectors.toList;
 
-import com.box.l10n.mojito.cli.apiclient.AiChecksWsApiProxy;
+import com.box.l10n.mojito.apiclient.AIServiceClient;
+import com.box.l10n.mojito.apiclient.model.AICheckRequest;
+import com.box.l10n.mojito.apiclient.model.AICheckResponse;
+import com.box.l10n.mojito.apiclient.model.AICheckResult;
 import com.box.l10n.mojito.cli.command.CommandException;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
-import com.box.l10n.mojito.cli.model.AICheckRequest;
-import com.box.l10n.mojito.cli.model.AICheckResponse;
-import com.box.l10n.mojito.cli.model.AICheckResult;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.google.common.base.Strings;
 import java.time.Duration;
@@ -38,7 +38,7 @@ public class AIChecker extends AbstractCliChecker {
       Retry.backoff(RETRY_MAX_ATTEMPTS, Duration.ofSeconds(RETRY_MIN_DURATION_SECONDS))
           .maxBackoff(Duration.ofSeconds(RETRY_MAX_BACKOFF_DURATION_SECONDS));
 
-  @Autowired AiChecksWsApiProxy aiServiceClient;
+  @Autowired AIServiceClient aiServiceClient;
 
   @Override
   public CliCheckResult run(List<AssetExtractionDiff> assetExtractionDiffs) {
@@ -57,12 +57,13 @@ public class AIChecker extends AbstractCliChecker {
           "Repository name must be provided in checker options when using OpenAI checks.");
     }
 
-    List<com.box.l10n.mojito.cli.model.AssetExtractorTextUnit> assetExtractorTextUnits =
+    List<com.box.l10n.mojito.apiclient.model.AssetExtractorTextUnit> assetExtractorTextUnits =
         textUnits.stream()
             .map(
                 textUnit -> {
-                  com.box.l10n.mojito.cli.model.AssetExtractorTextUnit assetExtractorTextUnit =
-                      new com.box.l10n.mojito.cli.model.AssetExtractorTextUnit();
+                  com.box.l10n.mojito.apiclient.model.AssetExtractorTextUnit
+                      assetExtractorTextUnit =
+                          new com.box.l10n.mojito.apiclient.model.AssetExtractorTextUnit();
                   assetExtractorTextUnit.setName(textUnit.getName());
                   assetExtractorTextUnit.setSource(textUnit.getSource());
                   assetExtractorTextUnit.setComments(textUnit.getComments());

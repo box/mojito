@@ -5,17 +5,17 @@ import static java.util.Optional.ofNullable;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.LocaleMappingHelper;
-import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.exception.AssetNotFoundException;
+import com.box.l10n.mojito.apiclient.exception.PollableTaskException;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
+import com.box.l10n.mojito.apiclient.model.ImportLocalizedAssetBody;
+import com.box.l10n.mojito.apiclient.model.LocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.model.AssetAssetSummary;
-import com.box.l10n.mojito.cli.model.ImportLocalizedAssetBody;
-import com.box.l10n.mojito.cli.model.LocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
-import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
@@ -124,7 +124,7 @@ public class ImportLocalizedAssetCommand extends Command {
   ImportLocalizedAssetBody.StatusForEqualTargetEnum statusForEqualTarget =
       ImportLocalizedAssetBody.StatusForEqualTargetEnum.APPROVED;
 
-  @Autowired AssetWsApiProxy assetClient;
+  @Autowired AssetClient assetClient;
 
   @Autowired CommandHelper commandHelper;
 

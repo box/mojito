@@ -2,11 +2,11 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.apiclient.exception.RepositoryNotFoundException;
+import com.box.l10n.mojito.apiclient.model.AssetIntegrityCheckerRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.command.param.Param;
-import com.box.l10n.mojito.cli.model.AssetIntegrityCheckerRepository;
-import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

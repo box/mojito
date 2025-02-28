@@ -294,7 +294,21 @@ To build from a clean slate:
 ```sh
 docker run -v $(pwd):/mnt/mojito -it aurambaj/mojito-dev mvn install -DskipTests
 ```    
-   
+
+## Adding/updating API endpoints
+
+When building the project after adding or updating API endpoints, the build fails with the following error message:
+
+`The OpenAPI specification has changed! Please rebuild the whole project to make sure that new clients and models are generated`
+
+The next time you build the project, this error will disappear.
+
+```sh
+mvn clean install -Dupdate-openapi-checksum
+```
+
+This will update the OpenAPI file checksum; otherwise, the build will fail.
+
 ## Troubleshooting
 
 ### Check Java version 

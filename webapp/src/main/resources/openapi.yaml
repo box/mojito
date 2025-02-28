@@ -1,0 +1,5400 @@
+openapi: 3.0.1
+info:
+  description: Mojito API Documentation
+  title: Mojito API
+  version: 0.111-SNAPSHOT
+servers:
+- description: Generated server url
+  url: http://localhost:8080
+paths:
+  /api/ai/checks:
+    post:
+      operationId: executeAIChecks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AICheckRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/AICheckResponse"
+          description: OK
+      summary: Execute AI checks
+      tags:
+      - ai-checks-ws
+  /api/ai/prompts:
+    get:
+      operationId: getAllActivePrompts
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AIPrompt"
+          description: OK
+      summary: Get all active Prompts
+      tags:
+      - ai-prompt-ws
+    post:
+      operationId: createPrompt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIPromptCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: integer
+                format: int64
+          description: OK
+      summary: Create a new Prompt
+      tags:
+      - ai-prompt-ws
+  /api/ai/prompts/contextMessage:
+    post:
+      operationId: createPromptMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIPromptContextMessageCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: integer
+                format: int64
+          description: OK
+      summary: Create a Prompt Context Message
+      tags:
+      - ai-prompt-ws
+  /api/ai/prompts/contextMessage/{context_message_id}:
+    delete:
+      operationId: deletePromptMessage
+      parameters:
+      - in: path
+        name: context_message_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      summary: Delete a Prompt Context Message by ID
+      tags:
+      - ai-prompt-ws
+  /api/ai/prompts/translation/locale/overrides:
+    delete:
+      operationId: deleteRepositoryLocalePromptOverrides
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AITranslationLocalePromptOverridesRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Delete a Repository Locale Prompt Overrides for a given request
+      tags:
+      - ai-prompt-ws
+    post:
+      operationId: createOrUpdateRepositoryLocalePromptOverrides
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AITranslationLocalePromptOverridesRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Create or update a Repository Locale Prompt Overrides
+      tags:
+      - ai-prompt-ws
+  /api/ai/prompts/{prompt_id}:
+    delete:
+      operationId: deletePrompt
+      parameters:
+      - in: path
+        name: prompt_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      summary: Delete a Prompt by ID
+      tags:
+      - ai-prompt-ws
+    get:
+      operationId: getPrompt
+      parameters:
+      - in: path
+        name: prompt_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/AIPrompt"
+          description: OK
+      summary: Get a Prompt by ID
+      tags:
+      - ai-prompt-ws
+  /api/ai/prompts/{prompt_id}/{repository_name}/{prompt_type}:
+    post:
+      operationId: addPromptToRepository
+      parameters:
+      - in: path
+        name: prompt_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: repository_name
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: prompt_type
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+      summary: Add a Prompt to a specific Repository and Prompt Type
+      tags:
+      - ai-prompt-ws
+  /api/ai/prompts/{repository_name}:
+    get:
+      operationId: getAllActivePromptsForRepository
+      parameters:
+      - in: path
+        name: repository_name
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AIPrompt"
+          description: OK
+      tags:
+      - ai-prompt-ws
+  /api/assetTextUnits/{assetTextUnitId}/usages:
+    get:
+      operationId: getAssetTextUnitUsages
+      parameters:
+      - in: path
+        name: assetTextUnitId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  type: string
+                uniqueItems: true
+          description: OK
+      tags:
+      - text-unit-ws
+  /api/assets:
+    delete:
+      operationId: deleteAssetsOfBranches
+      parameters:
+      - in: query
+        name: branchId
+        required: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+              uniqueItems: true
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Deletes multiple Assets for a given Branch asynchronously
+      tags:
+      - asset-ws
+    get:
+      operationId: getAssets
+      parameters:
+      - in: query
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: path
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: deleted
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: virtual
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: branchId
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Asset_AssetSummary"
+          description: OK
+      tags:
+      - asset-ws
+    post:
+      operationId: importSourceAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SourceAsset"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/SourceAsset"
+          description: OK
+      summary: Create an Asset and kicks off extraction process
+      tags:
+      - asset-ws
+  /api/assets/ids:
+    get:
+      operationId: getAssetIds
+      parameters:
+      - in: query
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: deleted
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: virtual
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: branchId
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+                uniqueItems: true
+          description: OK
+      tags:
+      - asset-ws
+  /api/assets/{assetId}:
+    delete:
+      operationId: deleteAssetById
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/localized:
+    post:
+      operationId: getLocalizedAssetForContentAsync
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocalizedAssetBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Get Localized Asset asynchronously
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/localized/parallel:
+    post:
+      operationId: getLocalizedAssetForContentParallel
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MultiLocalizedAssetBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Localize the payload content with translations of a given Asset in
+        parallel
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/localized/{localeId}:
+    post:
+      operationId: getLocalizedAssetForContent
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: localeId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocalizedAssetBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/LocalizedAssetBody"
+          description: OK
+      summary: Localize the payload content with translations of a given Asset
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/localized/{localeId}/import:
+    post:
+      operationId: importLocalizedAsset
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: localeId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportLocalizedAssetBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ImportLocalizedAssetBody"
+          description: OK
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/pseudo:
+    post:
+      operationId: getPseudoLocalizedAssetForContent
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocalizedAssetBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/LocalizedAssetBody"
+          description: OK
+      summary: Pseudo localize the payload content with translations of a given Asset
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/xliffExport:
+    post:
+      operationId: xliffExportAsync
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: bcp47tag
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/XliffExportBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/XliffExportBody"
+          description: OK
+      summary: Exports all the translations (used and unused) of an Asset into XLIFF
+        asynchronously
+      tags:
+      - asset-ws
+  /api/assets/{assetId}/xliffExport/{tmXliffId}:
+    get:
+      operationId: xliffExport
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: tmXliffId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/XliffExportBody"
+          description: OK
+      summary: Exports all the translations (used and unused) of an Asset into XLIFF
+      tags:
+      - asset-ws
+  /api/boxSDKServiceConfigs:
+    get:
+      operationId: getBoxSDKServiceConfig
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BoxSDKServiceConfigEntity"
+          description: OK
+      tags:
+      - box-sdk-service-config-ws
+    post:
+      operationId: setBoxSDKServiceConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BoxSDKServiceConfigEntity"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableFutureBoxSDKServiceConfigEntity"
+          description: OK
+      tags:
+      - box-sdk-service-config-ws
+  /api/branchStatistics:
+    get:
+      operationId: getBranchesOfRepository_1
+      parameters:
+      - in: query
+        name: createdByUserName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: branchId
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: branchName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: search
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: deleted
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: empty
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: totalCountLte
+        required: false
+        schema:
+          type: integer
+          format: int64
+          default: 30000
+      - in: query
+        name: createdBefore
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: createdAfter
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageBranchStatistic_BranchStatistic"
+          description: OK
+      summary: Get paginated Branch Statistics for a given set of parameters
+      tags:
+      - branch-statistic-ws
+  /api/branchStatistics/{id}/branchTextUnitStatistics:
+    get:
+      operationId: getBranchTextUnitStatisticsOfBranch
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageBranchTextUnitStatistic_BranchTextUnitStatistic"
+          description: OK
+      summary: Get Branch Text Unit Statistics paginated for a specific Branch Statistic
+      tags:
+      - branch-statistic-ws
+  /api/clobstorage:
+    post:
+      operationId: postClob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+                format: uuid
+          description: OK
+      tags:
+      - clob-storage-ws
+  /api/clobstorage/{uuid}:
+    get:
+      operationId: getClob
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      tags:
+      - clob-storage-ws
+  /api/commits:
+    get:
+      operationId: getCommits
+      parameters:
+      - in: query
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: commitNames
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: pushRunName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: pullRunName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: hasPushRun
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: hasPullRun
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageCommit_Commit"
+          description: OK
+      tags:
+      - commit-ws
+    post:
+      operationId: createCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/Commit_Commit"
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/detailed:
+    get:
+      operationId: getCommitsDetailed
+      parameters:
+      - in: query
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: commitNames
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: pushRunName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: pullRunName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: hasPushRun
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: hasPullRun
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageCommit_CommitDetailed"
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/lastPullRun/:
+    post:
+      operationId: getLastPullRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitListWithRepositoryIdBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PullRun_CommitDetailed"
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/lastPulled/:
+    post:
+      operationId: getLastPulledCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitListWithRepositoryIdBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/Commit_Commit"
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/lastPushRun/:
+    post:
+      operationId: getLastPushRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitListWithRepositoryIdBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PushRun_CommitDetailed"
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/lastPushed/:
+    post:
+      operationId: getLastPushedCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitListWithRepositoryIdBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/Commit_Commit"
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/pullRun:
+    post:
+      operationId: associateCommitToPullRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitToPullRunBody"
+        required: true
+      responses:
+        "200":
+          description: OK
+      tags:
+      - commit-ws
+  /api/commits/pushRun:
+    post:
+      operationId: associateCommitToPushRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitToPushRunBody"
+        required: true
+      responses:
+        "200":
+          description: OK
+      tags:
+      - commit-ws
+  /api/csrf-token:
+    get:
+      operationId: getCsrfToken
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Get a CSRF Token
+      tags:
+      - csrf-token-controller
+  /api/deltas/date:
+    get:
+      operationId: getDeltasFromDate
+      parameters:
+      - in: query
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: bcp47Tags
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: fromDate
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: toDate
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageTextUnitVariantDeltaDTO"
+          description: OK
+      summary: Get paginated Text Unit Variants Deltas for a given set of parameters
+      tags:
+      - delta-ws
+  /api/deltas/state:
+    get:
+      operationId: getDeltasForRuns
+      parameters:
+      - in: query
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: pushRunIds
+        required: true
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int64
+      - in: query
+        name: bcp47Tags
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: pullRunIds
+        required: false
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/DeltaResponseDTO"
+          description: OK
+      summary: Get Delta Content for a given set of parameters
+      tags:
+      - delta-ws
+  /api/drops:
+    get:
+      operationId: getDrops
+      parameters:
+      - in: query
+        name: repositoryId
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: imported
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: canceled
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageDrop_DropSummary"
+          description: OK
+      tags:
+      - drop-ws
+  /api/drops/cancel:
+    post:
+      operationId: cancelDrop
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelDropConfig"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/CancelDropConfig"
+          description: OK
+      tags:
+      - drop-ws
+  /api/drops/complete/{dropId}:
+    post:
+      operationId: completeDropById
+      parameters:
+      - in: path
+        name: dropId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      tags:
+      - drop-ws
+  /api/drops/export:
+    post:
+      operationId: exportDrop
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportDropConfig"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ExportDropConfig"
+          description: OK
+      tags:
+      - drop-ws
+  /api/drops/import:
+    post:
+      operationId: importDrop
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportDropConfig"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ImportDropConfig"
+          description: OK
+      tags:
+      - drop-ws
+  /api/drops/importXliff:
+    post:
+      operationId: importXliff
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportXliffBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ImportXliffBody"
+          description: OK
+      tags:
+      - drop-ws
+  /api/images/{*imageName}:
+    get:
+      operationId: getImage
+      parameters:
+      - in: path
+        name: imageName
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+                format: byte
+          description: OK
+      summary: Get an image by its name
+      tags:
+      - image-ws
+    put:
+      operationId: uploadImage
+      parameters:
+      - in: path
+        name: imageName
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              format: byte
+        required: true
+      responses:
+        "200":
+          description: OK
+      summary: Upload an image
+      tags:
+      - image-ws
+  /api/leveraging/copyTM:
+    post:
+      operationId: copyTM
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopyTmConfig"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/CopyTmConfig"
+          description: OK
+      summary: Copy the TM of a source repository into the a target repository
+      tags:
+      - leveraging-ws
+  /api/locales:
+    get:
+      operationId: getLocales
+      parameters:
+      - in: query
+        name: bcp47Tag
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Locale"
+          description: OK
+      summary: Get Locales for specific BCP 47 Tags
+      tags:
+      - locale-ws
+  /api/machine-translation:
+    post:
+      operationId: getSingleTranslation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslationRequestDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/TranslationDTO"
+          description: OK
+      summary: Return a single Translation
+      tags:
+      - machine-translation-ws
+  /api/machine-translation-batch:
+    post:
+      operationId: getTranslations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchTranslationRequestDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Generate translations asynchronously
+      tags:
+      - machine-translation-ws
+  /api/machine-translation/config:
+    get:
+      operationId: getMachineTranslationConfiguration
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      tags:
+      - machine-translation-ws
+  /api/machine-translation/repository:
+    post:
+      operationId: translateRepository
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryMachineTranslationBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/RepositoryMachineTranslationBody"
+          description: OK
+      tags:
+      - machine-translation-ws
+  /api/pollableTasks/{pollableTaskId}:
+    get:
+      operationId: getPollableTaskById
+      parameters:
+      - in: path
+        name: pollableTaskId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Get a Pollable Task by ID
+      tags:
+      - pollable-task-ws
+  /api/pollableTasks/{pollableTaskId}/input:
+    get:
+      operationId: getPollableTaskInput
+      parameters:
+      - in: path
+        name: pollableTaskId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Get input JSON for a Pollable Task
+      tags:
+      - pollable-task-ws
+  /api/pollableTasks/{pollableTaskId}/output:
+    get:
+      operationId: getPollableTaskOutput
+      parameters:
+      - in: path
+        name: pollableTaskId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Get output JSON for a Pollable Task
+      tags:
+      - pollable-task-ws
+  /api/quartz/jobs/dynamic:
+    delete:
+      operationId: deleteAllDynamicJobs
+      responses:
+        "200":
+          description: OK
+      summary: Delete all dynamic jobs
+      tags:
+      - quartz-ws
+    get:
+      operationId: getAllDynamicJobs
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  type: string
+          description: OK
+      summary: Get all dynamic jobs
+      tags:
+      - quartz-ws
+  /api/repositories:
+    get:
+      operationId: getRepositories
+      parameters:
+      - in: query
+        name: name
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Repository_Repository"
+          description: OK
+      tags:
+      - repository-ws
+    post:
+      operationId: createRepository
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Repository"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/Repository_Repository"
+          description: OK
+      tags:
+      - repository-ws
+  /api/repositories/{repositoryId}:
+    delete:
+      operationId: deleteRepositoryById
+      parameters:
+      - in: path
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      tags:
+      - repository-ws
+    get:
+      operationId: getRepositoryById
+      parameters:
+      - in: path
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/Repository_Repository"
+          description: OK
+      tags:
+      - repository-ws
+    patch:
+      operationId: updateRepository
+      parameters:
+      - in: path
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Repository"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      tags:
+      - repository-ws
+  /api/repositories/{repositoryId}/branches:
+    delete:
+      operationId: deleteBranch
+      parameters:
+      - in: path
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: branchId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Delete a Branch asynchronously
+      tags:
+      - repository-ws
+    get:
+      operationId: getBranchesOfRepository
+      parameters:
+      - in: path
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: name
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: deleted
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: translated
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: createdBefore
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Branch_BranchSummary"
+          description: OK
+      tags:
+      - repository-ws
+  /api/repositories/{repositoryId}/xliffImport:
+    post:
+      operationId: importRepository
+      parameters:
+      - in: path
+        name: repositoryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportRepositoryBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Import an entire Repository given an XLIFF
+      tags:
+      - repository-ws
+  /api/rotation:
+    post:
+      operationId: setRotation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: boolean
+        required: true
+      responses:
+        "200":
+          description: OK
+      summary: Update Health rotation
+      tags:
+      - rotation-ws
+  /api/screenshots:
+    get:
+      operationId: getScreeenshots
+      parameters:
+      - in: query
+        name: "repositoryIds[]"
+        required: false
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int64
+      - in: query
+        name: "bcp47Tags[]"
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: screenshotName
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: status
+        required: false
+        schema:
+          type: string
+          enum:
+          - REJECTED
+          - NEEDS_REVIEW
+          - ACCEPTED
+      - in: query
+        name: name
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: source
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: target
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: searchType
+        required: false
+        schema:
+          type: string
+          default: EXACT
+          enum:
+          - EXACT
+          - CONTAINS
+          - ILIKE
+      - in: query
+        name: screenshotRunType
+        required: false
+        schema:
+          type: string
+          enum:
+          - LAST_SUCCESSFUL_RUN
+          - MANUAL_RUN
+      - in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      - in: query
+        name: offset
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Screenshot_Screenshots"
+          description: OK
+      tags:
+      - screenshot-ws
+    post:
+      operationId: createOrAddToScreenshotRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreenshotRun"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScreenshotRun"
+          description: OK
+      summary: Create or add a Screenshot Run
+      tags:
+      - screenshot-ws
+  /api/screenshots/{id}:
+    delete:
+      operationId: deleteScreenshot
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "202":
+          description: Accepted
+      tags:
+      - screenshot-ws
+    put:
+      operationId: updateScreenshot
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Screenshot"
+        required: true
+      responses:
+        "200":
+          description: OK
+      tags:
+      - screenshot-ws
+  /api/textunits:
+    get:
+      operationId: getTextUnitsWithGet
+      parameters:
+      - in: query
+        name: textUnitSearchBody
+        required: true
+        schema:
+          $ref: "#/components/schemas/TextUnitSearchBody"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TextUnitDTO"
+          description: OK
+      tags:
+      - text-unit-ws
+    post:
+      operationId: addTextUnit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextUnitDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/TextUnitDTO"
+          description: OK
+      tags:
+      - text-unit-ws
+  /api/textunits/check:
+    post:
+      operationId: checkTMTextUnit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextUnitCheckBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/TMTextUnitIntegrityCheckResult"
+          description: OK
+      summary: Run integrity checks on a Text Unit
+      tags:
+      - text-unit-ws
+  /api/textunits/count:
+    get:
+      operationId: getTextUnitsCount
+      parameters:
+      - in: query
+        name: textUnitSearchBody
+        required: true
+        schema:
+          $ref: "#/components/schemas/TextUnitSearchBody"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/TextUnitAndWordCount"
+          description: OK
+      tags:
+      - text-unit-ws
+  /api/textunits/gitBlameWithUsages:
+    get:
+      operationId: getGitBlameWithUsages
+      parameters:
+      - in: query
+        name: "repositoryIds[]"
+        required: false
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int64
+      - in: query
+        name: "repositoryNames[]"
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: tmTextUnitId
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: usedFilter
+        required: false
+        schema:
+          type: string
+          enum:
+          - USED
+          - UNUSED
+      - in: query
+        name: statusFilter
+        required: false
+        schema:
+          type: string
+          enum:
+          - ALL
+          - TRANSLATED
+          - UNTRANSLATED
+          - TRANSLATED_AND_NOT_REJECTED
+          - APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED
+          - APPROVED_AND_NOT_REJECTED
+          - FOR_TRANSLATION
+          - REVIEW_NEEDED
+          - REVIEW_NOT_NEEDED
+          - TRANSLATION_NEEDED
+          - REJECTED
+          - NOT_REJECTED
+          - OVERRIDDEN
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+      - in: query
+        name: doNotTranslateFilter
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      - in: query
+        name: offset
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GitBlameWithUsage_GitBlameWithUsage"
+          description: OK
+      tags:
+      - text-unit-ws
+  /api/textunits/gitBlameWithUsagesBatch:
+    post:
+      operationId: saveGitBlameWithUsages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/GitBlameWithUsage"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Save the GitBlame information of the text units asynchronously
+      tags:
+      - text-unit-ws
+  /api/textunits/search:
+    post:
+      operationId: getTextUnitsWithPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextUnitSearchBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TextUnitDTO"
+          description: OK
+      tags:
+      - text-unit-ws
+  /api/textunits/statistics:
+    post:
+      operationId: importStatistics
+      parameters:
+      - in: query
+        name: repositoryName
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: assetPath
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ImportTextUnitStatisticsBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Update a bulk of text unit statistics information asynchronously
+      tags:
+      - text-unit-ws
+  /api/textunits/{textUnitId}:
+    delete:
+      operationId: deleteTMTextUnitCurrentVariant
+      parameters:
+      - in: path
+        name: textUnitId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      tags:
+      - text-unit-ws
+  /api/textunits/{tmTextUnitId}/history:
+    get:
+      operationId: getTextUnitHistory
+      parameters:
+      - in: path
+        name: tmTextUnitId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: bcp47Tag
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TMTextUnitVariant_TranslationHistorySummary"
+          description: OK
+      summary: Get the translation history for a given text unit for a particular
+        locale
+      tags:
+      - text-unit-ws
+  /api/textunitsBatch:
+    post:
+      operationId: importTextUnitBatch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Import batch of text units asynchronously
+      tags:
+      - text-unit-ws
+  /api/thirdparty/sync:
+    post:
+      operationId: sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThirdPartySync"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Run Third-Party synchronization asynchronously
+      tags:
+      - third-party-ws
+  /api/users:
+    get:
+      operationId: getUsers
+      parameters:
+      - in: query
+        name: username
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: search
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: pageable
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PageUser"
+          description: OK
+      summary: Get paginated Users
+      tags:
+      - user-ws
+    post:
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: OK
+      tags:
+      - user-ws
+  /api/users/pw:
+    post:
+      operationId: changePassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChangeRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: OK
+      summary: Update a user password
+      tags:
+      - user-ws
+  /api/users/session:
+    get:
+      operationId: isSessionActive
+      responses:
+        "200":
+          description: OK
+      summary: Check if session is active
+      tags:
+      - user-ws
+  /api/users/{userId}:
+    delete:
+      operationId: deleteUserByUserId
+      parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+      tags:
+      - user-ws
+    patch:
+      operationId: updateUserByUserId
+      parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "200":
+          description: OK
+      tags:
+      - user-ws
+  /api/virtualAssets:
+    post:
+      operationId: createOrUpdateVirtualAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualAsset"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/VirtualAsset"
+          description: OK
+      summary: Create or update a new Virtual Asset
+      tags:
+      - virtual-asset-ws
+  /api/virtualAssets/{assetId}/locale/{localeId}/textUnits:
+    get:
+      operationId: getLocalizedTextUnits
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: localeId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: inheritanceMode
+        required: false
+        schema:
+          type: string
+          default: USE_PARENT
+          enum:
+          - REMOVE_UNTRANSLATED
+          - USE_PARENT
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VirtualAssetTextUnit"
+          description: OK
+      tags:
+      - virtual-asset-ws
+    post:
+      operationId: importLocalizedTextUnits
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: localeId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/VirtualAssetTextUnit"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Create Text Units for a specific Virtual Asset asynchronously
+      tags:
+      - virtual-asset-ws
+  /api/virtualAssets/{assetId}/textUnits:
+    delete:
+      operationId: deleteTextUnit
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualAssetTextUnit"
+        required: true
+      responses:
+        "200":
+          description: OK
+      tags:
+      - virtual-asset-ws
+    get:
+      operationId: getTextUnits
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: doNotTranslateFilter
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VirtualAssetTextUnit"
+          description: OK
+      tags:
+      - virtual-asset-ws
+    post:
+      operationId: addTextUnits
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/VirtualAssetTextUnit"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Create Text Units for a specific Virtual Asset asynchronously
+      tags:
+      - virtual-asset-ws
+    put:
+      operationId: replaceTextUnits
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/VirtualAssetTextUnit"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/PollableTask"
+          description: OK
+      summary: Update Text Units for a specific Virtual Asset asynchronously
+      tags:
+      - virtual-asset-ws
+  /cli/install.sh:
+    get:
+      operationId: getInstallCliScript
+      parameters:
+      - in: query
+        name: installDirectory
+        required: false
+        schema:
+          type: string
+          default: "${PWD}/.mojito"
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Get the script to install the CLI
+      tags:
+      - cli-ws
+  /cli/mojito-cli.jar:
+    get:
+      operationId: getFile
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+                format: binary
+          description: OK
+      summary: Get the mojito-cli.jar file
+      tags:
+      - cli-ws
+  /cli/version:
+    get:
+      operationId: getVersion
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: string
+          description: OK
+      summary: Get the CLI version
+      tags:
+      - cli-ws
+components:
+  schemas:
+    AICheckRequest:
+      type: object
+      properties:
+        repositoryName:
+          type: string
+        textUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetExtractorTextUnit"
+    AICheckResponse:
+      type: object
+      properties:
+        error:
+          type: boolean
+        errorMessage:
+          type: string
+        results:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/AICheckResult"
+    AICheckResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        suggestedFix:
+          type: string
+    AIPrompt:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        modelName:
+          type: string
+        promptTemperature:
+          type: number
+          format: float
+        systemPrompt:
+          type: string
+        userPrompt:
+          type: string
+    AIPromptContextMessageCreateRequest:
+      type: object
+      properties:
+        aiPromptId:
+          type: integer
+          format: int64
+        content:
+          type: string
+        messageType:
+          type: string
+        orderIndex:
+          type: integer
+          format: int32
+    AIPromptCreateRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        jsonResponse:
+          type: boolean
+        jsonResponseKey:
+          type: string
+        modelName:
+          type: string
+        promptTemperature:
+          type: number
+          format: float
+        promptType:
+          type: string
+        repositoryName:
+          type: string
+        systemPrompt:
+          type: string
+        userPrompt:
+          type: string
+    AITranslationLocalePromptOverridesRequest:
+      type: object
+      properties:
+        aiPromptId:
+          type: integer
+          format: int64
+        disabled:
+          type: boolean
+        locales:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        repositoryName:
+          type: string
+    Asset:
+      type: object
+      properties:
+        assetExtractionByBranches:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetExtractionByBranch"
+          uniqueItems: true
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        lastSuccessfulAssetExtraction:
+          $ref: "#/components/schemas/AssetExtraction"
+        path:
+          type: string
+        repository:
+          $ref: "#/components/schemas/Repository"
+        virtual:
+          type: boolean
+    AssetExtraction:
+      type: object
+      properties:
+        assetExtractionByBranches:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetExtractionByBranch"
+          uniqueItems: true
+        assetTextUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetTextUnit"
+          uniqueItems: true
+        contentMd5:
+          type: string
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        filterOptionsMd5:
+          type: string
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        version:
+          type: integer
+          format: int64
+    AssetExtractionByBranch:
+      type: object
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        branch:
+          $ref: "#/components/schemas/Branch"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+    AssetExtraction_AssetSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    AssetExtractorTextUnit:
+      type: object
+      properties:
+        comments:
+          type: string
+        name:
+          type: string
+        pluralForm:
+          type: string
+        pluralFormOther:
+          type: string
+        source:
+          type: string
+        usages:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+    AssetIntegrityChecker:
+      type: object
+      properties:
+        assetExtension:
+          type: string
+        id:
+          type: integer
+          format: int64
+        integrityCheckerType:
+          type: string
+          enum:
+          - MESSAGE_FORMAT
+          - MESSAGE_FORMAT_DOUBLE_BRACES
+          - PRINTF_LIKE
+          - SIMPLE_PRINTF_LIKE
+          - PRINTF_LIKE_IGNORE_PERCENTAGE_AFTER_BRACKETS
+          - PRINTF_LIKE_VARIABLE_TYPE
+          - PRINTF_LIKE_ADD_PARAMETER_SPECIFIER
+          - COMPOSITE_FORMAT
+          - WHITESPACE
+          - TRAILING_WHITESPACE
+          - HTML_TAG
+          - ELLIPSIS
+          - BACKQUOTE
+          - EMPTY_TARGET_NOT_EMPTY_SOURCE
+          - SPAN_TRANSLATE_TAG
+    AssetIntegrityChecker_Repository:
+      type: object
+      properties:
+        assetExtension:
+          type: string
+        id:
+          type: integer
+          format: int64
+        integrityCheckerType:
+          type: string
+          enum:
+          - MESSAGE_FORMAT
+          - MESSAGE_FORMAT_DOUBLE_BRACES
+          - PRINTF_LIKE
+          - SIMPLE_PRINTF_LIKE
+          - PRINTF_LIKE_IGNORE_PERCENTAGE_AFTER_BRACKETS
+          - PRINTF_LIKE_VARIABLE_TYPE
+          - PRINTF_LIKE_ADD_PARAMETER_SPECIFIER
+          - COMPOSITE_FORMAT
+          - WHITESPACE
+          - TRAILING_WHITESPACE
+          - HTML_TAG
+          - ELLIPSIS
+          - BACKQUOTE
+          - EMPTY_TARGET_NOT_EMPTY_SOURCE
+          - SPAN_TRANSLATE_TAG
+    AssetTextUnit:
+      type: object
+      properties:
+        branch:
+          $ref: "#/components/schemas/Branch"
+        comment:
+          type: string
+        content:
+          type: string
+        contentMd5:
+          type: string
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        doNotTranslate:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        md5:
+          type: string
+        name:
+          type: string
+        pluralForm:
+          $ref: "#/components/schemas/PluralForm"
+        pluralFormOther:
+          type: string
+        usages:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+    Asset_AssetSummary:
+      type: object
+      properties:
+        createdByUser:
+          $ref: "#/components/schemas/User_AssetSummary"
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        lastSuccessfulAssetExtraction:
+          $ref: "#/components/schemas/AssetExtraction_AssetSummary"
+        path:
+          type: string
+        repository:
+          $ref: "#/components/schemas/Repository_AssetSummary"
+        virtual:
+          type: boolean
+    Authority:
+      type: object
+      properties:
+        authority:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+    BatchTranslationRequestDTO:
+      type: object
+      properties:
+        repositoryIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        repositoryNames:
+          type: array
+          items:
+            type: string
+        skipFunctionalProtection:
+          type: boolean
+        skipLeveraging:
+          type: boolean
+        sourceBcp47Tag:
+          type: string
+        targetBcp47Tags:
+          type: array
+          items:
+            type: string
+        textSources:
+          type: array
+          items:
+            type: string
+    BoxSDKServiceConfigEntity:
+      type: object
+      properties:
+        appUserId:
+          type: string
+        bootstrap:
+          type: boolean
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+          writeOnly: true
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        dropsFolderId:
+          type: string
+        enterpriseId:
+          type: string
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        privateKey:
+          type: string
+          writeOnly: true
+        privateKeyPassword:
+          type: string
+          writeOnly: true
+        publicKeyId:
+          type: string
+        rootFolderId:
+          type: string
+        rootFolderUrl:
+          type: string
+        validated:
+          type: boolean
+    Branch:
+      type: object
+      properties:
+        branchStatistic:
+          $ref: "#/components/schemas/BranchStatistic"
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        notifiers:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        repository:
+          $ref: "#/components/schemas/Repository"
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot"
+          uniqueItems: true
+    BranchStatistic:
+      type: object
+      properties:
+        branch:
+          $ref: "#/components/schemas/Branch"
+        branchTextUnitStatistics:
+          type: array
+          items:
+            $ref: "#/components/schemas/BranchTextUnitStatistic"
+          uniqueItems: true
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        forTranslationCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        totalCount:
+          type: integer
+          format: int64
+    BranchStatistic_BranchStatistic:
+      type: object
+      properties:
+        branch:
+          $ref: "#/components/schemas/Branch_BranchStatistic"
+        branchTextUnitStatistics:
+          type: array
+          items:
+            $ref: "#/components/schemas/BranchTextUnitStatistic_BranchStatistic"
+          uniqueItems: true
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        forTranslationCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        totalCount:
+          type: integer
+          format: int64
+    BranchTextUnitStatistic:
+      type: object
+      properties:
+        forTranslationCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit"
+        totalCount:
+          type: integer
+          format: int64
+    BranchTextUnitStatistic_BranchStatistic:
+      type: object
+      properties:
+        forTranslationCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit_BranchStatistic"
+        totalCount:
+          type: integer
+          format: int64
+    BranchTextUnitStatistic_BranchTextUnitStatistic:
+      type: object
+      properties:
+        forTranslationCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit_BranchTextUnitStatistic"
+        totalCount:
+          type: integer
+          format: int64
+    Branch_BranchStatistic:
+      type: object
+      properties:
+        createdByUser:
+          $ref: "#/components/schemas/User_BranchStatistic"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        repository:
+          $ref: "#/components/schemas/Repository_BranchStatistic"
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot_BranchStatistic"
+          uniqueItems: true
+    Branch_BranchSummary:
+      type: object
+      properties:
+        createdByUser:
+          $ref: "#/components/schemas/User_BranchSummary"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        repository:
+          $ref: "#/components/schemas/Repository_BranchSummary"
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot_BranchSummary"
+          uniqueItems: true
+    Branch_GitBlameWithUsage:
+      type: object
+      properties:
+        createdByUser:
+          $ref: "#/components/schemas/User_GitBlameWithUsage"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        repository:
+          $ref: "#/components/schemas/Repository_GitBlameWithUsage"
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot_GitBlameWithUsage"
+          uniqueItems: true
+    Branch_Screenshots:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    CancelDropConfig:
+      type: object
+      properties:
+        dropId:
+          type: integer
+          format: int64
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+      required:
+      - dropId
+    CommitBody:
+      type: object
+      properties:
+        authorEmail:
+          type: string
+        authorName:
+          type: string
+        commitName:
+          type: string
+        repositoryId:
+          type: integer
+          format: int64
+        sourceCreationDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        sourceCreationDate2:
+          type: string
+    CommitListWithRepositoryIdBody:
+      type: object
+      properties:
+        commitNames:
+          type: array
+          items:
+            type: string
+        repositoryId:
+          type: integer
+          format: int64
+    CommitToPullRunBody:
+      type: object
+      properties:
+        commitName:
+          type: string
+        pullRunName:
+          type: string
+        repositoryId:
+          type: integer
+          format: int64
+    CommitToPullRun_CommitDetailed:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        pullRun:
+          $ref: "#/components/schemas/PullRun_CommitDetailed"
+    CommitToPushRunBody:
+      type: object
+      properties:
+        commitName:
+          type: string
+        pushRunName:
+          type: string
+        repositoryId:
+          type: integer
+          format: int64
+    CommitToPushRun_CommitDetailed:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        pushRun:
+          $ref: "#/components/schemas/PushRun_CommitDetailed"
+    Commit_Commit:
+      type: object
+      properties:
+        authorEmail:
+          type: string
+        authorName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        name:
+          type: string
+        repository_id:
+          type: integer
+          format: int64
+        sourceCreationDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+    Commit_CommitDetailed:
+      type: object
+      properties:
+        authorEmail:
+          type: string
+        authorName:
+          type: string
+        commitToPullRun:
+          $ref: "#/components/schemas/CommitToPullRun_CommitDetailed"
+        commitToPushRun:
+          $ref: "#/components/schemas/CommitToPushRun_CommitDetailed"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        name:
+          type: string
+        repository_id:
+          type: integer
+          format: int64
+        sourceCreationDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+    CopyTmConfig:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - MD5
+          - EXACT
+          - TUIDS
+        nameRegex:
+          type: string
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        sourceAssetId:
+          type: integer
+          format: int64
+        sourceRepositoryId:
+          type: integer
+          format: int64
+        sourceToTargetTmTextUnitIds:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        targetAssetId:
+          type: integer
+          format: int64
+        targetBranchName:
+          type: string
+        targetRepositoryId:
+          type: integer
+          format: int64
+    DeltaLocaleDataDTO:
+      type: object
+      properties:
+        translationsByTextUnitName:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/DeltaTranslationDTO"
+    DeltaMetadataDTO:
+      type: object
+      properties:
+        fromDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        toDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+    DeltaResponseDTO:
+      type: object
+      properties:
+        content:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/DeltaLocaleDataDTO"
+        metadata:
+          $ref: "#/components/schemas/DeltaMetadataDTO"
+    DeltaTranslationDTO:
+      type: object
+      properties:
+        deltaType:
+          type: string
+          enum:
+          - UNKNOWN
+          - NEW_TRANSLATION
+          - UPDATED_TRANSLATION
+        text:
+          type: string
+    Drop_DropSummary:
+      type: object
+      properties:
+        canceled:
+          type: boolean
+        createdByUser:
+          $ref: "#/components/schemas/User_DropSummary"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        dropExporterConfig:
+          type: string
+        exportFailed:
+          type: boolean
+        exportPollableTask:
+          $ref: "#/components/schemas/PollableTask_DropSummary"
+        id:
+          type: integer
+          format: int64
+        importFailed:
+          type: boolean
+        importPollableTask:
+          $ref: "#/components/schemas/PollableTask_DropSummary"
+        lastImportedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        name:
+          type: string
+        partiallyImported:
+          type: boolean
+        repository:
+          $ref: "#/components/schemas/Repository_DropSummary"
+        translationKits:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranslationKit_DropSummary"
+          uniqueItems: true
+    ExportDropConfig:
+      type: object
+      properties:
+        dropId:
+          type: integer
+          format: int64
+        locales:
+          type: array
+          items:
+            type: string
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        repositoryId:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum:
+          - TRANSLATION
+          - REVIEW
+        uploadTime:
+          type: integer
+          format: int64
+          example: 1715699917000
+        useInheritance:
+          type: boolean
+      required:
+      - repositoryId
+    GitBlame:
+      type: object
+      properties:
+        authorEmail:
+          type: string
+        authorName:
+          type: string
+        commitName:
+          type: string
+        commitTime:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit"
+    GitBlameWithUsage:
+      type: object
+      properties:
+        assetId:
+          type: integer
+          format: int64
+        assetTextUnitId:
+          type: integer
+          format: int64
+        branch:
+          $ref: "#/components/schemas/Branch"
+        comment:
+          type: string
+        content:
+          type: string
+        gitBlame:
+          $ref: "#/components/schemas/GitBlame"
+        introducedBy:
+          type: string
+        isVirtual:
+          type: boolean
+        pluralForm:
+          type: string
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot"
+          uniqueItems: true
+        textUnitName:
+          type: string
+        thirdPartyTextUnitId:
+          type: string
+        tmTextUnitId:
+          type: integer
+          format: int64
+        usages:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        virtual:
+          type: boolean
+    GitBlameWithUsage_GitBlameWithUsage:
+      type: object
+      properties:
+        assetId:
+          type: integer
+          format: int64
+        assetTextUnitId:
+          type: integer
+          format: int64
+        branch:
+          $ref: "#/components/schemas/Branch_GitBlameWithUsage"
+        comment:
+          type: string
+        content:
+          type: string
+        gitBlame:
+          $ref: "#/components/schemas/GitBlame_GitBlameWithUsage"
+        introducedBy:
+          type: string
+        isVirtual:
+          type: boolean
+        pluralForm:
+          type: string
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot_GitBlameWithUsage"
+          uniqueItems: true
+        textUnitName:
+          type: string
+        thirdPartyTextUnitId:
+          type: string
+        tmTextUnitId:
+          type: integer
+          format: int64
+        usages:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+    GitBlame_GitBlameWithUsage:
+      type: object
+      properties:
+        authorEmail:
+          type: string
+        authorName:
+          type: string
+        commitName:
+          type: string
+        commitTime:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+    ImportDropConfig:
+      type: object
+      properties:
+        dropId:
+          type: integer
+          format: int64
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        repositoryId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+          - TRANSLATION_NEEDED
+          - REVIEW_NEEDED
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+          - APPROVED
+          - OVERRIDDEN
+      required:
+      - dropId
+      - repositoryId
+    ImportLocalizedAssetBody:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        content:
+          type: string
+        filterConfigIdOverride:
+          type: string
+          enum:
+          - PROPERTIES_JAVA
+          - MACSTRINGSDICT_FILTER_KEY
+          - XCODE_XLIFF
+          - CSV_ADOBE_MAGENTO
+          - HTML_ALPHA
+        filterOptions:
+          type: array
+          items:
+            type: string
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        statusForEqualTarget:
+          type: string
+          enum:
+          - SKIPPED
+          - REVIEW_NEEDED
+          - TRANSLATION_NEEDED
+          - APPROVED
+    ImportRepositoryBody:
+      type: object
+      properties:
+        updateTM:
+          type: boolean
+        xliffContent:
+          type: string
+    ImportTextUnitStatisticsBody:
+      type: object
+      properties:
+        comment:
+          type: string
+        content:
+          type: string
+        lastDayEstimatedVolume:
+          type: number
+          format: double
+        lastPeriodEstimatedVolume:
+          type: number
+          format: double
+        lastSeenDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        name:
+          type: string
+    ImportXliffBody:
+      type: object
+      properties:
+        importStatus:
+          type: string
+          enum:
+          - TRANSLATION_NEEDED
+          - REVIEW_NEEDED
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+          - APPROVED
+          - OVERRIDDEN
+        repositoryId:
+          type: integer
+          format: int64
+        translationKit:
+          type: boolean
+        xliffContent:
+          type: string
+    Locale:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        id:
+          type: integer
+          format: int64
+    LocaleInfo:
+      type: object
+      properties:
+        localeId:
+          type: integer
+          format: int64
+        outputBcp47tag:
+          type: string
+    Locale_BranchStatistic:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    Locale_DropSummary:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        id:
+          type: integer
+          format: int64
+    Locale_Repository:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        id:
+          type: integer
+          format: int64
+    Locale_Screenshots:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    Locale_TranslationHistorySummary:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        id:
+          type: integer
+          format: int64
+    LocalizedAssetBody:
+      type: object
+      properties:
+        assetId:
+          type: integer
+          format: int64
+        bcp47Tag:
+          type: string
+        content:
+          type: string
+        filterConfigIdOverride:
+          type: string
+          enum:
+          - PROPERTIES_JAVA
+          - MACSTRINGSDICT_FILTER_KEY
+          - XCODE_XLIFF
+          - CSV_ADOBE_MAGENTO
+          - HTML_ALPHA
+        filterOptions:
+          type: array
+          items:
+            type: string
+        inheritanceMode:
+          type: string
+          enum:
+          - REMOVE_UNTRANSLATED
+          - USE_PARENT
+        localeId:
+          type: integer
+          format: int64
+        outputBcp47tag:
+          type: string
+        pullRunName:
+          type: string
+        status:
+          type: string
+          enum:
+          - ALL
+          - ACCEPTED_OR_NEEDS_REVIEW
+          - ACCEPTED
+    MultiLocalizedAssetBody:
+      type: object
+      properties:
+        assetId:
+          type: integer
+          format: int64
+        filterConfigIdOverride:
+          type: string
+          enum:
+          - PROPERTIES_JAVA
+          - MACSTRINGSDICT_FILTER_KEY
+          - XCODE_XLIFF
+          - CSV_ADOBE_MAGENTO
+          - HTML_ALPHA
+        filterOptions:
+          type: array
+          items:
+            type: string
+        generateLocalizedAssetJobIds:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        inheritanceMode:
+          type: string
+          enum:
+          - REMOVE_UNTRANSLATED
+          - USE_PARENT
+        localeInfos:
+          type: array
+          items:
+            $ref: "#/components/schemas/LocaleInfo"
+        pullRunName:
+          type: string
+        schedulerName:
+          type: string
+        sourceContent:
+          type: string
+        status:
+          type: string
+          enum:
+          - ALL
+          - ACCEPTED_OR_NEEDS_REVIEW
+          - ACCEPTED
+    PageBranchStatistic_BranchStatistic:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/BranchStatistic_BranchStatistic"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject_BranchStatistic"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageBranchTextUnitStatistic_BranchTextUnitStatistic:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/BranchTextUnitStatistic_BranchTextUnitStatistic"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject_BranchTextUnitStatistic"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageCommit_Commit:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commit_Commit"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject_Commit"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageCommit_CommitDetailed:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commit_CommitDetailed"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject_CommitDetailed"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageDrop_DropSummary:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Drop_DropSummary"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject_DropSummary"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageTextUnitVariantDeltaDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/TextUnitVariantDeltaDTO"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    PageUser:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        size:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        paged:
+          type: boolean
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        unpaged:
+          type: boolean
+    PageableObject_BranchStatistic:
+      type: object
+    PageableObject_BranchTextUnitStatistic:
+      type: object
+    PageableObject_Commit:
+      type: object
+    PageableObject_CommitDetailed:
+      type: object
+    PageableObject_DropSummary:
+      type: object
+    PasswordChangeRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+    PluralForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    PollableFutureBoxSDKServiceConfigEntity:
+      type: object
+      properties:
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+    PollableTask:
+      type: object
+      properties:
+        allFinished:
+          type: boolean
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        errorMessage:
+          type: string
+        errorStack:
+          type: string
+        expectedSubTaskNumber:
+          type: integer
+          format: int32
+        finishedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        message:
+          type: string
+        name:
+          type: string
+        subTasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PollableTask"
+          uniqueItems: true
+    PollableTask_DropSummary:
+      type: object
+      properties:
+        allFinished:
+          type: boolean
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+    PullRun_CommitDetailed:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    PushRun_CommitDetailed:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    Repository:
+      type: object
+      properties:
+        assetIntegrityCheckers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetIntegrityChecker"
+          uniqueItems: true
+        branches:
+          type: array
+          items:
+            $ref: "#/components/schemas/Branch"
+          uniqueItems: true
+        checkSLA:
+          type: boolean
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        description:
+          type: string
+        dropExporterType:
+          type: string
+          enum:
+          - BOX
+          - FILE_SYSTEM
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        manualScreenshotRun:
+          $ref: "#/components/schemas/ScreenshotRun"
+        name:
+          type: string
+        repositoryLocales:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepositoryLocale"
+          uniqueItems: true
+        repositoryStatistic:
+          $ref: "#/components/schemas/RepositoryStatistic"
+        sourceLocale:
+          $ref: "#/components/schemas/Locale"
+        tm:
+          $ref: "#/components/schemas/TM"
+      writeOnly: true
+    RepositoryLocale:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        locale:
+          $ref: "#/components/schemas/Locale"
+        parentLocale:
+          $ref: "#/components/schemas/RepositoryLocale"
+        toBeFullyTranslated:
+          type: boolean
+    RepositoryLocaleStatistic:
+      type: object
+      properties:
+        diffToSourcePluralCount:
+          type: integer
+          format: int64
+        forTranslationCount:
+          type: integer
+          format: int64
+        forTranslationWordCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        includeInFileCount:
+          type: integer
+          format: int64
+        includeInFileWordCount:
+          type: integer
+          format: int64
+        locale:
+          $ref: "#/components/schemas/Locale"
+        reviewNeededCount:
+          type: integer
+          format: int64
+        reviewNeededWordCount:
+          type: integer
+          format: int64
+        translatedCount:
+          type: integer
+          format: int64
+        translatedWordCount:
+          type: integer
+          format: int64
+        translationNeededCount:
+          type: integer
+          format: int64
+        translationNeededWordCount:
+          type: integer
+          format: int64
+    RepositoryLocaleStatistic_Repository:
+      type: object
+      properties:
+        diffToSourcePluralCount:
+          type: integer
+          format: int64
+        forTranslationCount:
+          type: integer
+          format: int64
+        forTranslationWordCount:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        includeInFileCount:
+          type: integer
+          format: int64
+        includeInFileWordCount:
+          type: integer
+          format: int64
+        locale:
+          $ref: "#/components/schemas/Locale_Repository"
+        reviewNeededCount:
+          type: integer
+          format: int64
+        reviewNeededWordCount:
+          type: integer
+          format: int64
+        translatedCount:
+          type: integer
+          format: int64
+        translatedWordCount:
+          type: integer
+          format: int64
+        translationNeededCount:
+          type: integer
+          format: int64
+        translationNeededWordCount:
+          type: integer
+          format: int64
+    RepositoryLocale_Repository:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        locale:
+          $ref: "#/components/schemas/Locale_Repository"
+        parentLocale:
+          $ref: "#/components/schemas/RepositoryLocale_Repository"
+        toBeFullyTranslated:
+          type: boolean
+    RepositoryMachineTranslationBody:
+      type: object
+      properties:
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        repositoryName:
+          type: string
+        sourceTextMaxCountPerLocale:
+          type: integer
+          format: int32
+        targetBcp47tags:
+          type: array
+          items:
+            type: string
+    RepositoryStatistic:
+      type: object
+      properties:
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        ooslaCreatedBefore:
+          type: integer
+          format: int64
+          example: 1715699917000
+        ooslaTextUnitCount:
+          type: integer
+          format: int64
+        ooslaTextUnitWordCount:
+          type: integer
+          format: int64
+        pluralTextUnitCount:
+          type: integer
+          format: int64
+        pluralTextUnitWordCount:
+          type: integer
+          format: int64
+        repositoryLocaleStatistics:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepositoryLocaleStatistic"
+          uniqueItems: true
+        uncommentedTextUnitCount:
+          type: integer
+          format: int64
+        unusedTextUnitCount:
+          type: integer
+          format: int64
+        unusedTextUnitWordCount:
+          type: integer
+          format: int64
+        usedTextUnitCount:
+          type: integer
+          format: int64
+        usedTextUnitWordCount:
+          type: integer
+          format: int64
+    RepositoryStatistic_Repository:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        ooslaCreatedBefore:
+          type: integer
+          format: int64
+          example: 1715699917000
+        ooslaTextUnitCount:
+          type: integer
+          format: int64
+        ooslaTextUnitWordCount:
+          type: integer
+          format: int64
+        pluralTextUnitCount:
+          type: integer
+          format: int64
+        pluralTextUnitWordCount:
+          type: integer
+          format: int64
+        repositoryLocaleStatistics:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepositoryLocaleStatistic_Repository"
+          uniqueItems: true
+        usedTextUnitCount:
+          type: integer
+          format: int64
+        usedTextUnitWordCount:
+          type: integer
+          format: int64
+    Repository_AssetSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    Repository_BranchStatistic:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        manualScreenshotRun:
+          $ref: "#/components/schemas/ScreenshotRun_BranchStatistic"
+        name:
+          type: string
+        sourceLocale:
+          $ref: "#/components/schemas/Locale_BranchStatistic"
+    Repository_BranchSummary:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    Repository_DropSummary:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    Repository_GitBlameWithUsage:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    Repository_Repository:
+      type: object
+      properties:
+        assetIntegrityCheckers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetIntegrityChecker_Repository"
+          uniqueItems: true
+        checkSLA:
+          type: boolean
+        createdByUser:
+          $ref: "#/components/schemas/User_Repository"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        deleted:
+          type: boolean
+        description:
+          type: string
+        dropExporterType:
+          type: string
+          enum:
+          - BOX
+          - FILE_SYSTEM
+        id:
+          type: integer
+          format: int64
+        manualScreenshotRun:
+          $ref: "#/components/schemas/ScreenshotRun_Repository"
+        name:
+          type: string
+        repositoryLocales:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepositoryLocale_Repository"
+          uniqueItems: true
+        repositoryStatistic:
+          $ref: "#/components/schemas/RepositoryStatistic_Repository"
+        sourceLocale:
+          $ref: "#/components/schemas/Locale_Repository"
+        tm:
+          $ref: "#/components/schemas/TM_Repository"
+    Screenshot:
+      type: object
+      properties:
+        branch:
+          $ref: "#/components/schemas/Branch"
+        comment:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        locale:
+          $ref: "#/components/schemas/Locale"
+        name:
+          type: string
+        screenshotRun:
+          $ref: "#/components/schemas/ScreenshotRun"
+        sequence:
+          type: integer
+          format: int64
+        src:
+          type: string
+        status:
+          type: string
+          enum:
+          - REJECTED
+          - NEEDS_REVIEW
+          - ACCEPTED
+        textUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreenshotTextUnit"
+          uniqueItems: true
+        thirdPartyScreenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThirdPartyScreenshot"
+          uniqueItems: true
+    ScreenshotRun:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastSuccessfulRun:
+          type: boolean
+        name:
+          type: string
+        repository:
+          $ref: "#/components/schemas/Repository"
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Screenshot"
+          uniqueItems: true
+    ScreenshotRun_BranchStatistic:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+    ScreenshotRun_Repository:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+    ScreenshotRun_Screenshots:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    ScreenshotTextUnit:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        numberOfMatch:
+          type: integer
+          format: int32
+        renderedTarget:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit"
+        tmTextUnitVariant:
+          $ref: "#/components/schemas/TMTextUnitVariant"
+    ScreenshotTextUnit_BranchStatistic:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit_BranchStatistic"
+    ScreenshotTextUnit_GitBlameWithUsage:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit_GitBlameWithUsage"
+    ScreenshotTextUnit_Screenshots:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        numberOfMatch:
+          type: integer
+          format: int32
+        renderedTarget:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit_Screenshots"
+        tmTextUnitVariant:
+          $ref: "#/components/schemas/TMTextUnitVariant_Screenshots"
+    Screenshot_BranchStatistic:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        src:
+          type: string
+        textUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreenshotTextUnit_BranchStatistic"
+          uniqueItems: true
+    Screenshot_BranchSummary:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+    Screenshot_GitBlameWithUsage:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        src:
+          type: string
+        textUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreenshotTextUnit_GitBlameWithUsage"
+          uniqueItems: true
+    Screenshot_Screenshots:
+      type: object
+      properties:
+        branch:
+          $ref: "#/components/schemas/Branch_Screenshots"
+        comment:
+          type: string
+        id:
+          type: integer
+          format: int64
+        locale:
+          $ref: "#/components/schemas/Locale_Screenshots"
+        screenshotRun:
+          $ref: "#/components/schemas/ScreenshotRun_Screenshots"
+        sequence:
+          type: integer
+          format: int64
+        src:
+          type: string
+        status:
+          type: string
+          enum:
+          - REJECTED
+          - NEEDS_REVIEW
+          - ACCEPTED
+        textUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreenshotTextUnit_Screenshots"
+          uniqueItems: true
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+    SourceAsset:
+      type: object
+      properties:
+        addedAssetId:
+          type: integer
+          format: int64
+        branch:
+          type: string
+        branchCreatedByUsername:
+          type: string
+        branchNotifiers:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        commitHash:
+          type: string
+        content:
+          type: string
+        extractedContent:
+          type: boolean
+        filterConfigIdOverride:
+          type: string
+          enum:
+          - PROPERTIES_JAVA
+          - MACSTRINGSDICT_FILTER_KEY
+          - XCODE_XLIFF
+          - CSV_ADOBE_MAGENTO
+          - HTML_ALPHA
+        filterOptions:
+          type: array
+          items:
+            type: string
+        path:
+          type: string
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        pushRunName:
+          type: string
+        repositoryId:
+          type: integer
+          format: int64
+    TM:
+      type: object
+      properties:
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+    TMTextUnit:
+      type: object
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        comment:
+          type: string
+        content:
+          type: string
+        contentMd5:
+          type: string
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        md5:
+          type: string
+        name:
+          type: string
+        pluralForm:
+          $ref: "#/components/schemas/PluralForm"
+        pluralFormOther:
+          type: string
+        tm:
+          $ref: "#/components/schemas/TM"
+        tmTextUnitStatistic:
+          $ref: "#/components/schemas/TMTextUnitStatistic"
+        wordCount:
+          type: integer
+          format: int32
+    TMTextUnitIntegrityCheckResult:
+      type: object
+      properties:
+        checkResult:
+          type: boolean
+        failureDetail:
+          type: string
+    TMTextUnitStatistic:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastDayUsageCount:
+          type: number
+          format: double
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        lastPeriodUsageCount:
+          type: number
+          format: double
+        lastSeenDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        tmtextUnit:
+          $ref: "#/components/schemas/TMTextUnit"
+    TMTextUnitVariant:
+      type: object
+      properties:
+        comment:
+          type: string
+        content:
+          type: string
+        contentMD5:
+          type: string
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        includedInLocalizedFile:
+          type: boolean
+        locale:
+          $ref: "#/components/schemas/Locale"
+        status:
+          type: string
+          enum:
+          - TRANSLATION_NEEDED
+          - REVIEW_NEEDED
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+          - APPROVED
+          - OVERRIDDEN
+        tmTextUnit:
+          $ref: "#/components/schemas/TMTextUnit"
+        tmTextUnitVariantComments:
+          type: array
+          items:
+            $ref: "#/components/schemas/TMTextUnitVariantComment"
+          uniqueItems: true
+    TMTextUnitVariantComment:
+      type: object
+      properties:
+        content:
+          type: string
+        createdByUser:
+          $ref: "#/components/schemas/User"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        severity:
+          type: string
+          enum:
+          - INFO
+          - WARNING
+          - ERROR
+        type:
+          type: string
+          enum:
+          - LEVERAGING
+          - INTEGRITY_CHECK
+          - QUALITY_CHECK
+    TMTextUnitVariantComment_TranslationHistorySummary:
+      type: object
+      properties:
+        content:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        severity:
+          type: string
+          enum:
+          - INFO
+          - WARNING
+          - ERROR
+        type:
+          type: string
+          enum:
+          - LEVERAGING
+          - INTEGRITY_CHECK
+          - QUALITY_CHECK
+    TMTextUnitVariant_Screenshots:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    TMTextUnitVariant_TranslationHistorySummary:
+      type: object
+      properties:
+        comment:
+          type: string
+        content:
+          type: string
+        createdByUser:
+          $ref: "#/components/schemas/User_TranslationHistorySummary"
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        includedInLocalizedFile:
+          type: boolean
+        locale:
+          $ref: "#/components/schemas/Locale_TranslationHistorySummary"
+        status:
+          type: string
+          enum:
+          - TRANSLATION_NEEDED
+          - REVIEW_NEEDED
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+          - APPROVED
+          - OVERRIDDEN
+        tmTextUnitVariantComments:
+          type: array
+          items:
+            $ref: "#/components/schemas/TMTextUnitVariantComment_TranslationHistorySummary"
+          uniqueItems: true
+    TMTextUnit_BranchStatistic:
+      type: object
+      properties:
+        content:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    TMTextUnit_BranchTextUnitStatistic:
+      type: object
+      properties:
+        content:
+          type: string
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    TMTextUnit_GitBlameWithUsage:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    TMTextUnit_Screenshots:
+      type: object
+      properties:
+        content:
+          type: string
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    TM_Repository:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+    TextUnitAndWordCount:
+      type: object
+      properties:
+        textUnitCount:
+          type: integer
+          format: int64
+        textUnitWordCount:
+          type: integer
+          format: int64
+    TextUnitCheckBody:
+      type: object
+      properties:
+        content:
+          type: string
+        tmTextUnitId:
+          type: integer
+          format: int64
+    TextUnitDTO:
+      type: object
+      properties:
+        aiTranslateStatus:
+          type: boolean
+        assetDeleted:
+          type: boolean
+        assetExtractionId:
+          type: integer
+          format: int64
+        assetId:
+          type: integer
+          format: int64
+        assetPath:
+          type: string
+        assetTextUnitId:
+          type: integer
+          format: int64
+        comment:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        doNotTranslate:
+          type: boolean
+        includedInLocalizedFile:
+          type: boolean
+        lastSuccessfulAssetExtractionId:
+          type: integer
+          format: int64
+        localeId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        pluralForm:
+          type: string
+        pluralFormOther:
+          type: string
+        repositoryName:
+          type: string
+        source:
+          type: string
+        status:
+          type: string
+          enum:
+          - TRANSLATION_NEEDED
+          - REVIEW_NEEDED
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+          - APPROVED
+          - OVERRIDDEN
+        target:
+          type: string
+        targetComment:
+          type: string
+        targetLocale:
+          type: string
+        tmTextUnitCreatedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        tmTextUnitCurrentVariantId:
+          type: integer
+          format: int64
+        tmTextUnitId:
+          type: integer
+          format: int64
+        tmTextUnitVariantId:
+          type: integer
+          format: int64
+        translated:
+          type: boolean
+        uploadedFileUri:
+          type: string
+        used:
+          type: boolean
+    TextUnitSearchBody:
+      type: object
+      properties:
+        assetPath:
+          type: string
+        branchId:
+          type: integer
+          format: int64
+        doNotTranslateFilter:
+          type: boolean
+        limit:
+          type: integer
+          format: int32
+        localeTags:
+          type: array
+          items:
+            type: string
+        locationUsage:
+          type: string
+        name:
+          type: string
+        offset:
+          type: integer
+          format: int32
+        pluralFormExcluded:
+          type: boolean
+        pluralFormFiltered:
+          type: boolean
+        pluralFormOther:
+          type: string
+        repositoryIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        repositoryNames:
+          type: array
+          items:
+            type: string
+        searchType:
+          type: string
+          enum:
+          - EXACT
+          - CONTAINS
+          - ILIKE
+        source:
+          type: string
+        statusFilter:
+          type: string
+          enum:
+          - ALL
+          - TRANSLATED
+          - UNTRANSLATED
+          - TRANSLATED_AND_NOT_REJECTED
+          - APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED
+          - APPROVED_AND_NOT_REJECTED
+          - FOR_TRANSLATION
+          - REVIEW_NEEDED
+          - REVIEW_NOT_NEEDED
+          - TRANSLATION_NEEDED
+          - REJECTED
+          - NOT_REJECTED
+          - OVERRIDDEN
+          - MT_TRANSLATED
+          - MT_REVIEW_NEEDED
+        target:
+          type: string
+        tmTextUnitCreatedAfter:
+          type: integer
+          format: int64
+          example: 1715699917000
+        tmTextUnitCreatedBefore:
+          type: integer
+          format: int64
+          example: 1715699917000
+        tmTextUnitIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        usedFilter:
+          type: string
+          enum:
+          - USED
+          - UNUSED
+    TextUnitVariantDeltaDTO:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        content:
+          type: string
+        deltaType:
+          type: string
+          enum:
+          - UNKNOWN
+          - NEW_TRANSLATION
+          - UPDATED_TRANSLATION
+        textUnitName:
+          type: string
+    ThirdPartyScreenshot:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        screenshot:
+          $ref: "#/components/schemas/Screenshot"
+        thirdPartyId:
+          type: string
+    ThirdPartySync:
+      type: object
+      properties:
+        actions:
+          type: array
+          items:
+            type: string
+            enum:
+            - PUSH
+            - PUSH_TRANSLATION
+            - PULL
+            - PULL_SOURCE
+            - MAP_TEXTUNIT
+            - PUSH_SCREENSHOT
+            - PUSH_AI_TRANSLATION
+        includeTextUnitsWithPattern:
+          type: string
+        localeMapping:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        pluralSeparator:
+          type: string
+        projectId:
+          type: string
+        repositoryId:
+          type: integer
+          format: int64
+        skipAssetsWithPathPattern:
+          type: string
+        skipTextUnitsWithPattern:
+          type: string
+        timeout:
+          type: integer
+          format: int64
+    TranslationDTO:
+      type: object
+      properties:
+        bcp47Tag:
+          type: string
+        matchedTextUnitId:
+          type: integer
+          format: int64
+        matchedTextUnitVariantId:
+          type: integer
+          format: int64
+        text:
+          type: string
+        translationSource:
+          type: string
+          enum:
+          - MOJITO_TM_LEVERAGE
+          - GOOGLE_MT
+          - MICROSOFT_MT
+          - NOOP
+          - UNTRANSLATED
+    TranslationKit_DropSummary:
+      type: object
+      properties:
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        imported:
+          type: boolean
+        locale:
+          $ref: "#/components/schemas/Locale_DropSummary"
+        type:
+          type: string
+          enum:
+          - TRANSLATION
+          - REVIEW
+        wordCount:
+          type: integer
+          format: int64
+    TranslationRequestDTO:
+      type: object
+      properties:
+        repositoryIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        repositoryNames:
+          type: array
+          items:
+            type: string
+        skipFunctionalProtection:
+          type: boolean
+        skipLeveraging:
+          type: boolean
+        sourceBcp47Tag:
+          type: string
+        targetBcp47Tag:
+          type: string
+        textSource:
+          type: string
+    User:
+      type: object
+      properties:
+        authorities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Authority"
+          uniqueItems: true
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        enabled:
+          type: boolean
+        givenName:
+          type: string
+        id:
+          type: integer
+          format: int64
+        lastModifiedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        partiallyCreated:
+          type: boolean
+        password:
+          type: string
+          writeOnly: true
+        surname:
+          type: string
+        username:
+          type: string
+    User_AssetSummary:
+      type: object
+      properties:
+        commonName:
+          type: string
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    User_BranchStatistic:
+      type: object
+      properties:
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    User_BranchSummary:
+      type: object
+      properties:
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    User_DropSummary:
+      type: object
+      properties:
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    User_GitBlameWithUsage:
+      type: object
+      properties:
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    User_Repository:
+      type: object
+      properties:
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    User_TranslationHistorySummary:
+      type: object
+      properties:
+        commonName:
+          type: string
+        createdDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+    VirtualAsset:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        id:
+          type: integer
+          format: int64
+        path:
+          type: string
+        repositoryId:
+          type: integer
+          format: int64
+    VirtualAssetTextUnit:
+      type: object
+      properties:
+        comment:
+          type: string
+        content:
+          type: string
+        doNotTranslate:
+          type: boolean
+        name:
+          type: string
+        pluralForm:
+          type: string
+        pluralFormOther:
+          type: string
+    XliffExportBody:
+      type: object
+      properties:
+        content:
+          type: string
+        pollableTask:
+          $ref: "#/components/schemas/PollableTask"
+        tmXliffId:
+          type: integer
+          format: int64
+  securitySchemes:
+    cookieAuth:
+      in: cookie
+      name: JSESSIONID
+      type: apiKey

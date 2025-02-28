@@ -2,7 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.AiPromptWsApi;
+import com.box.l10n.mojito.apiclient.AIServiceClient;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public class AddPromptToRepositoryCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(AddPromptToRepositoryCommand.class);
 
-  @Autowired AiPromptWsApi aiServiceClient;
+  @Autowired AIServiceClient aiServiceClient;
 
   @Parameter(
       names = {"--repository-name", "-r"},

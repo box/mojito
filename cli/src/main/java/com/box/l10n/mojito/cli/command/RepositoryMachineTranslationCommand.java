@@ -2,11 +2,11 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.MachineTranslationWsApi;
+import com.box.l10n.mojito.apiclient.MachineTranslationWsApi;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.RepositoryMachineTranslationBody;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.PollableTask;
-import com.box.l10n.mojito.cli.model.RepositoryMachineTranslationBody;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi.Color;

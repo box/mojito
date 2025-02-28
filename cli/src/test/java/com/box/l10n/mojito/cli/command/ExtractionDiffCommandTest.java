@@ -11,13 +11,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.model.BranchBranchSummary;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.utils.SlackNotificationSender;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.github.GithubClients;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -893,11 +893,11 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         "--github-repo-owner",
         "testowner");
 
-    Branch branch = this.repositoryClient.getBranch(repository.getId(), "branch");
+    BranchBranchSummary branch = this.repositoryClient.getBranch(repository.getId(), "branch");
 
     Assert.assertEquals(0L, l10nJCommander.getExitCode());
     assertNotNull(branch);
-    assertFalse(branch.getDeleted());
+    assertFalse(branch.isDeleted());
 
     getL10nJCommander()
         .run(
@@ -935,7 +935,7 @@ public class ExtractionDiffCommandTest extends CLITestBase {
 
     Assert.assertEquals(0L, l10nJCommander.getExitCode());
     assertNotNull(branch);
-    assertFalse(branch.getDeleted());
+    assertFalse(branch.isDeleted());
 
     GithubClient mockGithubClient = mock(GithubClient.class);
     l10nJCommander = this.getL10nJCommanderWithGithubClient(mockGithubClient, true);
@@ -965,7 +965,7 @@ public class ExtractionDiffCommandTest extends CLITestBase {
     branch = this.repositoryClient.getBranch(repository.getId(), "branch");
 
     verify(mockGithubClient, times(1)).isLabelAppliedToPR(anyString(), anyInt(), anyString());
-    assertTrue(branch.getDeleted());
+    assertTrue(branch.isDeleted());
   }
 
   private L10nJCommander getL10nJCommanderWithGithubClient(GithubClient githubClient) {

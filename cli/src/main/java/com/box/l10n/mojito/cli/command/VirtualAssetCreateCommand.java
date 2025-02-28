@@ -2,13 +2,13 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.VirtualAssetWsApi;
+import com.box.l10n.mojito.apiclient.HttpClientErrorExceptionHelper;
+import com.box.l10n.mojito.apiclient.HttpClientErrorJson;
+import com.box.l10n.mojito.apiclient.VirtualAssetWsApi;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.VirtualAsset;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.cli.model.VirtualAsset;
-import com.box.l10n.mojito.rest.client.HttpClientErrorExceptionHelper;
-import com.box.l10n.mojito.rest.client.HttpClientErrorJson;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

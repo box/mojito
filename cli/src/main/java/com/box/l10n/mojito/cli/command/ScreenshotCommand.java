@@ -5,16 +5,16 @@ import static java.util.Optional.ofNullable;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.LocaleMappingHelper;
-import com.box.l10n.mojito.cli.apiclient.ImageWsApiProxy;
-import com.box.l10n.mojito.cli.apiclient.RepositoryMapper;
-import com.box.l10n.mojito.cli.apiclient.ScreenshotWsApiProxy;
+import com.box.l10n.mojito.apiclient.ImageClient;
+import com.box.l10n.mojito.apiclient.RepositoryMapper;
+import com.box.l10n.mojito.apiclient.ScreenshotClient;
+import com.box.l10n.mojito.apiclient.model.Locale;
+import com.box.l10n.mojito.apiclient.model.LocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.Screenshot;
+import com.box.l10n.mojito.apiclient.model.ScreenshotRun;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.Locale;
-import com.box.l10n.mojito.cli.model.LocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.cli.model.Screenshot;
-import com.box.l10n.mojito.cli.model.ScreenshotRun;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -93,9 +93,9 @@ public class ScreenshotCommand extends Command {
 
   CommandDirectories commandDirectories;
 
-  @Autowired ImageWsApiProxy imageClient;
+  @Autowired ImageClient imageClient;
 
-  @Autowired ScreenshotWsApiProxy screenshotClient;
+  @Autowired ScreenshotClient screenshotClient;
 
   @Autowired LocaleMappingHelper localeMappingHelper;
 
@@ -211,7 +211,7 @@ public class ScreenshotCommand extends Command {
     logger.debug("Upload image: {} to path: {}", image.toString(), uploadPath);
     try {
       byte[] content = Files.readAllBytes(image);
-      imageClient.uploadImage(content, uploadPath);
+      imageClient.uploadImage(uploadPath, content);
     } catch (IOException ex) {
       throw new CommandException("Failed to upload image: " + image.toString(), ex);
     }

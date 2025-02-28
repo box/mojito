@@ -14,7 +14,6 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -41,8 +40,6 @@ public class TMImportCommandTest extends CLITestBase {
 
   /** logger */
   static Logger logger = getLogger(TMImportCommandTest.class);
-
-  @Autowired AssetClient assetClient;
 
   @Autowired TMService tmService;
 

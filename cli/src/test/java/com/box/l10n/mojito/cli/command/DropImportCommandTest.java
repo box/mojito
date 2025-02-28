@@ -8,13 +8,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
 import com.box.l10n.mojito.boxsdk.BoxSDKService;
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
-import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
 import com.box.l10n.mojito.cli.console.Console;
-import com.box.l10n.mojito.cli.model.AssetAssetSummary;
 import com.box.l10n.mojito.entity.Drop;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.drop.DropRepository;
@@ -53,7 +53,7 @@ public class DropImportCommandTest extends CLITestBase {
 
   @Autowired TMImportService tmImport;
 
-  @Autowired AssetWsApiProxy assetClient;
+  @Autowired AssetClient assetClient;
 
   @Autowired TMTextUnitCurrentVariantRepository textUnitCurrentVariantRepository;
 
@@ -67,7 +67,7 @@ public class DropImportCommandTest extends CLITestBase {
 
   @Autowired DropRepository dropRepository;
 
-  @Autowired private RepositoryWsApiProxy repositoryClient;
+  @Autowired private RepositoryClient repositoryClient;
 
   @Test
   public void dropImport() throws Exception {

@@ -3,6 +3,11 @@ package com.box.l10n.mojito.cli.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryStatisticRepository;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PullRun;
@@ -10,10 +15,6 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import com.box.l10n.mojito.service.commit.CommitService;
 import com.box.l10n.mojito.service.delta.DeltaService;
 import com.box.l10n.mojito.service.delta.DeltaType;
@@ -83,12 +84,12 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-    Asset asset2 =
+    AssetAssetSummary asset2 =
         assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
     importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
     importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
@@ -129,12 +130,12 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-    Asset asset2 =
+    AssetAssetSummary asset2 =
         assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
     importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
     importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
@@ -177,12 +178,12 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-    Asset asset2 =
+    AssetAssetSummary asset2 =
         assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
     importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
     importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
@@ -227,7 +228,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "PROPERTIES_NOBASENAME");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -261,7 +263,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "PROPERTIES_NOBASENAME");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -305,7 +308,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -347,7 +351,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "PROPERTIES_JAVA");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -395,7 +400,8 @@ public class PullCommandTest extends CLITestBase {
             "-sl",
             "en-US");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en-US.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en-US.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -445,7 +451,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "PROPERTIES_NOBASENAME");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -501,7 +508,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -534,7 +541,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -567,7 +574,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -599,7 +606,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -633,7 +640,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("res/values/strings.xml", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -674,7 +681,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId(
             "en.lproj/Localizable.strings", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -716,7 +723,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId(
             "en.lproj/Localizable.stringsdict", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -758,7 +765,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("en/Resources.resw", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -803,7 +810,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("Test.resx", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("Test.resx", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -845,7 +853,7 @@ public class PullCommandTest extends CLITestBase {
             "-sr",
             "Localization\\.resx|Test\\.resx");
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("Localization.resx", repository.getId());
     importTranslations(asset.getId(), "source-xliff_Localization_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_Localization_", "ja-JP");
@@ -898,7 +906,7 @@ public class PullCommandTest extends CLITestBase {
             "--dir-path-exclude-patterns",
             "b/resources");
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId(
             "a/resources/demo.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -950,7 +958,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset1 =
+    AssetAssetSummary asset1 =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository1.getId());
     importTranslations(asset1.getId(), "source-xliff_", "fr-FR");
 
@@ -962,7 +970,7 @@ public class PullCommandTest extends CLITestBase {
         "should have TMTextUnitVariant from imports above", latestTmTextUnitVariantOfRepository1);
 
     logger.debug("Test findLatestTMTextUnitVariant again after a translation is added to other TM");
-    Asset asset2 =
+    AssetAssetSummary asset2 =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository2.getId());
     importTranslations(asset2.getId(), "source-xliff_", "fr-FR");
     TMTextUnitVariant tmTextUnitVariant =
@@ -989,7 +997,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "XCODE_XLIFF");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.xliff", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1037,7 +1046,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("LC_MESSAGES/messages.pot", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1086,7 +1095,8 @@ public class PullCommandTest extends CLITestBase {
             "-fo",
             "processImageUrls=true");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.html", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.html", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1138,7 +1148,7 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("LC_MESSAGES/messages.pot", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1187,7 +1197,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("test.xliff", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("test.xliff", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1246,7 +1257,7 @@ public class PullCommandTest extends CLITestBase {
             "-sl",
             "en-US");
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("Resources-en-US.xtb", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1290,7 +1301,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.csv", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.csv", repository.getId());
 
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1334,7 +1346,8 @@ public class PullCommandTest extends CLITestBase {
             "-sl",
             "en_US");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("i18n/en_US.csv", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("i18n/en_US.csv", repository.getId());
 
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1382,7 +1395,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.js", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.js", repository.getId());
 
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1426,7 +1440,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.ts", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.ts", repository.getId());
 
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1473,7 +1488,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "JSON");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1519,7 +1535,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "JSON_NOBASENAME");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1569,7 +1586,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "JSON");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1627,7 +1645,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "JSON_NOBASENAME");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1684,7 +1703,8 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "JSON_NOBASENAME");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1724,7 +1744,7 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "CHROME_EXT_JSON");
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("_locales/en/messages.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1771,7 +1791,7 @@ public class PullCommandTest extends CLITestBase {
             "-ft",
             "I18NEXT_PARSER_JSON");
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("locales/en/demo.json", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -1817,7 +1837,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1834,9 +1855,8 @@ public class PullCommandTest extends CLITestBase {
     waitForCondition(
         "repo stats must be updated - wait for jp to be fully translated and others to be untranslated",
         () -> {
-          com.box.l10n.mojito.rest.entity.Repository repo =
-              repositoryClient.getRepositoryById(repository.getId());
-          RepositoryStatistic repositoryStatistic = repo.getRepositoryStatistic();
+          RepositoryRepository repo = repositoryClient.getRepositoryById(repository.getId());
+          RepositoryStatisticRepository repositoryStatistic = repo.getRepositoryStatistic();
 
           boolean statsReady =
               repositoryStatistic.getRepositoryLocaleStatistics().stream()
@@ -1880,7 +1900,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -1898,9 +1919,8 @@ public class PullCommandTest extends CLITestBase {
     waitForCondition(
         "repo stats must be updated - wait for jp to be fully translated and others to be untranslated",
         () -> {
-          com.box.l10n.mojito.rest.entity.Repository repo =
-              repositoryClient.getRepositoryById(repository.getId());
-          RepositoryStatistic repositoryStatistic = repo.getRepositoryStatistic();
+          RepositoryRepository repo = repositoryClient.getRepositoryById(repository.getId());
+          RepositoryStatisticRepository repositoryStatistic = repo.getRepositoryStatistic();
 
           boolean statsReady =
               repositoryStatistic.getRepositoryLocaleStatistics().stream()
@@ -2182,7 +2202,8 @@ public class PullCommandTest extends CLITestBase {
     Assertions.assertThat(deltaForBaseline.getTranslationsPerLocale()).isEmpty();
 
     logger.debug("Import French translations to test delta generation");
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
 
     logger.debug(
@@ -2466,7 +2487,8 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.yaml", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.yaml", repository.getId());
 
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -2513,7 +2535,8 @@ public class PullCommandTest extends CLITestBase {
             "extractAllPairs=false",
             "exceptions=1_day_duration|1_year_duration");
 
-    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.yaml", repository.getId());
+    AssetAssetSummary asset =
+        assetClient.getAssetByPathAndRepositoryId("demo.yaml", repository.getId());
 
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");

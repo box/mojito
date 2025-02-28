@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.QuartzWsApi;
+import com.box.l10n.mojito.apiclient.QuartzJobsClient;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
@@ -23,7 +23,7 @@ public class QuartzJobsViewCommand extends Command {
 
   @Autowired ConsoleWriter consoleWriter;
 
-  @Autowired QuartzWsApi quartzJobsClient;
+  @Autowired QuartzJobsClient quartzJobsClient;
 
   @Override
   public boolean shouldShowInCommandList() {

@@ -2,9 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.AiPromptWsApiProxy;
+import com.box.l10n.mojito.apiclient.AIServiceClient;
+import com.box.l10n.mojito.apiclient.model.AIPromptContextMessageCreateRequest;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.AIPromptContextMessageCreateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class CreateAIPromptContextMessageCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(CreateAIPromptContextMessageCommand.class);
 
-  @Autowired AiPromptWsApiProxy aiServiceClient;
+  @Autowired AIServiceClient aiServiceClient;
 
   @Parameter(
       names = {"--content", "-c"},

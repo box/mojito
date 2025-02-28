@@ -2,9 +2,9 @@ package com.box.l10n.mojito.rest.images;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.box.l10n.mojito.apiclient.ImageClient;
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.rest.WSTestBase;
-import com.box.l10n.mojito.rest.client.ImageClient;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.test.category.IntegrationTest;
 import java.nio.charset.StandardCharsets;

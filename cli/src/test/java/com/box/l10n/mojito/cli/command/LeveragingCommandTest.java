@@ -2,12 +2,12 @@ package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
 
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
@@ -66,7 +66,7 @@ public class LeveragingCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -136,7 +136,7 @@ public class LeveragingCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source2").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -234,7 +234,7 @@ public class LeveragingCommandTest extends CLITestBase {
     Long sourceTmTextUnitId1 = initialSource.get(0).getTmTextUnit().getId();
     Long sourceTmTextUnitId2 = initialSource.get(3).getTmTextUnit().getId();
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");
@@ -336,7 +336,7 @@ public class LeveragingCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source2b").getAbsolutePath());
 
-    Asset asset =
+    AssetAssetSummary asset =
         assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
     importTranslations(asset.getId(), "source-xliff_", "ja-JP");

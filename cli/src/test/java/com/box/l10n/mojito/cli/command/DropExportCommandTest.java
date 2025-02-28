@@ -2,13 +2,13 @@ package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
 
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.DropWsApi;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
+import com.box.l10n.mojito.apiclient.model.PageDropDropSummary;
+import com.box.l10n.mojito.apiclient.model.Pageable;
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
-import com.box.l10n.mojito.cli.apiclient.DropWsApi;
-import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
-import com.box.l10n.mojito.cli.model.AssetAssetSummary;
-import com.box.l10n.mojito.cli.model.PageDropDropSummary;
-import com.box.l10n.mojito.cli.model.Pageable;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMImportService;
@@ -23,12 +23,12 @@ public class DropExportCommandTest extends CLITestBase {
 
   @Autowired TMImportService tmImport;
 
-  @Autowired AssetWsApiProxy assetClient;
+  @Autowired AssetClient assetClient;
 
   @Autowired DropWsApi dropClient;
   @Autowired RepositoryRepository repositoryRepository;
 
-  @Autowired RepositoryWsApiProxy repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
   @Test
   public void export() throws Exception {

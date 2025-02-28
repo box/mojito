@@ -5,22 +5,22 @@ import static java.util.Optional.ofNullable;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.LocaleMappingHelper;
-import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.exception.AssetNotFoundException;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
+import com.box.l10n.mojito.apiclient.model.LocaleInfo;
+import com.box.l10n.mojito.apiclient.model.LocalizedAssetBody;
+import com.box.l10n.mojito.apiclient.model.MultiLocalizedAssetBody;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocaleStatisticRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryStatisticRepository;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.model.AssetAssetSummary;
-import com.box.l10n.mojito.cli.model.LocaleInfo;
-import com.box.l10n.mojito.cli.model.LocalizedAssetBody;
-import com.box.l10n.mojito.cli.model.MultiLocalizedAssetBody;
-import com.box.l10n.mojito.cli.model.PollableTask;
-import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryLocaleStatisticRepository;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.cli.model.RepositoryStatisticRepository;
 import com.box.l10n.mojito.json.ObjectMapper;
-import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,7 +172,7 @@ public class PullCommand extends Command {
           "Indicates that the pull should use parallel execution. This is run as an asynchronous request, if --async-ws is also specified it will be ignored.")
   Boolean isParallel = false;
 
-  @Autowired AssetWsApiProxy assetClient;
+  @Autowired AssetClient assetClient;
 
   @Autowired CommandHelper commandHelper;
 

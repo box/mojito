@@ -28,7 +28,7 @@ import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.github.GithubException;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
-import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
+import com.box.l10n.mojito.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;

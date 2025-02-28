@@ -4,8 +4,8 @@ import static com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction.MAP_TEXTU
 import static com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction.PUSH_SCREENSHOT;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.box.l10n.mojito.apiclient.model.ThirdPartySync;
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.model.ThirdPartySync;
 import com.box.l10n.mojito.cli.utils.PollableTaskJobMatcher;
 import com.box.l10n.mojito.cli.utils.TestingJobListener;
 import com.box.l10n.mojito.entity.Repository;

@@ -1,15 +1,15 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.box.l10n.mojito.cli.apiclient.AssetWsApiProxy;
-import com.box.l10n.mojito.cli.apiclient.CommitWsApi;
-import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.CommitWsApi;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.exception.PollableTaskException;
+import com.box.l10n.mojito.apiclient.model.BranchBranchSummary;
+import com.box.l10n.mojito.apiclient.model.CommitToPushRunBody;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.SourceAsset;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.BranchBranchSummary;
-import com.box.l10n.mojito.cli.model.CommitToPushRunBody;
-import com.box.l10n.mojito.cli.model.PollableTask;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.cli.model.SourceAsset;
-import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,11 +33,11 @@ public class PushService {
 
   @Autowired ConsoleWriter consoleWriter;
 
-  @Autowired AssetWsApiProxy assetClient;
+  @Autowired AssetClient assetClient;
 
   @Autowired CommitWsApi commitClient;
 
-  @Autowired RepositoryWsApiProxy repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
   @Autowired CommandHelper commandHelper;
 

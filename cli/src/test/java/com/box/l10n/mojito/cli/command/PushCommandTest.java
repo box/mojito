@@ -2,6 +2,8 @@ package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.*;
 
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.Commit;
@@ -11,9 +13,6 @@ import com.box.l10n.mojito.entity.PushRunAsset;
 import com.box.l10n.mojito.entity.PushRunAssetTmTextUnit;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.CommitClient;
-import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.commit.CommitRepository;
 import com.box.l10n.mojito.service.commit.CommitService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -48,8 +47,6 @@ public class PushCommandTest extends CLITestBase {
 
   @Autowired AssetClient assetClient;
 
-  @Autowired CommitClient commitClient;
-
   @Autowired TextUnitSearcher textUnitSearcher;
 
   @Autowired LocaleService localeService;
@@ -78,7 +75,7 @@ public class PushCommandTest extends CLITestBase {
     String sourcePath = matcher.group(1);
     logger.debug("Source path is [{}]", sourcePath);
 
-    Asset assetByPathAndRepositoryId =
+    AssetAssetSummary assetByPathAndRepositoryId =
         assetClient.getAssetByPathAndRepositoryId(sourcePath, repository.getId());
     assertEquals(sourcePath, assetByPathAndRepositoryId.getPath());
   }

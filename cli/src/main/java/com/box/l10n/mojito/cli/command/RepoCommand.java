@@ -3,9 +3,9 @@ package com.box.l10n.mojito.cli.command;
 import static java.util.Optional.ofNullable;
 
 import com.beust.jcommander.ParameterException;
-import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.model.AssetIntegrityChecker;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.AssetIntegrityChecker;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,13 +27,13 @@ public abstract class RepoCommand extends Command {
 
   @Autowired protected ConsoleWriter consoleWriter;
 
-  @Autowired protected RepositoryWsApiProxy repositoryClient;
+  @Autowired protected RepositoryClient repositoryClient;
 
   @Autowired protected LocaleHelper localeHelper;
 
   /**
    * Extract {@link AssetIntegrityChecker} Set from {@link RepoCreateCommand#integrityCheckParam} to
-   * prep for {@link com.box.l10n.mojito.cli.model.Repository} creation
+   * prep for {@link com.box.l10n.mojito.rest.apiclient.model.Repository} creation
    *
    * @param integrityCheckParam
    * @param doPrint

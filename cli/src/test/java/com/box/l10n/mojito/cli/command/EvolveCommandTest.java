@@ -1,8 +1,8 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.box.l10n.mojito.apiclient.model.LocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.model.LocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.evolve.Course;
 import com.box.l10n.mojito.evolve.Evolve;

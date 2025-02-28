@@ -4,21 +4,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.apiclient.DropWsApi;
+import com.box.l10n.mojito.apiclient.PollableTaskClient;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.apiclient.model.ExportDropConfig;
+import com.box.l10n.mojito.apiclient.model.ImportDropConfig;
+import com.box.l10n.mojito.apiclient.model.ImportXliffBody;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.Repository;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocale;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.rest.WSTestBase;
-import com.box.l10n.mojito.rest.client.DropClient;
-import com.box.l10n.mojito.rest.client.PollableTaskClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
-import com.box.l10n.mojito.rest.entity.ExportDropConfig;
-import com.box.l10n.mojito.rest.entity.ImportDropConfig;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.category.IntegrationTest;
+import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -35,7 +38,7 @@ public class DropWSTest extends WSTestBase {
 
   @Autowired RepositoryClient repositoryClient;
 
-  @Autowired DropClient dropClient;
+  @Autowired DropWsApi dropClient;
 
   @Autowired PollableTaskClient pollableTaskClient;
 
@@ -47,20 +50,25 @@ public class DropWSTest extends WSTestBase {
 
     List<String> bcp47Tags = Arrays.asList("fr-FR", "ja-JP");
 
-    Set<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
-    Repository repository =
-        repositoryClient.createRepository(
-            testIdWatcher.getEntityName("repository"), null, null, repositoryLocales, null, null);
+    List<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
+    Repository repoToCreate = new Repository();
+    repoToCreate.setName(testIdWatcher.getEntityName("repository"));
+    repoToCreate.setDescription(null);
+    repoToCreate.setSourceLocale(null);
+    repoToCreate.setRepositoryLocales(repositoryLocales);
+    repoToCreate.setAssetIntegrityCheckers(null);
+    repoToCreate.setCheckSLA(null);
+    RepositoryRepository repository = repositoryClient.createRepository(repoToCreate);
 
     ExportDropConfig exportDropConfig = new ExportDropConfig();
     exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(bcp47Tags);
+    exportDropConfig.setLocales(bcp47Tags);
 
     exportDropConfig = dropClient.exportDrop(exportDropConfig);
 
     pollableTaskClient.waitForPollableTask(exportDropConfig.getPollableTask().getId(), 20000L);
 
-    for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
+    for (RepositoryLocaleRepository repositoryLocale : repository.getRepositoryLocales()) {
       if (repositoryLocale.getParentLocale() != null) {
         assertTrue(bcp47Tags.contains(repositoryLocale.getLocale().getBcp47Tag()));
       } else {
@@ -75,21 +83,30 @@ public class DropWSTest extends WSTestBase {
 
     List<String> bcp47Tags = Arrays.asList("fr-FR", "ja-JP");
 
-    Set<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
-    Repository repository =
-        repositoryClient.createRepository(
-            testIdWatcher.getEntityName("repository"), null, null, repositoryLocales, null, null);
+    List<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
+    Repository repoToCreate = new Repository();
+    repoToCreate.setName(testIdWatcher.getEntityName("repository"));
+    repoToCreate.setDescription(null);
+    repoToCreate.setSourceLocale(null);
+    repoToCreate.setRepositoryLocales(repositoryLocales);
+    repoToCreate.setAssetIntegrityCheckers(null);
+    repoToCreate.setCheckSLA(null);
+    RepositoryRepository repository = repositoryClient.createRepository(repoToCreate);
 
     ExportDropConfig exportDropConfig = new ExportDropConfig();
     exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(bcp47Tags);
+    exportDropConfig.setLocales(bcp47Tags);
 
     exportDropConfig = dropClient.exportDrop(exportDropConfig);
 
     pollableTaskClient.waitForPollableTask(exportDropConfig.getPollableTask().getId());
 
-    ImportDropConfig importDropResult =
-        dropClient.importDrop(repository, exportDropConfig.getDropId(), null);
+    com.box.l10n.mojito.apiclient.model.ImportDropConfig importDropConfig =
+        new com.box.l10n.mojito.apiclient.model.ImportDropConfig();
+    importDropConfig.setRepositoryId(repository.getId());
+    importDropConfig.setDropId(exportDropConfig.getDropId());
+    importDropConfig.setStatus(null);
+    ImportDropConfig importDropResult = dropClient.importDrop(importDropConfig);
 
     PollableTask importTask = importDropResult.getPollableTask();
     pollableTaskClient.waitForPollableTask(importTask.getId(), 20000L);
@@ -110,10 +127,15 @@ public class DropWSTest extends WSTestBase {
 
     List<String> bcp47Tags = Arrays.asList("fr-FR", "ja-JP");
 
-    Set<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
-    Repository repository =
-        repositoryClient.createRepository(
-            testIdWatcher.getEntityName("repository"), null, null, repositoryLocales, null, null);
+    List<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
+    Repository repoToCreate = new Repository();
+    repoToCreate.setName(testIdWatcher.getEntityName("repository"));
+    repoToCreate.setDescription(null);
+    repoToCreate.setSourceLocale(null);
+    repoToCreate.setRepositoryLocales(repositoryLocales);
+    repoToCreate.setAssetIntegrityCheckers(null);
+    repoToCreate.setCheckSLA(null);
+    RepositoryRepository repository = repositoryClient.createRepository(repoToCreate);
 
     String xliffWithTranslationForNonExistingTextUnit =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -128,9 +150,13 @@ public class DropWSTest extends WSTestBase {
             + "</file>\n"
             + "</xliff>";
 
-    String importedXliff =
-        dropClient.importXiff(
-            xliffWithTranslationForNonExistingTextUnit, repository.getId(), false, null);
+    com.box.l10n.mojito.apiclient.model.ImportXliffBody importXliffBody = new ImportXliffBody();
+
+    importXliffBody.setRepositoryId(Preconditions.checkNotNull(repository.getId()));
+    importXliffBody.setTranslationKit(false);
+    importXliffBody.setImportStatus(null);
+    importXliffBody.setXliffContent(xliffWithTranslationForNonExistingTextUnit);
+    String importedXliff = dropClient.importXliff(importXliffBody).getXliffContent();
 
     String expectedXliff =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

@@ -3,15 +3,15 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.LocaleWsApiProxy;
+import com.box.l10n.mojito.apiclient.LocaleClient;
+import com.box.l10n.mojito.apiclient.exception.LocaleNotFoundException;
+import com.box.l10n.mojito.apiclient.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.apiclient.model.AssetIntegrityChecker;
+import com.box.l10n.mojito.apiclient.model.Locale;
+import com.box.l10n.mojito.apiclient.model.Repository;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocale;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.command.param.Param;
-import com.box.l10n.mojito.cli.model.AssetIntegrityChecker;
-import com.box.l10n.mojito.cli.model.Locale;
-import com.box.l10n.mojito.cli.model.Repository;
-import com.box.l10n.mojito.cli.model.RepositoryLocale;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
-import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -92,7 +92,7 @@ public class RepoCreateCommand extends RepoCommand {
       description = INTEGRITY_CHECK_DESCRIPTION)
   String integrityCheckParam;
 
-  @Autowired LocaleWsApiProxy localeClient;
+  @Autowired LocaleClient localeClient;
 
   @Override
   public void execute() throws CommandException {

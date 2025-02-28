@@ -33,4 +33,3 @@ release.properties
 /tmp/
 /local/
 .vscode/
-/webapp/src/main/resources/openapi.*

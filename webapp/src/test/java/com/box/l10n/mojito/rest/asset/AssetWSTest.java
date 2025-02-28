@@ -6,6 +6,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.box.l10n.mojito.apiclient.AssetClient;
+import com.box.l10n.mojito.apiclient.PollableTaskClient;
+import com.box.l10n.mojito.apiclient.exception.RepositoryNotFoundException;
+import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.SourceAsset;
+import com.box.l10n.mojito.apiclient.model.XliffExportBody;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtractionByBranch;
 import com.box.l10n.mojito.entity.AssetTextUnit;
@@ -13,10 +20,6 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.WSTestDataFactory;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.PollableTaskClient;
-import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
-import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -26,7 +29,6 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.category.IntegrationTest;
-import com.google.common.collect.Sets;
 import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Rule;
@@ -69,9 +71,8 @@ public class AssetWSTest extends WSTestBase {
   public void testImportSourceAsset() throws RepositoryNameAlreadyUsedException {
 
     Repository repository = testDataFactory.createRepository(testIdWatcher);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset = createSourceAsset(repository);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost =
-        assetClient.sendSourceAsset(sourceAsset);
+    SourceAsset sourceAsset = createSourceAsset(repository);
+    SourceAsset sourceAssetAfterPost = assetClient.importSourceAsset(sourceAsset);
 
     pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
 
@@ -106,37 +107,36 @@ public class AssetWSTest extends WSTestBase {
   public void testDeleteAssetById()
       throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException {
     Repository repository = testDataFactory.createRepository(testIdWatcher);
-    List<com.box.l10n.mojito.rest.entity.Asset> assets =
-        assetClient.getAssetsByRepositoryId(repository.getId());
+    List<AssetAssetSummary> assets =
+        assetClient.getAssets(repository.getId(), null, null, null, null);
     assertEquals("There should be no asset for this repository yet", 0, assets.size());
 
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset = createSourceAsset(repository);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost =
-        assetClient.sendSourceAsset(sourceAsset);
+    SourceAsset sourceAsset = createSourceAsset(repository);
+    SourceAsset sourceAssetAfterPost = assetClient.importSourceAsset(sourceAsset);
     pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
 
     Asset asset = assetRepository.findById(sourceAssetAfterPost.getAddedAssetId()).orElse(null);
     Long assetId = asset.getId();
     assertNotNull("The asset should have been created", asset);
     assertFalse("The asset should have not been deleted yet", asset.getDeleted());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId());
+    assets = assetClient.getAssets(repository.getId(), null, null, null, null);
     assertEquals("There should be one asset for this repository", 1, assets.size());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId(), false);
+    assets = assetClient.getAssets(repository.getId(), null, false, null, null);
     assertEquals(
         "There should be one asset that is not deleted for this repository", 1, assets.size());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId(), true);
+    assets = assetClient.getAssets(repository.getId(), null, true, null, null);
     assertEquals("There should be no deleted asset for this repository", 0, assets.size());
 
     assetClient.deleteAssetById(assetId);
     asset = assetRepository.findById(sourceAssetAfterPost.getAddedAssetId()).orElse(null);
     assertEquals("The asset id should have not changed", assetId, asset.getId());
     assertTrue("The asset should be deleted", asset.getDeleted());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId());
+    assets = assetClient.getAssets(repository.getId(), null, null, null, null);
     assertEquals("There should be one asset for this repository", 1, assets.size());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId(), false);
+    assets = assetClient.getAssets(repository.getId(), null, false, null, null);
     assertEquals(
         "There should be no asset that is not deleted for this repository", 0, assets.size());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId(), true);
+    assets = assetClient.getAssets(repository.getId(), null, true, null, null);
     assertEquals("There should be one deleted asset for this repository", 1, assets.size());
   }
 
@@ -144,48 +144,45 @@ public class AssetWSTest extends WSTestBase {
   public void testDeleteUnusedAssets()
       throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException {
     Repository repository = testDataFactory.createRepository(testIdWatcher);
-    List<com.box.l10n.mojito.rest.entity.Asset> assets =
-        assetClient.getAssetsByRepositoryId(repository.getId());
+    List<AssetAssetSummary> assets =
+        assetClient.getAssets(repository.getId(), null, null, null, null);
     assertEquals("There should be no asset for this repository yet", 0, assets.size());
 
     String path1 = "/path/to/fake/file1.xliff";
     String path2 = "/path/to/fake/file2.xliff";
     String path3 = "/path/to/fake/file3.xliff";
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset1 = createSourceAsset(repository);
+    SourceAsset sourceAsset1 = createSourceAsset(repository);
     sourceAsset1.setPath(path1);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost1 =
-        assetClient.sendSourceAsset(sourceAsset1);
+    SourceAsset sourceAssetAfterPost1 = assetClient.importSourceAsset(sourceAsset1);
     pollableTaskClient.waitForPollableTask(sourceAssetAfterPost1.getPollableTask().getId(), 5000L);
 
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset2 = createSourceAsset(repository);
+    SourceAsset sourceAsset2 = createSourceAsset(repository);
     sourceAsset2.setPath(path2);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost2 =
-        assetClient.sendSourceAsset(sourceAsset2);
+    SourceAsset sourceAssetAfterPost2 = assetClient.importSourceAsset(sourceAsset2);
     pollableTaskClient.waitForPollableTask(sourceAssetAfterPost2.getPollableTask().getId(), 5000L);
 
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset3 = createSourceAsset(repository);
+    SourceAsset sourceAsset3 = createSourceAsset(repository);
     sourceAsset2.setPath(path3);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost3 =
-        assetClient.sendSourceAsset(sourceAsset2);
+    SourceAsset sourceAssetAfterPost3 = assetClient.importSourceAsset(sourceAsset2);
     pollableTaskClient.waitForPollableTask(sourceAssetAfterPost3.getPollableTask().getId(), 5000L);
 
-    assets = assetClient.getAssetsByRepositoryId(repository.getId());
+    assets = assetClient.getAssets(repository.getId(), null, null, null, null);
     assertEquals("There should be three assets for this repository", 3, assets.size());
 
     Branch branch = branchRepository.findByNameAndRepository(null, repository);
 
     PollableTask pollableTask =
-        assetClient.deleteAssetsInBranch(
-            Sets.newHashSet(
+        assetClient.deleteAssetsOfBranches(
+            List.of(
                 sourceAssetAfterPost2.getAddedAssetId(), sourceAssetAfterPost3.getAddedAssetId()),
             branch.getId());
     pollableTaskClient.waitForPollableTask(pollableTask.getId());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId());
+    assets = assetClient.getAssets(repository.getId(), null, null, null, null);
     assertEquals("There should be three assets for this repository", 3, assets.size());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId(), false);
+    assets = assetClient.getAssets(repository.getId(), null, false, null, null);
     assertEquals("There should be one undeleted asset for this repository", 1, assets.size());
     assertEquals("Asset with path1 should not be deleted", path1, assets.get(0).getPath());
-    assets = assetClient.getAssetsByRepositoryId(repository.getId(), true);
+    assets = assetClient.getAssets(repository.getId(), null, true, null, null);
     assertEquals("There should be two deleted assets for this repository", 2, assets.size());
     assertTrue(assets.get(0).getPath().equals(path2) || assets.get(0).getPath().equals(path3));
     assertTrue(assets.get(1).getPath().equals(path2) || assets.get(1).getPath().equals(path3));
@@ -205,9 +202,8 @@ public class AssetWSTest extends WSTestBase {
             || assetIds.iterator().next().equals(sourceAssetAfterPost3.getAddedAssetId()));
   }
 
-  protected com.box.l10n.mojito.rest.entity.SourceAsset createSourceAsset(Repository repository) {
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset =
-        new com.box.l10n.mojito.rest.entity.SourceAsset();
+  protected SourceAsset createSourceAsset(Repository repository) {
+    SourceAsset sourceAsset = new SourceAsset();
     sourceAsset.setRepositoryId(repository.getId());
     sourceAsset.setPath("/path/to/fake/file.xliff");
     sourceAsset.setContent(testDataFactory.getTestSourceAssetContent());
@@ -220,17 +216,16 @@ public class AssetWSTest extends WSTestBase {
   public void testExportSourceAsset() throws RepositoryNameAlreadyUsedException {
 
     Repository repository = testDataFactory.createRepository(testIdWatcher);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset = createSourceAsset(repository);
-    com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost =
-        assetClient.sendSourceAsset(sourceAsset);
+    SourceAsset sourceAsset = createSourceAsset(repository);
+    SourceAsset sourceAssetAfterPost = assetClient.importSourceAsset(sourceAsset);
     pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
 
     Long assetId = sourceAssetAfterPost.getAddedAssetId();
-    com.box.l10n.mojito.rest.entity.XliffExportBody xliffExportBody =
-        assetClient.exportAssetAsXLIFFAsync(assetId, "en");
+    XliffExportBody xliffExportBody =
+        assetClient.xliffExportAsync(new XliffExportBody(), "en", assetId);
     pollableTaskClient.waitForPollableTask(xliffExportBody.getPollableTask().getId(), 5000L);
 
-    String xliff = assetClient.getExportedXLIFF(assetId, xliffExportBody.getTmXliffId());
+    String xliff = assetClient.xliffExport(assetId, xliffExportBody.getTmXliffId()).getContent();
     assertTrue(xliff.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
   }
 }

@@ -237,7 +237,6 @@
 
     <modules>
         <module>cli</module>
-        <module>restclient</module>
         <module>test-common</module>
         <module>common</module>
         <module>webapp</module>

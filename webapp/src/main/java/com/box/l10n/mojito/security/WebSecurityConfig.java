@@ -176,7 +176,7 @@ public class WebSecurityConfig {
                     "/js/**",
                     "/css/**",
                     "/error",
-                    "/v3/api-docs")
+                    "/v3/api-docs.yaml")
                 .permitAll()
                 . // always accessible to serve the frontend
                 requestMatchers(getHeathcheckPatterns())

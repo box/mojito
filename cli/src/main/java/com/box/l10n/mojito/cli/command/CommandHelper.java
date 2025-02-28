@@ -3,20 +3,20 @@ package com.box.l10n.mojito.cli.command;
 import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_OPTIONS_AND_EXAMPLE;
 
 import com.box.l10n.mojito.JSR310Migration;
-import com.box.l10n.mojito.cli.apiclient.RepositoryWsApiProxy;
+import com.box.l10n.mojito.apiclient.PollableTaskClient;
+import com.box.l10n.mojito.apiclient.RepositoryClient;
+import com.box.l10n.mojito.apiclient.exception.PollableTaskException;
+import com.box.l10n.mojito.apiclient.exception.RestClientException;
+import com.box.l10n.mojito.apiclient.model.LocaleRepository;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.RepositoryLocaleRepository;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileFinder;
 import com.box.l10n.mojito.cli.filefinder.FileFinderException;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
-import com.box.l10n.mojito.cli.model.LocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryLocaleRepository;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.rest.client.PollableTaskClient;
-import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.client.exception.RestClientException;
-import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
@@ -71,7 +71,7 @@ public class CommandHelper {
     ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE
   };
 
-  @Autowired RepositoryWsApiProxy repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
   @Autowired PollableTaskClient pollableTaskClient;
 
@@ -290,7 +290,7 @@ public class CommandHelper {
    * Waits for {@link PollableTask} to be all finished (see {@link PollableTask#isAllFinished() }).
    * Infinite timeout.
    *
-   * @param pollableId the {@link PollableTask#id}
+   * @param pollableId the {@link PollableTask#getId()}
    * @throws com.box.l10n.mojito.cli.command.CommandException
    */
   public void waitForPollableTask(Long pollableId) throws CommandException {

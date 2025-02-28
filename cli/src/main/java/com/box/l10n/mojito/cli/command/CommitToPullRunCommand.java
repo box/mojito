@@ -2,11 +2,11 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.CommitWsApi;
+import com.box.l10n.mojito.apiclient.CommitWsApi;
+import com.box.l10n.mojito.apiclient.model.CommitToPullRunBody;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.CommitToPullRunBody;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
 import com.box.l10n.mojito.json.ObjectMapper;
 import java.nio.file.Path;
 import java.nio.file.Paths;

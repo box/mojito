@@ -4,12 +4,12 @@ import static org.fusesource.jansi.Ansi.Color.CYAN;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.apiclient.ThirdPartyWsApi;
+import com.box.l10n.mojito.apiclient.ThirdPartyWsApi;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
+import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
+import com.box.l10n.mojito.apiclient.model.ThirdPartySync;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.cli.model.PollableTask;
-import com.box.l10n.mojito.cli.model.RepositoryRepository;
-import com.box.l10n.mojito.cli.model.ThirdPartySync;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;

@@ -2,8 +2,8 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.apiclient.CliWsApi;
 import com.box.l10n.mojito.cli.GitInfo;
-import com.box.l10n.mojito.cli.apiclient.CliWsApi;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import org.fusesource.jansi.Ansi;
 import org.springframework.beans.factory.annotation.Autowired;

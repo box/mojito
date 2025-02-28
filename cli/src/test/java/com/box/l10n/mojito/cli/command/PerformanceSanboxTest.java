@@ -3,8 +3,6 @@ package com.box.l10n.mojito.cli.command;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.io.Files;
-import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.google.common.base.Strings;
@@ -30,11 +28,7 @@ public class PerformanceSanboxTest extends CLITestBase {
 
   static int NUMBER_OF_TEXTUNITS = 10000;
 
-  @Autowired RepositoryClient repositoryClient;
-
   @Autowired RepositoryRepository repositoryRepository;
-
-  @Autowired AssetClient assetClient;
 
   @Autowired TMTextUnitVariantRepository tmTextUnitVariantRepository;
 

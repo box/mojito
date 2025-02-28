@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.box.l10n.mojito.apiclient.WaitForPollableTaskListener;
+import com.box.l10n.mojito.apiclient.model.ErrorMessage;
+import com.box.l10n.mojito.apiclient.model.PollableTask;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.WaitForPollableTaskListener;
-import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.google.common.base.Strings;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -23,10 +25,9 @@ public class CommandWaitForPollableTaskListener implements WaitForPollableTaskLi
 
   @Autowired ConsoleWriter consoleWriter;
 
-  /**
-   * Keeps track of the number of callback to {@link
-   * #afterPoll(com.box.l10n.mojito.rest.entity.PollableTask) }
-   */
+  @Autowired ObjectMapper objectMapper;
+
+  /** Keeps track of the number of callback to {@link #afterPoll(PollableTask) } */
   int numberAfterPollCallback = 0;
 
   @Override
@@ -68,13 +69,11 @@ public class CommandWaitForPollableTaskListener implements WaitForPollableTaskLi
           .a(") ");
 
       if (pollableTask.getErrorMessage() != null) {
-        consoleWriter
-            .fg(Ansi.Color.RED)
-            .a("Failed")
-            .newLine()
-            .a(pollableTask.getErrorMessage().getMessage());
+        ErrorMessage errorMessage =
+            this.objectMapper.convertValue(pollableTask.getErrorMessage(), ErrorMessage.class);
+        consoleWriter.fg(Ansi.Color.RED).a("Failed").newLine().a(errorMessage.getMessage());
 
-        if (!pollableTask.getErrorMessage().isExpected()) {
+        if (!errorMessage.isExpected()) {
           consoleWriter.newLine().a("Error stack").newLine().a(pollableTask.getErrorStack());
         }
       } else if (pollableTask.getFinishedDate() != null) {
