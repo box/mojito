@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.service.tm.textunitdtocache;
 
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.MT_REVIEW_NEEDED;
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.MT_TRANSLATED;
+
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
@@ -8,6 +11,7 @@ import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepo
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantDTO;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -54,6 +58,8 @@ public class TextUnitDTOsCacheService {
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
   @Autowired TextUnitUtils textUnitUtils;
+
+  @Autowired TMTextUnitVariantRepository tmTextUnitVariantRepository;
 
   @Autowired TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
@@ -255,9 +261,25 @@ public class TextUnitDTOsCacheService {
                   previousTextUnitDTOsByTmTextUnitIds.get(current.getTmTextUnitId());
               return previous == null
                   || !Objects.equals(
-                      previous.getTmTextUnitVariantId(), current.getTmTextUnitVariantId());
+                      previous.getTmTextUnitVariantId(), current.getTmTextUnitVariantId())
+                  || !hasAiStatusUpdated(current, previous);
             })
         .map(TMTextUnitCurrentVariantDTO::getTmTextUnitId);
+  }
+
+  private boolean hasAiStatusUpdated(TMTextUnitCurrentVariantDTO current, TextUnitDTO previous) {
+    boolean currentAiStatus = false;
+    if (previous != null && previous.isAiTranslateStatus()) {
+      Optional<TMTextUnitVariant> variant =
+          tmTextUnitVariantRepository.findById(current.getTmTextUnitVariantId());
+      currentAiStatus =
+          variant
+              .map(
+                  v ->
+                      MT_TRANSLATED.equals(v.getStatus()) || MT_REVIEW_NEEDED.equals(v.getStatus()))
+              .orElse(false);
+    }
+    return currentAiStatus;
   }
 
   Stream<Long> getTmTextUnitIdsForChangedTranslateStatus(
