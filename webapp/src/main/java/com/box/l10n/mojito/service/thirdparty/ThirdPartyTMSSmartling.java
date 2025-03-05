@@ -871,6 +871,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             filterTmTextUnitIds);
     aiTranslationService.updateVariantStatusToMTReviewNeeded(
         batch.stream().map(TextUnitDTO::getTmTextUnitCurrentVariantId).toList());
+
     meterRegistry
         .counter(
             "SmartlingSync.uploadAiTranslationsBatch",

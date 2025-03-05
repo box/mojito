@@ -4792,6 +4792,7 @@ components:
           - LEVERAGING
           - INTEGRITY_CHECK
           - QUALITY_CHECK
+          - AI_TRANSLATION
     TMTextUnitVariantComment_TranslationHistorySummary:
       type: object
       properties:
@@ -4816,6 +4817,7 @@ components:
           - LEVERAGING
           - INTEGRITY_CHECK
           - QUALITY_CHECK
+          - AI_TRANSLATION
     TMTextUnitVariant_Screenshots:
       type: object
       properties:

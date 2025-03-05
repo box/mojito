@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.ai.translation;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,12 +12,14 @@ import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class AITranslationServiceTest {
@@ -91,5 +95,20 @@ public class AITranslationServiceTest {
     aiTranslationService.createPendingMTEntitiesInBatches(1L, tmTextUnitIds);
 
     verify(jdbcTemplate, times(0)).update(anyString());
+  }
+
+  @Test
+  public void testUpdateVariantStatusToMTReviewNeeded() {
+    aiTranslationService.updateVariantStatusToMTReviewNeeded(List.of(1L, 2L, 3L));
+    verify(jdbcTemplate, times(1))
+        .batchUpdate(
+            eq(
+                "UPDATE tm_text_unit_variant SET status = ? WHERE id IN (SELECT tucv.tm_text_unit_variant_id FROM tm_text_unit_current_variant tucv WHERE tucv.id = ?)"),
+            any(BatchPreparedStatementSetter.class));
+    verify(jdbcTemplate, times(1))
+        .batchUpdate(
+            eq(
+                "INSERT INTO tm_text_unit_variant_comment (tm_text_unit_variant_id, severity, type, content, created_date, last_modified_date)  VALUES (?, ?, ?, ?, ?, ?)"),
+            any(List.class));
   }
 }

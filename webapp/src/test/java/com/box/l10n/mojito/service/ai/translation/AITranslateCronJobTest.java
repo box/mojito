@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.ai.translation;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,12 +23,15 @@ import com.box.l10n.mojito.entity.RepositoryLocaleAIPrompt;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.entity.TmTextUnitPendingMT;
 import com.box.l10n.mojito.service.ai.LLMService;
 import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -80,6 +84,8 @@ public class AITranslateCronJobTest {
 
   @Mock TextUnitSearcher textUnitSearcher;
 
+  @Mock TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
+
   AITranslateCronJob aiTranslateCronJob;
 
   TMTextUnit tmTextUnit;
@@ -104,6 +110,7 @@ public class AITranslateCronJobTest {
     aiTranslateCronJob.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     aiTranslateCronJob.aiTranslationService = aiTranslationService;
     aiTranslateCronJob.textUnitSearcher = textUnitSearcher;
+    aiTranslateCronJob.tmTextUnitVariantCommentService = tmTextUnitVariantCommentService;
     aITranslationConfiguration = new AITranslationConfiguration();
     aITranslationConfiguration.setEnabled(true);
     aITranslationConfiguration.setCron("0 0/10 * * * ?");
@@ -192,6 +199,7 @@ public class AITranslateCronJobTest {
         .thenReturn("translated");
     TMTextUnitCurrentVariant tmTextUnitCurrentVariant = new TMTextUnitCurrentVariant();
     tmTextUnitCurrentVariant.setLocale(english);
+    tmTextUnitCurrentVariant.setId(1L);
     when(repository.getId()).thenReturn(1L);
     when(repository.getName()).thenReturn("testRepo");
     when(repository.getRepositoryLocales())
@@ -208,6 +216,15 @@ public class AITranslateCronJobTest {
     when(meterRegistry.counter(anyString(), isA(Iterable.class))).thenReturn(mockCounter);
     when(textUnitSearcher.search(isA(TextUnitSearcherParameters.class)))
         .thenReturn(Collections.emptyList());
+    when(tmService.addTMTextUnitCurrentVariantWithResult(
+            anyLong(),
+            anyLong(),
+            anyString(),
+            anyString(),
+            any(TMTextUnitVariant.Status.class),
+            anyBoolean(),
+            isA(ZonedDateTime.class)))
+        .thenReturn(new AddTMTextUnitCurrentVariantResult(false, tmTextUnitCurrentVariant));
   }
 
   @Test
@@ -225,6 +242,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, times(3))
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
   }
 
   @Test
@@ -258,6 +281,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, times(3))
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
   }
 
   @Test
@@ -280,6 +309,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, times(2))
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
   }
 
   @Test
@@ -318,6 +353,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, never())
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
     verify(meterRegistry, times(1)).counter(eq("AITranslateCronJob.expired"), any(Tags.class));
   }
 
@@ -357,6 +398,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, never())
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
   }
 
   @Test
@@ -385,6 +432,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, times(30))
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
     verify(aiTranslationService, times(3)).deleteBatch(isA(Queue.class));
   }
 
@@ -420,6 +473,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, times(29))
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
     verify(aiTranslationService, times(3)).deleteBatch(isA(Queue.class));
   }
 
@@ -454,6 +513,12 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, times(12))
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
     verify(aiTranslationService, times(2)).deleteBatch(isA(Queue.class));
   }
 
@@ -486,5 +551,11 @@ public class AITranslateCronJobTest {
             eq(TMTextUnitVariant.Status.MT_TRANSLATED),
             eq(false),
             isA(ZonedDateTime.class));
+    verify(tmTextUnitVariantCommentService, never())
+        .addComment(
+            anyLong(),
+            any(TMTextUnitVariantComment.Type.class),
+            any(TMTextUnitVariantComment.Severity.class),
+            eq("Translated via AI translation job."));
   }
 }

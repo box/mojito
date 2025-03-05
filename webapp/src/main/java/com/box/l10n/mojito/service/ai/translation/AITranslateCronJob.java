@@ -8,12 +8,15 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleAIPrompt;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.entity.TmTextUnitPendingMT;
 import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.service.ai.LLMService;
 import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
+import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -84,6 +87,8 @@ public class AITranslateCronJob implements Job {
   @Autowired AITranslationConfiguration aiTranslationConfiguration;
 
   @Autowired AITranslationService aiTranslationService;
+
+  @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
 
   @Lazy @Autowired TMService tmService;
 
@@ -231,14 +236,20 @@ public class AITranslateCronJob implements Job {
           }
         });
     for (AITranslation aiTranslation : aiTranslations) {
-      tmService.addTMTextUnitCurrentVariantWithResult(
-          aiTranslation.getTmTextUnit().getId(),
-          aiTranslation.getLocaleId(),
-          aiTranslation.getTranslation(),
-          aiTranslation.getComment(),
-          aiTranslation.getStatus(),
-          aiTranslation.isIncludedInLocalizedFile(),
-          aiTranslation.getCreatedDate());
+      AddTMTextUnitCurrentVariantResult result =
+          tmService.addTMTextUnitCurrentVariantWithResult(
+              aiTranslation.getTmTextUnit().getId(),
+              aiTranslation.getLocaleId(),
+              aiTranslation.getTranslation(),
+              aiTranslation.getComment(),
+              aiTranslation.getStatus(),
+              aiTranslation.isIncludedInLocalizedFile(),
+              aiTranslation.getCreatedDate());
+      tmTextUnitVariantCommentService.addComment(
+          result.getTmTextUnitCurrentVariant().getId(),
+          TMTextUnitVariantComment.Type.AI_TRANSLATION,
+          TMTextUnitVariantComment.Severity.INFO,
+          "Translated via AI translation job.");
     }
   }
 

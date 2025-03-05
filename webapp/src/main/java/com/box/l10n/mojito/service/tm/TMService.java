@@ -15,6 +15,7 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
@@ -145,6 +146,8 @@ public class TMService {
   @Autowired PullRunService pullRunService;
 
   @Autowired PullRunAssetService pullRunAssetService;
+
+  @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
 
   @Autowired
   DataIntegrityViolationExceptionRetryTemplate dataIntegrityViolationExceptionRetryTemplate;
@@ -648,9 +651,21 @@ public class TMService {
           currentTmTextUnitVariant.setStatus(status);
           currentTmTextUnitVariant.setIncludedInLocalizedFile(includedInLocalizedFile);
           tmTextUnitVariantRepository.save(currentTmTextUnitVariant);
+          tmTextUnitVariantCommentService.addComment(
+              currentTmTextUnitVariant,
+              TMTextUnitVariantComment.Type.AI_TRANSLATION,
+              TMTextUnitVariantComment.Severity.INFO,
+              "AI translation review complete. Translation accepted.");
         } else {
           logger.debug(
               "The current text unit variant has different content, comment or needs review. Add entities");
+          if (currentTmTextUnitVariant.getStatus() == TMTextUnitVariant.Status.MT_REVIEW_NEEDED) {
+            tmTextUnitVariantCommentService.addComment(
+                currentTmTextUnitVariant,
+                TMTextUnitVariantComment.Type.AI_TRANSLATION,
+                TMTextUnitVariantComment.Severity.INFO,
+                "AI translation review updated the translation.");
+          }
           tmTextUnitVariant =
               addTMTextUnitVariant(
                   tmTextUnitId,
