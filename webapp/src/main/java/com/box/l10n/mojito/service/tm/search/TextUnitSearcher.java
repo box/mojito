@@ -423,6 +423,10 @@ public class TextUnitSearcher {
           break;
         case REJECTED:
           conjunction.add(new NativeEqExpFix("tuv.included_in_localized_file", Boolean.FALSE));
+          conjunction.add(
+              NativeExps.notEq("tuv.status", TMTextUnitVariant.Status.MT_TRANSLATED.toString()));
+          conjunction.add(
+              NativeExps.notEq("tuv.status", TMTextUnitVariant.Status.MT_REVIEW_NEEDED.toString()));
           break;
         case REVIEW_NEEDED:
           conjunction.add(
