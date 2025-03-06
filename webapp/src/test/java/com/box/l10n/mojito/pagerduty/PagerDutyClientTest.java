@@ -12,15 +12,15 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.entity.PagerDutyIncident;
 import java.io.IOException;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 public class PagerDutyClientTest {
@@ -31,7 +31,7 @@ public class PagerDutyClientTest {
   private HttpResponse httpResponse;
 
   private PagerDutyPayload samplePayload;
-  private PagerDutyRetryConfiguration retryConfiguration = new PagerDutyRetryConfiguration();
+  private final PagerDutyRetryConfiguration retryConfiguration = new PagerDutyRetryConfiguration();
   private PagerDutyIncidentRepository pagerDutyIncidentRepository;
 
   @BeforeEach
@@ -42,7 +42,12 @@ public class PagerDutyClientTest {
 
     pagerDutyClient =
         new PagerDutyClient(
-            "xxxyyyzzz", httpClient, retryConfiguration, "test", pagerDutyIncidentRepository);
+            "xxxyyyzzz",
+            httpClient,
+            retryConfiguration,
+            "test",
+            pagerDutyIncidentRepository,
+            Duration.ofMinutes(30));
 
     Map<String, String> customDetails = new HashMap<>();
     customDetails.put("Example Custom Details", "Example Value");
@@ -54,9 +59,7 @@ public class PagerDutyClientTest {
   @Test
   public void testNormalTriggerResolve() throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(202);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     try {
       pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
@@ -69,8 +72,7 @@ public class PagerDutyClientTest {
       fail("PagerDutyClient should not throw exception when the response code is 202.");
     }
 
-    verify(httpClient, times(2))
-        .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+    verify(httpClient, times(2)).send(any(), any());
   }
 
   @Test
@@ -80,28 +82,22 @@ public class PagerDutyClientTest {
 
     when(httpResponse.statusCode()).thenReturn(statusCode);
     when(httpResponse.body()).thenReturn(responseBody);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     assertThrows(
         PagerDutyException.class, () -> pagerDutyClient.triggerIncident("dedpuKey", samplePayload));
 
-    verify(httpClient, times(retryConfiguration.getMaxRetries() + 1))
-        .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+    verify(httpClient, times(retryConfiguration.getMaxRetries() + 1)).send(any(), any());
   }
 
   @Test
   public void testRecoversFromFailedAttemptsEarly() throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(500, 202);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     try {
       pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
-      verify(httpClient, times(2))
-          .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+      verify(httpClient, times(2)).send(any(), any());
     } catch (PagerDutyException e) {
       fail("PagerDutyClient should have recovered from failing attempts.");
     }
@@ -121,14 +117,11 @@ public class PagerDutyClientTest {
                   }
                 });
 
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     try {
       pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
-      verify(httpClient, times(retryConfiguration.getMaxRetries()))
-          .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+      verify(httpClient, times(retryConfiguration.getMaxRetries())).send(any(), any());
     } catch (PagerDutyException e) {
       fail("PagerDutyClient should have recovered from failing attempts.");
     }
@@ -136,23 +129,18 @@ public class PagerDutyClientTest {
 
   @Test
   public void ioExceptionReachesMaxRetries() throws IOException, InterruptedException {
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenThrow(IOException.class);
+    when(httpClient.send(any(), any())).thenThrow(IOException.class);
 
     assertThrows(
         PagerDutyException.class, () -> pagerDutyClient.triggerIncident("dedpuKey", samplePayload));
 
-    verify(httpClient, times(retryConfiguration.getMaxRetries() + 1))
-        .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+    verify(httpClient, times(retryConfiguration.getMaxRetries() + 1)).send(any(), any());
   }
 
   @Test
   public void testBadRequest() throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(400);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     assertThrows(
         PagerDutyException.class, () -> pagerDutyClient.triggerIncident("dedpuKey", samplePayload));
@@ -162,16 +150,13 @@ public class PagerDutyClientTest {
         .thenReturn(Optional.of(new PagerDutyIncident()));
     assertThrows(PagerDutyException.class, () -> pagerDutyClient.resolveIncident("dedupKey"));
 
-    verify(httpClient, times(2))
-        .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+    verify(httpClient, times(2)).send(any(), any());
   }
 
   @Test
   public void testFailsWithoutDedupKey() throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(200);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     assertThrows(
         PagerDutyException.class, () -> pagerDutyClient.triggerIncident("", samplePayload));
@@ -181,41 +166,49 @@ public class PagerDutyClientTest {
         .thenReturn(Optional.of(new PagerDutyIncident()));
     assertThrows(PagerDutyException.class, () -> pagerDutyClient.resolveIncident(null));
 
-    verify(httpClient, never())
-        .send(Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class));
+    verify(httpClient, never()).send(any(), any());
   }
 
   @Test
   public void testFailsWithoutIntegrationKey() throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(200);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
 
     assertThrows(
         IllegalArgumentException.class,
         () ->
             new PagerDutyClient(
-                null, httpClient, retryConfiguration, "test", pagerDutyIncidentRepository));
+                null,
+                httpClient,
+                retryConfiguration,
+                "test",
+                pagerDutyIncidentRepository,
+                Duration.ofMinutes(30)));
     assertThrows(
         IllegalArgumentException.class,
         () ->
             new PagerDutyClient(
-                "", httpClient, retryConfiguration, "test", pagerDutyIncidentRepository));
+                "",
+                httpClient,
+                retryConfiguration,
+                "test",
+                pagerDutyIncidentRepository,
+                Duration.ofMinutes(30)));
   }
 
   @Test
   public void testDoesntSendPayload() throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(200);
-    when(httpClient.send(
-            Mockito.any(HttpRequest.class), Mockito.any(HttpResponse.BodyHandler.class)))
-        .thenReturn(httpResponse);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
+
+    PagerDutyIncident incident = new PagerDutyIncident();
+    incident.setTriggeredAt(ZonedDateTime.now());
+    when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
+        .thenReturn(Optional.of(incident));
 
     try {
       // There is an open incident, the client shouldn't send the trigger payload
-      when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
-          .thenReturn(Optional.of(new PagerDutyIncident()));
-      pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
+      pagerDutyClient.triggerIncident("dedupKey", samplePayload);
 
       // There is no open incident, the client shouldn't send the resolve payload
       when(pagerDutyIncidentRepository.findOpenIncident(any(), any())).thenReturn(Optional.empty());
@@ -225,5 +218,25 @@ public class PagerDutyClientTest {
     }
 
     verify(httpClient, times(0)).send(any(), any());
+  }
+
+  @Test
+  public void testSendsPayloadAfterThreshold() throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(200);
+    when(httpClient.send(any(), any())).thenReturn(httpResponse);
+
+    PagerDutyIncident incident = new PagerDutyIncident();
+    incident.setTriggeredAt(ZonedDateTime.now().minus(Duration.ofMinutes(40)));
+    when(pagerDutyIncidentRepository.findOpenIncident(any(), any()))
+        .thenReturn(Optional.of(incident));
+
+    try {
+      // There is an open incident, older than the threshold, it should trigger
+      pagerDutyClient.triggerIncident("dedpuKey", samplePayload);
+    } catch (PagerDutyException e) {
+      fail("PagerDutyClient should not throw exception when the response code is 202.");
+    }
+
+    verify(httpClient, times(1)).send(any(), any());
   }
 }

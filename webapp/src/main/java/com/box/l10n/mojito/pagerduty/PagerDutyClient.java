@@ -9,6 +9,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -31,13 +32,15 @@ public class PagerDutyClient {
   private final PagerDutyRetryConfiguration retryConfiguration;
   private final String clientName;
   private final PagerDutyIncidentRepository pagerDutyIncidentRepository;
+  private final Duration triggerTimeThreshold;
 
   public PagerDutyClient(
       String integrationKey,
       HttpClient httpClient,
       PagerDutyRetryConfiguration retryConfiguration,
       String clientName,
-      PagerDutyIncidentRepository pagerDutyIncidentRepository) {
+      PagerDutyIncidentRepository pagerDutyIncidentRepository,
+      Duration triggerTimeThreshold) {
     if (integrationKey == null || integrationKey.isEmpty())
       throw new IllegalArgumentException("Pager Duty integration key is null or empty.");
     this.integrationKey = integrationKey;
@@ -45,6 +48,7 @@ public class PagerDutyClient {
     this.retryConfiguration = retryConfiguration;
     this.clientName = clientName;
     this.pagerDutyIncidentRepository = pagerDutyIncidentRepository;
+    this.triggerTimeThreshold = triggerTimeThreshold;
   }
 
   /**
@@ -54,10 +58,19 @@ public class PagerDutyClient {
    * cannot be serialized a PagerDutyException is thrown.
    */
   public void triggerIncident(String dedupKey, PagerDutyPayload payload) throws PagerDutyException {
-    if (pagerDutyIncidentRepository.findOpenIncident(clientName, dedupKey).isPresent()) {
-      logger.debug(
-          "Open incident exists for deduplication key: '{}', ignoring trigger request.", dedupKey);
-      return;
+    Optional<PagerDutyIncident> incidentOpt =
+        pagerDutyIncidentRepository.findOpenIncident(clientName, dedupKey);
+    if (incidentOpt.isPresent()) {
+      PagerDutyIncident incident = incidentOpt.get();
+      ZonedDateTime beforeNow = ZonedDateTime.now().minus(this.triggerTimeThreshold);
+      if (!incident.getTriggeredAt().isBefore(beforeNow)) {
+        // The incident was triggered within the last trigger threshold minutes, don't send another
+        // request
+        logger.info(
+            "Open incident exists for deduplication key: '{}', ignoring trigger request.",
+            dedupKey);
+        return;
+      }
     }
     sendPayload(dedupKey, payload, PagerDutyPostData.EventAction.TRIGGER);
   }
@@ -135,9 +148,10 @@ public class PagerDutyClient {
 
       int statusCode = response.statusCode();
       if (statusCode == 200 || statusCode == 202) {
-        PagerDutyIncident incident;
+        Optional<PagerDutyIncident> incidentOpt =
+            pagerDutyIncidentRepository.findOpenIncident(clientName, dedupKey);
+        PagerDutyIncident incident = incidentOpt.orElse(new PagerDutyIncident());
         if (eventAction == PagerDutyPostData.EventAction.TRIGGER) {
-          incident = new PagerDutyIncident();
           incident.setClientName(clientName);
           incident.setDedupKey(dedupKey);
           incident.setTriggeredAt(ZonedDateTime.now());
