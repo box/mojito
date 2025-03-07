@@ -20,19 +20,21 @@ import java.time.ZonedDateTime;
  */
 public class BranchStatisticSpecification {
 
-  public static SingleParamSpecification<BranchStatistic> branchEquals(final Long branchId) {
-    return new SingleParamSpecification<BranchStatistic>(branchId) {
+  public static SingleParamSpecification<BranchStatistic> branchIdEquals(final Long branchId) {
+    return new SingleParamSpecification<>(branchId) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        return builder.equal(root.get(BranchStatistic_.branch), branchId);
+        Join<BranchStatistic, Branch> branchJoin =
+            root.join(BranchStatistic_.branch, JoinType.LEFT);
+        return builder.equal(branchJoin.get(Branch_.id), branchId);
       }
     };
   }
 
   public static SingleParamSpecification<BranchStatistic> branchNameEquals(
       final String branchName) {
-    return new SingleParamSpecification<BranchStatistic>(branchName) {
+    return new SingleParamSpecification<>(branchName) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
@@ -44,7 +46,7 @@ public class BranchStatisticSpecification {
   }
 
   public static SingleParamSpecification<BranchStatistic> search(final String search) {
-    return new SingleParamSpecification<BranchStatistic>(search) {
+    return new SingleParamSpecification<>(search) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
@@ -63,7 +65,7 @@ public class BranchStatisticSpecification {
 
   public static SingleParamSpecification<BranchStatistic> createdByUserNameEquals(
       final String createdByUserName) {
-    return new SingleParamSpecification<BranchStatistic>(createdByUserName) {
+    return new SingleParamSpecification<>(createdByUserName) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
@@ -76,7 +78,7 @@ public class BranchStatisticSpecification {
   }
 
   public static SingleParamSpecification<BranchStatistic> deletedEquals(final Boolean deleted) {
-    return new SingleParamSpecification<BranchStatistic>(deleted) {
+    return new SingleParamSpecification<>(deleted) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
@@ -89,7 +91,7 @@ public class BranchStatisticSpecification {
 
   public static SingleParamSpecification<BranchStatistic> createdBefore(
       final ZonedDateTime createdBefore) {
-    return new SingleParamSpecification<BranchStatistic>(createdBefore) {
+    return new SingleParamSpecification<>(createdBefore) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
@@ -102,7 +104,7 @@ public class BranchStatisticSpecification {
 
   public static SingleParamSpecification<BranchStatistic> createdAfter(
       final ZonedDateTime createdAfter) {
-    return new SingleParamSpecification<BranchStatistic>(createdAfter) {
+    return new SingleParamSpecification<>(createdAfter) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
@@ -119,7 +121,7 @@ public class BranchStatisticSpecification {
    */
   public static SingleParamSpecification<BranchStatistic> empty(final Boolean empty) {
 
-    return new SingleParamSpecification<BranchStatistic>(empty) {
+    return new SingleParamSpecification<>(empty) {
       @Override
       public Predicate toPredicate(
           Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {

@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.rest.repository;
 
-import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchEquals;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchIdEquals;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchNameEquals;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.createdAfter;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.createdBefore;
@@ -77,7 +77,7 @@ public class BranchStatisticWS {
     Page<Long> branchStatisticIds =
         sparseBranchStatisticRepository.findAllWithIdOnly(
             where(ifParamNotNull(createdByUserNameEquals(createdByUserName)))
-                .and(ifParamNotNull(branchEquals(branchId)))
+                .and(ifParamNotNull(branchIdEquals(branchId)))
                 .and(ifParamNotNull(branchNameEquals(branchName)))
                 .and(ifParamNotNull(search(search)))
                 .and(ifParamNotNull(deletedEquals(deleted)))
