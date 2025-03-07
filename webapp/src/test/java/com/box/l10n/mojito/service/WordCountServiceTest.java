@@ -19,6 +19,14 @@ public class WordCountServiceTest {
   }
 
   @Test
+  public void testGetEnglishWordCountNull() {
+    WordCountService instance = new WordCountService();
+    int expResult = 0;
+    int result = instance.getEnglishWordCount(null);
+    assertEquals(expResult, result);
+  }
+
+  @Test
   public void testGetEnglishWordCountOne() {
     String string = "one";
     WordCountService instance = new WordCountService();

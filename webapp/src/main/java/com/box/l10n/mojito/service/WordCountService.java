@@ -20,6 +20,9 @@ public class WordCountService {
    * @return number of word
    */
   public int getEnglishWordCount(String string) {
+    if (string == null || string.isEmpty()) {
+      return 0;
+    }
 
     int wordCount = 0;
 
