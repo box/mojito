@@ -458,7 +458,6 @@ let TextUnit = createReactClass({
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.translationNeeded"});
                 tooltipDescriptor = "Translation Needed";
             }
-            console.log({tooltipDescriptor})
 
             ui = (
                 <Glyphicon
@@ -475,7 +474,7 @@ let TextUnit = createReactClass({
                     <OverlayTrigger
                         placement="top"
                         overlay={
-                            <Tooltip className="text-center">
+                            <Tooltip id={`status-description-tooltip-${this.props.textUnit.getId()}`} className="text-center">
                                 {tooltipDescriptor}
                             </Tooltip>
                         }

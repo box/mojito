@@ -504,7 +504,7 @@ class BranchesSearchResults extends React.Component {
     render() {
         if (this.props.branchesSearchParamStore.isSpinnerShown) {
             return (
-                <div class="branch-spinner mtl mbl">
+                <div className="branch-spinner mtl mbl">
                     <DelayedSpinner />
                 </div>
             );

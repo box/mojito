@@ -794,7 +794,7 @@ let SearchResults = createReactClass({
     render() {
         if (this.state.isSearching) {
             return (
-                <div class="branch-spinner mtl mbl">
+                <div className="branch-spinner mtl mbl">
                     <DelayedSpinner />
                 </div>
             );
