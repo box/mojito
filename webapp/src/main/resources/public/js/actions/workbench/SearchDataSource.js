@@ -82,27 +82,22 @@ const SearchDataSource = {
 
             textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags).offset(searchParams.pageOffset).limit(limit);
 
-            let promise;
-
             if (returnEmpty) {
-                promise = new Promise(function (resolve) {
-                    resolve({ textUnits: [], hasMore: false });
-                });
-            } else {
-                promise = TextUnitClient.getTextUnits(textUnitSearcherParameters).then(function (textUnits) {
-
-                    let hasMore = false;
-
-                    if (textUnits.length === limit) {
-                        hasMore = true;
-                        textUnits = textUnits.slice(0, limit - 1);
-                    }
-
-                    return { textUnits, hasMore };
-                });
+                return Promise.resolve({ textUnits: [], hasMore: false });
             }
 
-            return promise;
+            return Promise.all([TextUnitClient.getTextUnits(textUnitSearcherParameters), TextUnitClient.getTextUnitCount(textUnitSearcherParameters)]).then(([textUnits, countResponse]) => {
+
+                let hasMore = false;
+
+                if (textUnits.length === limit) {
+                    hasMore = true;
+                    textUnits = textUnits.slice(0, limit - 1);
+                }
+
+                return { textUnits, hasMore, totalCount: countResponse.textUnitCount };
+            });
+
         },
 
         success: WorkbenchActions.searchResultsReceivedSuccess,

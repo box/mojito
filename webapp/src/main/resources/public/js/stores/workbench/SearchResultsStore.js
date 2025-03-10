@@ -19,6 +19,7 @@ class SearchResultsStore {
         this.isErrorOccurred = false;
         this.errorObject = null;
         this.errorResponse = null;
+        this.filteredItemCount = null;
 
         /**
          * this map contains ids of all selected textunits
@@ -76,6 +77,7 @@ class SearchResultsStore {
      */
     onSearchResultsReceivedSuccess(response) {
         this.waitFor(SearchParamsStore);
+        this.filteredItemCount = response.totalCount;
         this.noMoreResults = !response.hasMore;
         this.searchResults = response.textUnits;
         this.isSearching = false;
@@ -87,6 +89,7 @@ class SearchResultsStore {
      */
     onSearchResultsReceivedError(errorResponse) {
         console.error("SearchResultsStore::onSearchResultsReceivedError ", errorResponse);
+        this.filteredItemCount = null;
         this.searchResults = [];
         this.noMoreResults = true;
         this.isSearching = false;
@@ -100,7 +103,6 @@ class SearchResultsStore {
      * @param textUnit - The textunit
      */
     onTextUnitSelection(textUnit) {
-
         for (const textUnitInStore of this.searchResults) {
             if (textUnitInStore.equals(textUnit)) {
                 const textUnitInStoreId = textUnitInStore.getTextUnitKey();
@@ -118,7 +120,6 @@ class SearchResultsStore {
      * @param {TextUnit[]} textUnits
      */
     onDeleteTextUnits(textUnits) {
-
         this.waitFor(textUnitStore.dispatchToken);
 
         textUnits.forEach(textUnit => {

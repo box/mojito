@@ -149,6 +149,7 @@ public class TextUnitWS {
 
     checkMandatoryParamatersForSearch(textUnitSearchBody);
 
+    textUnitSearchBody.setOffset(0);
     textUnitSearchBody.setLimit(null); // reset default value to count
 
     TextUnitSearcherParameters textUnitSearcherParameters =
