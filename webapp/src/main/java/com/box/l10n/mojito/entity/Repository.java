@@ -47,6 +47,9 @@ import org.springframework.data.annotation.CreatedBy;
           name = "Repository.legacy.repositoryStatistic",
           attributeNodes = @NamedAttributeNode("repositoryLocaleStatistics")),
     })
+@NamedEntityGraph(
+    name = "Repository.manualScreenshotRun",
+    attributeNodes = @NamedAttributeNode("manualScreenshotRun"))
 public class Repository extends AuditableEntity {
 
   public static final int NAME_MAX_LENGTH = 255;

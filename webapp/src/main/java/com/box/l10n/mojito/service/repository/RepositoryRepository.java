@@ -28,6 +28,7 @@ public interface RepositoryRepository
   Optional<Repository> findById(Long aLong);
 
   @Override
+  @EntityGraph(value = "Repository.manualScreenshotRun", type = EntityGraph.EntityGraphType.LOAD)
   List<Repository> findAll(Specification<Repository> s, Sort sort);
 
   @EntityGraph(value = "Repository.legacy", type = EntityGraphType.FETCH)
