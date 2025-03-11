@@ -7,6 +7,8 @@ class WorkbenchActions {
             "searchParamsChanged",
             "searchResultsReceivedSuccess",
             "searchResultsReceivedError",
+            "searchCountReceivedSuccess",
+            "searchCountReceivedError",
             "saveTextUnit",
             "saveTextUnitSuccess",
             "saveTextUnitError",

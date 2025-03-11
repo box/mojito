@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import Spinner from "./Spinner";
 
-const DelayedSpinner = () => {
+const DelayedSpinner = ({ className }) => {
     const [showSpinner, setShowSpinner] = useState(false);
 
     useEffect(() => {
@@ -11,7 +11,7 @@ const DelayedSpinner = () => {
         return () => clearTimeout(timer);
     });
 
-    return showSpinner && <Spinner />;
+    return showSpinner && <Spinner className={className}/>;
 };
 
 export default DelayedSpinner;

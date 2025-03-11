@@ -97,6 +97,9 @@ let SearchResults = createReactClass({
 
             /** @type {Number} The number of textunits according to the filter */
             filteredItemCount: SearchResultsStore.getState().filteredItemCount,
+
+            /** @type {Boolean} if the count request is still pending */
+            isCountRequestPending: SearchResultsStore.getState().isCountRequestPending,
         };
     },
 
@@ -370,6 +373,7 @@ let SearchResults = createReactClass({
             errorObject: resultsStoreState.errorObject,
             textUnitInEditMode: this.state.textUnitInEditMode,
             filteredItemCount: resultsStoreState.filteredItemCount,
+            isCountRequestPending: resultsStoreState.isCountRequestPending
         });
     },
 
@@ -563,6 +567,18 @@ let SearchResults = createReactClass({
         );
     },
 
+    getTextUnitCount(filteredItemCount, isCountRequestPending) {
+        if (!filteredItemCount) {
+            return null
+        }
+
+        if (isCountRequestPending) {
+            return <div>Total text units: <DelayedSpinner className='mlxs' /></div>;
+        }
+
+        return <div>Total text units: { filteredItemCount }</div>;
+    },
+
     /**
      * @returns {JSX} Depending on the state of the component, this function returns the JSX for the
      * workbench toolbar.
@@ -573,6 +589,7 @@ let SearchResults = createReactClass({
         const isSearching = this.state.isSearching;
         const noMoreResults = this.state.noMoreResults;
         const filteredItemCount = this.state.filteredItemCount;
+        const isCountRequestPending = this.state.isCountRequestPending;
         const isFirstPage = this.state.currentPageNumber <= 1;
         const selectedTextUnits = this.getSelectedTextUnits();
         const numberOfSelectedTextUnits = selectedTextUnits.length;
@@ -661,7 +678,7 @@ let SearchResults = createReactClass({
                                 gap: "15px",
                             }}
                         >
-                            {filteredItemCount && <div>Total text units: { filteredItemCount }</div>}
+                            {this.getTextUnitCount(filteredItemCount, isCountRequestPending)}
                             <AltContainer store={ViewModeStore}>
                                 <ViewModeDropdown
                                     onModeSelected={(mode) =>
