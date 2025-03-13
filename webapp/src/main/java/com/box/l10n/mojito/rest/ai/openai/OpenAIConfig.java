@@ -63,6 +63,11 @@ public class OpenAIConfig {
           "jdk.httpclient.allowRestrictedHeaders",
           allowRestrictedHeaders.stream().reduce((a, b) -> a + "," + b).get());
     }
-    return OpenAIClient.builder().apiKey(apiKey).host(host).customHeaders(customHeaders).build();
+    return OpenAIClient.builder()
+        .apiKey(apiKey)
+        .host(host)
+        .customHeaders(customHeaders)
+        .timeout(requestTimeout)
+        .build();
   }
 }
