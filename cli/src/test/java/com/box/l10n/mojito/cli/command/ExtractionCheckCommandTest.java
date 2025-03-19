@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
@@ -18,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 public class ExtractionCheckCommandTest extends CLITestBase {
 
@@ -789,7 +789,7 @@ public class ExtractionCheckCommandTest extends CLITestBase {
   @Test
   public void testStatsAreReportedIfUrlTemplateSet() {
     ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
-    AuthenticatedRestTemplate restTemplateMock = Mockito.mock(AuthenticatedRestTemplate.class);
+    RestTemplate restTemplateMock = Mockito.mock(RestTemplate.class);
     when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
     when(consoleWriter.newLine()).thenReturn(consoleWriter);
     when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
@@ -811,7 +811,7 @@ public class ExtractionCheckCommandTest extends CLITestBase {
   @Test
   public void testStatsAreNotReportedIfUrlTemplateIsNull() {
     ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
-    AuthenticatedRestTemplate restTemplateMock = Mockito.mock(AuthenticatedRestTemplate.class);
+    RestTemplate restTemplateMock = Mockito.mock(RestTemplate.class);
     when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
     when(consoleWriter.newLine()).thenReturn(consoleWriter);
     when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
@@ -832,7 +832,7 @@ public class ExtractionCheckCommandTest extends CLITestBase {
   @Test
   public void testErrorReportingStatistics() {
     ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
-    AuthenticatedRestTemplate restTemplateMock = Mockito.mock(AuthenticatedRestTemplate.class);
+    RestTemplate restTemplateMock = Mockito.mock(RestTemplate.class);
     when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
     when(consoleWriter.newLine()).thenReturn(consoleWriter);
     when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
