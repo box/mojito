@@ -171,60 +171,9 @@ public class OpenAILLMService implements LLMService {
             prompt, systemPrompt, userPrompt, prompt.getContextMessages(), prompt.isJsonResponse());
 
     return Mono.fromCallable(
-            () -> {
-              OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
-                  openAIClient.getChatCompletions(chatCompletionsRequest).join();
-              if (chatCompletionsResponse.choices().size() > 1) {
-                logger.error(
-                    "Multiple choices returned for text unit {}, expected only one",
-                    tmTextUnit.getId());
-                meterRegistry
-                    .counter("OpenAILLMService.translate.error.multiChoiceResponse")
-                    .increment();
-                throw new AIException(
-                    "Multiple response choices returned for text unit "
-                        + tmTextUnit.getId()
-                        + ", expected only one");
-              }
-              if (chatCompletionsResponse
-                  .choices()
-                  .getFirst()
-                  .finishReason()
-                  .equals(
-                      OpenAIClient.ChatCompletionsStreamResponse.Choice.FinishReasons.STOP
-                          .getValue())) {
-                String response = chatCompletionsResponse.choices().getFirst().message().content();
-                logger.debug(
-                    "TmTextUnit id: {}, {} translation response: {}",
-                    tmTextUnit.getId(),
-                    targetBcp47Tag,
-                    response);
-                if (prompt.isJsonResponse()) {
-                  try {
-                    logger.debug("Parsing JSON response for key: {}", prompt.getJsonResponseKey());
-                    response =
-                        objectMapper.readTree(response).get(prompt.getJsonResponseKey()).asText();
-                    logger.debug("Parsed translation: {}", response);
-                  } catch (JsonProcessingException e) {
-                    logger.error("Error parsing JSON response: {}", response, e);
-                    throw new AIException("Error parsing JSON response: " + response);
-                  }
-                }
-                meterRegistry
-                    .counter("OpenAILLMService.translate.result", "success", "true")
-                    .increment();
-                return response;
-              }
-              String message =
-                  String.format(
-                      "Error translating text unit %d from %s to %s, response finish_reason: %s",
-                      tmTextUnit.getId(),
-                      sourceBcp47Tag,
-                      targetBcp47Tag,
-                      chatCompletionsResponse.choices().getFirst().finishReason());
-              logger.error(message);
-              throw new AIException(message);
-            })
+            () ->
+                sendTranslationRequest(
+                    tmTextUnit, sourceBcp47Tag, targetBcp47Tag, prompt, chatCompletionsRequest))
         .doOnError(
             e -> {
               logger.error(
@@ -251,6 +200,59 @@ public class OpenAILLMService implements LLMService {
             () ->
                 new AIException(
                     "Error translating text unit " + tmTextUnit.getId() + " to " + targetBcp47Tag));
+  }
+
+  @Timed("OpenAILLMService.sendTranslationRequest")
+  private String sendTranslationRequest(
+      TMTextUnit tmTextUnit,
+      String sourceBcp47Tag,
+      String targetBcp47Tag,
+      AIPrompt prompt,
+      OpenAIClient.ChatCompletionsRequest chatCompletionsRequest) {
+    OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
+        openAIClient.getChatCompletions(chatCompletionsRequest).join();
+    if (chatCompletionsResponse.choices().size() > 1) {
+      logger.error(
+          "Multiple choices returned for text unit {}, expected only one", tmTextUnit.getId());
+      meterRegistry.counter("OpenAILLMService.translate.error.multiChoiceResponse").increment();
+      throw new AIException(
+          "Multiple response choices returned for text unit "
+              + tmTextUnit.getId()
+              + ", expected only one");
+    }
+    if (chatCompletionsResponse
+        .choices()
+        .getFirst()
+        .finishReason()
+        .equals(OpenAIClient.ChatCompletionsStreamResponse.Choice.FinishReasons.STOP.getValue())) {
+      String response = chatCompletionsResponse.choices().getFirst().message().content();
+      logger.debug(
+          "TmTextUnit id: {}, {} translation response: {}",
+          tmTextUnit.getId(),
+          targetBcp47Tag,
+          response);
+      if (prompt.isJsonResponse()) {
+        try {
+          logger.debug("Parsing JSON response for key: {}", prompt.getJsonResponseKey());
+          response = objectMapper.readTree(response).get(prompt.getJsonResponseKey()).asText();
+          logger.debug("Parsed translation: {}", response);
+        } catch (JsonProcessingException e) {
+          logger.error("Error parsing JSON response: {}", response, e);
+          throw new AIException("Error parsing JSON response: " + response);
+        }
+      }
+      meterRegistry.counter("OpenAILLMService.translate.result", "success", "true").increment();
+      return response;
+    }
+    String message =
+        String.format(
+            "Error translating text unit %d from %s to %s, response finish_reason: %s",
+            tmTextUnit.getId(),
+            sourceBcp47Tag,
+            targetBcp47Tag,
+            chatCompletionsResponse.choices().getFirst().finishReason());
+    logger.error(message);
+    throw new AIException(message);
   }
 
   @Timed("OpenAILLMService.checkString")
