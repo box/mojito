@@ -3,12 +3,14 @@ package com.box.l10n.mojito.service.thirdparty.smartling.quartz;
 import static com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSUtils.isFileEqualToPreviousRun;
 
 import com.box.l10n.mojito.LocaleMappingHelper;
+import com.box.l10n.mojito.android.strings.AndroidStringDocument;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentReader;
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartyFileChecksumRepository;
+import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingParsedFileResponse;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingPluralFix;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -16,13 +18,10 @@ import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import java.io.IOException;
 import java.util.List;
-import javax.xml.parsers.ParserConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.xml.sax.SAXException;
 import reactor.core.publisher.Mono;
 
 public class SmartlingPullLocaleFileJob
@@ -65,24 +64,30 @@ public class SmartlingPullLocaleFileJob
           localeTag,
           smartlingLocale);
 
-      String fileContent =
+      SmartlingParsedFileResponse<AndroidStringDocument> parsedFile =
           Mono.fromCallable(
-                  () ->
-                      smartlingClient.downloadPublishedFile(
-                          input.getSmartlingProjectId(), smartlingLocale, fileName, false))
+                  () -> {
+                    String content =
+                        smartlingClient.downloadPublishedFile(
+                            input.getSmartlingProjectId(), smartlingLocale, fileName, false);
+                    return new SmartlingParsedFileResponse<AndroidStringDocument>(
+                        content, AndroidStringDocumentReader.fromText(content));
+                  })
               .retryWhen(
                   smartlingClient
                       .getRetryConfiguration()
                       .doBeforeRetry(
-                          e ->
-                              logger.info(
-                                  String.format(
-                                      "Retrying after failure to download file %s", fileName),
-                                  e.failure())))
+                          e -> {
+                            logger.info(
+                                String.format(
+                                    "Retrying after failure to download / parse file %s", fileName),
+                                e.failure());
+                          }))
               .doOnError(
                   e -> {
                     String msg =
-                        String.format("Error downloading file %s: %s", fileName, e.getMessage());
+                        String.format(
+                            "Error downloading / parsing file %s: %s", fileName, e.getMessage());
                     logger.error(msg, e);
                     throw new SmartlingClientException(msg, e);
                   })
@@ -90,10 +95,11 @@ public class SmartlingPullLocaleFileJob
               .orElseThrow(
                   () ->
                       new SmartlingClientException(
-                          "Error with download from Smartling, file content string is not present."));
+                          "Error with downloading / parsing from Smartling, file content string is not present."));
 
       if (input.isDeltaPull()
-          && matchesChecksumFromPreviousSync(input, localeTag, fileName, fileContent)) {
+          && matchesChecksumFromPreviousSync(
+              input, localeTag, fileName, parsedFile.fileContent())) {
         logger.info(
             "Checksum match for "
                 + fileName
@@ -103,16 +109,7 @@ public class SmartlingPullLocaleFileJob
         return null;
       }
 
-      List<TextUnitDTO> textUnits;
-
-      try {
-        textUnits = mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
-      } catch (ParserConfigurationException | IOException | SAXException e) {
-        String msg =
-            "An error occurred when processing a pull batch, file contents are: " + fileContent;
-        logger.error(msg, e);
-        throw new RuntimeException(msg, e);
-      }
+      List<TextUnitDTO> textUnits = mapper.mapToTextUnits(parsedFile.data());
 
       if (!textUnits.isEmpty()
           && input.getSmartlingFilePrefix().equalsIgnoreCase("plural")

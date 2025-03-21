@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.thirdparty.smartling.quartz;
 import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -415,5 +416,79 @@ public class SmartlingPullLocaleFileJobTest {
         .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
 
     verify(thirdPartyFileChecksumRepositoryMock, times(1)).save(any(ThirdPartyFileChecksum.class));
+  }
+
+  @Test
+  public void testPullParseFails() throws Exception {
+    Repository testRepo = new Repository();
+    testRepo.setId(1L);
+    testRepo.setName("testRepo");
+
+    Locale frCA = new Locale();
+    frCA.setBcp47Tag("fr-CA");
+    frCA.setId(1L);
+
+    when(repositoryRepositoryMock.findByName(isA(String.class))).thenReturn(testRepo);
+    when(localeRepositoryMock.findByBcp47Tag(isA(String.class))).thenReturn(frCA);
+    smartlingPullLocaleFileJobInput.setDeltaPull(false);
+
+    String pullResponse =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n"
+            + "<!--comment 1-->\n"
+            + "<string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"1\">Hello in fr-CA</string\n"
+            + "<!--comment 2-->\n"
+            + "<string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"2\">Bye in fr-CA</string>\n"
+            + "</resources>\n";
+
+    doReturn(pullResponse)
+        .when(smartlingClientMock)
+        .downloadPublishedFile(eq("testProjectId"), eq("fr-CA"), eq("testFile"), eq(false));
+
+    assertThrows(
+        SmartlingClientException.class,
+        () -> smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput));
+
+    verify(textUnitBatchImporterServiceMock, times(0))
+        .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
+  }
+
+  @Test
+  public void testPullRecoversFromParseFails() throws Exception {
+    Repository testRepo = new Repository();
+    testRepo.setId(1L);
+    testRepo.setName("testRepo");
+
+    Locale frCA = new Locale();
+    frCA.setBcp47Tag("fr-CA");
+    frCA.setId(1L);
+
+    when(repositoryRepositoryMock.findByName(isA(String.class))).thenReturn(testRepo);
+    when(localeRepositoryMock.findByBcp47Tag(isA(String.class))).thenReturn(frCA);
+    smartlingPullLocaleFileJobInput.setDeltaPull(false);
+
+    String pullResponseBad =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n"
+            + "<!--comment 1-->\n"
+            + "<string name=\"src/main/res/values/strings.xml#@#hello\" tmText";
+
+    String pullResponseGood =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n"
+            + "<!--comment 1-->\n"
+            + "<string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"1\">Hello in fr-CA</string>\n"
+            + "<!--comment 2-->\n"
+            + "<string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"2\">Bye in fr-CA</string>\n"
+            + "</resources>\n";
+
+    when(smartlingClientMock.downloadPublishedFile(
+            eq("testProjectId"), eq("fr-CA"), eq("testFile"), eq(false)))
+        .thenReturn(pullResponseBad, pullResponseBad, pullResponseBad, pullResponseGood);
+
+    smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
+
+    verify(smartlingClientMock, times(4))
+        .downloadPublishedFile(eq("testProjectId"), eq("fr-CA"), eq("testFile"), eq(false));
+
+    verify(textUnitBatchImporterServiceMock, times(1))
+        .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
   }
 }

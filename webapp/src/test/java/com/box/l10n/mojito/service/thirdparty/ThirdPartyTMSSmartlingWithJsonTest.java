@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.json.ObjectMapper;
@@ -29,6 +30,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -45,6 +47,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.util.retry.Retry;
 
 public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
@@ -52,8 +55,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-  @Autowired(required = false)
-  SmartlingClient smartlingClient;
+  @Mock SmartlingClient smartlingClient;
 
   @Autowired SmartlingTestConfig testConfig;
 
@@ -383,10 +385,19 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
         textUnitBatchImporterServiceMock;
     thirdPartyTMSSmartlingWithJsonMock.thirdPartyFileChecksumRepository =
         thirdPartyFileChecksumRepositoryMock;
+    thirdPartyTMSSmartlingWithJsonMock.smartlingClient = smartlingClient;
 
     Mockito.when(
             thirdPartyTMSSmartlingWithJsonMock.getLocalizedFileContent(
-                projectId, smartlingFile, smartlingLocale, false))
+                any(), any(), any(), anyBoolean()))
+        .thenCallRealMethod();
+
+    when(smartlingClient.getRetryConfiguration())
+        .thenReturn(Retry.backoff(10, Duration.ofMillis(1)).maxBackoff(Duration.ofMillis(10)));
+
+    Mockito.when(
+            smartlingClient.downloadPublishedFile(
+                projectId, smartlingLocale, smartlingFile.getFileUri(), false))
         .thenReturn(smartlingJsonResponseWithOriginalString);
 
     Mockito.when(
@@ -410,13 +421,15 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
     Mockito.when(
             thirdPartyTMSSmartlingWithJsonMock.getRepositoryLocaleWithoutRootStream(repository))
         .thenReturn(Stream.of(repositoryLocaleFrFR));
+
     Mockito.when(
-            thirdPartyTMSSmartlingWithJsonMock.getLocalizedFileContent(
-                projectId, smartlingFile, smartlingLocale, false))
+            smartlingClient.downloadPublishedFile(
+                projectId, smartlingLocale, smartlingFile.getFileUri(), false))
         .thenReturn(smartlingJsonResponse);
+
     Mockito.when(
-            thirdPartyTMSSmartlingWithJsonMock.getLocalizedFileContent(
-                projectId, smartlingFile, smartlingLocale, true))
+            smartlingClient.downloadPublishedFile(
+                projectId, smartlingLocale, smartlingFile.getFileUri(), true))
         .thenReturn(smartlingJsonResponseWithOriginalString);
 
     thirdPartyTMSSmartlingWithJsonMock.pull(repository, projectId, localeMapping, false);
@@ -447,5 +460,80 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
             Comparator.comparing(TextUnitDTO::getTargetLocale)
                 .thenComparing(TextUnitDTO::getTmTextUnitId))
         .collect(ImmutableList.toImmutableList());
+  }
+
+  @Test
+  public void testRetriesParseFails() {
+    Mockito.reset(smartlingClient);
+    String exampleJSONGood =
+        ""
+            + "{\n"
+            + "  \"smartling\" : {\n"
+            + "    \"translate_paths\" : {\n"
+            + "      \"path\" : \"*/string\",\n"
+            + "      \"instruction\" : \"*/note\",\n"
+            + "      \"key\" : \"*/key\"\n"
+            + "    },\n"
+            + "    \"string_format\" : \"icu\",\n"
+            + "    \"variants_enabled\" : \"true\"\n"
+            + "  },\n"
+            + "  \"strings\" : [\n"
+            + "  {\n"
+            + "    \"key\" : \"connectAccountButton\",\n"
+            + "    \"tmTextUnitId\" : 1,\n"
+            + "    \"assetPath\" : \"en.properties\",\n"
+            + "    \"name\" : \"connectAccount.connectAccountButton\",\n"
+            + "    \"string\" : \"Associer le compte\",\n"
+            + "    \"note\" : \" connect account note\"\n"
+            + "  },\n"
+            + "\n"
+            + "  {\n"
+            + "    \"key\" : \"connectAccount.connectInstruction\",\n"
+            + "    \"tmTextUnitId\" : 2,\n"
+            + "    \"assetPath\" : \"en.properties\",\n"
+            + "    \"name\" : \"connectAccount.connectInstruction\",\n"
+            + "    \"string\" : \"\",\n"
+            + "    \"note\" : \" connect instruction note\"\n"
+            + "  }"
+            + "]}";
+
+    String exampleJSONBad =
+        ""
+            + "{\n"
+            + "  \"smartling\" : {\n"
+            + "    \"translate_paths\" : {\n"
+            + "      \"path\" : \"*/string\",\n"
+            + "      \"instruction\" : \"*/note\",\n"
+            + "      \"key\" : \"*/key\"\n"
+            + "    },\n"
+            + "    \"string_format\" : \"icu\",\n"
+            + "    \"variants_enabled\" : \"true\"\n"
+            + "  },\n"
+            + "  \"strings\" : [\n"
+            + "  {\n"
+            + "    \"key\" : \"connectAccountButton\",\n"
+            + "    \"tmTextUnitId\" : 1,\n"
+            + "    \"assetPath\" : \"en.properties\",\n"
+            + "    \"name\" : \"connectAccount.connectAccountButton\",\n"
+            + "    \"string\""
+            + "]}";
+
+    when(smartlingClient.downloadPublishedFile(any(), any(), any(), anyBoolean()))
+        .thenReturn(exampleJSONBad, exampleJSONBad, exampleJSONBad, exampleJSONGood);
+
+    when(smartlingClient.getRetryConfiguration())
+        .thenReturn(Retry.backoff(10, Duration.ofMillis(1)).maxBackoff(Duration.ofMillis(10)));
+
+    Mockito.when(
+            thirdPartyTMSSmartlingWithJsonMock.getLocalizedFileContent(
+                any(), any(), any(), anyBoolean()))
+        .thenCallRealMethod();
+
+    thirdPartyTMSSmartlingWithJsonMock.smartlingJsonConverter = smartlingJsonConverter;
+    thirdPartyTMSSmartlingWithJsonMock.smartlingClient = smartlingClient;
+
+    thirdPartyTMSSmartlingWithJsonMock.getLocalizedFileContent("test", new File(), "fr-FR", false);
+    Mockito.verify(smartlingClient, times(4))
+        .downloadPublishedFile(any(), any(), any(), anyBoolean());
   }
 }
