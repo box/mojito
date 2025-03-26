@@ -273,9 +273,13 @@ public class ExtractionCheckCommand extends Command {
       description = "Full git commit sha, used for setting a status on a commit in Github.")
   String commitSha;
 
-  @Autowired RestTemplate restTemplate;
+  RestTemplate restTemplate;
 
   List<ExtractionCheckNotificationSender> extractionCheckNotificationSenders = new ArrayList<>();
+
+  public ExtractionCheckCommand() {
+    this.restTemplate = new RestTemplate();
+  }
 
   @Override
   protected void execute() throws CommandException {
