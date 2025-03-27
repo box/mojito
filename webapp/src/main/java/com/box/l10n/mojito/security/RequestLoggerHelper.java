@@ -43,10 +43,6 @@ public class RequestLoggerHelper {
       msg.append("Query=").append(request.getQueryString()).append(" ");
     }
 
-    if (config.includesHeader()) {
-      msg.append("Headers=").append(request.getHeaderNames()).append(" ");
-    }
-
     if (config.includesPayload()) {
       String payload = getPayload(request, config);
       msg.append("Payload=").append(payload).append(" ");
