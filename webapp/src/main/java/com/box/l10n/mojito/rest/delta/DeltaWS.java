@@ -18,6 +18,7 @@ import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityManager;
 import java.time.ZonedDateTime;
@@ -102,6 +103,7 @@ public class DeltaWS {
         deltaService.getDeltasForDates(repository, locales, fromDate, toDate, pageable));
   }
 
+  @Timed("DeltasWs.getDeltasForRuns")
   @Operation(summary = "Get Delta Content for a given set of parameters")
   @RequestMapping(value = "/api/deltas/state", method = RequestMethod.GET)
   public DeltaResponseDTO getDeltasForRuns(
