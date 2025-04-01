@@ -468,44 +468,35 @@ div.textunit label {
 }
 
 .text-unit-root {
-    display: grid;
+    display: flex;
     align-items: center;
     width: 100%;
     gap: 15px;
-
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: min-content;
 }
 
 .text-unit-root .left {
-    flex-grow: 1;
+    width: 50%;
     height: 100%;
     display: grid;
     gap: 7px;
     align-items: center;
 
-    grid-template-columns: min-content min-content min-content fit-content(100%) 1fr min-content min-content;
+    grid-template-columns: min-content min-content fit-content(100%) 1fr min-content min-content;
     grid-template-rows: min-content 1fr min-content min-content 1fr;
     grid-template-areas:
-        "cb locale  labels  name    .        res      repo"
-        "cb .       .       .       .        .        ."
-        "cb source  source  source  source   source   ."
-        "cb comment comment comment .        .        ."
-        "cb .       .       .       .        .        ."
+        "locale  labels  name    .        res      repo"
+        ".       .       .       .        .        ."
+        "source  source  source  source   source   source"
+        "comment comment comment .        .        ."
     ;
 }
 
 .text-unit-root .right {
-    flex-grow: 1;
-    display: grid;
+    width: 50%;
+    display: flex;
     align-items: center;
-    justify-items: stretch;
-
-    grid-template-columns: 1fr 33px min-content;
-    grid-template-rows: min-content;
-    grid-template-areas:
-        "target . review"
-    ;
+    justify-content: space-between;
+    
 }
 
 div.textunit div.targetstring-container {
@@ -1178,4 +1169,18 @@ label.current-pageNumber {
         background-position: -300% center;
     }
 
+}
+
+.break-word {
+    word-break: break-word;
+}
+
+.break-word-text-direction-safe {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+
+.break-word-text-direction-safe-flex {
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }

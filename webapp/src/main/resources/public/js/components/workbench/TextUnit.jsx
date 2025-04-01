@@ -578,7 +578,7 @@ let TextUnit = createReactClass({
             let trailingWhitespacesSymbol = "";
 
             let noTranslation = false;
-            let targetClassName = "pts pls pbs textunit-string";
+            let targetClassName = "pts pls pbs textunit-string break-word-text-direction-safe-flex";
             if (AuthorityService.canEditTranslations()) {
                 targetClassName += " textunit-target"
             }
@@ -890,7 +890,7 @@ let TextUnit = createReactClass({
 
         // Only show the overlay trigger for the translation history if there is a current text unit variant (ie. there is
         // at least one translation) If not, we have no history to show anyways!
-        return (<span className="clickable textunit-name"
+        return (<span className="clickable textunit-name break-word"
                       onClick={this.onStringIdClick}>
                     <span>{this.props.textUnit.getName()}</span>
 
@@ -1041,11 +1041,12 @@ let TextUnit = createReactClass({
                  onClick={this.onTextUnitClick}>
             {this.getErrorAlert()}
                 <div>
-                    <div className="text-unit-root">
-                        <div className="left mls">
-                            {canEditTranslations && <span style={{gridArea: "cb"}} className="mrxs">
-                                <input type="checkbox" checked={isSelected} readOnly={true} disabled={!canEditTranslations}/>
-                            </span>}
+                    <div className="text-unit-root mls">
+                        {canEditTranslations && <span style={{gridArea: "cb"}} className="mrxs">
+                            <input type="checkbox" checked={isSelected} readOnly={true} disabled={!canEditTranslations}/>
+                        </span>}
+
+                        <div className="left">
                             <div style={{gridArea: "locale"}}>
                                 <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
                                     {this.props.textUnit.getTargetLocale()}
@@ -1065,7 +1066,7 @@ let TextUnit = createReactClass({
                             <div style={{gridArea: "name"}}>
                                 {this.renderName()}
                             </div>
-                            <div style={{gridArea: "source"}}>
+                            <div style={{gridArea: "source"}} className="break-word-text-direction-safe">
                                 {this.renderSource()}
                             </div>
                             <div style={{gridArea: "comment"}}>
@@ -1074,12 +1075,8 @@ let TextUnit = createReactClass({
                         </div>
 
                         <div className="right mrs">
-                            <div style={{gridArea: "target"}}>
-                                {this.getTargetStringUI()}
-                            </div>
-                            <span style={{gridArea: "review"}}>
-                                {this.renderReviewGlyph()}
-                            </span>
+                            {this.getTargetStringUI()}
+                            {this.renderReviewGlyph()}
                         </div>
                     </div>
                 </div>
