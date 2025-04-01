@@ -106,6 +106,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
               null,
               null,
               null,
+              null,
               null);
       assetResults.add(assetResult);
     }
@@ -169,6 +170,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
               assetPath,
               assetContent.toString(),
               false,
+              null,
               null,
               null,
               null,
@@ -255,6 +257,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
               assetPath,
               assetContent.toString(),
               false,
+              null,
               null,
               null,
               null,

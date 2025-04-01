@@ -4613,6 +4613,8 @@ components:
           items:
             type: string
           uniqueItems: true
+        branchTargetsMain:
+          type: boolean
         commitHash:
           type: string
         content:

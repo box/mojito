@@ -121,7 +121,8 @@ public class AssetService {
       Set<String> branchNotifierIds,
       Long pushRunId,
       FilterConfigIdOverride filterConfigIdOverride,
-      List<String> filterOptions)
+      List<String> filterOptions,
+      Boolean branchTargetsMain)
       throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
     return addOrUpdateAssetAndProcessIfNeeded(
         repositoryId,
@@ -134,6 +135,7 @@ public class AssetService {
         pushRunId,
         filterConfigIdOverride,
         filterOptions,
+        branchTargetsMain,
         PollableTask.INJECT_CURRENT_TASK);
   }
 
@@ -145,6 +147,7 @@ public class AssetService {
    * @param assetPath Remote path of the asset
    * @param assetContent Content of the asset
    * @param extractedContent
+   * @param branchTargetsMain
    * @param currentTask The current task, injected
    * @return The created asset
    * @throws ExecutionException
@@ -162,6 +165,7 @@ public class AssetService {
       Long pushRunId,
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions,
+      Boolean branchTargetsMain,
       @InjectCurrentTask PollableTask currentTask)
       throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
@@ -195,7 +199,11 @@ public class AssetService {
 
     Branch branch =
         branchService.getUndeletedOrCreateBranch(
-            asset.getRepository(), branchName, branchCreatedByUser, branchNotifierIds);
+            asset.getRepository(),
+            branchName,
+            branchCreatedByUser,
+            branchNotifierIds,
+            branchTargetsMain);
 
     AssetExtractionByBranch assetExtractionByBranch =
         assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch).orElse(null);

@@ -98,6 +98,7 @@ public class WSTestDataFactory {
               null,
               null,
               null,
+              null,
               null);
       pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
     } catch (PollableTaskException | InterruptedException | ExecutionException e) {

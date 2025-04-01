@@ -57,7 +57,7 @@ public class AssetContentService {
    */
   public AssetContent createAssetContent(Asset asset, String content) {
     Branch branch =
-        branchService.getUndeletedOrCreateBranch(asset.getRepository(), null, null, null);
+        branchService.getUndeletedOrCreateBranch(asset.getRepository(), null, null, null, null);
     return createAssetContent(asset, content, false, branch);
   }
 

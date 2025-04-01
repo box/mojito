@@ -159,7 +159,8 @@ public class AssetWS {
             sourceAsset.getBranchNotifiers(),
             pushRun != null ? pushRun.getId() : null,
             sourceAsset.getFilterConfigIdOverride(),
-            sourceAsset.getFilterOptions());
+            sourceAsset.getFilterOptions(),
+            sourceAsset.getBranchTargetsMain());
 
     try {
       sourceAsset.setAddedAssetId(assetFuture.get().getId());

@@ -155,6 +155,7 @@ public class AssetServiceTest extends ServiceTestBase {
             null,
             pushRunId,
             null,
+            null,
             null);
 
     try {

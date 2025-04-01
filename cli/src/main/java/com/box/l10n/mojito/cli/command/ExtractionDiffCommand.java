@@ -171,6 +171,14 @@ public class ExtractionDiffCommand extends Command {
   String pushToBranchCreatedBy;
 
   @Parameter(
+      names = {"--push-to-branch-targets-main", "-pbtm"},
+      arity = 1,
+      required = false,
+      description =
+          "Boolean that specifies if the branch is merging to the main branch, used for the Safe I18N process to know which branches to append to the source asset when translations are ready")
+  Boolean pushToBranchTargetsMain = null;
+
+  @Parameter(
       names = {"--push-to-branch-notifiers", "-pbn"},
       variableArity = true,
       required = false,
@@ -472,6 +480,7 @@ public class ExtractionDiffCommand extends Command {
                     sourceAsset = new SourceAsset();
                     sourceAsset.setBranch(pushToBranchName);
                     sourceAsset.setBranchCreatedByUsername(pushToBranchCreatedBy);
+                    sourceAsset.setBranchTargetsMain(pushToBranchTargetsMain);
                     sourceAsset.setBranchNotifiers(pushToBranchNotifiers.stream().toList());
                     sourceAsset.setPath(sourceFileMatchPath);
                     sourceAsset.setContent(assetContent);
