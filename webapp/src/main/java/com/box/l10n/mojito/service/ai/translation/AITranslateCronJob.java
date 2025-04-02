@@ -246,7 +246,7 @@ public class AITranslateCronJob implements Job {
               aiTranslation.isIncludedInLocalizedFile(),
               aiTranslation.getCreatedDate());
       tmTextUnitVariantCommentService.addComment(
-          result.getTmTextUnitCurrentVariant().getId(),
+          result.getTmTextUnitCurrentVariant().getTmTextUnitVariant().getId(),
           TMTextUnitVariantComment.Type.AI_TRANSLATION,
           TMTextUnitVariantComment.Severity.INFO,
           "Translated via AI translation job.");

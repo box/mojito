@@ -200,6 +200,10 @@ public class AITranslateCronJobTest {
     TMTextUnitCurrentVariant tmTextUnitCurrentVariant = new TMTextUnitCurrentVariant();
     tmTextUnitCurrentVariant.setLocale(english);
     tmTextUnitCurrentVariant.setId(1L);
+    TMTextUnitVariant tmTextUnitVariant = new TMTextUnitVariant();
+    tmTextUnitVariant.setLocale(english);
+    tmTextUnitVariant.setId(1L);
+    tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
     when(repository.getId()).thenReturn(1L);
     when(repository.getName()).thenReturn("testRepo");
     when(repository.getRepositoryLocales())
