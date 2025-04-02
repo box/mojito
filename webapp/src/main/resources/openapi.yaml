@@ -2870,6 +2870,10 @@ components:
         totalCount:
           type: integer
           format: int64
+        translatedDate:
+          type: integer
+          format: int64
+          example: 1715699917000
     BranchStatistic_BranchStatistic:
       type: object
       properties:

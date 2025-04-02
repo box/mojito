@@ -4,6 +4,7 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -104,6 +105,9 @@ public class BranchStatistic extends AuditableEntity {
   @Column(name = "for_translation_count")
   private long forTranslationCount = 0;
 
+  @Column(name = "translated_date")
+  private ZonedDateTime translatedDate;
+
   public Branch getBranch() {
     return branch;
   }
@@ -134,5 +138,13 @@ public class BranchStatistic extends AuditableEntity {
 
   public void setForTranslationCount(long forTranslationCount) {
     this.forTranslationCount = forTranslationCount;
+  }
+
+  public ZonedDateTime getTranslatedDate() {
+    return translatedDate;
+  }
+
+  public void setTranslatedDate(ZonedDateTime translatedDate) {
+    this.translatedDate = translatedDate;
   }
 }

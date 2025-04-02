@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch;
 import static com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget.APPROVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -12,6 +13,7 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -27,6 +29,7 @@ import com.google.common.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import org.hibernate.Hibernate;
 import org.junit.Rule;
 import org.junit.Test;
@@ -349,6 +352,71 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
     assertEquals(2, filteredBranches.size());
     assertEquals("branch1", filteredBranches.get(0).getName());
     assertEquals("branch2", filteredBranches.get(1).getName());
+  }
+
+  @Test
+  public void testBranchSetsTranslatedDate()
+      throws InterruptedException, UnsupportedAssetFilterTypeException, ExecutionException {
+    BranchTestData branchTestData = new BranchTestData(testIdWatcher);
+
+    // Wait for the branch stats to kick in
+    waitForCondition(
+        "Branch1 statistics must be set",
+        () -> branchStatisticRepository.findByBranch(branchTestData.getBranch1()) != null);
+
+    BranchStatistic branchStatistic =
+        branchStatisticRepository.findByBranch(branchTestData.getBranch1());
+
+    assertNull(branchStatistic.getTranslatedDate());
+
+    List<TextUnitDTO> textUnitDTOsForBranch1 =
+        branchStatisticService.getTextUnitDTOsForBranch(branchTestData.getBranch1());
+
+    // Translate all the strings under branch1, translated date should be set after this
+    // Done for all locales under the repo (fr-FR, ja-JP)
+    branchTestData
+        .getRepository()
+        .getRepositoryLocales()
+        .forEach(
+            locale -> {
+              textUnitDTOsForBranch1.forEach(
+                  textUnitDTO -> {
+                    tmService.addTMTextUnitCurrentVariant(
+                        textUnitDTO.getTmTextUnitId(),
+                        locale.getLocale().getId(),
+                        textUnitDTO.getTarget(),
+                        textUnitDTO.getTargetComment(),
+                        textUnitDTO.getStatus(),
+                        textUnitDTO.isIncludedInLocalizedFile());
+                  });
+            });
+
+    waitForCondition(
+        "Branch1 must have the translated date set",
+        () ->
+            branchStatisticRepository.findByBranch(branchTestData.getBranch1()).getTranslatedDate()
+                != null);
+
+    // Make sure nothing has changed with branch2
+    assertNull(
+        branchStatisticRepository.findByBranch(branchTestData.getBranch2()).getTranslatedDate());
+
+    // Do an asset extraction with a new string for translation, should set translated date to null
+    String content =
+        "# string1 description\n"
+            + "string1=content1\n"
+            + "string3=content3\n"
+            + "string_name=content_new";
+    AssetContent assetContent =
+        assetContentService.createAssetContent(
+            branchTestData.getAsset(), content, false, branchTestData.getBranch1());
+    assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null, null).get();
+
+    waitForCondition(
+        "Branch1 must have the translated date set back to null",
+        () ->
+            branchStatisticRepository.findByBranch(branchTestData.getBranch1()).getTranslatedDate()
+                == null);
   }
 
   /**

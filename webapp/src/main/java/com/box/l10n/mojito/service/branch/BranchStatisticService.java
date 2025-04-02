@@ -29,6 +29,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
+import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -103,6 +104,7 @@ public class BranchStatisticService {
   String branchNotifyRegex;
 
   Pattern branchNotifyPattern;
+  @Autowired private DateTimeUtils dateTimeUtils;
 
   /**
    * Compute statistics for all branches that are not deleted in a given repository.
@@ -403,6 +405,19 @@ public class BranchStatisticService {
 
     branchStatistic.setForTranslationCount(sumForTranslationCount);
     branchStatistic.setTotalCount(sumTotalCount);
+
+    if (branchStatistic.getTranslatedDate() == null) {
+      // No translated date was set previously
+      if (sumTotalCount > 0 && sumForTranslationCount == 0) {
+        // Branch is now fully translated, set the current date
+        branchStatistic.setTranslatedDate(dateTimeUtils.now());
+      }
+    } else {
+      // Branch was previously translated, but now has strings waiting for translations
+      if (sumTotalCount > 0 && sumForTranslationCount != 0) {
+        branchStatistic.setTranslatedDate(null);
+      }
+    }
 
     logger.debug(
         "Updating branch statistics for branch: {} ({})", branch.getId(), branch.getName());
