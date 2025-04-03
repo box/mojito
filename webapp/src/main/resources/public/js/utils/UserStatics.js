@@ -10,9 +10,9 @@ class UserStatics {
         return "HIDDEN";
     }
 
-    // max length for Forms, values greater than 40 will block the request to the ws
+    // max length for Forms, values greater than 128 will block the request to the ws
     static modalFormMaxLength() {
-        return 40;
+        return 128;
     }
 
     // authorities returned from the WS
