@@ -1,0 +1,28 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Translate Toolkit 2.2.5\n"
+
+#. L10N: This is a testing string being extracted from a branch.
+msgctxt "base.testString.branch.POT.appender"
+msgid "Branch appended string"
+msgstr ""
+
+#. L10N: Testing a plural where the comment suddenly
+#. drops down a line.
+msgid "You own {n} repository"
+msgid_plural "You own {n} repositories"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Branch string with no \"context\" and \"comment\"."
+msgstr ""
