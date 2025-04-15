@@ -2,6 +2,7 @@ package com.box.l10n.mojito.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
@@ -23,6 +24,10 @@ public class BranchMergeTarget extends BaseEntity {
   @Column(name = "targets_main")
   private boolean targetsMain;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "commit_id")
+  private Commit commit;
+
   public Branch getBranch() {
     return branch;
   }
@@ -37,5 +42,13 @@ public class BranchMergeTarget extends BaseEntity {
 
   public void setTargetsMain(boolean targetsMain) {
     this.targetsMain = targetsMain;
+  }
+
+  public Commit getCommit() {
+    return commit;
+  }
+
+  public void setCommit(Commit commit) {
+    this.commit = commit;
   }
 }

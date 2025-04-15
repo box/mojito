@@ -14,20 +14,26 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.rest.commit.CommitWithNameNotFoundException;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
+import com.box.l10n.mojito.service.appender.AppendedAssetBlobStorage;
 import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pullrun.PullRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.google.common.collect.Lists;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,8 +53,12 @@ public class CommitService {
   final CommitToPullRunRepository commitToPullRunRepository;
   final PushRunRepository pushRunRepository;
   final PullRunRepository pullRunRepository;
-
   final RepositoryRepository repositoryRepository;
+  final AppendedAssetBlobStorage appendedAssetBlobStorage;
+  private final JdbcTemplate jdbcTemplate;
+
+  @Value("${l10n.commit.branchAppend.batchSize:100}")
+  int batchSize;
 
   public CommitService(
       CommitRepository commitRepository,
@@ -56,13 +66,17 @@ public class CommitService {
       CommitToPullRunRepository commitToPullRunRepository,
       PushRunRepository pushRunRepository,
       PullRunRepository pullRunRepository,
-      RepositoryRepository repositoryRepository) {
+      RepositoryRepository repositoryRepository,
+      AppendedAssetBlobStorage appendedAssetBlobStorage,
+      JdbcTemplate jdbcTemplate) {
     this.commitRepository = commitRepository;
     this.commitToPushRunRepository = commitToPushRunRepository;
     this.commitToPullRunRepository = commitToPullRunRepository;
     this.pushRunRepository = pushRunRepository;
     this.pullRunRepository = pullRunRepository;
     this.repositoryRepository = repositoryRepository;
+    this.appendedAssetBlobStorage = appendedAssetBlobStorage;
+    this.jdbcTemplate = jdbcTemplate;
   }
 
   /**
@@ -283,5 +297,30 @@ public class CommitService {
     commitToPullRun.setPullRun(pullRun);
 
     commitToPullRunRepository.save(commitToPullRun);
+  }
+
+  /**
+   * Associates the appended branches, identified by the given `appendBranchTextUnitId`, to the
+   * specified `commit` by updating the commit field for each branch in the `branch_merge_target`
+   * table. The commit is only assigned if it hasn't been set previously.
+   */
+  public void associateAppendedBranchesToCommit(String appendBranchTextUnitId, Commit commit) {
+    List<Long> branchIds = appendedAssetBlobStorage.getAppendedBranches(appendBranchTextUnitId);
+    Lists.partition(branchIds, batchSize)
+        .forEach(
+            branchIdsPartition -> {
+              String placeholders =
+                  branchIdsPartition.stream().map(branchId -> "?").collect(Collectors.joining(","));
+              String sql =
+                  "UPDATE branch_merge_target SET commit_id = ? WHERE branch_id IN ("
+                      + placeholders
+                      + ") AND commit_id IS NULL;";
+
+              List<Object> params = new ArrayList<>();
+              params.add(commit.getId());
+              params.addAll(branchIdsPartition);
+
+              jdbcTemplate.update(sql, params.toArray());
+            });
   }
 }

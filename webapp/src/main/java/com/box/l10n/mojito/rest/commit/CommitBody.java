@@ -24,6 +24,12 @@ public class CommitBody {
 
   String sourceCreationDate2;
 
+  /**
+   * The identifier of the appended branches used in the pull step. This is used to link the
+   * appended branches to the commit its translations landed in.
+   */
+  String appendBranchTextUnitsId;
+
   public Long getRepositoryId() {
     return repositoryId;
   }
@@ -70,5 +76,13 @@ public class CommitBody {
 
   public void setSourceCreationDate2(String sourceCreationDate2) {
     this.sourceCreationDate2 = sourceCreationDate2;
+  }
+
+  public String getAppendBranchTextUnitsId() {
+    return appendBranchTextUnitsId;
+  }
+
+  public void setAppendBranchTextUnitsId(String appendBranchTextUnitsId) {
+    this.appendBranchTextUnitsId = appendBranchTextUnitsId;
   }
 }

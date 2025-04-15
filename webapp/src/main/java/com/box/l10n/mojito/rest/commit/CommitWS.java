@@ -14,6 +14,7 @@ import com.box.l10n.mojito.service.pushrun.PushRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.google.common.base.Strings;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,12 +190,20 @@ public class CommitWS {
             .findById(commitBody.getRepositoryId())
             .orElseThrow(() -> new RepositoryWithIdNotFoundException(commitBody.getRepositoryId()));
 
-    return commitService.getOrCreateCommit(
-        repository,
-        commitBody.getCommitName(),
-        commitBody.getAuthorEmail(),
-        commitBody.getAuthorName(),
-        commitBody.getSourceCreationDate());
+    Commit commit =
+        commitService.getOrCreateCommit(
+            repository,
+            commitBody.getCommitName(),
+            commitBody.getAuthorEmail(),
+            commitBody.getAuthorName(),
+            commitBody.getSourceCreationDate());
+
+    // Link appended branches to the commit
+    if (!Strings.isNullOrEmpty(commitBody.getAppendBranchTextUnitsId()))
+      commitService.associateAppendedBranchesToCommit(
+          commitBody.getAppendBranchTextUnitsId(), commit);
+
+    return commit;
   }
 
   /**
