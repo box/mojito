@@ -89,6 +89,7 @@ public class GenerateMultiLocalizedAssetJob
     localizedAssetBody.setInheritanceMode(multiLocalizedAssetBody.getInheritanceMode());
     localizedAssetBody.setPullRunName(multiLocalizedAssetBody.getPullRunName());
     localizedAssetBody.setStatus(multiLocalizedAssetBody.getStatus());
+    localizedAssetBody.setAppendBranchTextUnitsId(multiLocalizedAssetBody.getAppendTextUnitsId());
     return localizedAssetBody;
   }
 }

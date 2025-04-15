@@ -7,6 +7,7 @@ import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.asset.LocalizedAssetBody;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.appender.AssetAppenderService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -37,6 +38,8 @@ public class GenerateLocalizedAssetJob
 
   @Autowired MeterRegistry meterRegistry;
 
+  @Autowired AssetAppenderService assetAppenderService;
+
   @Override
   public LocalizedAssetBody call(LocalizedAssetBody localizedAssetBody) throws Exception {
     Long assetId = localizedAssetBody.getAssetId();
@@ -57,6 +60,12 @@ public class GenerateLocalizedAssetJob
             .tag("repositoryName", asset.getRepository().getName())
             .tag("bcp47Tag", repositoryLocale.getLocale().getBcp47Tag())) {
       String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
+
+      if (localizedAssetBody.getAppendBranchTextUnitsId() != null) {
+        normalizedContent =
+            assetAppenderService.appendBranchTextUnitsToSource(
+                asset, localizedAssetBody, normalizedContent);
+      }
 
       String generateLocalized;
 

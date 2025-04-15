@@ -74,4 +74,19 @@ public interface PushRunRepository extends JpaRepository<PushRun, Long> {
           WHERE p.repository.id = :repositoryId ORDER BY p.createdDate DESC LIMIT 1
           """)
   Optional<Long> findLatestPushRunIdByRepositoryId(@Param("repositoryId") Long repositoryId);
+
+  @Query(
+      value =
+          """
+              SELECT pratu.tm_text_unit_id
+              FROM push_run_asset_tm_text_unit pratu
+              JOIN push_run_asset pra ON pra.id = pratu.push_run_asset_id
+              JOIN push_run pr ON pr.id = pra.push_run_id
+              WHERE pr.id = (
+                  SELECT p.id FROM push_run p WHERE p.repository_id = :repositoryId ORDER BY p.created_date DESC LIMIT 1
+              )
+            """,
+      nativeQuery = true)
+  List<Long> getAllTextUnitIdsFromLastPushRunByRepositoryId(
+      @Param("repositoryId") Long repositoryId);
 }

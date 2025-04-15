@@ -3566,6 +3566,8 @@ components:
     LocalizedAssetBody:
       type: object
       properties:
+        appendBranchTextUnitsId:
+          type: string
         assetId:
           type: integer
           format: int64
@@ -3606,6 +3608,8 @@ components:
     MultiLocalizedAssetBody:
       type: object
       properties:
+        appendTextUnitsId:
+          type: string
         assetId:
           type: integer
           format: int64

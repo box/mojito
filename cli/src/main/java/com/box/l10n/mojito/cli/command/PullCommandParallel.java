@@ -49,6 +49,7 @@ public class PullCommandParallel extends PullCommand {
     this.pullRunName = pullCommand.pullRunName;
     this.recordPullRun = pullCommand.recordPullRun;
     this.isParallel = pullCommand.isParallel;
+    this.appendBranchTextUnits = pullCommand.appendBranchTextUnits;
   }
 
   public void pull() throws CommandException {

@@ -16,6 +16,7 @@ import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.appender.AssetAppenderService;
 import com.box.l10n.mojito.service.asset.AssetMetricsConfigurationProperties;
 import com.box.l10n.mojito.service.asset.AssetMetricsConfigurationsProperties;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -87,6 +88,8 @@ public class AssetWS {
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
   @Autowired AssetMetricsConfigurationsProperties assetMetricsConfigurationsProperties;
+
+  @Autowired AssetAppenderService assetAppenderService;
 
   @Value("${l10n.assetWS.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
@@ -211,6 +214,12 @@ public class AssetWS {
         .increment();
 
     String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
+
+    if (localizedAssetBody.getAppendBranchTextUnitsId() != null) {
+      normalizedContent =
+          assetAppenderService.appendBranchTextUnitsToSource(
+              asset, localizedAssetBody, normalizedContent);
+    }
 
     String generateLocalized =
         tmService.generateLocalized(

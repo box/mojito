@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.asset;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
+import com.box.l10n.mojito.service.appender.AppendedAssetBlobStorage;
 import java.util.List;
 
 /**
@@ -49,6 +50,13 @@ public class LocalizedAssetBody {
   InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
 
   Status status = Status.ALL;
+
+  /**
+   * Unique identifier used to store the branches appended to the source content in blob storage.
+   * The identifier is used in the commit step to fetch all the branches in the blob storage and
+   * link them to the commit. See {@link AppendedAssetBlobStorage}
+   */
+  String appendBranchTextUnitsId;
 
   public LocalizedAssetBody() {}
 
@@ -135,5 +143,13 @@ public class LocalizedAssetBody {
 
   public void setPullRunName(String pullRunName) {
     this.pullRunName = pullRunName;
+  }
+
+  public String getAppendBranchTextUnitsId() {
+    return appendBranchTextUnitsId;
+  }
+
+  public void setAppendBranchTextUnitsId(String appendBranchTextUnitsId) {
+    this.appendBranchTextUnitsId = appendBranchTextUnitsId;
   }
 }

@@ -44,6 +44,8 @@ public class MultiLocalizedAssetBody {
 
   String schedulerName;
 
+  String appendTextUnitsId;
+
   public Long getAssetId() {
     return assetId;
   }
@@ -123,5 +125,13 @@ public class MultiLocalizedAssetBody {
 
   public void setSchedulerName(String schedulerName) {
     this.schedulerName = schedulerName;
+  }
+
+  public String getAppendTextUnitsId() {
+    return appendTextUnitsId;
+  }
+
+  public void setAppendTextUnitsId(String appendTextUnitsId) {
+    this.appendTextUnitsId = appendTextUnitsId;
   }
 }
