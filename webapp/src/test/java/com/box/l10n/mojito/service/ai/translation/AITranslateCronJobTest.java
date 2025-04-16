@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -561,5 +562,7 @@ public class AITranslateCronJobTest {
             any(TMTextUnitVariantComment.Type.class),
             any(TMTextUnitVariantComment.Severity.class),
             eq("Translated via AI translation job."));
+    verify(aiTranslationService, times(3)).deleteBatch(isA(Queue.class));
+    verify(aiTranslationService, times(2)).deleteBatch(argThat(q -> !q.isEmpty()));
   }
 }

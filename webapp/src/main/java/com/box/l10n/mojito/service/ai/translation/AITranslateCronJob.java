@@ -351,6 +351,15 @@ public class AITranslateCronJob implements Job {
         List<Long> unusedIds = getUnusedIds(pendingMTs);
         List<CompletableFuture<Void>> futures =
             pendingMTs.stream()
+                .peek(
+                    pendingMT -> {
+                      if (isUnused(pendingMT, unusedIds)) {
+                        logger.info(
+                            "Skipping AI translation for tmTextUnitId: {} as it is unused & removing it from queue",
+                            pendingMT.getTmTextUnitId());
+                        textUnitsToClearPendingMT.add(pendingMT);
+                      }
+                    })
                 .filter(pendingMT -> !isUnused(pendingMT, unusedIds))
                 .map(
                     pendingMT ->
@@ -392,13 +401,7 @@ public class AITranslateCronJob implements Job {
   }
 
   private static boolean isUnused(TmTextUnitPendingMT pendingMT, List<Long> unusedIds) {
-    boolean isUnused = unusedIds.contains(pendingMT.getTmTextUnitId());
-    if (isUnused) {
-      logger.info(
-          "Skipping AI translation for tmTextUnitId: {} as it is unused",
-          pendingMT.getTmTextUnitId());
-    }
-    return isUnused;
+    return unusedIds.contains(pendingMT.getTmTextUnitId());
   }
 
   private static void shutdownExecutor(ExecutorService executorService) {
