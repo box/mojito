@@ -2,7 +2,8 @@ package com.box.l10n.mojito.github;
 
 public enum PRLabel {
   TRANSLATIONS_REQUIRED("translations-required"),
-  TRANSLATIONS_READY("translations-ready");
+  TRANSLATIONS_READY("translations-ready"),
+  SKIP_TRANSLATIONS_REQUIRED("skip-translations-required");
 
   private String labelName;
 
@@ -25,7 +26,11 @@ public enum PRLabel {
       githubClient.removeLabelFromPR(repository, prNumber, oppositeLabel);
     }
 
-    if (!githubClient.isLabelAppliedToPR(repository, prNumber, label.toString())) {
+    boolean hasSkipTranslationsLabel =
+        githubClient.isLabelAppliedToPR(
+            repository, prNumber, SKIP_TRANSLATIONS_REQUIRED.toString());
+    if ((label != TRANSLATIONS_REQUIRED || !hasSkipTranslationsLabel)
+        && !githubClient.isLabelAppliedToPR(repository, prNumber, label.toString())) {
       githubClient.addLabelToPR(repository, prNumber, label.toString());
     }
   }

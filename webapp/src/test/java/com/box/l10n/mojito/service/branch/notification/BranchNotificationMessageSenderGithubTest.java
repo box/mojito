@@ -79,12 +79,29 @@ public class BranchNotificationMessageSenderGithubTest {
   public void testSendUpdatedMessage() throws BranchNotificationMessageSenderException {
     when(githubClientMock.isLabelAppliedToPR("testRepo", 1, "translations-required"))
         .thenReturn(false);
+    when(githubClientMock.isLabelAppliedToPR("testRepo", 1, "skip-translations-required"))
+        .thenReturn(false);
     branchNotificationMessageSenderGithub.sendUpdatedMessage(
         branchName, "testUser", "1", sourceStrings);
     verify(githubClientMock, times(1))
         .updateOrAddCommentToPR("testRepo", 1, "Test updated message", this.commentRegex);
     verify(githubClientMock, times(1)).removeLabelFromPR("testRepo", 1, "translations-ready");
     verify(githubClientMock, times(1)).addLabelToPR("testRepo", 1, "translations-required");
+  }
+
+  @Test
+  public void testSendUpdatedMessageWhenSkipTranslationsRequiredWasApplied()
+      throws BranchNotificationMessageSenderException {
+    when(githubClientMock.isLabelAppliedToPR("testRepo", 1, "translations-required"))
+        .thenReturn(false);
+    when(githubClientMock.isLabelAppliedToPR("testRepo", 1, "skip-translations-required"))
+        .thenReturn(true);
+    branchNotificationMessageSenderGithub.sendUpdatedMessage(
+        branchName, "testUser", "1", sourceStrings);
+    verify(githubClientMock, times(1))
+        .updateOrAddCommentToPR("testRepo", 1, "Test updated message", this.commentRegex);
+    verify(githubClientMock, times(1)).removeLabelFromPR("testRepo", 1, "translations-ready");
+    verify(githubClientMock, times(0)).addLabelToPR("testRepo", 1, "translations-required");
   }
 
   @Test
