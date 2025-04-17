@@ -34,6 +34,8 @@ public class BranchNotificationMessageBuilderSlack {
 
   String noMoreStringsMsg;
 
+  String safeTranslationsReadyMsg;
+
   boolean isGithubPR;
 
   public BranchNotificationMessageBuilderSlack(
@@ -43,7 +45,8 @@ public class BranchNotificationMessageBuilderSlack {
       String translationsReadyMsg,
       String screenshotsMissingMsg,
       String noMoreStringsMsg,
-      boolean isGithubPR) {
+      boolean isGithubPR,
+      String safeTranslationsReadyMsg) {
     this.branchUrlBuilder = branchUrlBuilder;
     this.newStringMsg = newStringMsg;
     this.updatedStringMsg = updatedStringMsg;
@@ -51,6 +54,7 @@ public class BranchNotificationMessageBuilderSlack {
     this.screenshotsMissingMsg = screenshotsMissingMsg;
     this.noMoreStringsMsg = noMoreStringsMsg;
     this.isGithubPR = isGithubPR;
+    this.safeTranslationsReadyMsg = safeTranslationsReadyMsg;
   }
 
   public Message getNewMessage(String channel, String pr, List<String> sourceStrings) {
@@ -75,11 +79,12 @@ public class BranchNotificationMessageBuilderSlack {
     return message;
   }
 
-  public Message getTranslatedMessage(String channel, String threadTs, String branchName) {
+  public Message getTranslatedMessage(
+      String channel, String threadTs, String branchName, String safeI18NCommit) {
     Message message = new Message();
     message.setChannel(channel);
     message.setThreadTs(threadTs);
-    message.setText(getTranslationsReadyMsg(branchName));
+    message.setText(getTranslationsReadyMsg(branchName, safeI18NCommit));
     return message;
   }
 
@@ -140,14 +145,18 @@ public class BranchNotificationMessageBuilderSlack {
         .collect(Collectors.joining(", "));
   }
 
-  protected String getTranslationsReadyMsg(String branchName) {
+  protected String getTranslationsReadyMsg(String branchName, String safeI18NCommit) {
     final ImmutableMap.Builder<String, Object> messageParamMap = ImmutableMap.builder();
     messageParamMap.put("branchName", branchName);
     if (isGithubPR) {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
       messageParamMap.put("githubRepository", branchDetails.getRepository());
+      messageParamMap.put("owner", branchDetails.getOwner());
     }
-    MessageFormat messageFormat = new MessageFormat(translationsReadyMsg);
+    messageParamMap.put("commit", safeI18NCommit != null ? safeI18NCommit : "");
+
+    MessageFormat messageFormat =
+        new MessageFormat(safeI18NCommit != null ? safeTranslationsReadyMsg : translationsReadyMsg);
     return messageFormat.format(messageParamMap.build());
   }
 }

@@ -74,13 +74,18 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
   }
 
   @Override
-  public void sendTranslatedMessage(String branchName, String username, String messageId)
+  public void sendTranslatedMessage(
+      String branchName, String username, String messageId, String safeI18NCommit)
       throws BranchNotificationMessageSenderException {
     logger.debug("sendTranslatedMessage to: {}", username);
 
     try {
-      differentialRevision.addComment(
-          branchName, branchNotificationMessageBuilderPhabricator.getTranslatedMessage());
+      String message =
+          safeI18NCommit != null
+              ? branchNotificationMessageBuilderPhabricator.getSafeTranslationsReadyMsg()
+              : branchNotificationMessageBuilderPhabricator.getTranslatedMessage();
+
+      differentialRevision.addComment(branchName, message);
       differentialRevision.removeReviewer(branchName, reviewer, blockingReview);
     } catch (PhabricatorException e) {
       throw new BranchNotificationMessageSenderException(e);

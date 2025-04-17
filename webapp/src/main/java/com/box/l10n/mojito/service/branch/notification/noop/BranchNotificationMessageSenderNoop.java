@@ -34,7 +34,8 @@ public class BranchNotificationMessageSenderNoop implements BranchNotificationMe
   }
 
   @Override
-  public void sendTranslatedMessage(String branchName, String username, String messageId)
+  public void sendTranslatedMessage(
+      String branchName, String username, String messageId, String safeI18NCommit)
       throws BranchNotificationMessageSenderException {
     logger.debug("noop sendTranslatedMessage to: {}", username);
   }

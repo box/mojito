@@ -30,6 +30,8 @@ public class BranchNotificationMessageBuilderPhabricator {
 
   String screenshotsMissingMsg;
 
+  String safeTranslationsReadyMsg;
+
   public BranchNotificationMessageBuilderPhabricator(
       BranchUrlBuilder branchUrlBuilder,
       String newNotificationMsgFormat,
@@ -38,7 +40,8 @@ public class BranchNotificationMessageBuilderPhabricator {
       String updatedStringMsg,
       String noMoreStringsMsg,
       String translationsReadyMsg,
-      String screenshotsMissingMsg) {
+      String screenshotsMissingMsg,
+      String safeTranslationsReadyMsg) {
     this.branchUrlBuilder = branchUrlBuilder;
     this.newNotificationMsgFormat = newNotificationMsgFormat;
     this.updatedNotificationMsgFormat = updatedNotificationMsgFormat;
@@ -47,6 +50,7 @@ public class BranchNotificationMessageBuilderPhabricator {
     this.noMoreStringsMsg = noMoreStringsMsg;
     this.translationsReadyMsg = translationsReadyMsg;
     this.screenshotsMissingMsg = screenshotsMissingMsg;
+    this.safeTranslationsReadyMsg = safeTranslationsReadyMsg;
   }
 
   public String getNewMessage(String branchName, List<String> sourceStrings) {
@@ -86,6 +90,10 @@ public class BranchNotificationMessageBuilderPhabricator {
 
   public String getTranslatedMessage() {
     return translationsReadyMsg;
+  }
+
+  public String getSafeTranslationsReadyMsg() {
+    return safeTranslationsReadyMsg;
   }
 
   public String getScreenshotMissingMessage() {

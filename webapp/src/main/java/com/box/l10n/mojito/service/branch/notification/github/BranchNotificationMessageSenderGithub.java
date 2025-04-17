@@ -93,7 +93,8 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   }
 
   @Override
-  public void sendTranslatedMessage(String branchName, String username, String messageId)
+  public void sendTranslatedMessage(
+      String branchName, String username, String messageId, String safeI18NCommit)
       throws BranchNotificationMessageSenderException {
     logger.debug("sendTranslatedMessage to: {}", githubClient.getEndpoint() + "/" + branchName);
 
@@ -102,7 +103,8 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
       githubClient.addCommentToPR(
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
-          branchNotificationMessageBuilderGithub.getTranslatedMessage(branchName, branchDetails));
+          branchNotificationMessageBuilderGithub.getTranslatedMessage(
+              branchName, branchDetails, safeI18NCommit));
       updatePRLabel(
           githubClient,
           branchDetails.getRepository(),

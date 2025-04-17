@@ -10,7 +10,8 @@ public interface BranchNotificationMessageSender {
       String branchName, String username, String messageId, List<String> sourceStrings)
       throws BranchNotificationMessageSenderException;
 
-  void sendTranslatedMessage(String branchName, String username, String messageId)
+  void sendTranslatedMessage(
+      String branchName, String username, String messageId, String safeI18NCommit)
       throws BranchNotificationMessageSenderException;
 
   void sendScreenshotMissingMessage(String branchName, String messageId, String username)

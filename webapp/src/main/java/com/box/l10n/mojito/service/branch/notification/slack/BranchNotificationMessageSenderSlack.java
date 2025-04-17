@@ -95,7 +95,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
   }
 
   @Override
-  public void sendTranslatedMessage(String branchName, String username, String messageId)
+  public void sendTranslatedMessage(
+      String branchName, String username, String messageId, String safeI18NCommit)
       throws BranchNotificationMessageSenderException {
     logger.debug("sendTranslatedMessage to: {}", username);
 
@@ -105,7 +106,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
               slackChannels.getSlackChannelForDirectOrBotMessage(
                   useDirectMessage, username, userEmailPattern),
               messageId,
-              branchName);
+              branchName,
+              safeI18NCommit);
 
       ChatPostMessageResponse chatPostMessageResponse = slackClient.sendInstantMessage(message);
     } catch (SlackClientException sce) {

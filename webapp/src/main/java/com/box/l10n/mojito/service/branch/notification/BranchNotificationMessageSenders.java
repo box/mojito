@@ -172,7 +172,8 @@ public class BranchNotificationMessageSenders {
                           messages.getTranslationsReady(),
                           messages.getScreenshotsMissing(),
                           messages.getNoMoreStrings(),
-                          slackConfigurationProperties.isGithubPR());
+                          slackConfigurationProperties.isGithubPR(),
+                          messages.getSafeTranslationsReady());
 
                   BranchNotificationMessageSenderSlack branchNotificationMessageSenderSlack =
                       new BranchNotificationMessageSenderSlack(
@@ -225,7 +226,8 @@ public class BranchNotificationMessageSenders {
                               messages.getUpdatedStrings(),
                               messages.getNoMoreStrings(),
                               messages.getTranslationsReady(),
-                              messages.getScreenshotsMissing());
+                              messages.getScreenshotsMissing(),
+                              messages.getSafeTranslationsReady());
 
                   BranchNotificationMessageSenderPhabricator
                       branchNotificationMessageSenderPhabricator =
@@ -266,7 +268,8 @@ public class BranchNotificationMessageSenders {
                           messages.getUpdatedStrings(),
                           messages.getNoMoreStrings(),
                           messages.getTranslationsReady(),
-                          messages.getScreenshotsMissing());
+                          messages.getScreenshotsMissing(),
+                          messages.getSafeTranslationsReady());
 
                   BranchNotificationMessageSenderGithub branchNotificationMessageSenderGithub =
                       new BranchNotificationMessageSenderGithub(

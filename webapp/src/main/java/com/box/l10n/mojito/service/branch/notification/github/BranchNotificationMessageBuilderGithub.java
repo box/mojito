@@ -30,6 +30,8 @@ public class BranchNotificationMessageBuilderGithub {
 
   String screenshotsMissingMsg;
 
+  String safeTranslationsReadyMsg;
+
   public BranchNotificationMessageBuilderGithub(
       BranchUrlBuilder branchUrlBuilder,
       String newNotificationMsgFormat,
@@ -38,7 +40,8 @@ public class BranchNotificationMessageBuilderGithub {
       String updatedStringMsg,
       String noMoreStringsMsg,
       String translationsReadyMsg,
-      String screenshotsMissingMsg) {
+      String screenshotsMissingMsg,
+      String safeTranslationsReadyMsg) {
     this.branchUrlBuilder = branchUrlBuilder;
     this.newNotificationMsgFormat = newNotificationMsgFormat;
     this.updatedNotificationMsgFormat = updatedNotificationMsgFormat;
@@ -47,6 +50,7 @@ public class BranchNotificationMessageBuilderGithub {
     this.noMoreStringsMsg = noMoreStringsMsg;
     this.translationsReadyMsg = translationsReadyMsg;
     this.screenshotsMissingMsg = screenshotsMissingMsg;
+    this.safeTranslationsReadyMsg = safeTranslationsReadyMsg;
   }
 
   public String getNewMessage(String branchName, List<String> sourceStrings) {
@@ -84,13 +88,17 @@ public class BranchNotificationMessageBuilderGithub {
     return noMoreStringsMsg;
   }
 
-  public String getTranslatedMessage(String branchName, GithubBranchDetails branchDetails) {
-    MessageFormat messageFormat = new MessageFormat(translationsReadyMsg);
+  public String getTranslatedMessage(
+      String branchName, GithubBranchDetails branchDetails, String safeI18NCommit) {
+    MessageFormat messageFormat =
+        new MessageFormat(safeI18NCommit != null ? safeTranslationsReadyMsg : translationsReadyMsg);
     ImmutableMap<String, Object> messageParamMap =
         ImmutableMap.<String, Object>builder()
             .put("branchName", branchName)
             .put("githubRepository", branchDetails.getRepository())
+            .put("commit", safeI18NCommit != null ? safeI18NCommit : "")
             .build();
+
     return messageFormat.format(messageParamMap);
   }
 

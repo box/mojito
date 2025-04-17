@@ -37,7 +37,7 @@ public class BranchNotificationMessageSendersITest extends ServiceTestBase {
         branchName, username, messageId, Arrays.asList("test 1 string", "test 2 string"));
 
     github.sendScreenshotMissingMessage(branchName, messageId, username);
-    github.sendTranslatedMessage(branchName, username, messageId);
+    github.sendTranslatedMessage(branchName, username, messageId, null);
   }
 
   @Test
@@ -58,6 +58,6 @@ public class BranchNotificationMessageSendersITest extends ServiceTestBase {
         branchName, username, messageId, Arrays.asList("test 1 string", "test 2 string"));
 
     slack.sendScreenshotMissingMessage(branchName, messageId, username);
-    slack.sendTranslatedMessage(branchName, username, messageId);
+    slack.sendTranslatedMessage(branchName, username, messageId, null);
   }
 }

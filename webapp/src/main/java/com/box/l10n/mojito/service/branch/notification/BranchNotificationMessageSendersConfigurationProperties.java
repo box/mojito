@@ -141,6 +141,9 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
       String noMoreStrings = "The branch was updated and there are no more strings to translate.";
 
+      String safeTranslationsReady =
+          "Translations are ready and checked into the main branch !! :party:";
+
       public String getNewStrings() {
         return newStrings;
       }
@@ -179,6 +182,14 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
       public void setNoMoreStrings(String noMoreStrings) {
         this.noMoreStrings = noMoreStrings;
+      }
+
+      public String getSafeTranslationsReady() {
+        return safeTranslationsReady;
+      }
+
+      public void setSafeTranslationsReady(String safeTranslationsReady) {
+        this.safeTranslationsReady = safeTranslationsReady;
       }
     }
   }
@@ -252,6 +263,9 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
       String noMoreStrings = "The branch was updated and there are no more strings to translate.";
 
+      String safeTranslationsReady =
+          "Translations are ready and checked into the main branch !! :party:";
+
       public String getNewNotificationMsgFormat() {
         return newNotificationMsgFormat;
       }
@@ -306,6 +320,14 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
       public void setNoMoreStrings(String noMoreStrings) {
         this.noMoreStrings = noMoreStrings;
+      }
+
+      public String getSafeTranslationsReady() {
+        return safeTranslationsReady;
+      }
+
+      public void setSafeTranslationsReady(String safeTranslationsReady) {
+        this.safeTranslationsReady = safeTranslationsReady;
       }
     }
   }
@@ -347,6 +369,9 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
       String noMoreStrings = "The branch was updated and there are no more strings to translate.";
 
+      String safeTranslationsReady =
+          "Translations are ready and checked into the main branch !! :party:";
+
       public String getNewNotificationMsgFormat() {
         return newNotificationMsgFormat;
       }
@@ -401,6 +426,14 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
       public void setNoMoreStrings(String noMoreStrings) {
         this.noMoreStrings = noMoreStrings;
+      }
+
+      public String getSafeTranslationsReady() {
+        return safeTranslationsReady;
+      }
+
+      public void setSafeTranslationsReady(String safeTranslationsReady) {
+        this.safeTranslationsReady = safeTranslationsReady;
       }
     }
   }
