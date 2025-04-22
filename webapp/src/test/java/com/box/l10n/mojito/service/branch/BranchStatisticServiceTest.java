@@ -391,6 +391,9 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
                   });
             });
 
+    // Run branch statistics synchronously to avoid the next waitForCondition being flaky.
+    branchStatisticService.computeAndSaveBranchStatistics(branchTestData.getBranch1());
+
     waitForCondition(
         "Branch1 must have the translated date set",
         () ->
