@@ -10,14 +10,15 @@ import PropTypes from "prop-types";
 class JobsView extends React.Component {
     static propTypes = {
         "jobs": PropTypes.array.isRequired,
-        "filter": PropTypes.array.isRequired
+        "filter": PropTypes.array.isRequired,
+        "jobType": PropTypes.string.isRequired,
     }
 
     constructor(props) {
         super(props);
 
-        const {jobs, filter} = this.props;
-        this.state = {jobs, filter};
+        const {jobs, filter, jobType} = this.props;
+        this.state = {jobs, filter, jobType};
         this.isDoneInitialLoad = false;
 
         // Bind this to the function call to ensure 'this' references the current instance.
@@ -29,6 +30,12 @@ class JobsView extends React.Component {
             this.interval = setInterval(() => {
                 JobActions.getAllJobs();
             }, 5000);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.jobType !== this.props.jobType) {
+            this.setState({...this.state, jobType: this.props.jobType});
         }
     }
 
@@ -46,7 +53,7 @@ class JobsView extends React.Component {
     jobStoreChange(state) {
         // Any change to the JobStore will come here
         this.isDoneInitialLoad = true;
-        this.setState({jobs: state.jobs, filter: state.filter})
+        this.setState({...this.state, jobs: state.jobs, filter: state.filter})
     }
 
     createJobRow(job, index) {
@@ -54,6 +61,8 @@ class JobsView extends React.Component {
         switch(job.type) {
             case JobType.THIRD_PARTY_SYNC:
                 return <JobThirdPartySyncRow key={job.id} job={job} />;
+            case JobType.EVOLVE_SYNC:
+                return <JobThirdPartySyncRow key={job.id} job={job} hideThirdPartyLink={true} />;
             default:
                 return null;
         }
@@ -84,7 +93,8 @@ class JobsView extends React.Component {
                 <div className="ptm">
                     {
                         this.state.jobs
-                            .filter(job => this.state.filter.length === 0 ? true : this.state.filter.includes(job.repository))
+                            .filter(job => (this.state.filter.length === 0 ? true : this.state.filter.includes(job.repository))
+                                && this.state.jobType === job.type)
                             .sort((j1, j2) => j1.repository.localeCompare(j2.repository))
                             .map((job, index) =>
                                 this.createJobRow(job, index)

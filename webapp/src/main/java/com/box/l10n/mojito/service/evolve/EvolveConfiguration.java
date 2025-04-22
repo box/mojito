@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.evolve;
+package com.box.l10n.mojito.service.evolve;
 
 import java.io.IOException;
 import org.slf4j.Logger;
@@ -8,9 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
@@ -27,9 +24,16 @@ public class EvolveConfiguration {
 
   @Autowired EvolveConfigurationProperties evolveConfigurationProperties;
 
+  @Autowired private EvolveOAuthClient evolveOAuthClient;
+
   @Bean
-  Evolve evolveClient() {
-    return new Evolve(evolveRestTemplate());
+  EvolveClient evolveClient() {
+    return new EvolveClient(
+        evolveRestTemplate(),
+        this.evolveConfigurationProperties.getApiPath(),
+        this.evolveConfigurationProperties.getMaxRetries(),
+        this.evolveConfigurationProperties.getRetryMinBackoffSecs(),
+        this.evolveConfigurationProperties.getRetryMaxBackoffSecs());
   }
 
   RestTemplate evolveRestTemplate() {
@@ -41,16 +45,13 @@ public class EvolveConfiguration {
     restTemplate
         .getInterceptors()
         .add(
-            new ClientHttpRequestInterceptor() {
-              @Override
-              public ClientHttpResponse intercept(
-                  HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
-                  throws IOException {
-                request
-                    .getHeaders()
-                    .add(HttpHeaders.AUTHORIZATION, evolveConfigurationProperties.getToken());
-                return execution.execute(request, body);
-              }
+            (request, body, execution) -> {
+              request
+                  .getHeaders()
+                  .add(
+                      HttpHeaders.AUTHORIZATION,
+                      "Bearer " + this.evolveOAuthClient.getAccessToken());
+              return execution.execute(request, body);
             });
 
     restTemplate.setErrorHandler(

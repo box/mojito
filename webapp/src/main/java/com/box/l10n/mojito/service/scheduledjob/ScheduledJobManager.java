@@ -162,7 +162,7 @@ public class ScheduledJobManager {
       scheduledJob.setCron(syncJobConfig.getCron());
       scheduledJob.setRepository(repositoryRepository.findByName(syncJobConfig.getRepository()));
       scheduledJob.setJobType(
-          scheduledJobTypeRepository.findByEnum(ScheduledJobType.THIRD_PARTY_SYNC));
+          scheduledJobTypeRepository.findByEnum(syncJobConfig.getScheduledJobType()));
       scheduledJob.setProperties(getScheduledThirdPartySyncProperties(syncJobConfig));
 
       if (scheduledJob.getJobStatus() == null) {

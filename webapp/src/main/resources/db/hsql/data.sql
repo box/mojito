@@ -2751,5 +2751,6 @@ insert into plural_form_for_locale (locale_id, plural_form_id) values (1638,5);
 insert into plural_form_for_locale (locale_id, plural_form_id) values (1639,5);
 insert into plural_form_for_locale (locale_id, plural_form_id) values (1640,5);
 insert into scheduled_job_type(id, name) values (1, 'THIRD_PARTY_SYNC');
+insert into scheduled_job_type(id, name) values (2, 'EVOLVE_SYNC');
 insert into scheduled_job_status_type(id, name) values (1, 'SCHEDULED'), (2, 'IN_PROGRESS'), (3,'FAILED'), (4,'SUCCEEDED');
 

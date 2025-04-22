@@ -4,7 +4,7 @@ import java.util.List;
 
 public class ListWithLastPage<T> {
   List<T> list;
-  long lastPage;
+  int lastPage;
 
   public List<T> getList() {
     return list;
@@ -14,11 +14,11 @@ public class ListWithLastPage<T> {
     this.list = list;
   }
 
-  public long getLastPage() {
+  public int getLastPage() {
     return lastPage;
   }
 
-  public void setLastPage(long lastPage) {
+  public void setLastPage(int lastPage) {
     this.lastPage = lastPage;
   }
 }

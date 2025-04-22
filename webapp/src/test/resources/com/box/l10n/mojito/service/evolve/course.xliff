@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+            <file additional-languages="fr" code="evolve-course-en" course-type="CourseEvolve" datatype="plaintext" evolve-draft-id="123abc" evolve-locale-id="" original="course[1]" rtl="false" source-language="en">
+                <body>
+                    <trans-unit datatype="plaintext" exceed-preview-link="https://www.test.com/student/enrollments/create_enrollment_from_token/7654da9d8440ece99c33f63d" id="course[25].name">
+                        <source>Media Planner Practice Exam</source>
+                        <target/>
+                        <note>The name of the course</note>
+                    </trans-unit>
+                    <trans-unit datatype="html" exceed-preview-link="https://www.tes.com/student/enrollments/create_enrollment_from_token/7654da9d8440ece99c33f63d" id="course[25].instructions">
+                        <source>&lt;style&gt;&#13;
+                .instructionspanel__photo {&#13;
+                  border-radius: .8em;&#13;
+                }&#13;
+              &lt;/style&gt;</source>
+                        <target/>
+                        <note>Description shown in the catalog and at the top of the activity page</note>
+                    </trans-unit>
+                    <bin-unit exceed-preview-link="https://www.test.com/student/enrollments/create_enrollment_from_token/7654da9d8440ece99c33f63d" id="course[25].picture.target_url" mime-type="image/png" restype="uri">
+                        <bin-source>
+                            <external-file href="https://cdn.test.com/uploads/resource_course_pictures/targets/78581421/original/screenshot-2025-03-04-at-4-03-36-pm.png"/>
+                        </bin-source>
+                        <bin-target>
+                            <external-file href=""/>
+                        </bin-target>
+                        <note>The course cover art</note>
+                    </bin-unit>
+        <trans-unit evolve-path="_videos.gifPlayButtonAriaLabel" evolve-preview-link="https://evolve.test.com/courses/56rt56c0fc16ac5fd210c4cd/preview/index.html" evolve-ref-id="67901d791b22e91f45a711c9" evolve-translation-type="String" evolve-type="course" id="335">
+                        <source>start animation</source>
+                        <target/>
+                    </trans-unit>
+                    <trans-unit evolve-path="_videos.gifStopButtonAriaLabel" evolve-preview-link="https://evolve.test.com/courses/56rt56c0fc16ac5fd210c4cd/preview/index.html" evolve-ref-id="67901d791b22e91f45a711c9" evolve-translation-type="String" evolve-type="course" id="336">
+                        <source>stop animation</source>
+                        <target/>
+                    </trans-unit>
+                </body>
+            </file>
+        </xliff>

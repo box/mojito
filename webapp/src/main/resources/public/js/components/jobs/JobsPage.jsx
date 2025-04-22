@@ -10,6 +10,16 @@ import RepositoryDropDown from "./RepositoryDropDown";
 let JobsPage = createReactClass({
     displayName: 'JobsPage',
 
+    getInitialState() {
+      return {
+          jobType: null,
+      };
+    },
+
+    onJobTypeChange(jobType) {
+        this.setState({jobType: jobType})
+    },
+
     render: function () {
         const clearLeftFix = {
             clear: 'left',
@@ -17,14 +27,14 @@ let JobsPage = createReactClass({
         return (
             <div>
                 <div className="pull-left">
-                    <JobTypeDropdown />
+                    <JobTypeDropdown onJobTypeChange={this.onJobTypeChange} />
                     <RepositoryDropDown />
                 </div>
 
                 <div style={clearLeftFix}></div>
 
                 <AltContainer store={JobStore} className="mtl mbl" >
-                    <JobsView />
+                    <JobsView jobType={this.state.jobType} />
                 </AltContainer>
             </div>
         );

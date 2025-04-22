@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobType;
 import java.util.List;
 
 /**
@@ -19,6 +20,7 @@ public class ThirdPartySyncJobConfig {
   String skipAssetsWithPathPattern;
   String includeTextUnitsWithPattern;
   List<String> options;
+  ScheduledJobType scheduledJobType = ScheduledJobType.THIRD_PARTY_SYNC;
 
   public String getUuid() {
     return uuid;
@@ -106,5 +108,13 @@ public class ThirdPartySyncJobConfig {
 
   public void setOptions(List<String> options) {
     this.options = options;
+  }
+
+  public ScheduledJobType getScheduledJobType() {
+    return scheduledJobType;
+  }
+
+  public void setScheduledJobType(ScheduledJobType scheduledJobType) {
+    this.scheduledJobType = scheduledJobType;
   }
 }

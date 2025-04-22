@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  */
 public class PageFetcherCurrentAndTotalPagesSplitIterator<T>
     extends Spliterators.AbstractSpliterator<T> {
-  int pageToFetch = 0;
+  int pageToFetch;
   boolean needsFetching = true;
   PageFetcherCurrentAndTotalPages<T> pageFetcherCurrentAndTotalPages;
 
@@ -36,7 +36,8 @@ public class PageFetcherCurrentAndTotalPagesSplitIterator<T>
       ListWithLastPage<T> fetch = pageFetcherCurrentAndTotalPages.fetch(pageToFetch);
       fetch.getList().forEach(action::accept);
       Preconditions.checkState(
-          fetch.getLastPage() >= pageToFetch, "lastPage must be >= pageToFetch");
+          fetch.getLastPage() == 0 || fetch.getLastPage() >= pageToFetch,
+          "lastPage must be >= pageToFetch");
       needsFetching = pageToFetch < fetch.getLastPage();
       pageToFetch++;
     }

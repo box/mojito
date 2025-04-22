@@ -10,7 +10,8 @@ import PropTypes from "prop-types";
 class JobThirdPartySyncRow extends React.Component {
 
     static propTypes = {
-        "job": PropTypes.object.isRequired
+        "job": PropTypes.object.isRequired,
+        "hideThirdPartyLink": PropTypes.bool,
     }
 
     constructor(props) {
@@ -68,12 +69,15 @@ class JobThirdPartySyncRow extends React.Component {
     }
 
     getThirdPartyLink(job) {
+        if (this.props.hideThirdPartyLink) {
+            return;
+        }
         if(job.repository && job.repository in APP_CONFIG.link) {
             const url = new URL(APP_CONFIG.link[job.repository].thirdParty.url);
             url.search = '';
-            return <a href={url}>{job.properties.thirdPartyProjectId}</a>;
+            return <span> - <a href={url}>{job.properties.thirdPartyProjectId}</a></span>;
         }
-        return job.properties.thirdPartyProjectId;
+        return <span> - {job.properties.thirdPartyProjectId}</span>;
     }
 
 
@@ -100,7 +104,7 @@ class JobThirdPartySyncRow extends React.Component {
                             </h1>
                             <JobStatusLabel status={job.enabled ? job.status : "DISABLED"} />
                         </div>
-                        <div>{job.repository} - {this.getThirdPartyLink(job)}</div>
+                        <div>{job.repository}{this.getThirdPartyLink(job)}</div>
                     </div>
                     <div className="job-timings">
                         <div>Started @ {job.startDate && this.convertUnixToDate(job.startDate)}</div>
