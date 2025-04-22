@@ -185,6 +185,8 @@ public class SmartlingTBXReader {
           name = reader.getLocalName();
           if ("term".equals(name)) {
             processTerm();
+          } else if ("termNote".equals(name)) {
+            processTermNote();
           }
           break;
         case XMLStreamConstants.END_ELEMENT:
@@ -259,5 +261,14 @@ public class SmartlingTBXReader {
           break;
       }
     }
+  }
+
+  private void processTermNote() throws XMLStreamException {
+    String propertyName = reader.getAttributeValue(null, "type");
+    if (Util.isEmpty(propertyName)) {
+      throw new OkapiIOException("Missing or empty type attribute.");
+    }
+    Property termNote = new Property(propertyName, reader.getElementText(), true);
+    cent.setProperty(termNote);
   }
 }

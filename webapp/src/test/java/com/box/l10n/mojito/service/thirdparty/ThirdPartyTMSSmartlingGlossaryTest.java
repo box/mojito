@@ -56,6 +56,8 @@ public class ThirdPartyTMSSmartlingGlossaryTest {
   private static final String SCHOOL_TEXT_UNIT_ID = "bd3a096a-ab4f-49ac-b033-099086cfe271";
   public static final String HOUSE_TEXT_UNIT_ID = "8300f245-5072-4918-a59b-4d1cdf5c8cf2";
   public static final String FIELD_TEXT_UNIT_ID = "b35b5435-16ca-4fa3-95cd-8527420c9240";
+  private static final String FOOTBALL_TEXT_UNIT_ID = "b35b5435-16ca-4123-95cd-8527420c9278";
+
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
   @Mock VirtualAssetService mockVirtualAssetService;
@@ -199,21 +201,30 @@ public class ThirdPartyTMSSmartlingGlossaryTest {
         virtualAssetTextUnits.stream()
                 .filter(
                     virtualAssetTextUnit ->
-                        virtualAssetTextUnit.getComment().equals("school comment"))
+                        virtualAssetTextUnit
+                            .getComment()
+                            .equals(
+                                "school comment --- Case Sensitive: false --- Exact Match: true --- Do Not Translate: false"))
                 .count()
             == 1);
     assertTrue(
         virtualAssetTextUnits.stream()
                 .filter(
                     virtualAssetTextUnit ->
-                        virtualAssetTextUnit.getComment().equals("house comment"))
+                        virtualAssetTextUnit
+                            .getComment()
+                            .equals(
+                                "house comment --- Variations: home, abode --- Case Sensitive: true --- Exact Match: false --- Do Not Translate: false"))
                 .count()
             == 1);
     assertTrue(
         virtualAssetTextUnits.stream()
                 .filter(
                     virtualAssetTextUnit ->
-                        virtualAssetTextUnit.getComment().equals("field comment --- POS: noun"))
+                        virtualAssetTextUnit
+                            .getComment()
+                            .equals(
+                                "field comment --- POS: noun --- Case Sensitive: false --- Exact Match: false --- Do Not Translate: true"))
                 .count()
             == 1);
   }
@@ -304,6 +315,12 @@ public class ThirdPartyTMSSmartlingGlossaryTest {
                             && textUnit.getName().equals(FIELD_TEXT_UNIT_ID))
                 .count()
             == 1);
+    assertTrue(
+        thirdPartyTextUnits.stream()
+            .noneMatch(
+                textUnit ->
+                    textUnit.getId().equals(FOOTBALL_TEXT_UNIT_ID)
+                        && textUnit.getName().equals(FOOTBALL_TEXT_UNIT_ID)));
     assertEquals(
         3,
         thirdPartyTextUnits.stream()

@@ -18,6 +18,9 @@
 				<langSet xml:lang="en-US">
 					<tig>
 						<term>house</term>
+						<term>home</term>
+						<term>abode</term>
+						<termNote type="caseSensitive">true</termNote>
 					</tig>
 				</langSet>
 				<langSet xml:lang="fr-FR">
@@ -31,6 +34,7 @@
 				<langSet xml:lang="en-US">
 					<tig>
 						<term>school</term>
+						<termNote type="exactMatch">true</termNote>
 					</tig>
 				</langSet>
 				<langSet xml:lang="fr-FR">
@@ -46,6 +50,7 @@
 					<tig>
 						<term>field</term>
 						<termNote type="partOfSpeech">noun</termNote>
+						<termNote type="doNotTranslate">true</termNote>
 					</tig>
 				</langSet>
 				<langSet xml:lang="fr-FR">
@@ -55,6 +60,20 @@
 					</tig>
 				</langSet>
 			</termEntry>
+            <termEntry id="b35b5435-16ca-4123-95cd-8527420c9278">
+                <descrip type="definition">football comment</descrip>
+                <langSet xml:lang="en-US">
+                    <tig>
+                        <term>football</term>
+                        <termNote type="archived">true</termNote>
+                    </tig>
+                </langSet>
+                <langSet xml:lang="fr-FR">
+                    <tig>
+                        <term>le foot</term>
+                    </tig>
+                </langSet>
+            </termEntry>
 		</body>
 	</text>
 </martif>

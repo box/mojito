@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.smartling.response;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class GlossarySourceTerm {
 
@@ -18,7 +20,8 @@ public class GlossarySourceTerm {
   String synonyms;
   String termText;
   String termUid;
-  String variations;
+  boolean archived;
+  List<String> variations = new ArrayList<>();
 
   public String getAntonyms() {
     return antonyms;
@@ -132,11 +135,19 @@ public class GlossarySourceTerm {
     this.termUid = termUid;
   }
 
-  public String getVariations() {
+  public List<String> getVariations() {
     return variations;
   }
 
-  public void setVariations(String variations) {
+  public void setVariations(List<String> variations) {
     this.variations = variations;
+  }
+
+  public boolean isArchived() {
+    return archived;
+  }
+
+  public void setArchived(boolean archived) {
+    this.archived = archived;
   }
 }
