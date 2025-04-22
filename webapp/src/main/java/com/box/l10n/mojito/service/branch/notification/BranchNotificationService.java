@@ -8,6 +8,7 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchMergeTarget;
 import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
@@ -18,6 +19,7 @@ import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
@@ -72,6 +74,8 @@ public class BranchNotificationService {
 
   @Value("${l10n.branchNotification.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
+
+  @Autowired private RepositoryRepository repositoryRepository;
 
   /**
    * When the state of branch changes, notifications must be sent (new, updated, translated). This
@@ -217,10 +221,12 @@ public class BranchNotificationService {
     if (hasExceededSafeTranslationNotificationTimeout(branchMergeTarget, branchStatistic)) {
       // Branch has been translated for the configured amount of time and has not been checked into
       // the repo, use the old flow to unblock
+      Repository repository = repositoryRepository.findById(branch.getRepository().getId()).get();
+
       meterRegistry
           .counter(
               "BranchNotificationService.handleSendBranchTranslatedMessage.branchExceededSafeTranslationNotificationWindow",
-              Tags.of("repository", branch.getRepository().getName()))
+              Tags.of("repository", repository.getName()))
           .increment();
 
       logger.warn(

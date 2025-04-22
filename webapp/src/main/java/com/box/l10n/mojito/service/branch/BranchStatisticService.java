@@ -97,6 +97,8 @@ public class BranchStatisticService {
 
   @Autowired AsyncBranchStatisticUpdater asyncBranchStatisticUpdater;
 
+  @Autowired BranchMergeTargetRepository branchMergeTargetRepository;
+
   @Value("${l10n.branchStatistic.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
@@ -397,6 +399,19 @@ public class BranchStatisticService {
         tmTextUnitIdToForTranslationCount.values().stream()
             .mapToLong(ForTranslationCountForTmTextUnitId::getTotalCount)
             .sum();
+
+    // New count of text unit variants is above the previous count - remove the safe i18n commit
+    if (sumTotalCount > branchStatistic.getTotalCount()) {
+      branchMergeTargetRepository
+          .findByBranch(branch)
+          .ifPresent(
+              branchMergeTarget -> {
+                if (branchMergeTarget.getCommit() != null) {
+                  branchMergeTarget.setCommit(null);
+                  branchMergeTargetRepository.save(branchMergeTarget);
+                }
+              });
+    }
 
     long sumForTranslationCount =
         tmTextUnitIdToForTranslationCount.values().stream()

@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch;
 import static com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget.APPROVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -10,8 +11,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.entity.BranchMergeTarget;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
+import com.box.l10n.mojito.entity.Commit;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.asset.AssetService;
@@ -19,6 +22,8 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
+import com.box.l10n.mojito.service.commit.CommitService;
+import com.box.l10n.mojito.service.commit.SaveCommitMismatchedExistingDataException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -26,6 +31,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.Lists;
+import java.time.ZonedDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +69,10 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
   @Autowired BranchNotificationRepository branchNotificationRepository;
+
+  @Autowired BranchMergeTargetRepository branchMergeTargetRepository;
+
+  @Autowired CommitService commitService;
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -415,11 +425,67 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
             branchTestData.getAsset(), content, false, branchTestData.getBranch1());
     assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null, null).get();
 
+    branchStatisticService.computeAndSaveBranchStatistics(branchTestData.getBranch1());
     waitForCondition(
         "Branch1 must have the translated date set back to null",
         () ->
             branchStatisticRepository.findByBranch(branchTestData.getBranch1()).getTranslatedDate()
                 == null);
+  }
+
+  @Test
+  public void testBranchMergeTargetCommitResets()
+      throws SaveCommitMismatchedExistingDataException,
+          UnsupportedAssetFilterTypeException,
+          InterruptedException,
+          ExecutionException {
+    BranchTestData branchTestData = new BranchTestData(testIdWatcher);
+    Branch branch = branchTestData.getBranch1();
+
+    // Compute the total count, not doing this will reset the commit we currently have as it would
+    // see we created new text units
+    branchStatisticService.computeAndSaveBranchStatistics(branch);
+
+    Commit createdCommit =
+        commitService.getOrCreateCommit(
+            branch.getRepository(), "commitName", "authorEmail", "authorName", ZonedDateTime.now());
+
+    // Add commit to merge target
+    BranchMergeTarget branchMergeTargetBranch = new BranchMergeTarget();
+    branchMergeTargetBranch.setBranch(branch);
+    branchMergeTargetBranch.setTargetsMain(true);
+    branchMergeTargetBranch.setCommit(createdCommit);
+    branchMergeTargetRepository.save(branchMergeTargetBranch);
+    branchMergeTargetRepository.flush();
+
+    assertNotNull(branchMergeTargetRepository.findByBranch(branch).get().getCommit());
+
+    // Removing a string should not reset the commit, still safe to merge
+    String branchContent = "# string1 description\n" + "string1=content1\n";
+    AssetContent assetContentBranch =
+        assetContentService.createAssetContent(
+            branchTestData.getAsset(), branchContent, false, branch);
+    assetExtractionService
+        .processAssetAsync(assetContentBranch.getId(), null, null, null, null)
+        .get();
+
+    branchStatisticService.computeAndSaveBranchStatistics(branch);
+
+    // Make sure the commit still exists
+    assertNotNull(branchMergeTargetRepository.findByBranch(branch).get().getCommit());
+
+    branchContent = "# string1 description\n" + "string1=content1\n" + "string4=content4\n";
+    assetContentBranch =
+        assetContentService.createAssetContent(
+            branchTestData.getAsset(), branchContent, false, branch);
+    assetExtractionService
+        .processAssetAsync(assetContentBranch.getId(), null, null, null, null)
+        .get();
+
+    branchStatisticService.computeAndSaveBranchStatistics(branch);
+
+    // Adding a text unit should wipe the commit as it's not safe anymore
+    assertNull(branchMergeTargetRepository.findByBranch(branch).get().getCommit());
   }
 
   /**
