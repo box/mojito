@@ -20,7 +20,7 @@ let RepositoryDropDown = createReactClass({
     getAllJobsSuccess(store) {
         if(!this.loaded) {
             const repositories = store.jobs.map(j => j.repository).sort((r1, r2) => r1.localeCompare(r2))
-            this.setState({repositories})
+            this.setState({ repositories: [...new Set(repositories)] })
             this.loaded = true;
         }
     },
