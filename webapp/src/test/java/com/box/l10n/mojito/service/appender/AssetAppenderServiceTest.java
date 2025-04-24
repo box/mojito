@@ -107,7 +107,8 @@ public class AssetAppenderServiceTest {
   public void testNoAppendWhenNoAppender() {
     when(assetAppenderFactory.fromExtension(any(), any())).thenReturn(Optional.empty());
 
-    assetAppenderService.appendBranchTextUnitsToSource(asset, localizedAssetBody, content);
+    assetAppenderService.appendBranchTextUnitsToSource(
+        asset, localizedAssetBody.getAppendBranchTextUnitsId(), content);
 
     verify(branchRepositoryMock, times(0)).findBranchesForAppending(any());
   }
@@ -141,7 +142,8 @@ public class AssetAppenderServiceTest {
     when(branchStatisticServiceMock.getTextUnitDTOsForBranch(any())).thenReturn(textUnits);
     when(branchRepositoryMock.findBranchesForAppending(any())).thenReturn(branches);
 
-    assetAppenderService.appendBranchTextUnitsToSource(asset, localizedAssetBody, content);
+    assetAppenderService.appendBranchTextUnitsToSource(
+        asset, localizedAssetBody.getAppendBranchTextUnitsId(), content);
 
     verify(potAssetAppenderMock, times(3)).appendTextUnits(any());
     verify(meterRegistryMock, times(2)).counter(Mockito.anyString(), isA(Iterable.class));
@@ -182,7 +184,8 @@ public class AssetAppenderServiceTest {
     when(branchStatisticServiceMock.getTextUnitDTOsForBranch(any())).thenReturn(textUnits);
     when(branchRepositoryMock.findBranchesForAppending(any())).thenReturn(branches);
 
-    assetAppenderService.appendBranchTextUnitsToSource(asset, localizedAssetBody, content);
+    assetAppenderService.appendBranchTextUnitsToSource(
+        asset, localizedAssetBody.getAppendBranchTextUnitsId(), content);
 
     verify(potAssetAppenderMock, times(5)).appendTextUnits(any());
 

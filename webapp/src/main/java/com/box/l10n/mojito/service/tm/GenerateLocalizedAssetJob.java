@@ -64,7 +64,7 @@ public class GenerateLocalizedAssetJob
       if (localizedAssetBody.getAppendBranchTextUnitsId() != null) {
         normalizedContent =
             assetAppenderService.appendBranchTextUnitsToSource(
-                asset, localizedAssetBody, normalizedContent);
+                asset, localizedAssetBody.getAppendBranchTextUnitsId(), normalizedContent);
       }
 
       String generateLocalized;

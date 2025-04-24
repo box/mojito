@@ -5,6 +5,7 @@ import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +53,11 @@ public class AppendedAssetBlobStorage {
         getSourceArtifactName(jobId),
         content,
         Retention.PERMANENT);
+  }
+
+  public Optional<String> getAppendedSource(String jobId) {
+    return structuredBlobStorage.getString(
+        StructuredBlobStorage.Prefix.APPENDED_ASSET, getSourceArtifactName(jobId));
   }
 
   private String getBranchesName(String jobId) {

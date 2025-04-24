@@ -218,7 +218,7 @@ public class AssetWS {
     if (localizedAssetBody.getAppendBranchTextUnitsId() != null) {
       normalizedContent =
           assetAppenderService.appendBranchTextUnitsToSource(
-              asset, localizedAssetBody, normalizedContent);
+              asset, localizedAssetBody.getAppendBranchTextUnitsId(), normalizedContent);
     }
 
     String generateLocalized =
@@ -306,6 +306,18 @@ public class AssetWS {
     Repository repository = asset.getRepository();
     if (assetMetricsConfigurationsProperties.getAssetMetrics().containsKey(repository.getName())) {
       recordAppendMetrics(repository);
+    }
+
+    if (multiLocalizedAssetBody.getAppendTextUnitsId() != null) {
+      // Set the source to the appended asset - For each locale under the repository / locale
+      // mapping, a localized asset body is created which will use this source content. Each
+      // localized asset body sends up their source content for localization so there is no need to
+      // put it through the appender service again
+      multiLocalizedAssetBody.setSourceContent(
+          assetAppenderService.appendBranchTextUnitsToSource(
+              asset,
+              multiLocalizedAssetBody.getAppendTextUnitsId(),
+              multiLocalizedAssetBody.getSourceContent()));
     }
 
     QuartzJobInfo<MultiLocalizedAssetBody, MultiLocalizedAssetBody> quartzJobInfo =

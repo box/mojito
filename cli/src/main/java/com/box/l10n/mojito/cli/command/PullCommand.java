@@ -336,7 +336,6 @@ public class PullCommand extends Command {
       LocalizedAssetBody localizedAsset =
           getLocalizedAsset(
               repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
-      localizedAsset.setAppendBranchTextUnitsId(appendBranchTextUnits);
       writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
     } else {
       consoleWriter

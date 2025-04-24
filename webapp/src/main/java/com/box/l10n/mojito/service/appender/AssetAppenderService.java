@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.appender;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.entity.Branch;
-import com.box.l10n.mojito.rest.asset.LocalizedAssetBody;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
@@ -70,19 +69,27 @@ public class AssetAppenderService {
    * appender and returns the source asset.
    *
    * @param asset
-   * @param localizedAssetBody
+   * @param appendJobId
    * @return Source content with text units appended from translated branches under the Assets
    *     repository.
    */
   public String appendBranchTextUnitsToSource(
-      Asset asset, LocalizedAssetBody localizedAssetBody, String sourceContent) {
-
-    String appendJobId = localizedAssetBody.getAppendBranchTextUnitsId();
+      Asset asset, String appendJobId, String sourceContent) {
 
     if (Strings.isNullOrEmpty(appendJobId)) {
       logger.error(
           "Attempted to append branch text units with no append text unit job id supplied, returning asset source content.");
       return sourceContent;
+    }
+
+    // Use the appended source in the cache if it exists - this can happen if the pull command was
+    // executed without the --parallel flag as the first localize asset request for the first
+    // locale did the asset appending already. This is important to avoid the appender service being
+    // called for each locale which would emit duplicate metrics and writes to the blob storage
+    // again.
+    Optional<String> cachedAppendedSource = appendedAssetBlobStorage.getAppendedSource(appendJobId);
+    if (cachedAppendedSource.isPresent()) {
+      return cachedAppendedSource.get();
     }
 
     String extension = FilenameUtils.getExtension(asset.getPath()).toLowerCase();
@@ -119,6 +126,13 @@ public class AssetAppenderService {
     int appendedTextUnitCount = 0;
     for (Branch branch : branchesToAppend) {
       List<TextUnitDTO> textUnitsToAppend = branchStatisticService.getTextUnitDTOsForBranch(branch);
+
+      // Filter text units by removing ones in the last push run
+      textUnitsToAppend =
+          textUnitsToAppend.stream()
+              .filter(tu -> !lastPushRunTextUnits.contains(tu.getTmTextUnitId()))
+              .toList();
+
       // Are we going to go over the hard limit ? If yes emit metrics and break out.
       if (appendedTextUnitCount + textUnitsToAppend.size() > appendTextUnitLimit) {
         int countTextUnitsFailedToAppend =
@@ -152,12 +166,6 @@ public class AssetAppenderService {
             .increment(branchesToAppend.size() - appendedBranches.size());
         break;
       }
-
-      // Filter text units by removing ones in the last push run
-      textUnitsToAppend =
-          textUnitsToAppend.stream()
-              .filter(tu -> !lastPushRunTextUnits.contains(tu.getTmTextUnitId()))
-              .toList();
 
       // Append the text units
       appender.appendTextUnits(textUnitsToAppend);
