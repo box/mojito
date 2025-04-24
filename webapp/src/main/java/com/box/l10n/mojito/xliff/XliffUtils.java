@@ -116,8 +116,8 @@ public class XliffUtils {
     NodeList elements = document.getElementsByTagName(elementName);
 
     while (elements.getLength() > 0) {
-      Node binUnit = elements.item(0);
-      binUnit.getParentNode().removeChild(binUnit);
+      Node element = elements.item(0);
+      element.getParentNode().removeChild(element);
     }
 
     TransformerFactory transformerFactory = TransformerFactory.newInstance();

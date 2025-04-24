@@ -3,7 +3,6 @@ package com.box.l10n.mojito.okapi.asset;
 import static org.junit.Assert.assertEquals;
 
 import com.box.l10n.mojito.okapi.filters.*;
-import net.sf.okapi.filters.xliff.XLIFFFilter;
 import org.junit.Test;
 
 /**
@@ -30,7 +29,7 @@ public class AssetPathToFilterConfigMapperTest {
     String filterConfigId =
         assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/file.xlf");
 
-    assertEquals(AssetPathToFilterConfigMapper.XLIFF_FILTER_CONFIG_ID, filterConfigId);
+    assertEquals(XliffFilter.FILTER_CONFIG_ID, filterConfigId);
   }
 
   @Test
@@ -41,7 +40,7 @@ public class AssetPathToFilterConfigMapperTest {
     String filterConfigId =
         assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/file.xliff");
 
-    assertEquals(AssetPathToFilterConfigMapper.XLIFF_FILTER_CONFIG_ID, filterConfigId);
+    assertEquals(XliffFilter.FILTER_CONFIG_ID, filterConfigId);
   }
 
   @Test(expected = UnsupportedAssetFilterTypeException.class)
@@ -56,8 +55,8 @@ public class AssetPathToFilterConfigMapperTest {
   @Test
   public void testXLIFFFilterConfigIdConstMatchesOkapiConfigId() throws Exception {
 
-    String okapiConfigId = new XLIFFFilter().getName();
-    assertEquals(AssetPathToFilterConfigMapper.XLIFF_FILTER_CONFIG_ID, okapiConfigId);
+    String okapiConfigId = new XliffFilter().getName();
+    assertEquals(XliffFilter.FILTER_CONFIG_ID, okapiConfigId);
   }
 
   @Test

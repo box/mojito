@@ -22,8 +22,6 @@ public class AssetPathToFilterConfigMapper {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AssetPathToFilterConfigMapper.class);
 
-  public static final String XLIFF_FILTER_CONFIG_ID = "okf_xliff";
-
   // TODO(P1) check if we want escaped or not, potentially configurable.
   // TODO(P1) Trim comment coming from this PropertiesFilter? # comment gives " comment"
   public static final String PROPERTIES_FILTER_CONFIG_ID = "okf_properties-outputNotEscaped";
@@ -35,7 +33,7 @@ public class AssetPathToFilterConfigMapper {
 
   private enum AssetFilterType {
     CSV(CSVFilter.FILTER_CONFIG_ID, "csv"),
-    XLIFF(XLIFF_FILTER_CONFIG_ID, "xlf", "xliff", "sdlxliff", "mxliff"),
+    XLIFF(XliffFilter.FILTER_CONFIG_ID, "xlf", "xliff", "sdlxliff", "mxliff"),
     PROPERTIES(PROPERTIES_FILTER_CONFIG_ID, "properties"),
     ANDROIDSTRINGS(AndroidFilter.FILTER_CONFIG_ID, "xml"),
     MACSTRINGS(MACSTRINGS_FILTER_CONFIG_ID, "strings"),

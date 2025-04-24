@@ -30,6 +30,8 @@ public class EvolveConfigurationProperties {
 
   private String courseEvolveType;
 
+  private String usagesKeyRegexp;
+
   public String getApiUid() {
     return apiUid;
   }
@@ -124,5 +126,13 @@ public class EvolveConfigurationProperties {
 
   public void setEvolveSyncRetryMaxBackoffSecs(Integer evolveSyncRetryMaxBackoffSecs) {
     this.evolveSyncRetryMaxBackoffSecs = evolveSyncRetryMaxBackoffSecs;
+  }
+
+  public String getUsagesKeyRegexp() {
+    return usagesKeyRegexp;
+  }
+
+  public void setUsagesKeyRegexp(String usagesKeyRegexp) {
+    this.usagesKeyRegexp = usagesKeyRegexp;
   }
 }

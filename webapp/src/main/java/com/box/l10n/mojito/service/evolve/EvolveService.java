@@ -189,6 +189,11 @@ public class EvolveService {
     sourceAsset.setBranchCreatedByUsername(SYSTEM_USERNAME);
     sourceAsset.setContent(
         this.xliffUtils.removeAttribute(localizedAssetContent, "target-language"));
+    ofNullable(this.evolveConfigurationProperties.getUsagesKeyRegexp())
+        .ifPresent(
+            usagesKeyRegexp ->
+                sourceAsset.setFilterOptions(
+                    List.of(String.format("usagesKeyRegexp=%s", usagesKeyRegexp))));
     this.pollableTaskService.waitForPollableTask(
         this.importSourceAsset(sourceAsset).getPollableTask().getId(),
         this.evolveConfigurationProperties.getTaskTimeoutInSeconds() * 1000,
@@ -270,6 +275,11 @@ public class EvolveService {
     sourceAsset.setPath(this.getAssetPath(courseId));
     sourceAsset.setBranchCreatedByUsername(SYSTEM_USERNAME);
     sourceAsset.setContent(content);
+    ofNullable(this.evolveConfigurationProperties.getUsagesKeyRegexp())
+        .ifPresent(
+            usagesKeyRegexp ->
+                sourceAsset.setFilterOptions(
+                    List.of(String.format("usagesKeyRegexp=%s", usagesKeyRegexp))));
     this.pollableTaskService.waitForPollableTask(
         this.importSourceAsset(sourceAsset).getPollableTask().getId(),
         this.evolveConfigurationProperties.getTaskTimeoutInSeconds() * 1000,

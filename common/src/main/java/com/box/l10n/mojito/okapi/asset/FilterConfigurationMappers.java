@@ -42,6 +42,7 @@ public class FilterConfigurationMappers {
     mapper.addConfigurations(XcodeXliffFilter.class.getName());
     mapper.addConfigurations(YamlFilter.class.getName());
     mapper.addConfigurations(HtmlFilter.class.getName());
+    mapper.addConfigurations(XliffFilter.class.getName());
 
     return mapper;
   }

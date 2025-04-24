@@ -7,7 +7,7 @@
                         <target/>
                         <note>The name of the course</note>
                     </trans-unit>
-                    <trans-unit datatype="html" exceed-preview-link="https://www.tes.com/student/enrollments/create_enrollment_from_token/7654da9d8440ece99c33f63d" id="course[25].instructions">
+                    <trans-unit datatype="html" exceed-preview-link="https://www.test.com/student/enrollments/create_enrollment_from_token/7654da9d8440ece99c33f63d" id="course[25].instructions">
                         <source>&lt;style&gt;&#13;
                 .instructionspanel__photo {&#13;
                   border-radius: .8em;&#13;
