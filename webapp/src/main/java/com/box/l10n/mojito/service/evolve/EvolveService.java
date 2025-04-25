@@ -101,6 +101,8 @@ public class EvolveService {
 
   private final Duration evolveSyncRetryMaxBackoff;
 
+  private final EvolveSlackNotificationSender evolveSlackNotificationSender;
+
   @Autowired
   public EvolveService(
       EvolveConfigurationProperties evolveConfigurationProperties,
@@ -116,7 +118,8 @@ public class EvolveService {
       BranchService branchService,
       AssetExtractionByBranchRepository assetExtractionByBranchRepository,
       LocaleMappingHelper localeMappingHelper,
-      @Autowired(required = false) ContentService contentService) {
+      @Autowired(required = false) ContentService contentService,
+      EvolveSlackNotificationSender evolveSlackNotificationSender) {
     this.evolveConfigurationProperties = evolveConfigurationProperties;
     this.repositoryRepository = repositoryRepository;
     this.evolveClient = evolveClient;
@@ -139,6 +142,7 @@ public class EvolveService {
         Duration.ofSeconds(evolveConfigurationProperties.getEvolveSyncRetryMinBackoffSecs());
     this.evolveSyncRetryMaxBackoff =
         Duration.ofSeconds(evolveConfigurationProperties.getEvolveSyncRetryMaxBackoffSecs());
+    this.evolveSlackNotificationSender = evolveSlackNotificationSender;
   }
 
   private SourceAsset importSourceAsset(SourceAsset sourceAsset)
@@ -355,6 +359,19 @@ public class EvolveService {
     }
   }
 
+  private void sendSlackNotification(int courseId) {
+    String slackChannel = this.evolveConfigurationProperties.getSlackChannel();
+    String courseUrlTemplate = this.evolveConfigurationProperties.getCourseUrlTemplate();
+    if (slackChannel != null && courseUrlTemplate != null) {
+      this.evolveSlackNotificationSender.notifyFullyTranslatedCourse(
+          courseId,
+          slackChannel,
+          courseUrlTemplate,
+          Retry.backoff(this.evolveConfigurationProperties.getMaxRetries(), this.retryMinBackoff)
+              .maxBackoff(this.retryMaxBackoff));
+    }
+  }
+
   private void syncTranslated(
       CourseDTO courseDTO,
       Branch branch,
@@ -387,6 +404,7 @@ public class EvolveService {
       this.deleteBranch(repositoryId, branch.getId());
       courseDTO.setTranslationStatus(TRANSLATED);
       this.updateCourse(courseDTO, startDateTime);
+      this.sendSlackNotification(courseDTO.getId());
     } else {
       throw new EvolveSyncException(
           "Couldn't find asset content for course with id: " + courseDTO.getId());

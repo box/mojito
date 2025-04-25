@@ -32,6 +32,10 @@ public class EvolveConfigurationProperties {
 
   private String usagesKeyRegexp;
 
+  private String slackChannel;
+
+  private String courseUrlTemplate;
+
   public String getApiUid() {
     return apiUid;
   }
@@ -134,5 +138,21 @@ public class EvolveConfigurationProperties {
 
   public void setUsagesKeyRegexp(String usagesKeyRegexp) {
     this.usagesKeyRegexp = usagesKeyRegexp;
+  }
+
+  public String getSlackChannel() {
+    return slackChannel;
+  }
+
+  public void setSlackChannel(String slackChannel) {
+    this.slackChannel = slackChannel;
+  }
+
+  public String getCourseUrlTemplate() {
+    return courseUrlTemplate;
+  }
+
+  public void setCourseUrlTemplate(String courseUrlTemplate) {
+    this.courseUrlTemplate = courseUrlTemplate;
   }
 }
