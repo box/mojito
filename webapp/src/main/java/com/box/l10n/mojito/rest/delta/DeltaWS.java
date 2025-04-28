@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -86,7 +87,8 @@ public class DeltaWS {
       // TODO(jean) what is the impact on the leniency of the WS ??
       @RequestParam(value = "fromDate", required = false) ZonedDateTime fromDate,
       @RequestParam(value = "toDate", required = false) ZonedDateTime toDate,
-      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable)
+      @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+          Pageable pageable)
       throws RepositoryWithIdNotFoundException {
 
     Repository repository =

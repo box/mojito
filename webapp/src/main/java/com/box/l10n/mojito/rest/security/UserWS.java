@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +48,8 @@ public class UserWS {
   public Page<User> getUsers(
       @RequestParam(value = "username", required = false) String username,
       @RequestParam(value = "search", required = false) String search,
-      @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
+      @ParameterObject @PageableDefault(sort = "username", direction = Sort.Direction.ASC)
+          Pageable pageable) {
     return userService.findByUsernameOrName(username, search, pageable);
   }
 

@@ -7,7 +7,6 @@ import com.box.l10n.mojito.apiclient.DropWsApi;
 import com.box.l10n.mojito.apiclient.RepositoryClient;
 import com.box.l10n.mojito.apiclient.model.AssetAssetSummary;
 import com.box.l10n.mojito.apiclient.model.PageDropDropSummary;
-import com.box.l10n.mojito.apiclient.model.Pageable;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -51,12 +50,12 @@ public class DropExportCommandTest extends CLITestBase {
                 repositoryClient.getRepositoryById(repository.getId())));
 
     PageDropDropSummary findAllBefore =
-        dropClient.getDrops(new Pageable(), repository.getId(), null, null);
+        dropClient.getDrops(repository.getId(), null, null, null, null, null);
 
     getL10nJCommander().run("drop-export", "-r", repository.getName());
 
     PageDropDropSummary findAllAfter =
-        dropClient.getDrops(new Pageable(), repository.getId(), null, null);
+        dropClient.getDrops(repository.getId(), null, null, null, null, null);
 
     assertEquals(
         "A Drop must have been added",
@@ -100,12 +99,12 @@ public class DropExportCommandTest extends CLITestBase {
         });
 
     PageDropDropSummary findAllBefore =
-        dropClient.getDrops(new Pageable(), repository.getId(), null, null);
+        dropClient.getDrops(repository.getId(), null, null, null, null, null);
 
     getL10nJCommander().run("drop-export", "-r", repository.getName());
 
     PageDropDropSummary findAllAfter =
-        dropClient.getDrops(new Pageable(), repository.getId(), null, null);
+        dropClient.getDrops(repository.getId(), null, null, null, null, null);
 
     assertEquals(
         "A Drop should not have been added",
@@ -137,7 +136,7 @@ public class DropExportCommandTest extends CLITestBase {
     importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
     PageDropDropSummary findAllBefore =
-        dropClient.getDrops(new Pageable(), repository.getId(), null, null);
+        dropClient.getDrops(repository.getId(), null, null, null, null, null);
 
     getL10nJCommander()
         .run(
@@ -153,7 +152,7 @@ public class DropExportCommandTest extends CLITestBase {
             });
 
     PageDropDropSummary findAllAfter =
-        dropClient.getDrops(new Pageable(), repository.getId(), null, null);
+        dropClient.getDrops(repository.getId(), null, null, null, null, null);
 
     assertEquals(
         "A Drop must have been added",

@@ -18,6 +18,7 @@ import com.google.common.base.Strings;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -61,7 +62,8 @@ public class CommitWS {
       @RequestParam(value = "pullRunName", required = false) String pullRunName,
       @RequestParam(value = "hasPushRun", required = false) Boolean hasPushRun,
       @RequestParam(value = "hasPullRun", required = false) Boolean hasPullRun,
-      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+      @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+          Pageable pageable) {
 
     return getCommits(
         repositoryId, commitNames, pushRunName, pullRunName, hasPushRun, hasPullRun, pageable);
@@ -81,7 +83,8 @@ public class CommitWS {
       @RequestParam(value = "pullRunName", required = false) String pullRunName,
       @RequestParam(value = "hasPushRun", required = false) Boolean hasPushRun,
       @RequestParam(value = "hasPullRun", required = false) Boolean hasPullRun,
-      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+      @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+          Pageable pageable) {
 
     Page<Commit> commits =
         commitService.getCommits(

@@ -5,7 +5,6 @@ import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.apiclient.DropWsApi;
 import com.box.l10n.mojito.apiclient.model.DropDropSummary;
 import com.box.l10n.mojito.apiclient.model.ImportDropConfig;
-import com.box.l10n.mojito.apiclient.model.Pageable;
 import com.box.l10n.mojito.apiclient.model.PollableTask;
 import com.box.l10n.mojito.apiclient.model.RepositoryRepository;
 import com.box.l10n.mojito.cli.command.param.Param;
@@ -164,11 +163,16 @@ public class DropImportCommand extends Command {
 
     long i = 1;
 
-    Pageable pageable = new Pageable();
-    pageable.setPage(0);
-    pageable.setSize(this.numberOfDropsToFetchParam.intValue());
     for (DropDropSummary availableDrop :
-        dropClient.getDrops(pageable, repositoryId, getImportedFilter(), null).getContent()) {
+        dropClient
+            .getDrops(
+                repositoryId,
+                getImportedFilter(),
+                null,
+                0,
+                this.numberOfDropsToFetchParam.intValue(),
+                null)
+            .getContent()) {
       dropIds.put(i++, availableDrop);
     }
 
@@ -176,9 +180,9 @@ public class DropImportCommand extends Command {
   }
 
   /**
-   * Returns the "imported" filter to be passed to {@link
-   * DropWsApi#getDrops(com.box.l10n.mojito.cli.model.Pageable, Long, Boolean, Boolean) } based on
-   * the CLI parameter {@link #alsoShowImportedParam}.
+   * Returns the "imported" filter to be passed to {@link DropWsApi#getDrops(Long, Boolean, Boolean,
+   * java.lang.Integer, java.lang.Integer, java.util.List) } based on the CLI parameter {@link
+   * #alsoShowImportedParam}.
    *
    * @return the imported filter to get drops
    */

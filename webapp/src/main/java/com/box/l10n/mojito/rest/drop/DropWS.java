@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -73,7 +74,8 @@ public class DropWS {
       @RequestParam(value = "repositoryId", required = false) Long repositoryId,
       @RequestParam(value = "imported", required = false) Boolean importedFilter,
       @RequestParam(value = "canceled", required = false) Boolean canceledFilter,
-      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable)
+      @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+          Pageable pageable)
       throws Exception {
 
     Page<Drop> findAll =

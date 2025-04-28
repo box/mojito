@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,7 +72,8 @@ public class BranchStatisticWS {
           Long totalCountLte,
       @RequestParam(value = "createdBefore", required = false) ZonedDateTime createdBefore,
       @RequestParam(value = "createdAfter", required = false) ZonedDateTime createdAfter,
-      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+      @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+          Pageable pageable) {
     // Two phase querying: 1. retrieve BranchStatistic IDs for pagination first
     // Retrieve all the Branch Statistic Ids without the totalCountLte filter:
     Page<Long> branchStatisticIds =
@@ -131,7 +133,8 @@ public class BranchStatisticWS {
   @StopWatch
   public Page<BranchTextUnitStatistic> getBranchTextUnitStatisticsOfBranch(
       @PathVariable("id") long id,
-      @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+      @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+          Pageable pageable) {
     Page<BranchTextUnitStatistic> page =
         this.branchTextUnitStatisticRepository.getByBranchStatisticId(id, pageable);
     return new PageView<>(page);
