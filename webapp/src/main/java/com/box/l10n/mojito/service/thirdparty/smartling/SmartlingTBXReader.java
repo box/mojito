@@ -139,6 +139,10 @@ public class SmartlingTBXReader {
         Property partOfSpeech = new Property("partOfSpeech", reader.getElementText(), true);
         cent.setProperty(partOfSpeech);
         break;
+      case "archived":
+        Property archived = new Property("archived", reader.getElementText(), true);
+        cent.setProperty(archived);
+        break;
       default:
         break;
     }

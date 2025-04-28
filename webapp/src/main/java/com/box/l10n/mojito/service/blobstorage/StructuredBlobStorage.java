@@ -48,6 +48,7 @@ public class StructuredBlobStorage {
     MULTI_BRANCH_STATE,
     TEXT_UNIT_DTOS_CACHE,
     CLOB_STORAGE_WS,
-    APPENDED_ASSET
+    APPENDED_ASSET,
+    GLOSSARY
   }
 }
