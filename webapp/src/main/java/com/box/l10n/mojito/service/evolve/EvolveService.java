@@ -374,41 +374,16 @@ public class EvolveService {
 
   private void syncTranslated(
       CourseDTO courseDTO,
+      String content,
       Branch branch,
       ZonedDateTime startDateTime,
-      long repositoryId,
-      Map<String, String> localeMappings,
-      List<RepositoryLocale> targetRepositoryLocales)
+      long repositoryId)
       throws UnsupportedAssetFilterTypeException, ExecutionException, InterruptedException {
-    Asset asset =
-        this.assetService
-            .findAll(
-                repositoryId, this.getAssetPath(courseDTO.getId()), false, false, branch.getId())
-            .getFirst();
-    List<AssetContent> assetContents =
-        this.assetContentRepository.findByAssetRepositoryIdAndBranchName(
-            repositoryId, this.getBranchName(courseDTO.getId()));
-    Optional<AssetContent> assetContentOptional =
-        assetContents.stream()
-            .filter(content -> content.getContentMd5().equals(this.getContentMd5(asset, branch)))
-            .findFirst();
-    if (assetContentOptional.isPresent()) {
-      AssetContent assetContent = assetContentOptional.get();
-      String content =
-          this.contentService
-              .map(service -> service.getContent(assetContent).orElseThrow())
-              .orElse(assetContent.getContent());
-      this.updateCourseTranslations(
-          courseDTO.getId(), asset, content, localeMappings, targetRepositoryLocales);
-      this.importSourceAssetToPrimaryBranch(courseDTO.getId(), content, repositoryId);
-      this.deleteBranch(repositoryId, branch.getId());
-      courseDTO.setTranslationStatus(TRANSLATED);
-      this.updateCourse(courseDTO, startDateTime);
-      this.sendSlackNotification(courseDTO.getId());
-    } else {
-      throw new EvolveSyncException(
-          "Couldn't find asset content for course with id: " + courseDTO.getId());
-    }
+    this.importSourceAssetToPrimaryBranch(courseDTO.getId(), content, repositoryId);
+    this.deleteBranch(repositoryId, branch.getId());
+    courseDTO.setTranslationStatus(TRANSLATED);
+    this.updateCourse(courseDTO, startDateTime);
+    this.sendSlackNotification(courseDTO.getId());
   }
 
   private void syncReadyForTranslation(
@@ -435,6 +410,22 @@ public class EvolveService {
     this.updateCourse(courseDTO, startDateTime);
   }
 
+  private Optional<String> getContent(
+      CourseDTO courseDTO, Asset asset, Branch branch, long repositoryId) {
+    List<AssetContent> assetContents =
+        this.assetContentRepository.findByAssetRepositoryIdAndBranchName(
+            repositoryId, this.getBranchName(courseDTO.getId()));
+    Optional<AssetContent> assetContent =
+        assetContents.stream()
+            .filter(content -> content.getContentMd5().equals(this.getContentMd5(asset, branch)))
+            .findFirst();
+    return assetContent.map(
+        content ->
+            this.contentService
+                .map(service -> service.getContent(content).orElseThrow())
+                .orElse(content.getContent()));
+  }
+
   private void syncInTranslation(
       CourseDTO courseDTO,
       ZonedDateTime startDateTime,
@@ -446,16 +437,26 @@ public class EvolveService {
         this.branchRepository.findByNameAndRepository(
             this.getBranchName(courseDTO.getId()), repository);
     BranchStatistic branchStatistic = this.branchStatisticRepository.findByBranch(branch);
+    Asset asset =
+        this.assetService
+            .findAll(
+                repository.getId(),
+                this.getAssetPath(courseDTO.getId()),
+                false,
+                false,
+                branch.getId())
+            .getFirst();
+    Optional<String> content = this.getContent(courseDTO, asset, branch, repository.getId());
+    if (content.isEmpty()) {
+      throw new EvolveSyncException(
+          "Couldn't find asset content for course with id: " + courseDTO.getId());
+    }
+    this.updateCourseTranslations(
+        courseDTO.getId(), asset, content.get(), localeMappings, targetRepositoryLocales);
     if (branchStatistic != null
         && branchStatistic.getTotalCount() > 0
         && branchStatistic.getForTranslationCount() == 0) {
-      this.syncTranslated(
-          courseDTO,
-          branch,
-          startDateTime,
-          repository.getId(),
-          localeMappings,
-          targetRepositoryLocales);
+      this.syncTranslated(courseDTO, content.get(), branch, startDateTime, repository.getId());
     }
   }
 

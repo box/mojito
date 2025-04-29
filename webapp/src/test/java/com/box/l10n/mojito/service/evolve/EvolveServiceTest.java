@@ -6,6 +6,7 @@ import static com.box.l10n.mojito.service.evolve.dto.TranslationStatusType.TRANS
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -245,6 +246,97 @@ public class EvolveServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testSyncForPartiallyTranslatedCourse()
+      throws RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          UnsupportedAssetFilterTypeException,
+          ExecutionException,
+          InterruptedException,
+          IOException {
+    Locale esLocale = this.localeService.findByBcp47Tag("es-ES");
+    RepositoryLocale esRepositoryLocale = new RepositoryLocale();
+    esRepositoryLocale.setLocale(esLocale);
+    Repository repository =
+        repositoryService.createRepository(
+            testIdWatcher.getEntityName("test"),
+            "",
+            this.localeService.getDefaultLocale(),
+            false,
+            Sets.newHashSet(),
+            Sets.newHashSet(esRepositoryLocale));
+    final int courseId = 1;
+    this.initInTranslationData();
+    SourceAsset sourceAsset = new SourceAsset();
+    sourceAsset.setBranch(this.evolveService.getBranchName(courseId));
+    sourceAsset.setRepositoryId(repository.getId());
+    sourceAsset.setPath(this.evolveService.getAssetPath(courseId));
+    sourceAsset.setContent(this.getXliffContent());
+
+    String normalizedContent = NormalizationUtils.normalize(sourceAsset.getContent());
+    PollableFuture<Asset> assetFuture =
+        this.assetService.addOrUpdateAssetAndProcessIfNeeded(
+            sourceAsset.getRepositoryId(),
+            sourceAsset.getPath(),
+            normalizedContent,
+            sourceAsset.isExtractedContent(),
+            sourceAsset.getBranch(),
+            sourceAsset.getBranchCreatedByUsername(),
+            sourceAsset.getBranchNotifiers(),
+            null,
+            sourceAsset.getFilterConfigIdOverride(),
+            sourceAsset.getFilterOptions(),
+            true);
+
+    sourceAsset.setAddedAssetId(assetFuture.get().getId());
+    sourceAsset.setPollableTask(assetFuture.getPollableTask());
+    this.pollableTaskService.waitForPollableTask(sourceAsset.getPollableTask().getId());
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParameters.Builder().repositoryId(repository.getId()).build();
+    List<TextUnitDTO> textUnits = this.textUnitSearcher.search(textUnitSearcherParameters);
+
+    textUnits
+        .subList(0, textUnits.size() - 1)
+        .forEach(
+            textUnitDTO ->
+                tmService.addTMTextUnitCurrentVariant(
+                    textUnitDTO.getTmTextUnitId(),
+                    esLocale.getId(),
+                    "Text",
+                    textUnitDTO.getTargetComment(),
+                    TMTextUnitVariant.Status.APPROVED,
+                    true));
+
+    Branch branch =
+        this.branchRepository.findByNameAndRepository(
+            this.evolveService.getBranchName(courseId), repository);
+    assertNotNull(branch);
+    assertFalse(branch.getDeleted());
+
+    this.branchStatisticService.computeAndSaveBranchStatistics(branch);
+
+    this.evolveService.sync(repository.getId(), null);
+
+    branch =
+        this.branchRepository.findByNameAndRepository(
+            this.evolveService.getBranchName(courseId), repository);
+    assertFalse(branch.getDeleted());
+
+    verify(this.evolveClientMock)
+        .updateCourseTranslation(integerCaptor.capture(), stringCaptor.capture());
+    assertEquals(courseId, (int) integerCaptor.getValue());
+    assertTrue(stringCaptor.getValue().contains("target-language=\"es-ES\""));
+    verify(this.evolveClientMock, times(0))
+        .updateCourse(anyInt(), any(TranslationStatusType.class), any(ZonedDateTime.class));
+
+    verify(this.evolveSlackNotificationSenderMock, times(0))
+        .notifyFullyTranslatedCourse(anyInt(), anyString(), anyString(), any(Retry.class));
+
+    branch = this.branchRepository.findByNameAndRepository(null, repository);
+    assertNull(branch);
+  }
+
+  @Test
   public void testSyncForFullyTranslatedCourse()
       throws RepositoryNameAlreadyUsedException,
           RepositoryLocaleCreationException,
@@ -402,10 +494,11 @@ public class EvolveServiceTest extends ServiceTestBase {
             this.evolveService.getBranchName(courseId), repository);
     assertFalse(branch.getDeleted());
 
-    verify(this.evolveClientMock, times(0)).updateCourseTranslation(anyInt(), anyString());
-
+    verify(this.evolveClientMock).updateCourseTranslation(eq(courseId), anyString());
     verify(this.evolveClientMock, times(0))
         .updateCourse(anyInt(), any(TranslationStatusType.class), any(ZonedDateTime.class));
+    verify(this.evolveSlackNotificationSenderMock, times(0))
+        .notifyFullyTranslatedCourse(anyInt(), anyString(), anyString(), any(Retry.class));
   }
 
   @Test
@@ -470,7 +563,7 @@ public class EvolveServiceTest extends ServiceTestBase {
             this.evolveService.getBranchName(courseId), repository);
     assertFalse(branch.getDeleted());
 
-    verify(this.evolveClientMock, times(0)).updateCourseTranslation(anyInt(), anyString());
+    verify(this.evolveClientMock).updateCourseTranslation(eq(courseId), anyString());
 
     verify(this.evolveClientMock, times(0))
         .updateCourse(anyInt(), any(TranslationStatusType.class), any(ZonedDateTime.class));
@@ -556,7 +649,7 @@ public class EvolveServiceTest extends ServiceTestBase {
     verify(this.evolveClientMock, times(1)).startCourseTranslation(anyInt(), anyString(), anySet());
     verify(this.evolveClientMock, times(1))
         .updateCourse(anyInt(), any(TranslationStatusType.class), any(ZonedDateTime.class));
-    verify(this.evolveClientMock, times(0)).updateCourseTranslation(anyInt(), anyString());
+    verify(this.evolveClientMock, times(1)).updateCourseTranslation(eq(2), anyString());
     verify(this.evolveClientMock, times(0)).syncEvolve(anyInt());
 
     branch =
