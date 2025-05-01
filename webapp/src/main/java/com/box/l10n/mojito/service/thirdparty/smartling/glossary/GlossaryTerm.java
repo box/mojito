@@ -7,7 +7,7 @@ import java.util.Map;
 public class GlossaryTerm implements Serializable {
 
   private Long tmTextUnitId;
-  private String term;
+  private String text;
   private Map<String, String> translations;
   private boolean isExactMatch;
   private boolean isCaseSensitive;
@@ -16,12 +16,12 @@ public class GlossaryTerm implements Serializable {
   public GlossaryTerm() {}
 
   public GlossaryTerm(
-      String term,
+      String text,
       boolean isExactMatch,
       boolean isCaseSensitive,
       boolean isDoNotTranslate,
       Long tmTextUnitId) {
-    this.term = term;
+    this.text = text;
     this.isExactMatch = isExactMatch;
     this.isCaseSensitive = isCaseSensitive;
     this.isDoNotTranslate = isDoNotTranslate;
@@ -37,12 +37,12 @@ public class GlossaryTerm implements Serializable {
     translations.put(bcp47Tag, translation);
   }
 
-  public void getLocaleTranslation(String bcp47Tag) {
-    translations.get(bcp47Tag);
+  public String getLocaleTranslation(String bcp47Tag) {
+    return translations.get(bcp47Tag);
   }
 
-  public String getTerm() {
-    return term;
+  public String getText() {
+    return text;
   }
 
   public Map<String, String> getTranslations() {
@@ -65,8 +65,8 @@ public class GlossaryTerm implements Serializable {
     this.tmTextUnitId = tmTextUnitId;
   }
 
-  public void setTerm(String term) {
-    this.term = term;
+  public void setText(String text) {
+    this.text = text;
   }
 
   public void setTranslations(Map<String, String> translations) {
@@ -83,5 +83,23 @@ public class GlossaryTerm implements Serializable {
 
   public void setDoNotTranslate(boolean doNotTranslate) {
     isDoNotTranslate = doNotTranslate;
+  }
+
+  public String toString() {
+    return "GlossaryTerm{"
+        + "tmTextUnitId="
+        + tmTextUnitId
+        + ", text='"
+        + text
+        + '\''
+        + ", translations="
+        + translations
+        + ", isExactMatch="
+        + isExactMatch
+        + ", isCaseSensitive="
+        + isCaseSensitive
+        + ", isDoNotTranslate="
+        + isDoNotTranslate
+        + '}';
   }
 }

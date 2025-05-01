@@ -40,12 +40,22 @@ public class AITranslationConfiguration {
      */
     private boolean reuseSourceOnLanguageMatch = false;
 
+    private boolean injectGlossaryMatches = false;
+
     public Boolean isReuseSourceOnLanguageMatch() {
       return reuseSourceOnLanguageMatch;
     }
 
     public void setReuseSourceOnLanguageMatch(Boolean reuseSourceOnLanguageMatch) {
       this.reuseSourceOnLanguageMatch = reuseSourceOnLanguageMatch;
+    }
+
+    public Boolean isInjectGlossaryMatches() {
+      return injectGlossaryMatches;
+    }
+
+    public void setInjectGlossaryMatches(Boolean injectGlossaryMatches) {
+      this.injectGlossaryMatches = injectGlossaryMatches;
     }
   }
 

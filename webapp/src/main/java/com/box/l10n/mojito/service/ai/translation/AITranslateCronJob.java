@@ -13,6 +13,8 @@ import com.box.l10n.mojito.entity.TmTextUnitPendingMT;
 import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.service.ai.LLMService;
 import com.box.l10n.mojito.service.ai.RepositoryLocaleAIPromptRepository;
+import com.box.l10n.mojito.service.thirdparty.smartling.glossary.GlossaryCacheService;
+import com.box.l10n.mojito.service.thirdparty.smartling.glossary.GlossaryTerm;
 import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -97,6 +99,9 @@ public class AITranslateCronJob implements Job {
   @Autowired JdbcTemplate jdbcTemplate;
 
   @Autowired TextUnitSearcher textUnitSearcher;
+
+  @Autowired(required = false)
+  GlossaryCacheService glossaryCacheService;
 
   @Value("${l10n.ai.translation.job.threads:1}")
   int threads;
@@ -195,9 +200,30 @@ public class AITranslateCronJob implements Job {
                   tmTextUnit.getId(),
                   targetLocale.getBcp47Tag(),
                   repositoryLocaleAIPrompt.getAiPrompt().getId());
-              aiTranslations.add(
-                  executeTranslationPrompt(
-                      tmTextUnit, repository, targetLocale, repositoryLocaleAIPrompt));
+              if (aiTranslationConfiguration.getRepositorySettings(repository.getName()) != null
+                  && aiTranslationConfiguration
+                      .getRepositorySettings(repository.getName())
+                      .isInjectGlossaryMatches()) {
+                aiTranslations.add(
+                    executeGlossaryMatchTranslationPrompt(
+                        tmTextUnit,
+                        repository,
+                        targetLocale,
+                        repositoryLocaleAIPrompt,
+                        glossaryCacheService
+                            .getGlossaryTermsInText(tmTextUnit.getContent())
+                            .stream()
+                            .filter(
+                                term ->
+                                    term.getLocaleTranslation(targetLocale.getBcp47Tag()) != null
+                                        || term.isDoNotTranslate())
+                            .collect(Collectors.toList())));
+              } else {
+                aiTranslations.add(
+                    executeTranslationPrompt(
+                        tmTextUnit, repository, targetLocale, repositoryLocaleAIPrompt));
+              }
+
             } else {
               if (repositoryLocaleAIPrompt != null && repositoryLocaleAIPrompt.isDisabled()) {
                 logger.debug(
@@ -287,6 +313,27 @@ public class AITranslateCronJob implements Job {
     return createAITranslationDTO(tmTextUnit, targetLocale, translation);
   }
 
+  private AITranslation executeGlossaryMatchTranslationPrompt(
+      TMTextUnit tmTextUnit,
+      Repository repository,
+      Locale targetLocale,
+      RepositoryLocaleAIPrompt repositoryLocaleAIPrompt,
+      List<GlossaryTerm> glossaryTerms) {
+    String translation =
+        llmService.translate(
+            tmTextUnit,
+            repository.getSourceLocale().getBcp47Tag(),
+            targetLocale.getBcp47Tag(),
+            repositoryLocaleAIPrompt.getAiPrompt(),
+            glossaryTerms);
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.success",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment();
+    return createAITranslationDTO(tmTextUnit, targetLocale, translation);
+  }
+
   private AITranslation createAITranslationDTO(
       TMTextUnit tmTextUnit, Locale locale, String translation) {
     AITranslation aiTranslation = new AITranslation();
@@ -348,6 +395,10 @@ public class AITranslateCronJob implements Job {
 
         logger.info("Processing {} pending MTs", pendingMTs.size());
         Queue<TmTextUnitPendingMT> textUnitsToClearPendingMT = new ConcurrentLinkedQueue<>();
+        if (glossaryCacheService != null) {
+          // Load glossary cache from blob storage to ensure it's up to date
+          glossaryCacheService.loadGlossaryCache();
+        }
         List<Long> unusedIds = getUnusedIds(pendingMTs);
         List<CompletableFuture<Void>> futures =
             pendingMTs.stream()

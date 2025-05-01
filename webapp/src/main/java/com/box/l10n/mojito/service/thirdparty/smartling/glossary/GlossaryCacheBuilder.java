@@ -79,13 +79,13 @@ public class GlossaryCacheBuilder {
   }
 
   protected void processTerm(GlossaryTerm glossaryTerm, GlossaryCache glossaryCache) {
-    int termWordCount = wordCountService.getEnglishWordCount(glossaryTerm.getTerm());
+    int termWordCount = wordCountService.getEnglishWordCount(glossaryTerm.getText());
     if (termWordCount > glossaryCache.getMaxNGramSize()) {
       logger.debug("Setting glossary cache max ngram size to {}", termWordCount);
       glossaryCache.setMaxNGramSize(termWordCount);
     }
-    logger.debug("Adding term to glossary cache: {}", glossaryTerm.getTerm());
-    glossaryCache.add(stemmer.stem(glossaryTerm.getTerm()), glossaryTerm);
+    logger.debug("Adding term to glossary cache: {}", glossaryTerm.getText());
+    glossaryCache.add(stemmer.stem(glossaryTerm.getText()), glossaryTerm);
   }
 
   List<GlossaryTerm> retrieveTranslationsForGlossaryTerms(

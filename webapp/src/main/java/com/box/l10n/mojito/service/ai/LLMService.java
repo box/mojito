@@ -9,6 +9,8 @@ import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.rest.ai.AICheckRequest;
 import com.box.l10n.mojito.rest.ai.AICheckResponse;
 import com.box.l10n.mojito.rest.ai.AICheckResult;
+import com.box.l10n.mojito.service.thirdparty.smartling.glossary.GlossaryTerm;
+import java.util.List;
 
 public interface LLMService {
 
@@ -18,6 +20,7 @@ public interface LLMService {
   String SOURCE_LOCALE_PLACEHOLDER = "[mojito_source_locale]";
   String TARGET_LOCALE_PLACEHOLDER = "[mojito_target_locale]";
   String PLURAL_FORM_PLACEHOLDER = "[mojito_plural_form]";
+  String GLOSSARY_TERM_MATCHES_PLACEHOLDER = "[mojito_glossary_term_matches]";
 
   /**
    * Executes AI checks on the provided text units.
@@ -55,6 +58,13 @@ public interface LLMService {
     aiStringCheck.setStringName(textUnit.getName());
     aiStringCheckRepository.save(aiStringCheck);
   }
+
+  String translate(
+      TMTextUnit tmTextUnit,
+      String sourceBcp47Tag,
+      String targetBcp47Tag,
+      AIPrompt prompt,
+      List<GlossaryTerm> glossaryTerms);
 
   String translate(
       TMTextUnit tmTextUnit, String sourceBcp47Tag, String targetBcp47Tag, AIPrompt prompt);

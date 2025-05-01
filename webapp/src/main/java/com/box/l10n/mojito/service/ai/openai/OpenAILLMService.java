@@ -21,6 +21,7 @@ import com.box.l10n.mojito.service.ai.AIStringCheckRepository;
 import com.box.l10n.mojito.service.ai.LLMPromptService;
 import com.box.l10n.mojito.service.ai.LLMService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.thirdparty.smartling.glossary.GlossaryTerm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
 import io.micrometer.core.annotation.Timed;
@@ -29,6 +30,7 @@ import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,6 +154,39 @@ public class OpenAILLMService implements LLMService {
   @Override
   @Timed("OpenAILLMService.translate")
   public String translate(
+      TMTextUnit tmTextUnit,
+      String sourceBcp47Tag,
+      String targetBcp47Tag,
+      AIPrompt prompt,
+      List<GlossaryTerm> matchedGlossaryTerms) {
+    logger.debug(
+        "Translating text unit {} from {} to {} using prompt {} with glossary matches {}",
+        tmTextUnit.getId(),
+        sourceBcp47Tag,
+        targetBcp47Tag,
+        prompt.getId(),
+        matchedGlossaryTerms);
+    String systemPrompt =
+        getTranslationFormattedPrompt(
+            prompt.getSystemPrompt(),
+            tmTextUnit,
+            sourceBcp47Tag,
+            targetBcp47Tag,
+            matchedGlossaryTerms);
+    String userPrompt =
+        getTranslationFormattedPrompt(
+            prompt.getUserPrompt(),
+            tmTextUnit,
+            sourceBcp47Tag,
+            targetBcp47Tag,
+            matchedGlossaryTerms);
+    return sendTranslationRequest(
+        tmTextUnit, sourceBcp47Tag, targetBcp47Tag, prompt, systemPrompt, userPrompt);
+  }
+
+  @Override
+  @Timed("OpenAILLMService.translate")
+  public String translate(
       TMTextUnit tmTextUnit, String sourceBcp47Tag, String targetBcp47Tag, AIPrompt prompt) {
     logger.debug(
         "Translating text unit {} from {} to {} using prompt {}",
@@ -161,11 +196,30 @@ public class OpenAILLMService implements LLMService {
         prompt.getId());
     String systemPrompt =
         getTranslationFormattedPrompt(
-            prompt.getSystemPrompt(), tmTextUnit, sourceBcp47Tag, targetBcp47Tag);
+            prompt.getSystemPrompt(),
+            tmTextUnit,
+            sourceBcp47Tag,
+            targetBcp47Tag,
+            Collections.emptyList());
     String userPrompt =
         getTranslationFormattedPrompt(
-            prompt.getUserPrompt(), tmTextUnit, sourceBcp47Tag, targetBcp47Tag);
+            prompt.getUserPrompt(),
+            tmTextUnit,
+            sourceBcp47Tag,
+            targetBcp47Tag,
+            Collections.emptyList());
 
+    return sendTranslationRequest(
+        tmTextUnit, sourceBcp47Tag, targetBcp47Tag, prompt, systemPrompt, userPrompt);
+  }
+
+  private String sendTranslationRequest(
+      TMTextUnit tmTextUnit,
+      String sourceBcp47Tag,
+      String targetBcp47Tag,
+      AIPrompt prompt,
+      String systemPrompt,
+      String userPrompt) {
     OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
         buildChatCompletionsRequest(
             prompt, systemPrompt, userPrompt, prompt.getContextMessages(), prompt.isJsonResponse());
@@ -367,7 +421,11 @@ public class OpenAILLMService implements LLMService {
   }
 
   protected String getTranslationFormattedPrompt(
-      String prompt, TMTextUnit tmTextUnit, String sourceBcp47Tag, String targetBcp47Tag) {
+      String prompt,
+      TMTextUnit tmTextUnit,
+      String sourceBcp47Tag,
+      String targetBcp47Tag,
+      List<GlossaryTerm> glossaryTerms) {
     String formattedPrompt = "";
     if (prompt != null) {
       formattedPrompt =
@@ -390,15 +448,70 @@ public class OpenAILLMService implements LLMService {
               tmTextUnit.getName() != null && tmTextUnit.getName().split(" --- ").length > 1
                   ? tmTextUnit.getName().split(" --- ")[1]
                   : null);
+      formattedPrompt =
+          processGlossaryTermsPlaceholderText(formattedPrompt, targetBcp47Tag, glossaryTerms);
     }
     return formattedPrompt.trim();
   }
 
+  private String processGlossaryTermsPlaceholderText(
+      String promptText, String targetBcp47Tag, List<GlossaryTerm> glossaryTerms) {
+    Pattern pattern = patternCache.get(GLOSSARY_TERM_MATCHES_PLACEHOLDER);
+    Matcher matcher = pattern.matcher(promptText);
+    if (matcher.find()) {
+      String optionalContent =
+          matcher.group(1)
+              + mapGlossaryTermsToJsonList(glossaryTerms, targetBcp47Tag)
+              + matcher.group(2);
+      if (matcher.groupCount() > 2) {
+        optionalContent += matcher.group(3);
+      }
+      promptText = matcher.replaceFirst(optionalContent);
+    } else {
+      promptText =
+          promptText.replace(
+              GLOSSARY_TERM_MATCHES_PLACEHOLDER,
+              mapGlossaryTermsToJsonList(glossaryTerms, targetBcp47Tag));
+    }
+
+    return promptText;
+  }
+
+  private String mapGlossaryTermsToJsonList(
+      List<GlossaryTerm> glossaryTerms, String targetBcp47Tag) {
+
+    try {
+      return objectMapper.writeValueAsString(
+          glossaryTerms.stream().map(term -> mapGlossaryTermToJSON(term, targetBcp47Tag)).toList());
+    } catch (JsonProcessingException e) {
+      logger.error("Error mapping glossary terms to JSON list", e);
+      throw new AIException("Error mapping glossary terms to JSON list", e);
+    }
+  }
+
+  private GlossaryTermJson mapGlossaryTermToJSON(GlossaryTerm glossaryTerm, String targetBcp47Tag) {
+    return new GlossaryTermJson(
+        glossaryTerm.getText(),
+        glossaryTerm.isExactMatch(),
+        glossaryTerm.isCaseSensitive(),
+        glossaryTerm.isDoNotTranslate(),
+        glossaryTerm.isDoNotTranslate()
+            ? glossaryTerm.getText()
+            : glossaryTerm.getLocaleTranslation(targetBcp47Tag));
+  }
+
+  private record GlossaryTermJson(
+      String text,
+      boolean isExactMatch,
+      boolean isCaseSensitive,
+      boolean isDoNotTranslate,
+      String translation) {}
+
   private String processOptionalPlaceholderText(
       String promptText, String placeholder, String placeholderValue) {
+    Pattern pattern = patternCache.get(placeholder);
+    Matcher matcher = pattern.matcher(promptText);
     if (placeholderValue != null && !placeholderValue.isEmpty()) {
-      Pattern pattern = patternCache.get(placeholder);
-      Matcher matcher = pattern.matcher(promptText);
       if (matcher.find()) {
         String optionalContent = matcher.group(1) + placeholderValue + matcher.group(2);
         if (matcher.groupCount() > 2) {
@@ -406,14 +519,18 @@ public class OpenAILLMService implements LLMService {
         }
         promptText = matcher.replaceFirst(optionalContent);
       }
-    } else {
-      // Remove the entire template block from the prompt if we have no value for the placeholder,
+    } else if (matcher.find()) {
+      // Remove the entire optional template block from the prompt if we have no value for the
+      // placeholder,
       // also removing new line characters if they exist immediately after the template ends
       String regex =
           "\\{\\{optional: [^\\{\\}]*"
               + Pattern.quote(placeholder)
               + "[^\\{\\}]*\\}\\}\\s*(?:\\r?\\n)?";
       promptText = promptText.replaceAll(regex, "");
+    } else if (placeholderValue != null) {
+      // Replace any instances not in an optional block
+      promptText = promptText.replace(placeholder, placeholderValue);
     }
     return promptText;
   }
@@ -468,9 +585,15 @@ public class OpenAILLMService implements LLMService {
         "\\{\\{optional: ([^\\{\\}]*)"
             + Pattern.quote(CONTEXT_STRING_PLACEHOLDER)
             + "([^\\{\\}]*)\\}\\}(\\s*(?:\\r?\\n)?)";
+    String glossaryTermMatchesPattern =
+        "\\{\\{optional: ([^\\{\\}]*)"
+            + Pattern.quote(GLOSSARY_TERM_MATCHES_PLACEHOLDER)
+            + "([^\\{\\}]*)\\}\\}(\\s*(?:\\r?\\n)?)";
     patternCache.put(COMMENT_STRING_PLACEHOLDER, Pattern.compile(commentPattern));
     patternCache.put(PLURAL_FORM_PLACEHOLDER, Pattern.compile(pluralFormPattern));
     patternCache.put(CONTEXT_STRING_PLACEHOLDER, Pattern.compile(contextPattern));
+    patternCache.put(
+        GLOSSARY_TERM_MATCHES_PLACEHOLDER, Pattern.compile(glossaryTermMatchesPattern));
     llmTranslateRetryConfig =
         Retry.backoff(retryMaxAttempts, Duration.ofSeconds(retryMinDurationSeconds))
             .maxBackoff(Duration.ofSeconds(retryMaxBackoffDurationSeconds))

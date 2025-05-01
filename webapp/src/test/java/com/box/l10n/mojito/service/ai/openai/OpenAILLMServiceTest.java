@@ -19,8 +19,10 @@ import com.box.l10n.mojito.rest.ai.AIException;
 import com.box.l10n.mojito.service.ai.AIStringCheckRepository;
 import com.box.l10n.mojito.service.ai.LLMPromptService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.thirdparty.smartling.glossary.GlossaryTerm;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
@@ -588,6 +590,7 @@ class OpenAILLMServiceTest {
         """
          Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
          Source string: [mojito_source_string]
+         Glossary matches: [mojito_glossary_term_matches]
          {{optional: Comment: [mojito_comment_string]}}
          {{optional: Context: [mojito_context_string]}}
          {{optional: Plural form: [mojito_plural_form]}}
@@ -602,11 +605,13 @@ class OpenAILLMServiceTest {
     tmTextUnit.setName("Hello --- some.id");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
          Translate the following source string from en to fr:
          Source string: Hello
+         Glossary matches: []
          Comment: A friendly greeting
          Context: some.id
          Plural form: one""",
@@ -633,7 +638,8 @@ class OpenAILLMServiceTest {
     tmTextUnit.setName("Hello");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
              Translate the following source string from en to fr:
@@ -660,7 +666,8 @@ class OpenAILLMServiceTest {
     tmTextUnit.setComment("A friendly greeting");
     tmTextUnit.setName("Hello --- some.id");
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
                  Translate the following source string from en to fr:
@@ -689,7 +696,8 @@ class OpenAILLMServiceTest {
     tmTextUnit.setName("Hello --- some.id");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
              Translate the following source string from en to fr:
@@ -716,7 +724,8 @@ class OpenAILLMServiceTest {
     tmTextUnit.setName("Hello --- some.id");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
              Translate the following source string from en to fr:
@@ -742,7 +751,8 @@ class OpenAILLMServiceTest {
     tmTextUnit.setComment("A friendly greeting");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
              Translate the following source string from en to fr:
@@ -769,7 +779,8 @@ class OpenAILLMServiceTest {
     tmTextUnit.setName("Hello --- some.id");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
              Translate the following source string from en to fr:
@@ -795,12 +806,78 @@ class OpenAILLMServiceTest {
     tmTextUnit.setComment("A friendly greeting");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
                  Translate the following source string from en to fr:
                  Source string: Hello
                  {"comment": "A friendly greeting", "plural_form": "one"}""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingJsonInPromptGlossaryMatches() {
+    String promptText =
+        """
+       Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+       Source string: [mojito_source_string]
+       {{{optional: "comment": "[mojito_comment_string]",}} {{optional: "context": "[mojito_context_string]",}} {{optional: "plural_form": "[mojito_plural_form]"}}}
+       {{optional: The glossary matches are: [mojito_glossary_term_matches]. }}
+       """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setPluralForm(one);
+    GlossaryTerm glossaryTerm = new GlossaryTerm();
+    glossaryTerm.setText("Hello");
+    glossaryTerm.setTranslations(Collections.singletonMap("fr", "Bonjour"));
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.singletonList(glossaryTerm));
+    assertEquals(
+        """
+                     Translate the following source string from en to fr:
+                     Source string: Hello
+                     {"comment": "A friendly greeting", "plural_form": "one"}
+                     The glossary matches are: [{"text":"Hello","isExactMatch":false,"isCaseSensitive":false,"isDoNotTranslate":false,"translation":"Bonjour"}].""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingJsonInPromptGlossaryMatchesDNT() {
+    String promptText =
+        """
+           Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+           Source string: [mojito_source_string]
+           {{{optional: "comment": "[mojito_comment_string]",}} {{optional: "context": "[mojito_context_string]",}} {{optional: "plural_form": "[mojito_plural_form]"}}}
+           {{optional: The glossary matches are: [mojito_glossary_term_matches]. }}
+           """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment("A friendly greeting");
+    tmTextUnit.setPluralForm(one);
+    GlossaryTerm glossaryTerm = new GlossaryTerm();
+    glossaryTerm.setText("Hello");
+    glossaryTerm.setDoNotTranslate(true);
+    glossaryTerm.setTranslations(Collections.singletonMap("fr", null));
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.singletonList(glossaryTerm));
+    assertEquals(
+        """
+                         Translate the following source string from en to fr:
+                         Source string: Hello
+                         {"comment": "A friendly greeting", "plural_form": "one"}
+                         The glossary matches are: [{"text":"Hello","isExactMatch":false,"isCaseSensitive":false,"isDoNotTranslate":true,"translation":"Hello"}].""",
         prompt);
   }
 
@@ -822,12 +899,81 @@ class OpenAILLMServiceTest {
     tmTextUnit.setName("Hello");
     tmTextUnit.setPluralForm(one);
     String prompt =
-        openAILLMService.getTranslationFormattedPrompt(promptText, tmTextUnit, "en", "fr");
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
     assertEquals(
         """
                  Translate the following source string from en to fr:
                  Source string: Hello
                  The comment is: A friendly greeting. The plural form is: one.""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingGlossaryMatchesInlineSentence() {
+    String promptText =
+        """
+                     Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                     Source string: [mojito_source_string]
+                     {{optional: The comment is: [mojito_comment_string]. }}{{optional: The context is: [mojito_context_string]. }}{{optional: The plural form is: [mojito_plural_form]. }}
+                     {{optional: The glossary matches are: [mojito_glossary_term_matches]. }}
+                     """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment(null);
+    tmTextUnit.setName("Hello");
+    tmTextUnit.setPluralForm(null);
+    GlossaryTerm glossaryTerm = new GlossaryTerm();
+    glossaryTerm.setText("Hello");
+    glossaryTerm.setTranslations(Collections.singletonMap("fr", "Bonjour"));
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.singletonList(glossaryTerm));
+    assertEquals(
+        """
+                Translate the following source string from en to fr:
+                Source string: Hello
+                The glossary matches are: [{"text":"Hello","isExactMatch":false,"isCaseSensitive":false,"isDoNotTranslate":false,"translation":"Bonjour"}].""",
+        prompt);
+  }
+
+  @Test
+  void testPromptTemplatingMultipleGlossaryMatches() {
+    String promptText =
+        """
+                         Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                         Source string: [mojito_source_string]
+                         {{optional: The comment is: [mojito_comment_string]. }}{{optional: The context is: [mojito_context_string]. }}{{optional: The plural form is: [mojito_plural_form]. }}
+                         {{optional: The glossary matches are: [mojito_glossary_term_matches]. }}
+                         """;
+
+    PluralForm one = new PluralForm();
+    one.setName("one");
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment(null);
+    tmTextUnit.setName("Hello");
+    tmTextUnit.setPluralForm(null);
+    GlossaryTerm glossaryTerm = new GlossaryTerm();
+    glossaryTerm.setText("Hello");
+    glossaryTerm.setTranslations(Collections.singletonMap("fr", "Bonjour"));
+    GlossaryTerm glossaryTerm2 = new GlossaryTerm();
+    glossaryTerm2.setText("Another term");
+    glossaryTerm2.setCaseSensitive(true);
+    glossaryTerm2.setTranslations(Collections.singletonMap("fr", "Another term translation"));
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", List.of(glossaryTerm, glossaryTerm2));
+    assertEquals(
+        """
+                    Translate the following source string from en to fr:
+                    Source string: Hello
+                    The glossary matches are: [{"text":"Hello","isExactMatch":false,"isCaseSensitive":false,"isDoNotTranslate":false,"translation":"Bonjour"},{"text":"Another term","isExactMatch":false,"isCaseSensitive":true,"isDoNotTranslate":false,"translation":"Another term translation"}].""",
         prompt);
   }
 

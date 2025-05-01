@@ -51,4 +51,8 @@ public class GlossaryCache implements Serializable {
   public int size() {
     return cache.size();
   }
+
+  public boolean containsKey(String key) {
+    return cache.containsKey(key);
+  }
 }
