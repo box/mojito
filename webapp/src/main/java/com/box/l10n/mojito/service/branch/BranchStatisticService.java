@@ -490,7 +490,7 @@ public class BranchStatisticService {
   }
 
   @Async("statisticsTaskExecutor")
-  CompletableFuture<PollableFuture<Void>> scheduleBranchNotification(Branch branch) {
+  public CompletableFuture<PollableFuture<Void>> scheduleBranchNotification(Branch branch) {
     BranchNotificationJobInput branchNotificationJobInput = new BranchNotificationJobInput();
     branchNotificationJobInput.setBranchId(branch.getId());
 

@@ -15,6 +15,8 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.rest.commit.CommitWithNameNotFoundException;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.appender.AppendedAssetBlobStorage;
+import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pullrun.PullRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
@@ -56,6 +58,8 @@ public class CommitService {
   final RepositoryRepository repositoryRepository;
   final AppendedAssetBlobStorage appendedAssetBlobStorage;
   private final JdbcTemplate jdbcTemplate;
+  protected BranchStatisticService branchStatisticService;
+  private final BranchRepository branchRepository;
 
   @Value("${l10n.commit.branchAppend.batchSize:100}")
   int batchSize;
@@ -68,7 +72,9 @@ public class CommitService {
       PullRunRepository pullRunRepository,
       RepositoryRepository repositoryRepository,
       AppendedAssetBlobStorage appendedAssetBlobStorage,
-      JdbcTemplate jdbcTemplate) {
+      JdbcTemplate jdbcTemplate,
+      BranchStatisticService branchStatisticService,
+      BranchRepository branchRepository) {
     this.commitRepository = commitRepository;
     this.commitToPushRunRepository = commitToPushRunRepository;
     this.commitToPullRunRepository = commitToPullRunRepository;
@@ -77,6 +83,8 @@ public class CommitService {
     this.repositoryRepository = repositoryRepository;
     this.appendedAssetBlobStorage = appendedAssetBlobStorage;
     this.jdbcTemplate = jdbcTemplate;
+    this.branchStatisticService = branchStatisticService;
+    this.branchRepository = branchRepository;
   }
 
   /**
@@ -322,5 +330,14 @@ public class CommitService {
 
               jdbcTemplate.update(sql, params.toArray());
             });
+
+    // Send out branch notifications immediately as we can't guarantee when the next branch stats
+    // will run
+    branchIds.forEach(
+        branchId -> {
+          branchRepository
+              .findById(branchId)
+              .ifPresent(branchStatisticService::scheduleBranchNotification);
+        });
   }
 }

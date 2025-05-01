@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.commit;
 
+import static org.mockito.ArgumentMatchers.any;
+
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchMergeTarget;
 import com.box.l10n.mojito.entity.Commit;
@@ -9,6 +11,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.appender.AppendedAssetBlobStorage;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.branch.BranchMergeTargetRepository;
+import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
 import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
@@ -22,6 +25,7 @@ import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -487,6 +491,10 @@ public class CommitServiceTest extends ServiceTestBase {
   public void testAssociateAppendedBranchesToCommit() throws Exception {
     String appendTextUnitId = testIdWatcher.getTestId();
 
+    BranchStatisticService mockBranchStatisticService = Mockito.mock(BranchStatisticService.class);
+    BranchStatisticService oldBranchStatisticService = commitService.branchStatisticService;
+    commitService.branchStatisticService = mockBranchStatisticService;
+
     BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
     Branch branch1 = branchTestData.getBranch1();
@@ -529,6 +537,7 @@ public class CommitServiceTest extends ServiceTestBase {
         appendTextUnitId, List.of(branch1.getId(), branch2.getId()));
 
     commitService.associateAppendedBranchesToCommit(appendTextUnitId, newCommit);
+    Mockito.verify(mockBranchStatisticService, Mockito.times(3)).scheduleBranchNotification(any());
 
     // The old commit should still be linked to branch1, not the new commit
     Assert.assertEquals(
@@ -538,5 +547,8 @@ public class CommitServiceTest extends ServiceTestBase {
     Assert.assertEquals(
         branchMergeTargetRepository.findByBranch(branch2).get().getCommit().getId(),
         newCommit.getId());
+
+    // Clean up mock
+    commitService.branchStatisticService = oldBranchStatisticService;
   }
 }
