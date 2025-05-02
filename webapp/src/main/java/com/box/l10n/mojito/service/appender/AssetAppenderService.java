@@ -104,7 +104,10 @@ public class AssetAppenderService {
 
     AbstractAssetAppender appender = assetAppender.get();
 
-    HashSet<Long> lastPushRunTextUnits =
+    // Checks if a text unit already exists in the uploaded asset; if it does, we avoid appending
+    // it. Duplicate text units in the translated asset can cause the po-to-mo compilation process
+    // to fail.
+    HashSet<Long> textUnitIdsInSourceAsset =
         new HashSet<>(
             pushRunRepository.getAllTextUnitIdsFromLastPushRunByRepositoryId(
                 asset.getRepository().getId()));
@@ -130,7 +133,7 @@ public class AssetAppenderService {
       // Filter text units by removing ones in the last push run
       textUnitsToAppend =
           textUnitsToAppend.stream()
-              .filter(tu -> !lastPushRunTextUnits.contains(tu.getTmTextUnitId()))
+              .filter(tu -> !textUnitIdsInSourceAsset.contains(tu.getTmTextUnitId()))
               .toList();
 
       // Are we going to go over the hard limit ? If yes emit metrics and break out.
@@ -172,6 +175,9 @@ public class AssetAppenderService {
 
       appendedTextUnitCount += textUnitsToAppend.size();
       appendedBranches.add(branch);
+      // Avoids appending duplicate text units if multiple branches add the same text unit
+      textUnitIdsInSourceAsset.addAll(
+          textUnitsToAppend.stream().map(TextUnitDTO::getTmTextUnitId).toList());
     }
 
     String appendedAssetContent = appender.getAssetContent();

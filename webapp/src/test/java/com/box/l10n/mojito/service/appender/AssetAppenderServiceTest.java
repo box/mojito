@@ -21,6 +21,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,17 +130,25 @@ public class AssetAppenderServiceTest {
               branches.add(branch);
             });
 
-    List<TextUnitDTO> textUnits =
-        IntStream.range(1, 3)
-            .mapToObj(
-                i -> {
-                  TextUnitDTO textUnitDTO = new TextUnitDTO();
-                  textUnitDTO.setSource(content + i);
-                  return textUnitDTO;
-                })
-            .toList();
+    AtomicInteger i = new AtomicInteger(1);
+    branches.forEach(
+        branch -> {
+          // Return 2 unique text units for each branch
+          List<TextUnitDTO> textUnits =
+              IntStream.range(i.get(), i.get() + 2)
+                  .mapToObj(
+                      x -> {
+                        TextUnitDTO textUnitDTO = new TextUnitDTO();
+                        textUnitDTO.setSource(content + x);
+                        textUnitDTO.setTmTextUnitId(Integer.toUnsignedLong(x));
+                        return textUnitDTO;
+                      })
+                  .toList();
 
-    when(branchStatisticServiceMock.getTextUnitDTOsForBranch(any())).thenReturn(textUnits);
+          when(branchStatisticServiceMock.getTextUnitDTOsForBranch(branch)).thenReturn(textUnits);
+          i.addAndGet(2);
+        });
+
     when(branchRepositoryMock.findBranchesForAppending(any())).thenReturn(branches);
 
     assetAppenderService.appendBranchTextUnitsToSource(
@@ -168,20 +177,27 @@ public class AssetAppenderServiceTest {
               branches.add(branch);
             });
 
-    // Return 2 text units each time per branch to be appended
-    List<TextUnitDTO> textUnits =
-        IntStream.range(1, 3)
-            .mapToObj(
-                i -> {
-                  TextUnitDTO textUnitDTO = new TextUnitDTO();
-                  textUnitDTO.setSource(content + i);
-                  return textUnitDTO;
-                })
-            .toList();
+    AtomicInteger i = new AtomicInteger(1);
+    branches.forEach(
+        branch -> {
+          // Return unique text units for each branch
+          List<TextUnitDTO> textUnits =
+              IntStream.range(i.get(), i.get() + 2)
+                  .mapToObj(
+                      x -> {
+                        TextUnitDTO textUnitDTO = new TextUnitDTO();
+                        textUnitDTO.setSource(content + x);
+                        textUnitDTO.setTmTextUnitId(Integer.toUnsignedLong(x));
+                        return textUnitDTO;
+                      })
+                  .toList();
+
+          when(branchStatisticServiceMock.getTextUnitDTOsForBranch(branch)).thenReturn(textUnits);
+          i.addAndGet(2);
+        });
 
     assetAppenderService.DEFAULT_APPEND_LIMIT = 10;
 
-    when(branchStatisticServiceMock.getTextUnitDTOsForBranch(any())).thenReturn(textUnits);
     when(branchRepositoryMock.findBranchesForAppending(any())).thenReturn(branches);
 
     assetAppenderService.appendBranchTextUnitsToSource(
@@ -194,5 +210,46 @@ public class AssetAppenderServiceTest {
     verify(appendCountCounterMock, times(1)).increment(10);
     verify(exceedCountCounterMock, times(1)).increment(14);
     verify(exceedBranchCountCounterMock, times(1)).increment(7);
+  }
+
+  @Test
+  public void testDontAppendDuplicateTextUnits() {
+    POTAssetAppender potAssetAppenderMock = mock(POTAssetAppender.class);
+    when(assetAppenderFactory.fromExtension(extension, content))
+        .thenReturn(Optional.of(potAssetAppenderMock));
+
+    List<Branch> branches = new ArrayList<>();
+
+    IntStream.range(1, 4)
+        .forEach(
+            i -> {
+              Branch branch = new Branch();
+              branch.setName("branch" + i);
+              branches.add(branch);
+            });
+
+    List<TextUnitDTO> textUnits =
+        IntStream.range(1, 3)
+            .mapToObj(
+                i -> {
+                  TextUnitDTO textUnitDTO = new TextUnitDTO();
+                  textUnitDTO.setSource(content + i);
+                  textUnitDTO.setTmTextUnitId(Integer.toUnsignedLong(i));
+                  return textUnitDTO;
+                })
+            .toList();
+
+    // For every branch, return the same 2 text units for appending
+    when(branchStatisticServiceMock.getTextUnitDTOsForBranch(any())).thenReturn(textUnits);
+    when(branchRepositoryMock.findBranchesForAppending(any())).thenReturn(branches);
+
+    assetAppenderService.appendBranchTextUnitsToSource(
+        asset, localizedAssetBody.getAppendBranchTextUnitsId(), content);
+
+    verify(potAssetAppenderMock, times(3)).appendTextUnits(any());
+    verify(meterRegistryMock, times(2)).counter(Mockito.anyString(), isA(Iterable.class));
+    // Make sure the appended count is only 2 as the text units were duplicates
+    verify(appendCountCounterMock, times(1)).increment(2);
+    verify(appendBranchCountCounterMock, times(1)).increment(3);
   }
 }
