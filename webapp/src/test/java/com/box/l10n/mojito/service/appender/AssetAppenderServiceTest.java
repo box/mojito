@@ -15,6 +15,7 @@ import com.box.l10n.mojito.rest.asset.LocalizedAssetBody;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,6 +41,7 @@ public class AssetAppenderServiceTest {
   AppendedAssetBlobStorage appendedAssetBlobStorageMock;
   MeterRegistry meterRegistryMock;
   AssetAppenderConfig assetAppenderConfigMock;
+  TMTextUnitRepository tmTextUnitRepositoryMock;
 
   String extension = "pot";
   String content = "Test source";
@@ -58,6 +60,7 @@ public class AssetAppenderServiceTest {
     appendedAssetBlobStorageMock = mock(AppendedAssetBlobStorage.class);
     meterRegistryMock = mock(MeterRegistry.class);
     assetAppenderConfigMock = mock(AssetAppenderConfig.class);
+    tmTextUnitRepositoryMock = mock(TMTextUnitRepository.class);
     assetAppenderService =
         new AssetAppenderService(
             assetAppenderFactory,
@@ -66,7 +69,8 @@ public class AssetAppenderServiceTest {
             pushRunRepositoryMock,
             appendedAssetBlobStorageMock,
             meterRegistryMock,
-            assetAppenderConfigMock);
+            assetAppenderConfigMock,
+            tmTextUnitRepositoryMock);
 
     appendCountCounterMock = Mockito.mock(Counter.class);
     when(meterRegistryMock.counter(
@@ -140,6 +144,7 @@ public class AssetAppenderServiceTest {
                       x -> {
                         TextUnitDTO textUnitDTO = new TextUnitDTO();
                         textUnitDTO.setSource(content + x);
+                        textUnitDTO.setName(content + " --- " + x);
                         textUnitDTO.setTmTextUnitId(Integer.toUnsignedLong(x));
                         return textUnitDTO;
                       })
@@ -187,6 +192,7 @@ public class AssetAppenderServiceTest {
                       x -> {
                         TextUnitDTO textUnitDTO = new TextUnitDTO();
                         textUnitDTO.setSource(content + x);
+                        textUnitDTO.setName(content + " --- " + x);
                         textUnitDTO.setTmTextUnitId(Integer.toUnsignedLong(x));
                         return textUnitDTO;
                       })
@@ -234,6 +240,7 @@ public class AssetAppenderServiceTest {
                 i -> {
                   TextUnitDTO textUnitDTO = new TextUnitDTO();
                   textUnitDTO.setSource(content + i);
+                  textUnitDTO.setName(content + " --- " + i);
                   textUnitDTO.setTmTextUnitId(Integer.toUnsignedLong(i));
                   return textUnitDTO;
                 })
