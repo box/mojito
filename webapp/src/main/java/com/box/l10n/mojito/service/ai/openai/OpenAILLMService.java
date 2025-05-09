@@ -458,7 +458,7 @@ public class OpenAILLMService implements LLMService {
       String promptText, String targetBcp47Tag, List<GlossaryTerm> glossaryTerms) {
     Pattern pattern = patternCache.get(GLOSSARY_TERM_MATCHES_PLACEHOLDER);
     Matcher matcher = pattern.matcher(promptText);
-    if (matcher.find()) {
+    if (glossaryTerms != null && !glossaryTerms.isEmpty() && matcher.find()) {
       String optionalContent =
           matcher.group(1)
               + mapGlossaryTermsToJsonList(glossaryTerms, targetBcp47Tag)
@@ -467,6 +467,8 @@ public class OpenAILLMService implements LLMService {
         optionalContent += matcher.group(3);
       }
       promptText = matcher.replaceFirst(optionalContent);
+    } else if (matcher.find()) {
+      promptText = removeOptionalBlock(promptText, GLOSSARY_TERM_MATCHES_PLACEHOLDER);
     } else {
       promptText =
           promptText.replace(
@@ -511,27 +513,30 @@ public class OpenAILLMService implements LLMService {
       String promptText, String placeholder, String placeholderValue) {
     Pattern pattern = patternCache.get(placeholder);
     Matcher matcher = pattern.matcher(promptText);
-    if (placeholderValue != null && !placeholderValue.isEmpty()) {
-      if (matcher.find()) {
-        String optionalContent = matcher.group(1) + placeholderValue + matcher.group(2);
-        if (matcher.groupCount() > 2) {
-          optionalContent += matcher.group(3);
-        }
-        promptText = matcher.replaceFirst(optionalContent);
+    if (placeholderValue != null && !placeholderValue.isEmpty() && matcher.find()) {
+      String optionalContent = matcher.group(1) + placeholderValue + matcher.group(2);
+      if (matcher.groupCount() > 2) {
+        optionalContent += matcher.group(3);
       }
+      promptText = matcher.replaceFirst(optionalContent);
     } else if (matcher.find()) {
-      // Remove the entire optional template block from the prompt if we have no value for the
-      // placeholder,
-      // also removing new line characters if they exist immediately after the template ends
-      String regex =
-          "\\{\\{optional: [^\\{\\}]*"
-              + Pattern.quote(placeholder)
-              + "[^\\{\\}]*\\}\\}\\s*(?:\\r?\\n)?";
-      promptText = promptText.replaceAll(regex, "");
+      promptText = removeOptionalBlock(promptText, placeholder);
     } else if (placeholderValue != null) {
       // Replace any instances not in an optional block
       promptText = promptText.replace(placeholder, placeholderValue);
     }
+    return promptText;
+  }
+
+  private String removeOptionalBlock(String promptText, String placeholder) {
+    // Remove the entire optional template block from the prompt if we have no value for the
+    // placeholder,
+    // also removing new line characters if they exist immediately after the template ends
+    String regex =
+        "\\{\\{optional: [^\\{\\}]*"
+            + Pattern.quote(placeholder)
+            + "[^\\{\\}]*\\}\\}\\s*(?:\\r?\\n)?";
+    promptText = promptText.replaceAll(regex, "");
     return promptText;
   }
 
