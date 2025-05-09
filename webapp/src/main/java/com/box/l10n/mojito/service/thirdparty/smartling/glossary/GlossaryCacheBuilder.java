@@ -5,6 +5,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +35,8 @@ public class GlossaryCacheBuilder {
 
   private final StemmerService stemmer;
 
+  private final MeterRegistry meterRegistry;
+
   private static final Map<SmartlingGlossaryConfigParameter, Pattern> CONFIG_PATTERNS =
       new HashMap<>();
 
@@ -42,7 +45,8 @@ public class GlossaryCacheBuilder {
       GlossaryCacheBlobStorage blobStorage,
       TextUnitSearcher textUnitSearcher,
       WordCountService wordCountService,
-      StemmerService stemmer) {
+      StemmerService stemmer,
+      MeterRegistry meterRegistry) {
     this.glossaryCacheConfiguration = glossaryCacheConfiguration;
     this.blobStorage = blobStorage;
     this.textUnitSearcher = textUnitSearcher;
@@ -51,6 +55,7 @@ public class GlossaryCacheBuilder {
     for (SmartlingGlossaryConfigParameter param : SmartlingGlossaryConfigParameter.values()) {
       CONFIG_PATTERNS.put(param, Pattern.compile("--- " + param + ":\\s*([^---]*)"));
     }
+    this.meterRegistry = meterRegistry;
   }
 
   public void buildCache() {
@@ -64,6 +69,9 @@ public class GlossaryCacheBuilder {
       GlossaryCache glossaryCache = buildGlossaryCache();
       logger.info("Glossary Cache build completed with {} terms", glossaryCache.getCache().size());
       blobStorage.putGlossaryCache(glossaryCache);
+      meterRegistry
+          .counter("GlossaryCacheBuilder.cache.size")
+          .increment(glossaryCache.getCache().size());
     }
   }
 

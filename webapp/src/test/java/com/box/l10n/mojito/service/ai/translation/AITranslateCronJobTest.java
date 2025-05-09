@@ -597,6 +597,15 @@ public class AITranslateCronJobTest {
     aITranslationConfiguration.setRepositorySettings(repositorySettingsMap);
     aiTranslateCronJob.translate(repository, tmTextUnit, tmTextUnitPendingMT);
     verify(glossaryCacheService, times(3)).getGlossaryTermsInText(tmTextUnit.getContent());
+    verify(meterRegistry, times(3))
+        .counter(eq("AITranslateCronJob.translate.glossaryMatch"), any(Tags.class));
+    verify(meterRegistry, times(3))
+        .counter(eq("AITranslateCronJob.translate.glossaryMatch.dnt"), any(Tags.class));
+    verify(meterRegistry, times(3))
+        .counter(
+            eq("AITranslateCronJob.translate.glossaryMatch.caseSensitiveMatch"), any(Tags.class));
+    verify(meterRegistry, times(3))
+        .counter(eq("AITranslateCronJob.translate.glossaryMatch.exactMatch"), any(Tags.class));
     verify(llmService, times(3))
         .translate(
             isA(TMTextUnit.class),
@@ -650,6 +659,7 @@ public class AITranslateCronJobTest {
     glossaryTerm2.setDoNotTranslate(true);
     List<GlossaryTerm> glossaryTerms = List.of(glossaryTerm, glossaryTerm2);
     when(glossaryCacheService.getGlossaryTermsInText(isA(String.class))).thenReturn(glossaryTerms);
+
     aITranslationConfiguration.setRepositorySettings(repositorySettingsMap);
     aiTranslateCronJob.translate(repository, tmTextUnit, tmTextUnitPendingMT);
 
@@ -707,5 +717,14 @@ public class AITranslateCronJobTest {
             any(TMTextUnitVariantComment.Type.class),
             any(TMTextUnitVariantComment.Severity.class),
             eq("Translated via AI translation job."));
+    verify(meterRegistry, times(3))
+        .counter(eq("AITranslateCronJob.translate.glossaryMatch"), any(Tags.class));
+    verify(meterRegistry, times(3))
+        .counter(eq("AITranslateCronJob.translate.glossaryMatch.dnt"), any(Tags.class));
+    verify(meterRegistry, times(3))
+        .counter(
+            eq("AITranslateCronJob.translate.glossaryMatch.caseSensitiveMatch"), any(Tags.class));
+    verify(meterRegistry, times(3))
+        .counter(eq("AITranslateCronJob.translate.glossaryMatch.exactMatch"), any(Tags.class));
   }
 }

@@ -1,16 +1,19 @@
 package com.box.l10n.mojito.service.thirdparty.smartling.glossary;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +36,16 @@ class GlossaryCacheBuilderTest {
 
   @Mock StemmerService stemmer;
 
+  @Mock MeterRegistry meterRegistry;
+
+  @Mock Counter counter;
+
   GlossaryCacheBuilder glossaryCacheBuilder;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
+    when(meterRegistry.counter(any())).thenReturn(counter);
     glossaryCacheBuilder =
         spy(
             new GlossaryCacheBuilder(
@@ -45,7 +53,8 @@ class GlossaryCacheBuilderTest {
                 blobStorage,
                 textUnitSearcher,
                 wordCountService,
-                stemmer));
+                stemmer,
+                meterRegistry));
   }
 
   @Test
@@ -56,6 +65,7 @@ class GlossaryCacheBuilderTest {
     glossaryCacheBuilder.buildCache();
 
     verify(blobStorage, never()).putGlossaryCache(any());
+    verify(counter, never()).increment(isA(Integer.class));
   }
 
   @Test
@@ -63,12 +73,15 @@ class GlossaryCacheBuilderTest {
     when(glossaryCacheConfiguration.getEnabled()).thenReturn(true);
     when(glossaryCacheConfiguration.getRepositories()).thenReturn(List.of("repo1"));
 
-    GlossaryCache glossaryCache = mock(GlossaryCache.class);
+    GlossaryCache glossaryCache = new GlossaryCache();
+    glossaryCache.setCache(
+        Map.of("entry", List.of(new GlossaryTerm("term", false, false, false, 1L))));
     doReturn(glossaryCache).when(glossaryCacheBuilder).buildGlossaryCache();
 
     glossaryCacheBuilder.buildCache();
 
     verify(blobStorage).putGlossaryCache(glossaryCache);
+    verify(counter, times(1)).increment(1);
   }
 
   @Test

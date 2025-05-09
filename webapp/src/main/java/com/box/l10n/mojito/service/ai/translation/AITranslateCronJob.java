@@ -319,6 +319,7 @@ public class AITranslateCronJob implements Job {
       Locale targetLocale,
       RepositoryLocaleAIPrompt repositoryLocaleAIPrompt,
       List<GlossaryTerm> glossaryTerms) {
+    recordGlossaryMatchStats(repository, targetLocale, glossaryTerms);
     String translation =
         llmService.translate(
             tmTextUnit,
@@ -332,6 +333,33 @@ public class AITranslateCronJob implements Job {
             Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
         .increment();
     return createAITranslationDTO(tmTextUnit, targetLocale, translation);
+  }
+
+  private void recordGlossaryMatchStats(
+      Repository repository, Locale targetLocale, List<GlossaryTerm> glossaryTerms) {
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.glossaryMatch",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment(glossaryTerms.size());
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.glossaryMatch.dnt",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment(glossaryTerms.stream().filter(GlossaryTerm::isDoNotTranslate).count());
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.glossaryMatch.caseSensitiveMatch",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment(glossaryTerms.stream().filter(GlossaryTerm::isCaseSensitive).count());
+    meterRegistry
+        .counter(
+            "AITranslateCronJob.translate.glossaryMatch.exactMatch",
+            Tags.of("repository", repository.getName(), "locale", targetLocale.getBcp47Tag()))
+        .increment(
+            glossaryTerms.stream()
+                .filter(term -> term.isExactMatch() && !term.isCaseSensitive())
+                .count());
   }
 
   private AITranslation createAITranslationDTO(
