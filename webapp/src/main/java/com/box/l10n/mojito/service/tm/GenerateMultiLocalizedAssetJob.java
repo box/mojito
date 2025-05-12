@@ -9,6 +9,7 @@ import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.asset.LocaleInfo;
 import com.box.l10n.mojito.rest.asset.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.asset.MultiLocalizedAssetBody;
+import com.box.l10n.mojito.service.appender.AssetAppenderService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -26,6 +27,8 @@ public class GenerateMultiLocalizedAssetJob
 
   @Autowired MeterRegistry meterRegistry;
 
+  @Autowired AssetAppenderService assetAppenderService;
+
   @Override
   public MultiLocalizedAssetBody call(MultiLocalizedAssetBody multiLocalizedAssetBody)
       throws Exception {
@@ -34,6 +37,18 @@ public class GenerateMultiLocalizedAssetJob
 
     if (asset == null) {
       throw new AssetWithIdNotFoundException(multiLocalizedAssetBody.getAssetId());
+    }
+
+    if (multiLocalizedAssetBody.getAppendTextUnitsId() != null) {
+      // Set the source to the appended asset - For each locale under the repository / locale
+      // mapping, a localized asset body is created which will use this source content. Each
+      // localized asset body sends up their source content for localization so there is no need to
+      // put it through the appender service again
+      multiLocalizedAssetBody.setSourceContent(
+          assetAppenderService.appendBranchTextUnitsToSource(
+              asset,
+              multiLocalizedAssetBody.getAppendTextUnitsId(),
+              multiLocalizedAssetBody.getSourceContent()));
     }
 
     try (var timer =
