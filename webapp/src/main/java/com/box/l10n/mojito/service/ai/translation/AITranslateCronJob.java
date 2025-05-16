@@ -513,7 +513,7 @@ public class AITranslateCronJob implements Job {
   }
 
   @Bean
-  public CronTriggerFactoryBean triggerSlaCheckerCronJob(
+  public CronTriggerFactoryBean triggerAiTranslateCronJob(
       @Qualifier("aiTranslateCron") JobDetail job,
       AITranslationConfiguration aiTranslationConfiguration) {
     CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
