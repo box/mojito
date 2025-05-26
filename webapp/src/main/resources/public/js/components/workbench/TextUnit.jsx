@@ -1048,9 +1048,18 @@ let TextUnit = createReactClass({
 
                         <div className="left">
                             <div style={{gridArea: "locale"}}>
-                                <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
-                                    {this.props.textUnit.getTargetLocale()}
-                                </Label>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={
+                                        <Tooltip id={`locale-display-name-tooltip-${this.props.textUnit.getId()}`}>
+                                            {Locales.getDisplayName(this.props.textUnit.getTargetLocale())}
+                                        </Tooltip>
+                                    }
+                                >
+                                    <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
+                                        {this.props.textUnit.getTargetLocale()}
+                                    </Label>
+                                </OverlayTrigger>
                             </div>
                             <div style={{gridArea: "repo"}}>
                                 {this.renderRepository()}
