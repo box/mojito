@@ -86,7 +86,7 @@ If you've decided to use `Mysql` the server needs to be configured for better Un
 how to create 2 databases along with spring configuraitons to setup 2 envrionments that will make developpment easier.
 
 Configure the server to use `utf-8` on `4 bytes` by default by appending these configurations to 
-`/usr/local/etc/my.cnf` file on Mac and to `/etc/mysql/my.cnf` file on Ubuntu:
+`/usr/local/etc/my.cnf` file on Intel Mac, `/opt/homebrew/etc/my.cnf` file on Apple Silicon Macs and to `/etc/mysql/my.cnf` file on Ubuntu:
 
 ```properties
 [client]
@@ -101,6 +101,8 @@ max_allowed_packet = 256M
 [mysqld]
 default-time-zone = '+00:00'
 ```
+
+Note: to check which type of Mac you have, run `uname -m` in the terminal. If the output is `arm64`, you have an Apple Silicon Mac, and if the output is `x86_64`, you have an Intel Mac.
 
 The server needs to be started/restarted. 
 ```sh
@@ -205,7 +207,9 @@ cd ${PROJECT_DIR}/webapp
 npm run start-dev
 ```
 
-{{ site.mojito_green }} should be running on [http://localhost:8080/login](http://localhost:8080/login).  You can login with admin/ChangeMe.
+{{ site.mojito_green }} should be running on <http://localhost:8080/login>.  
+
+You can login with username: `admin` and password: `ChangeMe`.
 
 If you didn't [configure Mysql](#create-mysql-databases--configuration-files) previously, {{ site.mojito_green }} will be running 
 with in-memory `HSQL DB`. When you restart the server, all data will be lost. For persistent data you need to setup `Mysql`.
