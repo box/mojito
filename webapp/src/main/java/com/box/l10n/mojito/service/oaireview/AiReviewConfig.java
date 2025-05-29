@@ -33,7 +33,7 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClientPool(10, 50, 5, aiReviewConfigurationProperties.getOpenaiClientToken());
+    return new OpenAIClientPool(10, 10, 5, aiReviewConfigurationProperties.getOpenaiClientToken());
   }
 
   @Bean("objectMapperReview")

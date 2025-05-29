@@ -59,7 +59,8 @@ public class AiReviewWS {
                 protoAiReviewRequest.targetBcp47tags(),
                 protoAiReviewRequest.sourceTextMaxCountPerLocale(),
                 protoAiReviewRequest.tmTextUnitIds(),
-                protoAiReviewRequest.useBatch()));
+                protoAiReviewRequest.useBatch(),
+                protoAiReviewRequest.useModel()));
 
     return new ProtoAiReviewResponse(pollableFuture.getPollableTask());
   }
@@ -69,6 +70,7 @@ public class AiReviewWS {
       List<String> targetBcp47tags,
       int sourceTextMaxCountPerLocale,
       boolean useBatch,
+      String useModel,
       List<Long> tmTextUnitIds,
       boolean allLocales) {}
 

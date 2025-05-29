@@ -4,10 +4,19 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.openai.OpenAIClient.RetrieveBatchResponse;
+import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.RepositoryAiReviewClient;
+import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +75,26 @@ public class RepositoryAiReviewCommand extends Command {
       description = "To use the batch API or not")
   boolean useBatch = false;
 
+  @Parameter(
+      names = {"--use-model"},
+      arity = 1,
+      description = "Use a specific model for the review")
+  String useModel;
+
+  @Parameter(
+      names = "--attach-job-id",
+      arity = 1,
+      description =
+          "ID of an existing job to re-attach to; the CLI will only poll its status and will not start any new work.")
+  Long attachJobId;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiReviewClient repositoryAiReviewClient;
+
+  @Autowired PollableTaskClient pollableTaskClient;
+
+  @Autowired ObjectMapper objectMapper;
 
   @Override
   public boolean shouldShowInCommandList() {
@@ -78,23 +104,168 @@ public class RepositoryAiReviewCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    consoleWriter
-        .newLine()
-        .a("Ai review repository: ")
-        .fg(Color.CYAN)
-        .a(repositoryParam)
-        .reset()
-        .a(" for locales: ")
-        .fg(Color.CYAN)
-        .a(locales == null ? "<all>" : locales.stream().collect(Collectors.joining(", ", "[", "]")))
-        .println(2);
+    if (attachJobId == null) {
+      consoleWriter
+          .newLine()
+          .a("Ai review repository: ")
+          .fg(Color.CYAN)
+          .a(repositoryParam)
+          .reset()
+          .a(" for locales: ")
+          .fg(Color.CYAN)
+          .a(
+              locales == null
+                  ? "<all>"
+                  : locales.stream().collect(Collectors.joining(", ", "[", "]")))
+          .println(2);
 
-    RepositoryAiReviewClient.ProtoAiReviewResponse protoAiTranslateResponse =
-        repositoryAiReviewClient.reviewRepository(
-            new RepositoryAiReviewClient.ProtoAiReviewRequest(
-                repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch));
+      RepositoryAiReviewClient.ProtoAiReviewResponse protoAiTranslateResponse =
+          repositoryAiReviewClient.reviewRepository(
+              new RepositoryAiReviewClient.ProtoAiReviewRequest(
+                  repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch, useModel));
 
-    PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
-    commandHelper.waitForPollableTask(pollableTask.getId());
+      PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
+      consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
+      waitForPollable(pollableTask.getId());
+    } else {
+      consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
+      waitForPollable(attachJobId);
+    }
+
+    consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
   }
+
+  void waitForPollable(Long pollableTaskId) {
+    try {
+      final AtomicBoolean firstRender = new AtomicBoolean(true);
+
+      pollableTaskClient.waitForPollableTask(
+          pollableTaskId,
+          PollableTaskClient.NO_TIMEOUT,
+          pollableTask -> {
+            Optional<PollableTask> lastFinishedForOutput =
+                pollableTask.getSubTasks().stream()
+                    .filter(t -> t.getCreatedDate() != null)
+                    .sorted(Comparator.comparing(PollableTask::getCreatedDate).reversed())
+                    .filter(PollableTask::isAllFinished)
+                    .findFirst();
+
+            if (lastFinishedForOutput.isPresent()) {
+              if (!firstRender.get()) {
+                consoleWriter.erasePreviouslyPrintedLines();
+              } else {
+                firstRender.set(false);
+              }
+
+              Long lastFinishedTaskId = lastFinishedForOutput.get().getId();
+              consoleWriter
+                  .a("Running, task id: ")
+                  .fg(Color.MAGENTA)
+                  .a(pollableTaskId)
+                  .reset()
+                  .a(", child task id: ")
+                  .fg(Color.MAGENTA)
+                  .a(lastFinishedTaskId)
+                  .newLine();
+              String pollableTaskOutput =
+                  pollableTaskClient.getPollableTaskOutput(lastFinishedTaskId);
+              try {
+                renderAiReviewBatchesImportOutput(
+                    objectMapper.readValueUnchecked(
+                        pollableTaskOutput, AiReviewBatchesImportOutput.class));
+              } catch (Exception e) {
+                consoleWriter.a(pollableTaskOutput).println();
+              }
+            }
+          });
+
+    } catch (PollableTaskException e) {
+      throw new CommandException(e.getMessage(), e.getCause());
+    }
+  }
+
+  void renderAiReviewBatchesImportOutput(AiReviewBatchesImportOutput aiReviewBatchesImportOutput) {
+    aiReviewBatchesImportOutput
+        .retrieveBatchResponses()
+        .forEach(
+            r ->
+                renderBatch(
+                    r,
+                    aiReviewBatchesImportOutput.failedToImport.get(r.id()),
+                    aiReviewBatchesImportOutput.processed.contains(r.id())));
+    consoleWriter.println();
+  }
+
+  void renderBatch(
+      RetrieveBatchResponse retrieveBatchResponse, String importError, boolean processed) {
+    consoleWriter.a("- ").fg(Color.CYAN).a(retrieveBatchResponse.id()).a(" ");
+
+    consoleWriter.reset().a("[import: ");
+    if (importError != null) {
+      consoleWriter.fg(Color.RED).a("failed");
+    } else {
+      if (processed) {
+        if ("completed".equals(retrieveBatchResponse.status())) {
+          consoleWriter.fg(Color.GREEN).a("success");
+        } else {
+          consoleWriter.fg(Color.YELLOW).a(" - ");
+        }
+      } else {
+        consoleWriter.fg(Color.YELLOW).a("waiting");
+      }
+    }
+    consoleWriter.reset().a("]");
+
+    Color batchStatusColor =
+        switch (retrieveBatchResponse.status()) {
+          case "completed" -> Color.GREEN;
+          case "failed" -> Color.RED;
+          case "running", "queued", "in_progress" -> Color.YELLOW;
+          default -> Color.DEFAULT;
+        };
+
+    RetrieveBatchResponse.RequestCounts c = retrieveBatchResponse.requestCounts();
+
+    consoleWriter
+        .reset()
+        .a(" [batch: ")
+        .fg(batchStatusColor)
+        .a(retrieveBatchResponse.status())
+        .reset()
+        .a(" ; total=")
+        .a(c.total())
+        .a(", completed=")
+        .a(c.completed())
+        .a(", failed=")
+        .a(c.failed())
+        .a("]")
+        .newLine();
+
+    if (importError != null) {
+      consoleWriter.fg(Color.RED).a("Import error: ").newLine().a(importError).newLine();
+    }
+
+    if (retrieveBatchResponse.errors() != null
+        && retrieveBatchResponse.errors().data() != null
+        && !retrieveBatchResponse.errors().data().isEmpty()) {
+      consoleWriter.fg(Color.RED).a("   Errors:").reset().newLine();
+      retrieveBatchResponse
+          .errors()
+          .data()
+          .forEach(
+              e ->
+                  consoleWriter
+                      .a("    - ")
+                      .a(
+                          "[%s] %s (param=%s, line=%s)"
+                              .formatted(e.code(), e.message(), e.param(), e.line()))
+                      .newLine());
+    }
+  }
+
+  public record AiReviewBatchesImportOutput(
+      List<RetrieveBatchResponse> retrieveBatchResponses,
+      List<String> processed,
+      Map<String, String> failedToImport,
+      Long nextJob) {}
 }

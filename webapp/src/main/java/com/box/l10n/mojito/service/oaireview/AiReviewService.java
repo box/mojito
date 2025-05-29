@@ -5,8 +5,12 @@ import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.Jso
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.SystemMessage.systemMessageBuilder;
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.UserMessage.userMessageBuilder;
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.chatCompletionsRequest;
+import static com.box.l10n.mojito.openai.OpenAIClient.CreateBatchRequest.forChatCompletion;
+import static java.util.stream.Collectors.joining;
 
+import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.AiReviewProto;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.json.ObjectMapper;
@@ -15,14 +19,14 @@ import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
-import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
+import com.box.l10n.mojito.service.oaireview.AiReviewBatchesImportJob.AiReviewBatchesImportInput;
+import com.box.l10n.mojito.service.oaireview.AiReviewBatchesImportJob.AiReviewBatchesImportOutput;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.AiReviewProtoRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
-import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -34,13 +38,18 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,10 +86,6 @@ public class AiReviewService {
 
   OpenAIClientPool openAIClientPool;
 
-  TextUnitBatchImporterService textUnitBatchImporterService;
-
-  StructuredBlobStorage structuredBlobStorage;
-
   ObjectMapper objectMapper;
 
   RetryBackoffSpec retryBackoffSpec;
@@ -98,8 +103,6 @@ public class AiReviewService {
       TMTextUnitVariantRepository textUnitVariantRepository,
       AiReviewProtoRepository aiReviewProtoRepository,
       RepositoryService repositoryService,
-      TextUnitBatchImporterService textUnitBatchImporterService,
-      StructuredBlobStorage structuredBlobStorage,
       AiReviewConfigurationProperties aiReviewConfigurationProperties,
       @Autowired(required = false) @Qualifier("openAIClientReview") OpenAIClient openAIClient,
       @Autowired(required = false) @Qualifier("openAIClientPoolReview")
@@ -112,8 +115,6 @@ public class AiReviewService {
     this.textUnitVariantRepository = Objects.requireNonNull(textUnitVariantRepository);
     this.aiReviewProtoRepository = Objects.requireNonNull(aiReviewProtoRepository);
     this.repositoryService = Objects.requireNonNull(repositoryService);
-    this.textUnitBatchImporterService = Objects.requireNonNull(textUnitBatchImporterService);
-    this.structuredBlobStorage = Objects.requireNonNull(structuredBlobStorage);
     this.aiReviewConfigurationProperties = Objects.requireNonNull(aiReviewConfigurationProperties);
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.openAIClient = openAIClient; // nullable
@@ -127,7 +128,8 @@ public class AiReviewService {
       List<String> targetBcp47tags,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
-      boolean useBatch) {}
+      boolean useBatch,
+      String useModel) {}
 
   public record AiReviewSingleTextUnitOutput(
       String source,
@@ -204,9 +206,38 @@ public class AiReviewService {
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }
 
-  public void aiReview(AiReviewInput aiReviewInput) throws AiReviewException {
+  /**
+   * Appends 1 subtask to the main pollable task (which the CLI polls) for each scheduling. Since
+   * the job reschedule itself until completion for 24h the number of tasks will grow. By checking
+   * every 10 minutes, it is limited to 144 entries right now, but we might want to add logic to
+   * limit the number of subtask and, check more often.
+   */
+  public PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportAsync(
+      AiReviewBatchesImportInput aiReviewBatchesImportInput, PollableTask currentTask) {
+
+    long backOffSeconds = Math.min(10 * (1L << aiReviewBatchesImportInput.attempt()), 600);
+
+    QuartzJobInfo<AiReviewBatchesImportInput, AiReviewBatchesImportOutput> quartzJobInfo =
+        QuartzJobInfo.newBuilder(AiReviewBatchesImportJob.class)
+            .withInlineInput(false)
+            .withInput(aiReviewBatchesImportInput)
+            .withScheduler(aiReviewConfigurationProperties.getSchedulerName())
+            .withTimeout(864000) // hardcoded 24h for now
+            .withTriggerStartDate(
+                JSR310Migration.dateTimeToDate(ZonedDateTime.now().plusSeconds(backOffSeconds)))
+            .withParentId(
+                currentTask
+                    .getId()) // if running 24h, it will make record 144 sub-tasks. Might want to
+            // reconsider
+            .build();
+
+    return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+  }
+
+  public void aiReview(AiReviewInput aiReviewInput, PollableTask currentTask)
+      throws AiReviewException {
     if (aiReviewInput.useBatch()) {
-      throw new UnsupportedOperationException("Only non batch for review");
+      aiReviewBatch(aiReviewInput, currentTask);
     } else {
       aiReviewNoBatch(aiReviewInput);
     }
@@ -228,6 +259,7 @@ public class AiReviewService {
                     rl,
                     aiReviewInput.sourceTextMaxCountPerLocale(),
                     aiReviewInput.tmTextUnitIds(),
+                    getModel(aiReviewInput.useModel()),
                     openAIClientPool),
             10)
         .then()
@@ -238,11 +270,70 @@ public class AiReviewService {
         .block();
   }
 
+  private String getModel(String useModel) {
+    return useModel != null ? useModel : aiReviewConfigurationProperties.getModelName();
+  }
+
   Mono<Void> asyncReviewNoBatchLocale(
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
+      String useModel,
       OpenAIClientPool openAIClientPool) {
+
+    List<TextUnitDTO> textUnitDTOS =
+        getTextUnitDTOSForReview(repositoryLocale, sourceTextMaxCountPerLocale, tmTextUnitIds);
+
+    if (textUnitDTOS.isEmpty()) {
+      logger.debug("Nothing to review for locale: {}", repositoryLocale.getLocale().getBcp47Tag());
+      return Mono.empty();
+    }
+
+    logger.info(
+        "Starting parallel processing for each string in locale: {}, count: {}",
+        repositoryLocale.getLocale().getBcp47Tag(),
+        textUnitDTOS.size());
+
+    return Flux.fromIterable(textUnitDTOS)
+        .buffer(500)
+        .concatMap(
+            batch ->
+                Flux.fromIterable(batch)
+                    .flatMap(
+                        textUnitDTO ->
+                            getChatCompletionForTextUnitDTO(textUnitDTO, useModel, openAIClientPool)
+                                .retryWhen(
+                                    Retry.backoff(5, Duration.ofSeconds(1))
+                                        .filter(this::isRetryableException)
+                                        .doBeforeRetry(
+                                            retrySignal -> {
+                                              logger.warn(
+                                                  "Retrying request for TextUnitDTO {} due to exception of type {}",
+                                                  textUnitDTO.getTmTextUnitId(),
+                                                  retrySignal.failure().getMessage());
+                                            }))
+                                .onErrorResume(
+                                    error -> {
+                                      logger.error(
+                                          "Request for TextUnitDTO {} failed after retries: {}",
+                                          textUnitDTO.getTmTextUnitId(),
+                                          error.getMessage());
+                                      return Mono.empty();
+                                    }))
+                    .collectList()
+                    .flatMap(this::submitForSave)
+                    .doOnTerminate(
+                        () ->
+                            logger.info(
+                                "Done submitting for saving: {}",
+                                repositoryLocale.getLocale().getBcp47Tag())))
+        .then();
+  }
+
+  private List<TextUnitDTO> getTextUnitDTOSForReview(
+      RepositoryLocale repositoryLocale,
+      int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds) {
 
     Repository repository = repositoryLocale.getRepository();
 
@@ -278,53 +369,14 @@ public class AiReviewService {
             .toList();
     logger.info(
         "All text unit dtos: {}, filtered: {}", allTextUnitDTOS.size(), textUnitDTOS.size());
-
-    if (textUnitDTOS.isEmpty()) {
-      logger.debug("Nothing to review for locale: {}", repositoryLocale.getLocale().getBcp47Tag());
-      return Mono.empty();
-    }
-
-    logger.info(
-        "Starting parallel processing for each string in locale: {}, count: {}",
-        repositoryLocale.getLocale().getBcp47Tag(),
-        textUnitDTOS.size());
-
-    return Flux.fromIterable(textUnitDTOS)
-        .buffer(500)
-        .concatMap(
-            batch ->
-                Flux.fromIterable(batch)
-                    .flatMap(
-                        textUnitDTO ->
-                            getChatCompletionForTextUnitDTO(textUnitDTO, openAIClientPool)
-                                .retryWhen(
-                                    Retry.backoff(5, Duration.ofSeconds(1))
-                                        .filter(this::isRetriableException)
-                                        .doBeforeRetry(
-                                            retrySignal -> {
-                                              logger.warn(
-                                                  "Retrying request for TextUnitDTO {} due to exception of type {}",
-                                                  textUnitDTO.getTmTextUnitId(),
-                                                  retrySignal.failure().getMessage());
-                                            }))
-                                .onErrorResume(
-                                    error -> {
-                                      logger.error(
-                                          "Request for TextUnitDTO {} failed after retries: {}",
-                                          textUnitDTO.getTmTextUnitId(),
-                                          error.getMessage());
-                                      return Mono.empty();
-                                    }))
-                    .collectList()
-                    .flatMap(this::submitForSave)
-                    .doOnTerminate(() -> logger.info("Done submitting for processing")))
-        .then();
+    return textUnitDTOS;
   }
 
   record MyRecord(TextUnitDTO textUnitDTO, ChatCompletionsResponse chatCompletionsResponse) {}
 
   private Mono<Void> submitForSave(List<MyRecord> results) {
-    logger.info("Submit for save for locale {}", results.get(0).textUnitDTO().getTargetLocale());
+    String targetLocale = results.get(0).textUnitDTO().getTargetLocale();
+    logger.info("Submit for save for locale {}", targetLocale);
     List<AiReviewProto> forSave =
         results.stream()
             .map(
@@ -356,8 +408,17 @@ public class AiReviewService {
                 })
             .toList();
 
-    saveAiReviewProtosInTx(forSave);
+    trySaveAiReviewProtosInTx(forSave);
+    logger.info("Done saving reviews for: {},  size: {}", targetLocale, forSave.size());
     return Mono.empty();
+  }
+
+  public void trySaveAiReviewProtosInTx(List<AiReviewProto> aiReviewProtos) {
+    try {
+      saveAiReviewProtosInTx(aiReviewProtos);
+    } catch (Throwable t) {
+      logger.error("Error while saving AiReviewProtos, swallow", t);
+    }
   }
 
   @Transactional
@@ -366,7 +427,7 @@ public class AiReviewService {
   }
 
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
-      TextUnitDTO textUnitDTO, OpenAIClientPool openAIClientPool) {
+      TextUnitDTO textUnitDTO, String useModel, OpenAIClientPool openAIClientPool) {
 
     AiReviewSingleTextUnitInput aiReviewSingleTextUnitInput =
         new AiReviewService.AiReviewSingleTextUnitInput(
@@ -382,7 +443,7 @@ public class AiReviewService {
 
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
-            .model(aiReviewConfigurationProperties.getModelName())
+            .model(useModel)
             .maxTokens(16384)
             .messages(
                 List.of(
@@ -399,12 +460,224 @@ public class AiReviewService {
         openAIClientPool.submit(
             (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
     return Mono.fromFuture(futureResult)
-        .map(chatCompletionsResponse -> new MyRecord(textUnitDTO, chatCompletionsResponse));
+        .handle(
+            (chatCompletionsResponse, sink) -> {
+              String jsonReview = chatCompletionsResponse.choices().getFirst().message().content();
+              try {
+                objectMapper.readValueUnchecked(jsonReview, AiReviewSingleTextUnitOutput.class);
+              } catch (UncheckedIOException e) {
+                logger.error(
+                    "Can't deserialize the response: {}, content: {}", e.getMessage(), jsonReview);
+                sink.error(e);
+                return;
+              }
+              sink.next(new MyRecord(textUnitDTO, chatCompletionsResponse));
+            });
   }
 
-  private boolean isRetriableException(Throwable throwable) {
+  private boolean isRetryableException(Throwable throwable) {
     Throwable cause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
     return cause instanceof IOException || cause instanceof TimeoutException;
+  }
+
+  public void aiReviewBatch(AiReviewInput aiReviewInput, PollableTask currentTask)
+      throws AiReviewException {
+
+    Repository repository = getRepository(aiReviewInput);
+
+    logger.debug("Start AI Review for repository: {}", repository.getName());
+
+    try {
+      Set<RepositoryLocale> repositoryLocalesWithoutRootLocale =
+          getFilteredRepositoryLocales(aiReviewInput, repository);
+
+      logger.debug("Create batches for repository: {}", repository.getName());
+      List<OpenAIClient.CreateBatchResponse> batches =
+          repositoryLocalesWithoutRootLocale.stream()
+              .map(
+                  createBatchForRepositoryLocale(
+                      repository,
+                      aiReviewInput.sourceTextMaxCountPerLocale(),
+                      getModel(aiReviewInput.useModel())))
+              .filter(Objects::nonNull)
+              .toList();
+
+      logger.debug("Start a job to import batches for repository: {}", repository.getName());
+      PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportOutputPollableFuture =
+          aiReviewBatchesImportAsync(
+              new AiReviewBatchesImportInput(batches, List.of(), 0), currentTask);
+
+      logger.info(
+          "Schedule AiReviewBatchesImportJob, id: {}",
+          aiReviewBatchesImportOutputPollableFuture.getPollableTask().getId());
+
+    } catch (OpenAIClient.OpenAIClientResponseException openAIClientResponseException) {
+      logger.error(
+          "Failed to ai review: %s".formatted(openAIClientResponseException),
+          openAIClientResponseException);
+      throw new AiReviewException(openAIClientResponseException);
+    }
+  }
+
+  public void importBatch(OpenAIClient.RetrieveBatchResponse retrieveBatchResponse) {
+
+    logger.info("Importing batch: {}", retrieveBatchResponse.id());
+
+    logger.info("Download file content: {}", retrieveBatchResponse.outputFileId());
+    OpenAIClient.DownloadFileContentResponse downloadFileContentResponse =
+        getOpenAIClient()
+            .downloadFileContent(
+                new OpenAIClient.DownloadFileContentRequest(retrieveBatchResponse.outputFileId()));
+
+    List<AiReviewProto> forSave =
+        downloadFileContentResponse
+            .content()
+            .lines()
+            .map(
+                line -> {
+                  OpenAIClient.ChatCompletionResponseBatchFileLine
+                      chatCompletionResponseBatchFileLine =
+                          objectMapper.readValueUnchecked(
+                              line, OpenAIClient.ChatCompletionResponseBatchFileLine.class);
+
+                  if (chatCompletionResponseBatchFileLine.response().statusCode() != 200) {
+                    throw new RuntimeException(
+                        "Response batch file line failed: " + chatCompletionResponseBatchFileLine);
+                  }
+
+                  String completionOutputAsJson =
+                      chatCompletionResponseBatchFileLine
+                          .response()
+                          .chatCompletionsResponse()
+                          .choices()
+                          .getFirst()
+                          .message()
+                          .content();
+
+                  // check this was deserialzied
+                  AiReviewSingleTextUnitOutput aiReviewSingleTextUnitOutput =
+                      objectMapper.readValueUnchecked(
+                          completionOutputAsJson, AiReviewSingleTextUnitOutput.class);
+
+                  Long tmTextUnitVariantId =
+                      Long.valueOf(chatCompletionResponseBatchFileLine.customId());
+                  AiReviewProto aiReviewProto = new AiReviewProto();
+                  aiReviewProto.setTmTextUnitVariant(
+                      textUnitVariantRepository.getReferenceById(tmTextUnitVariantId));
+                  aiReviewProto.setJsonReview(completionOutputAsJson);
+                  return aiReviewProto;
+                })
+            .toList();
+
+    trySaveAiReviewProtosInTx(forSave);
+  }
+
+  /**
+   * @return null if there is nothing to review
+   */
+  Function<RepositoryLocale, OpenAIClient.CreateBatchResponse> createBatchForRepositoryLocale(
+      Repository repository, int sourceTextMaxCountPerLocale, String model) {
+
+    return repositoryLocale -> {
+      logger.debug(
+          "Get translated string for locale: '{}' in repository: '{}'",
+          repositoryLocale.getLocale().getBcp47Tag(),
+          repository.getName());
+
+      List<TextUnitDTO> textUnitDTOS =
+          getTextUnitDTOSForReview(repositoryLocale, sourceTextMaxCountPerLocale, null);
+
+      OpenAIClient.CreateBatchResponse createBatchResponse = null;
+      if (textUnitDTOS.isEmpty()) {
+        logger.info(
+            "Nothing to review for locale: {}, don't create a batch",
+            repositoryLocale.getLocale().getBcp47Tag());
+      } else {
+        String batchId =
+            "%s_%s".formatted(repositoryLocale.getLocale().getBcp47Tag(), UUID.randomUUID());
+
+        logger.debug("Generate the batch file content");
+        String batchFileContent = generateBatchFileContent(textUnitDTOS, model);
+
+        OpenAIClient.UploadFileResponse uploadFileResponse =
+            getOpenAIClient()
+                .uploadFile(
+                    OpenAIClient.UploadFileRequest.forBatch(
+                        "%s.jsonl".formatted(batchId), batchFileContent));
+
+        logger.debug("Create the batch using file: {}", uploadFileResponse);
+        createBatchResponse =
+            getOpenAIClient()
+                .createBatch(
+                    forChatCompletion(
+                        uploadFileResponse.id(),
+                        Map.of(METADATA__TEXT_UNIT_DTOS__BLOB_ID, batchId)));
+
+        logger.info("Create batch at {}: {}", ZonedDateTime.now(), createBatchResponse);
+
+        logger.info(
+            "Created batch for locale: {} with {} text units",
+            repositoryLocale.getLocale().getBcp47Tag(),
+            textUnitDTOS.size());
+      }
+
+      return createBatchResponse;
+    };
+  }
+
+  String generateBatchFileContent(List<TextUnitDTO> textUnitDTOS, String model) {
+    return textUnitDTOS.stream()
+        .map(
+            textUnitDTO -> {
+              AiReviewSingleTextUnitInput aiReviewSingleTextUnitInput =
+                  new AiReviewSingleTextUnitInput(
+                      textUnitDTO.getTargetLocale(),
+                      textUnitDTO.getSource(),
+                      textUnitDTO.getComment(),
+                      new AiReviewSingleTextUnitInput.ExistingTarget(
+                          textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
+
+              String inputAsJsonString =
+                  objectMapper.writeValueAsStringUnchecked(aiReviewSingleTextUnitInput);
+
+              ObjectNode jsonSchema = createJsonSchema(AiReviewSingleTextUnitOutput.class);
+
+              ChatCompletionsRequest chatCompletionsRequest =
+                  chatCompletionsRequest()
+                      .model(getModel(model))
+                      .maxTokens(16384)
+                      .messages(
+                          List.of(
+                              systemMessageBuilder().content(PROMPT).build(),
+                              userMessageBuilder().content(inputAsJsonString).build()))
+                      .responseFormat(
+                          new ChatCompletionsRequest.JsonFormat(
+                              "json_schema",
+                              new ChatCompletionsRequest.JsonFormat.JsonSchema(
+                                  true, "request_json_format", jsonSchema)))
+                      .build();
+
+              return OpenAIClient.RequestBatchFileLine.forChatCompletion(
+                  textUnitDTO.getTmTextUnitVariantId().toString(), chatCompletionsRequest);
+            })
+        .map(objectMapper::writeValueAsStringUnchecked)
+        .collect(joining("\n"));
+  }
+
+  OpenAIClient.RetrieveBatchResponse retrieveBatchWithRetry(
+      OpenAIClient.CreateBatchResponse batch) {
+
+    return Mono.fromCallable(
+            () ->
+                getOpenAIClient().retrieveBatch(new OpenAIClient.RetrieveBatchRequest(batch.id())))
+        .retryWhen(
+            retryBackoffSpec.doBeforeRetry(
+                doBeforeRetry -> {
+                  logger.info("Retrying retrieving batch: {}", batch.id());
+                }))
+        .doOnError(
+            throwable -> new RuntimeException("Failed to retrieve batch: " + batch.id(), throwable))
+        .block();
   }
 
   private Set<RepositoryLocale> getFilteredRepositoryLocales(
@@ -513,7 +786,7 @@ public class AiReviewService {
     return openAIClient;
   }
 
-  public class AiReviewException extends Exception {
+  public static class AiReviewException extends Exception {
     public AiReviewException(Throwable cause) {
       super(cause);
     }
