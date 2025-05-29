@@ -227,7 +227,7 @@ public class AiTranslateService {
                             getChatCompletionForTextUnitDTO(textUnitDTO, openAIClientPool)
                                 .retryWhen(
                                     Retry.backoff(5, Duration.ofSeconds(1))
-                                        .filter(this::isRetriableException)
+                                        .filter(this::isRetryableException)
                                         .doBeforeRetry(
                                             retrySignal -> {
                                               logger.warn(
@@ -275,8 +275,7 @@ public class AiTranslateService {
             .collect(Collectors.toList());
 
     textUnitBatchImporterService.importTextUnits(
-        forImport,
-        TextUnitBatchImporterService.IntegrityChecksType.ALWAYS_USE_INTEGRITY_CHECKER_STATUS);
+        forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
 
     return Mono.empty();
   }
@@ -319,7 +318,7 @@ public class AiTranslateService {
         .map(chatCompletionsResponse -> new MyRecord(textUnitDTO, chatCompletionsResponse));
   }
 
-  private boolean isRetriableException(Throwable throwable) {
+  private boolean isRetryableException(Throwable throwable) {
     Throwable cause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
     return cause instanceof IOException || cause instanceof TimeoutException;
   }
@@ -441,8 +440,7 @@ public class AiTranslateService {
             .toList();
 
     textUnitBatchImporterService.importTextUnits(
-        forImport,
-        TextUnitBatchImporterService.IntegrityChecksType.ALWAYS_USE_INTEGRITY_CHECKER_STATUS);
+        forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
   }
 
   Function<RepositoryLocale, CreateBatchResponse> createBatchForRepositoryLocale(
@@ -541,7 +539,7 @@ public class AiTranslateService {
    * Use a queue to not stay stuck on a slow job, and try to import faster. Batch are imported
    * sequentially.
    *
-   * <p>Note: This is an active blocking pooling which blocks the thread but is isolated in a thread
+   * <p>Note: This is an active blocking polling which blocks the thread but is isolated in a thread
    * pool.
    */
   RetrieveBatchResponse getNextFinishedBatch(ArrayDeque<CreateBatchResponse> batches) {
@@ -695,7 +693,7 @@ public class AiTranslateService {
     return openAIClient;
   }
 
-  public class AiTranslateException extends Exception {
+  public static class AiTranslateException extends Exception {
     public AiTranslateException(Throwable cause) {
       super(cause);
     }
