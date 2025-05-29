@@ -16,7 +16,7 @@ public class AiReviewJob extends QuartzPollableJob<AiReviewInput, Void> {
 
   @Override
   public Void call(AiReviewInput aiReviewJobInput) throws Exception {
-    aiReviewService.aiReview(aiReviewJobInput);
+    aiReviewService.aiReview(aiReviewJobInput, getCurrentPollableTask());
     return null;
   }
 }

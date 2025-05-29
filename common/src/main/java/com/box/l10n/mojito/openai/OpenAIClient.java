@@ -920,7 +920,7 @@ public class OpenAIClient {
       @JsonProperty("expired_at") Long expiredAt,
       @JsonProperty("request_counts") RequestCounts requestCounts,
       Map<String, String> metadata) {
-    record RequestCounts(int total, int completed, int failed) {}
+    public record RequestCounts(int total, int completed, int failed) {}
 
     public record Errors(
         @JsonProperty("object") String objectType,
