@@ -906,7 +906,7 @@ public class OpenAIClient {
       String id,
       String object,
       String endpoint,
-      String errors,
+      Errors errors,
       @JsonProperty("input_file_id") String inputFileId,
       @JsonProperty("completion_window") String completionWindow,
       String status,
@@ -921,6 +921,12 @@ public class OpenAIClient {
       @JsonProperty("request_counts") RequestCounts requestCounts,
       Map<String, String> metadata) {
     record RequestCounts(int total, int completed, int failed) {}
+
+    public record Errors(
+        @JsonProperty("object") String objectType,
+        List<ErrorDetail> data) {}
+
+    public record ErrorDetail(String code, String message, String param, Integer line) {}
   }
 
   private URI getUriForEndpoint(String endpoint) {
