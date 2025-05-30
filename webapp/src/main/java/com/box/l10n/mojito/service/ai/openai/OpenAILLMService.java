@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -230,23 +231,37 @@ public class OpenAILLMService implements LLMService {
                     tmTextUnit, sourceBcp47Tag, targetBcp47Tag, prompt, chatCompletionsRequest))
         .doOnError(
             e -> {
+              Optional<Integer> statusCode = resolveStatusCode(e);
               logger.error(
                   "Error translating text unit {} to {}", tmTextUnit.getId(), targetBcp47Tag, e);
               meterRegistry
                   .counter(
                       "OpenAILLMService.translate.result",
-                      Tags.of("success", "false", "retryable", "true"))
+                      Tags.of(
+                          "success",
+                          "false",
+                          "retryable",
+                          "true",
+                          "statusCode",
+                          statusCode.isPresent() ? String.valueOf(statusCode.get()) : "null"))
                   .increment();
             })
         .retryWhen(llmTranslateRetryConfig)
         .doOnError(
             e -> {
+              Optional<Integer> statusCode = resolveStatusCode(e);
               logger.error(
                   "Error translating text unit {} to {}", tmTextUnit.getId(), targetBcp47Tag, e);
               meterRegistry
                   .counter(
                       "OpenAILLMService.translate.result",
-                      Tags.of("success", "false", "retryable", "false"))
+                      Tags.of(
+                          "success",
+                          "false",
+                          "retryable",
+                          "false",
+                          "statusCode",
+                          statusCode.isPresent() ? String.valueOf(statusCode.get()) : "null"))
                   .increment();
             })
         .blockOptional()
@@ -263,8 +278,10 @@ public class OpenAILLMService implements LLMService {
       String targetBcp47Tag,
       AIPrompt prompt,
       OpenAIClient.ChatCompletionsRequest chatCompletionsRequest) {
+
     OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
         openAIClient.getChatCompletions(chatCompletionsRequest).join();
+
     if (chatCompletionsResponse.choices().size() > 1) {
       logger.error(
           "Multiple choices returned for text unit {}, expected only one", tmTextUnit.getId());
@@ -307,6 +324,13 @@ public class OpenAILLMService implements LLMService {
             chatCompletionsResponse.choices().getFirst().finishReason());
     logger.error(message);
     throw new AIException(message);
+  }
+
+  private Optional<Integer> resolveStatusCode(Throwable e) {
+    return (e instanceof OpenAIClient.OpenAIClientResponseException exception)
+            && exception.getHttpResponse() != null
+        ? Optional.of(exception.getHttpResponse().statusCode())
+        : Optional.empty();
   }
 
   @Timed("OpenAILLMService.checkString")
@@ -369,6 +393,7 @@ public class OpenAILLMService implements LLMService {
 
       OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
           openAIClient.getChatCompletions(chatCompletionsRequest).join();
+
       if (persistResults) {
         persistCheckResult(
             textUnit,

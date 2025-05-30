@@ -587,6 +587,10 @@ public class OpenAIClient {
       this.httpResponse = Objects.requireNonNull(httpResponse);
     }
 
+    public HttpResponse getHttpResponse() {
+      return httpResponse;
+    }
+
     @Override
     public String toString() {
 
