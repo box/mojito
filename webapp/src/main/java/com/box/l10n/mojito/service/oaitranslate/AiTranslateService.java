@@ -129,7 +129,8 @@ public class AiTranslateService {
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       boolean useBatch,
-      String useModel) {}
+      String useModel,
+      String promptSuffix) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -167,6 +168,7 @@ public class AiTranslateService {
                     rl,
                     aiTranslateInput.sourceTextMaxCountPerLocale(),
                     getModel(aiTranslateInput),
+                    aiTranslateInput.promptSuffix(),
                     aiTranslateInput.tmTextUnitIds(),
                     openAIClientPool),
             10)
@@ -182,6 +184,7 @@ public class AiTranslateService {
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
       String model,
+      String promptSuffix,
       List<Long> tmTextUnitIds,
       OpenAIClientPool openAIClientPool) {
 
@@ -227,7 +230,8 @@ public class AiTranslateService {
                 Flux.fromIterable(batch)
                     .flatMap(
                         textUnitDTO ->
-                            getChatCompletionForTextUnitDTO(textUnitDTO, model, openAIClientPool)
+                            getChatCompletionForTextUnitDTO(
+                                    textUnitDTO, model, promptSuffix, openAIClientPool)
                                 .retryWhen(
                                     Retry.backoff(5, Duration.ofSeconds(1))
                                         .filter(this::isRetryableException)
@@ -284,7 +288,10 @@ public class AiTranslateService {
   }
 
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
-      TextUnitDTO textUnitDTO, String model, OpenAIClientPool openAIClientPool) {
+      TextUnitDTO textUnitDTO,
+      String model,
+      String promptSuffix,
+      OpenAIClientPool openAIClientPool) {
 
     CompletionInput completionInput =
         new CompletionInput(
@@ -305,7 +312,7 @@ public class AiTranslateService {
             .maxTokens(16384)
             .messages(
                 List.of(
-                    systemMessageBuilder().content(PROMPT).build(),
+                    systemMessageBuilder().content(getPrompt(promptSuffix)).build(),
                     userMessageBuilder().content(inputAsJsonString).build()))
             .responseFormat(
                 new ChatCompletionsRequest.JsonFormat(
@@ -343,7 +350,8 @@ public class AiTranslateService {
                   createBatchForRepositoryLocale(
                       repository,
                       aiTranslateInput.sourceTextMaxCountPerLocale(),
-                      getModel(aiTranslateInput)))
+                      getModel(aiTranslateInput),
+                      aiTranslateInput.promptSuffix()))
               .filter(Objects::nonNull)
               .collect(Collectors.toCollection(ArrayDeque::new));
 
@@ -449,7 +457,7 @@ public class AiTranslateService {
   }
 
   Function<RepositoryLocale, CreateBatchResponse> createBatchForRepositoryLocale(
-      Repository repository, int sourceTextMaxCountPerLocale, String model) {
+      Repository repository, int sourceTextMaxCountPerLocale, String model, String promptSuffix) {
 
     return repositoryLocale -> {
       logger.debug(
@@ -478,7 +486,7 @@ public class AiTranslateService {
             Retention.MIN_1_DAY);
 
         logger.debug("Generate the batch file content");
-        String batchFileContent = generateBatchFileContent(textUnitDTOS, model);
+        String batchFileContent = generateBatchFileContent(textUnitDTOS, model, promptSuffix);
 
         UploadFileResponse uploadFileResponse =
             getOpenAIClient()
@@ -502,7 +510,8 @@ public class AiTranslateService {
     };
   }
 
-  String generateBatchFileContent(List<TextUnitDTO> textUnitDTOS, String model) {
+  String generateBatchFileContent(
+      List<TextUnitDTO> textUnitDTOS, String model, String promptSuffix) {
     return textUnitDTOS.stream()
         .map(
             textUnitDTO -> {
@@ -524,7 +533,7 @@ public class AiTranslateService {
                       .maxTokens(16384)
                       .messages(
                           List.of(
-                              systemMessageBuilder().content(PROMPT).build(),
+                              systemMessageBuilder().content(getPrompt(promptSuffix)).build(),
                               userMessageBuilder().content(inputAsJsonString).build()))
                       .responseFormat(
                           new ChatCompletionsRequest.JsonFormat(
@@ -675,6 +684,10 @@ public class AiTranslateService {
           •	"required": true or false, indicating if review is needed.
           •	"reason": A detailed explanation of why review is or isn’t needed.
       """;
+
+  static String getPrompt(String promptSuffix) {
+    return promptSuffix == null ? PROMPT : "%s %s".formatted(PROMPT, promptSuffix);
+  }
 
   /**
    * Typical configuration for the ObjectMapper needed by this class.
