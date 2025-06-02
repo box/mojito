@@ -44,7 +44,8 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.targetBcp47tags(),
                 protoAiTranslateRequest.sourceTextMaxCountPerLocale(),
                 protoAiTranslateRequest.tmTextUnitIds(),
-                protoAiTranslateRequest.useBatch()));
+                protoAiTranslateRequest.useBatch(),
+                protoAiTranslateRequest.useModel()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -53,9 +54,9 @@ public class AiTranslateWS {
       String repositoryName,
       List<String> targetBcp47tags,
       int sourceTextMaxCountPerLocale,
-      boolean useBatch,
       List<Long> tmTextUnitIds,
-      boolean allLocales) {}
+      boolean useBatch,
+      String useModel) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 }

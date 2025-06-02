@@ -128,7 +128,8 @@ public class AiTranslateService {
       List<String> targetBcp47tags,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
-      boolean useBatch) {}
+      boolean useBatch,
+      String useModel) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -165,6 +166,7 @@ public class AiTranslateService {
                 asyncProcessLocale(
                     rl,
                     aiTranslateInput.sourceTextMaxCountPerLocale(),
+                    getModel(aiTranslateInput),
                     aiTranslateInput.tmTextUnitIds(),
                     openAIClientPool),
             10)
@@ -179,6 +181,7 @@ public class AiTranslateService {
   Mono<Void> asyncProcessLocale(
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
+      String model,
       List<Long> tmTextUnitIds,
       OpenAIClientPool openAIClientPool) {
 
@@ -224,7 +227,7 @@ public class AiTranslateService {
                 Flux.fromIterable(batch)
                     .flatMap(
                         textUnitDTO ->
-                            getChatCompletionForTextUnitDTO(textUnitDTO, openAIClientPool)
+                            getChatCompletionForTextUnitDTO(textUnitDTO, model, openAIClientPool)
                                 .retryWhen(
                                     Retry.backoff(5, Duration.ofSeconds(1))
                                         .filter(this::isRetryableException)
@@ -281,7 +284,7 @@ public class AiTranslateService {
   }
 
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
-      TextUnitDTO textUnitDTO, OpenAIClientPool openAIClientPool) {
+      TextUnitDTO textUnitDTO, String model, OpenAIClientPool openAIClientPool) {
 
     CompletionInput completionInput =
         new CompletionInput(
@@ -298,7 +301,7 @@ public class AiTranslateService {
 
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
-            .model(aiTranslateConfigurationProperties.getModelName())
+            .model(model)
             .maxTokens(16384)
             .messages(
                 List.of(
@@ -338,7 +341,9 @@ public class AiTranslateService {
           repositoryLocalesWithoutRootLocale.stream()
               .map(
                   createBatchForRepositoryLocale(
-                      repository, aiTranslateInput.sourceTextMaxCountPerLocale()))
+                      repository,
+                      aiTranslateInput.sourceTextMaxCountPerLocale(),
+                      getModel(aiTranslateInput)))
               .filter(Objects::nonNull)
               .collect(Collectors.toCollection(ArrayDeque::new));
 
@@ -444,7 +449,7 @@ public class AiTranslateService {
   }
 
   Function<RepositoryLocale, CreateBatchResponse> createBatchForRepositoryLocale(
-      Repository repository, int sourceTextMaxCountPerLocale) {
+      Repository repository, int sourceTextMaxCountPerLocale, String model) {
 
     return repositoryLocale -> {
       logger.debug(
@@ -473,7 +478,7 @@ public class AiTranslateService {
             Retention.MIN_1_DAY);
 
         logger.debug("Generate the batch file content");
-        String batchFileContent = generateBatchFileContent(textUnitDTOS);
+        String batchFileContent = generateBatchFileContent(textUnitDTOS, model);
 
         UploadFileResponse uploadFileResponse =
             getOpenAIClient()
@@ -497,7 +502,7 @@ public class AiTranslateService {
     };
   }
 
-  String generateBatchFileContent(List<TextUnitDTO> textUnitDTOS) {
+  String generateBatchFileContent(List<TextUnitDTO> textUnitDTOS, String model) {
     return textUnitDTOS.stream()
         .map(
             textUnitDTO -> {
@@ -515,7 +520,7 @@ public class AiTranslateService {
 
               ChatCompletionsRequest chatCompletionsRequest =
                   chatCompletionsRequest()
-                      .model(aiTranslateConfigurationProperties.getModelName())
+                      .model(model)
                       .maxTokens(16384)
                       .messages(
                           List.of(
@@ -697,5 +702,11 @@ public class AiTranslateService {
     public AiTranslateException(Throwable cause) {
       super(cause);
     }
+  }
+
+  private String getModel(AiTranslateInput aiTranslateInput) {
+    return aiTranslateInput.useModel() != null
+        ? aiTranslateInput.useModel()
+        : aiTranslateConfigurationProperties.getModelName();
   }
 }

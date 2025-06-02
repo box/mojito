@@ -67,6 +67,12 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "To use the batch API or not")
   boolean useBatch = false;
 
+  @Parameter(
+      names = {"--use-model"},
+      arity = 1,
+      description = "Use a specific model for the review")
+  String useModel;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -93,7 +99,7 @@ public class RepositoryAiTranslationCommand extends Command {
     ProtoAiTranslateResponse protoAiTranslateResponse =
         repositoryAiTranslateClient.translateRepository(
             new RepositoryAiTranslateClient.ProtoAiTranslateRequest(
-                repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch));
+                repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch, useModel));
 
     PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
     commandHelper.waitForPollableTask(pollableTask.getId());
