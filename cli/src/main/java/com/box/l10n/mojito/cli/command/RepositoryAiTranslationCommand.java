@@ -73,6 +73,12 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Use a specific model for the review")
   String useModel;
 
+  @Parameter(
+      names = {"--prompt-suffix"},
+      arity = 1,
+      description = "Text to append to the end of the base prompt")
+  String promptSuffix;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -99,7 +105,13 @@ public class RepositoryAiTranslationCommand extends Command {
     ProtoAiTranslateResponse protoAiTranslateResponse =
         repositoryAiTranslateClient.translateRepository(
             new RepositoryAiTranslateClient.ProtoAiTranslateRequest(
-                repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch, useModel));
+                repositoryParam,
+                locales,
+                sourceTextMaxCount,
+                textUnitIds,
+                useBatch,
+                useModel,
+                promptSuffix));
 
     PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
     commandHelper.waitForPollableTask(pollableTask.getId());

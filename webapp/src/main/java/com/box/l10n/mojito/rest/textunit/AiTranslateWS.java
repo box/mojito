@@ -45,7 +45,8 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.sourceTextMaxCountPerLocale(),
                 protoAiTranslateRequest.tmTextUnitIds(),
                 protoAiTranslateRequest.useBatch(),
-                protoAiTranslateRequest.useModel()));
+                protoAiTranslateRequest.useModel(),
+                protoAiTranslateRequest.promptSuffix()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -56,7 +57,8 @@ public class AiTranslateWS {
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       boolean useBatch,
-      String useModel) {}
+      String useModel,
+      String promptSuffix) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 }
