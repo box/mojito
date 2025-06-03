@@ -129,7 +129,8 @@ public class AiReviewService {
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       boolean useBatch,
-      String useModel) {}
+      String useModel,
+      String runName) {}
 
   public record AiReviewSingleTextUnitOutput(
       String source,
@@ -260,6 +261,7 @@ public class AiReviewService {
                     aiReviewInput.sourceTextMaxCountPerLocale(),
                     aiReviewInput.tmTextUnitIds(),
                     getModel(aiReviewInput.useModel()),
+                    aiReviewInput.runName(),
                     openAIClientPool),
             10)
         .then()
@@ -279,10 +281,12 @@ public class AiReviewService {
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       String useModel,
+      String runName,
       OpenAIClientPool openAIClientPool) {
 
     List<TextUnitDTO> textUnitDTOS =
-        getTextUnitDTOSForReview(repositoryLocale, sourceTextMaxCountPerLocale, tmTextUnitIds);
+        getTextUnitDTOSForReview(
+            repositoryLocale, sourceTextMaxCountPerLocale, tmTextUnitIds, runName);
 
     if (textUnitDTOS.isEmpty()) {
       logger.debug("Nothing to review for locale: {}", repositoryLocale.getLocale().getBcp47Tag());
@@ -321,7 +325,7 @@ public class AiReviewService {
                                       return Mono.empty();
                                     }))
                     .collectList()
-                    .flatMap(this::submitForSave)
+                    .flatMap(results -> submitForSave(runName, results))
                     .doOnTerminate(
                         () ->
                             logger.info(
@@ -333,14 +337,17 @@ public class AiReviewService {
   private List<TextUnitDTO> getTextUnitDTOSForReview(
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
-      List<Long> tmTextUnitIds) {
+      List<Long> tmTextUnitIds,
+      String runName) {
 
     Repository repository = repositoryLocale.getRepository();
 
     logger.info("Get already reviewed tm text unit variants");
     Set<Long> alreadyReviewedTmTextUnitVariantIds =
         aiReviewProtoRepository.findTmTextUnitVariantIdsByLocaleIdAndRepositoryId(
-            repositoryLocale.getLocale().getId(), repositoryLocale.getRepository().getId());
+            repositoryLocale.getLocale().getId(),
+            repositoryLocale.getRepository().getId(),
+            runName);
 
     logger.info(
         "Get translated strings for locale: '{}' in repository: '{}'",
@@ -374,7 +381,7 @@ public class AiReviewService {
 
   record MyRecord(TextUnitDTO textUnitDTO, ChatCompletionsResponse chatCompletionsResponse) {}
 
-  private Mono<Void> submitForSave(List<MyRecord> results) {
+  private Mono<Void> submitForSave(String runName, List<MyRecord> results) {
     String targetLocale = results.get(0).textUnitDTO().getTargetLocale();
     logger.info("Submit for save for locale {}", targetLocale);
     List<AiReviewProto> forSave =
@@ -400,6 +407,7 @@ public class AiReviewService {
                       aiReviewSingleTextUnitOutput);
 
                   AiReviewProto aiReviewProto = new AiReviewProto();
+                  aiReviewProto.setRunName(runName);
                   aiReviewProto.setTmTextUnitVariant(
                       textUnitVariantRepository.getReferenceById(
                           textUnitDTO.getTmTextUnitVariantId()));
@@ -498,6 +506,8 @@ public class AiReviewService {
                   createBatchForRepositoryLocale(
                       repository,
                       aiReviewInput.sourceTextMaxCountPerLocale(),
+                      aiReviewInput.tmTextUnitIds(),
+                      aiReviewInput.runName(),
                       getModel(aiReviewInput.useModel())))
               .filter(Objects::nonNull)
               .toList();
@@ -505,7 +515,8 @@ public class AiReviewService {
       logger.debug("Start a job to import batches for repository: {}", repository.getName());
       PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportOutputPollableFuture =
           aiReviewBatchesImportAsync(
-              new AiReviewBatchesImportInput(batches, List.of(), 0), currentTask);
+              new AiReviewBatchesImportInput(batches, List.of(), 0, aiReviewInput.runName()),
+              currentTask);
 
       logger.info(
           "Schedule AiReviewBatchesImportJob, id: {}",
@@ -519,7 +530,8 @@ public class AiReviewService {
     }
   }
 
-  public void importBatch(OpenAIClient.RetrieveBatchResponse retrieveBatchResponse) {
+  public void importBatch(
+      OpenAIClient.RetrieveBatchResponse retrieveBatchResponse, String runName) {
 
     logger.info("Importing batch: {}", retrieveBatchResponse.id());
 
@@ -562,6 +574,7 @@ public class AiReviewService {
                   Long tmTextUnitVariantId =
                       Long.valueOf(chatCompletionResponseBatchFileLine.customId());
                   AiReviewProto aiReviewProto = new AiReviewProto();
+                  aiReviewProto.setRunName(runName);
                   aiReviewProto.setTmTextUnitVariant(
                       textUnitVariantRepository.getReferenceById(tmTextUnitVariantId));
                   aiReviewProto.setJsonReview(completionOutputAsJson);
@@ -576,7 +589,11 @@ public class AiReviewService {
    * @return null if there is nothing to review
    */
   Function<RepositoryLocale, OpenAIClient.CreateBatchResponse> createBatchForRepositoryLocale(
-      Repository repository, int sourceTextMaxCountPerLocale, String model) {
+      Repository repository,
+      int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds,
+      String runName,
+      String model) {
 
     return repositoryLocale -> {
       logger.debug(
@@ -585,7 +602,8 @@ public class AiReviewService {
           repository.getName());
 
       List<TextUnitDTO> textUnitDTOS =
-          getTextUnitDTOSForReview(repositoryLocale, sourceTextMaxCountPerLocale, null);
+          getTextUnitDTOSForReview(
+              repositoryLocale, sourceTextMaxCountPerLocale, tmTextUnitIds, runName);
 
       OpenAIClient.CreateBatchResponse createBatchResponse = null;
       if (textUnitDTOS.isEmpty()) {

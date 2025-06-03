@@ -10,8 +10,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 /**
- * We keep a single review per text unit variant for now. Meaning it has to be updated / cleaned up
- * to re-review. The review is stored a JSON blob defined in the {@link
+ * Use run_name to manage multiple reviews of the same text units, it is denormalized but just want
+ * something very simple for now. The review is stored a JSON blob defined in the {@link
  * com.box.l10n.mojito.service.oaireview.AiReviewService.AiReviewSingleTextUnitOutput} but that
  * format could change any time.
  */
@@ -20,11 +20,14 @@ import jakarta.persistence.Table;
     name = "ai_review_proto",
     indexes = {
       @Index(
-          name = "UK__AI_REVIEW_PROTO__TM_TEXT_UNIT_VARIANT_ID",
-          columnList = "tm_text_unit_variant_id",
+          name = "UK__AI_REVIEW_PROTO__RUN_NAME__TM_TEXT_UNIT_VARIANT_ID",
+          columnList = "run_name, tm_text_unit_variant_id",
           unique = true)
     })
 public class AiReviewProto extends AuditableEntity {
+
+  @Column(name = "run_name", length = 32)
+  String runName;
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
@@ -34,6 +37,14 @@ public class AiReviewProto extends AuditableEntity {
 
   @Column(name = "json_review", length = Integer.MAX_VALUE)
   String jsonReview;
+
+  public String getRunName() {
+    return runName;
+  }
+
+  public void setRunName(String runName) {
+    this.runName = runName;
+  }
 
   public TMTextUnitVariant getTmTextUnitVariant() {
     return tmTextUnitVariant;
