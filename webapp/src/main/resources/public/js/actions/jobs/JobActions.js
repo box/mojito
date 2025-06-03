@@ -3,6 +3,12 @@ import alt from "../../alt";
 class JobActions {
     constructor() {
         this.generateActions(
+            "createJob",
+            "createJobSuccess",
+            "createJobError",
+            "deleteJob",
+            "deleteJobSuccess",
+            "deleteJobError",
             "getAllJobs",
             "getAllJobsSuccess",
             "getAllJobsError",

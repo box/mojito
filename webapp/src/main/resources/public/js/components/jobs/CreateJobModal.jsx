@@ -3,6 +3,7 @@ import createReactClass from "create-react-class";
 import PropTypes from "prop-types";
 import { Button, Modal, Form } from "react-bootstrap";
 import CreateJobRepositoryDropDown from "./CreateJobRepositoryDropDown";
+import JobActions from "../../actions/jobs/JobActions";
 
 const CreateJobModal = createReactClass({
     displayName: "CreateJobModal",
@@ -22,7 +23,7 @@ const CreateJobModal = createReactClass({
     },
 
     handleSubmit() {
-        console.log("Selected repository:", this.state.selectedRepository);
+        JobActions.createJob(this.state.selectedRepository);
         this.setState({ selectedRepository: null });
         this.props.onClose();
     },

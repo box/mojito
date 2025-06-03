@@ -12,6 +12,24 @@ class JobStore {
         this.registerAsync(JobDataSource);
     }
 
+    createJob(job) {
+        this.getInstance().createJob(job);
+    }
+
+    createJobSuccess(response) {
+        const job = response.job;
+        this.jobs = [...this.jobs, job];
+    }
+
+    deleteJob(job) {
+        this.getInstance().deleteJob(job);
+    }
+
+    deleteJobSuccess(response) {
+        const jobId = response.jobId;
+        this.jobs = this.jobs.filter(j => j.id !== jobId);
+    }
+
     getAllJobs() {
         this.getInstance().getAllJobs();
     }

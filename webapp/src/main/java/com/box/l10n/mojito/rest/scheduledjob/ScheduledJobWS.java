@@ -19,11 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -48,6 +44,12 @@ public class ScheduledJobWS {
   private final ResponseEntity<ScheduledJobResponse> notFoundResponse =
       createResponse(
           HttpStatus.NOT_FOUND, ScheduledJobResponse.Status.FAILURE, "Job doesn't exist", null);
+
+  @RequestMapping(method = RequestMethod.POST, value = "/api/jobs/create")
+  @ResponseStatus(HttpStatus.OK)
+  public void createJob(@RequestBody ScheduledJob scheduledJob) {
+    System.out.println("Creating job: " + scheduledJob);
+  }
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/jobs")
   @ResponseStatus(HttpStatus.OK)
@@ -129,6 +131,7 @@ public class ScheduledJobWS {
   @RequestMapping(method = RequestMethod.POST, value = "/api/jobs/{id}/enable")
   @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<ScheduledJobResponse> enableJob(@PathVariable UUID id) {
+    System.out.println("Enabling job with id: " + id);
     return setJobActive(id, true);
   }
 

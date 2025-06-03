@@ -7,7 +7,7 @@ import RepositoryStore from "../../stores/RepositoryStore";
 class CreateJobRepositoryDropDown extends React.Component {
     static propTypes = {
         onSelect: PropTypes.func,
-        selected: PropTypes.object, // now expects a repository object
+        selected: PropTypes.object,
     };
 
     constructor(props) {
@@ -35,7 +35,6 @@ class CreateJobRepositoryDropDown extends React.Component {
     }
 
     handleSelect(eventKey) {
-        // eventKey is the repository object
         if (this.props.onSelect) {
             this.props.onSelect(eventKey);
         }
