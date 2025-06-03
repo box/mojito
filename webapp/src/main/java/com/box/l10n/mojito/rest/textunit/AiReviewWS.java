@@ -60,7 +60,8 @@ public class AiReviewWS {
                 protoAiReviewRequest.sourceTextMaxCountPerLocale(),
                 protoAiReviewRequest.tmTextUnitIds(),
                 protoAiReviewRequest.useBatch(),
-                protoAiReviewRequest.useModel()));
+                protoAiReviewRequest.useModel(),
+                protoAiReviewRequest.runName()));
 
     return new ProtoAiReviewResponse(pollableFuture.getPollableTask());
   }
@@ -71,6 +72,7 @@ public class AiReviewWS {
       int sourceTextMaxCountPerLocale,
       boolean useBatch,
       String useModel,
+      String runName,
       List<Long> tmTextUnitIds,
       boolean allLocales) {}
 

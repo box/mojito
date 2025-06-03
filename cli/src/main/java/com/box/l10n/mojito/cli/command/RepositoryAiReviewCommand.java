@@ -82,6 +82,13 @@ public class RepositoryAiReviewCommand extends Command {
   String useModel;
 
   @Parameter(
+      names = {"--run-name"},
+      arity = 1,
+      description =
+          "Name of the review run. Acts as an identifier to distinguish multiple reviews of the same translations.")
+  String runName;
+
+  @Parameter(
       names = "--attach-job-id",
       arity = 1,
       description =
@@ -111,6 +118,14 @@ public class RepositoryAiReviewCommand extends Command {
           .fg(Color.CYAN)
           .a(repositoryParam)
           .reset()
+          .a(", model: ")
+          .fg(Color.CYAN)
+          .a(useModel)
+          .reset()
+          .a(", run name: ")
+          .fg(Color.CYAN)
+          .a(runName)
+          .reset()
           .a(" for locales: ")
           .fg(Color.CYAN)
           .a(
@@ -122,7 +137,13 @@ public class RepositoryAiReviewCommand extends Command {
       RepositoryAiReviewClient.ProtoAiReviewResponse protoAiTranslateResponse =
           repositoryAiReviewClient.reviewRepository(
               new RepositoryAiReviewClient.ProtoAiReviewRequest(
-                  repositoryParam, locales, sourceTextMaxCount, textUnitIds, useBatch, useModel));
+                  repositoryParam,
+                  locales,
+                  sourceTextMaxCount,
+                  textUnitIds,
+                  useBatch,
+                  useModel,
+                  runName));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
@@ -174,7 +195,13 @@ public class RepositoryAiReviewCommand extends Command {
                     objectMapper.readValueUnchecked(
                         pollableTaskOutput, AiReviewBatchesImportOutput.class));
               } catch (Exception e) {
-                consoleWriter.a(pollableTaskOutput).println();
+                logger.error("Can't render", e);
+                consoleWriter
+                    .reset()
+                    .a("Can't render:" + e.getMessage())
+                    .newLine()
+                    .a(pollableTaskOutput)
+                    .newLine();
               }
             }
           });
@@ -236,13 +263,17 @@ public class RepositoryAiReviewCommand extends Command {
         .a(c.total())
         .a(", completed=")
         .a(c.completed())
-        .a(", failed=")
-        .a(c.failed())
-        .a("]")
-        .newLine();
+        .a(", ");
+
+    if (c.failed() > 0) {
+      consoleWriter.fg(Color.RED);
+    }
+
+    consoleWriter.a("failed=").a(c.failed()).reset();
+    consoleWriter.a("]").newLine();
 
     if (importError != null) {
-      consoleWriter.fg(Color.RED).a("Import error: ").newLine().a(importError).newLine();
+      consoleWriter.newLine().a("Import error: ").newLine().fg(Color.RED).a(importError).newLine();
     }
 
     if (retrieveBatchResponse.errors() != null
@@ -267,5 +298,6 @@ public class RepositoryAiReviewCommand extends Command {
       List<RetrieveBatchResponse> retrieveBatchResponses,
       List<String> processed,
       Map<String, String> failedToImport,
-      Long nextJob) {}
+      Long nextJob,
+      String runName) {}
 }

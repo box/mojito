@@ -17,9 +17,12 @@ public interface AiReviewProtoRepository extends JpaRepository<AiReviewProto, Lo
       "select a.tmTextUnitVariant.id "
           + "from AiReviewProto a "
           + "where a.tmTextUnitVariant.locale.id = :localeId "
-          + "  and a.tmTextUnitVariant.tmTextUnit.asset.repository.id = :repositoryId")
+          + "  and a.tmTextUnitVariant.tmTextUnit.asset.repository.id = :repositoryId "
+          + " and a.runName = :runName")
   Set<Long> findTmTextUnitVariantIdsByLocaleIdAndRepositoryId(
-      @Param("localeId") Long localeId, @Param("repositoryId") Long repositoryId);
+      @Param("localeId") Long localeId,
+      @Param("repositoryId") Long repositoryId,
+      @Param("runName") String runName);
 
   AiReviewProto findByTmTextUnitVariantId(Long tmTextUnitVariantId);
 }

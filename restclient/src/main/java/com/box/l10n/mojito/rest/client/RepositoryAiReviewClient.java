@@ -33,7 +33,8 @@ public class RepositoryAiReviewClient extends BaseClient {
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       boolean useBatch,
-      String useModel) {}
+      String useModel,
+      String runName) {}
 
   public record ProtoAiReviewResponse(PollableTask pollableTask) {}
 }
