@@ -6,6 +6,7 @@ import JobsView from "./JobsView";
 import AltContainer from "alt-container";
 import JobStore from "../../stores/jobs/JobStore";
 import RepositoryDropDown from "./RepositoryDropDown";
+import CreateJobButton from "./CreateJobButton";
 
 let JobsPage = createReactClass({
     displayName: 'JobsPage',
@@ -29,6 +30,9 @@ let JobsPage = createReactClass({
                 <div className="pull-left">
                     <JobTypeDropdown onJobTypeChange={this.onJobTypeChange} />
                     <RepositoryDropDown />
+                </div>
+                <div className="pull-right">
+                    <CreateJobButton />
                 </div>
 
                 <div style={clearLeftFix}></div>
