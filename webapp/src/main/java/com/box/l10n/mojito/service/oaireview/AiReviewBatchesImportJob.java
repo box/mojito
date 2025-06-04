@@ -35,6 +35,7 @@ public class AiReviewBatchesImportJob
   public record AiReviewBatchesImportInput(
       List<CreateBatchResponse> createBatchResponses,
       List<String> processed,
+      Map<String, String> failedImport,
       int attempt,
       String runName) {}
 
@@ -51,7 +52,7 @@ public class AiReviewBatchesImportJob
 
     List<RetrieveBatchResponse> retrieveBatchResponses = new ArrayList<>();
     Set<String> processed = new HashSet<>(aiReviewBatchesImportInput.processed());
-    Map<String, String> failedImport = new HashMap<>();
+    Map<String, String> failedImport = new HashMap<>(aiReviewBatchesImportInput.failedImport());
 
     Long parentTaskId = getCurrentPollableTask().getParentTask().getId();
 
@@ -79,8 +80,9 @@ public class AiReviewBatchesImportJob
 
             if (retrieveBatchResponse.errorFileId() != null) {
               logger.error(
-                  "[task id: {}] Completed but with an error file: {}",
+                  "[task id: {}] {} completed but with an error file: {}",
                   parentTaskId,
+                  createBatchResponse.id(),
                   retrieveBatchResponse.errorFileId());
               String message;
               try {
@@ -144,6 +146,7 @@ public class AiReviewBatchesImportJob
               new AiReviewBatchesImportInput(
                   aiReviewBatchesImportInput.createBatchResponses(),
                   processed.stream().toList(),
+                  failedImport,
                   aiReviewBatchesImportInput.attempt() + 1,
                   aiReviewBatchesImportInput.runName()),
               getCurrentPollableTask().getParentTask());
