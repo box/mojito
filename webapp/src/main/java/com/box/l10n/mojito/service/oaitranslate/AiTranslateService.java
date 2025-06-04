@@ -305,6 +305,17 @@ public class AiTranslateService {
                 : new ExistingTarget(
                     textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
 
+    ChatCompletionsRequest chatCompletionsRequest =
+        getChatCompletionsRequest(model, promptSuffix, completionInput);
+    CompletableFuture<ChatCompletionsResponse> futureResult =
+        openAIClientPool.submit(
+            (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
+    return Mono.fromFuture(futureResult)
+        .map(chatCompletionsResponse -> new MyRecord(textUnitDTO, chatCompletionsResponse));
+  }
+
+  private ChatCompletionsRequest getChatCompletionsRequest(
+      String model, String promptSuffix, CompletionInput completionInput) {
     String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(completionInput);
     ObjectNode jsonSchema = createJsonSchema(CompletionOutput.class);
 
@@ -323,12 +334,7 @@ public class AiTranslateService {
                     new ChatCompletionsRequest.JsonFormat.JsonSchema(
                         true, "request_json_format", jsonSchema)))
             .build();
-
-    CompletableFuture<ChatCompletionsResponse> futureResult =
-        openAIClientPool.submit(
-            (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
-    return Mono.fromFuture(futureResult)
-        .map(chatCompletionsResponse -> new MyRecord(textUnitDTO, chatCompletionsResponse));
+    return chatCompletionsRequest;
   }
 
   private boolean isRetryableException(Throwable throwable) {
@@ -526,25 +532,8 @@ public class AiTranslateService {
                       new ExistingTarget(
                           textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
 
-              String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(completionInput);
-
-              ObjectNode jsonSchema = createJsonSchema(CompletionOutput.class);
-
               ChatCompletionsRequest chatCompletionsRequest =
-                  chatCompletionsRequest()
-                      .model(model)
-                      .maxCompletionTokens(MAX_COMPLETION_TOKENS)
-                      .temperature(getTemperatureForReasoningModels(model))
-                      .messages(
-                          List.of(
-                              systemMessageBuilder().content(getPrompt(promptSuffix)).build(),
-                              userMessageBuilder().content(inputAsJsonString).build()))
-                      .responseFormat(
-                          new ChatCompletionsRequest.JsonFormat(
-                              "json_schema",
-                              new ChatCompletionsRequest.JsonFormat.JsonSchema(
-                                  true, "request_json_format", jsonSchema)))
-                      .build();
+                  getChatCompletionsRequest(model, promptSuffix, completionInput);
 
               return RequestBatchFileLine.forChatCompletion(
                   textUnitDTO.getTmTextUnitId().toString(), chatCompletionsRequest);
