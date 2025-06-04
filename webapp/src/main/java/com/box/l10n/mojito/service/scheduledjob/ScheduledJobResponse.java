@@ -8,7 +8,7 @@ public class ScheduledJobResponse {
   private Status status;
   private String message;
   private String jobId;
-  private ScheduledJob scheduledJob;
+  private ScheduledJob job;
 
   public ScheduledJobResponse(Status status, String message, String jobId) {
     this.status = status;
@@ -16,18 +16,18 @@ public class ScheduledJobResponse {
     this.jobId = jobId;
   }
 
-  public ScheduledJobResponse(Status status, String message, ScheduledJob scheduledJob) {
+  public ScheduledJobResponse(Status status, String message, ScheduledJob job) {
     this.status = status;
     this.message = message;
-    this.scheduledJob = scheduledJob;
+    this.job = job;
   }
 
   public ScheduledJob getScheduledJob() {
-    return scheduledJob;
+    return job;
   }
 
-  public void setScheduledJob(ScheduledJob scheduledJob) {
-    this.scheduledJob = scheduledJob;
+  public void setScheduledJob(ScheduledJob job) {
+    this.job = job;
   }
 
   public enum Status {

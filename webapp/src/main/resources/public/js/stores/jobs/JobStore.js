@@ -17,7 +17,7 @@ class JobStore {
     }
 
     createJobSuccess(response) {
-        const job = response.job;
+        const job = response.scheduledJob;
         this.jobs = [...this.jobs, job];
     }
 
