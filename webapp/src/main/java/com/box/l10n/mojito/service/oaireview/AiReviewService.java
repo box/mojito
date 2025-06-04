@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,7 +51,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -506,23 +506,47 @@ public class AiReviewService {
           getFilteredRepositoryLocales(aiReviewInput, repository);
 
       logger.debug("Create batches for repository: {}", repository.getName());
-      List<OpenAIClient.CreateBatchResponse> batches =
-          repositoryLocalesWithoutRootLocale.stream()
-              .map(
-                  createBatchForRepositoryLocale(
-                      repository,
-                      aiReviewInput.sourceTextMaxCountPerLocale(),
-                      aiReviewInput.tmTextUnitIds(),
-                      aiReviewInput.runName(),
-                      getModel(aiReviewInput.useModel())))
-              .filter(Objects::nonNull)
-              .toList();
+
+      List<OpenAIClient.CreateBatchResponse> createdBatches = new ArrayList<>();
+      List<String> batchCreationErrors = new ArrayList<>();
+      List<String> skippedLocales = new ArrayList<>();
+
+      for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
+        try {
+          OpenAIClient.CreateBatchResponse createBatchResponse =
+              createBatchForRepositoryLocale(
+                  repositoryLocale,
+                  repository,
+                  aiReviewInput.sourceTextMaxCountPerLocale(),
+                  aiReviewInput.tmTextUnitIds(),
+                  aiReviewInput.runName(),
+                  getModel(aiReviewInput.useModel()));
+
+          if (createBatchResponse != null) {
+            createdBatches.add(createBatchResponse);
+          } else {
+            skippedLocales.add(repositoryLocale.getLocale().getBcp47Tag());
+          }
+        } catch (Throwable t) {
+          String errorMessage =
+              "Can't create batch for locale: %s. Error: %s"
+                  .formatted(repositoryLocale.getLocale().getBcp47Tag(), t.getMessage());
+          logger.error(errorMessage, t);
+          batchCreationErrors.add(errorMessage);
+        }
+      }
 
       logger.debug("Start a job to import batches for repository: {}", repository.getName());
       PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportOutputPollableFuture =
           aiReviewBatchesImportAsync(
               new AiReviewBatchesImportInput(
-                  batches, List.of(), Map.of(), 0, aiReviewInput.runName()),
+                  aiReviewInput.runName(),
+                  createdBatches,
+                  skippedLocales,
+                  batchCreationErrors,
+                  List.of(),
+                  Map.of(),
+                  0),
               currentTask);
 
       logger.info(
@@ -595,59 +619,57 @@ public class AiReviewService {
   /**
    * @return null if there is nothing to review
    */
-  Function<RepositoryLocale, OpenAIClient.CreateBatchResponse> createBatchForRepositoryLocale(
+  OpenAIClient.CreateBatchResponse createBatchForRepositoryLocale(
+      RepositoryLocale repositoryLocale,
       Repository repository,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       String runName,
       String model) {
 
-    return repositoryLocale -> {
-      logger.debug(
-          "Get translated string for locale: '{}' in repository: '{}'",
+    logger.debug(
+        "Get translated string for locale: '{}' in repository: '{}'",
+        repositoryLocale.getLocale().getBcp47Tag(),
+        repository.getName());
+
+    List<TextUnitDTO> textUnitDTOS =
+        getTextUnitDTOSForReview(
+            repositoryLocale, sourceTextMaxCountPerLocale, tmTextUnitIds, runName);
+
+    OpenAIClient.CreateBatchResponse createBatchResponse = null;
+    if (textUnitDTOS.isEmpty()) {
+      logger.info(
+          "Nothing to review for locale: {}, don't create a batch",
+          repositoryLocale.getLocale().getBcp47Tag());
+    } else {
+      String batchId =
+          "%s_%s".formatted(repositoryLocale.getLocale().getBcp47Tag(), UUID.randomUUID());
+
+      logger.debug("Generate the batch file content");
+      String batchFileContent = generateBatchFileContent(textUnitDTOS, model);
+
+      OpenAIClient.UploadFileResponse uploadFileResponse =
+          getOpenAIClient()
+              .uploadFile(
+                  OpenAIClient.UploadFileRequest.forBatch(
+                      "%s.jsonl".formatted(batchId), batchFileContent));
+
+      logger.debug("Create the batch using file: {}", uploadFileResponse);
+      createBatchResponse =
+          getOpenAIClient()
+              .createBatch(
+                  forChatCompletion(
+                      uploadFileResponse.id(), Map.of(METADATA__TEXT_UNIT_DTOS__BLOB_ID, batchId)));
+
+      logger.info("Create batch at {}: {}", ZonedDateTime.now(), createBatchResponse);
+
+      logger.info(
+          "Created batch for locale: {} with {} text units",
           repositoryLocale.getLocale().getBcp47Tag(),
-          repository.getName());
+          textUnitDTOS.size());
+    }
 
-      List<TextUnitDTO> textUnitDTOS =
-          getTextUnitDTOSForReview(
-              repositoryLocale, sourceTextMaxCountPerLocale, tmTextUnitIds, runName);
-
-      OpenAIClient.CreateBatchResponse createBatchResponse = null;
-      if (textUnitDTOS.isEmpty()) {
-        logger.info(
-            "Nothing to review for locale: {}, don't create a batch",
-            repositoryLocale.getLocale().getBcp47Tag());
-      } else {
-        String batchId =
-            "%s_%s".formatted(repositoryLocale.getLocale().getBcp47Tag(), UUID.randomUUID());
-
-        logger.debug("Generate the batch file content");
-        String batchFileContent = generateBatchFileContent(textUnitDTOS, model);
-
-        OpenAIClient.UploadFileResponse uploadFileResponse =
-            getOpenAIClient()
-                .uploadFile(
-                    OpenAIClient.UploadFileRequest.forBatch(
-                        "%s.jsonl".formatted(batchId), batchFileContent));
-
-        logger.debug("Create the batch using file: {}", uploadFileResponse);
-        createBatchResponse =
-            getOpenAIClient()
-                .createBatch(
-                    forChatCompletion(
-                        uploadFileResponse.id(),
-                        Map.of(METADATA__TEXT_UNIT_DTOS__BLOB_ID, batchId)));
-
-        logger.info("Create batch at {}: {}", ZonedDateTime.now(), createBatchResponse);
-
-        logger.info(
-            "Created batch for locale: {} with {} text units",
-            repositoryLocale.getLocale().getBcp47Tag(),
-            textUnitDTOS.size());
-      }
-
-      return createBatchResponse;
-    };
+    return createBatchResponse;
   }
 
   String generateBatchFileContent(List<TextUnitDTO> textUnitDTOS, String model) {
@@ -690,6 +712,7 @@ public class AiReviewService {
         .collect(joining("\n"));
   }
 
+  // this is not review specific move
   OpenAIClient.RetrieveBatchResponse retrieveBatchWithRetry(
       OpenAIClient.CreateBatchResponse batch) {
 

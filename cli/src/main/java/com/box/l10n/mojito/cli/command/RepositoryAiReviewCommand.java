@@ -187,6 +187,10 @@ public class RepositoryAiReviewCommand extends Command {
                   .a(", child task id: ")
                   .fg(Color.MAGENTA)
                   .a(lastFinishedTaskId)
+                  .reset()
+                  .a(", run name: ")
+                  .fg(Color.MAGENTA)
+                  .a(runName)
                   .newLine();
               String pollableTaskOutput =
                   pollableTaskClient.getPollableTaskOutput(lastFinishedTaskId);
@@ -212,6 +216,30 @@ public class RepositoryAiReviewCommand extends Command {
   }
 
   void renderAiReviewBatchesImportOutput(AiReviewBatchesImportOutput aiReviewBatchesImportOutput) {
+
+    if (!aiReviewBatchesImportOutput.batchCreationErrors().isEmpty()) {
+      consoleWriter
+          .fg(Color.RED)
+          .a(
+              "Some batches failed to be created. The following locales will not be processed and will need to be retried:")
+          .newLine();
+      for (String batchCreationError : aiReviewBatchesImportOutput.batchCreationErrors()) {
+        consoleWriter.a("- " + batchCreationError).newLine();
+      }
+      consoleWriter.newLine();
+    }
+
+    if (!aiReviewBatchesImportOutput.skippedLocales().isEmpty()) {
+      consoleWriter
+          .reset()
+          .a("No content to review for the following locales; skipping: ")
+          .fg(Color.MAGENTA)
+          .a(String.join(",", aiReviewBatchesImportOutput.skippedLocales()))
+          .reset()
+          .newLine();
+      consoleWriter.newLine();
+    }
+
     aiReviewBatchesImportOutput
         .retrieveBatchResponses()
         .forEach(
@@ -295,9 +323,11 @@ public class RepositoryAiReviewCommand extends Command {
   }
 
   public record AiReviewBatchesImportOutput(
+      String runName,
       List<RetrieveBatchResponse> retrieveBatchResponses,
+      List<String> skippedLocales,
+      List<String> batchCreationErrors,
       List<String> processed,
       Map<String, String> failedToImport,
-      Long nextJob,
-      String runName) {}
+      Long nextJob) {}
 }
