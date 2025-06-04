@@ -33,18 +33,22 @@ public class AiReviewBatchesImportJob
   private OpenAIClient openAIClient;
 
   public record AiReviewBatchesImportInput(
+      String runName,
       List<CreateBatchResponse> createBatchResponses,
+      List<String> skippedLocales,
+      List<String> batchCreationErrors,
       List<String> processed,
       Map<String, String> failedImport,
-      int attempt,
-      String runName) {}
+      int attempt) {}
 
   public record AiReviewBatchesImportOutput(
       List<RetrieveBatchResponse> retrieveBatchResponses,
       List<String> processed,
       Map<String, String> failedToImport,
       Long nextJob,
-      String runName) {}
+      String runName,
+      List<String> skippedLocales,
+      List<String> batchCreationErrors) {}
 
   @Override
   public AiReviewBatchesImportOutput call(AiReviewBatchesImportInput aiReviewBatchesImportInput)
@@ -144,11 +148,13 @@ public class AiReviewBatchesImportJob
       pollableFuture =
           aiReviewService.aiReviewBatchesImportAsync(
               new AiReviewBatchesImportInput(
+                  aiReviewBatchesImportInput.runName(),
                   aiReviewBatchesImportInput.createBatchResponses(),
+                  aiReviewBatchesImportInput.skippedLocales(),
+                  aiReviewBatchesImportInput.batchCreationErrors(),
                   processed.stream().toList(),
                   failedImport,
-                  aiReviewBatchesImportInput.attempt() + 1,
-                  aiReviewBatchesImportInput.runName()),
+                  aiReviewBatchesImportInput.attempt() + 1),
               getCurrentPollableTask().getParentTask());
       logger.info(
           "[task id: {}] New job created with pollableTask id: {}",
@@ -161,6 +167,8 @@ public class AiReviewBatchesImportJob
         processed.stream().toList(),
         failedImport,
         pollableFuture != null ? pollableFuture.getPollableTask().getId() : null,
-        aiReviewBatchesImportInput.runName());
+        aiReviewBatchesImportInput.runName(),
+        aiReviewBatchesImportInput.skippedLocales(),
+        aiReviewBatchesImportInput.batchCreationErrors());
   }
 }
