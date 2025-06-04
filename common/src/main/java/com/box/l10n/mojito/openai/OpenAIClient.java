@@ -240,13 +240,13 @@ public class OpenAIClient {
   public record ChatCompletionsRequest(
       String model,
       List<Message> messages,
-      int seed,
-      boolean stream,
-      float temperature,
-      @JsonProperty("max_completion_tokens") int maxCompletionTokens,
-      @JsonProperty("top_p") float topP,
-      @JsonProperty("frequency_penalty") float frequencyPenalty,
-      @JsonProperty("presence_penalty") float presencePenalty,
+      Integer seed,
+      Boolean stream,
+      Float temperature,
+      @JsonProperty("max_completion_tokens") Integer maxCompletionTokens,
+      @JsonProperty("top_p") Float topP,
+      @JsonProperty("frequency_penalty") Float frequencyPenalty,
+      @JsonProperty("presence_penalty") Float presencePenalty,
       @JsonProperty("response_format") ResponseFormat responseFormat) {
 
     static String ENDPOINT = "/v1/chat/completions";
@@ -413,13 +413,13 @@ public class OpenAIClient {
     public static class Builder {
       private String model;
       private List<Message> messages;
-      private int seed;
-      private boolean stream = false;
-      private float temperature;
+      private Integer seed;
+      private Boolean stream = false;
+      private Float temperature;
       private Integer maxCompletionTokens;
-      private float topP;
-      private float frequencyPenalty;
-      private float presencePenalty;
+      private Float topP;
+      private Float frequencyPenalty;
+      private Float presencePenalty;
       private ResponseFormat responseFormat;
 
       public Builder model(Models model) {
@@ -436,17 +436,17 @@ public class OpenAIClient {
         return this;
       }
 
-      public Builder seed(int seed) {
+      public Builder seed(Integer seed) {
         this.seed = seed;
         return this;
       }
 
-      public Builder stream(boolean stream) {
+      public Builder stream(Boolean stream) {
         this.stream = stream;
         return this;
       }
 
-      public Builder temperature(float temperature) {
+      public Builder temperature(Float temperature) {
         this.temperature = temperature;
         return this;
       }
@@ -456,17 +456,17 @@ public class OpenAIClient {
         return this;
       }
 
-      public Builder topP(float topP) {
+      public Builder topP(Float topP) {
         this.topP = topP;
         return this;
       }
 
-      public Builder frequencyPenalty(float frequencyPenalty) {
+      public Builder frequencyPenalty(Float frequencyPenalty) {
         this.frequencyPenalty = frequencyPenalty;
         return this;
       }
 
-      public Builder presencePenalty(float presencePenalty) {
+      public Builder presencePenalty(Float presencePenalty) {
         this.presencePenalty = presencePenalty;
         return this;
       }
