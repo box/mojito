@@ -6,6 +6,7 @@ import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.Sys
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.UserMessage.userMessageBuilder;
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.chatCompletionsRequest;
 import static com.box.l10n.mojito.openai.OpenAIClient.CreateBatchRequest.forChatCompletion;
+import static com.box.l10n.mojito.openai.OpenAIClient.TemperatureHelper.getTemperatureForReasoningModels;
 import static java.util.stream.Collectors.joining;
 
 import com.box.l10n.mojito.JSR310Migration;
@@ -66,6 +67,8 @@ import reactor.util.retry.RetryBackoffSpec;
 public class AiReviewService {
 
   static final String METADATA__TEXT_UNIT_DTOS__BLOB_ID = "textUnitDTOs";
+
+  static final int MAX_COMPLETION_TOKENS = 16384;
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiReviewService.class);
@@ -165,7 +168,9 @@ public class AiReviewService {
     OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
             .model(aiReviewConfigurationProperties.getModelName())
-            .maxTokens(16384)
+            .temperature(
+                getTemperatureForReasoningModels(aiReviewConfigurationProperties.getModelName()))
+            .maxCompletionTokens(MAX_COMPLETION_TOKENS)
             .messages(
                 List.of(
                     systemMessageBuilder().content(AiReviewService.PROMPT).build(),
@@ -280,7 +285,7 @@ public class AiReviewService {
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
-      String useModel,
+      String model,
       String runName,
       OpenAIClientPool openAIClientPool) {
 
@@ -305,7 +310,7 @@ public class AiReviewService {
                 Flux.fromIterable(batch)
                     .flatMap(
                         textUnitDTO ->
-                            getChatCompletionForTextUnitDTO(textUnitDTO, useModel, openAIClientPool)
+                            getChatCompletionForTextUnitDTO(textUnitDTO, model, openAIClientPool)
                                 .retryWhen(
                                     Retry.backoff(5, Duration.ofSeconds(1))
                                         .filter(this::isRetryableException)
@@ -435,7 +440,7 @@ public class AiReviewService {
   }
 
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
-      TextUnitDTO textUnitDTO, String useModel, OpenAIClientPool openAIClientPool) {
+      TextUnitDTO textUnitDTO, String model, OpenAIClientPool openAIClientPool) {
 
     AiReviewSingleTextUnitInput aiReviewSingleTextUnitInput =
         new AiReviewService.AiReviewSingleTextUnitInput(
@@ -451,8 +456,9 @@ public class AiReviewService {
 
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
-            .model(useModel)
-            .maxTokens(16384)
+            .model(model)
+            .temperature(getTemperatureForReasoningModels(model))
+            .maxCompletionTokens(MAX_COMPLETION_TOKENS)
             .messages(
                 List.of(
                     systemMessageBuilder().content(PROMPT).build(),
@@ -663,7 +669,8 @@ public class AiReviewService {
               ChatCompletionsRequest chatCompletionsRequest =
                   chatCompletionsRequest()
                       .model(getModel(model))
-                      .maxTokens(16384)
+                      .maxCompletionTokens(MAX_COMPLETION_TOKENS)
+                      .temperature(getTemperatureForReasoningModels(model))
                       .messages(
                           List.of(
                               systemMessageBuilder().content(PROMPT).build(),

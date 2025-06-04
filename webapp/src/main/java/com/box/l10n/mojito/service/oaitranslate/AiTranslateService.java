@@ -11,6 +11,7 @@ import static com.box.l10n.mojito.openai.OpenAIClient.DownloadFileContentRequest
 import static com.box.l10n.mojito.openai.OpenAIClient.DownloadFileContentResponse;
 import static com.box.l10n.mojito.openai.OpenAIClient.RetrieveBatchRequest;
 import static com.box.l10n.mojito.openai.OpenAIClient.RetrieveBatchResponse;
+import static com.box.l10n.mojito.openai.OpenAIClient.TemperatureHelper.getTemperatureForReasoningModels;
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
 import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Prefix.AI_TRANSLATE_WS;
@@ -72,6 +73,7 @@ import reactor.util.retry.RetryBackoffSpec;
 public class AiTranslateService {
 
   static final String METADATA__TEXT_UNIT_DTOS__BLOB_ID = "textUnitDTOs";
+  static final int MAX_COMPLETION_TOKENS = 16384;
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiTranslateService.class);
@@ -309,7 +311,8 @@ public class AiTranslateService {
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
             .model(model)
-            .maxTokens(16384)
+            .maxCompletionTokens(MAX_COMPLETION_TOKENS)
+            .temperature(getTemperatureForReasoningModels(model))
             .messages(
                 List.of(
                     systemMessageBuilder().content(getPrompt(promptSuffix)).build(),
@@ -530,7 +533,8 @@ public class AiTranslateService {
               ChatCompletionsRequest chatCompletionsRequest =
                   chatCompletionsRequest()
                       .model(model)
-                      .maxTokens(16384)
+                      .maxCompletionTokens(MAX_COMPLETION_TOKENS)
+                      .temperature(getTemperatureForReasoningModels(model))
                       .messages(
                           List.of(
                               systemMessageBuilder().content(getPrompt(promptSuffix)).build(),

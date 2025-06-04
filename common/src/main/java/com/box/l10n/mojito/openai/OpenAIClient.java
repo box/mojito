@@ -243,7 +243,7 @@ public class OpenAIClient {
       int seed,
       boolean stream,
       float temperature,
-      @JsonProperty("max_tokens") int maxTokens,
+      @JsonProperty("max_completion_tokens") int maxCompletionTokens,
       @JsonProperty("top_p") float topP,
       @JsonProperty("frequency_penalty") float frequencyPenalty,
       @JsonProperty("presence_penalty") float presencePenalty,
@@ -416,7 +416,7 @@ public class OpenAIClient {
       private int seed;
       private boolean stream = false;
       private float temperature;
-      private int maxTokens = 256;
+      private Integer maxCompletionTokens;
       private float topP;
       private float frequencyPenalty;
       private float presencePenalty;
@@ -451,8 +451,8 @@ public class OpenAIClient {
         return this;
       }
 
-      public Builder maxTokens(int maxTokens) {
-        this.maxTokens = maxTokens;
+      public Builder maxCompletionTokens(Integer maxTokens) {
+        this.maxCompletionTokens = maxTokens;
         return this;
       }
 
@@ -483,7 +483,7 @@ public class OpenAIClient {
             seed,
             stream,
             temperature,
-            maxTokens,
+            maxCompletionTokens,
             topP,
             frequencyPenalty,
             presencePenalty,
@@ -967,6 +967,12 @@ public class OpenAIClient {
           + ", httpResponse.body="
           + bodyAsStr
           + '}';
+    }
+  }
+
+  public static class TemperatureHelper {
+    public static float getTemperatureForReasoningModels(String model) {
+      return model.startsWith("o") ? 1 : 0;
     }
   }
 }
