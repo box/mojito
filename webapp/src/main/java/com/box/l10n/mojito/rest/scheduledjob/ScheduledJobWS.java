@@ -16,7 +16,6 @@ import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +31,6 @@ import org.springframework.web.server.ResponseStatusException;
  * @author mattwilshire
  */
 @RestController
-@ConditionalOnProperty(value = "l10n.scheduledJobs.enabled", havingValue = "true")
 public class ScheduledJobWS {
   static Logger logger = LoggerFactory.getLogger(ScheduledJobWS.class);
   private final ScheduledJobRepository scheduledJobRepository;

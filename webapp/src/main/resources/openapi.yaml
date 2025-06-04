@@ -1355,6 +1355,96 @@ paths:
       summary: Upload an image
       tags:
       - image-ws
+  /api/jobs:
+    get:
+      operationId: getAllJobs
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduledJobDTO"
+          description: OK
+      tags:
+      - scheduled-job-ws
+  /api/jobs/{id}:
+    get:
+      operationId: getJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScheduledJobDTO"
+          description: OK
+      tags:
+      - scheduled-job-ws
+  /api/jobs/{id}/disable:
+    post:
+      operationId: disableJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScheduledJobResponse"
+          description: OK
+      tags:
+      - scheduled-job-ws
+  /api/jobs/{id}/enable:
+    post:
+      operationId: enableJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScheduledJobResponse"
+          description: OK
+      tags:
+      - scheduled-job-ws
+  /api/jobs/{id}/trigger:
+    post:
+      operationId: triggerJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScheduledJobResponse"
+          description: OK
+      tags:
+      - scheduled-job-ws
   /api/leveraging/copyTM:
     post:
       operationId: copyTM
@@ -4518,6 +4608,61 @@ components:
           $ref: "#/components/schemas/Locale_Repository"
         tm:
           $ref: "#/components/schemas/TM_Repository"
+    ScheduledJobDTO:
+      type: object
+      properties:
+        cron:
+          type: string
+        enabled:
+          type: boolean
+        endDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        id:
+          type: string
+        nextStartDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        properties:
+          $ref: "#/components/schemas/ScheduledJobProperties"
+        repository:
+          type: string
+        startDate:
+          type: integer
+          format: int64
+          example: 1715699917000
+        status:
+          type: string
+          enum:
+          - SCHEDULED
+          - IN_PROGRESS
+          - FAILED
+          - SUCCEEDED
+        type:
+          type: string
+          enum:
+          - THIRD_PARTY_SYNC
+          - EVOLVE_SYNC
+    ScheduledJobProperties:
+      type: object
+      properties:
+        version:
+          type: integer
+          format: int32
+    ScheduledJobResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+          - failure
+          - success
     Screenshot:
       type: object
       properties:
