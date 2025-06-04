@@ -65,9 +65,7 @@ public class ScheduledJobWS {
     return ResponseEntity.status(HttpStatus.OK)
         .body(
             new ScheduledJobResponse(
-                ScheduledJobResponse.Status.SUCCESS,
-                "Job created successfully",
-                scheduledJob));
+                ScheduledJobResponse.Status.SUCCESS, "Job created successfully", scheduledJob));
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/jobs")
@@ -161,6 +159,9 @@ public class ScheduledJobWS {
 
   private ResponseEntity<ScheduledJobResponse> setJobActive(UUID id, boolean active) {
     Optional<ScheduledJob> optScheduledJob = scheduledJobRepository.findByUuid(id.toString());
+
+    System.out.println(id);
+    System.out.println(optScheduledJob);
 
     if (optScheduledJob.isEmpty()) return notFoundResponse;
 

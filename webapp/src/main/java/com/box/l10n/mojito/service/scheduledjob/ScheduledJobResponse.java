@@ -1,8 +1,7 @@
 package com.box.l10n.mojito.service.scheduledjob;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.box.l10n.mojito.entity.ScheduledJob;
-
+import com.fasterxml.jackson.annotation.JsonValue;
 
 public class ScheduledJobResponse {
   private Status status;
