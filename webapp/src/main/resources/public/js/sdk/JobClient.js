@@ -2,13 +2,7 @@ import BaseClient from "./BaseClient";
 
 class JobClient extends BaseClient {
     createJob(job) {
-        console.log("Creating job", job);
         return this.post(this.getUrl() + "/create", job);
-    }
-
-    deleteJob(job) {
-        const jobDeleteUrl = `/${job.id}/delete`
-        return this.post(this.getUrl() + jobDeleteUrl, null);
     }
 
     getJobs() {

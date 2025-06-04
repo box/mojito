@@ -5,6 +5,8 @@ import com.box.l10n.mojito.service.scheduledjob.ScheduledJobDTO;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobManager;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobRepository;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobResponse;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobStatus;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobStatusRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,12 +35,16 @@ public class ScheduledJobWS {
   static Logger logger = LoggerFactory.getLogger(ScheduledJobWS.class);
   private final ScheduledJobRepository scheduledJobRepository;
   private final ScheduledJobManager scheduledJobManager;
+  private final ScheduledJobStatusRepository scheduledJobStatusRepository;
 
   @Autowired
   public ScheduledJobWS(
-      ScheduledJobRepository scheduledJobRepository, ScheduledJobManager scheduledJobManager) {
+      ScheduledJobRepository scheduledJobRepository,
+      ScheduledJobManager scheduledJobManager,
+      ScheduledJobStatusRepository scheduledJobStatusRepository) {
     this.scheduledJobRepository = scheduledJobRepository;
     this.scheduledJobManager = scheduledJobManager;
+    this.scheduledJobStatusRepository = scheduledJobStatusRepository;
   }
 
   private final ResponseEntity<ScheduledJobResponse> notFoundResponse =
@@ -47,8 +53,21 @@ public class ScheduledJobWS {
 
   @RequestMapping(method = RequestMethod.POST, value = "/api/jobs/create")
   @ResponseStatus(HttpStatus.OK)
-  public void createJob(@RequestBody ScheduledJob scheduledJob) {
-    System.out.println("Creating job: " + scheduledJob);
+  public ResponseEntity<ScheduledJobResponse> createJob(@RequestBody ScheduledJob scheduledJob) {
+    if (scheduledJob.getUuid() == null) {
+      scheduledJob.setUuid(UUID.randomUUID().toString());
+    }
+    if (scheduledJob.getJobStatus() == null) {
+      scheduledJob.setJobStatus(
+          scheduledJobStatusRepository.findByEnum(ScheduledJobStatus.SCHEDULED));
+    }
+    scheduledJobRepository.save(scheduledJob);
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(
+            new ScheduledJobResponse(
+                ScheduledJobResponse.Status.SUCCESS,
+                "Job created successfully",
+                scheduledJob));
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/jobs")
@@ -131,7 +150,6 @@ public class ScheduledJobWS {
   @RequestMapping(method = RequestMethod.POST, value = "/api/jobs/{id}/enable")
   @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<ScheduledJobResponse> enableJob(@PathVariable UUID id) {
-    System.out.println("Enabling job with id: " + id);
     return setJobActive(id, true);
   }
 
