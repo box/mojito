@@ -521,7 +521,8 @@ public class AiReviewService {
       logger.debug("Start a job to import batches for repository: {}", repository.getName());
       PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportOutputPollableFuture =
           aiReviewBatchesImportAsync(
-              new AiReviewBatchesImportInput(batches, List.of(), 0, aiReviewInput.runName()),
+              new AiReviewBatchesImportInput(
+                  batches, List.of(), Map.of(), 0, aiReviewInput.runName()),
               currentTask);
 
       logger.info(
