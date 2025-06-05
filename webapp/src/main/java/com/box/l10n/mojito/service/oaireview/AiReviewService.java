@@ -827,11 +827,20 @@ public class AiReviewService {
             •	1 – Somewhat helpful; provides partial or unclear context but is useful to some extent.
             •	2 – Very helpful; provides clear and sufficient guidance for the review.
 
-        If the source is ambiguous—for example, if it could be interpreted as a noun or a verb—you must:
+        You are responsible for detecting and surfacing ambiguity that could affect translation quality. This includes:
 
-            •	Indicate the ambiguity in your explanation.
-            •	Provide reviews for all possible interpretations.
-            •	Set "reviewRequired" to true, and explain the need for review due to the ambiguity.
+            • Missing subject or unclear agent (e.g., "Think before responding" – is the speaker, user, or system doing the thinking?).
+            • Unclear object or target (e.g., "Submit" – submit what? A form, feedback, or a file?).
+            • Grammar-dependent parts of speech (e.g., "record" as noun vs. verb).
+            • Cultural tone that shifts depending on role (e.g., system-generated messages vs. peer-to-peer tone).
+
+        If the source is ambiguous or underspecified:
+
+            • Clearly describe the ambiguity in your explanation.
+            • Provide alternative translations for each plausible interpretation.
+            • Set "reviewRequired" to `true`, and explain why clarification is needed.
+
+        Use examples from the "sourceDescription" to resolve ambiguity whenever possible. If the description doesn’t help, note that explicitly.
 
         You will provide an output in JSON format with the following fields:
 
