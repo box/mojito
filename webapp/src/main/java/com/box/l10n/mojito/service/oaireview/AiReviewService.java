@@ -74,7 +74,7 @@ public class AiReviewService {
 
   static final String METADATA__TEXT_UNIT_DTOS__BLOB_ID = "textUnitDTOs";
 
-  static final int MAX_COMPLETION_TOKENS = 16384;
+  static final Integer MAX_COMPLETION_TOKENS = null;
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiReviewService.class);
