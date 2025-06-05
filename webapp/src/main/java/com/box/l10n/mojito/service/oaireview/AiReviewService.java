@@ -22,7 +22,13 @@ import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.oaireview.AiReviewBatchesImportJob.AiReviewBatchesImportInput;
 import com.box.l10n.mojito.service.oaireview.AiReviewBatchesImportJob.AiReviewBatchesImportOutput;
+import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
+import com.box.l10n.mojito.service.pollableTask.MsgArg;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskBlobStorage;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
@@ -73,6 +79,8 @@ public class AiReviewService {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiReviewService.class);
 
+  private final PollableTaskService pollableTaskService;
+
   TextUnitSearcher textUnitSearcher;
 
   RepositoryRepository repositoryRepository;
@@ -95,6 +103,8 @@ public class AiReviewService {
 
   QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
+  PollableTaskBlobStorage pollableTaskBlobStorage;
+
   /**
    * openAIClient and openAIClientPool are nullable. The public API will check for the client if
    * they are not configured will throw an exception (keeping code minimal for now, could split into
@@ -112,7 +122,9 @@ public class AiReviewService {
           OpenAIClientPool openAIClientPool,
       @Qualifier("objectMapperReview") ObjectMapper objectMapper,
       @Qualifier("retryBackoffSpecReview") RetryBackoffSpec retryBackoffSpec,
-      QuartzPollableTaskScheduler quartzPollableTaskScheduler) {
+      QuartzPollableTaskScheduler quartzPollableTaskScheduler,
+      PollableTaskBlobStorage pollableTaskBlobStorage,
+      PollableTaskService pollableTaskService) {
     this.textUnitSearcher = Objects.requireNonNull(textUnitSearcher);
     this.repositoryRepository = Objects.requireNonNull(repositoryRepository);
     this.textUnitVariantRepository = Objects.requireNonNull(textUnitVariantRepository);
@@ -124,6 +136,8 @@ public class AiReviewService {
     this.openAIClientPool = openAIClientPool; // nullable
     this.retryBackoffSpec = Objects.requireNonNull(retryBackoffSpec);
     this.quartzPollableTaskScheduler = Objects.requireNonNull(quartzPollableTaskScheduler);
+    this.pollableTaskBlobStorage = pollableTaskBlobStorage;
+    this.pollableTaskService = pollableTaskService;
   }
 
   public record AiReviewInput(
@@ -614,6 +628,34 @@ public class AiReviewService {
             .toList();
 
     trySaveAiReviewProtosInTx(forSave);
+  }
+
+  @Pollable(message = "AiReviewService Retry import for job id: {id}")
+  public PollableFuture<Void> retryImport(
+      @MsgArg(name = "id") long childPollableTaskId, @InjectCurrentTask PollableTask currentTask) {
+    PollableTask childPollableTask = pollableTaskService.getPollableTask(childPollableTaskId);
+    AiReviewBatchesImportInput aiReviewBatchesImportInput =
+        pollableTaskBlobStorage.getInput(childPollableTaskId, AiReviewBatchesImportInput.class);
+
+    AiReviewBatchesImportInput aiReviewBatchesImportInputAttempt0 =
+        new AiReviewBatchesImportInput(
+            aiReviewBatchesImportInput.runName(),
+            aiReviewBatchesImportInput.createBatchResponses(),
+            aiReviewBatchesImportInput.skippedLocales(),
+            aiReviewBatchesImportInput.batchCreationErrors(),
+            aiReviewBatchesImportInput.processed(),
+            aiReviewBatchesImportInput.failedImport(),
+            0);
+
+    PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportOutputPollableFuture =
+        aiReviewBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
+    logger.info(
+        "[task id: {}] Retrying to import from child id: {}, new job created with pollable task id: {}",
+        childPollableTask.getParentTask().getId(),
+        childPollableTask.getId(),
+        aiReviewBatchesImportOutputPollableFuture.getPollableTask().getId());
+
+    return new PollableFutureTaskResult<>();
   }
 
   /**

@@ -95,6 +95,13 @@ public class RepositoryAiReviewCommand extends Command {
           "ID of an existing job to re-attach to; the CLI will only poll its status and will not start any new work.")
   Long attachJobId;
 
+  @Parameter(
+      names = "--retry-import-job-id",
+      arity = 1,
+      description =
+          "ID of an existing job to try to re-import; If a job stopped because a transient error, try to import remaining data")
+  Long retryImportJobId;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiReviewClient repositoryAiReviewClient;
@@ -111,7 +118,31 @@ public class RepositoryAiReviewCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    if (attachJobId == null) {
+    if (retryImportJobId != null) {
+      consoleWriter.a("Retry importing task id: ").fg(Color.MAGENTA).a(retryImportJobId).println();
+
+      Optional<PollableTask> lastForReimport =
+          pollableTaskClient.getPollableTask(retryImportJobId).getSubTasks().stream()
+              .filter(t -> t.getCreatedDate() != null)
+              .sorted(Comparator.comparing(PollableTask::getCreatedDate).reversed())
+              .filter(PollableTask::isAllFinished)
+              .filter(pt -> pt.getErrorMessage() != null)
+              .findFirst();
+
+      if (lastForReimport.isPresent()) {
+        long pollableTaskId = repositoryAiReviewClient.retryImport(lastForReimport.get().getId());
+        waitForPollable(pollableTaskId);
+      } else {
+        consoleWriter
+            .fg(Color.YELLOW)
+            .a("Last task did not finish with an error, don't retry")
+            .println();
+      }
+
+    } else if (attachJobId != null) {
+      consoleWriter.a("Attaching, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
+      waitForPollable(attachJobId);
+    } else {
       consoleWriter
           .newLine()
           .a("Ai review repository: ")
@@ -148,9 +179,6 @@ public class RepositoryAiReviewCommand extends Command {
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
       waitForPollable(pollableTask.getId());
-    } else {
-      consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
-      waitForPollable(attachJobId);
     }
 
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);

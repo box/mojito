@@ -133,4 +133,19 @@ public class AiReviewWS {
 
   public record ProtoAiReviewSingleTextUnitResponse(
       TextUnitDTO textUnitDTO, AiReviewService.AiReviewSingleTextUnitOutput aiReviewOutput) {}
+
+  public record ProtoAiReviewRetryImportRequest(long childPollableTaskId) {}
+
+  public record ProtoAiReviewRetryImportResponse(long pollableTaskId) {}
+
+  @RequestMapping(method = RequestMethod.POST, value = "/api/proto-ai-review/retry-import")
+  @ResponseStatus(HttpStatus.OK)
+  public ProtoAiReviewRetryImportResponse aiReviewRetryImport(
+      @RequestBody ProtoAiReviewRetryImportRequest protoAiReviewRetryImportRequest) {
+    PollableFuture<Void> pollableFuture =
+        aiReviewService.retryImport(
+            protoAiReviewRetryImportRequest.childPollableTaskId(),
+            PollableTask.INJECT_CURRENT_TASK);
+    return new ProtoAiReviewRetryImportResponse(pollableFuture.getPollableTask().getId());
+  }
 }

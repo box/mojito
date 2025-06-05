@@ -27,6 +27,15 @@ public class RepositoryAiReviewClient extends BaseClient {
         getBasePathForEntity(), protoAiReviewRequest, ProtoAiReviewResponse.class);
   }
 
+  public long retryImport(Long childPollableTaskId) {
+    ProtoAiReviewRetryImportResponse protoAiReviewRetryImportResponse =
+        authenticatedRestTemplate.postForObject(
+            getBasePathForEntity() + "/retry-import",
+            new ProtoAiReviewRetryImportRequest(childPollableTaskId),
+            ProtoAiReviewRetryImportResponse.class);
+    return protoAiReviewRetryImportResponse.pollableTaskId();
+  }
+
   public record ProtoAiReviewRequest(
       String repositoryName,
       List<String> targetBcp47tags,
@@ -37,4 +46,8 @@ public class RepositoryAiReviewClient extends BaseClient {
       String runName) {}
 
   public record ProtoAiReviewResponse(PollableTask pollableTask) {}
+
+  public record ProtoAiReviewRetryImportRequest(long childPollableTaskId) {}
+
+  public record ProtoAiReviewRetryImportResponse(long pollableTaskId) {}
 }
