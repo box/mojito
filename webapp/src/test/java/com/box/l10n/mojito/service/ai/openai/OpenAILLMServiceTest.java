@@ -1003,6 +1003,32 @@ class OpenAILLMServiceTest {
   }
 
   @Test
+  void testPromptTemplatingNullPlaceholder() {
+    String promptText =
+        """
+                 Translate the following source string from [mojito_source_locale] to [mojito_target_locale]:
+                 Source string: [mojito_source_string]
+                 The comment is: [mojito_comment_string]. The context is: [mojito_context_string]. The plural form is: [mojito_plural_form].
+                 """;
+
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setId(1L);
+    tmTextUnit.setContent("Hello");
+    tmTextUnit.setComment(null);
+    tmTextUnit.setName("Hello");
+    tmTextUnit.setPluralForm(null);
+    String prompt =
+        openAILLMService.getTranslationFormattedPrompt(
+            promptText, tmTextUnit, "en", "fr", Collections.emptyList());
+    assertEquals(
+        """
+                 Translate the following source string from en to fr:
+                 Source string: Hello
+                 The comment is: . The context is: . The plural form is: .""",
+        prompt);
+  }
+
+  @Test
   void testPromptTemplatingOptionalGlossaryStaticOthers() {
     String promptText =
         """

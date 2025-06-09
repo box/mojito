@@ -546,9 +546,10 @@ public class OpenAILLMService implements LLMService {
       promptText = matcher.replaceFirst(optionalContent);
     } else if (matcher.find()) {
       promptText = removeOptionalBlock(promptText, placeholder);
-    } else if (placeholderValue != null) {
+    } else {
       // Replace any instances not in an optional block
-      promptText = promptText.replace(placeholder, placeholderValue);
+      promptText =
+          promptText.replace(placeholder, placeholderValue != null ? placeholderValue : "");
     }
     return promptText;
   }
