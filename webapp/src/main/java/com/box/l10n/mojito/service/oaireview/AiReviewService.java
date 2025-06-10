@@ -280,10 +280,6 @@ public class AiReviewService {
         .block();
   }
 
-  private String getModel(String useModel) {
-    return useModel != null ? useModel : aiReviewConfigurationProperties.getModelName();
-  }
-
   Mono<Void> asyncReviewNoBatchLocale(
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
@@ -815,6 +811,10 @@ public class AiReviewService {
               "Repository with name '%s' can not be found!", aiReviewInput.repositoryName()));
     }
     return repository;
+  }
+
+  private String getModel(String useModel) {
+    return useModel != null ? useModel : aiReviewConfigurationProperties.getModelName();
   }
 
   /**
