@@ -36,6 +36,9 @@ import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportInput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportOutput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateService.CompletionInput.ExistingTarget;
+import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
+import com.box.l10n.mojito.service.pollableTask.MsgArg;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskBlobStorage;
@@ -141,6 +144,27 @@ public class AiTranslateService {
     this.pollableTaskService = pollableTaskService;
   }
 
+  public record AiTranslateInput(
+      String repositoryName,
+      List<String> targetBcp47tags,
+      int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds,
+      boolean useBatch,
+      String useModel,
+      String promptSuffix) {}
+
+  public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
+
+    QuartzJobInfo<AiTranslateInput, Void> quartzJobInfo =
+        QuartzJobInfo.newBuilder(AiTranslateJob.class)
+            .withInlineInput(false)
+            .withInput(aiTranslateInput)
+            .withScheduler(aiTranslateConfigurationProperties.getSchedulerName())
+            .build();
+
+    return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+  }
+
   public PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportAsync(
       AiTranslateBatchesImportInput aiTranslateBatchesImportInput, PollableTask currentTask) {
 
@@ -158,53 +182,6 @@ public class AiTranslateService {
                 currentTask
                     .getId()) // if running 24h, it will make record 144 sub-tasks. Might want to
             // reconsider
-            .build();
-
-    return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
-  }
-
-  public PollableFuture<Void> retryImport(long childPollableTaskId, PollableTask currentTask) {
-    PollableTask childPollableTask = pollableTaskService.getPollableTask(childPollableTaskId);
-
-    AiTranslateBatchesImportInput aiTranslateBatchesImportInput =
-        pollableTaskBlobStorage.getInput(childPollableTaskId, AiTranslateBatchesImportInput.class);
-
-    AiTranslateBatchesImportInput aiReviewBatchesImportInputAttempt0 =
-        new AiTranslateBatchesImportInput(
-            aiTranslateBatchesImportInput.createBatchResponses(),
-            aiTranslateBatchesImportInput.skippedLocales(),
-            aiTranslateBatchesImportInput.batchCreationErrors(),
-            aiTranslateBatchesImportInput.processed(),
-            aiTranslateBatchesImportInput.failedImport(),
-            0);
-
-    PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
-        aiTranslateBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
-    logger.info(
-        "[task id: {}] Retrying to import from child id: {}, new job created with pollable task id: {}",
-        childPollableTask.getParentTask().getId(),
-        childPollableTask.getId(),
-        aiTranslateBatchesImportOutputPollableFuture.getPollableTask().getId());
-
-    return new PollableFutureTaskResult<>();
-  }
-
-  public record AiTranslateInput(
-      String repositoryName,
-      List<String> targetBcp47tags,
-      int sourceTextMaxCountPerLocale,
-      List<Long> tmTextUnitIds,
-      boolean useBatch,
-      String useModel,
-      String promptSuffix) {}
-
-  public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
-
-    QuartzJobInfo<AiTranslateInput, Void> quartzJobInfo =
-        QuartzJobInfo.newBuilder(AiTranslateJob.class)
-            .withInlineInput(false)
-            .withInput(aiTranslateInput)
-            .withScheduler(aiTranslateConfigurationProperties.getSchedulerName())
             .build();
 
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
@@ -459,17 +436,6 @@ public class AiTranslateService {
         .collect(Collectors.toSet());
   }
 
-  private Repository getRepository(AiTranslateInput aiTranslateInput) {
-    Repository repository = repositoryRepository.findByName(aiTranslateInput.repositoryName());
-
-    if (repository == null) {
-      throw new RepositoryNameNotFoundException(
-          String.format(
-              "Repository with name '%s' can not be found!", aiTranslateInput.repositoryName()));
-    }
-    return repository;
-  }
-
   void importBatch(RetrieveBatchResponse retrieveBatchResponse) {
 
     logger.info("Importing batch: {}", retrieveBatchResponse.id());
@@ -538,7 +504,34 @@ public class AiTranslateService {
         forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
   }
 
-  // TODO(ja) make same order as aireview
+  @Pollable(message = "AiTranslateService Retry import for job id: {id}")
+  public PollableFuture<Void> retryImport(
+      @MsgArg(name = "id") long childPollableTaskId, @InjectCurrentTask PollableTask currentTask) {
+    PollableTask childPollableTask = pollableTaskService.getPollableTask(childPollableTaskId);
+
+    AiTranslateBatchesImportInput aiTranslateBatchesImportInput =
+        pollableTaskBlobStorage.getInput(childPollableTaskId, AiTranslateBatchesImportInput.class);
+
+    AiTranslateBatchesImportInput aiReviewBatchesImportInputAttempt0 =
+        new AiTranslateBatchesImportInput(
+            aiTranslateBatchesImportInput.createBatchResponses(),
+            aiTranslateBatchesImportInput.skippedLocales(),
+            aiTranslateBatchesImportInput.batchCreationErrors(),
+            aiTranslateBatchesImportInput.processed(),
+            aiTranslateBatchesImportInput.failedImport(),
+            0);
+
+    PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
+        aiTranslateBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
+    logger.info(
+        "[task id: {}] Retrying to import from child id: {}, new job created with pollable task id: {}",
+        childPollableTask.getParentTask().getId(),
+        childPollableTask.getId(),
+        aiTranslateBatchesImportOutputPollableFuture.getPollableTask().getId());
+
+    return new PollableFutureTaskResult<>();
+  }
+
   CreateBatchResponse createBatchForRepositoryLocale(
       RepositoryLocale repositoryLocale,
       Repository repository,
@@ -744,6 +737,23 @@ public class AiTranslateService {
     return promptSuffix == null ? PROMPT : "%s %s".formatted(PROMPT, promptSuffix);
   }
 
+  private Repository getRepository(AiTranslateInput aiTranslateInput) {
+    Repository repository = repositoryRepository.findByName(aiTranslateInput.repositoryName());
+
+    if (repository == null) {
+      throw new RepositoryNameNotFoundException(
+          String.format(
+              "Repository with name '%s' can not be found!", aiTranslateInput.repositoryName()));
+    }
+    return repository;
+  }
+
+  private String getModel(AiTranslateInput aiTranslateInput) {
+    return aiTranslateInput.useModel() != null
+        ? aiTranslateInput.useModel()
+        : aiTranslateConfigurationProperties.getModelName();
+  }
+
   /**
    * Typical configuration for the ObjectMapper needed by this class.
    *
@@ -770,11 +780,5 @@ public class AiTranslateService {
     public AiTranslateException(Throwable cause) {
       super(cause);
     }
-  }
-
-  private String getModel(AiTranslateInput aiTranslateInput) {
-    return aiTranslateInput.useModel() != null
-        ? aiTranslateInput.useModel()
-        : aiTranslateConfigurationProperties.getModelName();
   }
 }
