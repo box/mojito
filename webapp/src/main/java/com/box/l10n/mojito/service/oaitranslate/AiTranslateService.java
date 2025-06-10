@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
@@ -191,28 +192,8 @@ public class AiTranslateService {
       OpenAIClientPool openAIClientPool) {
 
     Repository repository = repositoryLocale.getRepository();
-
-    logger.info(
-        "Get untranslated strings for locale: '{}' in repository: '{}'",
-        repositoryLocale.getLocale().getBcp47Tag(),
-        repository.getName());
-
-    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setRepositoryIds(repository.getId());
-    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
-    textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
-    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-    if (tmTextUnitIds != null) {
-      logger.debug(
-          "Using tmTextUnitIds: {} for ai translate repository: {}",
-          tmTextUnitIds,
-          repository.getName());
-      textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
-    } else {
-      textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
-    }
-
-    List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+    List<TextUnitDTO> textUnitDTOS =
+        getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
 
     if (textUnitDTOS.isEmpty()) {
       logger.debug(
@@ -360,6 +341,7 @@ public class AiTranslateService {
                       repository,
                       aiTranslateInput.sourceTextMaxCountPerLocale(),
                       getModel(aiTranslateInput),
+                      aiTranslateInput.tmTextUnitIds(),
                       aiTranslateInput.promptSuffix()))
               .filter(Objects::nonNull)
               .collect(Collectors.toCollection(ArrayDeque::new));
@@ -457,6 +439,7 @@ public class AiTranslateService {
                           Long.valueOf(chatCompletionResponseBatchFileLine.customId()));
                   textUnitDTO.setTarget(completionOutput.target().content());
                   textUnitDTO.setTargetComment("ai-translate");
+                  textUnitDTO.setStatus(TMTextUnitVariant.Status.REVIEW_NEEDED);
                   return textUnitDTO;
                 })
             .toList();
@@ -466,20 +449,15 @@ public class AiTranslateService {
   }
 
   Function<RepositoryLocale, CreateBatchResponse> createBatchForRepositoryLocale(
-      Repository repository, int sourceTextMaxCountPerLocale, String model, String promptSuffix) {
+      Repository repository,
+      int sourceTextMaxCountPerLocale,
+      String model,
+      List<Long> tmTextUnitIds,
+      String promptSuffix) {
 
     return repositoryLocale -> {
-      logger.debug(
-          "Get untranslated string for locale: '{}' in repository: '{}'",
-          repositoryLocale.getLocale().getBcp47Tag(),
-          repository.getName());
-      TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-      textUnitSearcherParameters.setRepositoryIds(repository.getId());
-      textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
-      textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
-      textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
-      textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-      List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+      List<TextUnitDTO> textUnitDTOS =
+          getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
 
       CreateBatchResponse createBatchResponse = null;
       if (textUnitDTOS.isEmpty()) {
@@ -517,6 +495,36 @@ public class AiTranslateService {
           textUnitDTOS.size());
       return createBatchResponse;
     };
+  }
+
+  private List<TextUnitDTO> getTextUnitDTOS(
+      Repository repository,
+      int sourceTextMaxCountPerLocale,
+      List<Long> tmTextUnitIds,
+      RepositoryLocale repositoryLocale) {
+    logger.debug(
+        "Get untranslated strings for locale: '{}' in repository: '{}'",
+        repositoryLocale.getLocale().getBcp47Tag(),
+        repository.getName());
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repository.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
+    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+    if (tmTextUnitIds != null) {
+      logger.debug(
+          "Using tmTextUnitIds: {} for ai translate repository: {}",
+          tmTextUnitIds,
+          repository.getName());
+      textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
+    } else {
+      textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
+    }
+
+    List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+    return textUnitDTOS;
   }
 
   String generateBatchFileContent(
