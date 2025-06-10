@@ -43,7 +43,8 @@ public class RepositoryAiReviewClient extends BaseClient {
       List<Long> tmTextUnitIds,
       boolean useBatch,
       String useModel,
-      String runName) {}
+      String runName,
+      String reviewType) {}
 
   public record ProtoAiReviewResponse(PollableTask pollableTask) {}
 

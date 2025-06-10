@@ -20,6 +20,8 @@ import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.rest.textunit.AiReviewType;
+import com.box.l10n.mojito.rest.textunit.AiReviewType.AiReviewTextUnitVariantOutput;
 import com.box.l10n.mojito.service.oaireview.AiReviewBatchesImportJob.AiReviewBatchesImportInput;
 import com.box.l10n.mojito.service.oaireview.AiReviewBatchesImportJob.AiReviewBatchesImportOutput;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
@@ -147,37 +149,23 @@ public class AiReviewService {
       List<Long> tmTextUnitIds,
       boolean useBatch,
       String useModel,
-      String runName) {}
+      String runName,
+      String reviewType) {}
 
-  public record AiReviewSingleTextUnitOutput(
-      String source,
-      Target target,
-      DescriptionRating descriptionRating,
-      AltTarget altTarget,
-      ExistingTargetRating existingTargetRating,
-      ReviewRequired reviewRequired) {
-    record Target(String content, String explanation, int confidenceLevel) {}
+  public record AiReviewTextUnitInput(long stringId, String source, String sourceDescription) {}
 
-    record AltTarget(String content, String explanation, int confidenceLevel) {}
-
-    record DescriptionRating(String explanation, int score) {}
-
-    record ExistingTargetRating(String explanation, int score) {}
-
-    record ReviewRequired(boolean required, String reason) {}
-  }
-
-  public record AiReviewSingleTextUnitInput(
+  public record AiReviewTextUnitVariantInput(
       String locale, String source, String sourceDescription, ExistingTarget existingTarget) {
     public record ExistingTarget(String content, boolean hasBrokenPlaceholders) {}
   }
 
-  public AiReviewSingleTextUnitOutput getAiReviewSingleTextUnit(AiReviewSingleTextUnitInput input) {
+  public AiReviewTextUnitVariantOutput getAiReviewSingleTextUnit(
+      AiReviewTextUnitVariantInput input) {
 
     ObjectMapper objectMapper = ObjectMapper.withIndentedOutput();
     String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(input);
 
-    ObjectNode jsonSchema = createJsonSchema(AiReviewSingleTextUnitOutput.class);
+    ObjectNode jsonSchema = createJsonSchema(AiReviewTextUnitVariantOutput.class);
 
     OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
@@ -187,7 +175,7 @@ public class AiReviewService {
             .maxCompletionTokens(MAX_COMPLETION_TOKENS)
             .messages(
                 List.of(
-                    systemMessageBuilder().content(AiReviewService.PROMPT).build(),
+                    systemMessageBuilder().content(AiReviewType.PROMPT_ALL).build(),
                     userMessageBuilder().content(inputAsJsonString).build()))
             .responseFormat(
                 new OpenAIClient.ChatCompletionsRequest.JsonFormat(
@@ -209,9 +197,9 @@ public class AiReviewService {
     logger.info(objectMapper.writeValueAsStringUnchecked(chatCompletionsResponse));
 
     String jsonResponse = chatCompletionsResponse.choices().getFirst().message().content();
-    AiReviewSingleTextUnitOutput aiReviewSingleTextUnitOutput =
-        objectMapper.readValueUnchecked(jsonResponse, AiReviewSingleTextUnitOutput.class);
-    return aiReviewSingleTextUnitOutput;
+    AiReviewTextUnitVariantOutput aiReviewTextUnitVariantOutput =
+        objectMapper.readValueUnchecked(jsonResponse, AiReviewTextUnitVariantOutput.class);
+    return aiReviewTextUnitVariantOutput;
   }
 
   public PollableFuture<Void> aiReviewAsync(AiReviewInput aiReviewInput) {
@@ -263,7 +251,7 @@ public class AiReviewService {
     }
   }
 
-  public void aiReviewNoBatch(AiReviewInput aiReviewInput) {
+  public <T> void aiReviewNoBatch(AiReviewInput aiReviewInput) {
 
     Repository repository = getRepository(aiReviewInput);
 
@@ -281,6 +269,7 @@ public class AiReviewService {
                     aiReviewInput.tmTextUnitIds(),
                     getModel(aiReviewInput.useModel()),
                     aiReviewInput.runName(),
+                    AiReviewType.fromString(aiReviewInput.reviewType()),
                     openAIClientPool),
             10)
         .then()
@@ -301,6 +290,7 @@ public class AiReviewService {
       List<Long> tmTextUnitIds,
       String model,
       String runName,
+      AiReviewType aiReviewType,
       OpenAIClientPool openAIClientPool) {
 
     List<TextUnitDTO> textUnitDTOS =
@@ -344,7 +334,10 @@ public class AiReviewService {
                                       return Mono.empty();
                                     }))
                     .collectList()
-                    .flatMap(results -> submitForSave(runName, results))
+                    .flatMap(
+                        results ->
+                            submitForSave(
+                                runName, results, aiReviewType.getOutputJsonSchemaClass()))
                     .doOnTerminate(
                         () ->
                             logger.info(
@@ -400,7 +393,8 @@ public class AiReviewService {
 
   record MyRecord(TextUnitDTO textUnitDTO, ChatCompletionsResponse chatCompletionsResponse) {}
 
-  private Mono<Void> submitForSave(String runName, List<MyRecord> results) {
+  private <T> Mono<Void> submitForSave(
+      String runName, List<MyRecord> results, Class<T> outputClass) {
     String targetLocale = results.get(0).textUnitDTO().getTargetLocale();
     logger.info("Submit for save for locale {}", targetLocale);
     List<AiReviewProto> forSave =
@@ -411,26 +405,24 @@ public class AiReviewService {
                   ChatCompletionsResponse chatCompletionsResponse =
                       myRecord.chatCompletionsResponse();
 
-                  String jsonReview =
+                  String completionOutputAsJson =
                       chatCompletionsResponse.choices().getFirst().message().content();
-                  String completionOutputAsJson = jsonReview;
 
                   // this is just to check the format right now since we save the json anyway.
-                  AiReviewSingleTextUnitOutput aiReviewSingleTextUnitOutput =
-                      objectMapper.readValueUnchecked(
-                          completionOutputAsJson, AiReviewSingleTextUnitOutput.class);
+                  T completionOutput =
+                      objectMapper.readValueUnchecked(completionOutputAsJson, outputClass);
 
                   logger.debug(
                       "Review for text unit variant id: {}, is\n:{}",
                       textUnitDTO.getTmTextUnitVariantId(),
-                      aiReviewSingleTextUnitOutput);
+                      completionOutput);
 
                   AiReviewProto aiReviewProto = new AiReviewProto();
                   aiReviewProto.setRunName(runName);
                   aiReviewProto.setTmTextUnitVariant(
                       textUnitVariantRepository.getReferenceById(
                           textUnitDTO.getTmTextUnitVariantId()));
-                  aiReviewProto.setJsonReview(jsonReview);
+                  aiReviewProto.setJsonReview(completionOutputAsJson);
                   return aiReviewProto;
                 })
             .toList();
@@ -444,7 +436,7 @@ public class AiReviewService {
     try {
       saveAiReviewProtosInTx(aiReviewProtos);
     } catch (Throwable t) {
-      logger.error("Error while saving AiReviewProtos, swallow", t);
+      logger.error("Error while saving AiReviewProtos, swallow for now", t);
     }
   }
 
@@ -456,17 +448,17 @@ public class AiReviewService {
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
       TextUnitDTO textUnitDTO, String model, OpenAIClientPool openAIClientPool) {
 
-    AiReviewSingleTextUnitInput aiReviewSingleTextUnitInput =
-        new AiReviewService.AiReviewSingleTextUnitInput(
+    AiReviewTextUnitVariantInput aiReviewTextUnitVariantInput =
+        new AiReviewTextUnitVariantInput(
             textUnitDTO.getTargetLocale(),
             textUnitDTO.getSource(),
             textUnitDTO.getComment(),
-            new AiReviewService.AiReviewSingleTextUnitInput.ExistingTarget(
+            new AiReviewTextUnitVariantInput.ExistingTarget(
                 textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
 
     String inputAsJsonString =
-        objectMapper.writeValueAsStringUnchecked(aiReviewSingleTextUnitInput);
-    ObjectNode jsonSchema = createJsonSchema(AiReviewSingleTextUnitOutput.class);
+        objectMapper.writeValueAsStringUnchecked(aiReviewTextUnitVariantInput);
+    ObjectNode jsonSchema = createJsonSchema(AiReviewTextUnitVariantOutput.class);
 
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
@@ -475,7 +467,7 @@ public class AiReviewService {
             .maxCompletionTokens(MAX_COMPLETION_TOKENS)
             .messages(
                 List.of(
-                    systemMessageBuilder().content(PROMPT).build(),
+                    systemMessageBuilder().content(AiReviewType.PROMPT_ALL).build(),
                     userMessageBuilder().content(inputAsJsonString).build()))
             .responseFormat(
                 new ChatCompletionsRequest.JsonFormat(
@@ -492,7 +484,7 @@ public class AiReviewService {
             (chatCompletionsResponse, sink) -> {
               String jsonReview = chatCompletionsResponse.choices().getFirst().message().content();
               try {
-                objectMapper.readValueUnchecked(jsonReview, AiReviewSingleTextUnitOutput.class);
+                objectMapper.readValueUnchecked(jsonReview, AiReviewTextUnitVariantOutput.class);
               } catch (UncheckedIOException e) {
                 logger.error(
                     "Can't deserialize the response: {}, content: {}", e.getMessage(), jsonReview);
@@ -534,7 +526,8 @@ public class AiReviewService {
                   aiReviewInput.sourceTextMaxCountPerLocale(),
                   aiReviewInput.tmTextUnitIds(),
                   aiReviewInput.runName(),
-                  getModel(aiReviewInput.useModel()));
+                  getModel(aiReviewInput.useModel()),
+                  AiReviewType.fromString(aiReviewInput.reviewType()));
 
           if (createBatchResponse != null) {
             createdBatches.add(createBatchResponse);
@@ -560,7 +553,8 @@ public class AiReviewService {
                   batchCreationErrors,
                   List.of(),
                   Map.of(),
-                  0),
+                  0,
+                  AiReviewType.fromString(aiReviewInput.reviewType())),
               currentTask);
 
       logger.info(
@@ -576,7 +570,9 @@ public class AiReviewService {
   }
 
   public void importBatch(
-      OpenAIClient.RetrieveBatchResponse retrieveBatchResponse, String runName) {
+      OpenAIClient.RetrieveBatchResponse retrieveBatchResponse,
+      String runName,
+      AiReviewType aiReviewType) {
 
     logger.info("Importing batch: {}", retrieveBatchResponse.id());
 
@@ -611,10 +607,14 @@ public class AiReviewService {
                           .message()
                           .content();
 
-                  // check this was deserialzied
-                  AiReviewSingleTextUnitOutput aiReviewSingleTextUnitOutput =
-                      objectMapper.readValueUnchecked(
-                          completionOutputAsJson, AiReviewSingleTextUnitOutput.class);
+                  try {
+                    objectMapper.readValueUnchecked(
+                        completionOutputAsJson, aiReviewType.getOutputJsonSchemaClass());
+                  } catch (UncheckedIOException e) {
+                    logger.error(
+                        "Can't deserialize completion output as json: {}", completionOutputAsJson);
+                    throw e;
+                  }
 
                   Long tmTextUnitVariantId =
                       Long.valueOf(chatCompletionResponseBatchFileLine.customId());
@@ -633,7 +633,9 @@ public class AiReviewService {
   @Pollable(message = "AiReviewService Retry import for job id: {id}")
   public PollableFuture<Void> retryImport(
       @MsgArg(name = "id") long childPollableTaskId, @InjectCurrentTask PollableTask currentTask) {
+
     PollableTask childPollableTask = pollableTaskService.getPollableTask(childPollableTaskId);
+
     AiReviewBatchesImportInput aiReviewBatchesImportInput =
         pollableTaskBlobStorage.getInput(childPollableTaskId, AiReviewBatchesImportInput.class);
 
@@ -645,7 +647,8 @@ public class AiReviewService {
             aiReviewBatchesImportInput.batchCreationErrors(),
             aiReviewBatchesImportInput.processed(),
             aiReviewBatchesImportInput.failedImport(),
-            0);
+            0,
+            aiReviewBatchesImportInput.reviewType());
 
     PollableFuture<AiReviewBatchesImportOutput> aiReviewBatchesImportOutputPollableFuture =
         aiReviewBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
@@ -667,7 +670,8 @@ public class AiReviewService {
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
       String runName,
-      String model) {
+      String model,
+      AiReviewType aiReviewType) {
 
     logger.debug(
         "Get translated string for locale: '{}' in repository: '{}'",
@@ -688,7 +692,13 @@ public class AiReviewService {
           "%s_%s".formatted(repositoryLocale.getLocale().getBcp47Tag(), UUID.randomUUID());
 
       logger.debug("Generate the batch file content");
-      String batchFileContent = generateBatchFileContent(textUnitDTOS, model);
+      String batchFileContent =
+          generateBatchFileContent(
+              textUnitDTOS,
+              model,
+              aiReviewType.getOutputJsonSchemaClass(),
+              aiReviewType.getPrompt(),
+              aiReviewType.isForTextUnitVariantReview());
 
       OpenAIClient.UploadFileResponse uploadFileResponse =
           getOpenAIClient()
@@ -714,22 +724,37 @@ public class AiReviewService {
     return createBatchResponse;
   }
 
-  String generateBatchFileContent(List<TextUnitDTO> textUnitDTOS, String model) {
+  String generateBatchFileContent(
+      List<TextUnitDTO> textUnitDTOS,
+      String model,
+      Class<?> outputJsonSchemaClass,
+      String prompt,
+      boolean forTextUnitVariantReview) {
     return textUnitDTOS.stream()
         .map(
             textUnitDTO -> {
-              AiReviewSingleTextUnitInput aiReviewSingleTextUnitInput =
-                  new AiReviewSingleTextUnitInput(
-                      textUnitDTO.getTargetLocale(),
-                      textUnitDTO.getSource(),
-                      textUnitDTO.getComment(),
-                      new AiReviewSingleTextUnitInput.ExistingTarget(
-                          textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
+              String inputAsJsonString;
 
-              String inputAsJsonString =
-                  objectMapper.writeValueAsStringUnchecked(aiReviewSingleTextUnitInput);
+              if (forTextUnitVariantReview) {
+                AiReviewTextUnitVariantInput aiReviewTextUnitVariantInput =
+                    new AiReviewTextUnitVariantInput(
+                        textUnitDTO.getTargetLocale(),
+                        textUnitDTO.getSource(),
+                        textUnitDTO.getComment(),
+                        new AiReviewTextUnitVariantInput.ExistingTarget(
+                            textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
+                inputAsJsonString =
+                    objectMapper.writeValueAsStringUnchecked(aiReviewTextUnitVariantInput);
+              } else {
+                AiReviewTextUnitInput aiReviewTextUnitInput =
+                    new AiReviewTextUnitInput(
+                        textUnitDTO.getTmTextUnitId(),
+                        textUnitDTO.getSource(),
+                        textUnitDTO.getComment());
+                inputAsJsonString = objectMapper.writeValueAsStringUnchecked(aiReviewTextUnitInput);
+              }
 
-              ObjectNode jsonSchema = createJsonSchema(AiReviewSingleTextUnitOutput.class);
+              ObjectNode jsonSchema = createJsonSchema(outputJsonSchemaClass);
 
               ChatCompletionsRequest chatCompletionsRequest =
                   chatCompletionsRequest()
@@ -738,7 +763,7 @@ public class AiReviewService {
                       .temperature(getTemperatureForReasoningModels(model))
                       .messages(
                           List.of(
-                              systemMessageBuilder().content(PROMPT).build(),
+                              systemMessageBuilder().content(prompt).build(),
                               userMessageBuilder().content(inputAsJsonString).build()))
                       .responseFormat(
                           new ChatCompletionsRequest.JsonFormat(
@@ -791,78 +816,6 @@ public class AiReviewService {
     }
     return repository;
   }
-
-  public static final String PROMPT =
-      """
-        Your role is to act as a translator.
-        You are tasked with translating provided source strings while preserving both the tone and the technical structure of the string. This includes protecting any tags, placeholders, or code elements that should not be translated.
-
-        The input will be provided in JSON format with the following fields:
-
-            •	"source": The source text to be translated.
-            •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
-            •	"sourceDescription": A description providing context for the source text.
-            •	"existingTarget" (optional): An existing review to review.
-
-        Instructions:
-
-            •	If the source is colloquial, keep the review colloquial; if it’s formal, maintain formality in the review.
-            •	Pay attention to regional variations specified in the "locale" field (e.g., “es” vs. “es-419”, “fr” vs. “fr-CA”, “zh” vs. “zh-Hant”), and ensure the review length remains similar to the source text.
-            •	Aim to provide the best review, while compromising on length to ensure it remains close to the original text length
-
-        Handling Tags and Code:
-
-        Some strings contain code elements such as tags (e.g., {atag}, ICU message format, or HTML tags). You are provided with a inputs of tags that need to be protected. Ensure that:
-
-            •	Tags like {atag} remain untouched.
-            •	In cases of nested content (e.g., <a href={url}>text that needs review</a>), only translate the inner text while preserving the outer structure.
-            •	Complex structures like ICU message formats should have placeholders or variables left intact (e.g., {count, plural, one {# item} other {# items}}), but translate any inner translatable text.
-
-        Ambiguity and Context:
-
-        After translating, assess the usefulness of the "sourceDescription" field:
-
-            •	Rate its usefulness on a scale of 0 to 2:
-            •	0 – Not helpful at all; irrelevant or misleading.
-            •	1 – Somewhat helpful; provides partial or unclear context but is useful to some extent.
-            •	2 – Very helpful; provides clear and sufficient guidance for the review.
-
-        You are responsible for detecting and surfacing ambiguity that could affect translation quality. This includes:
-
-            • Missing subject or unclear agent (e.g., "Think before responding" – is the speaker, user, or system doing the thinking?).
-            • Unclear object or target (e.g., "Submit" – submit what? A form, feedback, or a file?).
-            • Grammar-dependent parts of speech (e.g., "record" as noun vs. verb).
-            • Cultural tone that shifts depending on role (e.g., system-generated messages vs. peer-to-peer tone).
-
-        If the source is ambiguous or underspecified:
-
-            • Clearly describe the ambiguity in your explanation.
-            • Provide alternative translations for each plausible interpretation.
-            • Set "reviewRequired" to `true`, and explain why clarification is needed.
-
-        Use examples from the "sourceDescription" to resolve ambiguity whenever possible. If the description doesn’t help, note that explicitly.
-
-        You will provide an output in JSON format with the following fields:
-
-            •	"source": The original source text.
-            •	"target": An object containing:
-            •	"content": The best review.
-            •	"explanation": A brief explanation of your review choices.
-            •	"confidenceLevel": Your confidence level (0-100%) in the review.
-            •	"descriptionRating": An object containing:
-            •	"explanation": An explanation of how the "sourceDescription" aided your review.
-            •	"score": The usefulness score (0-2).
-            •	"altTarget": An object containing:
-            •	"content": An alternative review, if applicable. Focus on showcasing grammar differences,
-            •	"explanation": Explanation for the alternative review.
-            •	"confidenceLevel": Your confidence level (0-100%) in the alternative review.
-            •	"existingTargetRating" (if "existingTarget" is provided): An object containing:
-            •	"explanation": Feedback on the existing review’s accuracy and quality.
-            •	"score": A rating score (0-2).
-            •	"reviewRequired": An object containing:
-            •	"required": true or false, indicating if review is needed.
-            •	"reason": A detailed explanation of why review is or isn’t needed.
-        """;
 
   /**
    * Typical configuration for the ObjectMapper needed by this class.
