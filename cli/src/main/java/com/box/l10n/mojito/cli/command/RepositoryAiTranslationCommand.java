@@ -4,11 +4,21 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.openai.OpenAIClient;
+import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient;
+import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateRequest;
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateResponse;
+import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,9 +89,27 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Text to append to the end of the base prompt")
   String promptSuffix;
 
+  @Parameter(
+      names = "--attach-job-id",
+      arity = 1,
+      description =
+          "ID of an existing job to re-attach to; the CLI will only poll its status and will not start any new work.")
+  Long attachJobId;
+
+  @Parameter(
+      names = "--retry-import-job-id",
+      arity = 1,
+      description =
+          "ID of an existing job to try to re-import; If a job stopped because a transient error, try to import remaining data")
+  Long retryImportJobId;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
+
+  @Autowired PollableTaskClient pollableTaskClient;
+
+  @Autowired ObjectMapper objectMapper;
 
   @Override
   public boolean shouldShowInCommandList() {
@@ -91,29 +119,239 @@ public class RepositoryAiTranslationCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    consoleWriter
-        .newLine()
-        .a("Ai translate repository: ")
-        .fg(Color.CYAN)
-        .a(repositoryParam)
-        .reset()
-        .a(" for locales: ")
-        .fg(Color.CYAN)
-        .a(locales == null ? "<all>" : locales.stream().collect(Collectors.joining(", ", "[", "]")))
-        .println(2);
+    if (retryImportJobId != null) {
+      consoleWriter.a("Retry importing task id: ").fg(Color.MAGENTA).a(retryImportJobId).println();
 
-    ProtoAiTranslateResponse protoAiTranslateResponse =
-        repositoryAiTranslateClient.translateRepository(
-            new RepositoryAiTranslateClient.ProtoAiTranslateRequest(
-                repositoryParam,
-                locales,
-                sourceTextMaxCount,
-                textUnitIds,
-                useBatch,
-                useModel,
-                promptSuffix));
+      Optional<PollableTask> lastForReimport =
+          pollableTaskClient.getPollableTask(retryImportJobId).getSubTasks().stream()
+              .filter(t -> t.getCreatedDate() != null)
+              .sorted(Comparator.comparing(PollableTask::getCreatedDate).reversed())
+              .filter(PollableTask::isAllFinished)
+              .filter(pt -> pt.getErrorMessage() != null)
+              .findFirst();
 
-    PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
-    commandHelper.waitForPollableTask(pollableTask.getId());
+      if (lastForReimport.isPresent()) {
+        long pollableTaskId =
+            repositoryAiTranslateClient.retryImport(lastForReimport.get().getId());
+        waitForPollable(pollableTaskId);
+      } else {
+        consoleWriter
+            .fg(Color.YELLOW)
+            .a("Last task did not finish with an error, don't retry")
+            .println();
+      }
+
+    } else if (attachJobId != null) {
+      consoleWriter.a("Attaching, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
+      waitForPollable(attachJobId);
+    } else {
+      consoleWriter
+          .newLine()
+          .a("Ai review repository: ")
+          .fg(Color.CYAN)
+          .a(repositoryParam)
+          .reset()
+          .a(", model: ")
+          .fg(Color.CYAN)
+          .a(useModel)
+          .reset()
+          .a(" for locales: ")
+          .fg(Color.CYAN)
+          .a(
+              locales == null
+                  ? "<all>"
+                  : locales.stream().collect(Collectors.joining(", ", "[", "]")))
+          .println(2);
+
+      ProtoAiTranslateResponse protoAiTranslateResponse =
+          repositoryAiTranslateClient.translateRepository(
+              new ProtoAiTranslateRequest(
+                  repositoryParam,
+                  locales,
+                  sourceTextMaxCount,
+                  textUnitIds,
+                  useBatch,
+                  useModel,
+                  promptSuffix));
+
+      PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
+      consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
+      waitForPollable(pollableTask.getId());
+    }
+
+    consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
   }
+
+  void waitForPollable(Long pollableTaskId) {
+    try {
+      final AtomicBoolean firstRender = new AtomicBoolean(true);
+
+      pollableTaskClient.waitForPollableTask(
+          pollableTaskId,
+          PollableTaskClient.NO_TIMEOUT,
+          pollableTask -> {
+            Optional<PollableTask> lastFinishedForOutput =
+                pollableTask.getSubTasks().stream()
+                    .filter(t -> t.getCreatedDate() != null)
+                    .sorted(Comparator.comparing(PollableTask::getCreatedDate).reversed())
+                    .filter(PollableTask::isAllFinished)
+                    .findFirst();
+
+            if (lastFinishedForOutput.isPresent()) {
+              if (!firstRender.get()) {
+                consoleWriter.erasePreviouslyPrintedLines();
+              } else {
+                firstRender.set(false);
+              }
+
+              Long lastFinishedTaskId = lastFinishedForOutput.get().getId();
+              consoleWriter
+                  .a("Running, task id: ")
+                  .fg(Color.MAGENTA)
+                  .a(pollableTaskId)
+                  .reset()
+                  .a(", child task id: ")
+                  .fg(Color.MAGENTA)
+                  .a(lastFinishedTaskId)
+                  .newLine();
+              String pollableTaskOutput =
+                  pollableTaskClient.getPollableTaskOutput(lastFinishedTaskId);
+              try {
+                renderAiReviewBatchesImportOutput(
+                    objectMapper.readValueUnchecked(
+                        pollableTaskOutput, AiTranslateBatchesImportOutput.class));
+              } catch (Exception e) {
+                logger.error("Can't render", e);
+                consoleWriter
+                    .reset()
+                    .a("Can't render:" + e.getMessage())
+                    .newLine()
+                    .a(pollableTaskOutput)
+                    .newLine();
+              }
+            }
+          });
+
+    } catch (PollableTaskException e) {
+      throw new CommandException(e.getMessage(), e.getCause());
+    }
+  }
+
+  void renderAiReviewBatchesImportOutput(
+      AiTranslateBatchesImportOutput aiTranslateBatchesImportOutput) {
+
+    if (!aiTranslateBatchesImportOutput.batchCreationErrors().isEmpty()) {
+      consoleWriter
+          .fg(Color.RED)
+          .a(
+              "Some batches failed to be created. The following locales will not be processed and will need to be retried:")
+          .newLine();
+      for (String batchCreationError : aiTranslateBatchesImportOutput.batchCreationErrors()) {
+        consoleWriter.a("- " + batchCreationError).newLine();
+      }
+      consoleWriter.newLine();
+    }
+
+    if (!aiTranslateBatchesImportOutput.skippedLocales().isEmpty()) {
+      consoleWriter
+          .reset()
+          .a("No content to review for the following locales; skipping: ")
+          .fg(Color.MAGENTA)
+          .a(String.join(",", aiTranslateBatchesImportOutput.skippedLocales()))
+          .reset()
+          .newLine();
+      consoleWriter.newLine();
+    }
+
+    aiTranslateBatchesImportOutput
+        .retrieveBatchResponses()
+        .forEach(
+            r ->
+                renderBatch(
+                    r,
+                    aiTranslateBatchesImportOutput.failedToImport.get(r.id()),
+                    aiTranslateBatchesImportOutput.processed.contains(r.id())));
+    consoleWriter.println();
+  }
+
+  void renderBatch(
+      OpenAIClient.RetrieveBatchResponse retrieveBatchResponse,
+      String importError,
+      boolean processed) {
+    consoleWriter.a("- ").fg(Color.CYAN).a(retrieveBatchResponse.id()).a(" ");
+
+    consoleWriter.reset().a("[import: ");
+    if (importError != null) {
+      consoleWriter.fg(Color.RED).a("failed");
+    } else {
+      if (processed) {
+        if ("completed".equals(retrieveBatchResponse.status())) {
+          consoleWriter.fg(Color.GREEN).a("success");
+        } else {
+          consoleWriter.fg(Color.YELLOW).a(" - ");
+        }
+      } else {
+        consoleWriter.fg(Color.YELLOW).a("waiting");
+      }
+    }
+    consoleWriter.reset().a("]");
+
+    Color batchStatusColor =
+        switch (retrieveBatchResponse.status()) {
+          case "completed" -> Color.GREEN;
+          case "failed" -> Color.RED;
+          case "running", "queued", "in_progress" -> Color.YELLOW;
+          default -> Color.DEFAULT;
+        };
+
+    OpenAIClient.RetrieveBatchResponse.RequestCounts c = retrieveBatchResponse.requestCounts();
+
+    consoleWriter
+        .reset()
+        .a(" [batch: ")
+        .fg(batchStatusColor)
+        .a(retrieveBatchResponse.status())
+        .reset()
+        .a(" ; total=")
+        .a(c.total())
+        .a(", completed=")
+        .a(c.completed())
+        .a(", ");
+
+    if (c.failed() > 0) {
+      consoleWriter.fg(Color.RED);
+    }
+
+    consoleWriter.a("failed=").a(c.failed()).reset();
+    consoleWriter.a("]").newLine();
+
+    if (importError != null) {
+      consoleWriter.newLine().a("Import error: ").newLine().fg(Color.RED).a(importError).newLine();
+    }
+
+    if (retrieveBatchResponse.errors() != null
+        && retrieveBatchResponse.errors().data() != null
+        && !retrieveBatchResponse.errors().data().isEmpty()) {
+      consoleWriter.fg(Color.RED).a("   Errors:").reset().newLine();
+      retrieveBatchResponse
+          .errors()
+          .data()
+          .forEach(
+              e ->
+                  consoleWriter
+                      .a("    - ")
+                      .a(
+                          "[%s] %s (param=%s, line=%s)"
+                              .formatted(e.code(), e.message(), e.param(), e.line()))
+                      .newLine());
+    }
+  }
+
+  public record AiTranslateBatchesImportOutput(
+      List<OpenAIClient.RetrieveBatchResponse> retrieveBatchResponses,
+      List<String> skippedLocales,
+      List<String> batchCreationErrors,
+      List<String> processed,
+      Map<String, String> failedToImport,
+      Long nextJob) {}
 }
