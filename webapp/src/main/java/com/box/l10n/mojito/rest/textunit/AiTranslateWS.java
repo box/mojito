@@ -61,4 +61,19 @@ public class AiTranslateWS {
       String promptSuffix) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
+
+  @RequestMapping(method = RequestMethod.POST, value = "/api/proto-ai-translate/retry-import")
+  @ResponseStatus(HttpStatus.OK)
+  public ProtoAiReviewRetryImportResponse aiReviewRetryImport(
+      @RequestBody ProtoAiReviewRetryImportRequest protoAiReviewRetryImportRequest) {
+    PollableFuture<Void> pollableFuture =
+        aiTranslateService.retryImport(
+            protoAiReviewRetryImportRequest.childPollableTaskId(),
+            PollableTask.INJECT_CURRENT_TASK);
+    return new ProtoAiReviewRetryImportResponse(pollableFuture.getPollableTask().getId());
+  }
+
+  public record ProtoAiReviewRetryImportRequest(long childPollableTaskId) {}
+
+  public record ProtoAiReviewRetryImportResponse(long pollableTaskId) {}
 }

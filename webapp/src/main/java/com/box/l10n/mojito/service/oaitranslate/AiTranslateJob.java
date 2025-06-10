@@ -21,7 +21,7 @@ public class AiTranslateJob extends QuartzPollableJob<AiTranslateInput, Void> {
 
   @Override
   public Void call(AiTranslateInput aiTranslateJobInput) throws Exception {
-    aiTranslateService.aiTranslate(aiTranslateJobInput);
+    aiTranslateService.aiTranslate(aiTranslateJobInput, getCurrentPollableTask());
     return null;
   }
 }

@@ -18,6 +18,8 @@ import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Pref
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
+import com.box.l10n.mojito.JSR310Migration;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -31,8 +33,13 @@ import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportInput;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportOutput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateService.CompletionInput.ExistingTarget;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskBlobStorage;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
@@ -49,10 +56,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayDeque;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -79,6 +86,8 @@ public class AiTranslateService {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiTranslateService.class);
 
+  PollableTaskService pollableTaskService;
+
   TextUnitSearcher textUnitSearcher;
 
   RepositoryRepository repositoryRepository;
@@ -101,6 +110,8 @@ public class AiTranslateService {
 
   QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
+  PollableTaskBlobStorage pollableTaskBlobStorage;
+
   public AiTranslateService(
       TextUnitSearcher textUnitSearcher,
       RepositoryRepository repositoryRepository,
@@ -112,7 +123,9 @@ public class AiTranslateService {
       @Qualifier("AiTranslate") @Autowired(required = false) OpenAIClientPool openAIClientPool,
       @Qualifier("AiTranslate") ObjectMapper objectMapper,
       @Qualifier("AiTranslate") RetryBackoffSpec retryBackoffSpec,
-      QuartzPollableTaskScheduler quartzPollableTaskScheduler) {
+      QuartzPollableTaskScheduler quartzPollableTaskScheduler,
+      PollableTaskBlobStorage pollableTaskBlobStorage,
+      PollableTaskService pollableTaskService) {
     this.textUnitSearcher = textUnitSearcher;
     this.repositoryRepository = repositoryRepository;
     this.repositoryService = repositoryService;
@@ -124,6 +137,56 @@ public class AiTranslateService {
     this.openAIClientPool = openAIClientPool;
     this.retryBackoffSpec = retryBackoffSpec;
     this.quartzPollableTaskScheduler = quartzPollableTaskScheduler;
+    this.pollableTaskBlobStorage = pollableTaskBlobStorage;
+    this.pollableTaskService = pollableTaskService;
+  }
+
+  public PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportAsync(
+      AiTranslateBatchesImportInput aiTranslateBatchesImportInput, PollableTask currentTask) {
+
+    long backOffSeconds = Math.min(10 * (1L << aiTranslateBatchesImportInput.attempt()), 600);
+
+    QuartzJobInfo<AiTranslateBatchesImportInput, AiTranslateBatchesImportOutput> quartzJobInfo =
+        QuartzJobInfo.newBuilder(AiTranslateBatchesImportJob.class)
+            .withInlineInput(false)
+            .withInput(aiTranslateBatchesImportInput)
+            .withScheduler(aiTranslateConfigurationProperties.getSchedulerName())
+            .withTimeout(864000) // hardcoded 24h for now
+            .withTriggerStartDate(
+                JSR310Migration.dateTimeToDate(ZonedDateTime.now().plusSeconds(backOffSeconds)))
+            .withParentId(
+                currentTask
+                    .getId()) // if running 24h, it will make record 144 sub-tasks. Might want to
+            // reconsider
+            .build();
+
+    return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+  }
+
+  public PollableFuture<Void> retryImport(long childPollableTaskId, PollableTask currentTask) {
+    PollableTask childPollableTask = pollableTaskService.getPollableTask(childPollableTaskId);
+
+    AiTranslateBatchesImportInput aiTranslateBatchesImportInput =
+        pollableTaskBlobStorage.getInput(childPollableTaskId, AiTranslateBatchesImportInput.class);
+
+    AiTranslateBatchesImportInput aiReviewBatchesImportInputAttempt0 =
+        new AiTranslateBatchesImportInput(
+            aiTranslateBatchesImportInput.createBatchResponses(),
+            aiTranslateBatchesImportInput.skippedLocales(),
+            aiTranslateBatchesImportInput.batchCreationErrors(),
+            aiTranslateBatchesImportInput.processed(),
+            aiTranslateBatchesImportInput.failedImport(),
+            0);
+
+    PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
+        aiTranslateBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
+    logger.info(
+        "[task id: {}] Retrying to import from child id: {}, new job created with pollable task id: {}",
+        childPollableTask.getParentTask().getId(),
+        childPollableTask.getId(),
+        aiTranslateBatchesImportOutputPollableFuture.getPollableTask().getId());
+
+    return new PollableFutureTaskResult<>();
   }
 
   public record AiTranslateInput(
@@ -147,9 +210,10 @@ public class AiTranslateService {
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }
 
-  public void aiTranslate(AiTranslateInput aiTranslateInput) throws AiTranslateException {
+  public void aiTranslate(AiTranslateInput aiTranslateInput, PollableTask currentTask)
+      throws AiTranslateException {
     if (aiTranslateInput.useBatch()) {
-      aiTranslateBatch(aiTranslateInput);
+      aiTranslateBatch(aiTranslateInput, currentTask);
     } else {
       aiTranslateNoBatch(aiTranslateInput);
     }
@@ -323,34 +387,60 @@ public class AiTranslateService {
     return cause instanceof IOException || cause instanceof TimeoutException;
   }
 
-  public void aiTranslateBatch(AiTranslateInput aiTranslateInput) throws AiTranslateException {
+  public void aiTranslateBatch(AiTranslateInput aiTranslateInput, PollableTask currentTask)
+      throws AiTranslateException {
 
     Repository repository = getRepository(aiTranslateInput);
 
     logger.debug("Start AI Translation for repository: {}", repository.getName());
 
     try {
+
       Set<RepositoryLocale> repositoryLocalesWithoutRootLocale =
           getFilteredRepositoryLocales(aiTranslateInput, repository);
 
       logger.debug("Create batches for repository: {}", repository.getName());
-      ArrayDeque<CreateBatchResponse> batches =
-          repositoryLocalesWithoutRootLocale.stream()
-              .map(
-                  createBatchForRepositoryLocale(
-                      repository,
-                      aiTranslateInput.sourceTextMaxCountPerLocale(),
-                      getModel(aiTranslateInput),
-                      aiTranslateInput.tmTextUnitIds(),
-                      aiTranslateInput.promptSuffix()))
-              .filter(Objects::nonNull)
-              .collect(Collectors.toCollection(ArrayDeque::new));
 
-      logger.debug("Import batches for repository: {}", repository.getName());
-      while (!batches.isEmpty()) {
-        RetrieveBatchResponse retrieveBatchResponse = getNextFinishedBatch(batches);
-        importBatch(retrieveBatchResponse);
+      List<OpenAIClient.CreateBatchResponse> createdBatches = new ArrayList<>();
+      List<String> batchCreationErrors = new ArrayList<>();
+      List<String> skippedLocales = new ArrayList<>();
+
+      for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
+        try {
+          OpenAIClient.CreateBatchResponse createBatchResponse =
+              createBatchForRepositoryLocale(
+                  repositoryLocale,
+                  repository,
+                  aiTranslateInput.sourceTextMaxCountPerLocale(),
+                  getModel(aiTranslateInput),
+                  aiTranslateInput.tmTextUnitIds(),
+                  aiTranslateInput.promptSuffix());
+
+          if (createBatchResponse != null) {
+            createdBatches.add(createBatchResponse);
+          } else {
+            skippedLocales.add(repositoryLocale.getLocale().getBcp47Tag());
+          }
+        } catch (Throwable t) {
+          String errorMessage =
+              "Can't create batch for locale: %s. Error: %s"
+                  .formatted(repositoryLocale.getLocale().getBcp47Tag(), t.getMessage());
+          logger.error(errorMessage, t);
+          batchCreationErrors.add(errorMessage);
+        }
       }
+
+      logger.debug("Start a job to import batches for repository: {}", repository.getName());
+      PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
+          aiTranslateBatchesImportAsync(
+              new AiTranslateBatchesImportInput(
+                  createdBatches, skippedLocales, batchCreationErrors, List.of(), Map.of(), 0),
+              currentTask);
+
+      logger.info(
+          "Schedule AiTranslateBatchesImportJob, id: {}",
+          aiTranslateBatchesImportOutputPollableFuture.getPollableTask().getId());
+
     } catch (OpenAIClient.OpenAIClientResponseException openAIClientResponseException) {
       logger.error(
           "Failed to ai translate: %s".formatted(openAIClientResponseException),
@@ -448,53 +538,53 @@ public class AiTranslateService {
         forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
   }
 
-  Function<RepositoryLocale, CreateBatchResponse> createBatchForRepositoryLocale(
+  // TODO(ja) make same order as aireview
+  CreateBatchResponse createBatchForRepositoryLocale(
+      RepositoryLocale repositoryLocale,
       Repository repository,
       int sourceTextMaxCountPerLocale,
       String model,
       List<Long> tmTextUnitIds,
       String promptSuffix) {
 
-    return repositoryLocale -> {
-      List<TextUnitDTO> textUnitDTOS =
-          getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
+    List<TextUnitDTO> textUnitDTOS =
+        getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
 
-      CreateBatchResponse createBatchResponse = null;
-      if (textUnitDTOS.isEmpty()) {
-        logger.debug("Nothing to translate, don't create a batch");
-      } else {
-        logger.debug("Save the TextUnitDTOs in blob storage for later batch import");
-        String batchId =
-            "%s_%s".formatted(repositoryLocale.getLocale().getBcp47Tag(), UUID.randomUUID());
-        structuredBlobStorage.put(
-            AI_TRANSLATE_WS,
-            batchId,
-            objectMapper.writeValueAsStringUnchecked(new AiTranslateBlobStorage(textUnitDTOS)),
-            Retention.MIN_1_DAY);
+    CreateBatchResponse createBatchResponse = null;
+    if (textUnitDTOS.isEmpty()) {
+      logger.debug("Nothing to translate, don't create a batch");
+    } else {
+      logger.debug("Save the TextUnitDTOs in blob storage for later batch import");
+      String batchId =
+          "%s_%s".formatted(repositoryLocale.getLocale().getBcp47Tag(), UUID.randomUUID());
+      structuredBlobStorage.put(
+          AI_TRANSLATE_WS,
+          batchId,
+          objectMapper.writeValueAsStringUnchecked(new AiTranslateBlobStorage(textUnitDTOS)),
+          Retention.MIN_1_DAY);
 
-        logger.debug("Generate the batch file content");
-        String batchFileContent = generateBatchFileContent(textUnitDTOS, model, promptSuffix);
+      logger.debug("Generate the batch file content");
+      String batchFileContent = generateBatchFileContent(textUnitDTOS, model, promptSuffix);
 
-        UploadFileResponse uploadFileResponse =
-            getOpenAIClient()
-                .uploadFile(
-                    UploadFileRequest.forBatch("%s.jsonl".formatted(batchId), batchFileContent));
+      UploadFileResponse uploadFileResponse =
+          getOpenAIClient()
+              .uploadFile(
+                  UploadFileRequest.forBatch("%s.jsonl".formatted(batchId), batchFileContent));
 
-        logger.debug("Create the batch using file: {}", uploadFileResponse);
-        createBatchResponse =
-            getOpenAIClient()
-                .createBatch(
-                    forChatCompletion(
-                        uploadFileResponse.id(),
-                        Map.of(METADATA__TEXT_UNIT_DTOS__BLOB_ID, batchId)));
-      }
+      logger.debug("Create the batch using file: {}", uploadFileResponse);
+      createBatchResponse =
+          getOpenAIClient()
+              .createBatch(
+                  forChatCompletion(
+                      uploadFileResponse.id(), Map.of(METADATA__TEXT_UNIT_DTOS__BLOB_ID, batchId)));
+    }
 
-      logger.info(
-          "Created batch for locale: {} with {} text units",
-          repositoryLocale.getLocale().getBcp47Tag(),
-          textUnitDTOS.size());
-      return createBatchResponse;
-    };
+    logger.info(
+        "Created batch for locale: {} with {} text units",
+        repositoryLocale.getLocale().getBcp47Tag(),
+        textUnitDTOS.size());
+
+    return createBatchResponse;
   }
 
   private List<TextUnitDTO> getTextUnitDTOS(
@@ -550,43 +640,7 @@ public class AiTranslateService {
         .collect(joining("\n"));
   }
 
-  /**
-   * Use a queue to not stay stuck on a slow job, and try to import faster. Batch are imported
-   * sequentially.
-   *
-   * <p>Note: This is an active blocking polling which blocks the thread but is isolated in a thread
-   * pool.
-   */
-  RetrieveBatchResponse getNextFinishedBatch(ArrayDeque<CreateBatchResponse> batches) {
-    while (true) {
-      int size = batches.size();
-
-      for (int i = 0; i < size; i++) {
-        CreateBatchResponse batch = batches.removeFirst();
-
-        logger.debug("Retrieve current status of batch: {}", batch.id());
-        RetrieveBatchResponse retrieveBatchResponse = retrieveBatchWithRetry(batch);
-
-        if ("completed".equals(retrieveBatchResponse.status())) {
-          logger.info("Next completed batch is:  {}", retrieveBatchResponse.id());
-          return retrieveBatchResponse;
-        } else if ("failed".equals(retrieveBatchResponse.status())) {
-          logger.error("Batch failed, skipping it: {}", retrieveBatchResponse);
-        } else {
-          logger.debug(
-              "Batch is still processing append to the end of the queue: {}",
-              retrieveBatchResponse);
-          batches.offerLast(batch);
-        }
-      }
-      try {
-        Thread.sleep(10000);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
+  // TODO(ja) duplicated
   RetrieveBatchResponse retrieveBatchWithRetry(CreateBatchResponse batch) {
 
     return Mono.fromCallable(

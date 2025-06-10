@@ -779,7 +779,7 @@ public class AiReviewService {
         .collect(joining("\n"));
   }
 
-  // this is not review specific move
+  // TODO this is not review specific move
   OpenAIClient.RetrieveBatchResponse retrieveBatchWithRetry(
       OpenAIClient.CreateBatchResponse batch) {
 
