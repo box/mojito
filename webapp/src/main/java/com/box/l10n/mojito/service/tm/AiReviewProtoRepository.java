@@ -24,5 +24,5 @@ public interface AiReviewProtoRepository extends JpaRepository<AiReviewProto, Lo
       @Param("repositoryId") Long repositoryId,
       @Param("runName") String runName);
 
-  AiReviewProto findByTmTextUnitVariantId(Long tmTextUnitVariantId);
+  AiReviewProto findByTmTextUnitVariantIdAndRunName(Long tmTextUnitVariantId, String runName);
 }

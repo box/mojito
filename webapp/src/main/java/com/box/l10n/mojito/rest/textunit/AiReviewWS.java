@@ -3,9 +3,12 @@ package com.box.l10n.mojito.rest.textunit;
 import com.box.l10n.mojito.entity.AiReviewProto;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.rest.textunit.AiReviewType.AiReviewTextUnitVariantOutput;
 import com.box.l10n.mojito.service.oaireview.AiReviewService;
+import com.box.l10n.mojito.service.oaireview.AiReviewService.AiReviewTextUnitVariantInput;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.tm.AiReviewProtoRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -26,25 +29,28 @@ public class AiReviewWS {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiReviewWS.class);
 
-  private final AiReviewProtoRepository aiReviewProtoRepository;
-  private final ObjectMapper objectMapper;
+  static final String RUN_NAME_FOR_FRONTEND = "for-frontend";
+
+  AiReviewProtoRepository aiReviewProtoRepository;
+
+  ObjectMapper objectMapper;
 
   TextUnitSearcher textUnitSearcher;
 
   AiReviewService aiReviewService;
 
-  AiReviewProtoRepository AiReviewProtoRepository;
+  TMTextUnitVariantRepository tmTextUnitVariantRepository;
 
   public AiReviewWS(
       TextUnitSearcher textUnitSearcher,
       AiReviewService aiReviewService,
-      AiReviewProtoRepository AiReviewProtoRepository,
       AiReviewProtoRepository aiReviewProtoRepository,
-      @Qualifier("AiTranslate") ObjectMapper objectMapper) {
+      TMTextUnitVariantRepository tmTextUnitVariantRepository,
+      @Qualifier("objectMapperReview") ObjectMapper objectMapper) {
     this.textUnitSearcher = textUnitSearcher;
     this.aiReviewService = aiReviewService;
-    this.AiReviewProtoRepository = AiReviewProtoRepository;
     this.aiReviewProtoRepository = aiReviewProtoRepository;
+    this.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     this.objectMapper = objectMapper;
   }
 
@@ -61,7 +67,8 @@ public class AiReviewWS {
                 protoAiReviewRequest.tmTextUnitIds(),
                 protoAiReviewRequest.useBatch(),
                 protoAiReviewRequest.useModel(),
-                protoAiReviewRequest.runName()));
+                protoAiReviewRequest.runName(),
+                protoAiReviewRequest.reviewType()));
 
     return new ProtoAiReviewResponse(pollableFuture.getPollableTask());
   }
@@ -74,13 +81,14 @@ public class AiReviewWS {
       String useModel,
       String runName,
       List<Long> tmTextUnitIds,
-      boolean allLocales) {}
+      boolean allLocales,
+      String reviewType) {}
 
   public record ProtoAiReviewResponse(PollableTask pollableTask) {}
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/proto-ai-review-single-text-unit")
   @ResponseStatus(HttpStatus.OK)
-  public ProtoAiReviewSingleTextUnitResponse getTextUnitsWithGet(
+  public ProtoAiReviewSingleTextUnitResponse getAiReviewForSingleTextUnit(
       ProtoAiReviewSingleTextUnitRequest protoAiReviewSingleTextUnitRequest) {
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -97,42 +105,50 @@ public class AiReviewWS {
     logger.info("Check for pre-computed review");
 
     AiReviewProto alreadyReviewed =
-        aiReviewProtoRepository.findByTmTextUnitVariantId(
-            protoAiReviewSingleTextUnitRequest.tmTextUnitVariantId());
+        aiReviewProtoRepository.findByTmTextUnitVariantIdAndRunName(
+            protoAiReviewSingleTextUnitRequest.tmTextUnitVariantId(), RUN_NAME_FOR_FRONTEND);
 
-    AiReviewService.AiReviewSingleTextUnitOutput aiReviewSingleTextUnitOutput = null;
+    AiReviewTextUnitVariantOutput aiReviewTextUnitVariantOutput = null;
 
     if (alreadyReviewed != null) {
       try {
-        aiReviewSingleTextUnitOutput =
+        aiReviewTextUnitVariantOutput =
             objectMapper.readValueUnchecked(
-                alreadyReviewed.getJsonReview(),
-                AiReviewService.AiReviewSingleTextUnitOutput.class);
+                alreadyReviewed.getJsonReview(), AiReviewTextUnitVariantOutput.class);
       } catch (RuntimeException e) {
         logger.warn("Can't deserialize the existing review, we will recompute");
       }
     }
 
-    if (aiReviewSingleTextUnitOutput == null) {
+    if (aiReviewTextUnitVariantOutput == null) {
 
-      AiReviewService.AiReviewSingleTextUnitInput input =
-          new AiReviewService.AiReviewSingleTextUnitInput(
+      AiReviewTextUnitVariantInput input =
+          new AiReviewTextUnitVariantInput(
               textUnit.getTargetLocale(),
               textUnit.getSource(),
               textUnit.getComment(),
-              new AiReviewService.AiReviewSingleTextUnitInput.ExistingTarget(
+              new AiReviewTextUnitVariantInput.ExistingTarget(
                   textUnit.getTarget(), !textUnit.isIncludedInLocalizedFile()));
 
-      aiReviewSingleTextUnitOutput = aiReviewService.getAiReviewSingleTextUnit(input);
+      aiReviewTextUnitVariantOutput = aiReviewService.getAiReviewSingleTextUnit(input);
+
+      AiReviewProto aiReviewProto = new AiReviewProto();
+      aiReviewProto.setTmTextUnitVariant(
+          tmTextUnitVariantRepository.getReferenceById(
+              protoAiReviewSingleTextUnitRequest.tmTextUnitVariantId()));
+      aiReviewProto.setRunName(RUN_NAME_FOR_FRONTEND);
+      aiReviewProto.setJsonReview(
+          objectMapper.writeValueAsStringUnchecked(aiReviewTextUnitVariantOutput));
+      aiReviewProtoRepository.save(aiReviewProto);
     }
 
-    return new ProtoAiReviewSingleTextUnitResponse(textUnit, aiReviewSingleTextUnitOutput);
+    return new ProtoAiReviewSingleTextUnitResponse(textUnit, aiReviewTextUnitVariantOutput);
   }
 
   public record ProtoAiReviewSingleTextUnitRequest(long tmTextUnitVariantId) {}
 
   public record ProtoAiReviewSingleTextUnitResponse(
-      TextUnitDTO textUnitDTO, AiReviewService.AiReviewSingleTextUnitOutput aiReviewOutput) {}
+      TextUnitDTO textUnitDTO, AiReviewTextUnitVariantOutput aiReviewOutput) {}
 
   public record ProtoAiReviewRetryImportRequest(long childPollableTaskId) {}
 

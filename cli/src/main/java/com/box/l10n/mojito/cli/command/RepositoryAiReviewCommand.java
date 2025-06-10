@@ -82,6 +82,12 @@ public class RepositoryAiReviewCommand extends Command {
   String useModel;
 
   @Parameter(
+      names = {"--review-type"},
+      arity = 1,
+      description = "The type of review to run")
+  String reviewType = "ALL";
+
+  @Parameter(
       names = {"--run-name"},
       arity = 1,
       description =
@@ -174,7 +180,8 @@ public class RepositoryAiReviewCommand extends Command {
                   textUnitIds,
                   useBatch,
                   useModel,
-                  runName));
+                  runName,
+                  reviewType));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();

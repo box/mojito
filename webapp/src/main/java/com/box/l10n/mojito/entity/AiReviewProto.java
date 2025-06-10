@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.service.oaireview.AiReviewService;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,8 +13,7 @@ import jakarta.persistence.Table;
 /**
  * Use run_name to manage multiple reviews of the same text units, it is denormalized but just want
  * something very simple for now. The review is stored a JSON blob defined in the {@link
- * com.box.l10n.mojito.service.oaireview.AiReviewService.AiReviewSingleTextUnitOutput} but that
- * format could change any time.
+ * AiReviewService.AiReviewTextUnitVariantOutput} but that format could change any time.
  */
 @Entity
 @Table(

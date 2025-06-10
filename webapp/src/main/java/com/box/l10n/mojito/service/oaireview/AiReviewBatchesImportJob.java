@@ -5,6 +5,7 @@ import com.box.l10n.mojito.openai.OpenAIClient.CreateBatchResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.DownloadFileContentResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.RetrieveBatchResponse;
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
+import com.box.l10n.mojito.rest.textunit.AiReviewType;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +40,8 @@ public class AiReviewBatchesImportJob
       List<String> batchCreationErrors,
       List<String> processed,
       Map<String, String> failedImport,
-      int attempt) {}
+      int attempt,
+      AiReviewType reviewType) {}
 
   public record AiReviewBatchesImportOutput(
       List<RetrieveBatchResponse> retrieveBatchResponses,
@@ -102,7 +104,9 @@ public class AiReviewBatchesImportJob
             } else {
               try {
                 aiReviewService.importBatch(
-                    retrieveBatchResponse, aiReviewBatchesImportInput.runName());
+                    retrieveBatchResponse,
+                    aiReviewBatchesImportInput.runName(),
+                    aiReviewBatchesImportInput.reviewType());
               } catch (Throwable t) {
                 logger.error(
                     "[task id: {}] Failed to import batch: {}, skip",
@@ -154,7 +158,8 @@ public class AiReviewBatchesImportJob
                   aiReviewBatchesImportInput.batchCreationErrors(),
                   processed.stream().toList(),
                   failedImport,
-                  aiReviewBatchesImportInput.attempt() + 1),
+                  aiReviewBatchesImportInput.attempt() + 1,
+                  aiReviewBatchesImportInput.reviewType()),
               getCurrentPollableTask().getParentTask());
       logger.info(
           "[task id: {}] New job created with pollableTask id: {}",
