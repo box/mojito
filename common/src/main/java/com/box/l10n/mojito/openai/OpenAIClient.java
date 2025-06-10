@@ -922,9 +922,7 @@ public class OpenAIClient {
       Map<String, String> metadata) {
     public record RequestCounts(int total, int completed, int failed) {}
 
-    public record Errors(
-        @JsonProperty("object") String objectType,
-        List<ErrorDetail> data) {}
+    public record Errors(@JsonProperty("object") String objectType, List<ErrorDetail> data) {}
 
     public record ErrorDetail(String code, String message, String param, Integer line) {}
   }
