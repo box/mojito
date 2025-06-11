@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import com.box.l10n.mojito.JSR310Migration;
+import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
@@ -31,6 +32,7 @@ import com.box.l10n.mojito.openai.OpenAIClient.RequestBatchFileLine;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportInput;
@@ -52,17 +54,21 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -84,10 +90,12 @@ import reactor.util.retry.RetryBackoffSpec;
 public class AiTranslateService {
 
   static final String METADATA__TEXT_UNIT_DTOS__BLOB_ID = "textUnitDTOs";
-  static final int MAX_COMPLETION_TOKENS = 16384;
+  static final Integer MAX_COMPLETION_TOKENS = null;
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiTranslateService.class);
+
+  AssetTextUnitRepository assetTextUnitRepository;
 
   PollableTaskService pollableTaskService;
 
@@ -115,6 +123,8 @@ public class AiTranslateService {
 
   PollableTaskBlobStorage pollableTaskBlobStorage;
 
+  TextUnitDTOsCacheService textUnitDTOsCacheService;
+
   public AiTranslateService(
       TextUnitSearcher textUnitSearcher,
       RepositoryRepository repositoryRepository,
@@ -128,7 +138,9 @@ public class AiTranslateService {
       @Qualifier("AiTranslate") RetryBackoffSpec retryBackoffSpec,
       QuartzPollableTaskScheduler quartzPollableTaskScheduler,
       PollableTaskBlobStorage pollableTaskBlobStorage,
-      PollableTaskService pollableTaskService) {
+      PollableTaskService pollableTaskService,
+      TextUnitDTOsCacheService textUnitDTOsCacheService,
+      AssetTextUnitRepository assetTextUnitRepository) {
     this.textUnitSearcher = textUnitSearcher;
     this.repositoryRepository = repositoryRepository;
     this.repositoryService = repositoryService;
@@ -142,6 +154,8 @@ public class AiTranslateService {
     this.quartzPollableTaskScheduler = quartzPollableTaskScheduler;
     this.pollableTaskBlobStorage = pollableTaskBlobStorage;
     this.pollableTaskService = pollableTaskService;
+    this.textUnitDTOsCacheService = textUnitDTOsCacheService;
+    this.assetTextUnitRepository = assetTextUnitRepository;
   }
 
   public record AiTranslateInput(
@@ -151,7 +165,8 @@ public class AiTranslateService {
       List<Long> tmTextUnitIds,
       boolean useBatch,
       String useModel,
-      String promptSuffix) {}
+      String promptSuffix,
+      String relatedStringsType) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -214,7 +229,8 @@ public class AiTranslateService {
                     getModel(aiTranslateInput),
                     aiTranslateInput.promptSuffix(),
                     aiTranslateInput.tmTextUnitIds(),
-                    openAIClientPool),
+                    openAIClientPool,
+                    RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType())),
             10)
         .then()
         .doOnTerminate(
@@ -230,7 +246,8 @@ public class AiTranslateService {
       String model,
       String promptSuffix,
       List<Long> tmTextUnitIds,
-      OpenAIClientPool openAIClientPool) {
+      OpenAIClientPool openAIClientPool,
+      RelatedStringsProvider.Type relatedStringsProviderType) {
 
     Repository repository = repositoryLocale.getRepository();
     List<TextUnitDTO> textUnitDTOS =
@@ -255,7 +272,11 @@ public class AiTranslateService {
                     .flatMap(
                         textUnitDTO ->
                             getChatCompletionForTextUnitDTO(
-                                    textUnitDTO, model, promptSuffix, openAIClientPool)
+                                    textUnitDTO,
+                                    model,
+                                    promptSuffix,
+                                    openAIClientPool,
+                                    new RelatedStringsProvider(relatedStringsProviderType))
                                 .retryWhen(
                                     Retry.backoff(5, Duration.ofSeconds(1))
                                         .filter(this::isRetryableException)
@@ -315,7 +336,8 @@ public class AiTranslateService {
       TextUnitDTO textUnitDTO,
       String model,
       String promptSuffix,
-      OpenAIClientPool openAIClientPool) {
+      OpenAIClientPool openAIClientPool,
+      RelatedStringsProvider relatedStringsProvider) {
 
     CompletionInput completionInput =
         new CompletionInput(
@@ -325,10 +347,12 @@ public class AiTranslateService {
             textUnitDTO.getTarget() == null
                 ? null
                 : new ExistingTarget(
-                    textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
+                    textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()),
+            relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
     ChatCompletionsRequest chatCompletionsRequest =
         getChatCompletionsRequest(model, promptSuffix, completionInput);
+
     CompletableFuture<ChatCompletionsResponse> futureResult =
         openAIClientPool.submit(
             (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
@@ -391,7 +415,8 @@ public class AiTranslateService {
                   aiTranslateInput.sourceTextMaxCountPerLocale(),
                   getModel(aiTranslateInput),
                   aiTranslateInput.tmTextUnitIds(),
-                  aiTranslateInput.promptSuffix());
+                  aiTranslateInput.promptSuffix(),
+                  RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()));
 
           if (createBatchResponse != null) {
             createdBatches.add(createBatchResponse);
@@ -504,6 +529,8 @@ public class AiTranslateService {
         forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
   }
 
+  record RelatedString(String source, String description) {}
+
   @Pollable(message = "AiTranslateService Retry import for job id: {id}")
   public PollableFuture<Void> retryImport(
       @MsgArg(name = "id") long childPollableTaskId, @InjectCurrentTask PollableTask currentTask) {
@@ -538,7 +565,8 @@ public class AiTranslateService {
       int sourceTextMaxCountPerLocale,
       String model,
       List<Long> tmTextUnitIds,
-      String promptSuffix) {
+      String promptSuffix,
+      RelatedStringsProvider.Type relatedStringsProviderType) {
 
     List<TextUnitDTO> textUnitDTOS =
         getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
@@ -557,7 +585,8 @@ public class AiTranslateService {
           Retention.MIN_1_DAY);
 
       logger.debug("Generate the batch file content");
-      String batchFileContent = generateBatchFileContent(textUnitDTOS, model, promptSuffix);
+      String batchFileContent =
+          generateBatchFileContent(textUnitDTOS, model, promptSuffix, relatedStringsProviderType);
 
       UploadFileResponse uploadFileResponse =
           getOpenAIClient()
@@ -611,7 +640,14 @@ public class AiTranslateService {
   }
 
   String generateBatchFileContent(
-      List<TextUnitDTO> textUnitDTOS, String model, String promptSuffix) {
+      List<TextUnitDTO> textUnitDTOS,
+      String model,
+      String promptSuffix,
+      RelatedStringsProvider.Type relatedStringsProviderType) {
+
+    RelatedStringsProvider relatedStringsProvider =
+        new RelatedStringsProvider(relatedStringsProviderType);
+
     return textUnitDTOS.stream()
         .map(
             textUnitDTO -> {
@@ -621,7 +657,8 @@ public class AiTranslateService {
                       textUnitDTO.getSource(),
                       textUnitDTO.getComment(),
                       new ExistingTarget(
-                          textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()));
+                          textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()),
+                      relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
               ChatCompletionsRequest chatCompletionsRequest =
                   getChatCompletionsRequest(model, promptSuffix, completionInput);
@@ -631,6 +668,141 @@ public class AiTranslateService {
             })
         .map(objectMapper::writeValueAsStringUnchecked)
         .collect(joining("\n"));
+  }
+
+  class RelatedStringsProvider {
+
+    static int CHARACTER_LIMIT = 10000;
+
+    Map<Long, List<AssetTextUnit>> cache = new HashMap<>();
+
+    enum Type {
+      USAGES,
+      ID_PREFIX,
+      NONE;
+
+      public static Type fromString(String type) {
+        Type result = NONE;
+        if (type != null) {
+          result = valueOf(type.toUpperCase());
+        }
+        return result;
+      }
+    }
+
+    Type type;
+
+    public RelatedStringsProvider(Type type) {
+      this.type = type;
+    }
+
+    /**
+     * Everything must be lazy in case we don't use the option. It is very heavy on memory usage but
+     * relatively fast since all asset text units are load per asset, in most case we have one big
+     * asset per repository.
+     */
+    public List<RelatedString> getRelatedStrings(TextUnitDTO textUnitDTO) {
+
+      List<AssetTextUnit> assetTextUnits =
+          getAssetTextUnitsOfAssetExtraction(textUnitDTO.getAssetExtractionId());
+
+      Optional<AssetTextUnit> assetTextUnit =
+          assetTextUnits.stream()
+              .filter(atu -> atu.getId().equals(textUnitDTO.getAssetTextUnitId()))
+              .findFirst();
+
+      if (assetTextUnit.isPresent()) {
+        List<RelatedString> relatedStrings =
+            switch (type) {
+              case USAGES -> getRelatedStringsByUsages(assetTextUnits, assetTextUnit.get());
+              case ID_PREFIX -> getRelatedStringsByIdPrefix(assetTextUnits, assetTextUnit.get());
+              case NONE -> ImmutableList.of();
+            };
+        List<RelatedString> filteredByCharLimit =
+            filterByCharLimit(relatedStrings, CHARACTER_LIMIT);
+        logger.debug(
+            "Related strings (count: {}, filtered: {}): {}",
+            relatedStrings.size(),
+            filteredByCharLimit.size(),
+            relatedStrings);
+        return filteredByCharLimit;
+      } else {
+        logger.warn(
+            "The text unit dto does not have a matching asset text unit in the current asset extraction. This"
+                + "is probably due to concurrent updates, return no related strings.");
+        return ImmutableList.of();
+      }
+    }
+
+    List<RelatedString> getRelatedStringsByIdPrefix(
+        List<AssetTextUnit> assetTextUnits, AssetTextUnit assetTextUnit) {
+
+      String prefix = getPrefix(assetTextUnit.getName());
+      return assetTextUnits.stream()
+          .filter(atu -> !atu.getId().equals(assetTextUnit.getId()))
+          .filter(atu -> atu.getName().startsWith(prefix))
+          .map(atu -> new RelatedString(atu.getContent(), atu.getComment()))
+          .toList();
+    }
+
+    static String getPrefix(String id) {
+      int dot = id.indexOf('.');
+      return (dot == -1) ? id : id.substring(0, dot);
+    }
+
+    static List<RelatedString> getRelatedStringsByUsages(
+        List<AssetTextUnit> assetTextUnits, AssetTextUnit assetTextUnit) {
+      Map<String, List<RelatedString>> byUsages =
+          assetTextUnits.stream()
+              .filter(atu -> !atu.getId().equals(assetTextUnit.getId()))
+              .flatMap(
+                  atu ->
+                      atu.getUsages().stream()
+                          .map(
+                              usage ->
+                                  Map.entry(
+                                      usage,
+                                      new RelatedString(atu.getContent(), atu.getComment()))))
+              .collect(
+                  Collectors.groupingBy(
+                      Map.Entry::getKey,
+                      Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+      List<RelatedString> relatedStrings =
+          assetTextUnit.getUsages().stream()
+              .flatMap(u -> byUsages.getOrDefault(u, List.of()).stream())
+              .toList();
+
+      return relatedStrings;
+    }
+
+    List<AssetTextUnit> getAssetTextUnitsOfAssetExtraction(Long assetExtractionId) {
+      return cache.computeIfAbsent(
+          assetExtractionId, assetTextUnitRepository::findByAssetExtractionId);
+    }
+
+    public static List<RelatedString> filterByCharLimit(
+        List<RelatedString> relatedStrings, int charLimit) {
+
+      final int JSON_OVERHEAD = 30;
+      int i = 0;
+      int totalCharCount = 0;
+
+      for (RelatedString rs : relatedStrings) {
+
+        int charCount =
+            (rs.source() == null ? 0 : rs.source().length())
+                + (rs.description() == null ? 0 : rs.description().length())
+                + JSON_OVERHEAD;
+
+        if (totalCharCount + charCount > charLimit) break;
+
+        totalCharCount += charCount;
+        i++;
+      }
+
+      return List.copyOf(relatedStrings.subList(0, i));
+    }
   }
 
   // TODO(ja) duplicated
@@ -649,7 +821,11 @@ public class AiTranslateService {
   }
 
   record CompletionInput(
-      String locale, String source, String sourceDescription, ExistingTarget existingTarget) {
+      String locale,
+      String source,
+      String sourceDescription,
+      ExistingTarget existingTarget,
+      List<RelatedString> relatedStrings) {
     record ExistingTarget(String content, boolean hasBrokenPlaceholders) {}
   }
 
@@ -675,63 +851,63 @@ public class AiTranslateService {
 
   static final String PROMPT =
       """
-      Your role is to act as a translator.
-      You are tasked with translating provided source strings while preserving both the tone and the technical structure of the string. This includes protecting any tags, placeholders, or code elements that should not be translated.
+    Your role is to act as a translator.
+    You are tasked with translating provided source strings while preserving both the tone and the technical structure of the string. This includes protecting any tags, placeholders, or code elements that should not be translated.
 
-      The input will be provided in JSON format with the following fields:
+    The input will be provided in JSON format with the following fields:
 
-          •	"source": The source text to be translated.
-          •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
-          •	"sourceDescription": A description providing context for the source text.
-          •	"existingTarget" (optional): An existing translation to review. Indicates if it has broken placeholders.
+        •	"source": The source text to be translated.
+        •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
+        •	"sourceDescription": A description providing context for the source text.
+        •	"existingTarget" (optional): An existing translation to review. Indicates if it has broken placeholders.
 
-      Instructions:
+    Instructions:
 
-          •	If the source is colloquial, keep the translation colloquial; if it’s formal, maintain formality in the translation.
-          •	Pay attention to regional variations specified in the "locale" field (e.g., “es” vs. “es-419”, “fr” vs. “fr-CA”, “zh” vs. “zh-Hant”), and ensure the translation length remains similar to the source text.
+        •	If the source is colloquial, keep the translation colloquial; if it’s formal, maintain formality in the translation.
+        •	Pay attention to regional variations specified in the "locale" field (e.g., “es” vs. “es-419”, “fr” vs. “fr-CA”, “zh” vs. “zh-Hant”), and ensure the translation length remains similar to the source text.
 
-      Handling Tags and Code:
+    Handling Tags and Code:
 
-      Some strings contain code elements such as tags (e.g., {atag}, ICU message format, or HTML tags). You are provided with a inputs of tags that need to be protected. Ensure that:
+    Some strings contain code elements such as tags (e.g., {atag}, ICU message format, or HTML tags). You are provided with a inputs of tags that need to be protected. Ensure that:
 
-          •	Tags like {atag} remain untouched.
-          •	In cases of nested content (e.g., <a href={url}>text that needs translation</a>), only translate the inner text while preserving the outer structure.
-          •	Complex structures like ICU message formats should have placeholders or variables left intact (e.g., {count, plural, one {# item} other {# items}}), but translate any inner translatable text.
-          •	If an existing translation is provided and has broken placeholder, make sure to fix them in the new translation.
+        •	Tags like {atag} remain untouched.
+        •	In cases of nested content (e.g., <a href={url}>text that needs translation</a>), only translate the inner text while preserving the outer structure.
+        •	Complex structures like ICU message formats should have placeholders or variables left intact (e.g., {count, plural, one {# item} other {# items}}), but translate any inner translatable text.
+        •	If an existing translation is provided and has broken placeholder, make sure to fix them in the new translation.
 
-      Ambiguity and Context:
+    Ambiguity and Context:
 
-      After translating, assess the usefulness of the "sourceDescription" field:
+    After translating, assess the usefulness of the "sourceDescription" field:
 
-          •	Rate its usefulness on a scale of 0 to 2:
-          •	0 – Not helpful at all; irrelevant or misleading.
-          •	1 – Somewhat helpful; provides partial or unclear context but is useful to some extent.
-          •	2 – Very helpful; provides clear and sufficient guidance for the translation.
+        •	Rate its usefulness on a scale of 0 to 2:
+        •	0 – Not helpful at all; irrelevant or misleading.
+        •	1 – Somewhat helpful; provides partial or unclear context but is useful to some extent.
+        •	2 – Very helpful; provides clear and sufficient guidance for the translation.
 
-      If the source is ambiguous—for example, if it could be interpreted as a noun or a verb—you must:
+    If the source is ambiguous—for example, if it could be interpreted as a noun or a verb—you must:
 
-          •	Indicate the ambiguity in your explanation.
-          •	Provide translations for all possible interpretations.
-          •	Set "reviewRequired" to true, and explain the need for review due to the ambiguity.
+        •	Indicate the ambiguity in your explanation.
+        •	Provide translations for all possible interpretations.
+        •	Set "reviewRequired" to true, and explain the need for review due to the ambiguity.
 
-      You will provide an output in JSON format with the following fields:
+    You will provide an output in JSON format with the following fields:
 
-          •	"source": The original source text.
-          •	"target": An object containing:
-          •	"content": The best translation.
-          •	"explanation": A brief explanation of your translation choices.
-          •	"confidenceLevel": Your confidence level (0-100%) in the translation.
-          •	"descriptionRating": An object containing:
-          •	"explanation": An explanation of how the "sourceDescription" aided your translation.
-          •	"score": The usefulness score (0-2).
-          •	"altTarget": An object containing:
-          •	"content": An alternative translation, if applicable. Focus on showcasing grammar differences,
-          •	"explanation": Explanation for the alternative translation.
-          •	"confidenceLevel": Your confidence level (0-100%) in the alternative translation.
-          •	"reviewRequired": An object containing:
-          •	"required": true or false, indicating if review is needed.
-          •	"reason": A detailed explanation of why review is or isn’t needed.
-      """;
+        •	"source": The original source text.
+        •	"target": An object containing:
+        •	"content": The best translation.
+        •	"explanation": A brief explanation of your translation choices.
+        •	"confidenceLevel": Your confidence level (0-100%) in the translation.
+        •	"descriptionRating": An object containing:
+        •	"explanation": An explanation of how the "sourceDescription" aided your translation.
+        •	"score": The usefulness score (0-2).
+        •	"altTarget": An object containing:
+        •	"content": An alternative translation, if applicable. Focus on showcasing grammar differences,
+        •	"explanation": Explanation for the alternative translation.
+        •	"confidenceLevel": Your confidence level (0-100%) in the alternative translation.
+        •	"reviewRequired": An object containing:
+        •	"required": true or false, indicating if review is needed.
+        •	"reason": A detailed explanation of why review is or isn’t needed.
+    """;
 
   static String getPrompt(String promptSuffix) {
     return promptSuffix == null ? PROMPT : "%s %s".formatted(PROMPT, promptSuffix);

@@ -103,6 +103,15 @@ public class RepositoryAiTranslationCommand extends Command {
           "ID of an existing job to try to re-import; If a job stopped because a transient error, try to import remaining data")
   Long retryImportJobId;
 
+  @Parameter(
+      names = "--related-strings",
+      arity = 1,
+      description =
+          "Related-string mode. NONE (default) = none, "
+              + "USAGES = same usage context, "
+              + "ID_PREFIX = same key prefix")
+  String relatedStrings = "NONE";
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -172,7 +181,8 @@ public class RepositoryAiTranslationCommand extends Command {
                   textUnitIds,
                   useBatch,
                   useModel,
-                  promptSuffix));
+                  promptSuffix,
+                  relatedStrings));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();

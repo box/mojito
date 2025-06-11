@@ -46,7 +46,8 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.tmTextUnitIds(),
                 protoAiTranslateRequest.useBatch(),
                 protoAiTranslateRequest.useModel(),
-                protoAiTranslateRequest.promptSuffix()));
+                protoAiTranslateRequest.promptSuffix(),
+                protoAiTranslateRequest.relatedStringsType()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -58,7 +59,8 @@ public class AiTranslateWS {
       List<Long> tmTextUnitIds,
       boolean useBatch,
       String useModel,
-      String promptSuffix) {}
+      String promptSuffix,
+      String relatedStringsType) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 
