@@ -58,7 +58,7 @@ public class TextUnitDTOsCacheServiceTest extends ServiceTestBase {
   @Test
   public void testNoValueInCacheNoUpdate() {
     TMTestData tmTestData = new TMTestData(testIdWatcher);
-    textUnitDTOsCacheBlobStorage.structuredBlobStorage.delete(
+    textUnitDTOsCacheBlobStorage.redisStructuredBlobStorageProxy.delete(
         StructuredBlobStorage.Prefix.TEXT_UNIT_DTOS_CACHE,
         textUnitDTOsCacheBlobStorage.getName(tmTestData.asset.getId(), tmTestData.en.getId()));
     ImmutableMap<String, TextUnitDTO> withoutUpdate =
@@ -72,7 +72,7 @@ public class TextUnitDTOsCacheServiceTest extends ServiceTestBase {
   @Test
   public void testNoValueInCacheUpdateIfMissing() {
     TMTestData tmTestData = new TMTestData(testIdWatcher);
-    textUnitDTOsCacheBlobStorage.structuredBlobStorage.delete(
+    textUnitDTOsCacheBlobStorage.redisStructuredBlobStorageProxy.delete(
         StructuredBlobStorage.Prefix.TEXT_UNIT_DTOS_CACHE,
         textUnitDTOsCacheBlobStorage.getName(tmTestData.asset.getId(), tmTestData.en.getId()));
     ImmutableMap<String, TextUnitDTO> updateIfMissing =

@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.service.blobstorage.database;
 
+import static com.box.l10n.mojito.service.blobstorage.Retention.MIN_1_DAY;
+import static com.box.l10n.mojito.service.blobstorage.Retention.PERMANENT;
+
 import com.box.l10n.mojito.entity.MBlob;
 import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.service.blobstorage.BlobStorage;
@@ -73,7 +76,7 @@ public class DatabaseBlobStorage implements BlobStorage {
 
     mBlob.setContent(content);
 
-    if (Retention.MIN_1_DAY.equals(retention)) {
+    if (MIN_1_DAY.equals(retention)) {
       mBlob.setExpireAfterSeconds(databaseBlobStorageConfigurationProperties.getMin1DayTtl());
     }
 
@@ -113,5 +116,12 @@ public class DatabaseBlobStorage implements BlobStorage {
         deletedCount = 0;
       }
     } while (deletedCount > 0);
+  }
+
+  @Override
+  public Retention getRetention(String name) {
+    Optional<Long> expireAfterSeconds =
+        mBlobRepository.findByName(name).map(MBlob::getExpireAfterSeconds);
+    return expireAfterSeconds.map(time -> time >= 0 ? MIN_1_DAY : PERMANENT).orElse(PERMANENT);
   }
 }

@@ -42,6 +42,10 @@ public class StructuredBlobStorage {
     return prefix.toString().toLowerCase() + "/" + name;
   }
 
+  public Retention getRetention(Prefix prefix, String name) {
+    return this.blobStorage.getRetention(getFullName(prefix, name));
+  }
+
   public enum Prefix {
     POLLABLE_TASK,
     IMAGE,

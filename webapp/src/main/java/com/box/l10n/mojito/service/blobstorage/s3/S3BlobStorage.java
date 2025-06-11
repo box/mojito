@@ -1,7 +1,12 @@
 package com.box.l10n.mojito.service.blobstorage.s3;
 
+import static com.box.l10n.mojito.service.blobstorage.Retention.PERMANENT;
+import static java.util.Optional.of;
+
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
+import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -148,6 +153,23 @@ public class S3BlobStorage implements BlobStorage {
     putRequest.setTagging(new ObjectTagging(tags));
 
     amazonS3.putObject(putRequest);
+  }
+
+  @Override
+  public Retention getRetention(String name) {
+    GetObjectTaggingRequest request =
+        new GetObjectTaggingRequest(
+            this.s3BlobStorageConfigurationProperties.getBucket(), this.getFullName(name));
+    GetObjectTaggingResult result = this.amazonS3.getObjectTagging(request);
+    List<Tag> tags = result.getTagSet();
+
+    return tags.stream()
+        .filter(tag -> tag.getKey().equals("retention"))
+        .map(Tag::getValue)
+        .map(Retention::valueOf)
+        .findFirst()
+        .or(() -> of(PERMANENT))
+        .get();
   }
 
   public String getS3Url(String name) {

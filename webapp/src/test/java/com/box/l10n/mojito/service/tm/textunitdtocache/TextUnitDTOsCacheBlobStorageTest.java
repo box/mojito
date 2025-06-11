@@ -24,7 +24,7 @@ public class TextUnitDTOsCacheBlobStorageTest extends ServiceTestBase {
   public void readInvalidData() {
     long assetId = 123243L;
     long localeId = 234L;
-    textUnitDTOsCacheBlobStorage.structuredBlobStorage.put(
+    textUnitDTOsCacheBlobStorage.redisStructuredBlobStorageProxy.put(
         TEXT_UNIT_DTOS_CACHE,
         textUnitDTOsCacheBlobStorage.getName(assetId, localeId),
         "bad content",
@@ -41,7 +41,7 @@ public class TextUnitDTOsCacheBlobStorageTest extends ServiceTestBase {
   public void readNoData() {
     long assetId = 123243L;
     long localeId = 234L;
-    textUnitDTOsCacheBlobStorage.structuredBlobStorage.delete(
+    textUnitDTOsCacheBlobStorage.redisStructuredBlobStorageProxy.delete(
         TEXT_UNIT_DTOS_CACHE, textUnitDTOsCacheBlobStorage.getName(assetId, localeId));
     Optional<ImmutableList<TextUnitDTO>> textUnitDTOS =
         textUnitDTOsCacheBlobStorage.getTextUnitDTOs(assetId, localeId);
