@@ -131,6 +131,26 @@ public class ScheduledJobManager {
     }
   }
 
+  public void scheduleJob(ScheduledJob scheduledJob)
+      throws ClassNotFoundException, SchedulerException {
+    JobKey jobKey = getJobKey(scheduledJob);
+    TriggerKey triggerKey = getTriggerKey(scheduledJob);
+
+    // Retrieve job class from enum value e.g. THIRD_PARTY_SYNC -> ScheduledThirdPartySync
+    Class<? extends IScheduledJob> jobType =
+        loadJobClass(scheduledJob.getJobType().getEnum().getJobClassName());
+
+    JobDetail job = JobBuilder.newJob(jobType).withIdentity(jobKey).build();
+    Trigger trigger = buildTrigger(jobKey, scheduledJob.getCron(), triggerKey);
+
+    if (getScheduler().checkExists(jobKey)) {
+      // The cron could have changed, reschedule the job
+      getScheduler().rescheduleJob(triggerKey, trigger);
+    } else {
+      getScheduler().scheduleJob(job, trigger);
+    }
+  }
+
   /** Push the jobs defined in the application.properties to the jobs table. */
   public void pushJobsToDB() {
     for (ThirdPartySyncJobConfig syncJobConfig :
@@ -202,6 +222,18 @@ public class ScheduledJobManager {
             "Removed job with id: '{}' as it is no longer in the data source.", jobKey.getName());
       }
     }
+  }
+
+  public void deleteJobFromQuartz(ScheduledJob scheduledJob) throws SchedulerException {
+    JobKey jobKey = getJobKey(scheduledJob);
+    TriggerKey triggerKey = getTriggerKey(scheduledJob);
+
+    if (getScheduler().checkExists(jobKey)) {
+      getScheduler().unscheduleJob(triggerKey);
+      getScheduler().deleteJob(jobKey);
+    }
+
+    logger.info("Removed job with id: '{}' from Quartz scheduler.", scheduledJob.getUuid());
   }
 
   // v1

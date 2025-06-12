@@ -1369,7 +1369,38 @@ paths:
           description: OK
       tags:
       - scheduled-job-ws
+    post:
+      operationId: createJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduledJobDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScheduledJobDTO"
+          description: OK
+      tags:
+      - scheduled-job-ws
   /api/jobs/{id}:
+    delete:
+      operationId: deleteJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+      tags:
+      - scheduled-job-ws
     get:
       operationId: getJob
       parameters:
@@ -1379,6 +1410,30 @@ paths:
         schema:
           type: string
           format: uuid
+      responses:
+        "200":
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/ScheduledJobDTO"
+          description: OK
+      tags:
+      - scheduled-job-ws
+    patch:
+      operationId: updateJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduledJobDTO"
+        required: true
       responses:
         "200":
           content:
@@ -4627,6 +4682,8 @@ components:
           example: 1715699917000
         properties:
           $ref: "#/components/schemas/ScheduledJobProperties"
+        propertiesString:
+          type: string
         repository:
           type: string
         startDate:

@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.scheduledjob;
 
 import com.box.l10n.mojito.entity.ScheduledJob;
+import com.box.l10n.mojito.json.ObjectMapper;
 import java.text.ParseException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -14,11 +15,14 @@ public class ScheduledJobDTO {
   private ScheduledJobType type;
   private String cron;
   private ScheduledJobProperties properties;
+  private String propertiesString;
   private ScheduledJobStatus status;
   private ZonedDateTime startDate;
   private ZonedDateTime endDate;
   private ZonedDateTime nextStartDate;
   private Boolean enabled;
+
+  public ScheduledJobDTO() {}
 
   public ScheduledJobDTO(ScheduledJob scheduledJob) {
     this.id = scheduledJob.getUuid();
@@ -26,6 +30,7 @@ public class ScheduledJobDTO {
     this.type = scheduledJob.getJobType().getEnum();
     this.cron = scheduledJob.getCron();
     this.properties = scheduledJob.getProperties();
+    this.propertiesString = scheduledJob.getPropertiesString();
     this.status = scheduledJob.getJobStatus().getEnum();
     this.startDate = scheduledJob.getStartDate();
     this.endDate = scheduledJob.getEndDate();
@@ -40,6 +45,20 @@ public class ScheduledJobDTO {
               nextValidTime.toInstant(), ZoneId.of(ZoneId.systemDefault().getId()));
     } catch (ParseException ignored) {
 
+    }
+  }
+
+  public void deserializeProperties() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      this.properties = objectMapper.readValue(propertiesString, type.getPropertiesClass());
+    } catch (Exception e) {
+      throw new ScheduledJobException(
+          "Failed to deserialize properties '"
+              + propertiesString
+              + "' for class: "
+              + type.getPropertiesClass().getName(),
+          e);
     }
   }
 
@@ -63,7 +82,7 @@ public class ScheduledJobDTO {
     return type;
   }
 
-  public void seType(ScheduledJobType type) {
+  public void setType(ScheduledJobType type) {
     this.type = type;
   }
 
@@ -81,6 +100,15 @@ public class ScheduledJobDTO {
 
   public void setProperties(ScheduledJobProperties properties) {
     this.properties = properties;
+  }
+
+  public String getPropertiesString() {
+    return propertiesString;
+  }
+
+  public void setPropertiesString(String propertiesString) {
+    this.propertiesString = propertiesString;
+    this.deserializeProperties();
   }
 
   public ScheduledJobStatus getStatus() {

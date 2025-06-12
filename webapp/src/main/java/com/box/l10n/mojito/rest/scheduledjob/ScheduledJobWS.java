@@ -2,9 +2,11 @@ package com.box.l10n.mojito.rest.scheduledjob;
 
 import com.box.l10n.mojito.entity.ScheduledJob;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobDTO;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobException;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobManager;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobRepository;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobResponse;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -35,17 +38,63 @@ public class ScheduledJobWS {
   static Logger logger = LoggerFactory.getLogger(ScheduledJobWS.class);
   private final ScheduledJobRepository scheduledJobRepository;
   private final ScheduledJobManager scheduledJobManager;
+  private final ScheduledJobService scheduledJobService;
 
   @Autowired
   public ScheduledJobWS(
-      ScheduledJobRepository scheduledJobRepository, ScheduledJobManager scheduledJobManager) {
+      ScheduledJobRepository scheduledJobRepository,
+      ScheduledJobManager scheduledJobManager,
+      ScheduledJobService scheduledJobService) {
     this.scheduledJobRepository = scheduledJobRepository;
     this.scheduledJobManager = scheduledJobManager;
+    this.scheduledJobService = scheduledJobService;
   }
 
   private final ResponseEntity<ScheduledJobResponse> notFoundResponse =
       createResponse(
           HttpStatus.NOT_FOUND, ScheduledJobResponse.Status.FAILURE, "Job doesn't exist", null);
+
+  @RequestMapping(method = RequestMethod.POST, value = "/api/jobs")
+  @ResponseStatus(HttpStatus.OK)
+  public ScheduledJobDTO createJob(@RequestBody ScheduledJobDTO scheduledJobDTO)
+      throws SchedulerException, ClassNotFoundException, ResponseStatusException {
+    try {
+      return new ScheduledJobDTO(scheduledJobService.createJob(scheduledJobDTO));
+    } catch (ScheduledJobException e) {
+      logger.error("Error creating job", e);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Error creating job: " + e.getMessage(), e);
+    }
+  }
+
+  @RequestMapping(method = RequestMethod.PATCH, value = "/api/jobs/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  public ScheduledJobDTO updateJob(
+      @PathVariable UUID id, @RequestBody ScheduledJobDTO scheduledJobDTO)
+      throws SchedulerException, ClassNotFoundException, ResponseStatusException {
+    try {
+      return new ScheduledJobDTO(scheduledJobService.updateJob(id.toString(), scheduledJobDTO));
+    } catch (ScheduledJobException e) {
+      logger.error("Error updating job", e);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Error updating job: " + e.getMessage(), e);
+    }
+  }
+
+  @RequestMapping(method = RequestMethod.DELETE, value = "/api/jobs/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  public void deleteJob(@PathVariable UUID id) throws SchedulerException {
+    logger.info("Deleting scheduled job [{}]", id);
+    ScheduledJob scheduledJob =
+        scheduledJobRepository
+            .findByUuid(id.toString())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Job not found with id: " + id));
+
+    scheduledJobService.deleteJob(scheduledJob);
+  }
 
   @RequestMapping(method = RequestMethod.GET, value = "/api/jobs")
   @ResponseStatus(HttpStatus.OK)

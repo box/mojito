@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.service.scheduledjob.ScheduledJobException;
 import com.box.l10n.mojito.service.scheduledjob.ScheduledJobProperties;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -62,7 +63,7 @@ public class ScheduledJob extends BaseEntity {
       this.properties =
           objectMapper.readValue(propertiesString, jobType.getEnum().getPropertiesClass());
     } catch (Exception e) {
-      throw new RuntimeException(
+      throw new ScheduledJobException(
           "Failed to deserialize properties '"
               + propertiesString
               + "' for class: "
