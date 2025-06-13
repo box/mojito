@@ -161,37 +161,46 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
         getEscapeTypeAtomicReference(nativeClient, optionsParser);
 
     Stopwatch stopwatchGetTextUnitDTO = Stopwatch.createStarted();
-    List<TextUnitDTO> search =
-        getSourceTextUnitDTOs(repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
-    logger.info("Get Source TextUnitDTO for push took: {}", stopwatchGetTextUnitDTO.elapsed());
-    String text = getFileContent(pluralSeparator, search, true, null, escapeType.get());
 
     String tagForUpload = getTagForUpload(repository.getName());
 
-    if (nativeClient) {
-      logger.debug("Pushing with native and options: {}", formatOptions);
-      Stopwatch stopWatchPhaseNativePush = Stopwatch.createStarted();
-      phraseClient.nativeUploadAndWait(
-          projectId,
-          repository.getSourceLocale().getBcp47Tag(),
-          "xml",
-          repository.getName() + "-strings.xml",
-          text,
-          ImmutableList.of(tagForUpload),
-          formatOptions.isEmpty() ? null : formatOptions);
-      logger.info(
-          "Pushing with native and options: {}, took: {}",
-          formatOptions,
-          stopWatchPhaseNativePush.elapsed());
+    List<TextUnitDTO> search =
+        getSourceTextUnitDTOs(repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
+    logger.info("Get Source TextUnitDTO for push took: {}", stopwatchGetTextUnitDTO.elapsed());
+
+    if (!search.isEmpty()) {
+
+      String text = getFileContent(pluralSeparator, search, true, null, escapeType.get());
+
+      if (nativeClient) {
+        logger.debug("Pushing with native and options: {}", formatOptions);
+        Stopwatch stopWatchPhaseNativePush = Stopwatch.createStarted();
+        phraseClient.nativeUploadAndWait(
+            projectId,
+            repository.getSourceLocale().getBcp47Tag(),
+            "xml",
+            repository.getName() + "-strings.xml",
+            text,
+            ImmutableList.of(tagForUpload),
+            formatOptions.isEmpty() ? null : formatOptions);
+        logger.info(
+            "Pushing with native and options: {}, took: {}",
+            formatOptions,
+            stopWatchPhaseNativePush.elapsed());
+      } else {
+        phraseClient.uploadAndWait(
+            projectId,
+            repository.getSourceLocale().getBcp47Tag(),
+            "xml",
+            repository.getName() + "-strings.xml",
+            text,
+            ImmutableList.of(tagForUpload),
+            null);
+      }
     } else {
-      phraseClient.uploadAndWait(
-          projectId,
-          repository.getSourceLocale().getBcp47Tag(),
-          "xml",
-          repository.getName() + "-strings.xml",
-          text,
-          ImmutableList.of(tagForUpload),
-          null);
+      logger.info(
+          "Repository: {} as no strings, don't push as empty file trigger an error",
+          repository.getName());
     }
 
     boolean skipRemoveUnusedKeysAndTags =
