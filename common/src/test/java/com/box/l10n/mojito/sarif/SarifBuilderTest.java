@@ -10,28 +10,31 @@ import com.box.l10n.mojito.sarif.model.Result;
 import com.box.l10n.mojito.sarif.model.ResultLevel;
 import com.box.l10n.mojito.sarif.model.Run;
 import com.box.l10n.mojito.sarif.model.Sarif;
-import java.io.FileNotFoundException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 import java.io.InputStream;
 import java.util.List;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class SarifBuilderTest {
 
-  private final Schema schemaValidator;
+  private static final JsonSchema SCHEMA_VALIDATOR = loadSchema();
+  private static final com.fasterxml.jackson.databind.ObjectMapper JACKSON_MAPPER =
+      new com.fasterxml.jackson.databind.ObjectMapper();
 
-  SarifBuilderTest() throws FileNotFoundException {
-    InputStream schemaStream =
-        SarifBuilderTest.class.getResourceAsStream("/sarif-schema-2.1.0.json");
-    if (schemaStream == null) {
-      throw new FileNotFoundException("Schema file not found");
+  private static JsonSchema loadSchema() {
+    try (InputStream schemaStream =
+        SarifBuilderTest.class.getResourceAsStream("/sarif-schema-2.1.0.json")) {
+      if (schemaStream == null) throw new RuntimeException("Schema file not found");
+      JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+      return factory.getSchema(schemaStream);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to load SARIF JSON Schema", e);
     }
-    JSONObject rawSchema = new JSONObject(new JSONTokener(schemaStream));
-    schemaValidator = SchemaLoader.load(rawSchema);
   }
 
   @Test
@@ -120,7 +123,7 @@ class SarifBuilderTest {
   void testAddResultWithoutLocation() {
     SarifBuilder builder = new SarifBuilder();
     builder
-        .addRun("tool", "infoUri")
+        .addRun("tool", "https://sometest.com")
         .addResultWithoutLocation("RULE_X", ResultLevel.NOTE, "Note: <something_important>");
     Sarif sarif = builder.build();
     Run run = sarif.runs.get(0);
@@ -151,10 +154,19 @@ class SarifBuilderTest {
             || run.getResults().get(0).getLocations().isEmpty());
   }
 
-  private void validateSchema(Sarif sarif) throws ValidationException, FileNotFoundException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    String jsonStr = objectMapper.writeValueAsStringUnchecked(sarif);
-    JSONObject jsonData = new JSONObject(new JSONTokener(jsonStr));
-    schemaValidator.validate(jsonData);
+  private void validateSchema(Sarif sarif) {
+    try {
+      ObjectMapper mojitoMapper = new ObjectMapper();
+      String jsonStr = mojitoMapper.writeValueAsStringUnchecked(sarif);
+      JsonNode jsonNode = JACKSON_MAPPER.readTree(jsonStr);
+      Set<ValidationMessage> errors = SCHEMA_VALIDATOR.validate(jsonNode);
+      if (!errors.isEmpty()) {
+        fail(
+            "JSON Schema validation failed:\n"
+                + String.join("\n", errors.stream().map(Object::toString).toList()));
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Error validating SARIF schema", e);
+    }
   }
 }
