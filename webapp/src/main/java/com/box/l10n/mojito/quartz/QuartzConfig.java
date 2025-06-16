@@ -45,9 +45,9 @@ public class QuartzConfig {
    */
   @PostConstruct
   void startSchedulers() throws SchedulerException {
-    removeOutdatedJobs();
     int delay = 2;
     if (schedulerEnabled) {
+      removeOutdatedJobs();
       for (Scheduler scheduler : schedulerManager.getSchedulers()) {
         logger.info("Starting scheduler: {}", scheduler.getSchedulerName());
         scheduler.startDelayed(delay);
