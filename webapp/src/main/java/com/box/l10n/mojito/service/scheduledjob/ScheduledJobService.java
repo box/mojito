@@ -37,30 +37,30 @@ public class ScheduledJobService {
 
   public ScheduledJob createJob(ScheduledJobDTO scheduledJobDTO)
       throws ScheduledJobException, SchedulerException, ClassNotFoundException {
-    ScheduledJob scheduledJob = getScheduledJobFromDTO(scheduledJobDTO);
-    if (scheduledJob.getRepository() == null) {
+    ScheduledJob scheduledJob = new ScheduledJob();
+
+    if (scheduledJobDTO.getRepository() == null) {
       throw new ScheduledJobException("Valid repository must be provided to create a job");
     }
-    if (scheduledJob.getCron() == null || scheduledJob.getCron().isEmpty()) {
+    if (scheduledJobDTO.getCron() == null || scheduledJobDTO.getCron().isBlank()) {
       throw new ScheduledJobException("Cron expression must be provided to create a job");
     }
-    if (scheduledJob.getUuid() == null) {
-      scheduledJob.setUuid(UUID.randomUUID().toString());
+    if (scheduledJobDTO.getPropertiesString() == null
+        || scheduledJobDTO.getPropertiesString().isBlank()) {
+      throw new ScheduledJobException("Properties must be provided to create a job");
     }
+    //    scheduledJobDTO.validateCronExpression();
+    scheduledJobDTO.deserializeProperties();
+
+    scheduledJob.setUuid(
+        scheduledJobDTO.getId() != null ? scheduledJobDTO.getId() : UUID.randomUUID().toString());
+    scheduledJob.setRepository(resolveRepositoryFromDTO(scheduledJobDTO));
+    scheduledJob.setCron(scheduledJobDTO.getCron());
+    scheduledJob.setPropertiesString(scheduledJobDTO.getPropertiesString());
+    scheduledJob.setJobType(resolveJobTypeFromDTO(scheduledJobDTO));
     scheduledJob.setJobStatus(
         scheduledJobStatusRepository.findByEnum(
             com.box.l10n.mojito.service.scheduledjob.ScheduledJobStatus.SCHEDULED));
-    if (scheduledJob.getJobType() != null && scheduledJob.getJobType().getId() != null) {
-      scheduledJob.setJobType(
-          scheduledJobTypeRepository
-              .findById(scheduledJob.getJobType().getId())
-              .orElseThrow(
-                  () ->
-                      new ScheduledJobException(
-                          "Job type not found with id: " + scheduledJob.getJobType().getId())));
-    } else {
-      throw new ScheduledJobException("Job type must be provided to create a job");
-    }
 
     scheduledJobRepository.save(scheduledJob);
     scheduledJobManager.scheduleJob(scheduledJob);
@@ -79,27 +79,17 @@ public class ScheduledJobService {
             .findByUuid(uuid)
             .orElseThrow(() -> new ScheduledJobException("Job not found with id: " + uuid));
 
-    ScheduledJob scheduledJob = getScheduledJobFromDTO(scheduledJobDTO);
-    if (scheduledJob.getRepository() != null) {
-      updatedJob.setRepository(scheduledJob.getRepository());
+    if (scheduledJobDTO.getRepository() != null) {
+      updatedJob.setRepository(resolveRepositoryFromDTO(scheduledJobDTO));
     }
-    if (scheduledJob.getCron() != null) {
-      updatedJob.setCron(scheduledJob.getCron());
+    if (scheduledJobDTO.getType() != null) {
+      updatedJob.setJobType(resolveJobTypeFromDTO(scheduledJobDTO));
     }
-    if (scheduledJob.getJobStatus() != null) {
-      updatedJob.setJobStatus(scheduledJob.getJobStatus());
+    if (scheduledJobDTO.getCron() != null) {
+      updatedJob.setCron(scheduledJobDTO.getCron());
     }
-    if (scheduledJob.getJobType() != null && scheduledJob.getJobType().getId() != null) {
-      updatedJob.setJobType(
-          scheduledJobTypeRepository
-              .findById(scheduledJob.getJobType().getId())
-              .orElseThrow(
-                  () ->
-                      new ScheduledJobException(
-                          "Job type not found with id: " + scheduledJob.getJobType().getId())));
-    }
-    if (scheduledJob.getPropertiesString() != null) {
-      updatedJob.setPropertiesString(scheduledJob.getPropertiesString());
+    if (scheduledJobDTO.getPropertiesString() != null) {
+      updatedJob.setPropertiesString(scheduledJobDTO.getPropertiesString());
       updatedJob.deserializeProperties();
     }
 
@@ -136,15 +126,5 @@ public class ScheduledJobService {
       throw new ScheduledJobException("Job type not found: " + scheduledJobDTO.getType());
     }
     return jobType;
-  }
-
-  private ScheduledJob getScheduledJobFromDTO(ScheduledJobDTO scheduledJobDTO) {
-    ScheduledJob scheduledJob = new ScheduledJob();
-    scheduledJob.setUuid(scheduledJobDTO.getId());
-    scheduledJob.setCron(scheduledJobDTO.getCron());
-    scheduledJob.setRepository(resolveRepositoryFromDTO(scheduledJobDTO));
-    scheduledJob.setJobType(resolveJobTypeFromDTO(scheduledJobDTO));
-    scheduledJob.setPropertiesString(scheduledJobDTO.getPropertiesString());
-    return scheduledJob;
   }
 }

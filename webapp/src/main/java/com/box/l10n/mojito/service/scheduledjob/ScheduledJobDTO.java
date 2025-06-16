@@ -108,7 +108,6 @@ public class ScheduledJobDTO {
 
   public void setPropertiesString(String propertiesString) {
     this.propertiesString = propertiesString;
-    this.deserializeProperties();
   }
 
   public ScheduledJobStatus getStatus() {

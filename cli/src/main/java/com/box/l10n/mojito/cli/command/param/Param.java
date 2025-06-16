@@ -230,4 +230,32 @@ public class Param {
   public static final String MAX_STRINGS_REMOVED_BLOCK_SHORT = "-msrb";
   public static final String MAX_STRINGS_REMOVED_BLOCK_DESCRIPTION =
       "The maximum number of strings to be removed.";
+
+  public static final String CRON_LONG = "--cron";
+  public static final String CRON_SHORT = "-c";
+  public static final String CRON_DESCRIPTION =
+      "Cron expression for the job. It should be in the format of '* * * * *'. e.g. '0 0 * * *' for every day at midnight. ";
+
+  public static final String JOB_TYPE_LONG = "--job-type";
+  public static final String JOB_TYPE_SHORT = "-jt";
+  public static final String JOB_TYPE_DESCRIPTION =
+      "Type of the job to be created. One of 'THIRD_PARTY_SYNC', 'EVOLVE_SYNC";
+
+  public static final String PROPERTIES_STRING_LONG = "--properties-string";
+  public static final String PROPERTIES_STRING_SHORT = "-ps";
+  public static final String PROPERTIES_STRING_DESCRIPTION =
+      "String containing properties for the job in JSON format. "
+          + "Example: "
+          + "'{\"version\": 1, "
+          + "\"thirdPartyProjectId\":\"xxxxxx\","
+          + " \"actions\":[\"PULL\", \"PUSH\"]}, "
+          + "\"pluralSeparator\":\"|\", "
+          + "\"localeMapping\": \"en:en-US, fr:fr-FR\", "
+          + "\"skipTextUnitsWithPattern\": \"^skip.*\", "
+          + "\"skipAssetsWithPathPattern\": \"^skip/.*\", "
+          + "\"includeTextUnitsWithPattern\": \"^include.*\"}'";
+
+  public static final String JOB_UUID_LONG = "--job-uuid";
+  public static final String JOB_UUID_SHORT = "-ju";
+  public static final String JOB_UUID_DESCRIPTION = "UUID of the job to be updated or deleted";
 }

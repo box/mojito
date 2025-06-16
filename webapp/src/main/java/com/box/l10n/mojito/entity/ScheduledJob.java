@@ -12,8 +12,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import java.text.ParseException;
 import java.time.ZonedDateTime;
 import org.hibernate.envers.Audited;
+import org.quartz.CronExpression;
 
 @Audited
 @Entity
@@ -101,6 +103,14 @@ public class ScheduledJob extends BaseEntity {
   }
 
   public void setCron(String cron) {
+    if (cron == null || cron.isBlank()) {
+      throw new ScheduledJobException("Cron expression cannot be null or blank");
+    }
+    try {
+      new CronExpression(cron);
+    } catch (ParseException e) {
+      throw new ScheduledJobException("Invalid cron expression: " + cron, e);
+    }
     this.cron = cron;
   }
 

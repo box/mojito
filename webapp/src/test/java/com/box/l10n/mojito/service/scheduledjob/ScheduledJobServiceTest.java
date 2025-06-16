@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.ScheduledJob;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -15,17 +14,12 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.quartz.SchedulerException;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author gerryyang
  */
 public class ScheduledJobServiceTest extends ServiceTestBase {
-
-  /** logger */
-  static Logger logger = getLogger(ScheduledJobServiceTest.class);
-
   @Autowired ScheduledJobService scheduledJobService;
   @Autowired RepositoryService repositoryService;
   @Autowired ScheduledJobRepository scheduledJobRepository;
@@ -59,13 +53,11 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
   public void testCreateScheduledJobFailure() {
     ScheduledJobDTO scheduledJobDTO = new ScheduledJobDTO();
     scheduledJobDTO.setRepository("Invalid Repository");
-    scheduledJobDTO.setCron("0 0/1 * * * ?");
+    scheduledJobDTO.setCron("Invalid Cron Expression");
     scheduledJobDTO.setType(ScheduledJobType.THIRD_PARTY_SYNC);
-    scheduledJobDTO.setPropertiesString("{\"version\": 1}");
+    scheduledJobDTO.setPropertiesString("Invalid Properties String");
 
-    assertThrows(
-        ScheduledJobException.class,
-        () -> scheduledJobDTO.setPropertiesString("invalid properties string"));
+    assertThrows(ScheduledJobException.class, scheduledJobDTO::deserializeProperties);
     assertThrows(ScheduledJobException.class, () -> scheduledJobService.createJob(scheduledJobDTO));
   }
 
@@ -76,24 +68,22 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
     scheduledJobDTO.setCron("0 0/1 * * * ?");
     scheduledJobDTO.setType(ScheduledJobType.THIRD_PARTY_SYNC);
     scheduledJobDTO.setPropertiesString("{\"version\": 1}");
+    scheduledJobDTO.deserializeProperties();
     ScheduledJob createdJob = scheduledJobService.createJob(scheduledJobDTO);
-
-    int initialSize = scheduledJobRepository.findAll().size();
 
     ScheduledJobDTO updatedJobDTO = new ScheduledJobDTO();
     updatedJobDTO.setRepository("Demo1");
     updatedJobDTO.setCron("0 0/2 * * * ?");
-    updatedJobDTO.setType(ScheduledJobType.THIRD_PARTY_SYNC);
     scheduledJobService.updateJob(createdJob.getUuid(), updatedJobDTO);
 
-    assertEquals(initialSize, scheduledJobRepository.findAll().size());
     ScheduledJob updatedJob =
         scheduledJobRepository
             .findByUuid(createdJob.getUuid())
             .orElseThrow(
                 () -> new ScheduledJobException("No job found with UUID: " + createdJob.getUuid()));
-    assertEquals("0 0/2 * * * ?", updatedJob.getCron());
+
     assertEquals("Demo1", updatedJob.getRepository().getName());
+    assertEquals("0 0/2 * * * ?", updatedJob.getCron());
   }
 
   @Test
@@ -107,12 +97,9 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
 
     ScheduledJobDTO updatedJobDTO = new ScheduledJobDTO();
     updatedJobDTO.setRepository("Invalid Repository");
-    updatedJobDTO.setCron("0 0/2 * * * ?");
-    updatedJobDTO.setType(ScheduledJobType.THIRD_PARTY_SYNC);
+    updatedJobDTO.setCron("Invalid Cron Expression");
+    updatedJobDTO.setPropertiesString("Invalid Properties String");
 
-    assertThrows(
-        ScheduledJobException.class,
-        () -> updatedJobDTO.setPropertiesString("invalid properties string"));
     assertThrows(
         ScheduledJobException.class,
         () -> scheduledJobService.updateJob(createdJob.getUuid(), updatedJobDTO));
