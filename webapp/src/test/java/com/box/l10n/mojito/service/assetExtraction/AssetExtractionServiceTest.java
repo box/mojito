@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author aloison
@@ -118,23 +117,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     return getAssetTextUnitsWithUsages(processedAsset);
   }
 
-  /**
-   * Fetches data from proxy and keeps session open for all tests
-   *
-   * @param processedAsset asset that has previously been processed
-   * @return A list of AssetTextUnits with usages that have been extracted from the processedAsset
-   */
-  @Transactional
   List<AssetTextUnit> getAssetTextUnitsWithUsages(Asset processedAsset) {
-
-    List<AssetTextUnit> assetTextUnits =
-        assetTextUnitRepository.findByAssetExtraction(
-            processedAsset.getLastSuccessfulAssetExtraction());
-    for (AssetTextUnit assetTextUnit : assetTextUnits) {
-      // fetch data from proxy
-      assetTextUnit.getUsages().isEmpty();
-    }
-    return assetTextUnits;
+    return assetTextUnitRepository.findByAssetExtraction(
+        processedAsset.getLastSuccessfulAssetExtraction());
   }
 
   @Test
@@ -1332,6 +1317,44 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     assertEquals(
         "https://localhost/courses/5e3ba03de570e038805a15fa/preview?navigateTo=5e3ba03de570e038805a15fa&modelType=course",
         assetTextUnits.get(3).getComment());
+  }
+
+  @Test
+  public void testFormatJSFilePositionUsage() throws Exception {
+
+    List<String> filterOptions =
+        Arrays.asList(
+            "extractAllPairs=false",
+            "exceptions=defaultMessage",
+            "removeKeySuffix=/defaultMessage",
+            "noteKeyPattern=description",
+            "filePositionPathKeyPattern=file",
+            "filePositionLineKeyPattern=line",
+            "filePositionColKeyPattern=col");
+
+    String content =
+        "{\n"
+            + "  \"+2WHuv\": {\n"
+            + "    \"file\": \"src/components/my-component.tsx\",\n"
+            + "    \"line\": 42,\n"
+            + "    \"col\": 17,\n"
+            + "    \"defaultMessage\": \"Hello {name}\",\n"
+            + "    \"description\": \"Greeting for the user\"\n"
+            + "  }\n"
+            + "}\n";
+
+    List<AssetTextUnit> assetTextUnits =
+        getAssetTextUnits(content, "formatjs.json", null, null, filterOptions);
+
+    assertEquals("Should extract one text unit", 1, assetTextUnits.size());
+
+    AssetTextUnit tu = assetTextUnits.get(0);
+    assertEquals("+2WHuv", tu.getName());
+    assertEquals("Hello {name}", tu.getContent());
+    assertNotNull("Usage annotation should exist", tu.getUsages());
+    assertTrue(
+        "Should contain expected file position usage",
+        tu.getUsages().contains("src/components/my-component.tsx:42:17"));
   }
 
   @Test

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface AssetTextUnitRepository
     extends JpaRepository<AssetTextUnit, Long>, JpaSpecificationExecutor<AssetTextUnit> {
 
+  @EntityGraph(value = "AssetTextUnit.legacy", type = EntityGraphType.FETCH)
   List<AssetTextUnit> findByAssetExtraction(AssetExtraction assetExtraction);
 
   @EntityGraph(value = "AssetTextUnit.legacy", type = EntityGraphType.FETCH)
