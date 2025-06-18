@@ -4,6 +4,7 @@ import com.box.l10n.mojito.json.JsonObjectRemoverByValue;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation.OutputDocumentPostProcessorBase;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,22 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
   Pattern usagesKeyPattern = null;
 
   /**
+   * This is for FormatJS like location/usage information in its the latest variant. There is a
+   * single usage saved in the JSON, even if there are multiple call sites, and it provides: file,
+   * line, column. Those are saved flatten with different keys. So we need to keep track of those
+   * and re-build the usage at the end of the text unit processing
+   *
+   * <p>FormatJS example "+2WHuv": { "col": 17, "defaultMessage": "{name} ({ticker})",
+   * "description": "Asset name and label", "end": 3235, "file":
+   * "src/components/formatted-text/contentReferences/finance/finance-header.tsx", "line": 98,
+   * "start": 3026 },
+   */
+  Pattern filePositionPathKeyPattern = null;
+
+  Pattern filePositionLineKeyPattern = null;
+  Pattern filePositionColKeyPattern = null;
+
+  /**
    * To keep the usage until a new one is found. When false it will reset the usages when the text
    * unit/object end is reached.
    */
@@ -65,6 +82,10 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
   UsagesAnnotation usagesAnnotation;
   String currentKeyName;
   String comment = null;
+
+  String filePositionPath = null;
+  Integer filePositionLine = null;
+  Integer filePositionCol = null;
 
   @Override
   public String getName() {
@@ -130,6 +151,12 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
       // mojito options
       filterOptions.getString("noteKeyPattern", s -> noteKeyPattern = Pattern.compile(s));
       filterOptions.getString("usagesKeyPattern", s -> usagesKeyPattern = Pattern.compile(s));
+      filterOptions.getString(
+          "filePositionPathKeyPattern", s -> filePositionPathKeyPattern = Pattern.compile(s));
+      filterOptions.getString(
+          "filePositionLineKeyPattern", s -> filePositionLineKeyPattern = Pattern.compile(s));
+      filterOptions.getString(
+          "filePositionColKeyPattern", s -> filePositionColKeyPattern = Pattern.compile(s));
       filterOptions.getBoolean("noteKeepOrReplace", b -> noteKeepOrReplace = b);
       filterOptions.getBoolean("usagesKeepOrReplace", b -> usagesKeepOrReplace = b);
       filterOptions.getString("removeKeySuffix", s -> removeKeySuffix = s);
@@ -172,6 +199,9 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
   public void handleValue(String value, JsonValueTypes valueType) {
     extractNoteIfMatch(value);
     extractUsageIfMatch(value);
+    extractFilePositionPathIfMatch(value);
+    extractFilePositionLineIfMatch(value);
+    extractFilePositionColIfMatch(value);
     super.handleValue(value, valueType);
     processComment();
   }
@@ -188,6 +218,39 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         }
 
         usagesAnnotation.getUsages().add(value);
+      }
+    }
+  }
+
+  void extractFilePositionPathIfMatch(String value) {
+    if (filePositionPathKeyPattern != null) {
+      Matcher m = filePositionPathKeyPattern.matcher(currentKeyName);
+
+      if (m.matches()) {
+        logger.debug("key matches filePositionPathKeyPattern, add the value as usage");
+        filePositionPath = value;
+      }
+    }
+  }
+
+  void extractFilePositionLineIfMatch(String value) {
+    if (filePositionLineKeyPattern != null) {
+      Matcher m = filePositionLineKeyPattern.matcher(currentKeyName);
+
+      if (m.matches()) {
+        logger.debug("key matches filePositionLineKeyPattern, add the value as usage");
+        filePositionLine = Ints.tryParse(value);
+      }
+    }
+  }
+
+  void extractFilePositionColIfMatch(String value) {
+    if (filePositionColKeyPattern != null) {
+      Matcher m = filePositionColKeyPattern.matcher(currentKeyName);
+
+      if (m.matches()) {
+        logger.debug("key matches filePositionColKeyPattern, add the value as usage");
+        filePositionCol = Ints.tryParse(value);
       }
     }
   }
@@ -255,6 +318,12 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
           logger.debug("Set usages on text unit with name: {}", textUnit.getName());
           textUnit.setAnnotation(usagesAnnotation);
         }
+
+        if (filePositionPath != null) {
+          UsagesAnnotation filePositionUsageAnnotation = new UsagesAnnotation(new HashSet<>());
+          filePositionUsageAnnotation.getUsages().add(getFilePosition());
+          textUnit.setAnnotation(filePositionUsageAnnotation);
+        }
       } else {
         logger.debug("Annotation but no text unit. Skip them");
       }
@@ -269,7 +338,28 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
       usagesAnnotation = null;
     }
 
+    resetFilePosition();
+
     super.handleObjectEnd();
+  }
+
+  private void resetFilePosition() {
+    filePositionPath = null;
+    filePositionLine = null;
+    filePositionCol = null;
+  }
+
+  private String getFilePosition() {
+    StringBuilder usage = new StringBuilder(filePositionPath);
+
+    if (filePositionLine != null) {
+      usage.append(":").append(filePositionLine);
+      if (filePositionCol != null) {
+        usage.append(":").append(filePositionCol);
+      }
+    }
+
+    return usage.toString();
   }
 
   private ITextUnit getEventTextUnit() {

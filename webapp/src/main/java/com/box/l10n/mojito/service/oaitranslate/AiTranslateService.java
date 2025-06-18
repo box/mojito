@@ -760,12 +760,11 @@ public class AiTranslateService {
                   atu ->
                       atu.getUsages().stream()
                           .map(
-                              usage ->
-                              {
+                              usage -> {
                                 FilePosition filePosition = FilePosition.from(usage);
                                 return Map.entry(
-                                      filePosition.path(),
-                                      new RelatedString(atu.getContent(), atu.getComment()));
+                                    filePosition.path(),
+                                    new RelatedString(atu.getContent(), atu.getComment()));
                               }))
               .collect(
                   Collectors.groupingBy(
@@ -779,7 +778,6 @@ public class AiTranslateService {
 
       return relatedStrings;
     }
-
 
     List<AssetTextUnit> getAssetTextUnitsOfAssetExtraction(Long assetExtractionId) {
       return cache.computeIfAbsent(
@@ -962,5 +960,4 @@ public class AiTranslateService {
       super(cause);
     }
   }
-
 }
