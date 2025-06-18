@@ -55,6 +55,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
+import com.box.l10n.mojito.utils.FilePosition;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -760,9 +761,12 @@ public class AiTranslateService {
                       atu.getUsages().stream()
                           .map(
                               usage ->
-                                  Map.entry(
-                                      usage,
-                                      new RelatedString(atu.getContent(), atu.getComment()))))
+                              {
+                                FilePosition filePosition = FilePosition.from(usage);
+                                return Map.entry(
+                                      filePosition.path(),
+                                      new RelatedString(atu.getContent(), atu.getComment()));
+                              }))
               .collect(
                   Collectors.groupingBy(
                       Map.Entry::getKey,
@@ -775,6 +779,7 @@ public class AiTranslateService {
 
       return relatedStrings;
     }
+
 
     List<AssetTextUnit> getAssetTextUnitsOfAssetExtraction(Long assetExtractionId) {
       return cache.computeIfAbsent(
@@ -957,4 +962,5 @@ public class AiTranslateService {
       super(cause);
     }
   }
+
 }
