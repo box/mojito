@@ -49,7 +49,6 @@ public class ScheduledJobService {
         || scheduledJobDTO.getPropertiesString().isBlank()) {
       throw new ScheduledJobException("Properties must be provided to create a job");
     }
-    //    scheduledJobDTO.validateCronExpression();
     scheduledJobDTO.deserializeProperties();
 
     scheduledJob.setUuid(
