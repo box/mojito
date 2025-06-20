@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -722,7 +723,8 @@ public class AiTranslateService {
         List<RelatedString> filteredByCharLimit =
             filterByCharLimit(relatedStrings, CHARACTER_LIMIT);
         logger.debug(
-            "Related strings (count: {}, filtered: {}): {}",
+            "Related strings (type: {}, count: {}, filtered: {}): {}",
+            type,
             relatedStrings.size(),
             filteredByCharLimit.size(),
             relatedStrings);
@@ -751,9 +753,11 @@ public class AiTranslateService {
       return (dot == -1) ? id : id.substring(0, dot);
     }
 
+    record RelatedStringWithPosition(RelatedString relatedString, Long position) {}
+
     static List<RelatedString> getRelatedStringsByUsages(
         List<AssetTextUnit> assetTextUnits, AssetTextUnit assetTextUnit) {
-      Map<String, List<RelatedString>> byUsages =
+      Map<String, List<RelatedStringWithPosition>> byUsages =
           assetTextUnits.stream()
               .filter(atu -> !atu.getId().equals(assetTextUnit.getId()))
               .flatMap(
@@ -764,7 +768,17 @@ public class AiTranslateService {
                                 FilePosition filePosition = FilePosition.from(usage);
                                 return Map.entry(
                                     filePosition.path(),
-                                    new RelatedString(atu.getContent(), atu.getComment()));
+                                    new RelatedStringWithPosition(
+                                        new RelatedString(atu.getContent(), atu.getComment()),
+                                        // in the same file order by line if available, else by
+                                        // atu.id
+                                        // to have at least creation order (not good for later
+                                        // updates which put
+                                        // newer strings at the end regardless the position in the
+                                        // document)
+                                        filePosition.line() == null
+                                            ? atu.getId()
+                                            : filePosition.line()));
                               }))
               .collect(
                   Collectors.groupingBy(
@@ -773,7 +787,13 @@ public class AiTranslateService {
 
       List<RelatedString> relatedStrings =
           assetTextUnit.getUsages().stream()
-              .flatMap(u -> byUsages.getOrDefault(u, List.of()).stream())
+              .flatMap(
+                  u -> {
+                    FilePosition filePosition = FilePosition.from(u);
+                    return byUsages.getOrDefault(filePosition.path(), List.of()).stream()
+                        .sorted(Comparator.comparingLong(RelatedStringWithPosition::position))
+                        .map(RelatedStringWithPosition::relatedString);
+                  })
               .toList();
 
       return relatedStrings;
