@@ -37,7 +37,9 @@ import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportInput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportOutput;
-import com.box.l10n.mojito.service.oaitranslate.AiTranslateService.CompletionInput.ExistingTarget;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionInput;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionInput.ExistingTarget;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionOutput;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.MsgArg;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
@@ -168,7 +170,8 @@ public class AiTranslateService {
       boolean useBatch,
       String useModel,
       String promptSuffix,
-      String relatedStringsType) {}
+      String relatedStringsType,
+      String translateType) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -229,7 +232,9 @@ public class AiTranslateService {
                     rl,
                     aiTranslateInput.sourceTextMaxCountPerLocale(),
                     getModel(aiTranslateInput),
-                    aiTranslateInput.promptSuffix(),
+                    getPrompt(
+                        AiTranslateType.fromString(aiTranslateInput.translateType()).getPrompt(),
+                        aiTranslateInput.promptSuffix()),
                     aiTranslateInput.tmTextUnitIds(),
                     openAIClientPool,
                     RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType())),
@@ -246,7 +251,7 @@ public class AiTranslateService {
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
       String model,
-      String promptSuffix,
+      String prompt,
       List<Long> tmTextUnitIds,
       OpenAIClientPool openAIClientPool,
       RelatedStringsProvider.Type relatedStringsProviderType) {
@@ -276,7 +281,7 @@ public class AiTranslateService {
                             getChatCompletionForTextUnitDTO(
                                     textUnitDTO,
                                     model,
-                                    promptSuffix,
+                                    prompt,
                                     openAIClientPool,
                                     new RelatedStringsProvider(relatedStringsProviderType))
                                 .retryWhen(
@@ -318,11 +323,14 @@ public class AiTranslateService {
                   String completionOutputAsJson =
                       chatCompletionsResponse.choices().getFirst().message().content();
 
-                  CompletionOutput completionOutput =
-                      objectMapper.readValueUnchecked(
-                          completionOutputAsJson, CompletionOutput.class);
+                  AiTranslateType aiTranslateType = AiTranslateType.WITH_REVIEW;
 
-                  textUnitDTO.setTarget(completionOutput.target().content());
+                  Object completionOutput =
+                      objectMapper.readValueUnchecked(
+                          completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
+
+                  aiTranslateType.getTextUnitDTOUpdate().accept(textUnitDTO, completionOutput);
+
                   textUnitDTO.setTargetComment("ai-translate");
                   return textUnitDTO;
                 })
@@ -337,7 +345,7 @@ public class AiTranslateService {
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
       TextUnitDTO textUnitDTO,
       String model,
-      String promptSuffix,
+      String prompt,
       OpenAIClientPool openAIClientPool,
       RelatedStringsProvider relatedStringsProvider) {
 
@@ -353,7 +361,7 @@ public class AiTranslateService {
             relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
     ChatCompletionsRequest chatCompletionsRequest =
-        getChatCompletionsRequest(model, promptSuffix, completionInput);
+        getChatCompletionsRequest(model, prompt, completionInput);
 
     CompletableFuture<ChatCompletionsResponse> futureResult =
         openAIClientPool.submit(
@@ -363,7 +371,7 @@ public class AiTranslateService {
   }
 
   private ChatCompletionsRequest getChatCompletionsRequest(
-      String model, String promptSuffix, CompletionInput completionInput) {
+      String model, String prompt, CompletionInput completionInput) {
     String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(completionInput);
     ObjectNode jsonSchema = createJsonSchema(CompletionOutput.class);
 
@@ -374,7 +382,7 @@ public class AiTranslateService {
             .temperature(getTemperatureForReasoningModels(model))
             .messages(
                 List.of(
-                    systemMessageBuilder().content(getPrompt(promptSuffix)).build(),
+                    systemMessageBuilder().content(prompt).build(),
                     userMessageBuilder().content(inputAsJsonString).build()))
             .responseFormat(
                 new ChatCompletionsRequest.JsonFormat(
@@ -513,14 +521,18 @@ public class AiTranslateService {
                           .message()
                           .content();
 
-                  CompletionOutput completionOutput =
+                  AiTranslateType aiTranslateType = AiTranslateType.WITH_REVIEW;
+
+                  Object completionOutput =
                       objectMapper.readValueUnchecked(
-                          completionOutputAsJson, CompletionOutput.class);
+                          completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
 
                   TextUnitDTO textUnitDTO =
                       tmTextUnitIdToTextUnitDTOs.get(
                           Long.valueOf(chatCompletionResponseBatchFileLine.customId()));
-                  textUnitDTO.setTarget(completionOutput.target().content());
+
+                  aiTranslateType.getTextUnitDTOUpdate().accept(textUnitDTO, completionOutput);
+
                   textUnitDTO.setTargetComment("ai-translate");
                   textUnitDTO.setStatus(TMTextUnitVariant.Status.REVIEW_NEEDED);
                   return textUnitDTO;
@@ -843,97 +855,10 @@ public class AiTranslateService {
         .block();
   }
 
-  record CompletionInput(
-      String locale,
-      String source,
-      String sourceDescription,
-      ExistingTarget existingTarget,
-      List<RelatedString> relatedStrings) {
-    record ExistingTarget(String content, boolean hasBrokenPlaceholders) {}
-  }
-
-  record CompletionOutput(
-      String source,
-      Target target,
-      DescriptionRating descriptionRating,
-      AltTarget altTarget,
-      ExistingTargetRating existingTargetRating,
-      ReviewRequired reviewRequired) {
-    record Target(String content, String explanation, int confidenceLevel) {}
-
-    record AltTarget(String content, String explanation, int confidenceLevel) {}
-
-    record DescriptionRating(String explanation, int score) {}
-
-    record ExistingTargetRating(String explanation, int score) {}
-
-    record ReviewRequired(boolean required, String reason) {}
-  }
-
   record AiTranslateBlobStorage(List<TextUnitDTO> textUnitDTOS) {}
 
-  static final String PROMPT =
-      """
-    Your role is to act as a translator.
-    You are tasked with translating provided source strings while preserving both the tone and the technical structure of the string. This includes protecting any tags, placeholders, or code elements that should not be translated.
-
-    The input will be provided in JSON format with the following fields:
-
-        •	"source": The source text to be translated.
-        •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
-        •	"sourceDescription": A description providing context for the source text.
-        •	"existingTarget" (optional): An existing translation to review. Indicates if it has broken placeholders.
-
-    Instructions:
-
-        •	If the source is colloquial, keep the translation colloquial; if it’s formal, maintain formality in the translation.
-        •	Pay attention to regional variations specified in the "locale" field (e.g., “es” vs. “es-419”, “fr” vs. “fr-CA”, “zh” vs. “zh-Hant”), and ensure the translation length remains similar to the source text.
-
-    Handling Tags and Code:
-
-    Some strings contain code elements such as tags (e.g., {atag}, ICU message format, or HTML tags). You are provided with a inputs of tags that need to be protected. Ensure that:
-
-        •	Tags like {atag} remain untouched.
-        •	In cases of nested content (e.g., <a href={url}>text that needs translation</a>), only translate the inner text while preserving the outer structure.
-        •	Complex structures like ICU message formats should have placeholders or variables left intact (e.g., {count, plural, one {# item} other {# items}}), but translate any inner translatable text.
-        •	If an existing translation is provided and has broken placeholder, make sure to fix them in the new translation.
-
-    Ambiguity and Context:
-
-    After translating, assess the usefulness of the "sourceDescription" field:
-
-        •	Rate its usefulness on a scale of 0 to 2:
-        •	0 – Not helpful at all; irrelevant or misleading.
-        •	1 – Somewhat helpful; provides partial or unclear context but is useful to some extent.
-        •	2 – Very helpful; provides clear and sufficient guidance for the translation.
-
-    If the source is ambiguous—for example, if it could be interpreted as a noun or a verb—you must:
-
-        •	Indicate the ambiguity in your explanation.
-        •	Provide translations for all possible interpretations.
-        •	Set "reviewRequired" to true, and explain the need for review due to the ambiguity.
-
-    You will provide an output in JSON format with the following fields:
-
-        •	"source": The original source text.
-        •	"target": An object containing:
-        •	"content": The best translation.
-        •	"explanation": A brief explanation of your translation choices.
-        •	"confidenceLevel": Your confidence level (0-100%) in the translation.
-        •	"descriptionRating": An object containing:
-        •	"explanation": An explanation of how the "sourceDescription" aided your translation.
-        •	"score": The usefulness score (0-2).
-        •	"altTarget": An object containing:
-        •	"content": An alternative translation, if applicable. Focus on showcasing grammar differences,
-        •	"explanation": Explanation for the alternative translation.
-        •	"confidenceLevel": Your confidence level (0-100%) in the alternative translation.
-        •	"reviewRequired": An object containing:
-        •	"required": true or false, indicating if review is needed.
-        •	"reason": A detailed explanation of why review is or isn’t needed.
-    """;
-
-  static String getPrompt(String promptSuffix) {
-    return promptSuffix == null ? PROMPT : "%s %s".formatted(PROMPT, promptSuffix);
+  static String getPrompt(String prompt, String promptSuffix) {
+    return promptSuffix == null ? prompt : "%s %s".formatted(prompt, promptSuffix);
   }
 
   private Repository getRepository(AiTranslateInput aiTranslateInput) {
