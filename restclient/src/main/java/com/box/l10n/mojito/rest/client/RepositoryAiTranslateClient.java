@@ -45,7 +45,8 @@ public class RepositoryAiTranslateClient extends BaseClient {
       boolean useBatch,
       String useModel,
       String promptSuffix,
-      String relatedStringsType) {}
+      String relatedStringsType,
+      String translateType) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 

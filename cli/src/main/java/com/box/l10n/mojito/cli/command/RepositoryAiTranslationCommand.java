@@ -112,6 +112,12 @@ public class RepositoryAiTranslationCommand extends Command {
               + "ID_PREFIX = same key prefix")
   String relatedStrings = "NONE";
 
+  @Parameter(
+      names = "--translate-type",
+      arity = 1,
+      description = "Type of translation to run: WITH_REVIEW, TARGET_ONLY")
+  String translateType = "WITH_REVIEW";
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -182,7 +188,8 @@ public class RepositoryAiTranslationCommand extends Command {
                   useBatch,
                   useModel,
                   promptSuffix,
-                  relatedStrings));
+                  relatedStrings,
+                  translateType));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();

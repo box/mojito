@@ -33,7 +33,15 @@ public class AiTranslateServiceTest extends ServiceTestBase {
     aiTranslateService
         .aiTranslateAsync(
             new AiTranslateService.AiTranslateInput(
-                tmTestData.repository.getName(), null, 100, null, true, null, null, null))
+                tmTestData.repository.getName(),
+                null,
+                100,
+                null,
+                true,
+                null,
+                null,
+                null,
+                AiTranslateType.WITH_REVIEW.name()))
         .get();
   }
 
@@ -47,7 +55,15 @@ public class AiTranslateServiceTest extends ServiceTestBase {
     aiTranslateService
         .aiTranslateAsync(
             new AiTranslateService.AiTranslateInput(
-                tmTestData.repository.getName(), null, 100, null, false, null, null, null))
+                tmTestData.repository.getName(),
+                null,
+                100,
+                null,
+                false,
+                null,
+                null,
+                null,
+                AiTranslateType.WITH_REVIEW.name()))
         .get();
   }
 }
