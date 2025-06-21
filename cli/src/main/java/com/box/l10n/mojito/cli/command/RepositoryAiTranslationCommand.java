@@ -156,7 +156,7 @@ public class RepositoryAiTranslationCommand extends Command {
     } else {
       consoleWriter
           .newLine()
-          .a("Ai review repository: ")
+          .a("Ai translate repository: ")
           .fg(Color.CYAN)
           .a(repositoryParam)
           .reset()
