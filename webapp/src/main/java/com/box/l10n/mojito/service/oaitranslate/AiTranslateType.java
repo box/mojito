@@ -25,7 +25,7 @@ public enum AiTranslateType {
     • Leave all tags (e.g., {atag}), variables, and code elements untouched.
     • For tags like <a href={url}>text</a>, translate only the inner text, preserving the tag and attributes.
     • For ICU MessageFormat (e.g., {count, plural, one {...} other {...}}), only translate the inner text, never the placeholders.
-    • If "existingTarget" is present and contains broken placeholders, correct them in your translation.
+    • If "existingTarget" is present and contains broken placeholders, fix them in your translation. Also, adjust your translation according to the existing target comment.
 
     **Input:**
     JSON with these fields:
@@ -53,7 +53,7 @@ public enum AiTranslateType {
         •	"source": The source text to be translated.
         •	"locale": The target language locale, following the BCP47 standard (e.g., “fr”, “es-419”).
         •	"sourceDescription": A description providing context for the source text.
-        •	"existingTarget" (optional): An existing translation to review. Indicates if it has broken placeholders.
+        •	"existingTarget" (optional): An existing translation to review. Indicates if it has broken placeholders. Also, adjust your translation according to the existing target comment.
         •	"relatedStrings": A list of strings related to the source, providing additional context. For example, when translating an email, this may include preceding and following sentences. Use this context to improve the accuracy and naturalness of each individual translation.
 
     Instructions:
@@ -119,7 +119,7 @@ public enum AiTranslateType {
     - "locale": The target language (e.g., "ja", “fr”).
     - "sourceDescription": Context or intended usage of the text.
     - "relatedStrings": Strings that appear before or after this text, to help you match tone and context.
-    - "existingTarget" (optional): An existing translation to review or improve. If it contains broken placeholders, fix them in your improved translation.
+    - "existingTarget" (optional): An existing translation to review and improve. Fix any broken placeholders and update the translation based on the target comment.
 
     Instructions:
 
@@ -180,7 +180,7 @@ public enum AiTranslateType {
       String sourceDescription,
       ExistingTarget existingTarget,
       List<AiTranslateService.RelatedString> relatedStrings) {
-    record ExistingTarget(String content, boolean hasBrokenPlaceholders) {}
+    record ExistingTarget(String content, String comment, boolean hasBrokenPlaceholders) {}
   }
 
   record CompletionOutput(
