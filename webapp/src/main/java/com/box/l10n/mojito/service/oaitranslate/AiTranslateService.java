@@ -171,7 +171,8 @@ public class AiTranslateService {
       String useModel,
       String promptSuffix,
       String relatedStringsType,
-      String translateType) {}
+      String translateType,
+      String statusFilter) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -237,7 +238,8 @@ public class AiTranslateService {
                         aiTranslateInput.promptSuffix()),
                     aiTranslateInput.tmTextUnitIds(),
                     openAIClientPool,
-                    RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType())),
+                    RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()),
+                    StatusFilter.valueOf(aiTranslateInput.statusFilter())),
             10)
         .then()
         .doOnTerminate(
@@ -254,11 +256,13 @@ public class AiTranslateService {
       String prompt,
       List<Long> tmTextUnitIds,
       OpenAIClientPool openAIClientPool,
-      RelatedStringsProvider.Type relatedStringsProviderType) {
+      RelatedStringsProvider.Type relatedStringsProviderType,
+      StatusFilter statusFilter) {
 
     Repository repository = repositoryLocale.getRepository();
     List<TextUnitDTO> textUnitDTOS =
-        getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
+        getTextUnitDTOS(
+            repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale, statusFilter);
 
     if (textUnitDTOS.isEmpty()) {
       logger.debug(
@@ -426,7 +430,8 @@ public class AiTranslateService {
                   getModel(aiTranslateInput),
                   aiTranslateInput.tmTextUnitIds(),
                   aiTranslateInput.promptSuffix(),
-                  RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()));
+                  RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()),
+                  StatusFilter.valueOf(aiTranslateInput.statusFilter()));
 
           if (createBatchResponse != null) {
             createdBatches.add(createBatchResponse);
@@ -580,10 +585,12 @@ public class AiTranslateService {
       String model,
       List<Long> tmTextUnitIds,
       String promptSuffix,
-      RelatedStringsProvider.Type relatedStringsProviderType) {
+      RelatedStringsProvider.Type relatedStringsProviderType,
+      StatusFilter statusFilter) {
 
     List<TextUnitDTO> textUnitDTOS =
-        getTextUnitDTOS(repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale);
+        getTextUnitDTOS(
+            repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale, statusFilter);
 
     CreateBatchResponse createBatchResponse = null;
     if (textUnitDTOS.isEmpty()) {
@@ -627,7 +634,8 @@ public class AiTranslateService {
       Repository repository,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
-      RepositoryLocale repositoryLocale) {
+      RepositoryLocale repositoryLocale,
+      StatusFilter statusFilter) {
     logger.debug(
         "Get untranslated strings for locale: '{}' in repository: '{}'",
         repositoryLocale.getLocale().getBcp47Tag(),
@@ -635,7 +643,7 @@ public class AiTranslateService {
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
-    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    textUnitSearcherParameters.setStatusFilter(statusFilter);
     textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
     textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
 
