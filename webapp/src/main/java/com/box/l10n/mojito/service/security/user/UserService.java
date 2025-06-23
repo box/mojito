@@ -96,6 +96,15 @@ public class UserService {
     }
   }
 
+  public boolean checkUserHasRole(Role role) {
+    final User currentUser =
+        auditorAwareImpl
+            .getCurrentAuditor()
+            .orElseThrow(() -> new AccessDeniedException("No authenticated user found"));
+    return currentUser.getAuthorities().stream()
+        .anyMatch(authority -> authority.getAuthority().equals(role.name()));
+  }
+
   /**
    * Create a {@link com.box.l10n.mojito.entity.security.user.User}. This does not check if there is
    * already a user with the provided username

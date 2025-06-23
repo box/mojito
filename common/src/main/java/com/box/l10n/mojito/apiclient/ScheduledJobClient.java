@@ -21,4 +21,8 @@ public class ScheduledJobClient {
   public void deleteJob(UUID uuid) {
     scheduledJobWsApi.deleteJob(uuid);
   }
+
+  public void restoreJob(UUID uuid) {
+    scheduledJobWsApi.restoreJob(uuid);
+  }
 }

@@ -207,8 +207,25 @@ public class WebSecurityConfig {
                 . // user management is only allowed for ADMINs and PMs
                 requestMatchers("/api/users/**")
                 .hasAnyRole("PM", "ADMIN")
-                .requestMatchers("/api/jobs/**")
+                . // delete and restore jobs is only allowed for ADMINs
+                requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
+                .hasAnyRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/jobs/*/restore")
+                .hasAnyRole("ADMIN")
+                . // trigger, enable, and disable jobs is only allowed for PMs and ADMINs
+                requestMatchers(HttpMethod.POST, "/api/jobs/*/trigger")
                 .hasAnyRole("PM", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/jobs/*/enable")
+                .hasAnyRole("PM", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/jobs/*/disable")
+                .hasAnyRole("PM", "ADMIN")
+                . // get, create and update jobs is allowed for all users
+                requestMatchers(HttpMethod.GET, "/api/jobs")
+                .authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/jobs/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/api/jobs/**")
+                .authenticated()
                 . // Read-only access is OK for users
                 requestMatchers(HttpMethod.GET, "/api/textunits/**")
                 .authenticated()

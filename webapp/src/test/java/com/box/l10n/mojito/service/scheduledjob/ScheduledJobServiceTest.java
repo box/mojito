@@ -106,7 +106,7 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void testDeleteScheduledJob() throws SchedulerException, ClassNotFoundException {
+  public void testDeleteRestoreScheduledJob() throws SchedulerException, ClassNotFoundException {
     ScheduledJobDTO scheduledJobDTO = new ScheduledJobDTO();
     scheduledJobDTO.setRepository("Demo");
     scheduledJobDTO.setCron("0 0/1 * * * ?");
@@ -116,6 +116,12 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
 
     scheduledJobService.deleteJob(createdJob);
     Optional<ScheduledJob> deletedJob = scheduledJobRepository.findByUuid(createdJob.getUuid());
-    assertFalse(deletedJob.isPresent());
+    assertTrue(deletedJob.isPresent());
+    assertTrue(deletedJob.get().isDeleted());
+
+    scheduledJobService.restoreJob(deletedJob.get());
+    Optional<ScheduledJob> restoredJob = scheduledJobRepository.findByUuid(createdJob.getUuid());
+    assertTrue(restoredJob.isPresent());
+    assertFalse(restoredJob.get().isDeleted());
   }
 }

@@ -1481,6 +1481,21 @@ paths:
           description: OK
       tags:
       - scheduled-job-ws
+  /api/jobs/{id}/restore:
+    patch:
+      operationId: restoreJob
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+      tags:
+      - scheduled-job-ws
   /api/jobs/{id}/trigger:
     post:
       operationId: triggerJob

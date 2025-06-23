@@ -58,6 +58,10 @@ public class ScheduledJob extends BaseEntity {
   @Column(name = "enabled")
   private Boolean enabled = true;
 
+  @Basic(optional = false)
+  @Column(name = "deleted")
+  private Boolean deleted = false;
+
   @PostLoad
   public void deserializeProperties() {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -167,5 +171,13 @@ public class ScheduledJob extends BaseEntity {
 
   public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public Boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(Boolean deleted) {
+    this.deleted = deleted;
   }
 }
