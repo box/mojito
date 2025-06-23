@@ -361,7 +361,9 @@ public class AiTranslateService {
             textUnitDTO.getTarget() == null
                 ? null
                 : new ExistingTarget(
-                    textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()),
+                    textUnitDTO.getTarget(),
+                    getTargetComment(textUnitDTO),
+                    !textUnitDTO.isIncludedInLocalizedFile()),
             relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
     ChatCompletionsRequest chatCompletionsRequest =
@@ -679,7 +681,9 @@ public class AiTranslateService {
                       textUnitDTO.getSource(),
                       textUnitDTO.getComment(),
                       new ExistingTarget(
-                          textUnitDTO.getTarget(), !textUnitDTO.isIncludedInLocalizedFile()),
+                          textUnitDTO.getTarget(),
+                          getTargetComment(textUnitDTO),
+                          !textUnitDTO.isIncludedInLocalizedFile()),
                       relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
               ChatCompletionsRequest chatCompletionsRequest =
@@ -867,6 +871,16 @@ public class AiTranslateService {
 
   static String getPrompt(String prompt, String promptSuffix) {
     return promptSuffix == null ? prompt : "%s %s".formatted(prompt, promptSuffix);
+  }
+
+  static String getTargetComment(TextUnitDTO textUnitDTO) {
+    String targetComment = textUnitDTO.getTargetComment();
+
+    if ("ai-translate".equals(targetComment)) {
+      targetComment = null;
+    }
+
+    return targetComment;
   }
 
   private Repository getRepository(AiTranslateInput aiTranslateInput) {
