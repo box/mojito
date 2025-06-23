@@ -4,6 +4,7 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTestData;
+import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assume;
@@ -41,7 +42,8 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 null,
                 null,
-                AiTranslateType.WITH_REVIEW.name()))
+                AiTranslateType.WITH_REVIEW.name(),
+                StatusFilter.FOR_TRANSLATION.name()))
         .get();
   }
 
@@ -63,7 +65,8 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 null,
                 null,
-                AiTranslateType.WITH_REVIEW.name()))
+                AiTranslateType.WITH_REVIEW.name(),
+                StatusFilter.FOR_TRANSLATION.name()))
         .get();
   }
 }

@@ -118,6 +118,12 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Type of translation to run: WITH_REVIEW, TARGET_ONLY")
   String translateType = "WITH_REVIEW";
 
+  @Parameter(
+      names = "--status-filter",
+      arity = 1,
+      description = "Text unit status filter eg. ALL or FOR_TRANSLATION")
+  String statusFilter = "FOR_TRANSLATION";
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -189,7 +195,8 @@ public class RepositoryAiTranslationCommand extends Command {
                   useModel,
                   promptSuffix,
                   relatedStrings,
-                  translateType));
+                  translateType,
+                  statusFilter));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
