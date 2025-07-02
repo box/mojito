@@ -1,0 +1,1 @@
+ALTER TABLE scheduled_job_aud MODIFY COLUMN deleted BIT DEFAULT 0;
