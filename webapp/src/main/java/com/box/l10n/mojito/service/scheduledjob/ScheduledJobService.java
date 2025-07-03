@@ -49,14 +49,14 @@ public class ScheduledJobService {
         || scheduledJobDTO.getPropertiesString().isBlank()) {
       throw new ScheduledJobException("Properties must be provided to create a job");
     }
-    scheduledJobDTO.deserializeProperties();
 
     scheduledJob.setUuid(
         scheduledJobDTO.getId() != null ? scheduledJobDTO.getId() : UUID.randomUUID().toString());
     scheduledJob.setRepository(resolveRepositoryFromDTO(scheduledJobDTO));
     scheduledJob.setCron(scheduledJobDTO.getCron());
-    scheduledJob.setPropertiesString(scheduledJobDTO.getPropertiesString());
     scheduledJob.setJobType(resolveJobTypeFromDTO(scheduledJobDTO));
+    scheduledJob.setPropertiesString(scheduledJobDTO.getPropertiesString());
+    scheduledJob.deserializeProperties();
     scheduledJob.setJobStatus(
         scheduledJobStatusRepository.findByEnum(
             com.box.l10n.mojito.service.scheduledjob.ScheduledJobStatus.SCHEDULED));

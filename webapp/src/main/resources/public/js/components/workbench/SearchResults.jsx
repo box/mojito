@@ -332,7 +332,6 @@ let SearchResults = createReactClass({
         let selectedTextUnits = SearchResultsStore.getSelectedTextUnits();
 
         for (let selectedTextUnit of selectedTextUnits) {
-            console.log(selectedTextUnit);
             let clonedTextUnit = TextUnitSDK.toTextUnit(_.clone(selectedTextUnit.data));
             clonedTextUnit.setDoNotTranslate(!translate);
             WorkbenchActions.saveVirtualAssetTextUnit(clonedTextUnit);

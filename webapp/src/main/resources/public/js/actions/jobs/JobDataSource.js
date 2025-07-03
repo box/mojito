@@ -2,6 +2,37 @@ import JobClient from "../../sdk/JobClient";
 import JobActions from "./JobActions";
 
 const JobDataSource = {
+    createJob: {
+        remote(state, job) {
+            return JobClient.createJob(job);
+        },
+
+        success: JobActions.createJobSuccess,
+        error: JobActions.createJobError
+    },
+    updateJob: {
+        remote(state, job) {
+            return JobClient.updateJob(job);
+        },
+
+        success: JobActions.updateJobSuccess,
+        error: JobActions.updateJobError
+    },
+    deleteJob: {
+        remote(state, job) {
+            return JobClient.deleteJob(job);
+        },
+
+        success: JobActions.deleteJobSuccess,
+        error: JobActions.deleteJobError
+    },
+    restoreJob: {
+        remote(state, job) {
+            return JobClient.restoreJob(job);
+        },
+        success: JobActions.restoreJobSuccess,
+        error: JobActions.restoreJobError
+    },
     getAllJobs: {
         remote() {
             return JobClient.getJobs();

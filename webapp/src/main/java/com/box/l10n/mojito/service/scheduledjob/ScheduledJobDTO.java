@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.scheduledjob;
 
 import com.box.l10n.mojito.entity.ScheduledJob;
-import com.box.l10n.mojito.json.ObjectMapper;
 import java.text.ParseException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -21,6 +20,7 @@ public class ScheduledJobDTO {
   private ZonedDateTime endDate;
   private ZonedDateTime nextStartDate;
   private Boolean enabled;
+  private Boolean deleted;
 
   public ScheduledJobDTO() {}
 
@@ -35,6 +35,7 @@ public class ScheduledJobDTO {
     this.startDate = scheduledJob.getStartDate();
     this.endDate = scheduledJob.getEndDate();
     this.enabled = scheduledJob.isEnabled();
+    this.deleted = scheduledJob.isDeleted();
 
     // Get the next start date using the cron expression
     try {
@@ -45,20 +46,6 @@ public class ScheduledJobDTO {
               nextValidTime.toInstant(), ZoneId.of(ZoneId.systemDefault().getId()));
     } catch (ParseException ignored) {
 
-    }
-  }
-
-  public void deserializeProperties() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    try {
-      this.properties = objectMapper.readValue(propertiesString, type.getPropertiesClass());
-    } catch (Exception e) {
-      throw new ScheduledJobException(
-          "Failed to deserialize properties '"
-              + propertiesString
-              + "' for class: "
-              + type.getPropertiesClass().getName(),
-          e);
     }
   }
 
@@ -152,5 +139,13 @@ public class ScheduledJobDTO {
 
   public Boolean getEnabled() {
     return enabled;
+  }
+
+  public Boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(Boolean deleted) {
+    this.deleted = deleted;
   }
 }

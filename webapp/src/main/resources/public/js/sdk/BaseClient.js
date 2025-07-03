@@ -143,6 +143,10 @@ class BaseClient {
             follow: 0
         }).then(response => {
             this.handleUnauthenticatedResponse(response);
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            }
         });
     }
 

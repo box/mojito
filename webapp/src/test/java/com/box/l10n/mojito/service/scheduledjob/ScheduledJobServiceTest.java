@@ -57,7 +57,6 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
     scheduledJobDTO.setType(ScheduledJobType.THIRD_PARTY_SYNC);
     scheduledJobDTO.setPropertiesString("Invalid Properties String");
 
-    assertThrows(ScheduledJobException.class, scheduledJobDTO::deserializeProperties);
     assertThrows(ScheduledJobException.class, () -> scheduledJobService.createJob(scheduledJobDTO));
   }
 
@@ -68,7 +67,6 @@ public class ScheduledJobServiceTest extends ServiceTestBase {
     scheduledJobDTO.setCron("0 0/1 * * * ?");
     scheduledJobDTO.setType(ScheduledJobType.THIRD_PARTY_SYNC);
     scheduledJobDTO.setPropertiesString("{\"version\": 1}");
-    scheduledJobDTO.deserializeProperties();
     ScheduledJob createdJob = scheduledJobService.createJob(scheduledJobDTO);
 
     ScheduledJobDTO updatedJobDTO = new ScheduledJobDTO();

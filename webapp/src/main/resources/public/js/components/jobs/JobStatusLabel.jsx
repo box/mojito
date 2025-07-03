@@ -22,6 +22,10 @@ const styleConfig = {
     SCHEDULED : {
         "backgroundColor": "rgb(255, 205, 0, 0.25)",
         "color": "#f7ac11"
+    },
+    DELETED : {
+        "backgroundColor": "rgba(255, 0, 0, 0.25)",
+        "color": "#ff0000"
     }
 }
 

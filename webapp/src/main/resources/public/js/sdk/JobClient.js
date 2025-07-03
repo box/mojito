@@ -1,6 +1,21 @@
 import BaseClient from "./BaseClient";
 
 class JobClient extends BaseClient {
+    createJob(job) {
+        return this.post(this.getUrl(), job);
+    }
+
+    updateJob(job) {
+        return this.patch(this.getUrl() + `/${job.id}`, job);
+    }
+
+    deleteJob(job) {
+        return this.delete(this.getUrl() + `/${job.id}`);
+    }
+
+    restoreJob(job) {
+        return this.patch(this.getUrl() + `/${job.id}/restore`);
+    }
 
     getJobs() {
         return this.get(this.getUrl(), {});

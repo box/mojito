@@ -1184,3 +1184,18 @@ label.current-pageNumber {
     word-break: break-word;
     overflow-wrap: anywhere;
 }
+
+.key-value-input-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.flex { 
+    display: flex;
+}
+
+.red {
+    color: red;
+}

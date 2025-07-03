@@ -116,12 +116,11 @@ class Header extends React.Component {
                         }
                     }}><NavItem><FormattedMessage id="header.screenshots"/></NavItem></LinkContainer>
 
-                    { AuthorityService.canViewJobs() &&
                     <LinkContainer to="/jobs">
                         <NavItem>
                             <FormattedMessage id="header.jobs"/>
                         </NavItem>
-                    </LinkContainer> }
+                    </LinkContainer>
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={this.getUsernameDisplay()} id="user-menu">

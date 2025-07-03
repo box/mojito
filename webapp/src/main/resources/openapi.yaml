@@ -4683,6 +4683,8 @@ components:
       properties:
         cron:
           type: string
+        deleted:
+          type: boolean
         enabled:
           type: boolean
         endDate:

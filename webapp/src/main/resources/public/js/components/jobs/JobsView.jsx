@@ -2,7 +2,6 @@ import React from "react";
 import {withAppConfig} from "../../utils/AppConfig";
 import JobStore from "../../stores/jobs/JobStore";
 import JobActions from "../../actions/jobs/JobActions";
-import AuthorityService from "../../utils/AuthorityService";
 import JobThirdPartySyncRow from "./JobThirdPartySyncRow";
 import {JobType} from "../../utils/JobType";
 import PropTypes from "prop-types";
@@ -11,7 +10,8 @@ class JobsView extends React.Component {
     static propTypes = {
         "jobs": PropTypes.array.isRequired,
         "filter": PropTypes.array.isRequired,
-        "jobType": PropTypes.string.isRequired,
+        "jobType": PropTypes.string,
+        "openEditJobModal": PropTypes.func.isRequired
     }
 
     constructor(props) {
@@ -24,13 +24,10 @@ class JobsView extends React.Component {
         // Bind this to the function call to ensure 'this' references the current instance.
         this.jobStoreChange = this.jobStoreChange.bind(this);
 
-        if(AuthorityService.canViewJobs()) {
-            // Only poll if we have access (stops polling for 403 responses)
+        JobActions.getAllJobs();
+        this.interval = setInterval(() => {
             JobActions.getAllJobs();
-            this.interval = setInterval(() => {
-                JobActions.getAllJobs();
-            }, 5000);
-        }
+        }, 5000);
     }
 
     componentDidUpdate(prevProps) {
@@ -60,9 +57,9 @@ class JobsView extends React.Component {
         // Render specific row with correct job information depending on the type.
         switch(job.type) {
             case JobType.THIRD_PARTY_SYNC:
-                return <JobThirdPartySyncRow key={job.id} job={job} />;
+                return <JobThirdPartySyncRow key={job.id} job={job} openEditJobModal={this.props.openEditJobModal} />;
             case JobType.EVOLVE_SYNC:
-                return <JobThirdPartySyncRow key={job.id} job={job} hideThirdPartyLink={true} />;
+                return <JobThirdPartySyncRow key={job.id} job={job} hideThirdPartyLink={true} openEditJobModal={this.props.openEditJobModal} />;
             default:
                 return null;
         }
@@ -72,15 +69,7 @@ class JobsView extends React.Component {
      * @return {XML}
      */
     render() {
-        if (!AuthorityService.canViewJobs()) {
-            return (
-                <div className="ptl">
-                    <h4 className="text-center mtl">You do not have permissions to view Jobs.</h4>
-                </div>
-            )
-        }
-
-        if(this.isDoneInitialLoad && this.state.jobs.length === 0)  {
+        if (this.isDoneInitialLoad && this.state.jobs.length === 0)  {
             return (
                 <div className="ptl">
                     <h4 className="text-center mtl">No jobs have been configured.</h4>

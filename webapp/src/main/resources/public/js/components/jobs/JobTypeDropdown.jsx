@@ -5,6 +5,7 @@ import {DropdownButton, MenuItem} from "react-bootstrap";
 import {JobType} from "../../utils/JobType";
 
 let JobTypeDropDown = createReactClass({
+    displayName: 'JobTypeDropDown',
     getInitialState() {
         return {
             jobType: JobType.THIRD_PARTY_SYNC
@@ -13,6 +14,12 @@ let JobTypeDropDown = createReactClass({
 
     componentDidMount() {
         this.props.onJobTypeChange(this.state.jobType);
+    },
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.jobType !== this.props.jobType) {
+            this.setState({jobType: this.props.jobType});
+        }
     },
 
     onJobTypeChange(jobType) {
@@ -24,8 +31,6 @@ let JobTypeDropDown = createReactClass({
         return jobType.toLowerCase().split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
     },
 
-    displayName: 'JobTypeDropDown',
-
     forceDropdownOpen: false,
 
     /**
@@ -33,17 +38,17 @@ let JobTypeDropDown = createReactClass({
      */
     render() {
         return (
-                <span className="mlm">
-                    <DropdownButton id="JobTypeDropdown" disabled={false} title={this.getJobName(this.state.jobType)}>
-                        {Object.values(JobType).map(jobType => (
-                            <MenuItem eventKey={jobType}
-                                      key={jobType} active={jobType === this.state.jobType}
-                                      onSelect={(selectedJobType, _) => this.onJobTypeChange(selectedJobType)}>
-                                {this.getJobName(jobType)}
-                            </MenuItem>
-                        ))}
-                    </DropdownButton>
-                </span>
+            <div>
+                <DropdownButton id="JobTypeDropdown" disabled={false} title={this.getJobName(this.state.jobType)}>
+                    {Object.values(JobType).map(jobType => (
+                        <MenuItem eventKey={jobType}
+                                    key={jobType} active={jobType === this.state.jobType}
+                                    onSelect={(selectedJobType, _) => this.onJobTypeChange(selectedJobType)}>
+                            {this.getJobName(jobType)}
+                        </MenuItem>
+                    ))}
+                </DropdownButton>
+            </div>
         );
 
     },

@@ -14,7 +14,7 @@ class AuthorityService {
         const level=[];
 
         switch (componentName) {
-            case "view-jobs":
+            case "trigger-enable-disable-jobs":
             case "edit-screenshots":
             case "project-requests":
             case "user-management":
@@ -22,6 +22,9 @@ class AuthorityService {
                 break;
             case "edit-translations":
                 level.push(translator, admin, pm);
+                break;
+            case "delete-restore-jobs":
+                level.push(admin);
                 break;
         }
 
@@ -44,8 +47,12 @@ class AuthorityService {
         return this.userHasPermission("edit-screenshots");
     }
 
-    static canViewJobs() {
-        return this.userHasPermission("view-jobs");
+    static canTriggerEnableDisableJobs() {
+        return this.userHasPermission("trigger-enable-disable-jobs");
+    }
+
+    static canDeleteRestoreJobs() {
+        return this.userHasPermission("delete-restore-jobs");
     }
 }
 
