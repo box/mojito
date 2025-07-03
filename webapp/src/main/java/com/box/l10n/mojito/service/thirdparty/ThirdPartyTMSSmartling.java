@@ -34,6 +34,7 @@ import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
+import com.box.l10n.mojito.smartling.response.ContentFileStringInstruction;
 import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.google.common.collect.ImmutableList;
@@ -353,6 +354,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                         thirdPartyTextUnit.setName(key.getTextUnitName());
                         thirdPartyTextUnit.setNamePluralPrefix(isPluralFile(file.getFileUri()));
                         thirdPartyTextUnit.setUploadedFileUri(file.getFileUri());
+                        thirdPartyTextUnit.setSource(stringInfo.getParsedStringText());
+                        thirdPartyTextUnit.setComment(
+                            stringInfo.getContentFileStringInstructions().stream()
+                                .reduce((first, second) -> second)
+                                .map(ContentFileStringInstruction::getContentFileStringInstruction)
+                                .orElse(null));
 
                         return thirdPartyTextUnit;
                       });

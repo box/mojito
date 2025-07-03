@@ -31,6 +31,8 @@ public class StringInfo {
 
   Integer maxLength;
 
+  private List<ContentFileStringInstruction> contentFileStringInstructions;
+
   public String getHashcode() {
     return hashcode;
   }
@@ -77,5 +79,14 @@ public class StringInfo {
 
   public void setMaxLength(Integer maxLength) {
     this.maxLength = maxLength;
+  }
+
+  public List<ContentFileStringInstruction> getContentFileStringInstructions() {
+    return contentFileStringInstructions;
+  }
+
+  public void setContentFileStringInstructions(
+      List<ContentFileStringInstruction> contentFileStringInstructions) {
+    this.contentFileStringInstructions = contentFileStringInstructions;
   }
 }

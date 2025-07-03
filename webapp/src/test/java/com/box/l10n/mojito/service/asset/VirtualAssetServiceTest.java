@@ -441,19 +441,19 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     virtualAssetTextUnit = new VirtualAssetTextUnit();
     virtualAssetTextUnit.setName("name1");
     virtualAssetTextUnit.setContent("content1-fr");
-    virtualAssetTextUnit.setComment("comment1-fr");
+    virtualAssetTextUnit.setComment("comment1");
     localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
 
     virtualAssetTextUnit = new VirtualAssetTextUnit();
     virtualAssetTextUnit.setName("name2");
     virtualAssetTextUnit.setContent("content2-fr");
-    virtualAssetTextUnit.setComment("comment2-fr");
+    virtualAssetTextUnit.setComment("comment2");
     localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
 
     virtualAssetTextUnit = new VirtualAssetTextUnit();
     virtualAssetTextUnit.setName("name3_other");
     virtualAssetTextUnit.setContent("content3-fr");
-    virtualAssetTextUnit.setComment("comment3-fr");
+    virtualAssetTextUnit.setComment("comment3");
     virtualAssetTextUnit.setPluralForm("other");
     virtualAssetTextUnit.setPluralFormOther("name3_other");
     localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
@@ -532,13 +532,13 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     virtualAssetTextUnit = new VirtualAssetTextUnit();
     virtualAssetTextUnit.setName("name2");
     virtualAssetTextUnit.setContent("content2-fr");
-    virtualAssetTextUnit.setComment("comment2-fr");
+    virtualAssetTextUnit.setComment("comment2");
     localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
 
     virtualAssetTextUnit = new VirtualAssetTextUnit();
     virtualAssetTextUnit.setName("name3_other");
     virtualAssetTextUnit.setContent("content3-fr");
-    virtualAssetTextUnit.setComment("comment3-fr");
+    virtualAssetTextUnit.setComment("comment3");
     virtualAssetTextUnit.setPluralForm("other");
     virtualAssetTextUnit.setPluralFormOther("name3_other");
     localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);

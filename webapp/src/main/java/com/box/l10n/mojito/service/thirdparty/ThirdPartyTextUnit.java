@@ -32,6 +32,10 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
 
   String uploadedFileUri;
 
+  String comment;
+
+  String source;
+
   public String getId() {
     return id;
   }
@@ -89,5 +93,22 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
 
   public void setUploadedFileUri(String uploadedFileUri) {
     this.uploadedFileUri = uploadedFileUri;
+  }
+
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
+
+  @Override
+  public String getSource() {
+    return source;
+  }
+
+  public void setSource(String source) {
+    this.source = source;
   }
 }

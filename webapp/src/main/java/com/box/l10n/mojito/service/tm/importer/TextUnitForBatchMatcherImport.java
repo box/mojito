@@ -20,6 +20,7 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
   Locale locale;
   String content;
   String name;
+  String source;
   String comment;
   Long tmTextUnitId;
   TextUnitDTO currentTextUnit;
@@ -68,6 +69,15 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  @Override
+  public String getSource() {
+    return source;
+  }
+
+  public void setSource(String source) {
+    this.source = source;
   }
 
   public String getComment() {

@@ -7,4 +7,8 @@ public interface TextUnitForBatchMatcher {
   Long getTmTextUnitId();
 
   boolean isNamePluralPrefix();
+
+  String getSource();
+
+  String getComment();
 }
