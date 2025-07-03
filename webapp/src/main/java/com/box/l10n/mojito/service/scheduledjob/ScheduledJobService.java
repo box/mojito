@@ -42,6 +42,16 @@ public class ScheduledJobService {
     if (scheduledJobDTO.getRepository() == null) {
       throw new ScheduledJobException("Valid repository must be provided to create a job");
     }
+    if (scheduledJobRepository
+        .findByRepositoryNameAndJobType(
+            scheduledJobDTO.getRepository(), resolveJobTypeFromDTO(scheduledJobDTO).getEnum())
+        .isPresent()) {
+      throw new ScheduledJobException(
+          "Scheduled job of type "
+              + scheduledJobDTO.getType()
+              + " with repository already exists: "
+              + scheduledJobDTO.getRepository());
+    }
     if (scheduledJobDTO.getCron() == null || scheduledJobDTO.getCron().isBlank()) {
       throw new ScheduledJobException("Cron expression must be provided to create a job");
     }
@@ -79,6 +89,19 @@ public class ScheduledJobService {
             .orElseThrow(() -> new ScheduledJobException("Job not found with id: " + uuid));
 
     if (scheduledJobDTO.getRepository() != null) {
+      // Check if a job with the same type and repository already exists and updated repository is
+      // different from the existing repository on the job
+      if (scheduledJobRepository
+              .findByRepositoryNameAndJobType(
+                  scheduledJobDTO.getRepository(), updatedJob.getJobType().getEnum())
+              .isPresent()
+          && !updatedJob.getRepository().getName().equals(scheduledJobDTO.getRepository())) {
+        throw new ScheduledJobException(
+            "Scheduled job of type "
+                + scheduledJobDTO.getType()
+                + " with repository already exists: "
+                + scheduledJobDTO.getRepository());
+      }
       updatedJob.setRepository(resolveRepositoryFromDTO(scheduledJobDTO));
     }
     if (scheduledJobDTO.getType() != null) {
@@ -108,6 +131,16 @@ public class ScheduledJobService {
 
   public void restoreJob(ScheduledJob scheduledJob)
       throws SchedulerException, ClassNotFoundException {
+    if (scheduledJobRepository
+        .findByRepositoryNameAndJobType(
+            scheduledJob.getRepository().getName(), scheduledJob.getJobType().getEnum())
+        .isPresent()) {
+      throw new ScheduledJobException(
+          "Scheduled job of type "
+              + scheduledJob.getJobType()
+              + " with repository already exists: "
+              + scheduledJob.getRepository().getName());
+    }
     scheduledJob.setDeleted(false);
     scheduledJobRepository.save(scheduledJob);
     scheduledJobManager.scheduleJob(scheduledJob);
