@@ -137,7 +137,7 @@ public class ScheduledJobService {
         .isPresent()) {
       throw new ScheduledJobException(
           "Scheduled job of type "
-              + scheduledJob.getJobType()
+              + scheduledJob.getJobType().getEnum()
               + " with repository already exists: "
               + scheduledJob.getRepository().getName());
     }

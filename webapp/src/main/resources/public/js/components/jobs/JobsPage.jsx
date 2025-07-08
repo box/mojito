@@ -9,6 +9,7 @@ import RepositoryDropDown from "./RepositoryDropDown";
 import { Button } from "react-bootstrap";
 import JobActions from "../../actions/jobs/JobActions";
 import JobInputModal from "./JobInputModal";
+import JobErrorModal from "./JobErrorModal";
 
 let JobsPage = createReactClass({
     displayName: 'JobsPage',
@@ -19,7 +20,8 @@ let JobsPage = createReactClass({
           showScheduledJobInputModal: false,
           editingJob: null,
           isSubmitting: false,
-          errorMessage: null
+          errorMessage: null,
+          showJobErrorModal: false
       };
     },
 
@@ -38,13 +40,22 @@ let JobsPage = createReactClass({
                     this.setState({ isSubmitting: false, errorMessage: data.message });
                 })
             } else {
-                this.setState({ 
-                    showScheduledJobInputModal: false, 
-                    editingJob: null, 
-                    isSubmitting: false, 
-                    errorMessage: null 
+                this.setState({
+                    showScheduledJobInputModal: false,
+                    isSubmitting: false,
+                    editingJob: null,
+                    errorMessage: null
                 });
             }
+        }
+
+        if (!this.state.showJobErrorModal && state.error && state.error.response) {
+            state.error.response.json().then(data => {
+                this.setState({ 
+                    showJobErrorModal: true, 
+                    errorMessage: data.message 
+                });
+            });
         }
     },
 
@@ -95,6 +106,10 @@ let JobsPage = createReactClass({
         this.setState({jobType: jobType})
     },
 
+    onCloseJobErrorModal() {
+        this.setState({ showJobErrorModal: false });
+    },
+
     render: function () {
         const clearLeftFix = {
             clear: 'left',
@@ -126,6 +141,13 @@ let JobsPage = createReactClass({
                 <AltContainer store={JobStore} className="mtl mbl" >
                     <JobsView jobType={this.state.jobType} openEditJobModal={this.openEditJobModal} />
                 </AltContainer>
+
+                <JobErrorModal
+                    title="Error Restoring Job"
+                    showModal={this.state.showJobErrorModal}
+                    onErrorModalClosed={this.onCloseJobErrorModal}
+                    errorMessage={this.state.errorMessage || "An error occurred while processing the job."}
+                />
             </div>
         );
     },

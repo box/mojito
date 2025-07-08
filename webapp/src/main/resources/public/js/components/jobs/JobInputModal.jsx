@@ -70,6 +70,10 @@ const JobInputModal  = createReactClass({
                 this.clearModal();
             }
         }
+
+        if (prevProps.show && !this.props.show) {
+            this.clearModal();
+        }
     },
 
     getScheduledJobInput() {
@@ -125,7 +129,6 @@ const JobInputModal  = createReactClass({
         e.preventDefault();
         const scheduledJobInput = this.getScheduledJobInput();
         this.props.onSubmit(scheduledJobInput);
-        this.setState({ currentStep: 0 });
     },
 
     handleCloseModal() {

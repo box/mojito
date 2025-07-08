@@ -53,6 +53,11 @@ class JobStore {
 
     restoreJobSuccess() {
         this.getAllJobs();
+        this.setError(null);
+    }
+
+    restoreJobError(error) {
+        this.setError(error);
     }
 
     setError(message) {
