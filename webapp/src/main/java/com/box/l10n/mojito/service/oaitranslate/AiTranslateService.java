@@ -39,7 +39,6 @@ import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTr
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportOutput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionInput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionInput.ExistingTarget;
-import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionOutput;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.MsgArg;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
@@ -233,13 +232,12 @@ public class AiTranslateService {
                     rl,
                     aiTranslateInput.sourceTextMaxCountPerLocale(),
                     getModel(aiTranslateInput),
-                    getPrompt(
-                        AiTranslateType.fromString(aiTranslateInput.translateType()).getPrompt(),
-                        aiTranslateInput.promptSuffix()),
+                    aiTranslateInput.promptSuffix(),
                     aiTranslateInput.tmTextUnitIds(),
                     openAIClientPool,
                     RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()),
-                    StatusFilter.valueOf(aiTranslateInput.statusFilter())),
+                    StatusFilter.valueOf(aiTranslateInput.statusFilter()),
+                    AiTranslateType.fromString(aiTranslateInput.translateType())),
             10)
         .then()
         .doOnTerminate(
@@ -253,11 +251,12 @@ public class AiTranslateService {
       RepositoryLocale repositoryLocale,
       int sourceTextMaxCountPerLocale,
       String model,
-      String prompt,
+      String promptPrefix,
       List<Long> tmTextUnitIds,
       OpenAIClientPool openAIClientPool,
       RelatedStringsProvider.Type relatedStringsProviderType,
-      StatusFilter statusFilter) {
+      StatusFilter statusFilter,
+      AiTranslateType aiTranslateType) {
 
     Repository repository = repositoryLocale.getRepository();
     List<TextUnitDTO> textUnitDTOS =
@@ -285,9 +284,10 @@ public class AiTranslateService {
                             getChatCompletionForTextUnitDTO(
                                     textUnitDTO,
                                     model,
-                                    prompt,
+                                    getPrompt(aiTranslateType.getPrompt(), promptPrefix),
                                     openAIClientPool,
-                                    new RelatedStringsProvider(relatedStringsProviderType))
+                                    new RelatedStringsProvider(relatedStringsProviderType),
+                                    aiTranslateType)
                                 .retryWhen(
                                     Retry.backoff(5, Duration.ofSeconds(1))
                                         .filter(this::isRetryableException)
@@ -307,14 +307,14 @@ public class AiTranslateService {
                                       return Mono.empty();
                                     }))
                     .collectList()
-                    .flatMap(this::submitForImport)
+                    .flatMap(results -> submitForImport(results, aiTranslateType))
                     .doOnTerminate(() -> logger.info("Done submitting for processing")))
         .then();
   }
 
   record MyRecord(TextUnitDTO textUnitDTO, ChatCompletionsResponse chatCompletionsResponse) {}
 
-  private Mono<Void> submitForImport(List<MyRecord> results) {
+  private Mono<Void> submitForImport(List<MyRecord> results, AiTranslateType aiTranslateType) {
     logger.info("Submit for import for locale {}", results.get(0).textUnitDTO().getTargetLocale());
     List<TextUnitDTO> forImport =
         results.stream()
@@ -327,15 +327,14 @@ public class AiTranslateService {
                   String completionOutputAsJson =
                       chatCompletionsResponse.choices().getFirst().message().content();
 
-                  AiTranslateType aiTranslateType = AiTranslateType.WITH_REVIEW;
-
                   Object completionOutput =
                       objectMapper.readValueUnchecked(
                           completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
 
                   aiTranslateType.getTextUnitDTOUpdate().accept(textUnitDTO, completionOutput);
 
-                  textUnitDTO.setTargetComment("ai-translate");
+                  textUnitDTO.setTargetComment(
+                      "ai-translate"); // TODO(ja) Must update that before scaling use
                   return textUnitDTO;
                 })
             .collect(Collectors.toList());
@@ -351,7 +350,8 @@ public class AiTranslateService {
       String model,
       String prompt,
       OpenAIClientPool openAIClientPool,
-      RelatedStringsProvider relatedStringsProvider) {
+      RelatedStringsProvider relatedStringsProvider,
+      AiTranslateType aiTranslateType) {
 
     CompletionInput completionInput =
         new CompletionInput(
@@ -367,7 +367,7 @@ public class AiTranslateService {
             relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
     ChatCompletionsRequest chatCompletionsRequest =
-        getChatCompletionsRequest(model, prompt, completionInput);
+        getChatCompletionsRequest(model, prompt, completionInput, aiTranslateType);
 
     CompletableFuture<ChatCompletionsResponse> futureResult =
         openAIClientPool.submit(
@@ -377,9 +377,12 @@ public class AiTranslateService {
   }
 
   private ChatCompletionsRequest getChatCompletionsRequest(
-      String model, String prompt, CompletionInput completionInput) {
+      String model,
+      String prompt,
+      CompletionInput completionInput,
+      AiTranslateType aiTranslateType) {
     String inputAsJsonString = objectMapper.writeValueAsStringUnchecked(completionInput);
-    ObjectNode jsonSchema = createJsonSchema(CompletionOutput.class);
+    ObjectNode jsonSchema = createJsonSchema(aiTranslateType.getOutputJsonSchemaClass());
 
     ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
@@ -433,7 +436,8 @@ public class AiTranslateService {
                   aiTranslateInput.tmTextUnitIds(),
                   aiTranslateInput.promptSuffix(),
                   RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()),
-                  StatusFilter.valueOf(aiTranslateInput.statusFilter()));
+                  StatusFilter.valueOf(aiTranslateInput.statusFilter()),
+                  AiTranslateType.fromString(aiTranslateInput.translateType()));
 
           if (createBatchResponse != null) {
             createdBatches.add(createBatchResponse);
@@ -453,7 +457,13 @@ public class AiTranslateService {
       PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
           aiTranslateBatchesImportAsync(
               new AiTranslateBatchesImportInput(
-                  createdBatches, skippedLocales, batchCreationErrors, List.of(), Map.of(), 0),
+                  createdBatches,
+                  skippedLocales,
+                  batchCreationErrors,
+                  List.of(),
+                  Map.of(),
+                  0,
+                  aiTranslateInput.translateType()),
               currentTask);
 
       logger.info(
@@ -478,7 +488,7 @@ public class AiTranslateService {
         .collect(Collectors.toSet());
   }
 
-  void importBatch(RetrieveBatchResponse retrieveBatchResponse) {
+  void importBatch(RetrieveBatchResponse retrieveBatchResponse, AiTranslateType aiTranslateType) {
 
     logger.info("Importing batch: {}", retrieveBatchResponse.id());
 
@@ -528,8 +538,6 @@ public class AiTranslateService {
                           .message()
                           .content();
 
-                  AiTranslateType aiTranslateType = AiTranslateType.WITH_REVIEW;
-
                   Object completionOutput =
                       objectMapper.readValueUnchecked(
                           completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
@@ -540,7 +548,8 @@ public class AiTranslateService {
 
                   aiTranslateType.getTextUnitDTOUpdate().accept(textUnitDTO, completionOutput);
 
-                  textUnitDTO.setTargetComment("ai-translate");
+                  textUnitDTO.setTargetComment(
+                      "ai-translate"); // TODO(ja) Must update that before scaling use
                   textUnitDTO.setStatus(TMTextUnitVariant.Status.REVIEW_NEEDED);
                   return textUnitDTO;
                 })
@@ -567,7 +576,8 @@ public class AiTranslateService {
             aiTranslateBatchesImportInput.batchCreationErrors(),
             aiTranslateBatchesImportInput.processed(),
             aiTranslateBatchesImportInput.failedImport(),
-            0);
+            0,
+            aiTranslateBatchesImportInput.translateType());
 
     PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
         aiTranslateBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
@@ -588,7 +598,8 @@ public class AiTranslateService {
       List<Long> tmTextUnitIds,
       String promptSuffix,
       RelatedStringsProvider.Type relatedStringsProviderType,
-      StatusFilter statusFilter) {
+      StatusFilter statusFilter,
+      AiTranslateType aiTranslateType) {
 
     List<TextUnitDTO> textUnitDTOS =
         getTextUnitDTOS(
@@ -609,7 +620,8 @@ public class AiTranslateService {
 
       logger.debug("Generate the batch file content");
       String batchFileContent =
-          generateBatchFileContent(textUnitDTOS, model, promptSuffix, relatedStringsProviderType);
+          generateBatchFileContent(
+              textUnitDTOS, model, promptSuffix, relatedStringsProviderType, aiTranslateType);
 
       UploadFileResponse uploadFileResponse =
           getOpenAIClient()
@@ -666,8 +678,9 @@ public class AiTranslateService {
   String generateBatchFileContent(
       List<TextUnitDTO> textUnitDTOS,
       String model,
-      String promptSuffix,
-      RelatedStringsProvider.Type relatedStringsProviderType) {
+      String promptPrefix,
+      RelatedStringsProvider.Type relatedStringsProviderType,
+      AiTranslateType aiTranslateType) {
 
     RelatedStringsProvider relatedStringsProvider =
         new RelatedStringsProvider(relatedStringsProviderType);
@@ -687,7 +700,11 @@ public class AiTranslateService {
                       relatedStringsProvider.getRelatedStrings(textUnitDTO));
 
               ChatCompletionsRequest chatCompletionsRequest =
-                  getChatCompletionsRequest(model, promptSuffix, completionInput);
+                  getChatCompletionsRequest(
+                      model,
+                      getPrompt(aiTranslateType.getPrompt(), promptPrefix),
+                      completionInput,
+                      aiTranslateType);
 
               return RequestBatchFileLine.forChatCompletion(
                   textUnitDTO.getTmTextUnitId().toString(), chatCompletionsRequest);
