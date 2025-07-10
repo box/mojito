@@ -124,6 +124,13 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Text unit status filter eg. ALL or FOR_TRANSLATION")
   String statusFilter = "FOR_TRANSLATION";
 
+  @Parameter(
+      names = "--import-status",
+      arity = 1,
+      description =
+          "Status set on target during import: ACCEPTED, REVIEW_NEEDED, TRANSLATION_NEEDED")
+  String importStatus = "REVIEW_NEEDED";
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -196,7 +203,8 @@ public class RepositoryAiTranslationCommand extends Command {
                   promptSuffix,
                   relatedStrings,
                   translateType,
-                  statusFilter));
+                  statusFilter,
+                  importStatus));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();

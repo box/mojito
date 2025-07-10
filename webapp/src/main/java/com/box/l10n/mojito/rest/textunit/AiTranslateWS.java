@@ -49,7 +49,8 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.promptSuffix(),
                 protoAiTranslateRequest.relatedStringsType(),
                 protoAiTranslateRequest.translateType(),
-                protoAiTranslateRequest.statusFilter()));
+                protoAiTranslateRequest.statusFilter(),
+                protoAiTranslateRequest.importStatus()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -64,7 +65,8 @@ public class AiTranslateWS {
       String promptSuffix,
       String relatedStringsType,
       String translateType,
-      String statusFilter) {}
+      String statusFilter,
+      String importStatus) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 

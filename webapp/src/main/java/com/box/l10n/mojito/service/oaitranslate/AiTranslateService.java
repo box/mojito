@@ -23,7 +23,7 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
@@ -172,7 +172,8 @@ public class AiTranslateService {
       String promptSuffix,
       String relatedStringsType,
       String translateType,
-      String statusFilter) {}
+      String statusFilter,
+      String importStatus) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -238,7 +239,8 @@ public class AiTranslateService {
                     openAIClientPool,
                     RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()),
                     StatusFilter.valueOf(aiTranslateInput.statusFilter()),
-                    AiTranslateType.fromString(aiTranslateInput.translateType())),
+                    AiTranslateType.fromString(aiTranslateInput.translateType()),
+                    Status.valueOf(aiTranslateInput.importStatus())),
             10)
         .then()
         .doOnTerminate(
@@ -257,7 +259,8 @@ public class AiTranslateService {
       OpenAIClientPool openAIClientPool,
       RelatedStringsProvider.Type relatedStringsProviderType,
       StatusFilter statusFilter,
-      AiTranslateType aiTranslateType) {
+      AiTranslateType aiTranslateType,
+      Status importStatus) {
 
     Repository repository = repositoryLocale.getRepository();
     List<TextUnitDTO> textUnitDTOS =
@@ -308,14 +311,15 @@ public class AiTranslateService {
                                       return Mono.empty();
                                     }))
                     .collectList()
-                    .flatMap(results -> submitForImport(results, aiTranslateType))
+                    .flatMap(results -> submitForImport(results, aiTranslateType, importStatus))
                     .doOnTerminate(() -> logger.info("Done submitting for processing")))
         .then();
   }
 
   record MyRecord(TextUnitDTO textUnitDTO, ChatCompletionsResponse chatCompletionsResponse) {}
 
-  private Mono<Void> submitForImport(List<MyRecord> results, AiTranslateType aiTranslateType) {
+  private Mono<Void> submitForImport(
+      List<MyRecord> results, AiTranslateType aiTranslateType, Status importStatus) {
     logger.info("Submit for import for locale {}", results.get(0).textUnitDTO().getTargetLocale());
     List<TextUnitDTOWithVariantComment> forImport =
         results.stream()
@@ -334,6 +338,8 @@ public class AiTranslateService {
 
                   TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
                       aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
+
+                  textUnitDTO.setStatus(importStatus);
 
                   return textUnitDTOWithVariantComment;
                 })
@@ -463,7 +469,8 @@ public class AiTranslateService {
                   List.of(),
                   Map.of(),
                   0,
-                  aiTranslateInput.translateType()),
+                  aiTranslateInput.translateType(),
+                  aiTranslateInput.importStatus()),
               currentTask);
 
       logger.info(
@@ -488,7 +495,10 @@ public class AiTranslateService {
         .collect(Collectors.toSet());
   }
 
-  void importBatch(RetrieveBatchResponse retrieveBatchResponse, AiTranslateType aiTranslateType) {
+  void importBatch(
+      RetrieveBatchResponse retrieveBatchResponse,
+      AiTranslateType aiTranslateType,
+      Status importStatus) {
 
     logger.info("Importing batch: {}", retrieveBatchResponse.id());
 
@@ -549,8 +559,7 @@ public class AiTranslateService {
                   TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
                       aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
 
-                  textUnitDTO.setStatus(
-                      TMTextUnitVariant.Status.REVIEW_NEEDED); // TODO(ja) make that customizable
+                  textUnitDTO.setStatus(importStatus);
 
                   return textUnitDTOWithVariantComment;
                 })
@@ -578,7 +587,8 @@ public class AiTranslateService {
             aiTranslateBatchesImportInput.processed(),
             aiTranslateBatchesImportInput.failedImport(),
             0,
-            aiTranslateBatchesImportInput.translateType());
+            aiTranslateBatchesImportInput.translateType(),
+            aiTranslateBatchesImportInput.importStatus());
 
     PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
         aiTranslateBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);

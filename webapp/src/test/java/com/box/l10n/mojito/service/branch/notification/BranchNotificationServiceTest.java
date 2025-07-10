@@ -5,6 +5,7 @@ import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterServi
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.textunit.ImportTextUnitsBatch;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
@@ -146,6 +147,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         .forEach(
             tu -> {
               tu.setTarget(tu.getSource() + " - " + tu.getTargetLocale());
+              tu.setStatus(TMTextUnitVariant.Status.APPROVED);
             });
 
     ImportTextUnitsBatch importTextUnitsBatch = new ImportTextUnitsBatch();
