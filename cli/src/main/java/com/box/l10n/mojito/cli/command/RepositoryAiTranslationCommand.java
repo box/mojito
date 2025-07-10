@@ -237,6 +237,7 @@ public class RepositoryAiTranslationCommand extends Command {
                   .a(", child task id: ")
                   .fg(Color.MAGENTA)
                   .a(lastFinishedTaskId)
+                  .reset()
                   .newLine();
               String pollableTaskOutput =
                   pollableTaskClient.getPollableTaskOutput(lastFinishedTaskId);
