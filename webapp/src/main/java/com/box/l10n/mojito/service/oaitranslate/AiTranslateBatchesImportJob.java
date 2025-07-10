@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
+import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClient.CreateBatchResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.DownloadFileContentResponse;
@@ -39,7 +40,8 @@ public class AiTranslateBatchesImportJob
       List<String> processed,
       Map<String, String> failedImport,
       int attempt,
-      String translateType) {}
+      String translateType,
+      String importStatus) {}
 
   public record AiTranslateBatchesImportOutput(
       List<RetrieveBatchResponse> retrieveBatchResponses,
@@ -102,7 +104,8 @@ public class AiTranslateBatchesImportJob
               try {
                 aiTranslateService.importBatch(
                     retrieveBatchResponse,
-                    AiTranslateType.fromString(aiTranslateBatchesImportInput.translateType()));
+                    AiTranslateType.fromString(aiTranslateBatchesImportInput.translateType()),
+                    Status.valueOf(aiTranslateBatchesImportInput.importStatus()));
               } catch (Throwable t) {
                 logger.error(
                     "[task id: {}] Failed to import batch: {}, skip",
@@ -154,7 +157,8 @@ public class AiTranslateBatchesImportJob
                   processed.stream().toList(),
                   failedImport,
                   aiTranslateBatchesImportInput.attempt() + 1,
-                  aiTranslateBatchesImportInput.translateType()),
+                  aiTranslateBatchesImportInput.translateType(),
+                  aiTranslateBatchesImportInput.importStatus()),
               getCurrentPollableTask().getParentTask());
       logger.info(
           "[task id: {}] New job created with pollableTask id: {}",

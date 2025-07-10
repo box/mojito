@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
@@ -43,7 +44,8 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 null,
                 AiTranslateType.WITH_REVIEW.name(),
-                StatusFilter.FOR_TRANSLATION.name()))
+                StatusFilter.FOR_TRANSLATION.name(),
+                TMTextUnitVariant.Status.REVIEW_NEEDED.name()))
         .get();
   }
 
@@ -66,7 +68,8 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 null,
                 AiTranslateType.WITH_REVIEW.name(),
-                StatusFilter.FOR_TRANSLATION.name()))
+                StatusFilter.FOR_TRANSLATION.name(),
+                TMTextUnitVariant.Status.REVIEW_NEEDED.name()))
         .get();
   }
 }

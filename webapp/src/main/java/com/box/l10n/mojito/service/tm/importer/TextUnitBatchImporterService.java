@@ -379,7 +379,10 @@ public class TextUnitBatchImporterService {
       }
 
       textUnitForBatchImport.setIncludedInLocalizedFile(true);
-      textUnitForBatchImport.setStatus(APPROVED);
+      textUnitForBatchImport.setStatus(
+          textUnitForBatchImport.getStatus() == null
+              ? APPROVED
+              : textUnitForBatchImport.getStatus());
 
       boolean hasSameTarget =
           textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
