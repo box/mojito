@@ -50,6 +50,7 @@ import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.TextUnitDTOWithVariantComment;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -316,7 +317,7 @@ public class AiTranslateService {
 
   private Mono<Void> submitForImport(List<MyRecord> results, AiTranslateType aiTranslateType) {
     logger.info("Submit for import for locale {}", results.get(0).textUnitDTO().getTargetLocale());
-    List<TextUnitDTO> forImport =
+    List<TextUnitDTOWithVariantComment> forImport =
         results.stream()
             .map(
                 myRecord -> {
@@ -331,15 +332,14 @@ public class AiTranslateService {
                       objectMapper.readValueUnchecked(
                           completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
 
-                  aiTranslateType.getTextUnitDTOUpdate().accept(textUnitDTO, completionOutput);
+                  TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
+                      aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
 
-                  textUnitDTO.setTargetComment(
-                      "ai-translate"); // TODO(ja) Must update that before scaling use
-                  return textUnitDTO;
+                  return textUnitDTOWithVariantComment;
                 })
             .collect(Collectors.toList());
 
-    textUnitBatchImporterService.importTextUnits(
+    textUnitBatchImporterService.importTextUnitsWithVariantComment(
         forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
 
     return Mono.empty();
@@ -514,7 +514,7 @@ public class AiTranslateService {
             .downloadFileContent(
                 new DownloadFileContentRequest(retrieveBatchResponse.outputFileId()));
 
-    List<TextUnitDTO> forImport =
+    List<TextUnitDTOWithVariantComment> forImport =
         downloadFileContentResponse
             .content()
             .lines()
@@ -546,16 +546,17 @@ public class AiTranslateService {
                       tmTextUnitIdToTextUnitDTOs.get(
                           Long.valueOf(chatCompletionResponseBatchFileLine.customId()));
 
-                  aiTranslateType.getTextUnitDTOUpdate().accept(textUnitDTO, completionOutput);
+                  TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
+                      aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
 
-                  textUnitDTO.setTargetComment(
-                      "ai-translate"); // TODO(ja) Must update that before scaling use
-                  textUnitDTO.setStatus(TMTextUnitVariant.Status.REVIEW_NEEDED);
-                  return textUnitDTO;
+                  textUnitDTO.setStatus(
+                      TMTextUnitVariant.Status.REVIEW_NEEDED); // TODO(ja) make that customizable
+
+                  return textUnitDTOWithVariantComment;
                 })
             .toList();
 
-    textUnitBatchImporterService.importTextUnits(
+    textUnitBatchImporterService.importTextUnitsWithVariantComment(
         forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
   }
 

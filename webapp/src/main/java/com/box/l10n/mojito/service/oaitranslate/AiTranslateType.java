@@ -1,8 +1,9 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.TextUnitDTOWithVariantComment;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,22 @@ public enum AiTranslateType {
     Do not include any explanation or commentary—just the translated text.
     """,
       SimpleCompletionOutput.class,
-      (t, o) -> t.setTarget(o.content())),
+      (t, o) -> {
+        t.setTarget(o.content());
+        return new TextUnitDTOWithVariantComment(t, "ai-translate with TARGET_ONLY");
+      }),
+  TARGET_WITH_CONFIDENCE(
+      TARGET_ONLY
+          .getPrompt()
+          .replace(
+              "{ \"content\": \"[your translation here]\" }",
+              "{ \"content\": \"[your translation here]\", \"confidenceLevel\": \"[confidence level 0-100]\" }"),
+      WithConfidenceCompletionOutput.class,
+      (t, o) -> {
+        t.setTarget(o.content());
+        return new TextUnitDTOWithVariantComment(
+            t, "ai-translate with WITH_CONFIDENCE. confidence level: " + o.confidenceLevel());
+      }),
   WITH_REVIEW(
       """
     Your role is to act as a translator.
@@ -103,7 +119,11 @@ public enum AiTranslateType {
         •	"required": true or false, indicating if review is needed.
         •	"reason": A detailed explanation of why review is or isn’t needed.
     """,
-      CompletionOutput.class, (t, o) -> t.setTarget(o.target().content())),
+      CompletionOutput.class,
+      (t, o) -> {
+        t.setTarget(o.target().content());
+        return new TextUnitDTOWithVariantComment(t, "ai-translate with REVIEW");
+      }),
 
   SUGGESTED(
       """
@@ -134,7 +154,10 @@ public enum AiTranslateType {
     Return only the translated text, with no explanations or extra information.
     """,
       SimpleCompletionOutput.class,
-      (t, o) -> t.setTarget(o.content()));
+      (t, o) -> {
+        t.setTarget(o.content());
+        return new TextUnitDTOWithVariantComment(t, "ai-translate with SUGGESTED");
+      });
 
   static final Logger logger = LoggerFactory.getLogger(AiTranslateType.class);
 
@@ -144,13 +167,16 @@ public enum AiTranslateType {
 
   final String prompt;
   final Class<?> outputJsonSchemaClass;
-  final BiConsumer<TextUnitDTO, Object> textUnitDTOUpdate;
+  final BiFunction<TextUnitDTO, Object, TextUnitDTOWithVariantComment> textUnitDTOUpdate;
 
   <T> AiTranslateType(
-      String prompt, Class<T> outputJsonSchemaClass, BiConsumer<TextUnitDTO, T> textUnitDTOUpdate) {
+      String prompt,
+      Class<T> outputJsonSchemaClass,
+      BiFunction<TextUnitDTO, T, TextUnitDTOWithVariantComment> textUnitDTOUpdate) {
     this.prompt = prompt;
     this.outputJsonSchemaClass = outputJsonSchemaClass;
-    this.textUnitDTOUpdate = (BiConsumer<TextUnitDTO, Object>) textUnitDTOUpdate;
+    this.textUnitDTOUpdate =
+        (BiFunction<TextUnitDTO, Object, TextUnitDTOWithVariantComment>) textUnitDTOUpdate;
   }
 
   public static AiTranslateType fromString(String name) {
@@ -170,8 +196,8 @@ public enum AiTranslateType {
     return outputJsonSchemaClass;
   }
 
-  public <T> BiConsumer<TextUnitDTO, T> getTextUnitDTOUpdate() {
-    return (BiConsumer<TextUnitDTO, T>) textUnitDTOUpdate;
+  public <T> BiFunction<TextUnitDTO, T, TextUnitDTOWithVariantComment> getTextUnitDTOUpdate() {
+    return (BiFunction<TextUnitDTO, T, TextUnitDTOWithVariantComment>) textUnitDTOUpdate;
   }
 
   record CompletionInput(
@@ -202,4 +228,6 @@ public enum AiTranslateType {
   }
 
   record SimpleCompletionOutput(String content) {}
+
+  record WithConfidenceCompletionOutput(String content, int confidenceLevel) {}
 }
