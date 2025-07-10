@@ -38,7 +38,8 @@ public class AiTranslateBatchesImportJob
       List<String> batchCreationErrors,
       List<String> processed,
       Map<String, String> failedImport,
-      int attempt) {}
+      int attempt,
+      String translateType) {}
 
   public record AiTranslateBatchesImportOutput(
       List<RetrieveBatchResponse> retrieveBatchResponses,
@@ -62,7 +63,7 @@ public class AiTranslateBatchesImportJob
         "[task id: {}] Batches already processed: {} and total: {}",
         parentTaskId,
         processed.size(),
-        aiTranslateBatchesImportInput.createBatchResponses.size());
+        aiTranslateBatchesImportInput.createBatchResponses().size());
 
     for (CreateBatchResponse createBatchResponse :
         aiTranslateBatchesImportInput.createBatchResponses()) {
@@ -99,7 +100,9 @@ public class AiTranslateBatchesImportJob
               failedImport.put(createBatchResponse.id(), message);
             } else {
               try {
-                aiTranslateService.importBatch(retrieveBatchResponse);
+                aiTranslateService.importBatch(
+                    retrieveBatchResponse,
+                    AiTranslateType.fromString(aiTranslateBatchesImportInput.translateType()));
               } catch (Throwable t) {
                 logger.error(
                     "[task id: {}] Failed to import batch: {}, skip",
@@ -150,7 +153,8 @@ public class AiTranslateBatchesImportJob
                   aiTranslateBatchesImportInput.batchCreationErrors(),
                   processed.stream().toList(),
                   failedImport,
-                  aiTranslateBatchesImportInput.attempt() + 1),
+                  aiTranslateBatchesImportInput.attempt() + 1,
+                  aiTranslateBatchesImportInput.translateType()),
               getCurrentPollableTask().getParentTask());
       logger.info(
           "[task id: {}] New job created with pollableTask id: {}",
