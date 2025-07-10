@@ -173,17 +173,20 @@ public class TextUnitBatchImporterService {
         ImportTextUnitJob.class, importTextUnitJobInput, schedulerName);
   }
 
+  public record TextUnitDTOWithVariantComment(TextUnitDTO textUnitDTO, String comment) {}
+
   @StopWatch
-  public PollableFuture<Void> importTextUnits(
-      List<TextUnitDTO> textUnitDTOs, IntegrityChecksType integrityChecksType) {
+  public PollableFuture<Void> importTextUnitsWithVariantComment(
+      List<TextUnitDTOWithVariantComment> textUnitDTOWithVariantComments,
+      IntegrityChecksType integrityChecksType) {
 
     return meterRegistry
         .timer("TextUnitBatchImporterService.importTextUnits")
         .record(
             () -> {
-              logger.debug("Import {} text units", textUnitDTOs.size());
+              logger.debug("Import {} text units", textUnitDTOWithVariantComments.size());
               List<TextUnitForBatchMatcherImport> textUnitForBatchImports =
-                  skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
+                  skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOWithVariantComments);
 
               logger.debug("Batch by locale and asset to optimize the import");
               Map<Locale, Map<Asset, List<TextUnitForBatchMatcherImport>>> groupedByLocaleAndAsset =
@@ -225,6 +228,13 @@ public class TextUnitBatchImporterService {
 
               return new PollableFutureTaskResult<>();
             });
+  }
+
+  public PollableFuture<Void> importTextUnits(
+      List<TextUnitDTO> textUnitDTOs, IntegrityChecksType integrityChecksType) {
+    return importTextUnitsWithVariantComment(
+        textUnitDTOs.stream().map(t -> new TextUnitDTOWithVariantComment(t, null)).toList(),
+        integrityChecksType);
   }
 
   /**
@@ -318,6 +328,7 @@ public class TextUnitBatchImporterService {
                         .getTmTextUnitVariant()
                         .getId();
 
+                // TODO(ja) I want to save that... need to pass it down though
                 for (TMTextUnitVariantComment tmTextUnitVariantComment :
                     textUnitForBatchImport.getTmTextUnitVariantComments()) {
                   tmMTextUnitVariantCommentService.addComment(
@@ -430,7 +441,7 @@ public class TextUnitBatchImporterService {
   }
 
   List<TextUnitForBatchMatcherImport> skipInvalidAndConvertToTextUnitForBatchImport(
-      List<TextUnitDTO> textUnitDTOs) {
+      List<TextUnitDTOWithVariantComment> textUnitDTOs) {
 
     logger.debug("Create caches to map convert to TextUnitForBatchMatcherImport list");
     LoadingCache<String, Repository> repositoriesCache =
@@ -449,36 +460,39 @@ public class TextUnitBatchImporterService {
     return textUnitDTOs.stream()
         .filter(
             logIfFalse(
-                t -> t.getRepositoryName() != null,
+                tc -> tc.textUnitDTO().getRepositoryName() != null,
                 logger,
                 "Missing mandatory repository name, skip: {}",
-                TextUnitDTO::getName))
+                tc -> tc.textUnitDTO().getName()))
         .filter(
             logIfFalse(
-                t -> t.getAssetPath() != null,
+                tc -> tc.textUnitDTO().getAssetPath() != null,
                 logger,
                 "Missing mandatory asset path, skip: {}",
-                TextUnitDTO::getName))
+                tc -> tc.textUnitDTO().getName()))
         .filter(
             logIfFalse(
-                t -> t.getTargetLocale() != null,
+                tc -> tc.textUnitDTO().getTargetLocale() != null,
                 logger,
                 "Missing mandatory target locale, skip: {}",
-                TextUnitDTO::getName))
+                tc -> tc.textUnitDTO().getName()))
         .filter(
             logIfFalse(
-                t -> !(t.getName() == null && t.getTmTextUnitId() == null),
+                tc ->
+                    !(tc.textUnitDTO().getName() == null
+                        && tc.textUnitDTO().getTmTextUnitId() == null),
                 logger,
                 "Missing mandatory name or tmTextUnitId, skip: {}",
-                TextUnitDTO::getName))
+                tc -> tc.textUnitDTO().getName()))
         .filter(
             logIfFalse(
-                t -> t.getTarget() != null,
+                tc -> tc.textUnitDTO().getTarget() != null,
                 logger,
                 "Missing mandatory target, skip: {}",
-                TextUnitDTO::getName))
+                tc -> tc.textUnitDTO().getName()))
         .map(
-            t -> {
+            tc -> {
+              TextUnitDTO t = tc.textUnitDTO();
               TextUnitForBatchMatcherImport textUnitForBatchImport =
                   new TextUnitForBatchMatcherImport();
               textUnitForBatchImport.setTmTextUnitId(t.getTmTextUnitId());
@@ -499,6 +513,11 @@ public class TextUnitBatchImporterService {
               textUnitForBatchImport.setTargetComment(t.getTargetComment());
               textUnitForBatchImport.setIncludedInLocalizedFile(t.isIncludedInLocalizedFile());
               textUnitForBatchImport.setStatus(t.getStatus() == null ? APPROVED : t.getStatus());
+
+              TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
+              tmTextUnitVariantComment.setSeverity(Severity.INFO);
+              tmTextUnitVariantComment.setContent(tc.comment());
+              textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
               return textUnitForBatchImport;
             })
         .filter(
