@@ -781,7 +781,7 @@ public class AiTranslateService {
             };
         List<RelatedString> filteredByCharLimit =
             filterByCharLimit(relatedStrings, CHARACTER_LIMIT);
-        logger.debug(
+        logger.info(
             "Related strings (type: {}, count: {}, filtered: {}): {}",
             type,
             relatedStrings.size(),
