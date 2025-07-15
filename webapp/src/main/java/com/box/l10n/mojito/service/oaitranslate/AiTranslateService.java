@@ -66,6 +66,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -499,7 +500,10 @@ public class AiTranslateService {
         .collect(Collectors.toSet());
   }
 
-  void importBatch(
+  record TextUnitDTOWithVariantCommentOrError(
+      TextUnitDTOWithVariantComment textUnitDTOWithVariantComment, String error) {}
+
+  List<String> importBatch(
       RetrieveBatchResponse retrieveBatchResponse,
       AiTranslateType aiTranslateType,
       Status importStatus) {
@@ -528,7 +532,7 @@ public class AiTranslateService {
             .downloadFileContent(
                 new DownloadFileContentRequest(retrieveBatchResponse.outputFileId()));
 
-    List<TextUnitDTOWithVariantComment> forImport =
+    List<TextUnitDTOWithVariantCommentOrError> forImport =
         downloadFileContentResponse
             .content()
             .lines()
@@ -539,8 +543,10 @@ public class AiTranslateService {
                           line, ChatCompletionResponseBatchFileLine.class);
 
                   if (chatCompletionResponseBatchFileLine.response().statusCode() != 200) {
-                    throw new RuntimeException(
-                        "Response batch file line failed: " + chatCompletionResponseBatchFileLine);
+                    String errorMessage =
+                        "Response batch file line failed: " + chatCompletionResponseBatchFileLine;
+                    logger.debug(errorMessage);
+                    return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
                   }
 
                   String completionOutputAsJson =
@@ -552,9 +558,18 @@ public class AiTranslateService {
                           .message()
                           .content();
 
-                  Object completionOutput =
-                      objectMapper.readValueUnchecked(
-                          completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
+                  Object completionOutput;
+                  try {
+                    completionOutput =
+                        objectMapper.readValueUnchecked(
+                            completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
+                  } catch (UncheckedIOException e) {
+                    String errorMessage =
+                        "Error trying to parse the JSON completion output: %s"
+                            .formatted(e.getMessage());
+                    logger.debug(errorMessage, e);
+                    return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
+                  }
 
                   TextUnitDTO textUnitDTO =
                       tmTextUnitIdToTextUnitDTOs.get(
@@ -568,12 +583,22 @@ public class AiTranslateService {
                       restoreLeadingAndTrailingWhitespace(
                           textUnitDTO.getSource(), textUnitDTO.getTarget()));
 
-                  return textUnitDTOWithVariantComment;
+                  return new TextUnitDTOWithVariantCommentOrError(
+                      textUnitDTOWithVariantComment, null);
                 })
             .toList();
 
     textUnitBatchImporterService.importTextUnitsWithVariantComment(
-        forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+        forImport.stream()
+            .filter(t -> t.error() == null)
+            .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
+            .toList(),
+        TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+
+    return forImport.stream()
+        .filter(t -> t.error() != null)
+        .map(TextUnitDTOWithVariantCommentOrError::error)
+        .toList();
   }
 
   record RelatedString(String source, String description) {}
