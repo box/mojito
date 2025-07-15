@@ -605,29 +605,32 @@ public class AiTranslateService {
 
   @Pollable(message = "AiTranslateService Retry import for job id: {id}")
   public PollableFuture<Void> retryImport(
-      @MsgArg(name = "id") long childPollableTaskId, @InjectCurrentTask PollableTask currentTask) {
+      @MsgArg(name = "id") long childPollableTaskId,
+      boolean resume,
+      @InjectCurrentTask PollableTask currentTask) {
     PollableTask childPollableTask = pollableTaskService.getPollableTask(childPollableTaskId);
 
     AiTranslateBatchesImportInput aiTranslateBatchesImportInput =
         pollableTaskBlobStorage.getInput(childPollableTaskId, AiTranslateBatchesImportInput.class);
 
-    AiTranslateBatchesImportInput aiReviewBatchesImportInputAttempt0 =
+    AiTranslateBatchesImportInput aiTranslateBatchesImportInput0 =
         new AiTranslateBatchesImportInput(
             aiTranslateBatchesImportInput.createBatchResponses(),
             aiTranslateBatchesImportInput.skippedLocales(),
             aiTranslateBatchesImportInput.batchCreationErrors(),
-            aiTranslateBatchesImportInput.processed(),
-            aiTranslateBatchesImportInput.failedImport(),
+            resume ? aiTranslateBatchesImportInput.processed() : List.of(),
+            resume ? aiTranslateBatchesImportInput.failedImport() : Map.of(),
             0,
             aiTranslateBatchesImportInput.translateType(),
             aiTranslateBatchesImportInput.importStatus());
 
     PollableFuture<AiTranslateBatchesImportOutput> aiTranslateBatchesImportOutputPollableFuture =
-        aiTranslateBatchesImportAsync(aiReviewBatchesImportInputAttempt0, currentTask);
+        aiTranslateBatchesImportAsync(aiTranslateBatchesImportInput0, currentTask);
     logger.info(
-        "[task id: {}] Retrying to import from child id: {}, new job created with pollable task id: {}",
-        childPollableTask.getParentTask().getId(),
+        "[task id: {}] Retrying to import from child id: {} (parent: {}), new job created with pollable task id: {}",
+        currentTask.getId(),
         childPollableTask.getId(),
+        childPollableTask.getParentTask().getId(),
         aiTranslateBatchesImportOutputPollableFuture.getPollableTask().getId());
 
     return new PollableFutureTaskResult<>();

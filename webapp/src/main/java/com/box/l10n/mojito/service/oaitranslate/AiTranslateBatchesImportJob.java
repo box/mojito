@@ -78,7 +78,10 @@ public class AiTranslateBatchesImportJob
           aiTranslateService.retrieveBatchWithRetry(createBatchResponse);
       retrieveBatchResponses.add(retrieveBatchResponse);
 
-      if (!processed.contains(createBatchResponse.id())) {
+      if (processed.contains(createBatchResponse.id())) {
+        logger.debug(
+            "[task id: {}] Already processed, skipping: {}", parentTaskId, retrieveBatchResponse);
+      } else {
         switch (retrieveBatchResponse.status()) {
           case "completed" -> {
             logger.info("[task id: {}] Completed batch: {}", parentTaskId, retrieveBatchResponse);
