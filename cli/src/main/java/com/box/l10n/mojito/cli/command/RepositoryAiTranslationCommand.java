@@ -97,11 +97,17 @@ public class RepositoryAiTranslationCommand extends Command {
   Long attachJobId;
 
   @Parameter(
-      names = "--retry-import-job-id",
+      names = "--import-job-id",
+      arity = 1,
+      description = "ID of the import job to retry or resume (see --resume)")
+  Long importJobId;
+
+  @Parameter(
+      names = "--resume",
       arity = 1,
       description =
-          "ID of an existing job to try to re-import; If a job stopped because a transient error, try to import remaining data")
-  Long retryImportJobId;
+          "Resume the import job from where it stopped (default: true). Set to false to retry from the beginning.")
+  boolean resume = true;
 
   @Parameter(
       names = "--related-strings",
@@ -147,28 +153,54 @@ public class RepositoryAiTranslationCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    if (retryImportJobId != null) {
-      consoleWriter.a("Retry importing task id: ").fg(Color.MAGENTA).a(retryImportJobId).println();
+    if (importJobId != null) {
+      consoleWriter
+          .a("Importing task id: ")
+          .fg(Color.MAGENTA)
+          .a(importJobId)
+          .a(" (resume: ")
+          .a(resume)
+          .a(")")
+          .println();
 
       Optional<PollableTask> lastForReimport =
-          pollableTaskClient.getPollableTask(retryImportJobId).getSubTasks().stream()
+          pollableTaskClient.getPollableTask(importJobId).getSubTasks().stream()
               .filter(t -> t.getCreatedDate() != null)
-              .sorted(Comparator.comparing(PollableTask::getCreatedDate).reversed())
-              .filter(PollableTask::isAllFinished)
-              .filter(pt -> pt.getErrorMessage() != null)
-              .findFirst();
+              .max(Comparator.comparing(PollableTask::getCreatedDate));
 
-      if (lastForReimport.isPresent()) {
-        long pollableTaskId =
-            repositoryAiTranslateClient.retryImport(lastForReimport.get().getId());
-        waitForPollable(pollableTaskId);
-      } else {
+      if (lastForReimport.isEmpty()) {
         consoleWriter
             .fg(Color.YELLOW)
-            .a("Last task did not finish with an error, don't retry")
+            .a("No subtask found for task id: ")
+            .fg(Color.MAGENTA)
+            .a(importJobId)
             .println();
-      }
 
+      } else {
+        PollableTask lastTask = lastForReimport.get();
+
+        if (!lastTask.isAllFinished()) {
+          consoleWriter
+              .fg(Color.YELLOW)
+              .a("Last task: ")
+              .fg(Color.MAGENTA)
+              .a(lastTask.getId())
+              .reset()
+              .a(" is not finished. Aborting...")
+              .println();
+        } else {
+          long pollableTaskId =
+              repositoryAiTranslateClient.retryImport(lastForReimport.get().getId(), resume);
+          consoleWriter
+              .a("New import task id: ")
+              .fg(Color.MAGENTA)
+              .a(pollableTaskId)
+              .reset()
+              .a(" to monitor progress, and eventually re-attach (--attach-job-id)")
+              .println();
+          waitForPollable(pollableTaskId);
+        }
+      }
     } else if (attachJobId != null) {
       consoleWriter.a("Attaching, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
       waitForPollable(attachJobId);

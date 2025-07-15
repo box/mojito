@@ -72,16 +72,17 @@ public class AiTranslateWS {
 
   @RequestMapping(method = RequestMethod.POST, value = "/api/proto-ai-translate/retry-import")
   @ResponseStatus(HttpStatus.OK)
-  public ProtoAiReviewRetryImportResponse aiReviewRetryImport(
-      @RequestBody ProtoAiReviewRetryImportRequest protoAiReviewRetryImportRequest) {
+  public ProtoAiTranslateRetryImportResponse aiReviewRetryImport(
+      @RequestBody ProtoAiTranslateRetryImportRequest protoAiTranslateRetryImportRequest) {
     PollableFuture<Void> pollableFuture =
         aiTranslateService.retryImport(
-            protoAiReviewRetryImportRequest.childPollableTaskId(),
+            protoAiTranslateRetryImportRequest.childPollableTaskId(),
+            protoAiTranslateRetryImportRequest.resume(),
             PollableTask.INJECT_CURRENT_TASK);
-    return new ProtoAiReviewRetryImportResponse(pollableFuture.getPollableTask().getId());
+    return new ProtoAiTranslateRetryImportResponse(pollableFuture.getPollableTask().getId());
   }
 
-  public record ProtoAiReviewRetryImportRequest(long childPollableTaskId) {}
+  public record ProtoAiTranslateRetryImportRequest(long childPollableTaskId, boolean resume) {}
 
-  public record ProtoAiReviewRetryImportResponse(long pollableTaskId) {}
+  public record ProtoAiTranslateRetryImportResponse(long pollableTaskId) {}
 }
