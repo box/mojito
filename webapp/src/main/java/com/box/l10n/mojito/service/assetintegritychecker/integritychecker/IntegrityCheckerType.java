@@ -25,7 +25,8 @@ public enum IntegrityCheckerType {
   MARKDOWN_LINKS(MarkdownLinkIntegrityChecker.class.getName()),
   PYTHON_FPRINT(PythonFStringIntegrityChecker.class.getName()),
   EMAIL(EmailIntegrityChecker.class.getName()),
-  URL(URLIntegrityChecker.class.getName());
+  URL(URLIntegrityChecker.class.getName()),
+  FORBIDS_CONTROL_CHARACTERS(ForbidsControlCharIntegrityChecker.class.getName());
 
   String className;
 

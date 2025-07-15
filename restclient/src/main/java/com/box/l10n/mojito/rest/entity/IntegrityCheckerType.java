@@ -23,5 +23,6 @@ public enum IntegrityCheckerType {
   MARKDOWN_LINKS,
   PYTHON_FPRINT,
   EMAIL,
-  URL;
+  URL,
+  FORBIDS_CONTROL_CHARACTERS
 }
