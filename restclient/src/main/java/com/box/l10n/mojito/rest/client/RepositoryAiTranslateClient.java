@@ -28,11 +28,11 @@ public class RepositoryAiTranslateClient extends BaseClient {
         getBasePathForEntity(), protoAiTranslateRequest, ProtoAiTranslateResponse.class);
   }
 
-  public long retryImport(Long childPollableTaskId) {
+  public long retryImport(Long childPollableTaskId, boolean resume) {
     ProtoAiTranslateRetryImportResponse protoAiReviewRetryImportResponse =
         authenticatedRestTemplate.postForObject(
             getBasePathForEntity() + "/retry-import",
-            new ProtoAiTranslateRetryImportRequest(childPollableTaskId),
+            new ProtoAiTranslateRetryImportRequest(childPollableTaskId, resume),
             ProtoAiTranslateRetryImportResponse.class);
     return protoAiReviewRetryImportResponse.pollableTaskId();
   }
@@ -52,7 +52,7 @@ public class RepositoryAiTranslateClient extends BaseClient {
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 
-  public record ProtoAiTranslateRetryImportRequest(long childPollableTaskId) {}
+  public record ProtoAiTranslateRetryImportRequest(long childPollableTaskId, boolean resume) {}
 
   public record ProtoAiTranslateRetryImportResponse(long pollableTaskId) {}
 }

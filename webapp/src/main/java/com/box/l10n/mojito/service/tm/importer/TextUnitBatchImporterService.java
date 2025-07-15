@@ -328,7 +328,6 @@ public class TextUnitBatchImporterService {
                         .getTmTextUnitVariant()
                         .getId();
 
-                // TODO(ja) I want to save that... need to pass it down though
                 for (TMTextUnitVariantComment tmTextUnitVariantComment :
                     textUnitForBatchImport.getTmTextUnitVariantComments()) {
                   tmMTextUnitVariantCommentService.addComment(
