@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.json;
 
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class JsonObjectRemoverByValueTest {
@@ -185,5 +187,36 @@ class JsonObjectRemoverByValueTest {
             + "  } ]\n"
             + "}",
         remove);
+  }
+
+  @Test
+  public void testControlCharsWithJackson() {
+    ObjectMapper mapper = new ObjectMapper();
+
+    assertJacksonParses("a\\tb", "a\tb"); // Tab
+    assertJacksonParses("a\\nb", "a\nb"); // Newline
+    assertJacksonParses("a\\rb", "a\rb"); // Carriage return
+    assertJacksonParses("a\\u0000b", "a\u0000b");
+    assertJacksonParses("a\\u0007b", "a\u0007b");
+    assertJacksonParses("a\\u001Fb", "a\u001Fb");
+
+    assertJacksonFails("a\u0000b");
+    assertJacksonFails("a\u0000b");
+    assertJacksonFails("a\u0007b");
+    assertJacksonFails("a\u001Fb");
+  }
+
+  private void assertJacksonParses(String jsonEscapedValue, String expected) {
+    String json = "{\n  \"text\" : \"" + jsonEscapedValue + "\"\n}";
+    Assertions.assertEquals(json, JsonObjectRemoverByValue.remove(json, "whatever"));
+  }
+
+  private void assertJacksonFails(String jsonEscapedValue) {
+    try {
+      String json = "{\"text\":\"" + jsonEscapedValue + "\"}";
+      JsonObjectRemoverByValue.remove(json, "whatever");
+      fail("Expected failure for: " + json);
+    } catch (Exception ignored) {
+    }
   }
 }
