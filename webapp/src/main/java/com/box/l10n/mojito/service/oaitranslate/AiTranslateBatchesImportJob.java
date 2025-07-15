@@ -83,6 +83,25 @@ public class AiTranslateBatchesImportJob
           case "completed" -> {
             logger.info("[task id: {}] Completed batch: {}", parentTaskId, retrieveBatchResponse);
 
+            try {
+              List<String> errors =
+                  aiTranslateService.importBatch(
+                      retrieveBatchResponse,
+                      AiTranslateType.fromString(aiTranslateBatchesImportInput.translateType()),
+                      Status.valueOf(aiTranslateBatchesImportInput.importStatus()));
+
+              if (!errors.isEmpty()) {
+                failedImport.put(createBatchResponse.id(), String.join("\n", errors));
+              }
+            } catch (Throwable t) {
+              logger.error(
+                  "[task id: {}] Failed to import batch: {}, skip",
+                  parentTaskId,
+                  createBatchResponse.id(),
+                  t);
+              failedImport.put(createBatchResponse.id(), t.getMessage());
+            }
+
             if (retrieveBatchResponse.errorFileId() != null) {
               logger.error(
                   "[task id: {}] {} completed but with an error file: {}",
@@ -99,22 +118,12 @@ public class AiTranslateBatchesImportJob
               } catch (Exception e) {
                 message = "Failed to read error file: " + retrieveBatchResponse.errorFileId();
               }
-              failedImport.put(createBatchResponse.id(), message);
-            } else {
-              try {
-                aiTranslateService.importBatch(
-                    retrieveBatchResponse,
-                    AiTranslateType.fromString(aiTranslateBatchesImportInput.translateType()),
-                    Status.valueOf(aiTranslateBatchesImportInput.importStatus()));
-              } catch (Throwable t) {
-                logger.error(
-                    "[task id: {}] Failed to import batch: {}, skip",
-                    parentTaskId,
-                    createBatchResponse.id(),
-                    t);
-                failedImport.put(createBatchResponse.id(), t.getMessage());
-              }
+              String currentMessage = failedImport.get(createBatchResponse.id());
+              failedImport.put(
+                  createBatchResponse.id(),
+                  currentMessage == null ? message : currentMessage + "\n\n" + message);
             }
+
             processed.add(createBatchResponse.id());
           }
           case "failed", "expired", "cancelled" -> {
