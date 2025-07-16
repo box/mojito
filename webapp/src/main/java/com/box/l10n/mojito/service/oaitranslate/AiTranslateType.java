@@ -206,7 +206,11 @@ public enum AiTranslateType {
       String sourceDescription,
       ExistingTarget existingTarget,
       List<AiTranslateService.RelatedString> relatedStrings) {
-    record ExistingTarget(String content, String comment, boolean hasBrokenPlaceholders) {}
+    record ExistingTarget(
+        String content,
+        String comment,
+        boolean hasBrokenPlaceholders,
+        List<String> integrityCheckErrors) {}
   }
 
   record CompletionOutput(

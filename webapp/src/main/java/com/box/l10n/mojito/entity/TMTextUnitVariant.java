@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
@@ -30,14 +31,19 @@ import org.springframework.data.annotation.CreatedBy;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "tm_text_unit_variant")
-@NamedEntityGraph(
-    name = "TMTextUnitVariant.legacy",
-    attributeNodes = {
-      @NamedAttributeNode("tmTextUnit"),
-      @NamedAttributeNode("locale"),
-      @NamedAttributeNode("createdByUser"),
-      @NamedAttributeNode("tmTextUnitVariantComments")
-    })
+@NamedEntityGraphs({
+  @NamedEntityGraph(
+      name = "TMTextUnitVariant.legacy",
+      attributeNodes = {
+        @NamedAttributeNode("tmTextUnit"),
+        @NamedAttributeNode("locale"),
+        @NamedAttributeNode("createdByUser"),
+        @NamedAttributeNode("tmTextUnitVariantComments")
+      }),
+  @NamedEntityGraph(
+      name = "TMTextUnitVariant.withComments",
+      attributeNodes = {@NamedAttributeNode("tmTextUnitVariantComments")})
+})
 public class TMTextUnitVariant extends SettableAuditableEntity {
 
   /**
