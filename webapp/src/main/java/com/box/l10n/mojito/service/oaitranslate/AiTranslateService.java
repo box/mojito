@@ -24,7 +24,9 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
@@ -50,6 +52,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.TextUnitDTOWithVariantComment;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -74,13 +77,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,6 +134,8 @@ public class AiTranslateService {
 
   TextUnitDTOsCacheService textUnitDTOsCacheService;
 
+  TMTextUnitVariantRepository tmTextUnitVariantRepository;
+
   public AiTranslateService(
       TextUnitSearcher textUnitSearcher,
       RepositoryRepository repositoryRepository,
@@ -146,7 +151,8 @@ public class AiTranslateService {
       PollableTaskBlobStorage pollableTaskBlobStorage,
       PollableTaskService pollableTaskService,
       TextUnitDTOsCacheService textUnitDTOsCacheService,
-      AssetTextUnitRepository assetTextUnitRepository) {
+      AssetTextUnitRepository assetTextUnitRepository,
+      TMTextUnitVariantRepository tmTextUnitVariantRepository) {
     this.textUnitSearcher = textUnitSearcher;
     this.repositoryRepository = repositoryRepository;
     this.repositoryService = repositoryService;
@@ -162,6 +168,7 @@ public class AiTranslateService {
     this.pollableTaskService = pollableTaskService;
     this.textUnitDTOsCacheService = textUnitDTOsCacheService;
     this.assetTextUnitRepository = assetTextUnitRepository;
+    this.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
   }
 
   public record AiTranslateInput(
@@ -265,11 +272,11 @@ public class AiTranslateService {
       Status importStatus) {
 
     Repository repository = repositoryLocale.getRepository();
-    List<TextUnitDTO> textUnitDTOS =
+    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantComments =
         getTextUnitDTOS(
             repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale, statusFilter);
 
-    if (textUnitDTOS.isEmpty()) {
+    if (textUnitDTOWithVariantComments.isEmpty()) {
       logger.debug(
           "Nothing to translate for locale: {}", repositoryLocale.getLocale().getBcp47Tag());
       return Mono.empty();
@@ -278,17 +285,17 @@ public class AiTranslateService {
     logger.info(
         "Starting parallel processing for each string in locale: {}, count: {}",
         repositoryLocale.getLocale().getBcp47Tag(),
-        textUnitDTOS.size());
+        textUnitDTOWithVariantComments.size());
 
-    return Flux.fromIterable(textUnitDTOS)
+    return Flux.fromIterable(textUnitDTOWithVariantComments)
         .buffer(500)
         .concatMap(
             batch ->
                 Flux.fromIterable(batch)
                     .flatMap(
-                        textUnitDTO ->
+                        textUnitDTOWithVariantComment ->
                             getChatCompletionForTextUnitDTO(
-                                    textUnitDTO,
+                                    textUnitDTOWithVariantComment,
                                     model,
                                     getPrompt(aiTranslateType.getPrompt(), promptPrefix),
                                     openAIClientPool,
@@ -301,14 +308,18 @@ public class AiTranslateService {
                                             retrySignal -> {
                                               logger.warn(
                                                   "Retrying request for TextUnitDTO {} due to exception of type {}",
-                                                  textUnitDTO.getTmTextUnitId(),
+                                                  textUnitDTOWithVariantComment
+                                                      .textUnitDTO()
+                                                      .getTmTextUnitId(),
                                                   retrySignal.failure().getMessage());
                                             }))
                                 .onErrorResume(
                                     error -> {
                                       logger.error(
                                           "Request for TextUnitDTO {} failed after retries: {}",
-                                          textUnitDTO.getTmTextUnitId(),
+                                          textUnitDTOWithVariantComment
+                                              .textUnitDTO()
+                                              .getTmTextUnitId(),
                                           error.getMessage());
                                       return Mono.empty();
                                     }))
@@ -357,25 +368,17 @@ public class AiTranslateService {
   }
 
   private Mono<MyRecord> getChatCompletionForTextUnitDTO(
-      TextUnitDTO textUnitDTO,
+      TextUnitDTOWithVariantComments textUnitDTOWithVariantComment,
       String model,
       String prompt,
       OpenAIClientPool openAIClientPool,
       RelatedStringsProvider relatedStringsProvider,
       AiTranslateType aiTranslateType) {
 
+    TextUnitDTO textUnitDTO = textUnitDTOWithVariantComment.textUnitDTO();
+
     CompletionInput completionInput =
-        new CompletionInput(
-            textUnitDTO.getTargetLocale(),
-            textUnitDTO.getSource(),
-            textUnitDTO.getComment(),
-            textUnitDTO.getTarget() == null
-                ? null
-                : new ExistingTarget(
-                    textUnitDTO.getTarget(),
-                    getTargetComment(textUnitDTO),
-                    !textUnitDTO.isIncludedInLocalizedFile()),
-            relatedStringsProvider.getRelatedStrings(textUnitDTO));
+        getCompletionInput(textUnitDTOWithVariantComment, textUnitDTO, relatedStringsProvider);
 
     ChatCompletionsRequest chatCompletionsRequest =
         getChatCompletionsRequest(model, prompt, completionInput, aiTranslateType);
@@ -524,8 +527,11 @@ public class AiTranslateService {
                         "There must be an entry for textUnitDTOsBlobId: " + textUnitDTOsBlobId));
 
     Map<Long, TextUnitDTO> tmTextUnitIdToTextUnitDTOs =
-        aiTranslateBlobStorage.textUnitDTOS().stream()
-            .collect(toMap(TextUnitDTO::getTmTextUnitId, Function.identity()));
+        aiTranslateBlobStorage.textUnitDTOWithVariantComments().stream()
+            .collect(
+                toMap(
+                    t -> t.textUnitDTO().getTmTextUnitId(),
+                    TextUnitDTOWithVariantComments::textUnitDTO));
 
     DownloadFileContentResponse downloadFileContentResponse =
         getOpenAIClient()
@@ -647,12 +653,12 @@ public class AiTranslateService {
       StatusFilter statusFilter,
       AiTranslateType aiTranslateType) {
 
-    List<TextUnitDTO> textUnitDTOS =
+    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantComments =
         getTextUnitDTOS(
             repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale, statusFilter);
 
     CreateBatchResponse createBatchResponse = null;
-    if (textUnitDTOS.isEmpty()) {
+    if (textUnitDTOWithVariantComments.isEmpty()) {
       logger.debug("Nothing to translate, don't create a batch");
     } else {
       logger.debug("Save the TextUnitDTOs in blob storage for later batch import");
@@ -661,13 +667,18 @@ public class AiTranslateService {
       structuredBlobStorage.put(
           AI_TRANSLATE_WS,
           batchId,
-          objectMapper.writeValueAsStringUnchecked(new AiTranslateBlobStorage(textUnitDTOS)),
+          objectMapper.writeValueAsStringUnchecked(
+              new AiTranslateBlobStorage(textUnitDTOWithVariantComments)),
           Retention.MIN_1_DAY);
 
       logger.debug("Generate the batch file content");
       String batchFileContent =
           generateBatchFileContent(
-              textUnitDTOS, model, promptSuffix, relatedStringsProviderType, aiTranslateType);
+              textUnitDTOWithVariantComments,
+              model,
+              promptSuffix,
+              relatedStringsProviderType,
+              aiTranslateType);
 
       UploadFileResponse uploadFileResponse =
           getOpenAIClient()
@@ -685,12 +696,12 @@ public class AiTranslateService {
     logger.info(
         "Created batch for locale: {} with {} text units",
         repositoryLocale.getLocale().getBcp47Tag(),
-        textUnitDTOS.size());
+        textUnitDTOWithVariantComments.size());
 
     return createBatchResponse;
   }
 
-  private List<TextUnitDTO> getTextUnitDTOS(
+  private List<TextUnitDTOWithVariantComments> getTextUnitDTOS(
       Repository repository,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
@@ -718,11 +729,34 @@ public class AiTranslateService {
     }
 
     List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
-    return textUnitDTOS;
+    List<Long> tmTextUnitVariantIds =
+        textUnitDTOS.stream()
+            .map(TextUnitDTO::getTmTextUnitVariantId)
+            .filter(Objects::nonNull)
+            .toList();
+
+    logger.debug("Getting TMTextUnitVariant for: {} text units", tmTextUnitVariantIds.size());
+    Map<Long, Set<TMTextUnitVariantComment>> variantMap =
+        tmTextUnitVariantRepository.findAllByIdIn(tmTextUnitVariantIds).stream()
+            .collect(
+                toMap(TMTextUnitVariant::getId, TMTextUnitVariant::getTmTextUnitVariantComments));
+
+    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantComments =
+        textUnitDTOS.stream()
+            .map(
+                textUnitDTO ->
+                    new TextUnitDTOWithVariantComments(
+                        textUnitDTO, variantMap.get(textUnitDTO.getTmTextUnitVariantId())))
+            .toList();
+
+    return textUnitDTOWithVariantComments;
   }
 
+  record TextUnitDTOWithVariantComments(
+      TextUnitDTO textUnitDTO, Set<TMTextUnitVariantComment> tmTextUnitVariantComments) {}
+
   String generateBatchFileContent(
-      List<TextUnitDTO> textUnitDTOS,
+      List<TextUnitDTOWithVariantComments> textUnitDTOSUnitDTOWithVariantComments,
       String model,
       String promptPrefix,
       RelatedStringsProvider.Type relatedStringsProviderType,
@@ -731,19 +765,13 @@ public class AiTranslateService {
     RelatedStringsProvider relatedStringsProvider =
         new RelatedStringsProvider(relatedStringsProviderType);
 
-    return textUnitDTOS.stream()
+    return textUnitDTOSUnitDTOWithVariantComments.stream()
         .map(
-            textUnitDTO -> {
+            textUnitDTOWithVariantComment -> {
+              TextUnitDTO textUnitDTO = textUnitDTOWithVariantComment.textUnitDTO();
               CompletionInput completionInput =
-                  new CompletionInput(
-                      textUnitDTO.getTargetLocale(),
-                      textUnitDTO.getSource(),
-                      textUnitDTO.getComment(),
-                      new ExistingTarget(
-                          textUnitDTO.getTarget(),
-                          getTargetComment(textUnitDTO),
-                          !textUnitDTO.isIncludedInLocalizedFile()),
-                      relatedStringsProvider.getRelatedStrings(textUnitDTO));
+                  getCompletionInput(
+                      textUnitDTOWithVariantComment, textUnitDTO, relatedStringsProvider);
 
               ChatCompletionsRequest chatCompletionsRequest =
                   getChatCompletionsRequest(
@@ -757,6 +785,32 @@ public class AiTranslateService {
             })
         .map(objectMapper::writeValueAsStringUnchecked)
         .collect(joining("\n"));
+  }
+
+  CompletionInput getCompletionInput(
+      TextUnitDTOWithVariantComments textUnitDTOWithVariantComment,
+      TextUnitDTO textUnitDTO,
+      RelatedStringsProvider relatedStringsProvider) {
+    CompletionInput completionInput =
+        new CompletionInput(
+            textUnitDTO.getTargetLocale(),
+            textUnitDTO.getSource(),
+            textUnitDTO.getComment(),
+            textUnitDTO.getTarget() == null
+                ? null
+                : new ExistingTarget(
+                    textUnitDTO.getTarget(),
+                    getTargetComment(textUnitDTO),
+                    !textUnitDTO.isIncludedInLocalizedFile(),
+                    textUnitDTOWithVariantComment.tmTextUnitVariantComments().stream()
+                        .filter(
+                            tmTextUnitVariantComment ->
+                                TMTextUnitVariantComment.Severity.ERROR.equals(
+                                    tmTextUnitVariantComment.getSeverity()))
+                        .map(TMTextUnitVariantComment::getContent)
+                        .toList()),
+            relatedStringsProvider.getRelatedStrings(textUnitDTO));
+    return completionInput;
   }
 
   class RelatedStringsProvider {
@@ -790,7 +844,7 @@ public class AiTranslateService {
      * relatively fast since all asset text units are load per asset, in most case we have one big
      * asset per repository.
      */
-    public List<RelatedString> getRelatedStrings(TextUnitDTO textUnitDTO) {
+    List<RelatedString> getRelatedStrings(TextUnitDTO textUnitDTO) {
 
       List<AssetTextUnit> assetTextUnits =
           getAssetTextUnitsOfAssetExtraction(textUnitDTO.getAssetExtractionId());
@@ -930,7 +984,8 @@ public class AiTranslateService {
         .block();
   }
 
-  record AiTranslateBlobStorage(List<TextUnitDTO> textUnitDTOS) {}
+  record AiTranslateBlobStorage(
+      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantComments) {}
 
   static String getPrompt(String prompt, String promptSuffix) {
     return promptSuffix == null ? prompt : "%s %s".formatted(prompt, promptSuffix);

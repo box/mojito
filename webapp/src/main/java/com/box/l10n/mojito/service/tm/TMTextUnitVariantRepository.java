@@ -30,6 +30,9 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
   List<TMTextUnitVariant> findAllByTmTextUnit_IdAndLocale_IdOrderByCreatedDateDesc(
       Long tmTextUnitId, Long localeId);
 
+  @EntityGraph(value = "TMTextUnitVariant.withComments", type = EntityGraph.EntityGraphType.FETCH)
+  List<TMTextUnitVariant> findAllByIdIn(List<Long> ids);
+
   TMTextUnitVariant findTopByTmTextUnitTmIdOrderByCreatedDateDesc(Long tmId);
 
   @VisibleForTesting
