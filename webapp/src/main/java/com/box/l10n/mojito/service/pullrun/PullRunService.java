@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.commit.CommitToPullRunRepository;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,5 +76,29 @@ public class PullRunService {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void deletePullRunsByAsset(ZonedDateTime startDate, ZonedDateTime endDate) {
+    List<Long> latestPullRunIdsPerAsset =
+        this.pullRunRepository.getLatestPullRunIdsPerAsset(startDate, endDate);
+    int batchNumber = 1;
+    int deleteCount;
+    do {
+      deleteCount =
+          pullRunTextUnitVariantRepository.deleteByPullRunsNotLatestPerAsset(
+              startDate, endDate, latestPullRunIdsPerAsset, deleteBatchSize);
+      logger.debug(
+          "Deleted {} pullRunTextUnitVariant rows in batch: {} without IDs: {}",
+          deleteCount,
+          batchNumber++,
+          latestPullRunIdsPerAsset);
+      waitForConfiguredTime();
+    } while (deleteCount == deleteBatchSize);
+    pullRunAssetRepository.deleteByPullRunsNotLatestPerAsset(
+        startDate, endDate, latestPullRunIdsPerAsset);
+    commitToPullRunRepository.deleteByPullRunsNotLatestPerAsset(
+        startDate, endDate, latestPullRunIdsPerAsset);
+    this.pullRunRepository.deletePullRunsNotLatestPerAsset(
+        startDate, endDate, latestPullRunIdsPerAsset);
   }
 }

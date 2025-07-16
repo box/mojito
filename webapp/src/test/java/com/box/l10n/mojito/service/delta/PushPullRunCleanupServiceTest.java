@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.delta;
 
+import static com.box.l10n.mojito.service.delta.CleanPushPullPerAssetConfigurationProperties.DayRange;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
@@ -28,6 +30,7 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.ImmutableList;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.util.Arrays;
@@ -76,6 +79,8 @@ public class PushPullRunCleanupServiceTest extends ServiceTestBase {
 
   @Autowired TMService tmService;
 
+  @Autowired CleanPushPullPerAssetConfigurationProperties configurationProperties;
+
   TM tm;
 
   Repository repository;
@@ -86,6 +91,8 @@ public class PushPullRunCleanupServiceTest extends ServiceTestBase {
 
   @Before
   public void before() throws RepositoryNameAlreadyUsedException {
+    DayRange dayRange = new DayRange(1, 31);
+    this.configurationProperties.setDayRanges(ImmutableList.of(dayRange));
     if (tm == null) {
       tm = new TM();
       tmRepository.save(tm);
@@ -106,6 +113,30 @@ public class PushPullRunCleanupServiceTest extends ServiceTestBase {
     Repository repository =
         repositoryService.createRepository(
             testIdWatcher.getEntityName("repository") + "testCleanOldPushPullData");
+
+    PushRun firstPushRun = pushRunService.createPushRun(repository, "firstCleanOldPushPullData");
+    Assert.assertTrue(pushRunAssetRepository.findByPushRun(firstPushRun).isEmpty());
+
+    TMTextUnit firstTmTextUnit =
+        tmService.addTMTextUnit(
+            tm.getId(),
+            asset.getId(),
+            "hello_world 3",
+            "Hello World!",
+            "Comments about hello world");
+    TMTextUnit firstTmTextUnit2 =
+        tmService.addTMTextUnit(
+            tm.getId(),
+            asset.getId(),
+            "hello_world 4",
+            "Hello World!",
+            "Comments about hello world");
+
+    pushRunService.associatePushRunToTextUnitIds(
+        firstPushRun, asset, Arrays.asList(firstTmTextUnit.getId(), firstTmTextUnit2.getId()));
+    List<TMTextUnit> newTextUnits =
+        pushRunService.getPushRunTextUnits(firstPushRun, PageRequest.of(0, Integer.MAX_VALUE));
+    Assert.assertEquals(2, newTextUnits.size());
 
     PushRun pushRun = pushRunService.createPushRun(repository, "cleanOldPushPullData");
     Assert.assertTrue(pushRunAssetRepository.findByPushRun(pushRun).isEmpty());
@@ -131,10 +162,30 @@ public class PushPullRunCleanupServiceTest extends ServiceTestBase {
         pushRunService.getPushRunTextUnits(pushRun, PageRequest.of(0, Integer.MAX_VALUE));
     Assert.assertEquals(2, textUnits.size());
 
+    PullRun firstPullRun = pullRunService.getOrCreate("firstCleanOldPushPullData", repository);
+    PullRunAsset firstPullRunAsset = pullRunAssetService.createPullRunAsset(firstPullRun, asset);
+
+    Locale frFR = localeService.findByBcp47Tag("fr-FR");
+    TMTextUnitVariant firstTuv1 =
+        tmService.addCurrentTMTextUnitVariant(
+            firstTmTextUnit.getId(), frFR.getId(), "le hello_world 3");
+
+    TMTextUnitVariant firstTuv2 =
+        tmService.addCurrentTMTextUnitVariant(
+            firstTmTextUnit2.getId(), frFR.getId(), "le hello_world 4");
+
+    pullRunAssetService.replaceTextUnitVariants(
+        firstPullRunAsset,
+        frFR.getId(),
+        Arrays.asList(firstTuv1.getId(), firstTuv2.getId()),
+        "fr-FR");
+    List<TMTextUnitVariant> firstRecordedVariants =
+        pullRunTextUnitVariantRepository.findByPullRun(firstPullRun, Pageable.unpaged());
+    Assert.assertEquals(2, firstRecordedVariants.size());
+
     PullRun pullRun = pullRunService.getOrCreate("cleanOldPushPullData", repository);
     PullRunAsset pullRunAsset = pullRunAssetService.createPullRunAsset(pullRun, asset);
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
     TMTextUnitVariant tuv1 =
         tmService.addCurrentTMTextUnitVariant(
             tmTextUnit1.getId(), frFR.getId(), "le hello_world 1");
@@ -149,8 +200,23 @@ public class PushPullRunCleanupServiceTest extends ServiceTestBase {
         pullRunTextUnitVariantRepository.findByPullRun(pullRun, Pageable.unpaged());
     Assert.assertEquals(2, recordedVariants.size());
 
-    // This should not delete anything
+    Thread.sleep(500);
+
+    // This should only delete the first push and pull runs
     pushPullRunCleanupService.cleanOldPushPullData(Duration.ofDays(1000));
+
+    entityManager.flush();
+    entityManager.clear();
+
+    Assert.assertEquals(
+        0,
+        pushRunService
+            .getPushRunTextUnits(firstPushRun, PageRequest.of(0, Integer.MAX_VALUE))
+            .size());
+    Assert.assertEquals(
+        0, pullRunTextUnitVariantRepository.findByPullRun(firstPullRun, Pageable.unpaged()).size());
+    assertTrue(pushRunRepository.findById(firstPushRun.getId()).isEmpty());
+    assertTrue(pullRunRepository.findById(firstPullRun.getId()).isEmpty());
     Assert.assertEquals(
         2,
         pushRunService.getPushRunTextUnits(pushRun, PageRequest.of(0, Integer.MAX_VALUE)).size());

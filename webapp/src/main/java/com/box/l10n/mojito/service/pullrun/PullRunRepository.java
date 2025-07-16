@@ -44,4 +44,36 @@ public interface PullRunRepository extends JpaRepository<PullRun, Long> {
           where pr.created_date < :beforeDate
           """)
   void deleteAllByCreatedDateBefore(@Param("beforeDate") ZonedDateTime beforeDate);
+
+  @Query(
+      """
+    select MAX(pr.id) as max_id
+      from PullRun pr
+      join pr.pullRunAssets pra
+      join (select pra2.asset as asset,
+                   MAX(pr2.createdDate) as max_created_date
+              from PullRun pr2
+              join pr2.pullRunAssets pra2
+             where pr2.createdDate between :startDate and :endDate
+             group by pra2.asset) latest_pr
+        on pra.asset = latest_pr.asset
+       and pr.createdDate = latest_pr.max_created_date
+     group by pra.asset
+""")
+  List<Long> getLatestPullRunIdsPerAsset(
+      @Param("startDate") ZonedDateTime startDate, @Param("endDate") ZonedDateTime endDate);
+
+  @Transactional
+  @Modifying
+  @Query(
+      value =
+          """
+          delete from PullRun
+           where createdDate between :startDate and :endDate
+             and id not in :latestPullRunIdsPerAsset
+          """)
+  void deletePullRunsNotLatestPerAsset(
+      @Param("startDate") ZonedDateTime startDate,
+      @Param("endDate") ZonedDateTime endDate,
+      @Param("latestPullRunIdsPerAsset") List<Long> latestPullRunIdsPerAsset);
 }
