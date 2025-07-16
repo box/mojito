@@ -10,7 +10,7 @@ permalink: /docs/guides/open-source-contributors/
 The following requirements are needed to develop on {{ site.mojito_green }}: 
 
 1. [Git](https://git-scm.com/about)
-2. [JDK 17](https://adoptium.net/temurin/releases/?version=17) 
+2. [JDK 21](https://adoptium.net/temurin/releases/?version=21) 
 3. [Maven](https://maven.apache.org/download.cgi), or use the project Maven wrapper `mvnw` (version `3.8`)
 4. Optional but highly recommended, [MySQL 8](https://dev.mysql.com/downloads/mysql/8.html) 
 
@@ -35,7 +35,7 @@ brew tap homebrew/cask-versions
 Install `java 21` from `Temurin`:
 
 ```sh
-brew install --cask temurin17
+brew install --cask temurin21
 ```
 
 Check that `java 21` is now in use with `java -version`. If you need multiple versions of `java` consider using 
@@ -309,9 +309,9 @@ Make sure you have Java 8 installed:
 
 ```sh
 [11:05:13] ~/code/mojito (fix_add_text_unit_plural) $ java -version
-openjdk version "17.0.9" 2023-10-17
-OpenJDK Runtime Environment Homebrew (build 17.0.9+0)
-OpenJDK 64-Bit Server VM Homebrew (build 17.0.9+0, mixed mode, sharing)
+openjdk version "21.0.9" 2023-10-21
+OpenJDK Runtime Environment Homebrew (build 21.0.9)
+OpenJDK 64-Bit Server VM Homebrew (build 21.0.9, mixed mode, sharing)
 ```
 
 ### Check Maven version
@@ -324,7 +324,7 @@ If you have multiple version of Java installed, make sure Maven uses the right v
 [01:21:31] ~ $ mvn -version
 Apache Maven 3.8.2 (ea98e05a04480131370aa0c110b8c54cf726c06f)
 Maven home: /usr/local/Cellar/maven/3.8.2/libexec
-Java version: 1.8.0_292, vendor: AdoptOpenJDK, runtime: /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre
+Java version: 21.0.9, vendor: Homebrew, runtime: /opt/homebrew/Cellar/openjdk/21.0.9/libexec/openjdk.jdk/Contents/Home
 Default locale: en_IE, platform encoding: UTF-8
 OS name: "mac os x", version: "10.16", arch: "x86_64", family: "mac"
 ```
