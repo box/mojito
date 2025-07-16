@@ -334,7 +334,8 @@ public class AiTranslateService {
   private Mono<Void> submitForImport(
       List<MyRecord> results, AiTranslateType aiTranslateType, Status importStatus) {
     logger.info("Submit for import for locale {}", results.get(0).textUnitDTO().getTargetLocale());
-    List<TextUnitDTOWithVariantComment> forImport =
+
+    List<TextUnitDTOWithVariantCommentOrError> forImport =
         results.stream()
             .map(
                 myRecord -> {
@@ -345,9 +346,18 @@ public class AiTranslateService {
                   String completionOutputAsJson =
                       chatCompletionsResponse.choices().getFirst().message().content();
 
-                  Object completionOutput =
-                      objectMapper.readValueUnchecked(
-                          completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
+                  Object completionOutput;
+                  try {
+                    completionOutput =
+                        objectMapper.readValueUnchecked(
+                            completionOutputAsJson, aiTranslateType.getOutputJsonSchemaClass());
+                  } catch (UncheckedIOException e) {
+                    String errorMessage =
+                        "Error trying to parse the JSON completion output: %s"
+                            .formatted(e.getMessage());
+                    logger.debug(errorMessage, e);
+                    return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
+                  }
 
                   TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
                       aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
@@ -357,12 +367,19 @@ public class AiTranslateService {
                       restoreLeadingAndTrailingWhitespace(
                           textUnitDTO.getSource(), textUnitDTO.getTarget()));
 
-                  return textUnitDTOWithVariantComment;
+                  return new TextUnitDTOWithVariantCommentOrError(
+                      textUnitDTOWithVariantComment, null);
                 })
             .collect(Collectors.toList());
 
     textUnitBatchImporterService.importTextUnitsWithVariantComment(
-        forImport, TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+        forImport.stream()
+            .filter(t -> t.error() == null)
+            .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
+            .toList(),
+        TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+
+    // TODO(ja) finish propagating the error message to the CLI
 
     return Mono.empty();
   }
