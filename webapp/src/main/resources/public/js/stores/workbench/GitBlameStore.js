@@ -26,8 +26,6 @@ class GitBlameStore {
     }
 
     openWithTextUnit(textUnit) {
-        console.log("GitBlameStore::openWithTextUnit");
-
         this.show = true;
         this.textUnit = textUnit;
         this.gitBlameWithUsage = null;
@@ -40,13 +38,11 @@ class GitBlameStore {
     }
 
     onGetGitBlameInfoSuccess(gitBlameWithUsage) {
-        console.log("GitBlameStore::onGetGitBlameInfoSuccess");
         this.gitBlameWithUsage = gitBlameWithUsage[0];
         this.loading = false;
     }
 
     onGetGitBlameInfoError() {
-        console.log("GitBlameStore::onGetGitBlameInfoError");
         this.loading = false;
     }
 }

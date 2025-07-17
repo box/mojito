@@ -5,7 +5,10 @@ class RepositoryActions {
         this.generateActions(
             "getAllRepositories",
             "getAllRepositoriesSuccess",
-            "getAllRepositoriesError"
+            "getAllRepositoriesError",
+            "createRepository",
+            "createRepositorySuccess",
+            "createRepositoryError"
         );
     }
 }

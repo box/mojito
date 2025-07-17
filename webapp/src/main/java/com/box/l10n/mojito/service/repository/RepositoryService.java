@@ -199,7 +199,11 @@ public class RepositoryService {
    *     RepositoryService#updateRepositoryLocales} to see requirements
    * @return The created {@link Repository}
    */
-  @Transactional
+  @Transactional(
+      rollbackFor = {
+        RepositoryLocaleCreationException.class,
+        RepositoryNameAlreadyUsedException.class
+      })
   public Repository createRepository(
       String name,
       String description,

@@ -8,9 +8,31 @@ class RepositoryStore {
 
     constructor() {
         this.repositories = [];
+        this.error = null;
         this.bindActions(RepositoryActions);
         this.bindActions(WorkbenchActions);
         this.registerAsync(RepositoryDataSource);
+    }
+
+    createRepository(repository) {
+        this.getInstance().createRepository(repository);
+    }
+
+    createRepositorySuccess(repository) {
+        this.repositories = [...this.repositories, repository];
+        this.setError(null);
+    }
+
+    createRepositoryError(error) {
+        this.setError(error);
+    }
+
+    setError(error) {
+        this.error = error;
+    }
+
+    getError() {
+        return this.error;
     }
 
     getAllRepositories() {

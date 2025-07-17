@@ -83,7 +83,6 @@ class SearchResultsStore {
      * @param {object} -- The response sent when the count query is successful.
      */
     onSearchCountReceivedSuccess(response) {
-        console.log("SearchResultsStore::onSearchCountReceivedSuccess", response);
         this.setState({
             filteredItemCount: response.totalCount,
             isCountRequestPending: false

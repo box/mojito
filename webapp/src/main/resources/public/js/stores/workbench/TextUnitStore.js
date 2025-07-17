@@ -27,7 +27,6 @@ class TextUnitStore {
      * @param {TextUnit} textUnit The textUnit passed back by the SDK
      */
     onSaveTextUnitSuccess(textUnit) {
-        console.log("onSaveTextUnitSuccess");
         this.resetErrorState(textUnit);
     }
 
@@ -36,7 +35,6 @@ class TextUnitStore {
      * @param {TextUnitError} errorResponse The error object returned by the promise.
      */
     onSaveTextUnitError(errorResponse) {
-        console.log("onSaveTextUnitError");
         this.setErrorState(errorResponse);
     }
 
@@ -52,7 +50,6 @@ class TextUnitStore {
      * @param {TextUnitError} errorResponse The error object returned by the promise.
      */
     onCheckAndSaveTextUnitError(errorResponse) {
-        console.log("onCheckAndSaveTextUnitError");
         this.setErrorState(errorResponse);
     }
 
@@ -61,7 +58,6 @@ class TextUnitStore {
      * @param {TextUnit} textUnit The textUnit passed back by the SDK
      */
     onCheckAndSaveTextUnitSuccess(textUnit) {
-        console.log('onCheckAndSaveTextUnitSuccess');
         this.resetErrorState(textUnit);
     }
 
@@ -70,7 +66,6 @@ class TextUnitStore {
      * @param {TextUnit[]} textUnits
      */
     onDeleteTextUnits(textUnits) {
-        console.log("TextUnitStore::onDeleteTextUnits");
         textUnits.forEach(textUnit => {
             // NOTE: specifically check for null b'c target can be an empty string "" which should still be deleted
             if (textUnit.getTarget() !== null) {
@@ -83,7 +78,6 @@ class TextUnitStore {
      * @param {TextUnit} textUnit response The response sent by the promise when the delete request succeeds
      */
     onDeleteTextUnitsSuccess(textUnit) {
-        console.log("TextUnitStore::onDeleteTextUnitsSuccess");
         this.resetErrorState(textUnit);
     }
 
@@ -91,7 +85,6 @@ class TextUnitStore {
      * @param {TextUnitError} errorResponse
      */
     onDeleteTextUnitsError(errorResponse) {
-        console.log("TextUnitStore::onDeleteTextUnitsError");
         this.setErrorState(errorResponse);
     }
 

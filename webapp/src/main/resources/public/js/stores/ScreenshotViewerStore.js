@@ -62,13 +62,11 @@ class ScreenshotViewerStore {
             this.closeScreenshotsViewer();
         }
         this.isDeleting = false;
-        console.log("ScreenshotViewerStore::onDeleteScreenshotSuccess");
     }
 
-    onDeleteScreenshotFailure({ response }) {
+    onDeleteScreenshotFailure() {
         this.isDeleting = false;
         this.error = true;
-        console.log("ScreenshotViewerStore::onDeleteScreenshotFailure", response);
     }
 }
 

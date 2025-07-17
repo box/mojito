@@ -1192,10 +1192,55 @@ label.current-pageNumber {
     gap: 8px;
 }
 
-.flex { 
-    display: flex;
-}
-
 .red {
     color: red;
+}
+
+.locale-dropdown-root {
+  position: relative;
+  width: 260px;
+}
+
+.locale-dropdown-input {
+  cursor: pointer;
+  background-color: #fff;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%;
+  box-shadow: none;
+}
+
+.locale-dropdown-input:focus {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.07);
+  border-color: #ccc;
+}
+
+.locale-dropdown-menu {
+  display: block;
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 2px;
+}
+
+.locale-dropdown-item {
+  cursor: pointer;
+}
+
+.locale-dropdown-item-disabled {
+  cursor: not-allowed;
+}
+
+.repo-locale-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.repo-locale-dropdown {
+  min-width: 220px;
+  max-width: 300px;
 }

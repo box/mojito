@@ -217,15 +217,10 @@ pre {
   float: right;
 }
 
-
 .vertical-align-middle {
-//  position: relative;
-//  top: 50%;
-//  transform: translateY(50%);
   display: flex;
   justify-content: center;
   align-items: center;
-
 }
 
 .mrl { margin-right: 20px; }
@@ -233,6 +228,9 @@ pre {
 .mbl { margin-bottom: 20px; }
 .text-center { text-align: center; }
 
+.flex { 
+    display: flex;
+  
 .bg-warning {
     background-color: #FFCC00;
 }

@@ -18,7 +18,6 @@ import SearchConstants from "../../utils/SearchConstants";
 import {FormControl, Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem} from 'react-bootstrap';
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 import {withAppConfig} from "../../utils/AppConfig";
-import AuthorityService from "../../utils/AuthorityService";
 
 class Header extends React.Component {
     state = {

@@ -1,6 +1,9 @@
 import BaseClient from "./BaseClient";
 
 class RepositoryClient extends BaseClient {
+    createRepository(repository) {
+        return this.post(this.getUrl(), repository);
+    }
 
     getRepositories() {
         return this.get(this.getUrl(), {});

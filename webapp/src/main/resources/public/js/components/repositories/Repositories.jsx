@@ -1,12 +1,13 @@
 import React from "react";
 import createReactClass from 'create-react-class';
-import {Table} from "react-bootstrap";
+import {Button, Table} from "react-bootstrap";
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import RepositoryStore from "../../stores/RepositoryStore";
 import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
 import RepositoryRow from "./RepositoryRow";
 import RepositoryStatistic from "./RepositoryStatistic";
 import FluxyMixin from "alt-mixins/FluxyMixin";
+import RepositoryInputModal from "./RepositoryInputModal";
 
 let Repositories = createReactClass({
     displayName: 'Repositories',
@@ -18,18 +19,36 @@ let Repositories = createReactClass({
         }
     },
 
-    getInitialState: function () {
-        let state = RepositoryStore.getState();
-        state.isLocaleStatsShown = false;
-        state.activeRepoId = null;
-        return state;
+    getInitialState() {
+        return {
+            repositories: RepositoryStore.getState().repositories,
+            isLocaleStatsShown: false,
+            activeRepoId: null,
+            isRepositoryInputModalOpen: false,
+            errorMessage: null,
+            isSubmitting: false,
+        };
     },
 
-    onRepositoryStoreChanged: function () {
-        this.setState(RepositoryStore.getState());
+    onRepositoryStoreChanged(state) {
+        this.setState({ repositories: state.repositories });
+
+        if (this.state.isRepositoryInputModalOpen && this.state.isSubmitting) {
+            if (state.error && state.error.response) {
+                state.error.response.text().then(data => {
+                    this.setState({ isSubmitting: false, errorMessage: data });
+                });
+            } else {
+                this.setState({
+                    isRepositoryInputModalOpen: false,
+                    isSubmitting: false,
+                    errorMessage: null
+                });
+            }
+        }
     },
 
-    getTableRow: function (rowData) {
+    getTableRow(rowData) {
         let repoId = rowData.id;
         let isBlurred = this.state.isLocaleStatsShown && (this.state.activeRepoId !== repoId);
 
@@ -61,6 +80,27 @@ let Repositories = createReactClass({
         });
     },
 
+    openCreateRepositoryModal() {
+        this.setState({ 
+            isRepositoryInputModalOpen: true,
+            isSubmitting: false,
+            errorMessage: null
+        });
+    },
+
+    closeCreateRepositoryModal() {
+        this.setState({ 
+            isRepositoryInputModalOpen: false,
+            isSubmitting: false,
+            errorMessage: null
+        });
+    },
+
+    handleCreateRepositorySubmit(repository) {
+        this.setState({ isSubmitting: true, errorMessage: null });
+        RepositoryStore.createRepository(repository);
+    },
+
     render: function () {
         let sideBarContent = "";
         if (this.state.activeRepoId) {
@@ -76,6 +116,11 @@ let Repositories = createReactClass({
                          contentClassName="side-bar-main-content-container"
                          docked={this.state.isLocaleStatsShown} pullRight={true}>
                     <div className="plx prx">
+                        <div className="pull-right">
+                            <Button bsStyle="primary" onClick={this.openCreateRepositoryModal}>
+                                New Repository
+                            </Button>
+                        </div>
                         <Table className="repo-table table-padded-sides">
                             <thead>
                             <tr>
@@ -95,6 +140,14 @@ let Repositories = createReactClass({
                         </Table>
                     </div>
                 </ReactSidebarResponsive>
+                <RepositoryInputModal
+                    title="Create Repository"
+                    show={this.state.isRepositoryInputModalOpen}
+                    onClose={this.closeCreateRepositoryModal}
+                    onSubmit={this.handleCreateRepositorySubmit}
+                    isSubmitting={this.state.isSubmitting}
+                    errorMessage={this.state.errorMessage}
+                />
             </div>
         );
     },
