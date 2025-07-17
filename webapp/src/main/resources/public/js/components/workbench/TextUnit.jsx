@@ -1028,26 +1028,44 @@ let TextUnit = createReactClass({
         let textunitClass = "mrm pbs pts textunit";
         let isActive = this.props.isActive;
         let isSelected = this.props.isSelected;
+        let textUnitStatus = this.props.textUnit.getStatus();
+        let isStatusReviewNeeded = textUnitStatus === TextUnitSDK.STATUS.REVIEW_NEEDED ||
+            textUnitStatus === TextUnitSDK.STATUS.MT_REVIEW_NEEDED ||
+            textUnitStatus === TextUnitSDK.STATUS.MACHINE_TRANSLATED;
         if (isActive) {
             textunitClass = textunitClass + " textunit-active";
         }
         if (isSelected) {
             textunitClass = textunitClass + " textunit-selected";
         }
+        if (isStatusReviewNeeded) {
+            textunitClass = textunitClass + " bg-warning";
+        }
+        let canEditTranslations = AuthorityService.canEditTranslations();
 
-        const canEditTranslations = AuthorityService.canEditTranslations()
-        return (
-            <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
-                 onClick={this.onTextUnitClick}>
-            {this.getErrorAlert()}
+        const textUnitContent = (
+            <div
+                ref="textunit"
+                className={textunitClass}
+                onKeyUp={this.onKeyUpTextUnit}
+                tabIndex={0}
+                onClick={this.onTextUnitClick}
+            >
+                {this.getErrorAlert()}
                 <div>
                     <div className="text-unit-root mls">
-                        {canEditTranslations && <span style={{gridArea: "cb"}} className="mrxs">
-                            <input type="checkbox" checked={isSelected} readOnly={true} disabled={!canEditTranslations}/>
-                        </span>}
-
+                        {canEditTranslations && (
+                            <span style={{ gridArea: "cb" }} className="mrxs">
+                                <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    readOnly={true}
+                                    disabled={!canEditTranslations}
+                                />
+                            </span>
+                        )}
                         <div className="left">
-                            <div style={{gridArea: "locale"}}>
+                            <div style={{ gridArea: "locale" }}>
                                 <OverlayTrigger
                                     placement="top"
                                     overlay={
@@ -1056,33 +1074,29 @@ let TextUnit = createReactClass({
                                         </Tooltip>
                                     }
                                 >
-                                    <Label bsStyle='primary' bsSize='large' className="clickable" onClick={this.onLocaleLabelClick}>
+                                    <Label
+                                        bsStyle="primary"
+                                        bsSize="large"
+                                        className="clickable"
+                                        onClick={this.onLocaleLabelClick}
+                                    >
                                         {this.props.textUnit.getTargetLocale()}
                                     </Label>
                                 </OverlayTrigger>
                             </div>
-                            <div style={{gridArea: "repo"}}>
-                                {this.renderRepository()}
-                            </div>
-                            <div style={{gridArea: "res"}}>
-                                {this.renderAsset()}
-                            </div>
-                            <div style={{gridArea: "labels", display: "flex", "gap": "5px"}}>
+                            <div style={{ gridArea: "repo" }}>{this.renderRepository()}</div>
+                            <div style={{ gridArea: "res" }}>{this.renderAsset()}</div>
+                            <div style={{ gridArea: "labels", display: "flex", gap: "5px" }}>
                                 {this.renderUnusedLabel()}
                                 {this.renderDoNotTranslateLabel()}
                                 {this.renderPluralFormLabel()}
                             </div>
-                            <div style={{gridArea: "name"}}>
-                                {this.renderName()}
-                            </div>
-                            <div style={{gridArea: "source"}} className="break-word-text-direction-safe">
+                            <div style={{ gridArea: "name" }}>{this.renderName()}</div>
+                            <div style={{ gridArea: "source" }} className="break-word-text-direction-safe">
                                 {this.renderSource()}
                             </div>
-                            <div style={{gridArea: "comment"}}>
-                                {this.renderComment()}
-                            </div>
+                            <div style={{ gridArea: "comment" }}>{this.renderComment()}</div>
                         </div>
-
                         <div className="right mrs">
                             {this.getTargetStringUI()}
                             {this.renderReviewGlyph()}
@@ -1093,6 +1107,22 @@ let TextUnit = createReactClass({
                 {this.getCancelConfirmationModel()}
             </div>
         );
+
+        if (isStatusReviewNeeded) {
+            return (
+                <OverlayTrigger
+                    placement="top"
+                    overlay={
+                        <Tooltip id={`textunit-tooltip-${this.props.textUnit.getId()}`}>
+                            This text unit string is still in review, please do not skip translations required.
+                        </Tooltip>
+                    }
+                >
+                    {textUnitContent}
+                </OverlayTrigger>
+            );
+        }
+        return textUnitContent;
     },
 });
 
