@@ -37,7 +37,7 @@ public class AiTranslateConfig {
       return null;
     }
     return new OpenAIClientPool(
-        10, 50, 5, aiTranslateConfigurationProperties.getOpenaiClientToken());
+        20, 100, 1, aiTranslateConfigurationProperties.getOpenaiClientToken());
   }
 
   @Bean
