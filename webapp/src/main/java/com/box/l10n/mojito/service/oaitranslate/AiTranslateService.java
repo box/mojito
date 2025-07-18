@@ -74,15 +74,14 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -835,7 +834,12 @@ public class AiTranslateService {
 
     static int CHARACTER_LIMIT = 10000;
 
-    Map<Long, List<AssetTextUnit>> cache = new HashMap<>();
+    ConcurrentHashMap<Long, List<AssetTextUnit>> assetExtractionMap = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, AssetTextUnit> assetTextUnitById = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, Map<String, List<AssetTextUnitWithPosition>>> usageMapCache =
+        new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, Map<String, List<AssetTextUnit>>> idPrefixMapCache =
+        new ConcurrentHashMap<>();
 
     enum Type {
       USAGES,
@@ -864,24 +868,27 @@ public class AiTranslateService {
      */
     List<RelatedString> getRelatedStrings(TextUnitDTO textUnitDTO) {
 
-      List<AssetTextUnit> assetTextUnits =
-          getAssetTextUnitsOfAssetExtraction(textUnitDTO.getAssetExtractionId());
+      if (Type.NONE.equals(type)) {
+        return ImmutableList.of();
+      }
 
-      Optional<AssetTextUnit> assetTextUnit =
-          assetTextUnits.stream()
-              .filter(atu -> atu.getId().equals(textUnitDTO.getAssetTextUnitId()))
-              .findFirst();
+      initCachesForAssetExtraction(textUnitDTO.getAssetExtractionId());
 
-      if (assetTextUnit.isPresent()) {
+      AssetTextUnit assetTextUnit = assetTextUnitById.get(textUnitDTO.getAssetTextUnitId());
+
+      if (assetTextUnit != null) {
         List<RelatedString> relatedStrings =
             switch (type) {
-              case USAGES -> getRelatedStringsByUsages(assetTextUnits, assetTextUnit.get());
-              case ID_PREFIX -> getRelatedStringsByIdPrefix(assetTextUnits, assetTextUnit.get());
-              case NONE -> ImmutableList.of();
+              case USAGES -> getRelatedStringsByUsages(assetTextUnit);
+              case ID_PREFIX -> getRelatedStringsByIdPrefix(assetTextUnit);
+              case NONE -> {
+                logger.error("Must have exited earlier to avoid unnecessary computation");
+                yield ImmutableList.of();
+              }
             };
         List<RelatedString> filteredByCharLimit =
             filterByCharLimit(relatedStrings, CHARACTER_LIMIT);
-        logger.info(
+        logger.debug(
             "Related strings (type: {}, count: {}, filtered: {}): {}",
             type,
             relatedStrings.size(),
@@ -896,13 +903,11 @@ public class AiTranslateService {
       }
     }
 
-    List<RelatedString> getRelatedStringsByIdPrefix(
-        List<AssetTextUnit> assetTextUnits, AssetTextUnit assetTextUnit) {
-
+    List<RelatedString> getRelatedStringsByIdPrefix(AssetTextUnit assetTextUnit) {
+      Long id = assetTextUnit.getAssetExtraction().getId();
+      initCachesForAssetExtraction(id);
       String prefix = getPrefix(assetTextUnit.getName());
-      return assetTextUnits.stream()
-          .filter(atu -> !atu.getId().equals(assetTextUnit.getId()))
-          .filter(atu -> atu.getName().startsWith(prefix))
+      return idPrefixMapCache.get(id).get(prefix).stream()
           .map(atu -> new RelatedString(atu.getContent(), atu.getComment()))
           .toList();
     }
@@ -912,56 +917,76 @@ public class AiTranslateService {
       return (dot == -1) ? id : id.substring(0, dot);
     }
 
-    record RelatedStringWithPosition(RelatedString relatedString, Long position) {}
-
-    static List<RelatedString> getRelatedStringsByUsages(
-        List<AssetTextUnit> assetTextUnits, AssetTextUnit assetTextUnit) {
-      Map<String, List<RelatedStringWithPosition>> byUsages =
-          assetTextUnits.stream()
-              .filter(atu -> !atu.getId().equals(assetTextUnit.getId()))
-              .flatMap(
-                  atu ->
-                      atu.getUsages().stream()
-                          .map(
-                              usage -> {
-                                FilePosition filePosition = FilePosition.from(usage);
-                                return Map.entry(
-                                    filePosition.path(),
-                                    new RelatedStringWithPosition(
-                                        new RelatedString(atu.getContent(), atu.getComment()),
-                                        // in the same file order by line if available, else by
-                                        // atu.id
-                                        // to have at least creation order (not good for later
-                                        // updates which put
-                                        // newer strings at the end regardless the position in the
-                                        // document)
-                                        filePosition.line() == null
-                                            ? atu.getId()
-                                            : filePosition.line()));
-                              }))
-              .collect(
-                  Collectors.groupingBy(
-                      Map.Entry::getKey,
-                      Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+    List<RelatedString> getRelatedStringsByUsages(AssetTextUnit assetTextUnit) {
 
       List<RelatedString> relatedStrings =
           assetTextUnit.getUsages().stream()
               .flatMap(
                   u -> {
                     FilePosition filePosition = FilePosition.from(u);
-                    return byUsages.getOrDefault(filePosition.path(), List.of()).stream()
-                        .sorted(Comparator.comparingLong(RelatedStringWithPosition::position))
-                        .map(RelatedStringWithPosition::relatedString);
+                    return usageMapCache
+                        .get(assetTextUnit.getAssetExtraction().getId())
+                        .getOrDefault(filePosition.path(), List.of())
+                        .stream()
+                        .sorted(Comparator.comparingLong(AssetTextUnitWithPosition::position))
+                        .map(
+                            atu ->
+                                new RelatedString(
+                                    atu.assetTextUnit().getContent(),
+                                    atu.assetTextUnit().getComment()));
                   })
               .toList();
 
       return relatedStrings;
     }
 
-    List<AssetTextUnit> getAssetTextUnitsOfAssetExtraction(Long assetExtractionId) {
-      return cache.computeIfAbsent(
-          assetExtractionId, assetTextUnitRepository::findByAssetExtractionId);
+    void initCachesForAssetExtraction(long assetExtractionId) {
+      assetExtractionMap.computeIfAbsent(
+          assetExtractionId,
+          id -> {
+            List<AssetTextUnit> byAssetExtractionId =
+                assetTextUnitRepository.findByAssetExtractionId(id);
+
+            for (AssetTextUnit atu : byAssetExtractionId) {
+              assetTextUnitById.putIfAbsent(atu.getId(), atu);
+            }
+
+            if (Type.USAGES.equals(type)) {
+              usageMapCache.computeIfAbsent(
+                  assetExtractionId,
+                  __ ->
+                      byAssetExtractionId.stream()
+                          .flatMap(
+                              atu ->
+                                  atu.getUsages().stream()
+                                      .map(
+                                          usage -> {
+                                            FilePosition filePosition = FilePosition.from(usage);
+                                            return Map.entry(
+                                                filePosition.path(),
+                                                new AssetTextUnitWithPosition(
+                                                    atu,
+                                                    filePosition.line() == null
+                                                        ? atu.getId()
+                                                        : filePosition.line()));
+                                          }))
+                          .collect(
+                              Collectors.groupingBy(
+                                  Map.Entry::getKey,
+                                  Collectors.mapping(Map.Entry::getValue, Collectors.toList()))));
+            } else if (Type.ID_PREFIX.equals(type)) {
+              idPrefixMapCache.computeIfAbsent(
+                  assetExtractionId,
+                  __ ->
+                      byAssetExtractionId.stream()
+                          .collect(Collectors.groupingBy(atu -> getPrefix(atu.getName()))));
+            }
+
+            return byAssetExtractionId;
+          });
     }
+
+    record AssetTextUnitWithPosition(AssetTextUnit assetTextUnit, Long position) {}
 
     public static List<RelatedString> filterByCharLimit(
         List<RelatedString> relatedStrings, int charLimit) {
