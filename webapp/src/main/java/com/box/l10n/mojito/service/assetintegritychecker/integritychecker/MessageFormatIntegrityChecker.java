@@ -68,7 +68,10 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
 
     if (!sourceArgumentNames.equals(targetArgumentNames)) {
       throw new MessageFormatIntegrityCheckerException(
-          "Different placeholder name in source and target");
+          "Target placeholders do not match source. Found: "
+              + targetArgumentNames
+              + ", expected: "
+              + sourceArgumentNames);
     }
   }
 
