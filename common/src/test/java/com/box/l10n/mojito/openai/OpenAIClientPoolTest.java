@@ -15,6 +15,7 @@ import java.util.LongSummaryStatistics;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -49,134 +50,153 @@ public class OpenAIClientPoolTest {
     int numberOfRequests = 5000;
     int sizeOfAsyncProcessors = 1;
     int totalExecutions = numberOfClients * numberOfParallelRequestPerClient;
+    long timeout = 5000;
 
     OpenAIClientPool openAIClientPool =
         new OpenAIClientPool(
             numberOfClients, numberOfParallelRequestPerClient, sizeOfAsyncProcessors, API_KEY);
 
-    AtomicInteger responseCounter = new AtomicInteger();
-    AtomicInteger submitted = new AtomicInteger();
-    AtomicInteger timedOut = new AtomicInteger();
     Stopwatch stopwatch = Stopwatch.createStarted();
 
-    List<Long> submissionTimes = Collections.synchronizedList(new ArrayList<>());
-    List<Long> responseTimes = Collections.synchronizedList(new ArrayList<>());
+    try (TranslationMonitor translationMonitor = new TranslationMonitor(true)) {
+      List<CompletableFuture<ChatCompletionsResponse>> responses = new ArrayList<>();
+      for (int i = 0; i < numberOfRequests; i++) {
+        String message = "Is %d prime?".formatted(i);
+        Stopwatch requestStopwatch = Stopwatch.createStarted();
+        OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
+            chatCompletionsRequest()
+                .model("gpt-4.1")
+                .messages(
+                    List.of(
+                        systemMessageBuilder()
+                            .content("You're an engine designed to check prime numbers")
+                            .build(),
+                        userMessageBuilder().content(message).build()))
+                .build();
 
-    ScheduledExecutorService scheduledExecutorService =
-        Executors.newSingleThreadScheduledExecutor();
-    scheduledExecutorService.scheduleAtFixedRate(
-        () -> {
-          try {
+        CompletableFuture<ChatCompletionsResponse> response =
+            openAIClientPool
+                .submit(
+                    openAIClient -> {
+                      CompletableFuture<ChatCompletionsResponse> chatCompletions =
+                          openAIClient.getChatCompletions(
+                              chatCompletionsRequest, Duration.of(5000, ChronoUnit.MILLIS));
+                      translationMonitor.requestCounter.incrementAndGet();
+                      translationMonitor.requestSubmissionTimes.add(
+                          requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
+                      return chatCompletions;
+                    })
+                .thenApply(
+                    chatCompletionsResponse -> {
+                      translationMonitor.responseCounter.incrementAndGet();
+                      translationMonitor.responseTimes.add(
+                          requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
+                      return chatCompletionsResponse;
+                    })
+                .exceptionally(
+                    e -> {
+                      translationMonitor.responseCounter.incrementAndGet();
+                      translationMonitor.responseTimes.add(timeout);
+                      translationMonitor.timedOut.incrementAndGet();
+                      return null;
+                    });
 
-            List<Long> copySubmissionTimes;
-            synchronized (submissionTimes) {
-              copySubmissionTimes = new ArrayList<>(submissionTimes);
-            }
+        responses.add(response);
+      }
 
-            List<Long> copyResponseTimes;
-            synchronized (responseTimes) {
-              copyResponseTimes = new ArrayList<>(responseTimes);
-            }
+      Stopwatch started = Stopwatch.createStarted();
+      CompletableFuture.allOf(responses.toArray(new CompletableFuture[responses.size()])).join();
+      logger.info("Waiting for join: " + started.elapsed());
 
-            double elapsed = stopwatch.elapsed(TimeUnit.SECONDS) + 0.00001;
-            double avg =
-                copyResponseTimes.stream().collect(Collectors.averagingLong(Long::longValue));
+      LongSummaryStatistics statistics =
+          translationMonitor.responseTimes.stream()
+              .collect(Collectors.summarizingLong(Long::longValue));
 
-            logger.info(
-                "request per second: "
-                    + submitted.get() / elapsed
-                    + ", submission count: "
-                    + submitted.get()
-                    + ", last submissions took: "
-                    + copySubmissionTimes.subList(
-                        Math.max(0, copySubmissionTimes.size() - 100), copySubmissionTimes.size()));
+      logger.info(
+          "Total time: "
+              + stopwatch.elapsed().toString()
+              + ", total request: "
+              + numberOfRequests
+              + ", request per second: "
+              + Math.round((double) numberOfRequests / stopwatch.elapsed(TimeUnit.SECONDS))
+              + ", average response time: "
+              + Math.round(statistics.getAverage())
+              + " (theory rps: "
+              + Math.round(totalExecutions / (statistics.getAverage() / 1000.0))
+              + ")"
+              + ", timed out: "
+              + translationMonitor.timedOut.get());
+    }
+  }
 
-            logger.info(
-                "response per second: "
-                    + responseCounter.get() / elapsed
-                    + ", average response time: "
-                    + Math.round(avg)
-                    + " (rps: "
-                    + Math.round(totalExecutions / (avg / 1000.0))
-                    + "), response count from counter: "
-                    + responseCounter.get()
-                    + ", last elapsed times: "
-                    + copyResponseTimes.subList(
-                        Math.max(0, copyResponseTimes.size() - 20), copyResponseTimes.size()));
+  public class TranslationMonitor implements AutoCloseable {
+    private final AtomicInteger responseCounter = new AtomicInteger();
+    private final AtomicInteger requestCounter = new AtomicInteger();
+    private final AtomicInteger timedOut = new AtomicInteger();
+    private final Stopwatch stopwatch = Stopwatch.createStarted();
 
-          } catch (Throwable t) {
-            logger.error("Error displaying stats", t);
-          }
-        },
-        0,
-        1,
-        TimeUnit.SECONDS);
+    private final List<Long> requestSubmissionTimes =
+        Collections.synchronizedList(new ArrayList<>());
+    private final List<Long> responseTimes = Collections.synchronizedList(new ArrayList<>());
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> statsFuture = null;
 
-    long timeout = 5000;
-
-    List<CompletableFuture<ChatCompletionsResponse>> responses = new ArrayList<>();
-    for (int i = 0; i < numberOfRequests; i++) {
-      String message = "Is %d prime?".formatted(i);
-      Stopwatch requestStopwatch = Stopwatch.createStarted();
-      OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
-          chatCompletionsRequest()
-              .model("gpt-4.1")
-              .messages(
-                  List.of(
-                      systemMessageBuilder()
-                          .content("You're an engine designed to check prime numbers")
-                          .build(),
-                      userMessageBuilder().content(message).build()))
-              .build();
-
-      CompletableFuture<ChatCompletionsResponse> response =
-          openAIClientPool
-              .submit(
-                  openAIClient -> {
-                    CompletableFuture<ChatCompletionsResponse> chatCompletions =
-                        openAIClient.getChatCompletions(
-                            chatCompletionsRequest, Duration.of(5000, ChronoUnit.MILLIS));
-                    submitted.incrementAndGet();
-                    submissionTimes.add(requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
-                    return chatCompletions;
-                  })
-              .thenApply(
-                  chatCompletionsResponse -> {
-                    responseCounter.incrementAndGet();
-                    responseTimes.add(requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
-                    return chatCompletionsResponse;
-                  })
-              .exceptionally(
-                  e -> {
-                    responseCounter.incrementAndGet();
-                    responseTimes.add(timeout);
-                    timedOut.incrementAndGet();
-                    return null;
-                  });
-
-      responses.add(response);
+    public TranslationMonitor(boolean start) {
+      this.statsFuture =
+          start ? executor.scheduleAtFixedRate(this::printStats, 0, 5, TimeUnit.SECONDS) : null;
     }
 
-    Stopwatch started = Stopwatch.createStarted();
-    CompletableFuture.allOf(responses.toArray(new CompletableFuture[responses.size()])).join();
-    logger.info("Waiting for join: " + started.elapsed());
+    public void incrementSubmitted(long time) {
+      requestCounter.incrementAndGet();
+      requestSubmissionTimes.add(time);
+    }
 
-    LongSummaryStatistics statistics =
-        responseTimes.stream().collect(Collectors.summarizingLong(Long::longValue));
+    public void incrementResponse(long time) {
+      responseCounter.incrementAndGet();
+      responseTimes.add(time);
+    }
 
-    logger.info(
-        "Total time: "
-            + stopwatch.elapsed().toString()
-            + ", total request: "
-            + numberOfRequests
-            + ", request per second: "
-            + Math.round((double) numberOfRequests / stopwatch.elapsed(TimeUnit.SECONDS))
-            + ", average response time: "
-            + Math.round(statistics.getAverage())
-            + " (theory rps: "
-            + Math.round(totalExecutions / (statistics.getAverage() / 1000.0))
-            + ")"
-            + ", timed out: "
-            + timedOut.get());
+    public void incrementTimeout() {
+      timedOut.incrementAndGet();
+    }
+
+    private void printStats() {
+      try {
+        List<Long> copySubmissionTimes;
+        synchronized (requestSubmissionTimes) {
+          copySubmissionTimes = new ArrayList<>(requestSubmissionTimes);
+        }
+        List<Long> copyResponseTimes;
+        synchronized (responseTimes) {
+          copyResponseTimes = new ArrayList<>(responseTimes);
+        }
+        double elapsed = stopwatch.elapsed(TimeUnit.SECONDS);
+        double avg = copyResponseTimes.stream().collect(Collectors.averagingLong(Long::longValue));
+
+        Logger logger = LoggerFactory.getLogger(TranslationMonitor.class);
+        logger.info(
+            "request per second: {}, submission count: {}, last submissions took: {}\nresponse per second: {}, average response time: {}, response count: {}, last elapsed times: {}",
+            elapsed > 0 ? requestCounter.get() / elapsed : "n/a",
+            requestCounter.get(),
+            copySubmissionTimes.subList(
+                Math.max(0, copySubmissionTimes.size() - 20), copySubmissionTimes.size()),
+            elapsed > 0 ? responseCounter.get() / elapsed : "n/a",
+            Math.round(avg),
+            responseCounter.get(),
+            copyResponseTimes.subList(
+                Math.max(0, copyResponseTimes.size() - 20), copyResponseTimes.size()));
+
+      } catch (Throwable t) {
+        LoggerFactory.getLogger(TranslationMonitor.class).error("Error displaying stats", t);
+      }
+    }
+
+    @Override
+    public void close() {
+      if (statsFuture != null) {
+        statsFuture.cancel(false);
+      }
+      executor.shutdown();
+    }
   }
 }
