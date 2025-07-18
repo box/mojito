@@ -18,6 +18,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
@@ -132,7 +133,7 @@ public class OpenAIClient {
   }
 
   public CompletableFuture<ChatCompletionsResponse> getChatCompletions(
-      ChatCompletionsRequest chatCompletionsRequest) {
+      ChatCompletionsRequest chatCompletionsRequest, Duration httpRequestTimeout) {
 
     if (chatCompletionsRequest.stream()) {
       throw new IllegalArgumentException(
@@ -148,6 +149,7 @@ public class OpenAIClient {
 
     HttpRequest request =
         HttpRequest.newBuilder()
+            .timeout(httpRequestTimeout)
             .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer " + this.apiKey)
