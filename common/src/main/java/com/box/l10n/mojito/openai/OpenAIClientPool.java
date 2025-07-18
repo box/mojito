@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.openai;
 
-import com.google.common.base.Function;
 import java.net.http.HttpClient;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +52,13 @@ public class OpenAIClientPool {
     while (true) {
       for (OpenAIClientWithSemaphore openAIClientWithSemaphore : openAIClientWithSemaphores) {
         if (openAIClientWithSemaphore.semaphore().tryAcquire()) {
-          return f.apply(openAIClientWithSemaphore.openAIClient())
-              .whenComplete((o, e) -> openAIClientWithSemaphore.semaphore().release());
+          try {
+            return f.apply(openAIClientWithSemaphore.openAIClient())
+                .whenComplete((o, e) -> openAIClientWithSemaphore.semaphore().release());
+          } catch (Throwable t) {
+            logger.error("Exception in apply(), semaphore released", t);
+            openAIClientWithSemaphore.semaphore().release();
+          }
         }
       }
 
@@ -64,8 +69,13 @@ public class OpenAIClientPool {
         OpenAIClientWithSemaphore randomClientWithSemaphore =
             this.openAIClientWithSemaphores[randomSemaphoreIndex];
         randomClientWithSemaphore.semaphore().acquire();
-        return f.apply(randomClientWithSemaphore.openAIClient())
-            .whenComplete((o, e) -> randomClientWithSemaphore.semaphore().release());
+        try {
+          return f.apply(randomClientWithSemaphore.openAIClient())
+              .whenComplete((o, e) -> randomClientWithSemaphore.semaphore().release());
+        } catch (Throwable t) {
+          logger.error("Exception in apply(), semaphore released", t);
+          randomClientWithSemaphore.semaphore().release();
+        }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new RuntimeException("Can't submit task to the OpenAIClientPool", e);
