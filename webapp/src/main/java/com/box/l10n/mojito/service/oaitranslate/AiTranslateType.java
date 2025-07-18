@@ -33,7 +33,7 @@ public enum AiTranslateType {
       - "source": Text to translate.
       - "locale": Target language (BCP47).
       - "sourceDescription": Context for the string.
-      - "existingTarget" (optional): Existing translation, for review/fixing.
+      - "existingTarget" (optional): Existing translation, for review/fixing. "integrityCheckErrors" tell you what tags need fixing.
       - "relatedStrings": Additional context.
 
     **Output:**
