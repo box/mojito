@@ -103,7 +103,9 @@ public class MessageFormatIntegrityCheckerTest {
       checker.check(source, target);
       fail("Exception must be thrown");
     } catch (MessageFormatIntegrityCheckerException e) {
-      assertEquals("Different placeholder name in source and target", e.getMessage());
+      assertEquals(
+          "Target placeholders do not match source. Found: [utilisateur], expected: [username]",
+          e.getMessage());
     }
   }
 
