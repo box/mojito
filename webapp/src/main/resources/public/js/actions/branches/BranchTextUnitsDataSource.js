@@ -1,8 +1,8 @@
-import BranchTextUnitsPaginatorStore from "../../stores/branches/BranchTextUnitsPaginatorStore";
-import BranchTextUnitParameters from "../../sdk/BranchTextUnitParameters";
-import BranchTextUnitsParamStore from "../../stores/branches/BranchTextUnitsParamStore";
-import BranchTextUnitClient from "../../sdk/BranchTextUnitClient";
-import BranchTextUnitsPageActions from "./BranchTextUnitsPageActions";
+import BranchTextUnitsPaginatorStore from "../../stores/branches/BranchTextUnitsPaginatorStore.js";
+import BranchTextUnitParameters from "../../sdk/BranchTextUnitParameters.js";
+import BranchTextUnitsParamStore from "../../stores/branches/BranchTextUnitsParamStore.js";
+import BranchTextUnitClient from "../../sdk/BranchTextUnitClient.js";
+import BranchTextUnitsPageActions from "./BranchTextUnitsPageActions.js";
 
 const BranchTextUnitsDataSource = {
     performBranchTextUnitsSearch: {

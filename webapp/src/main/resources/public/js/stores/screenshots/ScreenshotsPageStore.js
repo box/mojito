@@ -1,7 +1,7 @@
-import alt from "../../alt";
-import ScreenshotsPageDataSource from "../../actions/screenshots/ScreenshotsPageDataSource";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import ScreenshotActions from "../../actions/screenshots/ScreenshotActions";
+import alt from "../../alt.js";
+import ScreenshotsPageDataSource from "../../actions/screenshots/ScreenshotsPageDataSource.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import ScreenshotActions from "../../actions/screenshots/ScreenshotActions.js";
 
 class ScreenshotsPageStore {
 

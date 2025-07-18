@@ -1,6 +1,6 @@
-import alt from "../../alt";
-import ScreenshotDataSource from "../../actions/screenshots/ScreenshotDataSource";
-import ScreenshotActions from "../../actions/screenshots/ScreenshotActions";
+import alt from "../../alt.js";
+import ScreenshotDataSource from "../../actions/screenshots/ScreenshotDataSource.js";
+import ScreenshotActions from "../../actions/screenshots/ScreenshotActions.js";
 
 class ScreenshotStore {
 

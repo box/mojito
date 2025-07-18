@@ -1,6 +1,6 @@
-import ScreenshotActions from "./ScreenshotActions";
-import ScreenshotClient from "../../sdk/ScreenshotClient";
-import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore";
+import ScreenshotActions from "./ScreenshotActions.js";
+import ScreenshotClient from "../../sdk/ScreenshotClient.js";
+import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore.js";
 
 const ScreenshotDataSource = {
     changeStatus: {

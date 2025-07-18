@@ -1,4 +1,4 @@
-import Locale from "./Locale";
+import Locale from "./Locale.js";
 
 export default class RepositoryLocale {
     constructor() {

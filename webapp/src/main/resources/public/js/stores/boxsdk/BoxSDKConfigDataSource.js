@@ -1,6 +1,6 @@
 
-import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
-import BoxSDKConfigClient from "../../sdk/BoxSDKConfigClient";
+import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions.js";
+import BoxSDKConfigClient from "../../sdk/BoxSDKConfigClient.js";
 
 const BoxSDKConfigDataSource = {
 

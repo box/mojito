@@ -1,4 +1,4 @@
-import UrlHelper from '../utils/UrlHelper';
+import UrlHelper from '../utils/UrlHelper.js';
 
 class BaseClient {
     constructor() {

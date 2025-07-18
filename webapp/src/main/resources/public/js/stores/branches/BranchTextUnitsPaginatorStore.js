@@ -1,9 +1,9 @@
-import PaginatorStore from "../PaginatorStore";
-import alt from "../../alt";
-import BranchTextUnitsPaginatorActions from "../../actions/branches/BranchTextUnitsPaginatorActions";
-import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions";
-import BranchesPageActions from "../../actions/branches/BranchesPageActions";
-import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
+import PaginatorStore from "../PaginatorStore.js";
+import alt from "../../alt.js";
+import BranchTextUnitsPaginatorActions from "../../actions/branches/BranchTextUnitsPaginatorActions.js";
+import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions.js";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions.js";
+import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent.js";
 
 class BranchTextUnitsPaginatorStore extends PaginatorStore {
     constructor() {

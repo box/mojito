@@ -1,4 +1,4 @@
-import StatusFilter from "../entity/StatusFilter";
+import StatusFilter from "../entity/StatusFilter.js";
 
 export default class ExportDropConfig {
     constructor(repoId, dropId, bcp47Tags, uploadTime, pollableTask) {

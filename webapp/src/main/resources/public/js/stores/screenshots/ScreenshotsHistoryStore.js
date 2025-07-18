@@ -1,14 +1,14 @@
-import alt from "../../alt";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
-import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import ScreenshotsHistoryActions from "../../actions/screenshots/ScreenshotsHistoryActions";
-import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
-import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
-import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
-import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
-import SearchParamsStore from "../workbench/SearchParamsStore";
-import { StatusCommonTypes } from "../../components/screenshots/StatusCommon";
+import alt from "../../alt.js";
+import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions.js";
+import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import ScreenshotsHistoryActions from "../../actions/screenshots/ScreenshotsHistoryActions.js";
+import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions.js";
+import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions.js";
+import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore.js";
+import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore.js";
+import SearchParamsStore from "../workbench/SearchParamsStore.js";
+import { StatusCommonTypes } from "../../components/screenshots/StatusCommon.jsx";
 
 
 class ScreenshotsHistoryStore {

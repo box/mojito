@@ -1,9 +1,9 @@
-import alt from "../../alt";
-import ScreenshotsReviewModalActions from "../../actions/screenshots/ScreenshotsReviewModalActions";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import ScreenshotDataSource from "../../actions/screenshots/ScreenshotDataSource";
-import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore";
-import { StatusCommonTypes } from "../../components/screenshots/StatusCommon";
+import alt from "../../alt.js";
+import ScreenshotsReviewModalActions from "../../actions/screenshots/ScreenshotsReviewModalActions.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import ScreenshotDataSource from "../../actions/screenshots/ScreenshotDataSource.js";
+import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore.js";
+import { StatusCommonTypes } from "../../components/screenshots/StatusCommon.jsx";
 
 class ScreenshotsReviewModalStore {
 

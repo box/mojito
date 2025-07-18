@@ -1,6 +1,6 @@
-import User from "./User";
-import Locale from "./Locale";
-import StatusFilter from "./StatusFilter";
+import User from "./User.js";
+import Locale from "./Locale.js";
+import StatusFilter from "./StatusFilter.js";
 
 export default class TranslationKit {
     constructor() {

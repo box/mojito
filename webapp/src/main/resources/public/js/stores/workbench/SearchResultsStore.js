@@ -1,13 +1,13 @@
-import alt from "../../alt";
-import Error from "../../utils/Error";
-import SearchConstants from "../../utils/SearchConstants";
-import SearchDataSource from "../../actions/workbench/SearchDataSource";
-import SearchParamsStore from "./SearchParamsStore";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import RepositoryActions from "../../actions/RepositoryActions";
-import textUnitStore from "./TextUnitStore";
-import ShareSearchParamsModalStore from "./ShareSearchParamsModalStore";
-import SearchCountDataSource from "../../actions/workbench/SearchCountDataSource";
+import alt from "../../alt.js";
+import Error from "../../utils/Error.js";
+import SearchConstants from "../../utils/SearchConstants.js";
+import SearchDataSource from "../../actions/workbench/SearchDataSource.js";
+import SearchParamsStore from "./SearchParamsStore.js";
+import WorkbenchActions from "../../actions/workbench/WorkbenchActions.js";
+import RepositoryActions from "../../actions/RepositoryActions.js";
+import textUnitStore from "./TextUnitStore.js";
+import ShareSearchParamsModalStore from "./ShareSearchParamsModalStore.js";
+import SearchCountDataSource from "../../actions/workbench/SearchCountDataSource.js";
 
 class SearchResultsStore {
 

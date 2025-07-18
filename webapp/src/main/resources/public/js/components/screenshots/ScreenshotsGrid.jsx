@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
+import magnifyingGlassSvg from "../../../img/magnifying-glass.svg";
 
 import Screenshot from "./Screenshot";
 import ScreenshotsTextUnit from "./ScreenshotsTextUnit";
@@ -85,7 +86,7 @@ class ScreenshotsGrid extends React.Component {
         return (
                 <div style={divStyle} className="empty-search-container text-center center-block">
                     <FormattedMessage id="search.result.empty"/>
-                    <img className="empty-search-container-img" src={require('../../../img/magnifying-glass.svg')} />
+                    <img className="empty-search-container-img" src={magnifyingGlassSvg} />
                 </div>
         );
     }

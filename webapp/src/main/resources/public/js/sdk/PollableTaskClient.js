@@ -1,5 +1,5 @@
-import BaseClient from './BaseClient';
-import PollableTask from "./entity/PollableTask";
+import BaseClient from "./BaseClient.js";
+import PollableTask from "./entity/PollableTask.js";
 
 /**
  * @param ms The amount of time in ms to delay

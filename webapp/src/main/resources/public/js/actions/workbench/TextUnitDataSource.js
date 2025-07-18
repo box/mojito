@@ -1,9 +1,9 @@
-import Error from "../../utils/Error";
-import TextUnitError from "../../utils/TextUnitError";
-import TextUnitClient from "../../sdk/TextUnitClient";
-import WorkbenchActions from "./WorkbenchActions";
-import GitBlameActions from "./GitBlameActions";
-import TranslationHistoryActions from "./TranslationHistoryActions";
+import Error from "../../utils/Error.js";
+import TextUnitError from "../../utils/TextUnitError.js";
+import TextUnitClient from "../../sdk/TextUnitClient.js";
+import WorkbenchActions from "./WorkbenchActions.js";
+import GitBlameActions from "./GitBlameActions.js";
+import TranslationHistoryActions from "./TranslationHistoryActions.js";
 
 const TextUnitDataSource = {
     performSaveTextUnit: {

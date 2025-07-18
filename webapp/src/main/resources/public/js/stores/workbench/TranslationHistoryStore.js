@@ -1,6 +1,6 @@
-import alt from "../../alt";
-import TextUnitDataSource from "../../actions/workbench/TextUnitDataSource";
-import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
+import alt from "../../alt.js";
+import TextUnitDataSource from "../../actions/workbench/TextUnitDataSource.js";
+import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions.js";
 
 class TranslationHistoryStore {
 

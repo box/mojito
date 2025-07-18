@@ -1,9 +1,9 @@
-import User from "../entity/User";
-import DropExporterConfig from "../drop/DropExporterConfig";
-import PollableTask from "../entity/PollableTask";
-import Repository from "../entity/Repository";
-import TranslationKit from "../entity/TranslationKit";
-import StatusFilter from "../entity/StatusFilter";
+import User from "../entity/User.js";
+import DropExporterConfig from "../drop/DropExporterConfig.js";
+import PollableTask from "../entity/PollableTask.js";
+import Repository from "../entity/Repository.js";
+import TranslationKit from "../entity/TranslationKit.js";
+import StatusFilter from "../entity/StatusFilter.js";
 
 /**
  * Used to communicate with Drops WS

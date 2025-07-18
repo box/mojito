@@ -1,8 +1,8 @@
-import alt from "../../alt";
-import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import { StatusCommonTypes } from "../../components/screenshots/StatusCommon";
+import alt from "../../alt.js";
+import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
+import { StatusCommonTypes } from "../../components/screenshots/StatusCommon.jsx";
 
 class ScreenshotsSearchTextStore {
 

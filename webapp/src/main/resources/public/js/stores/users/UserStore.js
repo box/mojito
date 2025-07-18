@@ -1,11 +1,11 @@
-import alt from "../../alt";
-import UserActions from "../../actions/users/UserActions";
-import UserDataSource from "../../actions/users/UserDataSource";
-import User from "../../sdk/entity/User";
-import UserPage from "../../sdk/UsersPage";
-import UserStatics from "../../utils/UserStatics";
-import PageRequestParams from "../../sdk/PageRequestParams";
-import UserSearchParamStore from "./UserSearchParamStore";
+import alt from "../../alt.js";
+import UserActions from "../../actions/users/UserActions.js";
+import UserDataSource from "../../actions/users/UserDataSource.js";
+import User from "../../sdk/entity/User.js";
+import UserPage from "../../sdk/UsersPage.js";
+import UserStatics from "../../utils/UserStatics.js";
+import PageRequestParams from "../../sdk/PageRequestParams.js";
+import UserSearchParamStore from "./UserSearchParamStore.js";
 
 class UserStore {
     constructor() {

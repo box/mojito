@@ -1,7 +1,7 @@
-import alt from "../../alt";
-import UserModalActions from "../../actions/users/UserModalActions";
-import UserDataSource from "../../actions/users/UserDataSource";
-import UserStore from "./UserStore";
+import alt from "../../alt.js";
+import UserModalActions from "../../actions/users/UserModalActions.js";
+import UserDataSource from "../../actions/users/UserDataSource.js";
+import UserStore from "./UserStore.js";
 
 class UserModalStore {
     constructor() {

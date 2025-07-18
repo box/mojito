@@ -1,8 +1,8 @@
-import BranchStatisticClient from "../../sdk/BranchStatisticClient";
-import BranchesPageActions from "./BranchesPageActions";
-import BranchStatisticSearcherParameters from "../../sdk/BranchStatisticSearcherParameters";
-import BranchesSearchParamStore from "../../stores/branches/BranchesSearchParamStore";
-import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore";
+import BranchStatisticClient from "../../sdk/BranchStatisticClient.js";
+import BranchesPageActions from "./BranchesPageActions.js";
+import BranchStatisticSearcherParameters from "../../sdk/BranchStatisticSearcherParameters.js";
+import BranchesSearchParamStore from "../../stores/branches/BranchesSearchParamStore.js";
+import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore.js";
 
 const BranchesDataSource = {
     performBranchesSearch: {

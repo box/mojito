@@ -1,5 +1,5 @@
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import TextUnitSearcherParameters from "../../sdk/TextUnitSearcherParameters";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
+import TextUnitSearcherParameters from "../../sdk/TextUnitSearcherParameters.js";
 
 export function buildTextUnitSearchParameters(oldSearchParams) {
     const searchParams = { ...oldSearchParams };

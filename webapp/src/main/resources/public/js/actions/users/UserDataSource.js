@@ -1,8 +1,8 @@
-import UserClient from "../../sdk/UserClient";
-import UserActions from "./UserActions";
-import UserModalActions from "./UserModalActions";
-import UserSearcherParameters from "../../sdk/UserSearcherParameters";
-import UserSearchParamStore from "../../stores/users/UserSearchParamStore";
+import UserClient from "../../sdk/UserClient.js";
+import UserActions from "./UserActions.js";
+import UserModalActions from "./UserModalActions.js";
+import UserSearcherParameters from "../../sdk/UserSearcherParameters.js";
+import UserSearchParamStore from "../../stores/users/UserSearchParamStore.js";
 
 const UserDataSource = {
     getUsers: {

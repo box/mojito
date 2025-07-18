@@ -1,5 +1,5 @@
-import User from "./User";
-import RepositoryLocaleStatistic from "./RepositoryLocaleStatistic";
+import User from "./User.js";
+import RepositoryLocaleStatistic from "./RepositoryLocaleStatistic.js";
 
 export default class RepositoryStatistic {
     constructor() {

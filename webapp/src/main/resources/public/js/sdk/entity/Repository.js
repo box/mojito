@@ -1,8 +1,8 @@
-import User from "./User";
-import AssetIntegrityChecker from "./AssetIntegrityChecker";
-import RepositoryLocale from "./RepositoryLocale";
-import RepositoryStatistic from "./RepositoryStatistic";
-import TM from "./TM";
+import User from "./User.js";
+import AssetIntegrityChecker from "./AssetIntegrityChecker.js";
+import RepositoryLocale from "./RepositoryLocale.js";
+import RepositoryStatistic from "./RepositoryStatistic.js";
+import TM from "./TM.js";
 
 export default class Repository {
     constructor() {

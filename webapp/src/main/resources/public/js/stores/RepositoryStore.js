@@ -1,8 +1,8 @@
-import alt from "../alt";
-import RepositoryActions from "../actions/RepositoryActions";
-import WorkbenchActions from "../actions/workbench/WorkbenchActions";
-import RepositoryDataSource from "../actions/RepositoryDataSource";
-import RepositoryLocale from "../sdk/entity/RepositoryLocale";
+import alt from "../alt.js";
+import RepositoryActions from "../actions/RepositoryActions.js";
+import WorkbenchActions from "../actions/workbench/WorkbenchActions.js";
+import RepositoryDataSource from "../actions/RepositoryDataSource.js";
+import RepositoryLocale from "../sdk/entity/RepositoryLocale.js";
 
 class RepositoryStore {
 

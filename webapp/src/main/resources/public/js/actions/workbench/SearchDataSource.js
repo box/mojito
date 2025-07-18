@@ -1,6 +1,6 @@
-import TextUnitClient from "../../sdk/TextUnitClient";
-import WorkbenchActions from "./WorkbenchActions";
-import { buildTextUnitSearchParameters } from "./TextUnitSearchParameterUtils";
+import TextUnitClient from "../../sdk/TextUnitClient.js";
+import WorkbenchActions from "./WorkbenchActions.js";
+import { buildTextUnitSearchParameters } from "./TextUnitSearchParameterUtils.js";
 
 const SearchDataSource = {
     performSearch: {

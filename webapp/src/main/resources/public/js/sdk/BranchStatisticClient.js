@@ -1,4 +1,4 @@
-import BaseClient from "./BaseClient";
+import BaseClient from "./BaseClient.js";
 
 class BranchStatisticClient extends BaseClient {
 

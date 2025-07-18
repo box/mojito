@@ -1,11 +1,11 @@
-import ImageClient from "../../sdk/ImageClient";
-import ScreenshotClient from "../../sdk/ScreenshotClient";
-import ScreenshotRun from "../../sdk/entity/ScreenshotRun";
-import BranchesScreenshotUploadActions from "./BranchesScreenshotUploadActions";
-import BranchesStore from "../../stores/branches/BranchesStore";
-import Screenshot, { TextUnit, TmTextUnit } from "../../sdk/entity/Screenshot";
-import uuidv4 from "uuid/v4";
-import BranchTextUnitsStore from "../../stores/branches/BranchTextUnitsStore";
+import ImageClient from "../../sdk/ImageClient.js";
+import ScreenshotClient from "../../sdk/ScreenshotClient.js";
+import ScreenshotRun from "../../sdk/entity/ScreenshotRun.js";
+import BranchesScreenshotUploadActions from "./BranchesScreenshotUploadActions.js";
+import BranchesStore from "../../stores/branches/BranchesStore.js";
+import Screenshot, { TextUnit, TmTextUnit } from "../../sdk/entity/Screenshot.js";
+import uuidv4 from "uuid/v4.js";
+import BranchTextUnitsStore from "../../stores/branches/BranchTextUnitsStore.js";
 
 const BranchesScreenshotUploadDataSource = {
 

@@ -1,8 +1,7 @@
-var properties = require('properties');
+import { getProperties } from 'properties-file'
 
-module.exports = function(source) {
-    if (this.cacheable) this.cacheable();
-    const parsedProperties = properties.parse(source);
-    const jsonString = JSON.stringify(parsedProperties);
-    return `module.exports = ${jsonString}`;
+export default (source) => {
+    const parsed = getProperties(source);   // JS object
+    const json = JSON.stringify(parsed);           // '{"foo":"bar"}'
+    return `export default ${json};`;              // exports as JS object!
 }

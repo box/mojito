@@ -1,5 +1,5 @@
-import LocaleClient from "../sdk/LocaleClient";
-import LocaleActions from "./LocaleActions";
+import LocaleClient from "../sdk/LocaleClient.js";
+import LocaleActions from "./LocaleActions.js";
 
 const LocaleDataSource = {
     getLocales: {

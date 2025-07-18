@@ -1,9 +1,9 @@
-import alt from "../../alt";
-import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions";
-import ShareSearchParamsDataSource from "../../actions/workbench/ShareSearchParamsDataSource";
-import UrlHelper from "../../utils/UrlHelper";
-import SearchParamsStore from "./SearchParamsStore";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import alt from "../../alt.js";
+import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions.js";
+import ShareSearchParamsDataSource from "../../actions/workbench/ShareSearchParamsDataSource.js";
+import UrlHelper from "../../utils/UrlHelper.js";
+import SearchParamsStore from "./SearchParamsStore.js";
+import WorkbenchActions from "../../actions/workbench/WorkbenchActions.js";
 import keymirror from "keymirror";
 
 class ShareSearchParamsModalStore {

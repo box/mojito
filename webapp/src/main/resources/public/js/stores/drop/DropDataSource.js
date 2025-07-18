@@ -1,5 +1,5 @@
-import DropClient from "../../sdk/DropClient";
-import DropActions from "../../actions/drop/dropActions";
+import DropClient from "../../sdk/DropClient.js";
+import DropActions from "../../actions/drop/dropActions.js";
 
 const DropDataSource = {
 

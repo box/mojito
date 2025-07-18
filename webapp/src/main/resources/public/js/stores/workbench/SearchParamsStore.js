@@ -1,13 +1,13 @@
-import alt from "../../alt";
+import alt from "../../alt.js";
 
 import _ from "lodash";
 
-import SearchConstants from "../../utils/SearchConstants";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import RepositoryActions from "../../actions/RepositoryActions";
+import SearchConstants from "../../utils/SearchConstants.js";
+import WorkbenchActions from "../../actions/workbench/WorkbenchActions.js";
+import RepositoryActions from "../../actions/RepositoryActions.js";
 
-import RepositoryStore from "../RepositoryStore";
-import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions";
+import RepositoryStore from "../RepositoryStore.js";
+import ShareSearchParamsModalActions from "../../actions/workbench/ShareSearchParamsModalActions.js";
 
 class SearchParamsStore {
 

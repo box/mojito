@@ -1,6 +1,6 @@
-import BaseClient from "./BaseClient";
-import BoxSDKConfig from "../sdk/entity/BoxSDKConfig";
-import PollableTaskFuture from "./entity/PollableTaskFuture";
+import BaseClient from "./BaseClient.js";
+import BoxSDKConfig from "../sdk/entity/BoxSDKConfig.js";
+import PollableTaskFuture from "./entity/PollableTaskFuture.js";
 
 class BoxSDKConfigClient extends BaseClient {
 

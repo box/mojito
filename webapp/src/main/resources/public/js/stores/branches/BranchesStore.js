@@ -1,10 +1,10 @@
-import alt from "../../alt";
-import BranchesDataSource from "../../actions/branches/BranchesDataSource";
-import BranchesSearchParamStore from "./BranchesSearchParamStore";
-import BranchesPageActions from "../../actions/branches/BranchesPageActions";
-import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
-import BranchesScreenshotViewerActions from "../../actions/branches/BranchesScreenshotViewerActions";
-import GitBlameScreenshotViewerStore from "../workbench/GitBlameScreenshotViewerStore";
+import alt from "../../alt.js";
+import BranchesDataSource from "../../actions/branches/BranchesDataSource.js";
+import BranchesSearchParamStore from "./BranchesSearchParamStore.js";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions.js";
+import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent.js";
+import BranchesScreenshotViewerActions from "../../actions/branches/BranchesScreenshotViewerActions.js";
+import GitBlameScreenshotViewerStore from "../workbench/GitBlameScreenshotViewerStore.js";
 
 class BranchesStore {
     constructor() {

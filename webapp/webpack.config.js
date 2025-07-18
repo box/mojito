@@ -1,8 +1,15 @@
-const path = require('path');
-const webpack = require("webpack");
-const TerserPlugin = require("terser-webpack-plugin");
+import path from 'path';
+import webpack from 'webpack';
+import TerserPluginImport from 'terser-webpack-plugin';
+const TerserPlugin = TerserPluginImport.default || TerserPluginImport;
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-module.exports = (env) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export default (env) => {
     env = env || {};
 
     const isProdEnv = Boolean(env.production);
@@ -29,38 +36,45 @@ module.exports = (env) => {
                     use: {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['es2015', 'react', 'stage-0']
+                            presets: [
+                                '@babel/preset-env',
+                                '@babel/preset-react'
+                            ],
+                            plugins: [
+                                '@babel/plugin-proposal-function-bind',
+                                '@babel/plugin-proposal-export-default-from',
+                                '@babel/plugin-proposal-logical-assignment-operators',
+                                ['@babel/plugin-proposal-optional-chaining', { loose: false }],
+                                ['@babel/plugin-proposal-pipeline-operator', { proposal: 'minimal' }],
+                                ['@babel/plugin-proposal-nullish-coalescing-operator', { loose: false }],
+                                '@babel/plugin-proposal-do-expressions',
+                                ['@babel/plugin-proposal-decorators', { legacy: true }],
+                                '@babel/plugin-proposal-function-sent',
+                                '@babel/plugin-proposal-export-namespace-from',
+                                '@babel/plugin-proposal-numeric-separator',
+                                '@babel/plugin-proposal-throw-expressions',
+                                '@babel/plugin-syntax-dynamic-import',
+                                '@babel/plugin-syntax-import-meta',
+                                ['@babel/plugin-proposal-class-properties', { loose: false }],
+                                '@babel/plugin-proposal-json-strings'
+                            ]
                         }
                     }
                 },
                 {
-                    test: /\.(gif|png|jpe?g|svg)$/i,
+                    test: /\.(svg|png|gif|jpe?g)$/i,
+                    type: 'asset',
+                    generator: {
+                        filename: 'img/[name]-[contenthash][ext]'
+                    },
                     use: [
-                        {
-                            loader: 'file-loader',
-                            options: {
-                                name: 'img/[name]-[contenthash].[ext]',
-                            }
-                        },
                         {
                             loader: 'image-webpack-loader',
                             options: {
-                                name: 'img/[name]-[contenthash].[ext]',
-                                query: {
-                                    mozjpeg: {
-                                        progressive: true
-                                    },
-                                    gifsicle: {
-                                        interlaced: false
-                                    },
-                                    optipng: {
-                                        optimizationLevel: 4
-                                    },
-                                    pngquant: {
-                                        quality: '75-90',
-                                        speed: 3
-                                    },
-                                },
+                                mozjpeg: { progressive: true },
+                                gifsicle: { interlaced: false },
+                                optipng: { optimizationLevel: 4 },
+                                pngquant: { quality: [0.75, 0.9], speed: 3 },
                             }
                         }
                     ]
@@ -75,20 +89,12 @@ module.exports = (env) => {
                     ],
                 },
                 {
-                    // __webpack_public_path__ is not supported by ExtractTextPlugin
-                    // so we inline all the fonts here. If not inlined, references
-                    // to the font are invalid if mojito is deployed with a
-                    // specific deploy path.
-                    // hardcoded for deploy path for test -->
-                    //    name: '{deployPath}/fonts/[name]-[contenthash].[ext]'
-
                     test: /\.(eot|ttf|woff|woff2)$/,
-                    loader: 'url-loader',
-                    options: {
-                        name: 'fonts/[name]-[contenthash].[ext]'
+                    type: 'asset',
+                    generator: {
+                        filename: 'fonts/[name]-[contenthash].[ext]'
                     }
                 },
-
                 {
                     test: /\.scss$/,
                     use: [{
@@ -121,8 +127,7 @@ module.exports = (env) => {
             extensions: ['.js', '.jsx']
         }
     };
-
-    const HtmlWebpackPlugin = require('html-webpack-plugin');
+    
     config.plugins.push(new HtmlWebpackPlugin({
         filename: path.resolve(__dirname, './target/classes/templates/index.html'),
         template: 'src/main/resources/templates/index.html',

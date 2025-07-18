@@ -1,5 +1,5 @@
-import BaseClient from "./BaseClient";
-import UserPage from "./UsersPage";
+import BaseClient from "./BaseClient.js";
+import UsersPage from "./UsersPage.js";
 
 class UserClient extends BaseClient {
     getUsers(userSearcherParameters) {
@@ -14,7 +14,7 @@ class UserClient extends BaseClient {
         });
 
         return promise.then(function (result) {
-            return UserPage.toUserPage(result).totalElements > 0;
+            return UsersPage.toUserPage(result).totalElements > 0;
         });
     }
 

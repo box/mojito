@@ -26,6 +26,7 @@ release.properties
 /chromeextension/ict-popup-bundle.js
 /chromeextension/ict-bundle.js
 /chromeextension/img/
+/chromeextension/fonts/
 /docs/.jekyll-cache/
 /docs/_site/
 /.java-version

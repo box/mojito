@@ -1,5 +1,5 @@
-import JobClient from "../../sdk/JobClient";
-import JobActions from "./JobActions";
+import JobClient from "../../sdk/JobClient.js";
+import JobActions from "./JobActions.js";
 
 const JobDataSource = {
     createJob: {

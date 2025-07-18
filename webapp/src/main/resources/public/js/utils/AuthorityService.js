@@ -1,4 +1,4 @@
-import UserStatics from "./UserStatics";
+import UserStatics from "./UserStatics.js";
 
 class AuthorityService {
     static userHasPermission(componentName) {

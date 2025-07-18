@@ -1,8 +1,8 @@
-import BaseClient from "./BaseClient";
-import TextUnit from "./TextUnit";
-import TextUnitIntegrityCheckRequest from "./textunit/TextUnitIntegrityCheckRequest";
-import TextUnitIntegrityCheckResult from "./textunit/TextUnitIntegrityCheckResult";
-import PollableTaskClient from "./PollableTaskClient";
+import BaseClient from "./BaseClient.js";
+import TextUnit from "./TextUnit.js";
+import TextUnitIntegrityCheckRequest from "./textunit/TextUnitIntegrityCheckRequest.js";
+import TextUnitIntegrityCheckResult from "./textunit/TextUnitIntegrityCheckResult.js";
+import PollableTaskClient from "./PollableTaskClient.js";
 
 
 class TextUnitClient extends BaseClient {

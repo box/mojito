@@ -1,7 +1,7 @@
-import alt from "../../alt";
+import alt from "../../alt.js";
 
-import DropActions from "../../actions/drop/dropActions";
-import DropDataSource from "./DropDataSource";
+import DropActions from "../../actions/drop/dropActions.js";
+import DropDataSource from "./DropDataSource.js";
 
 class DropStore {
 

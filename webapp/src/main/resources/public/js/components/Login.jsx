@@ -3,6 +3,7 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, FormControl} from "react-bootstrap";
 import UrlHelper from "../utils/UrlHelper";
 import {withAppConfig} from "../utils/AppConfig";
+import loginLogoPng from "../../img/logo-login.png";
 
 class Login extends React.Component {
     getLogoutElement = () => {
@@ -88,7 +89,7 @@ class Login extends React.Component {
             <div className="container login-container">
                 <div className="row">
                     <div className="center-block login-logo-container">
-                        <img src={require("../../img/logo-login.png")} className="logo mbm" alt="Mojito"/>
+                        <img src={loginLogoPng} className="logo mbm" alt="Mojito"/>
                     </div>
                     <div className="center-block login-form-container">
                         <form action={loginFormPostUrl} method="post">

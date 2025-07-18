@@ -1,4 +1,4 @@
-import User from "./entity/User";
+import User from "./entity/User.js";
 
 export default class UserPage {
     constructor() {

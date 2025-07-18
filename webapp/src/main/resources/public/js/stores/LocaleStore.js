@@ -1,6 +1,6 @@
-import alt from "../alt";
-import LocaleActions from "../actions/LocaleActions";
-import LocaleDataSource from "../actions/LocaleDataSource";
+import alt from "../alt.js";
+import LocaleActions from "../actions/LocaleActions.js";
+import LocaleDataSource from "../actions/LocaleDataSource.js";
 
 class LocaleStore {
 

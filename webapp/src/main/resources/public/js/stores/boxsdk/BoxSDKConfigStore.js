@@ -1,8 +1,8 @@
-import alt from "../../alt";
+import alt from "../../alt.js";
 
-import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
-import BoxSDKConfigDataSource from "./BoxSDKConfigDataSource";
-import PollableTaskClient from "../../sdk/PollableTaskClient";
+import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions.js";
+import BoxSDKConfigDataSource from "./BoxSDKConfigDataSource.js";
+import PollableTaskClient from "../../sdk/PollableTaskClient.js";
 
 class BoxSDKConfigStore {
 

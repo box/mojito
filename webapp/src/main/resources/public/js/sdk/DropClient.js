@@ -1,6 +1,6 @@
-import BaseClient from './BaseClient';
-import Drop from './drop/Drop';
-import PageRequestResults from "./PageRequestResults";
+import BaseClient from './BaseClient.js';
+import Drop from './drop/Drop.js';
+import PageRequestResults from "./PageRequestResults.js";
 
 class DropClient extends BaseClient {
 

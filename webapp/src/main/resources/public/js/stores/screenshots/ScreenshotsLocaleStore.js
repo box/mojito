@@ -1,8 +1,8 @@
-import alt from "../../alt";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
-import ScreenshotsRepositoryStore from "./ScreenshotsRepositoryStore";
+import alt from "../../alt.js";
+import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions.js";
+import ScreenshotsRepositoryStore from "./ScreenshotsRepositoryStore.js";
 
 class ScreenshotsLocaleStore {
 

@@ -1,6 +1,6 @@
-import User from "./User";
-import BranchRepository from "./BranchRepository";
-import BranchStatisticScreenshot from "./BranchStatisticScreenshot";
+import User from "./User.js";
+import BranchRepository from "./BranchRepository.js";
+import BranchStatisticScreenshot from "./BranchStatisticScreenshot.js";
 
 export default class Branch {
     constructor() {

@@ -1,7 +1,7 @@
-import alt from "../../alt";
-import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
-import ScreenshotViewerStore from "../ScreenshotViewerStore";
-import ScreenshotViewerDataSource from "../../actions/screenshots/ScreenshotViewerDataSource";
+import alt from "../../alt.js";
+import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions.js";
+import ScreenshotViewerStore from "../ScreenshotViewerStore.js";
+import ScreenshotViewerDataSource from "../../actions/screenshots/ScreenshotViewerDataSource.js";
 
 class GitBlameScreenshotViewerStore extends ScreenshotViewerStore {
 

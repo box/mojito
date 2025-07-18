@@ -1,7 +1,7 @@
-import alt from "../../alt";
+import alt from "../../alt.js";
 
-import BranchesSearchParamsActions from "../../actions/branches/BranchesSearchParamsActions";
-import BranchesPageActions from "../../actions/branches/BranchesPageActions";
+import BranchesSearchParamsActions from "../../actions/branches/BranchesSearchParamsActions.js";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions.js";
 
 
 class BranchesSearchParamStore {

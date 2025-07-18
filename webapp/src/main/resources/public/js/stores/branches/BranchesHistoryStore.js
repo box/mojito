@@ -1,9 +1,9 @@
-import alt from "../../alt";
-import BranchesDataSource from "../../actions/branches/BranchesHistoryActions";
-import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore";
-import BranchesPageActions from "../../actions/branches/BranchesPageActions";
-import BranchesPaginatorActions from "../../actions/branches/BranchesPaginatorActions";
-import BranchesSearchParamsActions from "../../actions/branches/BranchesSearchParamsActions";
+import alt from "../../alt.js";
+import BranchesDataSource from "../../actions/branches/BranchesHistoryActions.js";
+import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore.js";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions.js";
+import BranchesPaginatorActions from "../../actions/branches/BranchesPaginatorActions.js";
+import BranchesSearchParamsActions from "../../actions/branches/BranchesSearchParamsActions.js";
 
 class BranchesHistoryStore {
 

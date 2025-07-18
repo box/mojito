@@ -3,10 +3,9 @@ import {Button, FormControl, Modal, FormGroup, ControlLabel, Alert, Collapse} fr
 import {FormattedMessage, injectIntl} from "react-intl";
 import UserStatics from "../../utils/UserStatics";
 import UserClient from "../../sdk/UserClient";
+import createReactClass from "create-react-class";
 
-let createClass = require('create-react-class');
-
-let ChangePasswordModal = createClass({
+let ChangePasswordModal = createReactClass({
 
     getInitialState() {
         return {

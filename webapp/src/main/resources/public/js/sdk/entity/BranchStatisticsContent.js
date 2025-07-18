@@ -1,5 +1,5 @@
-import Branch from "./Branch";
-import BranchTextUnitStatistics from "./BranchTextUnitStatistics";
+import Branch from "./Branch.js";
+import BranchTextUnitStatistics from "./BranchTextUnitStatistics.js";
 const totalCountLte = 30000;
 
 export default class BranchStatisticsContent {

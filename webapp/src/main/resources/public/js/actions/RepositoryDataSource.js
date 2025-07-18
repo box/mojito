@@ -1,5 +1,5 @@
-import RepositoryClient from "../sdk/RepositoryClient";
-import RepositoryActions from "./RepositoryActions";
+import RepositoryClient from "../sdk/RepositoryClient.js";
+import RepositoryActions from "./RepositoryActions.js";
 
 const RepositoryDataSource = {
     createRepository: {

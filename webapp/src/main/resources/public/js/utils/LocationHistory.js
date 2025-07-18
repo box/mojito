@@ -1,4 +1,4 @@
-import UrlHelper from "./UrlHelper";
+import UrlHelper from "./UrlHelper.js";
 
 class LocationHistory {
 

@@ -1,8 +1,8 @@
-import alt from "../../alt";
-import BranchesScreenshotViewerActions from "../../actions/branches/BranchesScreenshotViewerActions";
-import BranchesStore from "./BranchesStore";
-import ScreenshotViewerStore from "../ScreenshotViewerStore";
-import ScreenshotViewerDataSource from "../../actions/screenshots/ScreenshotViewerDataSource";
+import alt from "../../alt.js";
+import BranchesScreenshotViewerActions from "../../actions/branches/BranchesScreenshotViewerActions.js";
+import BranchesStore from "./BranchesStore.js";
+import ScreenshotViewerStore from "../ScreenshotViewerStore.js";
+import ScreenshotViewerDataSource from "../../actions/screenshots/ScreenshotViewerDataSource.js";
 
 class BranchesScreenshotViewerStore extends ScreenshotViewerStore {
 

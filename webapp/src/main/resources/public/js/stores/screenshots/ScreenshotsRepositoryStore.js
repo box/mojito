@@ -1,8 +1,8 @@
-import alt from "../../alt";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
-import ScreenshotsRepositoryDataSource from "../../actions/screenshots/ScreenshotsRepositoryDataSource";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import RepositoryLocale from "../../sdk/entity/RepositoryLocale";
+import alt from "../../alt.js";
+import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions.js";
+import ScreenshotsRepositoryDataSource from "../../actions/screenshots/ScreenshotsRepositoryDataSource.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import RepositoryLocale from "../../sdk/entity/RepositoryLocale.js";
 
 class ScreenshotsRepositoryStore {
 

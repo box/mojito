@@ -1,4 +1,4 @@
-name: Run tests - Ubuntu + Java 21
+name: Run JS tests - Ubuntu + Java 21
 
 on:
   [pull_request]
@@ -16,5 +16,6 @@ jobs:
         run: mvn spotless:check
       - name: Maven install, test skipped
         run: mvn clean install -DskipTests
-      - name: Maven test
-        run: mvn test
+      - name: Npm test
+        run: npm test
+        working-directory: ./webapp

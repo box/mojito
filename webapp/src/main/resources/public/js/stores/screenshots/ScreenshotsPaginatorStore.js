@@ -1,7 +1,7 @@
-import alt from "../../alt";
-import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import PaginatorStore from "../PaginatorStore";
+import alt from "../../alt.js";
+import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions.js";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions.js";
+import PaginatorStore from "../PaginatorStore.js";
 
 class ScreenshotsPaginatorStore extends PaginatorStore {
 

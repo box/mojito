@@ -1,4 +1,4 @@
-import BaseClient from "./BaseClient";
+import BaseClient from "./BaseClient.js";
 
 class JobClient extends BaseClient {
     createJob(job) {

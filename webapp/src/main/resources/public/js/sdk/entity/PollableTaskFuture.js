@@ -1,4 +1,4 @@
-import PollableTask from "./PollableTask";
+import PollableTask from "./PollableTask.js";
 
 export default class PollableTaskFuture {
     constructor() {

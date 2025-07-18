@@ -1,5 +1,5 @@
-import UserStatics from "../../utils/UserStatics";
-import Authority from "./Authority";
+import UserStatics from "../../utils/UserStatics.js";
+import Authority from "./Authority.js";
 
 export default class User {
     constructor() {

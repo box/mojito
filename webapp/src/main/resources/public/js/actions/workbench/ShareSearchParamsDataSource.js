@@ -1,5 +1,5 @@
-import ShareSearchParamsModalActions from "./ShareSearchParamsModalActions";
-import ClobStorageClient from "../../sdk/ClobStorageClient";
+import ShareSearchParamsModalActions from "./ShareSearchParamsModalActions.js";
+import ClobStorageClient from "../../sdk/ClobStorageClient.js";
 
 const ShareSearchParamsDataSource = {
 

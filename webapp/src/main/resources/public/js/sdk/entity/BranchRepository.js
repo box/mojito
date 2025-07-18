@@ -1,5 +1,5 @@
-import SourceLocale from "./SourceLocale";
-import ManualScreenshotRun from "./ManualScreenshotRun";
+import SourceLocale from "./SourceLocale.js";
+import ManualScreenshotRun from "./ManualScreenshotRun.js";
 
 export default class BranchRepository {
     constructor() {

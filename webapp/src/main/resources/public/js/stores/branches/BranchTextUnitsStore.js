@@ -1,10 +1,10 @@
-import alt from "../../alt";
-import BranchTextUnitsDataSource from "../../actions/branches/BranchTextUnitsDataSource";
-import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions";
-import BranchTextUnitsParamStore from "./BranchTextUnitsParamStore";
-import BranchTextUnitStatistics from "../../sdk/entity/BranchTextUnitStatistics";
-import BranchesPageActions from "../../actions/branches/BranchesPageActions";
-import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
+import alt from "../../alt.js";
+import BranchTextUnitsDataSource from "../../actions/branches/BranchTextUnitsDataSource.js";
+import BranchTextUnitsPageActions from "../../actions/branches/BranchTextUnitsPageActions.js";
+import BranchTextUnitsParamStore from "./BranchTextUnitsParamStore.js";
+import BranchTextUnitStatistics from "../../sdk/entity/BranchTextUnitStatistics.js";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions.js";
+import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent.js";
 
 class BranchTextUnitsStore {
     constructor() {

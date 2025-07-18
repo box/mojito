@@ -1,5 +1,5 @@
-import RepositoryClient from "../../sdk/RepositoryClient";
-import ScreenshotsRepositoryActions from "./ScreenshotsRepositoryActions";
+import RepositoryClient from "../../sdk/RepositoryClient.js";
+import ScreenshotsRepositoryActions from "./ScreenshotsRepositoryActions.js";
 
 const ScreenshotsRepositoryDataSource = {
     getAllRepositories: {

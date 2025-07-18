@@ -1,4 +1,4 @@
-import ScreenshotClient from "../../sdk/ScreenshotClient";
+import ScreenshotClient from "../../sdk/ScreenshotClient.js";
 
 class ScreenshotViewerDataSource {
     constructor(action) {

@@ -1,11 +1,11 @@
-import ScreenshotsPageActions from "../screenshots/ScreenshotsPageActions";
-import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
-import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
-import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
-import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
-import ScreenshotClient from "../../sdk/ScreenshotClient";
-import { StatusCommonTypes } from "../../components/screenshots/StatusCommon";
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
+import ScreenshotsPageActions from "../screenshots/ScreenshotsPageActions.js";
+import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore.js";
+import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore.js";
+import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore.js";
+import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore.js";
+import ScreenshotClient from "../../sdk/ScreenshotClient.js";
+import { StatusCommonTypes } from "../../components/screenshots/StatusCommon.jsx";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
 
 const ScreenshotsPageDataSource = {
     performScreenshotSearch: {

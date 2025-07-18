@@ -1,7 +1,7 @@
-import alt from "../../alt";
-import JobDataSource from "../../actions/jobs/JobDataSource";
-import JobActions from "../../actions/jobs/JobActions";
-import { JobStatus } from "../../utils/JobStatus";
+import alt from "../../alt.js";
+import JobDataSource from "../../actions/jobs/JobDataSource.js";
+import JobActions from "../../actions/jobs/JobActions.js";
+import { JobStatus } from "../../utils/JobStatus.js";
 
 class JobStore {
 

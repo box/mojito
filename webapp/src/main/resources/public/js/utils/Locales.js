@@ -1,56 +1,71 @@
 import Cldr from "cldrjs";
 import _ from "lodash";
 
-Cldr.load(require('cldr-data/supplemental/likelySubtags.json'));
+import likelySubtags from 'cldr-data/supplemental/likelySubtags.json';
 
-//TODO Load all locale data for now in the bundle... as number of locale grows we should only used locale data.
-Cldr.load(require('cldr-data/main/be/languages.json'));
-Cldr.load(require('cldr-data/main/be/territories.json'));
-Cldr.load(require('cldr-data/main/be/scripts.json'));
+import beLanguages from 'cldr-data/main/be/languages.json';
+import beTerritories from 'cldr-data/main/be/territories.json';
+import beScripts from 'cldr-data/main/be/scripts.json';
 
-Cldr.load(require('cldr-data/main/en/languages.json'));
-Cldr.load(require('cldr-data/main/en/territories.json'));
-Cldr.load(require('cldr-data/main/en/scripts.json'));
+import enLanguages from 'cldr-data/main/en/languages.json';
+import enTerritories from 'cldr-data/main/en/territories.json';
+import enScripts from 'cldr-data/main/en/scripts.json';
 
-Cldr.load(require('cldr-data/main/fr/languages.json'));
-Cldr.load(require('cldr-data/main/fr/territories.json'));
-Cldr.load(require('cldr-data/main/fr/scripts.json'));
+import frLanguages from 'cldr-data/main/fr/languages.json';
+import frTerritories from 'cldr-data/main/fr/territories.json';
+import frScripts from 'cldr-data/main/fr/scripts.json';
 
-Cldr.load(require('cldr-data/main/ko/languages.json'));
-Cldr.load(require('cldr-data/main/ko/territories.json'));
-Cldr.load(require('cldr-data/main/ko/scripts.json'));
+import koLanguages from 'cldr-data/main/ko/languages.json';
+import koTerritories from 'cldr-data/main/ko/territories.json';
+import koScripts from 'cldr-data/main/ko/scripts.json';
 
-Cldr.load(require('cldr-data/main/ru/languages.json'));
-Cldr.load(require('cldr-data/main/ru/territories.json'));
-Cldr.load(require('cldr-data/main/ru/scripts.json'));
+import ruLanguages from 'cldr-data/main/ru/languages.json';
+import ruTerritories from 'cldr-data/main/ru/territories.json';
+import ruScripts from 'cldr-data/main/ru/scripts.json';
 
-Cldr.load(require('cldr-data/main/de/languages.json'));
-Cldr.load(require('cldr-data/main/de/territories.json'));
-Cldr.load(require('cldr-data/main/de/scripts.json'));
+import deLanguages from 'cldr-data/main/de/languages.json';
+import deTerritories from 'cldr-data/main/de/territories.json';
+import deScripts from 'cldr-data/main/de/scripts.json';
 
-Cldr.load(require('cldr-data/main/es/languages.json'));
-Cldr.load(require('cldr-data/main/es/territories.json'));
-Cldr.load(require('cldr-data/main/es/scripts.json'));
+import esLanguages from 'cldr-data/main/es/languages.json';
+import esTerritories from 'cldr-data/main/es/territories.json';
+import esScripts from 'cldr-data/main/es/scripts.json';
 
-Cldr.load(require('cldr-data/main/it/languages.json'));
-Cldr.load(require('cldr-data/main/it/territories.json'));
-Cldr.load(require('cldr-data/main/it/scripts.json'));
+import itLanguages from 'cldr-data/main/it/languages.json';
+import itTerritories from 'cldr-data/main/it/territories.json';
+import itScripts from 'cldr-data/main/it/scripts.json';
 
-Cldr.load(require('cldr-data/main/ja/languages.json'));
-Cldr.load(require('cldr-data/main/ja/territories.json'));
-Cldr.load(require('cldr-data/main/ja/scripts.json'));
+import jaLanguages from 'cldr-data/main/ja/languages.json';
+import jaTerritories from 'cldr-data/main/ja/territories.json';
+import jaScripts from 'cldr-data/main/ja/scripts.json';
 
-Cldr.load(require('cldr-data/main/pt/languages.json'));
-Cldr.load(require('cldr-data/main/pt/territories.json'));
-Cldr.load(require('cldr-data/main/pt/scripts.json'));
+import ptLanguages from 'cldr-data/main/pt/languages.json';
+import ptTerritories from 'cldr-data/main/pt/territories.json';
+import ptScripts from 'cldr-data/main/pt/scripts.json';
 
-Cldr.load(require('cldr-data/main/zh-Hans/languages.json'));
-Cldr.load(require('cldr-data/main/zh-Hans/territories.json'));
-Cldr.load(require('cldr-data/main/zh-Hans/scripts.json'));
+import zhHansLanguages from 'cldr-data/main/zh-Hans/languages.json';
+import zhHansTerritories from 'cldr-data/main/zh-Hans/territories.json';
+import zhHansScripts from 'cldr-data/main/zh-Hans/scripts.json';
 
-Cldr.load(require('cldr-data/main/zh-Hant/languages.json'));
-Cldr.load(require('cldr-data/main/zh-Hant/territories.json'));
-Cldr.load(require('cldr-data/main/zh-Hant/scripts.json'));
+import zhHantLanguages from 'cldr-data/main/zh-Hant/languages.json';
+import zhHantTerritories from 'cldr-data/main/zh-Hant/territories.json';
+import zhHantScripts from 'cldr-data/main/zh-Hant/scripts.json';
+
+Cldr.load(
+  likelySubtags,
+  beLanguages, beTerritories, beScripts,
+  enLanguages, enTerritories, enScripts,
+  frLanguages, frTerritories, frScripts,
+  koLanguages, koTerritories, koScripts,
+  ruLanguages, ruTerritories, ruScripts,
+  deLanguages, deTerritories, deScripts,
+  esLanguages, esTerritories, esScripts,
+  itLanguages, itTerritories, itScripts,
+  jaLanguages, jaTerritories, jaScripts,
+  ptLanguages, ptTerritories, ptScripts,
+  zhHansLanguages, zhHansTerritories, zhHansScripts,
+  zhHantLanguages, zhHantTerritories, zhHantScripts
+);
 
 class Locales {
 
@@ -280,10 +295,6 @@ class Locales {
         return subtags;
     }
 
-}
-;
+};
 
 export default new Locales();
-
-
-

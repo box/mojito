@@ -1,8 +1,8 @@
-import alt from "../../alt";
-import BranchesScreenshotUploadActions from "../../actions/branches/BranchesScreenshotUploadActions";
-import BranchesScreenshotUploadDataSource from "../../actions/branches/BranchesScreenshotUploadDataSource";
-import v4 from "uuid/v4";
-import BranchesPageActions from "../../actions/branches/BranchesPageActions";
+import alt from "../../alt.js";
+import BranchesScreenshotUploadActions from "../../actions/branches/BranchesScreenshotUploadActions.js";
+import BranchesScreenshotUploadDataSource from "../../actions/branches/BranchesScreenshotUploadDataSource.js";
+import v4 from "uuid/v4.js";
+import BranchesPageActions from "../../actions/branches/BranchesPageActions.js";
 
 class BranchesScreenshotUploadModalStore {
 

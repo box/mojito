@@ -1,5 +1,5 @@
-import alt from "../../alt";
-import ViewModeActions from "../../actions/workbench/ViewModeActions";
+import alt from "../../alt.js";
+import ViewModeActions from "../../actions/workbench/ViewModeActions.js";
 
 class ViewModeStore {
     constructor() {
