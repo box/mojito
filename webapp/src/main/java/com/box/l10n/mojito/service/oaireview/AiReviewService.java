@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -192,7 +193,9 @@ public class AiReviewService {
             .build();
 
     OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
-        openAIClient.getChatCompletions(chatCompletionsRequest).join();
+        openAIClient
+            .getChatCompletions(chatCompletionsRequest, Duration.of(15, ChronoUnit.SECONDS))
+            .join();
 
     logger.info(objectMapper.writeValueAsStringUnchecked(chatCompletionsResponse));
 
@@ -474,7 +477,9 @@ public class AiReviewService {
 
     CompletableFuture<ChatCompletionsResponse> futureResult =
         openAIClientPool.submit(
-            (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
+            (openAIClient) ->
+                openAIClient.getChatCompletions(
+                    chatCompletionsRequest, Duration.of(5, ChronoUnit.SECONDS)));
     return Mono.fromFuture(futureResult)
         .handle(
             (chatCompletionsResponse, sink) -> {

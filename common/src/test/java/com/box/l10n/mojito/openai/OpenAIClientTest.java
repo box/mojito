@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -102,7 +104,9 @@ public class OpenAIClientTest {
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
 
     ChatCompletionsResponse chatCompletionsResponse =
-        openAIClient.getChatCompletions(chatCompletionsRequest).join();
+        openAIClient
+            .getChatCompletions(chatCompletionsRequest, Duration.of(5, ChronoUnit.SECONDS))
+            .join();
     assertNotNull(chatCompletionsResponse);
     assertEquals("chatcmpl-9DNYjOkXJxILUK3NXFv9MCZV0P8jZ", chatCompletionsResponse.id());
     assertEquals(
@@ -151,7 +155,10 @@ public class OpenAIClientTest {
     CompletionException completionException =
         assertThrows(
             CompletionException.class,
-            () -> openAIClient.getChatCompletions(chatCompletionsRequest).join());
+            () ->
+                openAIClient
+                    .getChatCompletions(chatCompletionsRequest, Duration.of(5, ChronoUnit.SECONDS))
+                    .join());
     assertEquals("ChatCompletion failed", completionException.getCause().getMessage());
     assertTrue(
         completionException
@@ -181,7 +188,7 @@ public class OpenAIClientTest {
     OpenAIClient.builder()
         .apiKey(API_KEY)
         .build()
-        .getChatCompletions(chatCompletionsRequest().build());
+        .getChatCompletions(chatCompletionsRequest().build(), Duration.of(5, ChronoUnit.SECONDS));
 
     String jsonResponse =
         """
@@ -223,7 +230,10 @@ public class OpenAIClientTest {
     CompletionException completionException =
         assertThrows(
             CompletionException.class,
-            () -> openAIClient.getChatCompletions(chatCompletionsRequest).join());
+            () ->
+                openAIClient
+                    .getChatCompletions(chatCompletionsRequest, Duration.of(5, ChronoUnit.SECONDS))
+                    .join());
     assertEquals(
         "Can't deserialize ChatCompletionsResponse", completionException.getCause().getMessage());
   }

@@ -6,9 +6,15 @@ import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.cha
 
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
 import com.google.common.base.Stopwatch;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -39,9 +45,9 @@ public class OpenAIClientPoolTest {
   @Test
   public void test() {
     int numberOfClients = 10;
-    int numberOfParallelRequestPerClient = 50;
-    int numberOfRequests = 10000;
-    int sizeOfAsyncProcessors = 10;
+    int numberOfParallelRequestPerClient = 100;
+    int numberOfRequests = 5000;
+    int sizeOfAsyncProcessors = 1;
     int totalExecutions = numberOfClients * numberOfParallelRequestPerClient;
 
     OpenAIClientPool openAIClientPool =
@@ -50,10 +56,63 @@ public class OpenAIClientPoolTest {
 
     AtomicInteger responseCounter = new AtomicInteger();
     AtomicInteger submitted = new AtomicInteger();
+    AtomicInteger timedOut = new AtomicInteger();
     Stopwatch stopwatch = Stopwatch.createStarted();
 
-    ArrayList<Long> submissionTimes = new ArrayList<>();
-    ArrayList<Long> responseTimes = new ArrayList<>();
+    List<Long> submissionTimes = Collections.synchronizedList(new ArrayList<>());
+    List<Long> responseTimes = Collections.synchronizedList(new ArrayList<>());
+
+    ScheduledExecutorService scheduledExecutorService =
+        Executors.newSingleThreadScheduledExecutor();
+    scheduledExecutorService.scheduleAtFixedRate(
+        () -> {
+          try {
+
+            List<Long> copySubmissionTimes;
+            synchronized (submissionTimes) {
+              copySubmissionTimes = new ArrayList<>(submissionTimes);
+            }
+
+            List<Long> copyResponseTimes;
+            synchronized (responseTimes) {
+              copyResponseTimes = new ArrayList<>(responseTimes);
+            }
+
+            double elapsed = stopwatch.elapsed(TimeUnit.SECONDS) + 0.00001;
+            double avg =
+                copyResponseTimes.stream().collect(Collectors.averagingLong(Long::longValue));
+
+            logger.info(
+                "request per second: "
+                    + submitted.get() / elapsed
+                    + ", submission count: "
+                    + submitted.get()
+                    + ", last submissions took: "
+                    + copySubmissionTimes.subList(
+                        Math.max(0, copySubmissionTimes.size() - 100), copySubmissionTimes.size()));
+
+            logger.info(
+                "response per second: "
+                    + responseCounter.get() / elapsed
+                    + ", average response time: "
+                    + Math.round(avg)
+                    + " (rps: "
+                    + Math.round(totalExecutions / (avg / 1000.0))
+                    + "), response count from counter: "
+                    + responseCounter.get()
+                    + ", last elapsed times: "
+                    + copyResponseTimes.subList(
+                        Math.max(0, copyResponseTimes.size() - 20), copyResponseTimes.size()));
+
+          } catch (Throwable t) {
+            logger.error("Error displaying stats", t);
+          }
+        },
+        0,
+        1,
+        TimeUnit.SECONDS);
+
+    long timeout = 5000;
 
     List<CompletableFuture<ChatCompletionsResponse>> responses = new ArrayList<>();
     for (int i = 0; i < numberOfRequests; i++) {
@@ -61,7 +120,7 @@ public class OpenAIClientPoolTest {
       Stopwatch requestStopwatch = Stopwatch.createStarted();
       OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
           chatCompletionsRequest()
-              .model("gpt-4o-2024-08-06")
+              .model("gpt-4.1")
               .messages(
                   List.of(
                       systemMessageBuilder()
@@ -71,46 +130,29 @@ public class OpenAIClientPoolTest {
               .build();
 
       CompletableFuture<ChatCompletionsResponse> response =
-          openAIClientPool.submit(
-              openAIClient -> {
-                CompletableFuture<ChatCompletionsResponse> chatCompletions =
-                    openAIClient.getChatCompletions(chatCompletionsRequest);
-                submissionTimes.add(requestStopwatch.elapsed(TimeUnit.SECONDS));
-                if (submitted.incrementAndGet() % 100 == 0) {
-                  logger.info(
-                      "--> request per second: "
-                          + submitted.get() / (stopwatch.elapsed(TimeUnit.SECONDS) + 0.00001)
-                          + ", submission count: "
-                          + submitted.get()
-                          + ", future response count: "
-                          + responses.size()
-                          + ", last submissions took: "
-                          + submissionTimes.subList(
-                              Math.max(0, submissionTimes.size() - 100), submissionTimes.size()));
-                }
-                return chatCompletions;
-              });
-
-      response.thenApply(
-          chatCompletionsResponse -> {
-            responseTimes.add(requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
-            if (responseCounter.incrementAndGet() % 10 == 0) {
-              double avg =
-                  responseTimes.stream().collect(Collectors.averagingLong(Long::longValue));
-              logger.info(
-                  "<-- response per second: "
-                      + responseCounter.get() / stopwatch.elapsed(TimeUnit.SECONDS)
-                      + ", average response time: "
-                      + Math.round(avg)
-                      + " (rps: "
-                      + Math.round(totalExecutions / (avg / 1000.0))
-                      + "), response count from counter: "
-                      + responseCounter.get()
-                      + ", last elapsed times: "
-                      + responseTimes.subList(responseTimes.size() - 20, responseTimes.size()));
-            }
-            return chatCompletionsResponse;
-          });
+          openAIClientPool
+              .submit(
+                  openAIClient -> {
+                    CompletableFuture<ChatCompletionsResponse> chatCompletions =
+                        openAIClient.getChatCompletions(
+                            chatCompletionsRequest, Duration.of(5000, ChronoUnit.MILLIS));
+                    submitted.incrementAndGet();
+                    submissionTimes.add(requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
+                    return chatCompletions;
+                  })
+              .thenApply(
+                  chatCompletionsResponse -> {
+                    responseCounter.incrementAndGet();
+                    responseTimes.add(requestStopwatch.elapsed(TimeUnit.MILLISECONDS));
+                    return chatCompletionsResponse;
+                  })
+              .exceptionally(
+                  e -> {
+                    responseCounter.incrementAndGet();
+                    responseTimes.add(timeout);
+                    timedOut.incrementAndGet();
+                    return null;
+                  });
 
       responses.add(response);
     }
@@ -119,16 +161,22 @@ public class OpenAIClientPoolTest {
     CompletableFuture.allOf(responses.toArray(new CompletableFuture[responses.size()])).join();
     logger.info("Waiting for join: " + started.elapsed());
 
-    double avg = responseTimes.stream().collect(Collectors.averagingLong(Long::longValue));
+    LongSummaryStatistics statistics =
+        responseTimes.stream().collect(Collectors.summarizingLong(Long::longValue));
+
     logger.info(
         "Total time: "
             + stopwatch.elapsed().toString()
+            + ", total request: "
+            + numberOfRequests
             + ", request per second: "
             + Math.round((double) numberOfRequests / stopwatch.elapsed(TimeUnit.SECONDS))
             + ", average response time: "
-            + Math.round(avg)
+            + Math.round(statistics.getAverage())
             + " (theory rps: "
-            + Math.round(totalExecutions / (avg / 1000.0))
-            + ")");
+            + Math.round(totalExecutions / (statistics.getAverage() / 1000.0))
+            + ")"
+            + ", timed out: "
+            + timedOut.get());
   }
 }

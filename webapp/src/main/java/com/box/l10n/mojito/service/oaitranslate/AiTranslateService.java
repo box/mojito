@@ -402,7 +402,8 @@ public class AiTranslateService {
 
     CompletableFuture<ChatCompletionsResponse> futureResult =
         openAIClientPool.submit(
-            (openAIClient) -> openAIClient.getChatCompletions(chatCompletionsRequest));
+            (openAIClient) ->
+                openAIClient.getChatCompletions(chatCompletionsRequest, Duration.ofSeconds(15)));
     return Mono.fromFuture(futureResult)
         .map(chatCompletionsResponse -> new MyRecord(textUnitDTO, chatCompletionsResponse));
   }
