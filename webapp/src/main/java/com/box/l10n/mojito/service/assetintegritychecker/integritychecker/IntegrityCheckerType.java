@@ -26,7 +26,8 @@ public enum IntegrityCheckerType {
   PYTHON_FPRINT(PythonFStringIntegrityChecker.class.getName()),
   EMAIL(EmailIntegrityChecker.class.getName()),
   URL(URLIntegrityChecker.class.getName()),
-  FORBIDS_CONTROL_CHARACTERS(ForbidsControlCharIntegrityChecker.class.getName());
+  FORBIDS_CONTROL_CHARACTERS(ForbidsControlCharIntegrityChecker.class.getName()),
+  MISC_AI_TRANSLATE(MiscAiTranslateIntegrityChecker.class.getName());
 
   String className;
 
