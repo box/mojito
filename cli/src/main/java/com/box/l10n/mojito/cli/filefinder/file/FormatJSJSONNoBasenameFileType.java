@@ -14,6 +14,9 @@ public class FormatJSJSONNoBasenameFileType extends LocaleAsFileNameType {
             "noteKeyPattern=description",
             "extractAllPairs=false",
             "exceptions=defaultMessage",
-            "removeKeySuffix=/defaultMessage");
+            "removeKeySuffix=/defaultMessage",
+            "filePositionPathKeyPattern=file",
+            "filePositionLineKeyPattern=line",
+            "filePositionColKeyPattern=col");
   }
 }
