@@ -50,7 +50,12 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.relatedStringsType(),
                 protoAiTranslateRequest.translateType(),
                 protoAiTranslateRequest.statusFilter(),
-                protoAiTranslateRequest.importStatus()));
+                protoAiTranslateRequest.importStatus(),
+                protoAiTranslateRequest.glossaryName(),
+                protoAiTranslateRequest.glossaryTermSource(),
+                protoAiTranslateRequest.glossaryTermSourceDescription(),
+                protoAiTranslateRequest.glossaryTermTarget(),
+                protoAiTranslateRequest.glossaryOnlyMatchedTextUnits()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -66,7 +71,12 @@ public class AiTranslateWS {
       String relatedStringsType,
       String translateType,
       String statusFilter,
-      String importStatus) {}
+      String importStatus,
+      String glossaryName,
+      String glossaryTermSource,
+      String glossaryTermSourceDescription,
+      String glossaryTermTarget,
+      boolean glossaryOnlyMatchedTextUnits) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 

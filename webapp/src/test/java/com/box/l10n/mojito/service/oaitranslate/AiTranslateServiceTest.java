@@ -45,7 +45,12 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 AiTranslateType.WITH_REVIEW.name(),
                 StatusFilter.FOR_TRANSLATION.name(),
-                TMTextUnitVariant.Status.REVIEW_NEEDED.name()))
+                TMTextUnitVariant.Status.REVIEW_NEEDED.name(),
+                null,
+                null,
+                null,
+                null,
+                false))
         .get();
   }
 
@@ -69,7 +74,12 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 AiTranslateType.WITH_REVIEW.name(),
                 StatusFilter.FOR_TRANSLATION.name(),
-                TMTextUnitVariant.Status.REVIEW_NEEDED.name()))
+                TMTextUnitVariant.Status.REVIEW_NEEDED.name(),
+                null,
+                null,
+                null,
+                null,
+                false))
         .get();
   }
 }

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateService.RelatedString;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.TextUnitDTOWithVariantComment;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import java.util.List;
@@ -205,12 +206,16 @@ public enum AiTranslateType {
       String source,
       String sourceDescription,
       ExistingTarget existingTarget,
-      List<AiTranslateService.RelatedString> relatedStrings) {
+      List<GlossaryTerm> glossaryTerms,
+      List<RelatedString> relatedStrings) {
     record ExistingTarget(
         String content,
         String comment,
         boolean hasBrokenPlaceholders,
         List<String> integrityCheckErrors) {}
+
+    record GlossaryTerm(
+        String term, String description, boolean doNotTranslate, String partOfSpeech) {}
   }
 
   record CompletionOutput(
