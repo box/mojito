@@ -15,7 +15,6 @@ import static com.box.l10n.mojito.openai.OpenAIClient.TemperatureHelper.getTempe
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
 import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Prefix.AI_TRANSLATE_WS;
-import static com.box.l10n.mojito.service.oaitranslate.WhitespaceUtils.restoreLeadingAndTrailingWhitespace;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
@@ -405,7 +404,7 @@ public class AiTranslateService {
 
                     textUnitDTO.setStatus(importStatus);
                     textUnitDTO.setTarget(
-                        restoreLeadingAndTrailingWhitespace(
+                        AiTranslateTargetAutoFix.fixTarget(
                             textUnitDTO.getSource(), textUnitDTO.getTarget()));
 
                     return new TextUnitDTOWithVariantCommentOrError(
@@ -665,7 +664,7 @@ public class AiTranslateService {
 
                   textUnitDTO.setStatus(importStatus);
                   textUnitDTO.setTarget(
-                      restoreLeadingAndTrailingWhitespace(
+                      AiTranslateTargetAutoFix.fixTarget(
                           textUnitDTO.getSource(), textUnitDTO.getTarget()));
 
                   return new TextUnitDTOWithVariantCommentOrError(
