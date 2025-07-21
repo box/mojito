@@ -263,7 +263,7 @@ public class AiTranslateService {
 
       Stopwatch stopwatchForLocale = Stopwatch.createStarted();
 
-      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantComments =
+      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
           getTextUnitDTOS(
               repository,
               aiTranslateInput.sourceTextMaxCountPerLocale(),
@@ -271,7 +271,7 @@ public class AiTranslateService {
               repositoryLocale,
               StatusFilter.valueOf(aiTranslateInput.statusFilter()));
 
-      if (textUnitDTOWithVariantComments.isEmpty()) {
+      if (textUnitDTOWithVariantCommentsList.isEmpty()) {
         logger.debug("Nothing to translate for locale: {}", bcp47Tag);
         continue;
       }
@@ -286,7 +286,7 @@ public class AiTranslateService {
 
       logger.info(
           "Translate (no batch) {} text units for repository: {} and locale: {}",
-          textUnitDTOWithVariantComments.size(),
+          textUnitDTOWithVariantCommentsList.size(),
           repository.getName(),
           bcp47Tag);
 
@@ -298,29 +298,25 @@ public class AiTranslateService {
       String prompt = getPrompt(aiTranslateType.getPrompt(), aiTranslateInput.promptSuffix());
       Status importStatus = Status.valueOf(aiTranslateInput.importStatus());
 
-      for (TextUnitDTOWithVariantComments textUnitDTOWithVariantComment :
-          textUnitDTOWithVariantComments) {
-        TextUnitDTO textUnitDTO = textUnitDTOWithVariantComment.textUnitDTO();
+      for (TextUnitDTOWithVariantComments textUnitDTOWithVariantComments :
+          textUnitDTOWithVariantCommentsList) {
+        TextUnitDTO textUnitDTO = textUnitDTOWithVariantComments.textUnitDTO();
 
-        Set<GlossaryService.GlossaryTerm> terms = Set.of();
+        FoundGlossaryTerms glossaryTermsOrSkip =
+            findGlossaryTermsOrSkip(
+                glossaryTrie,
+                aiTranslateInput.glossaryOnlyMatchedTextUnits(),
+                textUnitDTOWithVariantComments);
 
-        Stopwatch stopWatchFindTerm = Stopwatch.createStarted();
-        if (glossaryTrie != null) {
-          terms = glossaryTrie.findTerms(textUnitDTO.getSource());
-          if (terms.isEmpty() && aiTranslateInput.glossaryOnlyMatchedTextUnits()) {
-            logger.info(
-                "Skipping text unit because it contains no glossary term: {}",
-                textUnitDTOWithVariantComment.textUnitDTO().getTmTextUnitId());
-            continue;
-          } else {
-            logger.info(
-                "Found glossary terms for text unit {}: {}", textUnitDTO.getTmTextUnitId(), terms);
-          }
+        if (glossaryTermsOrSkip.shouldSkip()) {
+          continue;
         }
-        logger.info("Time spent searching for terms: {}", stopWatchFindTerm);
 
         CompletionInput completionInput =
-            getCompletionInput(textUnitDTOWithVariantComment, relatedStringsProvider, terms);
+            getCompletionInput(
+                textUnitDTOWithVariantComments,
+                relatedStringsProvider,
+                glossaryTermsOrSkip.terms());
 
         ChatCompletionsRequest chatCompletionsRequest =
             getChatCompletionsRequest(model, prompt, completionInput, aiTranslateType);
@@ -339,7 +335,7 @@ public class AiTranslateService {
                     e -> {
                       logger.info(
                           "Error when getting the chat completion, skipping text unit: {}, for locale: {}",
-                          textUnitDTOWithVariantComment.textUnitDTO().getTmTextUnitId(),
+                          textUnitDTOWithVariantComments.textUnitDTO().getTmTextUnitId(),
                           bcp47Tag,
                           e);
                       return null;
@@ -529,7 +525,12 @@ public class AiTranslateService {
                   aiTranslateInput.promptSuffix(),
                   StatusFilter.valueOf(aiTranslateInput.statusFilter()),
                   AiTranslateType.fromString(aiTranslateInput.translateType()),
-                  relatedStringsProvider);
+                  relatedStringsProvider,
+                  aiTranslateInput.glossaryName(),
+                  aiTranslateInput.glossaryTermSource(),
+                  aiTranslateInput.glossaryTermSourceDescription(),
+                  aiTranslateInput.glossaryTermTarget(),
+                  aiTranslateInput.glossaryOnlyMatchedTextUnits());
 
           if (createBatchResponse != null) {
             createdBatches.add(createBatchResponse);
@@ -729,14 +730,27 @@ public class AiTranslateService {
       String promptSuffix,
       StatusFilter statusFilter,
       AiTranslateType aiTranslateType,
-      RelatedStringsProvider relatedStringsProvider) {
+      RelatedStringsProvider relatedStringsProvider,
+      String glossaryName,
+      String glossaryTermSource,
+      String glossaryTermSourceDescription,
+      String glossaryTermTarget,
+      boolean glossaryOnlyMatchedTextUnits) {
 
-    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantComments =
+    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
         getTextUnitDTOS(
             repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale, statusFilter);
 
+    GlossaryTrie glossaryTrie =
+        getGlossaryTrieForLocale(
+            repositoryLocale.getLocale().getBcp47Tag(),
+            glossaryName,
+            glossaryTermSource,
+            glossaryTermSourceDescription,
+            glossaryTermTarget);
+
     CreateBatchResponse createBatchResponse = null;
-    if (textUnitDTOWithVariantComments.isEmpty()) {
+    if (textUnitDTOWithVariantCommentsList.isEmpty()) {
       logger.debug("Nothing to translate, don't create a batch");
     } else {
       logger.debug("Save the TextUnitDTOs in blob storage for later batch import");
@@ -746,17 +760,19 @@ public class AiTranslateService {
           AI_TRANSLATE_WS,
           batchId,
           objectMapper.writeValueAsStringUnchecked(
-              new AiTranslateBlobStorage(textUnitDTOWithVariantComments)),
+              new AiTranslateBlobStorage(textUnitDTOWithVariantCommentsList)),
           Retention.MIN_1_DAY);
 
       logger.debug("Generate the batch file content");
       String batchFileContent =
           generateBatchFileContent(
-              textUnitDTOWithVariantComments,
+              textUnitDTOWithVariantCommentsList,
               model,
               promptSuffix,
               aiTranslateType,
-              relatedStringsProvider);
+              relatedStringsProvider,
+              glossaryTrie,
+              glossaryOnlyMatchedTextUnits);
 
       UploadFileResponse uploadFileResponse =
           getOpenAIClient()
@@ -774,7 +790,7 @@ public class AiTranslateService {
     logger.info(
         "Created batch for locale: {} with {} text units",
         repositoryLocale.getLocale().getBcp47Tag(),
-        textUnitDTOWithVariantComments.size());
+        textUnitDTOWithVariantCommentsList.size());
 
     return createBatchResponse;
   }
@@ -838,15 +854,28 @@ public class AiTranslateService {
       String model,
       String promptPrefix,
       AiTranslateType aiTranslateType,
-      RelatedStringsProvider relatedStringsProvider) {
+      RelatedStringsProvider relatedStringsProvider,
+      GlossaryTrie glossaryTrie,
+      boolean glossaryOnlyMatchedTextUnits) {
 
     return textUnitDTOSUnitDTOWithVariantComments.stream()
         .map(
-            textUnitDTOWithVariantComment -> {
-              TextUnitDTO textUnitDTO = textUnitDTOWithVariantComment.textUnitDTO();
+            textUnitDTOWithVariantComments -> {
+              TextUnitDTO textUnitDTO = textUnitDTOWithVariantComments.textUnitDTO();
+
+              FoundGlossaryTerms foundGlossaryTerms =
+                  findGlossaryTermsOrSkip(
+                      glossaryTrie, glossaryOnlyMatchedTextUnits, textUnitDTOWithVariantComments);
+
+              if (foundGlossaryTerms.shouldSkip()) {
+                return null;
+              }
 
               CompletionInput completionInput =
-                  getCompletionInput(textUnitDTOWithVariantComment, relatedStringsProvider, null);
+                  getCompletionInput(
+                      textUnitDTOWithVariantComments,
+                      relatedStringsProvider,
+                      foundGlossaryTerms.terms());
 
               ChatCompletionsRequest chatCompletionsRequest =
                   getChatCompletionsRequest(
@@ -858,15 +887,47 @@ public class AiTranslateService {
               return RequestBatchFileLine.forChatCompletion(
                   textUnitDTO.getTmTextUnitId().toString(), chatCompletionsRequest);
             })
+        .filter(Objects::nonNull)
         .map(objectMapper::writeValueAsStringUnchecked)
         .collect(joining("\n"));
   }
 
+  record FoundGlossaryTerms(Set<GlossaryService.GlossaryTerm> terms, boolean shouldSkip) {}
+
+  FoundGlossaryTerms findGlossaryTermsOrSkip(
+      GlossaryTrie glossaryTrie,
+      boolean glossaryOnlyMatchedTextUnits,
+      TextUnitDTOWithVariantComments textUnitDTOWithVariantComments) {
+
+    Stopwatch stopWatchFindTerm = Stopwatch.createStarted();
+
+    Set<GlossaryService.GlossaryTerm> terms = Set.of();
+    boolean shouldSkip = false;
+
+    if (glossaryTrie != null) {
+      terms = glossaryTrie.findTerms(textUnitDTOWithVariantComments.textUnitDTO().getSource());
+      if (terms.isEmpty() && glossaryOnlyMatchedTextUnits) {
+        logger.info(
+            "Skipping text unit because it contains no glossary term: {}",
+            textUnitDTOWithVariantComments.textUnitDTO().getTmTextUnitId());
+        shouldSkip = true;
+      } else {
+        logger.info(
+            "Found glossary terms for text unit {}: {}",
+            textUnitDTOWithVariantComments.textUnitDTO().getTmTextUnitId(),
+            terms);
+      }
+    }
+    logger.info("Time spent searching for terms: {}", stopWatchFindTerm);
+
+    return new FoundGlossaryTerms(terms, shouldSkip);
+  }
+
   CompletionInput getCompletionInput(
-      TextUnitDTOWithVariantComments textUnitDTOWithVariantComment,
+      TextUnitDTOWithVariantComments textUnitDTOWithVariantComments,
       RelatedStringsProvider relatedStringsProvider,
       Set<GlossaryService.GlossaryTerm> glossaryTerms) {
-    TextUnitDTO textUnitDTO = textUnitDTOWithVariantComment.textUnitDTO();
+    TextUnitDTO textUnitDTO = textUnitDTOWithVariantComments.textUnitDTO();
 
     CompletionInput completionInput =
         new CompletionInput(
@@ -879,7 +940,7 @@ public class AiTranslateService {
                     textUnitDTO.getTarget(),
                     getTargetComment(textUnitDTO),
                     !textUnitDTO.isIncludedInLocalizedFile(),
-                    textUnitDTOWithVariantComment.tmTextUnitVariantComments().stream()
+                    textUnitDTOWithVariantComments.tmTextUnitVariantComments().stream()
                         .filter(
                             tmTextUnitVariantComment ->
                                 TMTextUnitVariantComment.Severity.ERROR.equals(
