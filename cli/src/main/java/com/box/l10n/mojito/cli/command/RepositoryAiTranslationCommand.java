@@ -137,6 +137,35 @@ public class RepositoryAiTranslationCommand extends Command {
           "Status set on target during import: ACCEPTED, REVIEW_NEEDED, TRANSLATION_NEEDED")
   String importStatus = "REVIEW_NEEDED";
 
+  @Parameter(
+      names = "--glossary-name",
+      arity = 1,
+      description = "Name of the glossary to use for matching or review.")
+  String glossaryName;
+
+  @Parameter(
+      names = "--glossary-term-source",
+      arity = 1,
+      description = "Source term to review or add as a one-off glossary entry.")
+  String glossaryTermSource;
+
+  @Parameter(
+      names = "--glossary-term-target",
+      arity = 1,
+      description = "Suggested target for the glossary term.")
+  String glossaryTermTarget;
+
+  @Parameter(
+      names = "--glossary-term-source-description",
+      arity = 1,
+      description = "Description or context for the glossary term.")
+  String glossaryTermSourceDescription;
+
+  @Parameter(
+      names = "--glossary-only-matched-text-units",
+      description = "Only process text units that have a match in the glossary.")
+  boolean glossaryOnlyMatchedTextUnits = false;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -236,7 +265,12 @@ public class RepositoryAiTranslationCommand extends Command {
                   relatedStrings,
                   translateType,
                   statusFilter,
-                  importStatus));
+                  importStatus,
+                  glossaryName,
+                  glossaryTermSource,
+                  glossaryTermSourceDescription,
+                  glossaryTermTarget,
+                  glossaryOnlyMatchedTextUnits));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
