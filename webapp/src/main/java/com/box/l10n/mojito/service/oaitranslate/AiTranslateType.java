@@ -18,6 +18,7 @@ public enum AiTranslateType {
     • Is natural, idiomatic, and culturally appropriate for a native speaker of the target language.
     • Matches the formality, register, and typical sentence structure of everyday writing in the target language.
     • Accounts for regional variations in the "locale" field (e.g., “es” vs. “es-419”; “fr” vs. “fr-CA”).
+    • Optimize your translation to be as close as possible to the original source length. Avoid text expansion. Use concise wording that preserves the meaning and fits well in limited UI space.
 
     Use the input context:
     • "sourceDescription" gives additional context about the source string.
