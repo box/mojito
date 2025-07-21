@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class WordTrieTest {
+public class CharTrieTest {
 
-  record TestTerm(String text) implements WordTrie.Term {}
+  record TestTerm(String text) implements CharTrie.Term {}
 
   @Test
   void testFindHello() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     TestTerm hello = new TestTerm("hello");
     trie.addTerm(hello);
 
@@ -21,7 +21,7 @@ public class WordTrieTest {
 
   @Test
   void testFindWorld() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     TestTerm world = new TestTerm("world");
     trie.addTerm(world);
 
@@ -31,7 +31,7 @@ public class WordTrieTest {
 
   @Test
   void testFindBothWords() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     TestTerm hello = new TestTerm("hello");
     TestTerm world = new TestTerm("world");
     trie.addTerm(hello);
@@ -44,7 +44,7 @@ public class WordTrieTest {
 
   @Test
   void testFindHelloWorldPhrase() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     TestTerm helloWorld = new TestTerm("hello world");
     trie.addTerm(helloWorld);
 
@@ -54,7 +54,7 @@ public class WordTrieTest {
 
   @Test
   void testNoMatchForGoodbye() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     trie.addTerm(new TestTerm("hello"));
 
     Set<TestTerm> matches = trie.findTerms("goodbye");
@@ -63,7 +63,7 @@ public class WordTrieTest {
 
   @Test
   void testOverlap() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     TestTerm hello = new TestTerm("hello");
     TestTerm helloWorld = new TestTerm("hello world");
     trie.addTerm(hello);
@@ -76,7 +76,7 @@ public class WordTrieTest {
 
   @Test
   void testDuplicatedTerm() {
-    WordTrie<TestTerm> trie = new WordTrie<>();
+    CharTrie<TestTerm> trie = new CharTrie<>();
     TestTerm hello1 = new TestTerm("hello");
     TestTerm hello2 = new TestTerm("hello");
     trie.addTerm(hello1);

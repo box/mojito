@@ -73,7 +73,7 @@ public class GlossaryService {
       String comment,
       String target,
       String targetComment)
-      implements WordTrie.Term {
+      implements CharTrie.Term {
 
     public boolean isDoNotTranslate() {
       return comment != null && comment.contains("DNT");
@@ -92,5 +92,5 @@ public class GlossaryService {
     }
   }
 
-  public static class GlossaryTrie extends WordTrie<GlossaryTerm> {}
+  public static class GlossaryTrie extends CharTrie<GlossaryTerm> {}
 }
