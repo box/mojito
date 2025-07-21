@@ -3,6 +3,9 @@ package com.box.l10n.mojito.service.oaitranslate;
 public class WhitespaceUtils {
 
   public static String restoreLeadingAndTrailingWhitespace(String source, String target) {
+    if (source == null || target == null) {
+      return target;
+    }
     int leading = 0;
     int trailing = 0;
     while (leading < source.length() && Character.isWhitespace(source.charAt(leading))) leading++;
