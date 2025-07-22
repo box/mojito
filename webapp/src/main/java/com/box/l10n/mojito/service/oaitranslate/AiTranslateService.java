@@ -14,6 +14,7 @@ import static com.box.l10n.mojito.openai.OpenAIClient.RetrieveBatchResponse;
 import static com.box.l10n.mojito.openai.OpenAIClient.TemperatureHelper.getTemperatureForReasoningModels;
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
+import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Prefix.AI_TRANSALATE_NO_BATCH_OUTPUT;
 import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Prefix.AI_TRANSLATE_WS;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -233,7 +234,7 @@ public class AiTranslateService {
     if (aiTranslateInput.useBatch()) {
       aiTranslateBatch(aiTranslateInput, currentTask);
     } else {
-      aiTranslateNoBatch(aiTranslateInput);
+      aiTranslateNoBatch(aiTranslateInput, currentTask);
     }
   }
 
@@ -241,7 +242,7 @@ public class AiTranslateService {
       TextUnitDTO textUnitDTO,
       CompletableFuture<ChatCompletionsResponse> chatCompletionsResponseCompletableFuture) {}
 
-  public void aiTranslateNoBatch(AiTranslateInput aiTranslateInput) {
+  public void aiTranslateNoBatch(AiTranslateInput aiTranslateInput, PollableTask currentTask) {
     Repository repository = getRepository(aiTranslateInput);
 
     logger.info("Start AI Translation (no batch) for repository: {}", repository.getName());
@@ -255,6 +256,7 @@ public class AiTranslateService {
 
     Stopwatch stopwatchForTotal = Stopwatch.createStarted();
 
+    List<String> reportFilenames = new ArrayList<>();
     for (RepositoryLocale repositoryLocale : filteredRepositoryLocales) {
       String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
       logger.info(
@@ -463,7 +465,21 @@ public class AiTranslateService {
                                 .toList());
                   })
               .toList();
+
+      String filename = "%s/locales/%s.json".formatted(currentTask.getId(), bcp47Tag);
+      structuredBlobStorage.put(
+          AI_TRANSALATE_NO_BATCH_OUTPUT,
+          filename,
+          objectMapper.writeValueAsStringUnchecked(importReportLines),
+          Retention.PERMANENT);
+      reportFilenames.add(filename);
     }
+
+    structuredBlobStorage.put(
+        AI_TRANSALATE_NO_BATCH_OUTPUT,
+        "%s/report.json".formatted(currentTask.getId()),
+        objectMapper.writeValueAsStringUnchecked(reportFilenames),
+        Retention.PERMANENT);
 
     logger.info(
         "Done with AI Translation (no batch) for repository: {}, total time: {}",
