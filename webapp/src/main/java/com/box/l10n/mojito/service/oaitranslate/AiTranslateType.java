@@ -1,10 +1,7 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
-import com.box.l10n.mojito.service.oaitranslate.AiTranslateService.RelatedString;
-import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.TextUnitDTOWithVariantComment;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +42,7 @@ public enum AiTranslateType {
     Do not include any explanation or commentary—just the translated text.
     """,
       SimpleCompletionOutput.class,
-      (t, o) -> {
-        t.setTarget(o.content());
-        return new TextUnitDTOWithVariantComment(t, "ai-translate with TARGET_ONLY");
-      }),
+      o -> new TargetWithMetadata(o.content(), "ai-translate with TARGET_ONLY")),
   TARGET_WITH_CONFIDENCE(
       TARGET_ONLY
           .getPrompt()
@@ -56,11 +50,10 @@ public enum AiTranslateType {
               "{ \"content\": \"[your translation here]\" }",
               "{ \"content\": \"[your translation here]\", \"confidenceLevel\": \"[confidence level 0-100]\" }"),
       WithConfidenceCompletionOutput.class,
-      (t, o) -> {
-        t.setTarget(o.content());
-        return new TextUnitDTOWithVariantComment(
-            t, "ai-translate with WITH_CONFIDENCE. confidence level: " + o.confidenceLevel());
-      }),
+      o ->
+          new TargetWithMetadata(
+              o.content(),
+              "ai-translate with WITH_CONFIDENCE. confidence level: " + o.confidenceLevel())),
   WITH_REVIEW(
       """
     Your role is to act as a translator.
@@ -122,10 +115,7 @@ public enum AiTranslateType {
         •	"reason": A detailed explanation of why review is or isn’t needed.
     """,
       CompletionOutput.class,
-      (t, o) -> {
-        t.setTarget(o.target().content());
-        return new TextUnitDTOWithVariantComment(t, "ai-translate with REVIEW");
-      }),
+      o -> new TargetWithMetadata(o.target().content(), "ai-translate with REVIEW")),
 
   SUGGESTED(
       """
@@ -156,29 +146,21 @@ public enum AiTranslateType {
     Return only the translated text, with no explanations or extra information.
     """,
       SimpleCompletionOutput.class,
-      (t, o) -> {
-        t.setTarget(o.content());
-        return new TextUnitDTOWithVariantComment(t, "ai-translate with SUGGESTED");
-      });
+      o -> new TargetWithMetadata(o.content(), "ai-translate with SUGGESTED"));
 
   static final Logger logger = LoggerFactory.getLogger(AiTranslateType.class);
 
-  static Logger getLogger() {
-    return logger;
-  }
-
   final String prompt;
   final Class<?> outputJsonSchemaClass;
-  final BiFunction<TextUnitDTO, Object, TextUnitDTOWithVariantComment> textUnitDTOUpdate;
+  final Function<Object, TargetWithMetadata> outputConverter;
 
   <T> AiTranslateType(
       String prompt,
       Class<T> outputJsonSchemaClass,
-      BiFunction<TextUnitDTO, T, TextUnitDTOWithVariantComment> textUnitDTOUpdate) {
+      Function<T, TargetWithMetadata> outputConverter) {
     this.prompt = prompt;
     this.outputJsonSchemaClass = outputJsonSchemaClass;
-    this.textUnitDTOUpdate =
-        (BiFunction<TextUnitDTO, Object, TextUnitDTOWithVariantComment>) textUnitDTOUpdate;
+    this.outputConverter = (Function<Object, TargetWithMetadata>) outputConverter;
   }
 
   public static AiTranslateType fromString(String name) {
@@ -198,9 +180,11 @@ public enum AiTranslateType {
     return outputJsonSchemaClass;
   }
 
-  public <T> BiFunction<TextUnitDTO, T, TextUnitDTOWithVariantComment> getTextUnitDTOUpdate() {
-    return (BiFunction<TextUnitDTO, T, TextUnitDTOWithVariantComment>) textUnitDTOUpdate;
+  public <T> TargetWithMetadata getTargetWithMetadata(T completionOutput) {
+    return outputConverter.apply(completionOutput);
   }
+
+  public record TargetWithMetadata(String target, String targetComment) {}
 
   record CompletionInput(
       String locale,
@@ -208,7 +192,7 @@ public enum AiTranslateType {
       String sourceDescription,
       ExistingTarget existingTarget,
       List<GlossaryTerm> glossaryTerms,
-      List<RelatedString> relatedStrings) {
+      List<AiTranslateService.RelatedString> relatedStrings) {
     record ExistingTarget(
         String content,
         String comment,
