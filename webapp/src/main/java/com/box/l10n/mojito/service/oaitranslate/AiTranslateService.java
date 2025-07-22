@@ -54,6 +54,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.ImportResult;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.TextUnitDTOWithVariantComment;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -84,6 +85,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -321,49 +323,21 @@ public class AiTranslateService {
             getChatCompletionsRequest(model, prompt, completionInput, aiTranslateType);
 
         CompletableFuture<ChatCompletionsResponse> chatCompletionsResponseCompletableFuture =
-            openAIClientPool
-                .submit(
-                    openAIClient -> {
-                      CompletableFuture<ChatCompletionsResponse> chatCompletions =
-                          openAIClient.getChatCompletions(
-                              chatCompletionsRequest,
-                              Duration.ofSeconds(CHAT_COMPLETION_REQUEST_TIMEOUT));
-                      return chatCompletions;
-                    })
-                .exceptionally(
-                    e -> {
-                      logger.info(
-                          "Error when getting the chat completion, skipping text unit: {}, for locale: {}",
-                          textUnitDTOWithVariantComments.textUnitDTO().getTmTextUnitId(),
-                          bcp47Tag,
-                          e);
-                      return null;
-                    });
+            openAIClientPool.submit(
+                openAIClient -> {
+                  CompletableFuture<ChatCompletionsResponse> chatCompletions =
+                      openAIClient.getChatCompletions(
+                          chatCompletionsRequest,
+                          Duration.ofSeconds(CHAT_COMPLETION_REQUEST_TIMEOUT));
+                  return chatCompletions;
+                });
 
         responses.add(
             new TextUnitDTOWithChatCompletionResponse(
                 textUnitDTO, chatCompletionsResponseCompletableFuture));
       }
 
-      CompletableFuture.allOf(
-              responses.stream()
-                  .map(
-                      TextUnitDTOWithChatCompletionResponse
-                          ::chatCompletionsResponseCompletableFuture)
-                  .toList()
-                  .toArray(new CompletableFuture[responses.size()]))
-          .join();
-
-      Duration elapsed = stopwatchForLocale.elapsed();
-
-      logger.info(
-          "Translated {} text units for locale: {} in {}. qps: {}",
-          responses.size(),
-          bcp47Tag,
-          elapsed.toString(),
-          elapsed.toSeconds() == 0 ? "n/a" : responses.size() / elapsed.toSeconds());
-
-      List<TextUnitDTOWithVariantCommentOrError> forImport =
+      List<TextUnitDTOWithVariantCommentOrError> textUnitDTOWithVariantCommentOrErrors =
           responses.stream()
               .map(
                   textUnitDTOWithChatCompletionResponse -> {
@@ -378,9 +352,17 @@ public class AiTranslateService {
                               .join();
                     } catch (Throwable t) {
                       String errorMessage =
-                          "Error get the chatCompletionsResponse: %s".formatted(t.getMessage());
-                      logger.error(errorMessage);
-                      return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
+                          "Error when getting the chatCompletionsResponse: %s"
+                              .formatted(t.getMessage());
+                      logger.error(
+                          errorMessage + ", skipping tmTextUnit: {}, locale: {}",
+                          textUnitDTO.getTmTextUnitId(),
+                          repositoryLocale.getLocale().getBcp47Tag(),
+                          t);
+                      return new TextUnitDTOWithVariantCommentOrError(
+                          new TextUnitDTOWithVariantComment(textUnitDTO, null),
+                          textUnitDTO.getTarget(),
+                          errorMessage);
                     }
 
                     Object completionOutput;
@@ -396,34 +378,113 @@ public class AiTranslateService {
                           "Error trying to parse the JSON completion output: %s"
                               .formatted(t.getMessage());
                       logger.debug(errorMessage, t);
-                      return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
+                      return new TextUnitDTOWithVariantCommentOrError(
+                          new TextUnitDTOWithVariantComment(textUnitDTO, null),
+                          textUnitDTO.getTarget(),
+                          errorMessage);
                     }
 
-                    TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
-                        aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
-
-                    textUnitDTO.setStatus(importStatus);
-                    textUnitDTO.setTarget(
-                        AiTranslateTargetAutoFix.fixTarget(
-                            textUnitDTO.getSource(), textUnitDTO.getTarget()));
-
-                    return new TextUnitDTOWithVariantCommentOrError(
-                        textUnitDTOWithVariantComment, null);
+                    return prepareForTextUnitDTOForImport(
+                        aiTranslateType, importStatus, textUnitDTO, completionOutput);
                   })
               .toList();
 
-      textUnitBatchImporterService.importTextUnitsWithVariantComment(
-          forImport.stream()
-              .filter(t -> t.error() == null)
-              .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
-              .toList(),
-          TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+      Duration elapsed = stopwatchForLocale.elapsed();
+
+      logger.info(
+          "Translated {} text units for repository: {} and locale: {} in {}. qps: {}",
+          responses.size(),
+          repository.getName(),
+          bcp47Tag,
+          elapsed.toString(),
+          elapsed.toSeconds() == 0 ? "n/a" : responses.size() / elapsed.toSeconds());
+
+      Map<Long, ImportResult> importResultByTmTextUnitId =
+          textUnitBatchImporterService
+              .importTextUnitsWithVariantComment(
+                  textUnitDTOWithVariantCommentOrErrors.stream()
+                      .filter(t -> t.error() == null)
+                      .filter(t -> t.textUnitDTOWithVariantComment() != null)
+                      .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
+                      .toList(),
+                  TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET)
+              .stream()
+              .collect(
+                  toMap(
+                      importResult ->
+                          importResult
+                              .addTMTextUnitCurrentVariantResult()
+                              .getTmTextUnitCurrentVariant()
+                              .getTmTextUnitVariant()
+                              .getTmTextUnit()
+                              .getId(),
+                      Function.identity()));
+
+      List<ImportReport.ImportReportLine> importReportLines =
+          textUnitDTOWithVariantCommentOrErrors.stream()
+              .map(
+                  // in case of batch, it is possible that tu.textUnitDTOWithVariantComment() ==
+                  // null so if sharing we need
+                  // to make sure this works
+                  tu -> {
+                    TextUnitDTO textUnitDTO = tu.textUnitDTOWithVariantComment().textUnitDTO();
+                    ImportResult importResult =
+                        importResultByTmTextUnitId.get(textUnitDTO.getTmTextUnitId());
+
+                    return new ImportReport.ImportReportLine(
+                        textUnitDTO.getTmTextUnitId(),
+                        repositoryLocale.getLocale().getBcp47Tag(),
+                        textUnitDTO.getSource(),
+                        tu.oldTarget(),
+                        textUnitDTO
+                            .getTmTextUnitVariantId(), // this should be the old target id, can be
+                        // used to distinguish
+                        textUnitDTO.getTarget(),
+                        importResult == null
+                            ? null
+                            : importResult
+                                .addTMTextUnitCurrentVariantResult()
+                                .getTmTextUnitCurrentVariant()
+                                .getId(),
+                        tu.error(),
+                        importResult != null
+                            && importResult
+                                .addTMTextUnitCurrentVariantResult()
+                                .isTmTextUnitCurrentVariantUpdated(),
+                        importResult == null
+                            ? null
+                            : importResult.tmTextUnitVariantComments().stream()
+                                .map(
+                                    c ->
+                                        new ImportReport.ImportReportLine.VariantComment(
+                                            c.getSeverity().toString(),
+                                            c.getType().toString(),
+                                            c.getContent()))
+                                .toList());
+                  })
+              .toList();
     }
 
     logger.info(
         "Done with AI Translation (no batch) for repository: {}, total time: {}",
         repository.getName(),
-        stopwatchForTotal.toString());
+        stopwatchForTotal);
+  }
+
+  record ImportReport(List<ImportReportLine> lines) {
+    record ImportReportLine(
+        long tmTexUnitId,
+        String locale,
+        String source,
+        String oldTarget,
+        Long oldTargetTmTextUnitVariantId,
+        String newTarget,
+        Long newTargetTmTextUnitVariantId,
+        String error,
+        boolean tmTextUnitCurrentVariantUpdated,
+        List<VariantComment> variantComments) {
+      record VariantComment(String severity, String type, String content) {}
+    }
   }
 
   private GlossaryTrie getGlossaryTrieForLocale(
@@ -582,7 +643,9 @@ public class AiTranslateService {
   }
 
   record TextUnitDTOWithVariantCommentOrError(
-      TextUnitDTOWithVariantComment textUnitDTOWithVariantComment, String error) {}
+      TextUnitDTOWithVariantComment textUnitDTOWithVariantComment,
+      String oldTarget,
+      String error) {}
 
   List<String> importBatch(
       RetrieveBatchResponse retrieveBatchResponse,
@@ -630,7 +693,7 @@ public class AiTranslateService {
                     String errorMessage =
                         "Response batch file line failed: " + chatCompletionResponseBatchFileLine;
                     logger.debug(errorMessage);
-                    return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
+                    return new TextUnitDTOWithVariantCommentOrError(null, null, errorMessage);
                   }
 
                   String completionOutputAsJson =
@@ -642,6 +705,10 @@ public class AiTranslateService {
                           .message()
                           .content();
 
+                  TextUnitDTO textUnitDTO =
+                      tmTextUnitIdToTextUnitDTOs.get(
+                          Long.valueOf(chatCompletionResponseBatchFileLine.customId()));
+
                   Object completionOutput;
                   try {
                     completionOutput =
@@ -652,23 +719,14 @@ public class AiTranslateService {
                         "Error trying to parse the JSON completion output: %s"
                             .formatted(e.getMessage());
                     logger.debug(errorMessage, e);
-                    return new TextUnitDTOWithVariantCommentOrError(null, errorMessage);
+                    return new TextUnitDTOWithVariantCommentOrError(
+                        new TextUnitDTOWithVariantComment(textUnitDTO, null),
+                        textUnitDTO.getTarget(),
+                        errorMessage);
                   }
 
-                  TextUnitDTO textUnitDTO =
-                      tmTextUnitIdToTextUnitDTOs.get(
-                          Long.valueOf(chatCompletionResponseBatchFileLine.customId()));
-
-                  TextUnitDTOWithVariantComment textUnitDTOWithVariantComment =
-                      aiTranslateType.getTextUnitDTOUpdate().apply(textUnitDTO, completionOutput);
-
-                  textUnitDTO.setStatus(importStatus);
-                  textUnitDTO.setTarget(
-                      AiTranslateTargetAutoFix.fixTarget(
-                          textUnitDTO.getSource(), textUnitDTO.getTarget()));
-
-                  return new TextUnitDTOWithVariantCommentOrError(
-                      textUnitDTOWithVariantComment, null);
+                  return prepareForTextUnitDTOForImport(
+                      aiTranslateType, importStatus, textUnitDTO, completionOutput);
                 })
             .toList();
 
@@ -683,6 +741,28 @@ public class AiTranslateService {
         .filter(t -> t.error() != null)
         .map(TextUnitDTOWithVariantCommentOrError::error)
         .toList();
+  }
+
+  private static TextUnitDTOWithVariantCommentOrError prepareForTextUnitDTOForImport(
+      AiTranslateType aiTranslateType,
+      Status importStatus,
+      TextUnitDTO textUnitDTO,
+      Object completionOutput) {
+
+    String oldTarget = textUnitDTO.getTarget();
+
+    AiTranslateType.TargetWithMetadata targetWithMetadata =
+        aiTranslateType.getTargetWithMetadata(completionOutput);
+
+    textUnitDTO.setStatus(importStatus);
+    String newTarget =
+        AiTranslateTargetAutoFix.fixTarget(textUnitDTO.getSource(), targetWithMetadata.target());
+    textUnitDTO.setTarget(newTarget);
+
+    return new TextUnitDTOWithVariantCommentOrError(
+        new TextUnitDTOWithVariantComment(textUnitDTO, targetWithMetadata.targetComment()),
+        oldTarget,
+        null);
   }
 
   record RelatedString(String source, String description) {}
@@ -906,18 +986,18 @@ public class AiTranslateService {
     if (glossaryTrie != null) {
       terms = glossaryTrie.findTerms(textUnitDTOWithVariantComments.textUnitDTO().getSource());
       if (terms.isEmpty() && glossaryOnlyMatchedTextUnits) {
-        logger.info(
+        logger.debug(
             "Skipping text unit because it contains no glossary term: {}",
             textUnitDTOWithVariantComments.textUnitDTO().getTmTextUnitId());
         shouldSkip = true;
       } else {
-        logger.info(
+        logger.debug(
             "Found glossary terms for text unit {}: {}",
             textUnitDTOWithVariantComments.textUnitDTO().getTmTextUnitId(),
             terms);
       }
     }
-    logger.info("Time spent searching for terms: {}", stopWatchFindTerm);
+    logger.debug("Time spent searching for terms: {}", stopWatchFindTerm);
 
     return new FoundGlossaryTerms(terms, shouldSkip);
   }
