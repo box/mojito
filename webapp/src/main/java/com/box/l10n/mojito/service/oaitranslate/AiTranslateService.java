@@ -466,25 +466,66 @@ public class AiTranslateService {
                   })
               .toList();
 
-      String filename = "%s/locales/%s.json".formatted(currentTask.getId(), bcp47Tag);
-      structuredBlobStorage.put(
-          AI_TRANSALATE_NO_BATCH_OUTPUT,
-          filename,
-          objectMapper.writeValueAsStringUnchecked(importReportLines),
-          Retention.PERMANENT);
-      reportFilenames.add(filename);
+      putReportContentLocale(currentTask, bcp47Tag, importReportLines, reportFilenames);
     }
 
-    structuredBlobStorage.put(
-        AI_TRANSALATE_NO_BATCH_OUTPUT,
-        "%s/report.json".formatted(currentTask.getId()),
-        objectMapper.writeValueAsStringUnchecked(reportFilenames),
-        Retention.PERMANENT);
+    putReportContent(currentTask, reportFilenames);
 
     logger.info(
         "Done with AI Translation (no batch) for repository: {}, total time: {}",
         repository.getName(),
         stopwatchForTotal);
+  }
+
+  void putReportContent(PollableTask currentTask, List<String> reportFilenames) {
+    logger.debug("Put report content for id: {}", currentTask.getId());
+    structuredBlobStorage.put(
+        AI_TRANSALATE_NO_BATCH_OUTPUT,
+        getReportFilename(currentTask.getId()),
+        objectMapper.writeValueAsStringUnchecked(new ReportContent(reportFilenames)),
+        Retention.PERMANENT);
+  }
+
+  public record ReportContent(List<String> reportLocaleUrls) {}
+
+  void putReportContentLocale(
+      PollableTask currentTask,
+      String bcp47Tag,
+      List<ImportReport.ImportReportLine> importReportLines,
+      List<String> reportFilenames) {
+    logger.debug(
+        "Put report locale content for id: {} and locale: {}", currentTask.getId(), bcp47Tag);
+    String filename = getReportLocaleFilename(currentTask.getId(), bcp47Tag);
+    structuredBlobStorage.put(
+        AI_TRANSALATE_NO_BATCH_OUTPUT,
+        filename,
+        objectMapper.writeValueAsStringUnchecked(importReportLines),
+        Retention.PERMANENT);
+    reportFilenames.add(filename);
+  }
+
+  public ReportContent getReportContent(long pollableTaskId) {
+    logger.debug("Get report content for id: {}", pollableTaskId);
+    String reportContentAsJson =
+        structuredBlobStorage
+            .getString(AI_TRANSALATE_NO_BATCH_OUTPUT, getReportFilename(pollableTaskId))
+            .get();
+    return objectMapper.readValueUnchecked(reportContentAsJson, ReportContent.class);
+  }
+
+  public String getReportContentLocale(long pollableTaskId, String bcp47Tag) {
+    logger.debug("Get report locale content for id: {} and locale: {}", pollableTaskId, bcp47Tag);
+    return structuredBlobStorage
+        .getString(AI_TRANSALATE_NO_BATCH_OUTPUT, getReportLocaleFilename(pollableTaskId, bcp47Tag))
+        .get();
+  }
+
+  static String getReportFilename(long pollableTaskId) {
+    return "%s/report".formatted(pollableTaskId);
+  }
+
+  static String getReportLocaleFilename(long pollableTaskId, String bcp47Tag) {
+    return "%s/locale/%s".formatted(pollableTaskId, bcp47Tag);
   }
 
   record ImportReport(List<ImportReportLine> lines) {

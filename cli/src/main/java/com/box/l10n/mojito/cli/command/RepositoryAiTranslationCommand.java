@@ -4,14 +4,17 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient;
+import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateGetReportResponse;
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateRequest;
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateResponse;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +169,11 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Only process text units that have a match in the glossary.")
   boolean glossaryOnlyMatchedTextUnits = false;
 
+  @Parameter(
+      names = "--download-report",
+      description = "Download report JSON files (only works in non-batch mode)")
+  boolean downloadReport = false;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -273,8 +281,25 @@ public class RepositoryAiTranslationCommand extends Command {
                   glossaryOnlyMatchedTextUnits));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
-      consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
-      waitForPollable(pollableTask.getId());
+      if (useBatch) {
+        consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
+        waitForPollable(pollableTask.getId());
+      } else {
+        commandHelper.waitForPollableTask(pollableTask.getId());
+
+        if (downloadReport) {
+          ProtoAiTranslateGetReportResponse report =
+              repositoryAiTranslateClient.getReport(pollableTask.getId());
+
+          for (String reportLocaleUrl : report.reportLocaleUrls()) {
+            RepositoryAiTranslateClient.ProtoAiTranslateGetReportLocaleResponse reportLocale =
+                repositoryAiTranslateClient.getReportLocale(reportLocaleUrl);
+            Path path = Path.of(reportLocaleUrl + ".json");
+            Files.createDirectories(path.getParent());
+            Files.write(path, reportLocale.content());
+          }
+        }
+      }
     }
 
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);

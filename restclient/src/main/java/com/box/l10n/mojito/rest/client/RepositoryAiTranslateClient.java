@@ -37,6 +37,18 @@ public class RepositoryAiTranslateClient extends BaseClient {
     return protoAiReviewRetryImportResponse.pollableTaskId();
   }
 
+  public ProtoAiTranslateGetReportResponse getReport(long pollableTaskId) {
+    return authenticatedRestTemplate.getForObject(
+        getBasePathForEntity() + "/report/" + pollableTaskId,
+        ProtoAiTranslateGetReportResponse.class);
+  }
+
+  public ProtoAiTranslateGetReportLocaleResponse getReportLocale(String filename) {
+    return authenticatedRestTemplate.getForObject(
+        getBasePathForEntity() + "/report/" + filename,
+        ProtoAiTranslateGetReportLocaleResponse.class);
+  }
+
   public record ProtoAiTranslateRequest(
       String repositoryName,
       List<String> targetBcp47tags,
@@ -60,4 +72,8 @@ public class RepositoryAiTranslateClient extends BaseClient {
   public record ProtoAiTranslateRetryImportRequest(long childPollableTaskId, boolean resume) {}
 
   public record ProtoAiTranslateRetryImportResponse(long pollableTaskId) {}
+
+  public record ProtoAiTranslateGetReportResponse(List<String> reportLocaleUrls) {}
+
+  public record ProtoAiTranslateGetReportLocaleResponse(String content) {}
 }
