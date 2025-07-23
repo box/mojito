@@ -831,6 +831,9 @@ public class AiTranslateService {
     String newTarget =
         AiTranslateTargetAutoFix.fixTarget(textUnitDTO.getSource(), targetWithMetadata.target());
     textUnitDTO.setTarget(newTarget);
+    // Reset target comment if this translation has its own comment. Do not carry over the previous
+    // comment.
+    textUnitDTO.setTargetComment(null);
 
     return new TextUnitDTOWithVariantCommentOrError(
         completionId,
