@@ -284,7 +284,7 @@ public class AiTranslateService {
               bcp47Tag,
               aiTranslateInput.glossaryName(),
               aiTranslateInput.glossaryTermSource(),
-              aiTranslateInput.glossaryTermSourceDescription,
+              aiTranslateInput.glossaryTermSourceDescription(),
               aiTranslateInput.glossaryTermTarget());
 
       logger.info(
