@@ -445,6 +445,10 @@ SearchParamsStore.STATUS = {
      * TextUnits that are not rejected, ie includedInLocalizedFile is true.
      */
     "NOT_REJECTED": "NOT_REJECTED",
+    /**
+     * TextUnits that are approved and not rejected (aka Accepted in UI)
+     */
+    "APPROVED_AND_NOT_REJECTED": "APPROVED_AND_NOT_REJECTED",
 
 };
 

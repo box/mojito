@@ -18,7 +18,7 @@ let ViewModeDropdown = createReactClass({
     render() {
         return (
             <DropdownButton
-                id="WorkbenchStatusDropdown"
+                id="WorkbenchViewModeDropdown"
                 title={this.props.intl.formatMessage({id: "search.viewMode.title"}, {mode: this.props.intl.formatMessage({id: "search.viewMode." + this.props.viewMode})})}
             >
                 {this.renderModeMenuItem(ViewModeStore.VIEW_MODE.FULL)}
