@@ -297,6 +297,7 @@ public class RepositoryAiTranslationCommand extends Command {
             Path path = Path.of(reportLocaleUrl + ".json");
             Files.createDirectories(path.getParent());
             Files.write(path, reportLocale.content());
+            consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
           }
         }
       }
