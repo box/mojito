@@ -165,6 +165,14 @@ public class RepositoryAiTranslationCommand extends Command {
   String glossaryTermSourceDescription;
 
   @Parameter(
+      names = "--glossary-term-target-description",
+      arity = 1,
+      description =
+          "Context or notes for the glossary term in the target language. For example, to explain which term "
+              + "should be used instead of another, or which terms should be avoided.")
+  String glossaryTermTargetDescription;
+
+  @Parameter(
       names = "--glossary-only-matched-text-units",
       description = "Only process text units that have a match in the glossary.")
   boolean glossaryOnlyMatchedTextUnits = false;
@@ -278,6 +286,7 @@ public class RepositoryAiTranslationCommand extends Command {
                   glossaryTermSource,
                   glossaryTermSourceDescription,
                   glossaryTermTarget,
+                  glossaryTermTargetDescription,
                   glossaryOnlyMatchedTextUnits));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();

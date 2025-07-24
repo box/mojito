@@ -65,6 +65,7 @@ public class RepositoryAiTranslateClient extends BaseClient {
       String glossaryTermSource,
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
+      String glossaryTermTargetDescription,
       boolean glossaryOnlyMatchedTextUnits) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
