@@ -170,6 +170,9 @@ let StatusDropdown = createReactClass({
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.needsReview" });
             case SearchParamsStore.STATUS.REJECTED:
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.rejected" });
+            case SearchParamsStore.STATUS.APPROVED_AND_NOT_REJECTED:
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.accepted" });
+
         }
     },
 
@@ -263,6 +266,7 @@ let StatusDropdown = createReactClass({
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.FOR_TRANSLATION)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REVIEW_NEEDED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REJECTED)}
+                    {this.renderStatusMenuItem(SearchParamsStore.STATUS.APPROVED_AND_NOT_REJECTED)}
 
                 <MenuItem divider />
 
