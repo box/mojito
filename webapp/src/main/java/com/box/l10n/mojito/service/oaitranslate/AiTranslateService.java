@@ -193,6 +193,7 @@ public class AiTranslateService {
       String glossaryTermSource,
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
+      String glossaryTermTargetDescription,
       boolean glossaryOnlyMatchedTextUnits) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
@@ -285,7 +286,8 @@ public class AiTranslateService {
               aiTranslateInput.glossaryName(),
               aiTranslateInput.glossaryTermSource(),
               aiTranslateInput.glossaryTermSourceDescription(),
-              aiTranslateInput.glossaryTermTarget());
+              aiTranslateInput.glossaryTermTarget(),
+              aiTranslateInput.glossaryTermTargetDescription());
 
       logger.info(
           "Translate (no batch) {} text units for repository: {} and locale: {}",
@@ -558,7 +560,8 @@ public class AiTranslateService {
       String glossaryName,
       String termSource,
       String termSourceDescription,
-      String termTarget) {
+      String termTarget,
+      String termTargetDescription) {
     Stopwatch stopwatchForGlossary = Stopwatch.createStarted();
     GlossaryTrie glossaryTrie = null;
     if (glossaryName != null) {
@@ -574,7 +577,12 @@ public class AiTranslateService {
       glossaryTrie = new GlossaryTrie();
       glossaryTrie.addTerm(
           new GlossaryService.GlossaryTerm(
-              0L, termSource, termSource, termSourceDescription, termTarget, null));
+              0L,
+              termSource,
+              termSource,
+              termSourceDescription,
+              termTarget,
+              termTargetDescription));
       logger.info(
           "Loaded the glossary from term: {} for locale: {} in {}.",
           termSource,
@@ -656,6 +664,7 @@ public class AiTranslateService {
                   aiTranslateInput.glossaryTermSource(),
                   aiTranslateInput.glossaryTermSourceDescription(),
                   aiTranslateInput.glossaryTermTarget(),
+                  aiTranslateInput.glossaryTermTargetDescription(),
                   aiTranslateInput.glossaryOnlyMatchedTextUnits());
 
           if (createBatchResponse != null) {
@@ -891,6 +900,7 @@ public class AiTranslateService {
       String glossaryTermSource,
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
+      String glossaryTermTargetDescription,
       boolean glossaryOnlyMatchedTextUnits) {
 
     List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
@@ -903,7 +913,8 @@ public class AiTranslateService {
             glossaryName,
             glossaryTermSource,
             glossaryTermSourceDescription,
-            glossaryTermTarget);
+            glossaryTermTarget,
+            glossaryTermTargetDescription);
 
     CreateBatchResponse createBatchResponse = null;
     if (textUnitDTOWithVariantCommentsList.isEmpty()) {

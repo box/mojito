@@ -59,6 +59,7 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.glossaryTermSource(),
                 protoAiTranslateRequest.glossaryTermSourceDescription(),
                 protoAiTranslateRequest.glossaryTermTarget(),
+                protoAiTranslateRequest.glossaryTermTargetDescription(),
                 protoAiTranslateRequest.glossaryOnlyMatchedTextUnits()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
@@ -80,6 +81,7 @@ public class AiTranslateWS {
       String glossaryTermSource,
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
+      String glossaryTermTargetDescription,
       boolean glossaryOnlyMatchedTextUnits) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
