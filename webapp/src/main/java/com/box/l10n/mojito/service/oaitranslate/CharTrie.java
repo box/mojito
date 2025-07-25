@@ -11,8 +11,17 @@ public class CharTrie<T extends CharTrie.Term> {
 
   private final Node<T> root = new Node<>(null, new ArrayList<>(), new HashMap<>());
 
+  boolean caseSensitive;
+
+  public CharTrie(boolean caseSensitive) {
+    this.caseSensitive = caseSensitive;
+  }
+
   public void addTerm(T term) {
-    String source = term.text();
+    // Locale not specified for simplicity — toLowerCase() may behave incorrectly in languages like
+    // Turkish
+    // This is fine as long as source strings are in English.
+    String source = caseSensitive ? term.text() : term.text().toLowerCase();
     Node<T> cur = root;
     for (char c : source.toCharArray()) {
       cur = cur.child().computeIfAbsent(c, k -> new Node<>(c, new ArrayList<>(), new HashMap<>()));
@@ -22,6 +31,10 @@ public class CharTrie<T extends CharTrie.Term> {
 
   public Set<T> findTerms(String text) {
     Set<T> terms = new HashSet<>();
+
+    if (!caseSensitive) {
+      text = text.toLowerCase();
+    }
 
     for (int i = 0; i < text.length(); i++) {
       Node<T> cur = root;
