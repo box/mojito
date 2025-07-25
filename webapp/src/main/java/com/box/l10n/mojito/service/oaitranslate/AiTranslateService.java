@@ -77,6 +77,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -194,7 +195,8 @@ public class AiTranslateService {
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
       String glossaryTermTargetDescription,
-      boolean glossaryOnlyMatchedTextUnits) {}
+      boolean glossaryOnlyMatchedTextUnits,
+      boolean dryRun) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -409,26 +411,28 @@ public class AiTranslateService {
           elapsed.toString(),
           elapsed.toSeconds() == 0 ? "n/a" : responses.size() / elapsed.toSeconds());
 
-      Map<Long, ImportResult> importResultByTmTextUnitId =
-          textUnitBatchImporterService
-              .importTextUnitsWithVariantComment(
-                  textUnitDTOWithVariantCommentOrErrors.stream()
-                      .filter(t -> t.error() == null)
-                      .filter(t -> t.textUnitDTOWithVariantComment() != null)
-                      .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
-                      .toList(),
-                  TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET)
-              .stream()
-              .collect(
-                  toMap(
-                      importResult ->
-                          importResult
-                              .addTMTextUnitCurrentVariantResult()
-                              .getTmTextUnitCurrentVariant()
-                              .getTmTextUnitVariant()
-                              .getTmTextUnit()
-                              .getId(),
-                      Function.identity()));
+      final Map<Long, ImportResult> importResultByTmTextUnitId =
+          aiTranslateInput.dryRun()
+              ? new LinkedHashMap<>()
+              : textUnitBatchImporterService
+                  .importTextUnitsWithVariantComment(
+                      textUnitDTOWithVariantCommentOrErrors.stream()
+                          .filter(t -> t.error() == null)
+                          .filter(t -> t.textUnitDTOWithVariantComment() != null)
+                          .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
+                          .toList(),
+                      TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET)
+                  .stream()
+                  .collect(
+                      toMap(
+                          importResult ->
+                              importResult
+                                  .addTMTextUnitCurrentVariantResult()
+                                  .getTmTextUnitCurrentVariant()
+                                  .getTmTextUnitVariant()
+                                  .getTmTextUnit()
+                                  .getId(),
+                          Function.identity()));
 
       List<ImportReport.ImportReportLine> importReportLines =
           textUnitDTOWithVariantCommentOrErrors.stream()
@@ -441,8 +445,22 @@ public class AiTranslateService {
                     ImportResult importResult =
                         importResultByTmTextUnitId.get(textUnitDTO.getTmTextUnitId());
 
+                    boolean tmTextUnitCurrentVariantUpdated;
+                    if (aiTranslateInput.dryRun()) {
+                      tmTextUnitCurrentVariantUpdated =
+                          tu.oldTarget() == null
+                              ? textUnitDTO.getTarget() != null
+                              : !tu.oldTarget().equals(textUnitDTO.getTarget());
+                    } else {
+                      tmTextUnitCurrentVariantUpdated =
+                          importResult != null
+                              && importResult
+                                  .addTMTextUnitCurrentVariantResult()
+                                  .isTmTextUnitCurrentVariantUpdated();
+                    }
+
                     return new ImportReport.ImportReportLine(
-                        "",
+                        tu.completionId(),
                         textUnitDTO.getTmTextUnitId(),
                         repositoryLocale.getLocale().getBcp47Tag(),
                         textUnitDTO.getSource(),
@@ -459,10 +477,7 @@ public class AiTranslateService {
                                 .getTmTextUnitVariant()
                                 .getId(),
                         tu.error(),
-                        importResult != null
-                            && importResult
-                                .addTMTextUnitCurrentVariantResult()
-                                .isTmTextUnitCurrentVariantUpdated(),
+                        tmTextUnitCurrentVariantUpdated,
                         importResult == null
                             ? null
                             : importResult.tmTextUnitVariantComments().stream()
@@ -718,7 +733,7 @@ public class AiTranslateService {
   }
 
   record TextUnitDTOWithVariantCommentOrError(
-      String id,
+      String completionId,
       TextUnitDTOWithVariantComment textUnitDTOWithVariantComment,
       String oldTarget,
       String error) {}

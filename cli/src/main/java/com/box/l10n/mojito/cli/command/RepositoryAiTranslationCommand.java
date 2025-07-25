@@ -182,6 +182,9 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Download report JSON files (only works in non-batch mode)")
   boolean downloadReport = false;
 
+  @Parameter(names = "--dry-run", description = "Perform a dry-run")
+  boolean dryRun = false;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryAiTranslateClient repositoryAiTranslateClient;
@@ -287,7 +290,8 @@ public class RepositoryAiTranslationCommand extends Command {
                   glossaryTermSourceDescription,
                   glossaryTermTarget,
                   glossaryTermTargetDescription,
-                  glossaryOnlyMatchedTextUnits));
+                  glossaryOnlyMatchedTextUnits,
+                  dryRun));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       if (useBatch) {
