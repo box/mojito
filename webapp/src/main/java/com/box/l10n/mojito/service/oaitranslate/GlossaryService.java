@@ -4,7 +4,9 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -79,6 +81,10 @@ public class GlossaryService {
       return comment != null && comment.contains("DNT");
     }
 
+    public boolean isCaseSensitive() {
+      return comment != null && comment.contains("CAS");
+    }
+
     public String getPartOfSpeech() {
       if (comment == null || !comment.contains("\nPOS:")) {
         return null;
@@ -92,5 +98,22 @@ public class GlossaryService {
     }
   }
 
-  public static class GlossaryTrie extends CharTrie<GlossaryTerm> {}
+  public static class GlossaryTrie {
+    CharTrie<GlossaryTerm> glossaryTrieSensitive = new CharTrie<>(true);
+    CharTrie<GlossaryTerm> glossaryTrieInsensitive = new CharTrie<>(false);
+
+    public void addTerm(GlossaryTerm term) {
+      glossaryTrieSensitive.addTerm(term);
+
+      if (!term.isCaseSensitive()) {
+        glossaryTrieInsensitive.addTerm(term);
+      }
+    }
+
+    public Set<GlossaryTerm> findTerms(String text) {
+      Set<GlossaryTerm> terms = new HashSet<>(glossaryTrieSensitive.findTerms(text));
+      terms.addAll(glossaryTrieInsensitive.findTerms(text));
+      return terms;
+    }
+  }
 }
