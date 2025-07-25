@@ -844,9 +844,14 @@ public class AiTranslateService {
     // comment.
     textUnitDTO.setTargetComment(null);
 
+    TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
+    tmTextUnitVariantComment.setType(TMTextUnitVariantComment.Type.AI_TRANSLATE);
+    tmTextUnitVariantComment.setSeverity(TMTextUnitVariantComment.Severity.ERROR);
+    tmTextUnitVariantComment.setContent(targetWithMetadata.targetComment());
+
     return new TextUnitDTOWithVariantCommentOrError(
         completionId,
-        new TextUnitDTOWithVariantComment(textUnitDTO, targetWithMetadata.targetComment()),
+        new TextUnitDTOWithVariantComment(textUnitDTO, tmTextUnitVariantComment),
         oldTarget,
         null);
   }
