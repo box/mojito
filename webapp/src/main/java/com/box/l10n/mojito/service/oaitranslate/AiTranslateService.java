@@ -242,6 +242,7 @@ public class AiTranslateService {
   }
 
   record TextUnitDTOWithChatCompletionResponse(
+      ChatCompletionsRequest chatCompletionsRequest,
       TextUnitDTO textUnitDTO,
       CompletableFuture<ChatCompletionsResponse> chatCompletionsResponseCompletableFuture) {}
 
@@ -340,7 +341,7 @@ public class AiTranslateService {
 
         responses.add(
             new TextUnitDTOWithChatCompletionResponse(
-                textUnitDTO, chatCompletionsResponseCompletableFuture));
+                chatCompletionsRequest, textUnitDTO, chatCompletionsResponseCompletableFuture));
       }
 
       List<TextUnitDTOWithVariantCommentOrError> textUnitDTOWithVariantCommentOrErrors =
@@ -366,6 +367,7 @@ public class AiTranslateService {
                           repositoryLocale.getLocale().getBcp47Tag(),
                           t);
                       return new TextUnitDTOWithVariantCommentOrError(
+                          textUnitDTOWithChatCompletionResponse.chatCompletionsRequest(),
                           null,
                           new TextUnitDTOWithVariantComment(textUnitDTO, null),
                           textUnitDTO.getTarget(),
@@ -386,6 +388,7 @@ public class AiTranslateService {
                               .formatted(t.getMessage());
                       logger.debug(errorMessage, t);
                       return new TextUnitDTOWithVariantCommentOrError(
+                          textUnitDTOWithChatCompletionResponse.chatCompletionsRequest(),
                           chatCompletionsResponse.id(),
                           new TextUnitDTOWithVariantComment(textUnitDTO, null),
                           textUnitDTO.getTarget(),
@@ -393,6 +396,7 @@ public class AiTranslateService {
                     }
 
                     return prepareForTextUnitDTOForImport(
+                        textUnitDTOWithChatCompletionResponse.chatCompletionsRequest(),
                         chatCompletionsResponse.id(),
                         aiTranslateType,
                         importStatus,
@@ -460,6 +464,7 @@ public class AiTranslateService {
                     }
 
                     return new ImportReport.ImportReportLine(
+                        tu.chatCompletionsRequest(),
                         tu.completionId(),
                         textUnitDTO.getTmTextUnitId(),
                         repositoryLocale.getLocale().getBcp47Tag(),
@@ -555,6 +560,7 @@ public class AiTranslateService {
 
   record ImportReport(List<ImportReportLine> lines) {
     record ImportReportLine(
+        ChatCompletionsRequest chatCompletionsRequest,
         String completionId,
         long tmTexUnitId,
         String locale,
@@ -733,6 +739,7 @@ public class AiTranslateService {
   }
 
   record TextUnitDTOWithVariantCommentOrError(
+      ChatCompletionsRequest chatCompletionsRequest,
       String completionId,
       TextUnitDTOWithVariantComment textUnitDTOWithVariantComment,
       String oldTarget,
@@ -784,7 +791,8 @@ public class AiTranslateService {
                     String errorMessage =
                         "Response batch file line failed: " + chatCompletionResponseBatchFileLine;
                     logger.debug(errorMessage);
-                    return new TextUnitDTOWithVariantCommentOrError(null, null, null, errorMessage);
+                    return new TextUnitDTOWithVariantCommentOrError(
+                        null, null, null, null, errorMessage);
                   }
 
                   String completionOutputAsJson =
@@ -812,12 +820,14 @@ public class AiTranslateService {
                     logger.debug(errorMessage, e);
                     return new TextUnitDTOWithVariantCommentOrError(
                         null,
+                        null,
                         new TextUnitDTOWithVariantComment(textUnitDTO, null),
                         textUnitDTO.getTarget(),
                         errorMessage);
                   }
 
                   return prepareForTextUnitDTOForImport(
+                      null,
                       chatCompletionResponseBatchFileLine.id(),
                       aiTranslateType,
                       importStatus,
@@ -840,6 +850,7 @@ public class AiTranslateService {
   }
 
   private static TextUnitDTOWithVariantCommentOrError prepareForTextUnitDTOForImport(
+      ChatCompletionsRequest chatCompletionsRequest,
       String completionId,
       AiTranslateType aiTranslateType,
       Status importStatus,
@@ -865,6 +876,7 @@ public class AiTranslateService {
     tmTextUnitVariantComment.setContent(targetWithMetadata.targetComment());
 
     return new TextUnitDTOWithVariantCommentOrError(
+        chatCompletionsRequest,
         completionId,
         new TextUnitDTOWithVariantComment(textUnitDTO, tmTextUnitVariantComment),
         oldTarget,
