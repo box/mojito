@@ -173,7 +173,8 @@ public class TextUnitBatchImporterService {
         ImportTextUnitJob.class, importTextUnitJobInput, schedulerName);
   }
 
-  public record TextUnitDTOWithVariantComment(TextUnitDTO textUnitDTO, String comment) {}
+  public record TextUnitDTOWithVariantComment(
+      TextUnitDTO textUnitDTO, TMTextUnitVariantComment tmTextUnitVariantComment) {}
 
   @StopWatch
   public List<ImportResult> importTextUnitsWithVariantComment(
@@ -345,6 +346,8 @@ public class TextUnitBatchImporterService {
                         textUnitForBatchImport.getTmTextUnitVariantComments().stream()
                             .map(
                                 tmTextUnitVariantComment -> {
+
+                                  /// how can this be null!
                                   return tmMTextUnitVariantCommentService.addComment(
                                       tmTextUnitVariantId,
                                       tmTextUnitVariantComment.getType(),
@@ -544,12 +547,11 @@ public class TextUnitBatchImporterService {
               textUnitForBatchImport.setTargetComment(t.getTargetComment());
               textUnitForBatchImport.setIncludedInLocalizedFile(t.isIncludedInLocalizedFile());
               textUnitForBatchImport.setStatus(t.getStatus() == null ? APPROVED : t.getStatus());
-
-              TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
-              tmTextUnitVariantComment.setSeverity(Severity.INFO);
-              tmTextUnitVariantComment.setType(TMTextUnitVariantComment.Type.AI_TRANSLATE);
-              tmTextUnitVariantComment.setContent(tc.comment());
-              textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
+              if (tc.tmTextUnitVariantComment() != null) {
+                textUnitForBatchImport
+                    .getTmTextUnitVariantComments()
+                    .add(tc.tmTextUnitVariantComment());
+              }
               return textUnitForBatchImport;
             })
         .filter(
