@@ -200,7 +200,7 @@ public enum AiTranslateType {
         List<String> integrityCheckErrors) {}
 
     record GlossaryTerm(
-        String term, String description, boolean doNotTranslate, String partOfSpeech) {}
+        String term, String termDescription, String termTarget, String termTargetComment) {}
   }
 
   record CompletionOutput(

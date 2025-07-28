@@ -38,14 +38,36 @@ public class GlossaryService {
         getTextUnitDTOForGlossary(glossaryRepositoryName, bcp47Locale);
 
     for (TextUnitDTO textUnitDTO : textUnitDTOForGlossary) {
+
+      String target = null;
+      String targetComment = null;
+
+      boolean doNotTranslate =
+          textUnitDTO.getComment() != null && textUnitDTO.getComment().contains("DNT");
+      boolean caseSensitive =
+          textUnitDTO.getComment() != null && textUnitDTO.getComment().contains("CAS");
+
+      if (doNotTranslate) {
+        target = textUnitDTO.getSource();
+      }
+
+      if (textUnitDTO.isIncludedInLocalizedFile()) {
+        if (textUnitDTO.getTarget() != null) {
+          target = textUnitDTO.getTarget();
+        }
+        targetComment = textUnitDTO.getTargetComment();
+      }
+
       glossaryTrie.addTerm(
           new GlossaryTerm(
               textUnitDTO.getTmTextUnitId(),
               textUnitDTO.getName(),
               textUnitDTO.getSource(),
               textUnitDTO.getComment(),
-              textUnitDTO.isIncludedInLocalizedFile() ? textUnitDTO.getTarget() : null,
-              textUnitDTO.isIncludedInLocalizedFile() ? textUnitDTO.getTargetComment() : null));
+              target,
+              targetComment,
+              doNotTranslate,
+              caseSensitive));
     }
 
     return glossaryTrie;
@@ -74,23 +96,10 @@ public class GlossaryService {
       String source,
       String comment,
       String target,
-      String targetComment)
+      String targetComment,
+      boolean doNotTranslate,
+      boolean caseSensitive)
       implements CharTrie.Term {
-
-    public boolean isDoNotTranslate() {
-      return comment != null && comment.contains("DNT");
-    }
-
-    public boolean isCaseSensitive() {
-      return comment != null && comment.contains("CAS");
-    }
-
-    public String getPartOfSpeech() {
-      if (comment == null || !comment.contains("\nPOS:")) {
-        return null;
-      }
-      return comment.split("\nPOS:")[1];
-    }
 
     @Override
     public String text() {
@@ -105,7 +114,7 @@ public class GlossaryService {
     public void addTerm(GlossaryTerm term) {
       glossaryTrieSensitive.addTerm(term);
 
-      if (!term.isCaseSensitive()) {
+      if (!term.caseSensitive()) {
         glossaryTrieInsensitive.addTerm(term);
       }
     }
