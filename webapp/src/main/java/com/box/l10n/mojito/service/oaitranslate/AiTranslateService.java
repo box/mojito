@@ -195,6 +195,8 @@ public class AiTranslateService {
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
       String glossaryTermTargetDescription,
+      boolean glossaryTermDoNotTranslate,
+      boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits,
       boolean dryRun) {}
 
@@ -290,7 +292,9 @@ public class AiTranslateService {
               aiTranslateInput.glossaryTermSource(),
               aiTranslateInput.glossaryTermSourceDescription(),
               aiTranslateInput.glossaryTermTarget(),
-              aiTranslateInput.glossaryTermTargetDescription());
+              aiTranslateInput.glossaryTermTargetDescription(),
+              aiTranslateInput.glossaryTermDoNotTranslate(),
+              aiTranslateInput.glossaryTermCaseSensitive());
 
       logger.info(
           "Translate (no batch) {} text units for repository: {} and locale: {}",
@@ -582,7 +586,9 @@ public class AiTranslateService {
       String termSource,
       String termSourceDescription,
       String termTarget,
-      String termTargetDescription) {
+      String termTargetDescription,
+      boolean termDoNotTranslate,
+      boolean termCaseSensitive) {
     Stopwatch stopwatchForGlossary = Stopwatch.createStarted();
     GlossaryTrie glossaryTrie = null;
     if (glossaryName != null) {
@@ -603,7 +609,9 @@ public class AiTranslateService {
               termSource,
               termSourceDescription,
               termTarget,
-              termTargetDescription));
+              termTargetDescription,
+              termDoNotTranslate,
+              termCaseSensitive));
       logger.info(
           "Loaded the glossary from term: {} for locale: {} in {}.",
           termSource,
@@ -686,6 +694,8 @@ public class AiTranslateService {
                   aiTranslateInput.glossaryTermSourceDescription(),
                   aiTranslateInput.glossaryTermTarget(),
                   aiTranslateInput.glossaryTermTargetDescription(),
+                  aiTranslateInput.glossaryTermDoNotTranslate(),
+                  aiTranslateInput.glossaryTermCaseSensitive(),
                   aiTranslateInput.glossaryOnlyMatchedTextUnits());
 
           if (createBatchResponse != null) {
@@ -933,6 +943,8 @@ public class AiTranslateService {
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
       String glossaryTermTargetDescription,
+      boolean glossaryTermDoNotTranslate,
+      boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits) {
 
     List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
@@ -946,7 +958,9 @@ public class AiTranslateService {
             glossaryTermSource,
             glossaryTermSourceDescription,
             glossaryTermTarget,
-            glossaryTermTargetDescription);
+            glossaryTermTargetDescription,
+            glossaryTermDoNotTranslate,
+            glossaryTermCaseSensitive);
 
     CreateBatchResponse createBatchResponse = null;
     if (textUnitDTOWithVariantCommentsList.isEmpty()) {
@@ -1146,14 +1160,16 @@ public class AiTranslateService {
                                     tmTextUnitVariantComment.getSeverity()))
                         .map(TMTextUnitVariantComment::getContent)
                         .toList()),
-            glossaryTerms.stream()
-                .map(
-                    gt ->
-                        new CompletionInput.GlossaryTerm(
-                            gt.source(), gt.comment(), gt.isDoNotTranslate(), gt.getPartOfSpeech()))
-                .toList(),
+            glossaryTerms.stream().map(gt -> convertGlossaryTerm(gt)).toList(),
             relatedStringsProvider.getRelatedStrings(textUnitDTO));
     return completionInput;
+  }
+
+  private static CompletionInput.GlossaryTerm convertGlossaryTerm(GlossaryService.GlossaryTerm gt) {
+
+    String target = gt.doNotTranslate() && gt.target() == null ? gt.source() : gt.target();
+
+    return new CompletionInput.GlossaryTerm(gt.source(), gt.comment(), target, gt.targetComment());
   }
 
   class RelatedStringsProvider {

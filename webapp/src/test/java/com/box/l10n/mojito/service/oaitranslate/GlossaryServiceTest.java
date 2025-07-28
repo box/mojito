@@ -15,7 +15,7 @@ public class GlossaryServiceTest {
   static Logger logger = LoggerFactory.getLogger(GlossaryServiceTest.class);
 
   GlossaryTerm term(long id, String source, boolean caseSensitive) {
-    return new GlossaryTerm(id, "TERM", source, caseSensitive ? "CAS" : null, null, null);
+    return new GlossaryTerm(id, "TERM", source, null, null, null, false, caseSensitive);
   }
 
   @Test
