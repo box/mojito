@@ -376,8 +376,6 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     String currentTags = getCurrentTagsForRepository(repository, projectId);
 
     OptionsParser optionsParser = new OptionsParser(optionList);
-    Boolean integrityCheckKeepStatusIfFailedAndSameTarget =
-        optionsParser.getBoolean("integrityCheckKeepStatusIfFailedAndSameTarget", true);
 
     AtomicReference<IntegrityChecksType> integrityChecksType =
         new AtomicReference<>(IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
