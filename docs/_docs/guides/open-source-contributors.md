@@ -26,16 +26,11 @@ You can also get started by using a [docker image](#docker-image) that has the b
 
 Install `brew` following the website instructions: https://brew.sh/
 
-Ensure that you have added the `cask-versions` [tap](https://github.com/Homebrew/homebrew-cask-versions).
+
+Install `java 21`:
 
 ```sh
-brew tap homebrew/cask-versions
-```
-
-Install `java 21` from `Temurin`:
-
-```sh
-brew install --cask temurin21
+brew install openjdk@21
 ```
 
 Check that `java 21` is now in use with `java -version`. If you need multiple versions of `java` consider using 
@@ -305,13 +300,13 @@ docker run -v $(pwd):/mnt/mojito -it aurambaj/mojito-dev mvn install -DskipTests
 
 ### Check Java version 
 
-Make sure you have Java 8 installed:
+Make sure you have Java 21 installed:
 
 ```sh
-[11:05:13] ~/code/mojito (fix_add_text_unit_plural) $ java -version
-openjdk version "21.0.9" 2023-10-21
-OpenJDK Runtime Environment Homebrew (build 21.0.9)
-OpenJDK 64-Bit Server VM Homebrew (build 21.0.9, mixed mode, sharing)
+[11:05:13] ~/code/mojito $ java -version
+openjdk version "21.0.8" 2025-07-15
+OpenJDK Runtime Environment Homebrew (build 21.0.8)
+OpenJDK 64-Bit Server VM Homebrew (build 21.0.8, mixed mode, sharing)
 ```
 
 ### Check Maven version
@@ -321,12 +316,12 @@ Maven 3.8+ should work fine. Consider trying the Maven wrapper `mvnw` from the p
 If you have multiple version of Java installed, make sure Maven uses the right version (forth line):
 
 ```sh
-[01:21:31] ~ $ mvn -version
-Apache Maven 3.8.2 (ea98e05a04480131370aa0c110b8c54cf726c06f)
-Maven home: /usr/local/Cellar/maven/3.8.2/libexec
-Java version: 21.0.9, vendor: Homebrew, runtime: /opt/homebrew/Cellar/openjdk/21.0.9/libexec/openjdk.jdk/Contents/Home
-Default locale: en_IE, platform encoding: UTF-8
-OS name: "mac os x", version: "10.16", arch: "x86_64", family: "mac"
+[01:21:31] ~ $  mvn -version
+Apache Maven 3.8.1 (05c21c65bdfed0f71a2f2ada8b84da59348c4c5d)
+Maven home: /Users/ja/.m2/wrapper/dists/apache-maven-3.8.1-bin/5jr7905sp869ck60ofuug4vpod/apache-maven-3.8.1
+Java version: 21.0.8, vendor: Homebrew, runtime: /opt/homebrew/Cellar/openjdk@21/21.0.8/libexec/openjdk.jdk/Contents/Home
+Default locale: en_US, platform encoding: UTF-8
+OS name: "mac os x", version: "15.5", arch: "aarch64", family: "mac"
 ```
 
 ### Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException
