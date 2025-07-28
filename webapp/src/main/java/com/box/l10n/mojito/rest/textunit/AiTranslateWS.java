@@ -60,6 +60,8 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.glossaryTermSourceDescription(),
                 protoAiTranslateRequest.glossaryTermTarget(),
                 protoAiTranslateRequest.glossaryTermTargetDescription(),
+                protoAiTranslateRequest.glossaryTermDoNotTranslate(),
+                protoAiTranslateRequest.glossaryTermCaseSensitive(),
                 protoAiTranslateRequest.glossaryOnlyMatchedTextUnits(),
                 protoAiTranslateRequest.dryRun()));
 
@@ -83,6 +85,8 @@ public class AiTranslateWS {
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
       String glossaryTermTargetDescription,
+      boolean glossaryTermDoNotTranslate,
+      boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits,
       boolean dryRun) {}
 

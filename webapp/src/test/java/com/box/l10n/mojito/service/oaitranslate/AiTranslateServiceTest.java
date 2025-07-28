@@ -52,6 +52,8 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 null,
                 false,
+                false,
+                false,
                 false))
         .get();
   }
@@ -82,6 +84,8 @@ public class AiTranslateServiceTest extends ServiceTestBase {
                 null,
                 null,
                 null,
+                false,
+                false,
                 false,
                 false))
         .get();
