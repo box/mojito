@@ -417,16 +417,16 @@ public class TextUnitBatchImporterService {
       boolean hasSameTarget =
           textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
 
+      if (hasSameTarget
+          && IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET.equals(integrityChecksType)) {
+        textUnitForBatchImport.setIncludedInLocalizedFile(
+            currentTextUnit.isIncludedInLocalizedFile());
+        textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
+      }
+
       for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
         try {
           textUnitChecker.check(currentTextUnit.getSource(), textUnitForBatchImport.getContent());
-
-          if (hasSameTarget
-              && !IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET.equals(integrityChecksType)) {
-            textUnitForBatchImport.setIncludedInLocalizedFile(
-                currentTextUnit.isIncludedInLocalizedFile());
-            textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
-          }
         } catch (IntegrityCheckException ice) {
           logger.info(
               "Integrity check failed for string with source:\n{}\n\nand content:\n{}",
