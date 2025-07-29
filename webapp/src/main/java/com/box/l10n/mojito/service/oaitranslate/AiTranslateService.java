@@ -882,7 +882,7 @@ public class AiTranslateService {
 
     TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
     tmTextUnitVariantComment.setType(TMTextUnitVariantComment.Type.AI_TRANSLATE);
-    tmTextUnitVariantComment.setSeverity(TMTextUnitVariantComment.Severity.ERROR);
+    tmTextUnitVariantComment.setSeverity(TMTextUnitVariantComment.Severity.INFO);
     tmTextUnitVariantComment.setContent(targetWithMetadata.targetComment());
 
     return new TextUnitDTOWithVariantCommentOrError(
