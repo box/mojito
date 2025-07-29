@@ -173,17 +173,15 @@ public class RepositoryAiTranslationCommand extends Command {
   String glossaryTermTargetDescription;
 
   @Parameter(
-    names = "--glossary-term-do-not-translate",
-    arity = 1,
-    description =
-      "Indicates if the term should be translated or not")
+      names = "--glossary-term-do-not-translate",
+      arity = 1,
+      description = "Indicates if the term should be translated or not")
   boolean glossaryTermDoNotTranslate = false;
 
   @Parameter(
-    names = "--glossary-term-case-sensitive",
-    arity = 1,
-    description =
-      "Indicates if the match on the source should be case sensitive or not")
+      names = "--glossary-term-case-sensitive",
+      arity = 1,
+      description = "Indicates if the match on the source should be case sensitive or not")
   boolean glossaryTermCaseSensitive = false;
 
   @Parameter(
