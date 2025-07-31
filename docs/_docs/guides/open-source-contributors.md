@@ -87,7 +87,7 @@ If you've decided to use `Mysql` the server needs to be configured for better Un
 how to create 2 databases along with spring configurations to setup 2 environments that will make development easier.
 
 Configure the server to use `utf-8` on `4 bytes` by default by appending these configurations to 
-`/usr/local/etc/my.cnf` file on Mac and to `/etc/mysql/my.cnf` file on Ubuntu:
+`/usr/local/etc/my.cnf` or `/opt/homebrew/etc/my.cnf` (arm brew) file on Mac and to `/etc/mysql/my.cnf` file on Ubuntu:
 
 ```properties
 [client]
