@@ -15,6 +15,8 @@ public class ReactStaticAppConfig {
 
   @Autowired ReactSecurityConfig security;
 
+  @Autowired ReactStatelessSecurityConfig stateless;
+
   public LinkConfig getLink() {
     return link;
   }
@@ -45,5 +47,13 @@ public class ReactStaticAppConfig {
 
   public void setSecurity(ReactSecurityConfig security) {
     this.security = security;
+  }
+
+  public ReactStatelessSecurityConfig getStateless() {
+    return stateless;
+  }
+
+  public void setStateless(ReactStatelessSecurityConfig stateless) {
+    this.stateless = stateless;
   }
 }
