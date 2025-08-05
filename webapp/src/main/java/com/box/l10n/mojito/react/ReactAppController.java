@@ -78,6 +78,7 @@ public class ReactAppController {
   @RequestMapping({
     "/",
     "/login",
+    "/auth/callback",
     "repositories",
     "project-requests",
     "workbench",
