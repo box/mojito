@@ -1,0 +1,126 @@
+package com.box.l10n.mojito.security;
+
+import com.box.l10n.mojito.entity.security.user.Authority;
+import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.service.security.user.UserService;
+import jakarta.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.StringUtils;
+
+@EnableWebSecurity
+@Configuration
+@ConditionalOnProperty(value = "l10n.security.stateless.enabled", havingValue = "true")
+public class WebSecurityStatelessConfig {
+
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(WebSecurityStatelessConfig.class);
+
+  UserService userService;
+
+  @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:}")
+  String issuerUri;
+
+  @Value("${spring.security.oauth2.resourceserver.jwt.audience:}")
+  String audience;
+
+  public WebSecurityStatelessConfig(UserService userService) {
+    this.userService = userService;
+  }
+
+  @PostConstruct
+  public void validateStatelessConfig() {
+    if (!StringUtils.hasText(issuerUri)) {
+      throw new IllegalStateException(
+          "Stateless mode is enabled but 'spring.security.oauth2.resourceserver.jwt.issuer-uri' is not set");
+    }
+    if (!StringUtils.hasText(audience)) {
+      throw new IllegalStateException(
+          "Stateless mode is enabled but 'spring.security.oauth2.resourceserver.jwt.audience' is not set");
+    }
+  }
+
+  @Bean
+  SecurityFilterChain security(HttpSecurity http) throws Exception {
+
+    http.headers(h -> h.cacheControl(HeadersConfigurer.CacheControlConfig::disable))
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+    // Make sure all these URLs are also declared in ReactAppController.
+    //
+    // Stateful mode:
+    //   Accessing these URLs triggers a 302 redirect to the authentication endpoint.
+    //   After successful login, the SPA client loads and navigates to the intended page.
+    //
+    // Stateless mode:
+    //   Without this allowlist, requests to these URLs return 401 immediately and the flow stops.
+    //   By allowlisting them, the server returns 200 so the SPA can load and handle navigation.
+    List<String> spaSpecificPermitAll =
+        new ArrayList<>(
+            List.of(
+                "/",
+                "/auth/callback",
+                "/repositories",
+                "/project-requests",
+                "/workbench",
+                "/branches",
+                "/screenshots",
+                "/settings/**"));
+
+    // forwarding was for the old implementation and is not needed anymore so
+    // hardcoded to false.
+    spaSpecificPermitAll.addAll(WebSecurityConfig.getHealthcheckPatterns(false));
+
+    WebSecurityConfig.setAuthorizationRequests(http, spaSpecificPermitAll);
+    http.oauth2ResourceServer(
+        oauth ->
+            oauth.jwt(
+                jwtConfigurer -> {
+                  jwtConfigurer.jwtAuthenticationConverter(
+                      jwt -> {
+                        logger.debug("Getting info from the JWT");
+                        String oid = jwt.getClaimAsString("oid");
+                        String upn = jwt.getClaimAsString("preferred_username");
+                        String name = jwt.getClaimAsString("name");
+                        String given = jwt.getClaimAsString("given_name");
+                        String family = jwt.getClaimAsString("family_name");
+
+                        String username =
+                            (upn != null && upn.contains("@"))
+                                ? upn.substring(0, upn.indexOf('@'))
+                                : oid;
+                        User user =
+                            userService.getOrCreateOrUpdateBasicUser(username, given, family, name);
+
+                        var authoritiesFromUser =
+                            user.getAuthorities().stream()
+                                .map(Authority::getAuthority)
+                                .map(SimpleGrantedAuthority::new)
+                                .toList();
+
+                        logger.debug("Authorities from User: {}", authoritiesFromUser);
+                        JwtAuthenticationToken jwtAuthenticationToken =
+                            new JwtAuthenticationToken(jwt, authoritiesFromUser);
+                        jwtAuthenticationToken.setDetails(new UserDetailsImpl(user));
+                        return jwtAuthenticationToken;
+                      });
+                }));
+
+    return http.build();
+  }
+}
