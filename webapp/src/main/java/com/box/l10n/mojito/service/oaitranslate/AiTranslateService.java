@@ -429,7 +429,8 @@ public class AiTranslateService {
                           .filter(t -> t.textUnitDTOWithVariantComment() != null)
                           .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
                           .toList(),
-                      TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET)
+                      TextUnitBatchImporterService.IntegrityChecksType
+                          .KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED)
                   .stream()
                   .collect(
                       toMap(
@@ -851,7 +852,8 @@ public class AiTranslateService {
             .filter(t -> t.error() == null)
             .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
             .toList(),
-        TextUnitBatchImporterService.IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+        TextUnitBatchImporterService.IntegrityChecksType
+            .KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED);
 
     return forImport.stream()
         .filter(t -> t.error() != null)

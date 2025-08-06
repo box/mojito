@@ -121,12 +121,13 @@ public class TextUnitBatchImporterService {
      */
     KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET,
     /**
-     * Run integrity checks. If the target is the same, keep the current status.
+     * Run integrity checks. If the target is the same and is not included in file then keep the
+     * current status.
      *
      * <p>This is an extension of the legacy behavior that allows marking a translation as invalid
      * when the integrity check did not catch the issue, eventually causing a build failure.
      */
-    KEEP_STATUS_IF_SAME_TARGET;
+    KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED;
 
     public static IntegrityChecksType fromLegacy(
         boolean integrityCheckSkipped, boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
@@ -418,10 +419,20 @@ public class TextUnitBatchImporterService {
           textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
 
       if (hasSameTarget
-          && IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET.equals(integrityChecksType)) {
+          && IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED.equals(
+              integrityChecksType)) {
+
+        // We always keep the includedInLocalizedFile flag
         textUnitForBatchImport.setIncludedInLocalizedFile(
             currentTextUnit.isIncludedInLocalizedFile());
-        textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
+
+        // If the text unit is includedInLocalizedFile, we allow its status to change.
+        // Otherwise (if not included), we keep the current status as is.
+        // This supports status changes from TRANSLATION_NEEDED to REVIEW_NEEDED to ACCEPTED,
+        // but only if the translation was not flagged as bad.
+        if (!currentTextUnit.isIncludedInLocalizedFile()) {
+          textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
+        }
       }
 
       for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
@@ -454,7 +465,7 @@ public class TextUnitBatchImporterService {
                       .contains(FALSE_POSITIVE_TAG_FOR_STATUS)) {
                     break;
                   }
-                case KEEP_STATUS_IF_SAME_TARGET:
+                case KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED:
                 case KEEP_STATUS_IF_REJECTED_AND_SAME_TARGET:
                   textUnitForBatchImport.setIncludedInLocalizedFile(
                       currentTextUnit.isIncludedInLocalizedFile());
