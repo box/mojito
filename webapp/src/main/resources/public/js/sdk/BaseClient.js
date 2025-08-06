@@ -1,4 +1,6 @@
 import UrlHelper from '../utils/UrlHelper';
+import { isStateless } from '../auth/AuthFlags';
+import TokenProvider from '../auth/TokenProvider';
 
 class BaseClient {
     constructor() {
@@ -68,93 +70,135 @@ class BaseClient {
 
 
     /**
-     * TODO for now just copy the token from the global variable but we'll some better logic later
+     * CSRF token for stateful mode only.
      */
     getCSRF() {
         return APP_CONFIG.csrfToken;
     }
 
-    getHeaders() {
-        return {
-            'X-CSRF-TOKEN': this.getCSRF(),
-            'Content-Type': 'application/json'
-        };
+    /**
+     * Build headers based on auth mode, HTTP method and content type.
+     * - Stateless: always include Authorization; include Content-Type for JSON payloads only
+     * - Stateful: include X-CSRF-TOKEN for non-GET; include Content-Type for JSON payloads only
+     *
+     * @param {string} method HTTP method (GET, POST, PUT, PATCH, DELETE)
+     * @param {boolean} isBinary true to omit Content-Type (binary uploads)
+     * @returns {Promise<Object>} headers object
+     */
+    buildHeaders(method, isBinary = false) {
+        const stateless = isStateless();
+
+        if (stateless) {
+            return TokenProvider.getAccessToken().then(token => {
+                const headers = {};
+                if (!isBinary) headers['Content-Type'] = 'application/json';
+                headers['Authorization'] = `Bearer ${token}`;
+                return headers;
+            });
+        } else {
+            const headers = {};
+            if (method !== 'GET') {
+                if (!isBinary) headers['Content-Type'] = 'application/json';
+                headers['X-CSRF-TOKEN'] = this.getCSRF();
+            }
+            return Promise.resolve(headers);
+        }
+    }
+
+    /**
+     * Returns the appropriate fetch credentials mode based on auth mode.
+     * - Stateless: 'omit' (no cookies)
+     * - Stateful: 'include' (send session cookies)
+     */
+    getCredentialsMode() {
+        return isStateless() ? 'omit' : 'include';
     }
 
     get(url, data) {
-        return fetch(url + '?' + UrlHelper.toQueryString(data), {
-            follow: 0,
-            credentials: 'include' // this is required if using fetch from the browser, not needed with node-fetch
-        }).then(response => {
-            this.handleUnauthenticatedResponse(response);
-            return response.json();
-        });
+        return this.buildHeaders('GET').then(headers =>
+            fetch(url + '?' + UrlHelper.toQueryString(data), {
+                follow: 0,
+                credentials: this.getCredentialsMode(),
+                headers: headers
+            }).then(response => {
+                this.handleUnauthenticatedResponse(response);
+                return response.json();
+            })
+        );
     }
 
     put(url, data) {
-        return fetch(url, {
-            method: 'put',
-            compress: false, // workaround for node-fetch, see this file header
-            credentials: 'include',
-            body: JSON.stringify(data),
-            headers: this.getHeaders(),
-            follow: 0
-        }).then(response => {
-            this.handleUnauthenticatedResponse(response);
-        });
+        return this.buildHeaders('PUT').then(headers =>
+            fetch(url, {
+                method: 'put',
+                compress: false, // workaround for node-fetch, see this file header
+                credentials: this.getCredentialsMode(),
+                body: JSON.stringify(data),
+                headers: headers,
+                follow: 0
+            }).then(response => {
+                this.handleUnauthenticatedResponse(response);
+            })
+        );
     }
 
     putBinaryData(url, data) {
-        return fetch(url, {
-            method: 'put',
-            compress: false, // workaround for node-fetch, see this file header
-            credentials: 'include',
-            body: data,
-            headers: {
-                'X-CSRF-TOKEN': this.getCSRF()
-            },
-            follow: 0
-        }).then(response => {
-            this.handleUnauthenticatedResponse(response);
-        });
+        return this.buildHeaders('PUT', true).then(headers =>
+            fetch(url, {
+                method: 'put',
+                compress: false, // workaround for node-fetch, see this file header
+                credentials: this.getCredentialsMode(),
+                body: data,
+                headers: headers,
+                follow: 0
+            }).then(response => {
+                this.handleUnauthenticatedResponse(response);
+            })
+        );
     }
 
     post(url, data) {
-        return fetch(url, {
-            method: 'post',
-            compress: false, // workaround for node-fetch, see this file header
-            credentials: 'include',
-            body: JSON.stringify(data),
-            headers: this.getHeaders(),
-            follow: 0
-        }).then(response => {
-            this.handleUnauthenticatedResponse(response);
-            return response.json();
-        });
+        return this.buildHeaders('POST').then(headers =>
+            fetch(url, {
+                method: 'post',
+                compress: false, // workaround for node-fetch, see this file header
+                credentials: this.getCredentialsMode(),
+                body: JSON.stringify(data),
+                headers: headers,
+                follow: 0
+            }).then(response => {
+                this.handleUnauthenticatedResponse(response);
+                return response.json();
+            })
+        );
     }
 
     patch(url, data) {
-        return fetch(url, {
-            method: 'PATCH',
-            compress: false, // workaround for node-fetch, see this file header
-            credentials: 'include',
-            body: JSON.stringify(data),
-            headers: this.getHeaders(),
-            follow: 0
-        }).then(response => {
-            this.handleUnauthenticatedResponse(response);
-        });
+        return this.buildHeaders('PATCH').then(headers =>
+            fetch(url, {
+                method: 'PATCH',
+                compress: false, // workaround for node-fetch, see this file header
+                credentials: this.getCredentialsMode(),
+                body: JSON.stringify(data),
+                headers: headers,
+                follow: 0
+            }).then(response => {
+                this.handleUnauthenticatedResponse(response);
+            })
+        );
     }
 
     delete(url) {
-        return fetch(url, {
-            method: 'delete',
-            credentials: 'include',
-            headers: this.getHeaders(),
-            follow: 0
-        }).then(response => {
-            this.handleUnauthenticatedResponse(response);
-        });
+        return this.buildHeaders('DELETE').then(headers =>
+            fetch(url, {
+                method: 'delete',
+                credentials: this.getCredentialsMode(),
+                headers: headers,
+                follow: 0
+            }).then(response => {
+                this.handleUnauthenticatedResponse(response);
+            })
+        );
     }
 
 }
