@@ -18,6 +18,8 @@ import SearchConstants from "../../utils/SearchConstants";
 import {FormControl, Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem} from 'react-bootstrap';
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 import {withAppConfig} from "../../utils/AppConfig";
+import { isStateless } from '../../auth/AuthFlags';
+import TokenProvider from '../../auth/TokenProvider';
 
 class Header extends React.Component {
     state = {
@@ -26,7 +28,11 @@ class Header extends React.Component {
     };
 
     logoutSelected = () => {
-        this.refs.logoutForm.submit();
+        if (isStateless()) {
+            TokenProvider.logout();
+        } else {
+            this.refs.logoutForm.submit();
+        }
     };
 
     openLocaleSelectorModal = () => {
