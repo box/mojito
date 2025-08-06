@@ -10,6 +10,7 @@ import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
 import Main from "./components/Main";
 import Login from "./components/Login";
+import AuthCallback from "./components/AuthCallback";
 import Workbench from "./components/workbench/Workbench";
 import Repositories from "./components/repositories/Repositories";
 import BranchesPage from "./components/branches/BranchesPage";
@@ -50,6 +51,8 @@ import enMessages from '../../properties/en.properties';
 import GoogleAnalytics from "./utils/GoogleAnalytics";
 import ShareSearchParamsModalActions from "./actions/workbench/ShareSearchParamsModalActions";
 import AuthorityService from "./utils/AuthorityService";
+import { isStateless } from './auth/AuthFlags';
+import TokenProvider from './auth/TokenProvider';
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
@@ -123,6 +126,7 @@ function startApp(messages) {
                                 <Route path="box" component={BoxSettings}/>
                             </Route>
                         </Route>
+                        <Route path="auth/callback" component={AuthCallback}></Route>
                         <Route path="login" component={Login}></Route>
                     </Route>
 
@@ -136,6 +140,13 @@ function startApp(messages) {
      * Override handler to customise behavior
      */
     BaseClient.authenticateHandler = function () {
+        if (isStateless()) {
+            // unlikely to happen but keeping in case
+            const pathRelativeToContext = location.pathname.substr(APP_CONFIG.contextPath.length) + window.location.search;
+            TokenProvider.login(pathRelativeToContext);
+            return;
+        }
+
         let container = document.createElement("div");
         container.setAttribute("id", "unauthenticated-container")
         document.body.appendChild(container);
