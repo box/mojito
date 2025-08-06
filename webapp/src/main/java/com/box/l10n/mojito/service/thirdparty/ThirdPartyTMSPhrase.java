@@ -378,7 +378,7 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     OptionsParser optionsParser = new OptionsParser(optionList);
 
     AtomicReference<IntegrityChecksType> integrityChecksType =
-        new AtomicReference<>(IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET);
+        new AtomicReference<>(IntegrityChecksType.KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED);
     optionsParser.getString(
         "integrityChecksType", s -> integrityChecksType.set(IntegrityChecksType.valueOf(s)));
 
