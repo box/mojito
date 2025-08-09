@@ -1,11 +1,10 @@
-package com.box.l10n.mojito.react;
+package com.box.l10n.mojito.rest.security;
 
 import com.box.l10n.mojito.security.Role;
 import java.util.List;
-import org.springframework.stereotype.Component;
 
-@Component
-public class ReactUser {
+/** API representation of the authenticated user (and can be reused for user profile views). */
+public class UserProfile {
 
   String username;
   String givenName;
