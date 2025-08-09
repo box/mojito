@@ -12,13 +12,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
 
@@ -107,20 +108,42 @@ public class WebSecurityStatelessConfig {
                         User user =
                             userService.getOrCreateOrUpdateBasicUser(username, given, family, name);
 
-                        var authoritiesFromUser =
+                        List<SimpleGrantedAuthority> authoritiesFromUser =
                             user.getAuthorities().stream()
                                 .map(Authority::getAuthority)
                                 .map(SimpleGrantedAuthority::new)
                                 .toList();
 
                         logger.debug("Authorities from User: {}", authoritiesFromUser);
-                        JwtAuthenticationToken jwtAuthenticationToken =
-                            new JwtAuthenticationToken(jwt, authoritiesFromUser);
-                        jwtAuthenticationToken.setDetails(new UserDetailsImpl(user));
-                        return jwtAuthenticationToken;
+                        var userDetails = new UserDetailsImpl(user);
+                        return new StatelessAuthenticationToken(
+                            userDetails, authoritiesFromUser, jwt);
                       });
                 }));
 
     return http.build();
+  }
+
+  static class StatelessAuthenticationToken extends AbstractAuthenticationToken {
+
+    UserDetailsImpl userDetails;
+
+    public StatelessAuthenticationToken(
+        UserDetailsImpl userDetails, List<SimpleGrantedAuthority> authorities, Jwt jwt) {
+      super(authorities);
+      this.userDetails = userDetails;
+      this.setAuthenticated(true);
+      this.setDetails(jwt);
+    }
+
+    @Override
+    public Object getCredentials() {
+      return null;
+    }
+
+    @Override
+    public Object getPrincipal() {
+      return userDetails;
+    }
   }
 }

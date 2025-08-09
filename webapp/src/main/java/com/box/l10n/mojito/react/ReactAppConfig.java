@@ -1,12 +1,13 @@
 package com.box.l10n.mojito.react;
 
+import com.box.l10n.mojito.rest.security.UserProfile;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 public class ReactAppConfig {
 
   @JsonUnwrapped ReactStaticAppConfig reactStaticAppConfig;
 
-  ReactUser user;
+  UserProfile user;
 
   String locale;
 
@@ -16,16 +17,16 @@ public class ReactAppConfig {
 
   String contextPath;
 
-  public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, ReactUser reactUser) {
+  public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, UserProfile userProfile) {
     this.reactStaticAppConfig = reactStaticAppConfig;
-    this.user = reactUser;
+    this.user = userProfile;
   }
 
   public ReactStaticAppConfig getReactStaticAppConfig() {
     return reactStaticAppConfig;
   }
 
-  public ReactUser getUser() {
+  public UserProfile getUser() {
     return user;
   }
 
@@ -33,7 +34,7 @@ public class ReactAppConfig {
     this.reactStaticAppConfig = reactStaticAppConfig;
   }
 
-  public void setUser(ReactUser user) {
+  public void setUser(UserProfile user) {
     this.user = user;
   }
 

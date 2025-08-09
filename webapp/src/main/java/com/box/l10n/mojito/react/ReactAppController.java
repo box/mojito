@@ -1,22 +1,18 @@
 package com.box.l10n.mojito.react;
 
-import com.box.l10n.mojito.entity.security.user.Authority;
-import com.box.l10n.mojito.entity.security.user.UserLocale;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.mustache.MustacheBaseContext;
 import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
 import com.box.l10n.mojito.rest.security.CsrfTokenController;
+import com.box.l10n.mojito.rest.security.UserProfile;
+import com.box.l10n.mojito.rest.security.UserProfileMapper;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
-import com.box.l10n.mojito.security.Role;
-import com.box.l10n.mojito.service.security.user.AuthorityRepository;
-import com.box.l10n.mojito.service.security.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +61,7 @@ public class ReactAppController {
 
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
-  @Autowired AuthorityRepository authorityRepository;
-
-  @Autowired UserService userService;
+  @Autowired UserProfileMapper userProfileMapper;
 
   @Autowired MustacheTemplateEngine mustacheTemplateEngine;
 
@@ -96,7 +90,7 @@ public class ReactAppController {
 
     ReactTemplateContext index = new ReactTemplateContext();
 
-    ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, getReactUser());
+    ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, getUserProfile());
     reactAppConfig.setLocale(getValidLocaleFromCookie(localeCookieValue));
     reactAppConfig.setIct(httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
     reactAppConfig.setCsrfToken(csrfTokenController.getCsrfToken(httpServletRequest));
@@ -127,32 +121,11 @@ public class ReactAppController {
     public String csrfToken;
   }
 
-  ReactUser getReactUser() {
+  UserProfile getUserProfile() {
     return auditorAwareImpl
         .getCurrentAuditor()
-        .map(
-            currentAuditor -> {
-              ReactUser reactUser = new ReactUser();
-              reactUser.setUsername(currentAuditor.getUsername());
-              reactUser.setGivenName(currentAuditor.getGivenName());
-              reactUser.setSurname(currentAuditor.getSurname());
-              reactUser.setCommonName(currentAuditor.getCommonName());
-              reactUser.setCanTranslateAllLocales(currentAuditor.getCanTranslateAllLocales());
-              reactUser.setUserLocales(
-                  currentAuditor.getUserLocales().stream()
-                      .map(UserLocale::getLocale)
-                      .map(com.box.l10n.mojito.entity.Locale::getBcp47Tag)
-                      .collect(Collectors.toList()));
-
-              Role role = Role.ROLE_USER;
-              Authority authority = authorityRepository.findByUser(currentAuditor);
-              if (authority != null) {
-                role = userService.createRoleFromAuthority(authority.getAuthority());
-              }
-              reactUser.setRole(role);
-              return reactUser;
-            })
-        .orElse(new ReactUser());
+        .map(userProfileMapper::toUserProfile)
+        .orElse(new UserProfile());
   }
 
   /**
