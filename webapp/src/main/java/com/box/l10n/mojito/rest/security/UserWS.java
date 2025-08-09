@@ -10,6 +10,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.entity.security.user.UserLocale;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
@@ -42,6 +43,10 @@ public class UserWS {
 
   @Autowired UserService userService;
 
+  @Autowired AuditorAwareImpl auditorAwareImpl;
+
+  @Autowired UserProfileMapper userProfileMapper;
+
   /**
    * Returns list of {@link User}
    *
@@ -66,6 +71,21 @@ public class UserWS {
   @RequestMapping(value = "/api/users/session", method = RequestMethod.GET)
   public ResponseEntity isSessionActive() {
     return ResponseEntity.ok().build();
+  }
+
+  /**
+   * Returns the current authenticated user profile. Useful in stateless JWT mode where the SPA
+   * needs to fetch user details after completing MSAL login.
+   */
+  @RequestMapping(value = "/api/users/me", method = RequestMethod.GET)
+  public ResponseEntity<UserProfile> getCurrentUser() {
+    UserProfile userProfile =
+        auditorAwareImpl
+            .getCurrentAuditor()
+            .map(userProfileMapper::toUserProfile)
+            .orElse(new UserProfile());
+
+    return ResponseEntity.ok(userProfile);
   }
 
   /**
