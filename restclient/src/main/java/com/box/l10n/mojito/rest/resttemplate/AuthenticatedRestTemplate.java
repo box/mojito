@@ -88,6 +88,7 @@ public class AuthenticatedRestTemplate {
                     ResttemplateConfig.AuthenticationMode.STATELESS); // TODO(ja) why both options?
 
     if (stateless) {
+      applyServerMappingFromScopesIfPresent();
       logger.info("Using stateless Bearer token interceptor");
       if (bearerTokenInterceptor == null) {
         throw new IllegalStateException(
@@ -105,6 +106,47 @@ public class AuthenticatedRestTemplate {
       restTemplate.setRequestFactory(
           new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
     }
+  }
+
+  void applyServerMappingFromScopesIfPresent() {
+    try {
+      ResttemplateConfig.StatelessAuthentication stateless = resttemplateConfig.getStateless();
+      if (stateless == null || stateless.getServerMapping() == null || stateless.getServerMapping().isEmpty()) {
+        return;
+      }
+      String scopesString = stateless.getMsal() != null ? stateless.getMsal().getScopes() : null;
+      if (scopesString == null || scopesString.isBlank()) return;
+      String key = extractAudienceKeyFromScopes(scopesString);
+      if (key == null) return;
+      ResttemplateConfig.Server server = stateless.getServerMapping().get(key);
+      if (server == null) return;
+      if (server.getScheme() != null) resttemplateConfig.setScheme(server.getScheme());
+      if (server.getHost() != null) resttemplateConfig.setHost(server.getHost());
+      if (server.getPort() != null) resttemplateConfig.setPort(server.getPort());
+      if (server.getContextPath() != null) resttemplateConfig.setContextPath(server.getContextPath());
+      logger.info(
+          "Applied server mapping for audience '{}': {}://{}:{}{}",
+          key,
+          resttemplateConfig.getScheme(),
+          resttemplateConfig.getHost(),
+          resttemplateConfig.getPort(),
+          resttemplateConfig.getContextPath() == null ? "" : resttemplateConfig.getContextPath());
+    } catch (Exception e) {
+      logger.warn("Failed to apply server mapping from scopes, continuing with defaults", e);
+    }
+  }
+
+  String extractAudienceKeyFromScopes(String scopes) {
+    // Parses scopes like: "api://example-audience/scope otherScope" and returns "example-audience"
+    String[] parts = scopes.split("[\\s,]+");
+    for (String p : parts) {
+      if (p.startsWith("api://")) {
+        String remainder = p.substring("api://".length());
+        int slash = remainder.indexOf('/');
+        return slash > 0 ? remainder.substring(0, slash) : remainder;
+      }
+    }
+    return null;
   }
 
   void setErrorHandlerWithLogging(RestTemplate restTemplate) {

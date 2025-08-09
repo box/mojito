@@ -70,7 +70,10 @@ public class MsalDeviceCodeTokenSupplier implements TokenSupplier {
         if (pca == null) {
           try {
             String authority = config.getStateless().getMsal().getAuthority();
-            String clientId = config.getStateless().getMsal().getClientId();
+            String clientId = config.getStateless().getMsal().getPublicClientId();
+            if (clientId == null) {
+              clientId = config.getStateless().getMsal().getClientId(); // fallback for backward compat
+            }
             if (authority == null || clientId == null) {
               throw new IllegalStateException(
                   "Missing MSAL authority/clientId in restclient stateless configuration");

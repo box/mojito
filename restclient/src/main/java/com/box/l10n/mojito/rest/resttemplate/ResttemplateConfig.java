@@ -3,6 +3,9 @@ package com.box.l10n.mojito.rest.resttemplate;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Configuration for the rest template
  *
@@ -84,6 +87,8 @@ public class ResttemplateConfig {
 
     String cachePath = System.getProperty("user.home") + "/.mojito/msal-token-cache.json";
 
+    Map<String, Server> serverMapping = new HashMap<>();
+
     public Provider getProvider() {
       return provider;
     }
@@ -108,10 +113,21 @@ public class ResttemplateConfig {
       this.cachePath = cachePath;
     }
 
+    public Map<String, Server> getServerMapping() {
+      return serverMapping;
+    }
+
+    public void setServerMapping(Map<String, Server> serverMapping) {
+      this.serverMapping = serverMapping;
+    }
+
     public static class Msal {
       String authority;
       String clientId;
       String scopes; // space- or comma-separated
+      String clientSecret; // for client-credentials
+      String publicClientId; // for device/browser flows
+      String confidentialClientId; // for client-credentials
 
       public String getAuthority() {
         return authority;
@@ -136,11 +152,75 @@ public class ResttemplateConfig {
       public void setScopes(String scopes) {
         this.scopes = scopes;
       }
+
+      public String getClientSecret() {
+        return clientSecret;
+      }
+
+      public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+      }
+
+      public String getPublicClientId() {
+        return publicClientId;
+      }
+
+      public void setPublicClientId(String publicClientId) {
+        this.publicClientId = publicClientId;
+      }
+
+      public String getConfidentialClientId() {
+        return confidentialClientId;
+      }
+
+      public void setConfidentialClientId(String confidentialClientId) {
+        this.confidentialClientId = confidentialClientId;
+      }
     }
 
     public enum Provider {
       MSAL_DEVICE_CODE,
-      MSAL_BROWSER_CODE
+      MSAL_BROWSER_CODE,
+      MSAL_CLIENT_CREDENTIALS
+    }
+  }
+
+  public static class Server {
+    String host;
+    Integer port;
+    String scheme;
+    String contextPath;
+
+    public String getHost() {
+      return host;
+    }
+
+    public void setHost(String host) {
+      this.host = host;
+    }
+
+    public Integer getPort() {
+      return port;
+    }
+
+    public void setPort(Integer port) {
+      this.port = port;
+    }
+
+    public String getScheme() {
+      return scheme;
+    }
+
+    public void setScheme(String scheme) {
+      this.scheme = scheme;
+    }
+
+    public String getContextPath() {
+      return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+      this.contextPath = contextPath;
     }
   }
 

@@ -11,6 +11,9 @@ public class StatelessAuthConfiguration {
   public TokenSupplier tokenSupplier(ResttemplateConfig config) {
     ResttemplateConfig.StatelessAuthentication.Provider provider =
         config.getStateless().getProvider();
+    if (provider == ResttemplateConfig.StatelessAuthentication.Provider.MSAL_CLIENT_CREDENTIALS) {
+      return new MsalClientCredentialsTokenSupplier(config);
+    }
     if (provider == ResttemplateConfig.StatelessAuthentication.Provider.MSAL_BROWSER_CODE) {
       return new MsalAuthCodePkceTokenSupplier(config);
     }

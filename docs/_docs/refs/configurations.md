@@ -195,6 +195,54 @@ You can override Java system property for user.name with `-Duser.name=admin`.  F
 
     java -Duser.name=admin -jar mojito-cli-<version>.jar <cli-commands>
 
+### CLI Stateless Auth (MSAL)
+
+The CLI can authenticate with Azure AD using MSAL in a stateless mode. Choose one of the providers and set the corresponding properties.
+
+Common flags:
+
+```
+l10n.resttemplate.authenticationMode=STATELESS
+# OR legacy: l10n.resttemplate.authentication.mode=STATELESS
+```
+
+Providers and properties:
+
+- MSAL_DEVICE_CODE (interactive on the terminal)
+  - `l10n.resttemplate.stateless.provider=MSAL_DEVICE_CODE`
+  - `l10n.resttemplate.stateless.msal.authority=https://login.microsoftonline.com/<tenant-id>`
+  - `l10n.resttemplate.stateless.msal.public-client-id=<public-client-app-id>`
+  - `l10n.resttemplate.stateless.msal.scopes=api://<audience>/<scope>`
+
+- MSAL_BROWSER_CODE (interactive via system browser)
+  - `l10n.resttemplate.stateless.provider=MSAL_BROWSER_CODE`
+  - same properties as device code
+
+- MSAL_CLIENT_CREDENTIALS (non-interactive; application permissions)
+  - `l10n.resttemplate.stateless.provider=MSAL_CLIENT_CREDENTIALS`
+  - `l10n.resttemplate.stateless.msal.authority=https://login.microsoftonline.com/<tenant-id>`
+  - `l10n.resttemplate.stateless.msal.confidential-client-id=<confidential-app-id>`
+  - `l10n.resttemplate.stateless.msal.client-secret=<secret VALUE>`
+  - `l10n.resttemplate.stateless.msal.scopes=api://<audience>/.default`
+
+Notes:
+- Backward compatibility: `l10n.resttemplate.stateless.msal.client-id` is still accepted. For device/browser flows it is treated as the public client ID; for client-credentials it is treated as the confidential client ID.
+- Client-credentials requires app permissions on the resource API and tenant admin consent. Use `.default` scopes (the code also normalizes `api://<aud>/<anything>` to `.default`).
+
+Server mapping (audience → server):
+
+You can map the MSAL audience to a Mojito server base URL automatically. The audience is extracted from the first `api://<aud>/...` scope.
+
+```
+# Example: for scopes=api://mojito-staging/api_access, map to a remote server
+l10n.resttemplate.stateless.server-mapping.mojito-staging.scheme=https
+l10n.resttemplate.stateless.server-mapping.mojito-staging.host=staging.example.com
+l10n.resttemplate.stateless.server-mapping.mojito-staging.port=443
+l10n.resttemplate.stateless.server-mapping.mojito-staging.context-path=/
+```
+
+With this mapping, the CLI automatically sets the RestTemplate base URL when stateless auth is enabled.
+
 ## Box Platform Integration
 
 ### Custom Configurations
