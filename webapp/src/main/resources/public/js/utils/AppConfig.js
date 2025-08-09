@@ -9,11 +9,28 @@ export class AppConfig extends Component {
 
     static childContextTypes = {
         appConfig: PropTypes.object.isRequired,
+        setAppUser: PropTypes.func,
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = { appConfig: props.appConfig };
     }
 
     getChildContext() {
-        const {appConfig} = this.props
-        return {appConfig}
+        return {
+            appConfig: this.state.appConfig,
+            setAppUser: this.setAppUser,
+        }
+    }
+
+    setAppUser = (user) => {
+        // create a new object reference so consumers re-render
+        // also update global APP_CONFIG for callers that read directly (e.g., AuthorityService)
+        try { if (window && window.APP_CONFIG) { window.APP_CONFIG.user = user; } } catch (e) {}
+        this.setState(prev => ({
+            appConfig: { ...prev.appConfig, user }
+        }));
     }
 
     render() {
@@ -26,12 +43,13 @@ export const withAppConfig = (ComponentToWrap) => {
 
         static contextTypes = {
             appConfig: PropTypes.object.isRequired,
+            setAppUser: PropTypes.func,
         }
 
         render() {
-            const { appConfig } = this.context
+            const { appConfig, setAppUser } = this.context
             return (
-                <ComponentToWrap {...this.props} appConfig={appConfig} />
+                <ComponentToWrap {...this.props} appConfig={appConfig} setAppUser={setAppUser} />
             )
         }
     }
