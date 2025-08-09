@@ -1,9 +1,15 @@
 package com.box.l10n.mojito.rest.resttemplate.stateless;
 
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
-import com.microsoft.aad.msal4j.*;
+import com.microsoft.aad.msal4j.IAccount;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.ITokenCacheAccessAspect;
+import com.microsoft.aad.msal4j.ITokenCacheAccessContext;
+import com.microsoft.aad.msal4j.InteractiveRequestParameters;
+import com.microsoft.aad.msal4j.PublicClientApplication;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,15 +22,14 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MsalDeviceCodeTokenSupplier implements TokenSupplier {
+public class MsalAuthCodePkceTokenSupplier implements TokenSupplier {
 
-  static Logger logger = LoggerFactory.getLogger(MsalDeviceCodeTokenSupplier.class);
+  static Logger logger = LoggerFactory.getLogger(MsalAuthCodePkceTokenSupplier.class);
 
   final ResttemplateConfig config;
-
   volatile PublicClientApplication pca;
 
-  public MsalDeviceCodeTokenSupplier(ResttemplateConfig config) {
+  public MsalAuthCodePkceTokenSupplier(ResttemplateConfig config) {
     this.config = config;
   }
 
@@ -45,22 +50,18 @@ public class MsalDeviceCodeTokenSupplier implements TokenSupplier {
             return res.accessToken();
           }
         } catch (Exception ignored) {
-          // fall back to device code
+          // fall back to interactive
         }
       }
 
-      // Interactive device code
-      DeviceCodeFlowParameters parameters =
-          DeviceCodeFlowParameters.builder(
-                  scopes,
-                  (DeviceCode deviceCode) -> {
-                    System.out.println(deviceCode.message());
-                  })
-              .build();
-      IAuthenticationResult result = pca.acquireToken(parameters).get();
+      // Interactive with system browser and loopback redirect to localhost
+      URI redirectUri = URI.create("http://localhost");
+      InteractiveRequestParameters params =
+          InteractiveRequestParameters.builder(redirectUri).scopes(scopes).build();
+      IAuthenticationResult result = pca.acquireToken(params).get();
       return result.accessToken();
     } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException("Failed to acquire token via device code flow", e);
+      throw new RuntimeException("Failed to acquire token via interactive browser flow", e);
     }
   }
 
@@ -111,7 +112,6 @@ public class MsalDeviceCodeTokenSupplier implements TokenSupplier {
     if (dir != null && !Files.exists(dir)) {
       Files.createDirectories(dir);
     }
-    // Best-effort: set 700 on dir and 600 on file if created here. OS-dependent, ignore failures.
     try {
       if (dir != null) {
         new File(dir.toString()).setReadable(true, true);
@@ -129,7 +129,6 @@ public class MsalDeviceCodeTokenSupplier implements TokenSupplier {
   }
 
   static class FileTokenCache implements ITokenCacheAccessAspect {
-
     final Path cacheFile;
 
     FileTokenCache(Path cacheFile) {

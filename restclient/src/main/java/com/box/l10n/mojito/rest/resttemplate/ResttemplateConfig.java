@@ -139,7 +139,8 @@ public class ResttemplateConfig {
     }
 
     public enum Provider {
-      MSAL_DEVICE_CODE
+      MSAL_DEVICE_CODE,
+      MSAL_BROWSER_CODE
     }
   }
 
