@@ -12,13 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
 
@@ -114,10 +114,13 @@ public class WebSecurityStatelessConfig {
                                 .toList();
 
                         logger.debug("Authorities from User: {}", authoritiesFromUser);
-                        JwtAuthenticationToken jwtAuthenticationToken =
-                            new JwtAuthenticationToken(jwt, authoritiesFromUser);
-                        jwtAuthenticationToken.setDetails(new UserDetailsImpl(user));
-                        return jwtAuthenticationToken;
+                        var userDetails = new UserDetailsImpl(user);
+                        var authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                userDetails, "N/A", authoritiesFromUser);
+                        // Optionally attach the raw JWT as details for diagnostics
+                        authentication.setDetails(jwt);
+                        return authentication;
                       });
                 }));
 

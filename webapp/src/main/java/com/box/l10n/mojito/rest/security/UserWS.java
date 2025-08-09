@@ -10,7 +10,10 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.entity.security.user.UserLocale;
+import com.box.l10n.mojito.react.ReactUser;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
+import com.box.l10n.mojito.service.security.user.AuthorityRepository;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
 import java.util.stream.Collectors;
@@ -42,6 +45,10 @@ public class UserWS {
 
   @Autowired UserService userService;
 
+  @Autowired AuditorAwareImpl auditorAwareImpl;
+
+  @Autowired AuthorityRepository authorityRepository;
+
   /**
    * Returns list of {@link User}
    *
@@ -66,6 +73,42 @@ public class UserWS {
   @RequestMapping(value = "/api/users/session", method = RequestMethod.GET)
   public ResponseEntity isSessionActive() {
     return ResponseEntity.ok().build();
+  }
+
+  /**
+   * Returns the current authenticated user as a ReactUser payload. Useful in stateless JWT mode
+   * where the SPA needs to fetch user details after completing MSAL login.
+   */
+  @RequestMapping(value = "/api/users/me", method = RequestMethod.GET)
+  public ResponseEntity<ReactUser> getCurrentUser() {
+    ReactUser reactUser =
+        auditorAwareImpl
+            .getCurrentAuditor()
+            .map(
+                currentAuditor -> {
+                  ReactUser u = new ReactUser();
+                  u.setUsername(currentAuditor.getUsername());
+                  u.setGivenName(currentAuditor.getGivenName());
+                  u.setSurname(currentAuditor.getSurname());
+                  u.setCommonName(currentAuditor.getCommonName());
+                  u.setCanTranslateAllLocales(currentAuditor.getCanTranslateAllLocales());
+                  u.setUserLocales(
+                      currentAuditor.getUserLocales().stream()
+                          .map(UserLocale::getLocale)
+                          .map(Locale::getBcp47Tag)
+                          .collect(Collectors.toList()));
+
+                  Role role = Role.ROLE_USER;
+                  Authority authority = authorityRepository.findByUser(currentAuditor);
+                  if (authority != null) {
+                    role = userService.createRoleFromAuthority(authority.getAuthority());
+                  }
+                  u.setRole(role);
+                  return u;
+                })
+            .orElse(new ReactUser());
+
+    return ResponseEntity.ok(reactUser);
   }
 
   /**

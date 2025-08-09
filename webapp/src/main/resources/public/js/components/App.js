@@ -3,11 +3,14 @@ import Header from "./header/Header";
 import BaseClient from "../sdk/BaseClient";
 import { isStateless } from "../auth/AuthFlags";
 import TokenProvider from "../auth/TokenProvider";
+import { withAppConfig } from "../utils/AppConfig";
 
 class App extends React.Component {
 
     componentDidMount() {
         window.addEventListener("focus", this.onFocus)
+        // Ensure we fetch user immediately on first load in stateless mode
+        this.isSessionExpired();
     }
 
     componentWillUnmount() {
@@ -22,8 +25,20 @@ class App extends React.Component {
         if (isStateless()) {
             // In stateless mode, MSAL manages token lifetime. Attempt a silent token
             // acquisition; if interaction is required, TokenProvider will trigger
-            // a redirect login automatically.
-            TokenProvider.getAccessToken();
+            // a redirect login automatically. Then fetch the current user to update app context.
+            TokenProvider.getAccessToken().then(token => {
+                if (!token) return;
+                fetch(window.location.origin + '/api/users/me', {
+                    credentials: 'omit',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(r => r.ok ? r.json() : null)
+                  .then(user => {
+                      if (user && this.props.setAppUser) {
+                          this.props.setAppUser(user);
+                      }
+                  })
+                  .catch(() => {});
+            });
             return;
         }
 
@@ -54,4 +69,4 @@ class App extends React.Component {
     }
 }
 
-export default App;
+export default withAppConfig(App);

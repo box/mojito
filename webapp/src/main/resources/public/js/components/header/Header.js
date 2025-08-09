@@ -25,7 +25,26 @@ class Header extends React.Component {
     state = {
         showLocaleSelectorModal: false,
         showChangePasswordModal: false,
+        currentUser: null,
     };
+
+    componentDidMount() {
+        // In stateless mode, fetch current user details after MSAL login so the header can display
+        // the proper name even though the initial APP_CONFIG.user is empty.
+        if (isStateless()) {
+            TokenProvider.getAccessToken().then(token => {
+                if (!token) return;
+                fetch(window.location.origin + '/api/users/me', {
+                    credentials: 'omit',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(r => r.ok ? r.json() : null)
+                  .then(user => {
+                      if (user) this.setState({ currentUser: user });
+                  })
+                  .catch(() => {});
+            });
+        }
+    }
 
     logoutSelected = () => {
         if (isStateless()) {
@@ -72,7 +91,7 @@ class Header extends React.Component {
     };
 
     getUsernameDisplay() {
-        const user = this.props.appConfig.user;
+        const user = this.state.currentUser || this.props.appConfig.user;
         let usernameDisplay = user.username;
 
         if (user.givenName) {
