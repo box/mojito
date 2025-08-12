@@ -972,7 +972,7 @@ public class OpenAIClient {
 
   public static class TemperatureHelper {
     public static float getTemperatureForReasoningModels(String model) {
-      return model.startsWith("o") ? 1 : 0;
+      return model.startsWith("o") || model.startsWith("gpt-5") ? 1 : 0;
     }
   }
 }
