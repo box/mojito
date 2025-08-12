@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.resttemplate;
 
+import com.box.l10n.mojito.rest.resttemplate.stateless.BearerTokenInterceptor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,6 +61,9 @@ public class AuthenticatedRestTemplate {
 
   @Autowired RestTemplateUtil restTemplateUtil;
 
+  @Autowired(required = false)
+  BearerTokenInterceptor bearerTokenInterceptor;
+
   /** Initialize the internal restTemplate instance */
   @PostConstruct
   protected void init() {
@@ -68,13 +72,29 @@ public class AuthenticatedRestTemplate {
     makeRestTemplateWithCustomObjectMapper(restTemplate);
     setErrorHandlerWithLogging(restTemplate);
 
-    logger.debug("Set interceptor for authentication");
-    List<ClientHttpRequestInterceptor> interceptors =
-        Collections.<ClientHttpRequestInterceptor>singletonList(
-            formLoginAuthenticationCsrfTokenInterceptor);
+    boolean stateless =
+        resttemplateConfig
+            .getAuthenticationMode()
+            .equals(ResttemplateConfig.AuthenticationMode.STATELESS);
 
-    restTemplate.setRequestFactory(
-        new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
+    if (stateless) {
+      logger.info("Using stateless Bearer token interceptor");
+      if (bearerTokenInterceptor == null) {
+        throw new IllegalStateException(
+            "Stateless auth selected but BearerTokenInterceptor is not available. Ensure MSAL config is set.");
+      }
+      List<ClientHttpRequestInterceptor> interceptors =
+          Collections.<ClientHttpRequestInterceptor>singletonList(bearerTokenInterceptor);
+      restTemplate.setRequestFactory(
+          new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
+    } else {
+      logger.info("Using stateful CSRF interceptor");
+      List<ClientHttpRequestInterceptor> interceptors =
+          Collections.<ClientHttpRequestInterceptor>singletonList(
+              formLoginAuthenticationCsrfTokenInterceptor);
+      restTemplate.setRequestFactory(
+          new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
+    }
   }
 
   void setErrorHandlerWithLogging(RestTemplate restTemplate) {
