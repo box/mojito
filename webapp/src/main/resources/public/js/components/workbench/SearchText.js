@@ -135,8 +135,8 @@ let SearchText = createReactClass({
                 return this.props.intl.formatMessage({id: "search.filter.asset"});
             case SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER:
                 return this.props.intl.formatMessage({id: "search.filter.pluralFormOther"});
-            case SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_ID:
-                return this.props.intl.formatMessage({id: "search.filter.tmTextUnitId"});
+            case SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_IDS:
+                return this.props.intl.formatMessage({id: "search.filter.tmTextUnitIds"});
         }
     },
 
@@ -178,7 +178,7 @@ let SearchText = createReactClass({
                 {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.TARGET)}
                 {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.ASSET)}
                 {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER)}
-                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_ID)}
+                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_IDS)}
                 <MenuItem divider/>
                 <MenuItem header><FormattedMessage id="search.filter.searchType"/></MenuItem>
                 {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.EXACT)}

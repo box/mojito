@@ -28,8 +28,13 @@ const SearchDataSource = {
                     textUnitSearcherParameters.assetPath(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER) {
                     textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
-                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_ID) {
-                    textUnitSearcherParameters.tmTextUnitIds([parseInt(searchParams.searchText) || 0]);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_IDS) {
+                    let ids = searchParams.searchText
+                        .split(',')
+                        .map(v => parseInt(v.trim(), 10))
+                        .filter(v => !isNaN(v));
+
+                    textUnitSearcherParameters.tmTextUnitIds(ids.length ? ids : [0]);
                 } else {
                     textUnitSearcherParameters.name(searchParams.searchText);
                 }
