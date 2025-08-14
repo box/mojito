@@ -64,7 +64,8 @@ public class SecurityConfig {
     DATABASE,
     AD,
     HEADER,
-    OAUTH2
+    OAUTH2,
+    JWT
   }
 
   public static class OAuth2 {

@@ -2,16 +2,15 @@ package com.box.l10n.mojito.security;
 
 import com.box.l10n.mojito.ActuatorHealthLegacyConfig;
 import com.box.l10n.mojito.service.security.user.UserService;
-import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -25,9 +24,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -37,9 +33,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 // TOOD(spring2) we don't use method level security, do we? remove?
 @EnableGlobalMethodSecurity(securedEnabled = true, mode = AdviceMode.ASPECTJ)
 @Configuration
-@ConditionalOnProperty(
-    value = "l10n.security.stateless.enabled",
-    havingValue = "false",
+@ConditionalOnAuthTypes(
+    anyOf = {
+      SecurityConfig.AuthenticationType.AD,
+      SecurityConfig.AuthenticationType.DATABASE,
+      SecurityConfig.AuthenticationType.LDAP,
+      SecurityConfig.AuthenticationType.OAUTH2
+    },
     matchIfMissing = true)
 public class WebSecurityConfig {
 
@@ -60,12 +60,6 @@ public class WebSecurityConfig {
 
   @Autowired UserDetailsContextMapperImpl userDetailsContextMapperImpl;
 
-  @Autowired(required = false)
-  RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
-
-  @Autowired(required = false)
-  PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider;
-
   @Autowired UserService userService;
 
   @Autowired UserDetailsServiceImpl userDetailsService;
@@ -83,9 +77,6 @@ public class WebSecurityConfig {
           break;
         case AD:
           configureActiveDirectory(auth);
-          break;
-        case HEADER:
-          configureHeaderAuth(auth);
           break;
       }
     }
@@ -132,14 +123,6 @@ public class WebSecurityConfig {
         .managerDn(ldapConfig.getManagerDn())
         .managerPassword(ldapConfig.getManagerPassword())
         .ldif(ldapConfig.getLdif());
-  }
-
-  void configureHeaderAuth(AuthenticationManagerBuilder auth) {
-    Preconditions.checkNotNull(
-        preAuthenticatedAuthenticationProvider,
-        "The preAuthenticatedAuthenticationProvider must be configured");
-    logger.debug("Configuring in pre authentication");
-    auth.authenticationProvider(preAuthenticatedAuthenticationProvider);
   }
 
   static void setAuthorizationRequests(HttpSecurity http, List<String> extraPermitAllPatterns)
@@ -216,6 +199,7 @@ public class WebSecurityConfig {
   }
 
   @Bean
+  @Order(3)
   public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     logger.debug("Configuring web security");
 
@@ -249,15 +233,6 @@ public class WebSecurityConfig {
     for (SecurityConfig.AuthenticationType authenticationType :
         securityConfig.getAuthenticationType()) {
       switch (authenticationType) {
-        case HEADER:
-          Preconditions.checkNotNull(
-              requestHeaderAuthenticationFilter,
-              "The requestHeaderAuthenticationFilter must be configured");
-          logger.debug("Add request header Auth filter");
-          requestHeaderAuthenticationFilter.setAuthenticationManager(
-              authenticationConfiguration.getAuthenticationManager());
-          http.addFilterBefore(requestHeaderAuthenticationFilter, BasicAuthenticationFilter.class);
-          break;
         case OAUTH2:
           logger.debug("Configure OAuth2");
           http.oauth2Login(
