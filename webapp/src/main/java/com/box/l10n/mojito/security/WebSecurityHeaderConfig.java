@@ -1,53 +1,66 @@
 package com.box.l10n.mojito.security;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
-// This must in sync with {@link
-// com.box.l10n.mojito.security.SecurityConfig.AuthenticationType#HEADER}
-@ConditionalOnExpression("'${l10n.security.authenticationType:}'.toUpperCase().contains('HEADER')")
+@ConditionalOnAuthTypes(anyOf = SecurityConfig.AuthenticationType.HEADER)
 @Configuration
 class WebSecurityHeaderConfig {
 
-  @Bean
-  RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() throws Exception {
-    RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter =
-        new RequestHeaderAuthenticationFilter();
-    requestHeaderAuthenticationFilter.setPrincipalRequestHeader("x-forwarded-user");
-    requestHeaderAuthenticationFilter.setExceptionIfHeaderMissing(false);
-    requestHeaderAuthenticationFilter.setAuthenticationManager(
-        new AuthenticationManager() {
-          @Override
-          public Authentication authenticate(Authentication authentication)
-              throws AuthenticationException {
-            throw new RuntimeException(
-                "This must be overridden with the actual authentication manager of the app - it is not injectable yet with this config style");
-          }
-        });
+  public static final String X_FORWARDED_USER = "x-forwarded-user";
 
-    return requestHeaderAuthenticationFilter;
+  @Bean
+  PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider(
+      UserDetailsServiceCreatePartialImpl uds) {
+
+    UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper =
+        new UserDetailsByNameServiceWrapper<>(uds);
+
+    PreAuthenticatedAuthenticationProvider p = new PreAuthenticatedAuthenticationProvider();
+    p.setPreAuthenticatedUserDetailsService(wrapper);
+    return p;
   }
 
   @Bean
-  PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider() {
-    PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider =
-        new PreAuthenticatedAuthenticationProvider();
-    UserDetailsByNameServiceWrapper userDetailsByNameServiceWrapper =
-        new UserDetailsByNameServiceWrapper(getUserDetailsServiceCreatePartial());
-    preAuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(
-        userDetailsByNameServiceWrapper);
-    return preAuthenticatedAuthenticationProvider;
+  RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter(
+      PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider) {
+    RequestHeaderAuthenticationFilter f = new RequestHeaderAuthenticationFilter();
+    f.setPrincipalRequestHeader(X_FORWARDED_USER);
+    f.setCredentialsRequestHeader(X_FORWARDED_USER);
+    f.setExceptionIfHeaderMissing(false);
+    f.setAuthenticationManager(new ProviderManager(preAuthenticatedAuthenticationProvider));
+    return f;
   }
 
   @Bean
   protected UserDetailsServiceCreatePartialImpl getUserDetailsServiceCreatePartial() {
     return new UserDetailsServiceCreatePartialImpl();
+  }
+
+  @Bean
+  @Order(1)
+  SecurityFilterChain headerPreAuthenticated(
+      HttpSecurity http,
+      RequestHeaderAuthenticationFilter headerFilter,
+      PreAuthenticatedAuthenticationProvider preauthProvider)
+      throws Exception {
+
+    http.securityMatcher(req -> req.getHeader(X_FORWARDED_USER) != null);
+
+    WebSecurityJWTConfig.applyStatelessSharedConfig(http);
+
+    http.authenticationProvider(preauthProvider);
+    http.addFilterBefore(headerFilter, BearerTokenAuthenticationFilter.class);
+
+    return http.build();
   }
 }
