@@ -1,11 +1,69 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum AiTranslateType {
+  TARGET_ONLY_NEW(
+      """
+        You are a professional translator.
+
+        Translate the provided source strings, ensuring the result:
+        • Preserves the tone, style, and intent of the original (colloquial if colloquial, formal if formal).
+        • Is natural, idiomatic, and culturally appropriate for a native speaker of the target language.
+        • Matches the formality, register, and typical sentence structure of everyday writing in the target language.
+        • Accounts for regional variations in the "locale" field (e.g., “es” vs. “es-419”; “fr” vs. “fr-CA”).
+        • Optimize your translation to be as close as possible to the original source length. Avoid text expansion. Use concise wording that preserves the meaning and fits well in limited UI space.
+
+        Use the input context:
+        • "sourceDescription" gives additional context about the source string.
+        • "relatedStrings" provides strings appearing before/after in context (such as emails). Use these to ensure translations sound fluent and cohesive in the full text.
+
+        **Handling tags, placeholders, and code:**
+        • Leave all tags (e.g., {atag}), variables, and code elements untouched.
+        • For tags like <a href={url}>text</a>, translate only the inner text, preserving the tag and attributes.
+        • For ICU MessageFormat (e.g., {count, plural, one {...} other {...}}), only translate the inner text, never the placeholders.
+        • If "existingTarget" is present and contains broken placeholders, fix them in your translation. Also, adjust your translation according to the existing target comment.
+
+        **Input:**
+        JSON with these fields:
+          - "source": Text to translate.
+          - "locale": Target language (BCP47).
+          - "sourceDescription": Context for the string.
+          - "existingTarget" (optional): Existing translation, for review/fixing. "integrityCheckErrors" tell you what tags need fixing.
+          - "relatedStrings": Additional context.
+
+        **Output:**
+        Return a single JSON object:
+          { "content": "[your translation here]" }
+
+        Do not include any explanation or commentary—just the translated text.
+        """,
+      CompletionMultiTextUnitOutput.class,
+      (id, o) -> {
+        Logger logger = LoggerFactory.getLogger(AiTranslateType.class);
+        CompletionMultiTextUnitOutput.Target target = o.targetMap().get(id);
+        if (target == null) {
+          logger.error("Missing target for text unit id: {} in {}", id, o.targets());
+          return null;
+        }
+
+        if (!target.tmTextUnitId().equals(id)) {
+          logger.error(
+              "Mismatch id between key and object value, key: {}, id in target: {}",
+              id,
+              target.tmTextUnitId());
+          return null;
+        }
+
+        return new TargetWithMetadata(target.target(), "ai-translate with TARGET_ONLY_NEW");
+      }),
+
   TARGET_ONLY(
       """
     You are a professional translator.
@@ -42,7 +100,7 @@ public enum AiTranslateType {
     Do not include any explanation or commentary—just the translated text.
     """,
       SimpleCompletionOutput.class,
-      o -> new TargetWithMetadata(o.content(), "ai-translate with TARGET_ONLY")),
+      (id, o) -> new TargetWithMetadata(o.content(), "ai-translate with TARGET_ONLY")),
   TARGET_WITH_CONFIDENCE(
       TARGET_ONLY
           .getPrompt()
@@ -50,7 +108,7 @@ public enum AiTranslateType {
               "{ \"content\": \"[your translation here]\" }",
               "{ \"content\": \"[your translation here]\", \"confidenceLevel\": \"[confidence level 0-100]\" }"),
       WithConfidenceCompletionOutput.class,
-      o ->
+      (id, o) ->
           new TargetWithMetadata(
               o.content(),
               "ai-translate with WITH_CONFIDENCE. confidence level: " + o.confidenceLevel())),
@@ -115,7 +173,7 @@ public enum AiTranslateType {
         •	"reason": A detailed explanation of why review is or isn’t needed.
     """,
       CompletionOutput.class,
-      o -> new TargetWithMetadata(o.target().content(), "ai-translate with REVIEW")),
+      (id, o) -> new TargetWithMetadata(o.target().content(), "ai-translate with REVIEW")),
 
   SUGGESTED(
       """
@@ -146,21 +204,21 @@ public enum AiTranslateType {
     Return only the translated text, with no explanations or extra information.
     """,
       SimpleCompletionOutput.class,
-      o -> new TargetWithMetadata(o.content(), "ai-translate with SUGGESTED"));
+      (id, o) -> new TargetWithMetadata(o.content(), "ai-translate with SUGGESTED"));
 
   static final Logger logger = LoggerFactory.getLogger(AiTranslateType.class);
 
   final String prompt;
   final Class<?> outputJsonSchemaClass;
-  final Function<Object, TargetWithMetadata> outputConverter;
+  final BiFunction<Long, Object, TargetWithMetadata> outputConverter;
 
   <T> AiTranslateType(
       String prompt,
       Class<T> outputJsonSchemaClass,
-      Function<T, TargetWithMetadata> outputConverter) {
+      BiFunction<Long, T, TargetWithMetadata> outputConverter) {
     this.prompt = prompt;
     this.outputJsonSchemaClass = outputJsonSchemaClass;
-    this.outputConverter = (Function<Object, TargetWithMetadata>) outputConverter;
+    this.outputConverter = (BiFunction<Long, Object, TargetWithMetadata>) outputConverter;
   }
 
   public static AiTranslateType fromString(String name) {
@@ -180,11 +238,71 @@ public enum AiTranslateType {
     return outputJsonSchemaClass;
   }
 
-  public <T> TargetWithMetadata getTargetWithMetadata(T completionOutput) {
-    return outputConverter.apply(completionOutput);
+  public <T> TargetWithMetadata getTargetWithMetadata(Long id, T completionOutput) {
+    return outputConverter.apply(id, completionOutput);
   }
 
   public record TargetWithMetadata(String target, String targetComment) {}
+
+  public record CompletionMultiTextUnitInput(String locale, List<TextUnit> textUnitsToTranslate) {
+
+    public record TextUnit(
+        Long tmTextUnitId,
+        String source,
+        String sourceDescription,
+        ExistingTarget existingTarget,
+        List<GlossaryTerm> glossaryTerms) {
+
+      public record ExistingTarget(
+          String content,
+          String comment,
+          boolean hasBrokenPlaceholders,
+          List<String> integrityCheckErrors) {}
+
+      public record GlossaryTerm(
+          String term, String termDescription, String termTarget, String termTargetComment) {}
+    }
+
+    public static Builder builder(String locale) {
+      return new Builder(locale);
+    }
+
+    public static final class Builder {
+      private final String locale;
+      private final List<TextUnit> textUnits = new ArrayList<>();
+
+      public Builder(String locale) {
+        this.locale = Objects.requireNonNull(locale, "locale");
+      }
+
+      public Builder addTextUnit(TextUnit textUnit) {
+        textUnits.add(Objects.requireNonNull(textUnit, "textUnit"));
+        return this;
+      }
+
+      public CompletionMultiTextUnitInput build() {
+        return new CompletionMultiTextUnitInput(locale, List.copyOf(textUnits));
+      }
+    }
+  }
+
+  record CompletionMultiTextUnitOutput(
+      List<Target> targets, @JsonIgnore Map<Long, Target> targetMap) {
+    /**
+     * Can't get the Map to work with strict JsonSchema. OpenAI requires additional field to be
+     * false, but jackson use them for the map when the object is
+     * CompletionMultiTextUnitOutput(Map<Long, Target> targetMap)
+     *
+     * <p>So just using this hack with an extra field, but also need to configure Jackson
+     */
+    CompletionMultiTextUnitOutput {
+      targets = List.copyOf(targets);
+      targetMap =
+          targets.stream().collect(Collectors.toMap(Target::tmTextUnitId, Function.identity()));
+    }
+
+    record Target(Long tmTextUnitId, String target) {}
+  }
 
   record CompletionInput(
       String locale,

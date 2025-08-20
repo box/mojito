@@ -33,6 +33,10 @@ public record ImageBytes(String filename, byte[] content, String contentType) {
     return new ImageBytes(filename, content, contentType);
   }
 
+  public static ImageBytes fromBytes(String filename, byte[] content) {
+    return fromBytes(filename, content, guessContentType(Path.of(filename), content));
+  }
+
   public String toDataUrl() {
     String base64 = Base64.getEncoder().encodeToString(content);
     return "data:" + contentType + ";base64," + base64;

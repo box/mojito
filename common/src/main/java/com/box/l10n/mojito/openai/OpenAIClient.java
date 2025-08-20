@@ -1,5 +1,11 @@
 package com.box.l10n.mojito.openai;
 
+import static com.box.l10n.mojito.openai.OpenAIClient.ResponsesRequest.TextContainer.JsonSchema.createJsonSchema;
+
+import com.box.l10n.mojito.openai.OpenAIClient.ResponsesRequest.InputMessage.Content;
+import com.box.l10n.mojito.openai.OpenAIClient.ResponsesRequest.InputMessage.ImageFileId;
+import com.box.l10n.mojito.openai.OpenAIClient.ResponsesRequest.InputMessage.ImageUrl;
+import com.box.l10n.mojito.openai.OpenAIClient.ResponsesRequest.TextContainer.JsonSchema;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -27,8 +33,12 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenAIClient {
+
+  static Logger logger = LoggerFactory.getLogger(OpenAIClient.class);
 
   final String apiKey;
 
@@ -126,6 +136,268 @@ public class OpenAIClient {
 
   public static Builder builder() {
     return new Builder();
+  }
+
+  public CompletableFuture<ResponsesResponse> getResponses(
+      ResponsesRequest responsesRequest, Duration httpRequestTimeout) {
+
+    String payload;
+    try {
+      payload = objectMapper.writeValueAsString(responsesRequest);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Can't serialize ResponsesRequest", e);
+    }
+
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .timeout(httpRequestTimeout)
+            .uri(getUriForEndpoint(ResponsesRequest.ENDPOINT))
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + this.apiKey)
+            .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
+            .build();
+
+    CompletableFuture<ResponsesResponse> responsesResponse =
+        httpClient
+            .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApplyAsync(
+                httpResponse -> {
+                  if (httpResponse.statusCode() != 200) {
+                    throw new OpenAIClientResponseException("Responses API failed", httpResponse);
+                  } else {
+                    try {
+                      return objectMapper.readValue(httpResponse.body(), ResponsesResponse.class);
+                    } catch (JsonProcessingException e) {
+                      throw new OpenAIClientResponseException(
+                          "Can't deserialize ResponsesResponse", e, httpResponse);
+                    }
+                  }
+                },
+                asyncExecutor);
+
+    return responsesResponse;
+  }
+
+  public record ResponsesRequest(
+      String model,
+      String instructions,
+      List<InputMessage> input,
+      TextContainer text,
+      Map<String, String> metadata) {
+
+    public record TextContainer(JsonSchema format) {
+
+      public record JsonSchema(String name, Object schema, boolean strict) {
+
+        public String getType() {
+          return "json_schema";
+        }
+
+        public static ObjectNode createJsonSchema(Class<?> type) {
+          ObjectMapper objectMapper = new ObjectMapper();
+          JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(objectMapper);
+          com.fasterxml.jackson.module.jsonSchema.JsonSchema baseSchema = null;
+          try {
+            baseSchema = schemaGen.generateSchema(type);
+          } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+          }
+          JsonNode schemaNode = objectMapper.valueToTree(baseSchema);
+          ObjectNode rootNode = (ObjectNode) schemaNode;
+          enhanceSchema(rootNode);
+
+          logger.error(
+              com.box.l10n.mojito.json.ObjectMapper.withIndentedOutput()
+                  .writeValueAsStringUnchecked(rootNode));
+          return rootNode;
+        }
+
+        private static void enhanceSchema(ObjectNode objectNode) {
+
+          if (!objectNode.has("type")) {
+            objectNode.put("type", "object");
+          }
+          objectNode.put("additionalProperties", false);
+
+          if (objectNode.has("properties")) {
+            ObjectNode propertiesNode = (ObjectNode) objectNode.get("properties");
+            ArrayNode requiredFields = objectNode.putArray("required");
+
+            Iterator<Map.Entry<String, JsonNode>> fields = propertiesNode.fields();
+            while (fields.hasNext()) {
+              Map.Entry<String, JsonNode> field = fields.next();
+              String fieldName = field.getKey();
+              requiredFields.add(fieldName);
+
+              JsonNode fieldSchema = field.getValue();
+              if (fieldSchema.isObject()) {
+                ObjectNode fieldObjectNode = (ObjectNode) fieldSchema;
+
+                String fieldType =
+                    fieldObjectNode.has("type") ? fieldObjectNode.get("type").asText() : null;
+
+                if ("object".equals(fieldType) && fieldObjectNode.has("properties")) {
+                  enhanceSchema(fieldObjectNode);
+                } else if ("array".equals(fieldType) && fieldObjectNode.has("items")) {
+                  enhanceArrayItems(fieldObjectNode);
+                }
+              }
+            }
+          }
+        }
+
+        private static void enhanceArrayItems(ObjectNode arrayNode) {
+          JsonNode itemsNode = arrayNode.get("items");
+          if (itemsNode != null && itemsNode.isObject()) {
+            ObjectNode itemsObjectNode = (ObjectNode) itemsNode;
+
+            if (itemsObjectNode.has("properties")) {
+              enhanceSchema(itemsObjectNode);
+            }
+
+            if (!itemsObjectNode.has("additionalProperties")) {
+              itemsObjectNode.put("additionalProperties", false);
+            }
+          }
+        }
+      }
+    }
+
+    static String ENDPOINT = "/v1/responses";
+
+    public record InputMessage(String role, List<Content> content) {
+      public sealed interface Content permits Text, ImageUrl, ImageFileId {
+        String getType();
+      }
+
+      public record Text(String text) implements Content {
+        public String getType() {
+          return "input_text";
+        }
+      }
+
+      public record ImageUrl(@JsonProperty("image_url") String imageUrl) implements Content {
+        public String getType() {
+          return "input_image";
+        }
+      }
+
+      public record ImageFileId(@JsonProperty("file_id") String fileId) implements Content {
+        public String getType() {
+          return "input_image";
+        }
+      }
+    }
+
+    public static class Builder {
+      private String model;
+      private String instructions;
+      private List<InputMessage> input = new ArrayList<>();
+      private TextContainer textContainer;
+      private Map<String, String> metadata = new HashMap<>();
+
+      public Builder model(String model) {
+        this.model = model;
+        return this;
+      }
+
+      public Builder instructions(String instruction) {
+        this.instructions = instruction;
+        return this;
+      }
+
+      Builder addInputMessage(String role, List<Content> items) {
+        this.input.add(new InputMessage(role, items));
+        return this;
+      }
+
+      public Builder addUserText(String text) {
+        return addInputMessage("user", List.of(new InputMessage.Text(text)));
+      }
+
+      public Builder addDeveloperText(String text) {
+        return addInputMessage("developer", List.of(new InputMessage.Text(text)));
+      }
+
+      public Builder addUserImageFileId(String fileId) {
+        this.input.add(new InputMessage("user", List.of(new ImageFileId(fileId))));
+        return this;
+      }
+
+      public Builder addUserImageUrl(String dataOrRegularUrl) {
+        this.input.add(new InputMessage("user", List.of(new ImageUrl(dataOrRegularUrl))));
+        return this;
+      }
+
+      public Builder addJsonSchema(Class<?> type) {
+        this.textContainer =
+            new TextContainer(new JsonSchema("output_json_schema", createJsonSchema(type), true));
+        return this;
+      }
+
+      /**
+       * Set of 16 key-value pairs that can be attached to an object
+       *
+       * @param key maximum length of 64 characters
+       * @param value maximum length of 512 characters
+       * @return
+       */
+      public Builder addMetadata(String key, String value) {
+        if (this.metadata.size() == 16) {
+          throw new IllegalArgumentException("Cannot add more than 16 entries");
+        }
+        if (key.length() > 64) {
+          throw new IllegalArgumentException("key cannot exceed 64 characters");
+        }
+        if (value.length() > 512) {
+          throw new IllegalArgumentException("value cannot exceed 512 characters");
+        }
+        this.metadata.put(key, value);
+        return this;
+      }
+
+      public ResponsesRequest build() {
+        return new ResponsesRequest(
+            model,
+            instructions,
+            input,
+            textContainer,
+            this.metadata.isEmpty() ? null : this.metadata);
+      }
+    }
+
+    public static Builder builder() {
+      return new Builder();
+    }
+  }
+
+  public record ResponsesResponse(
+      String id,
+      String object,
+      @JsonProperty("created_at") Long createdAt,
+      String status,
+      Error error,
+      @JsonProperty("incomplete_details") IncompleteDetails incompleteDetails,
+      String model,
+      List<Output> output,
+      Map<String, String> metadata) {
+
+    public String outputText() {
+      return output.stream()
+          .flatMap(o -> o.content().stream())
+          .filter(c -> "output_text".equals(c.type()))
+          .map(Content::text)
+          .collect(Collectors.joining());
+    }
+
+    public record Error(String code, String message) {}
+
+    public record IncompleteDetails(String reason) {}
+
+    public record Output(
+        String id, String type, String status, List<Content> content, String role) {}
+
+    public record Content(String type, String text) {}
   }
 
   public CompletableFuture<ChatCompletionsResponse> getChatCompletions(
