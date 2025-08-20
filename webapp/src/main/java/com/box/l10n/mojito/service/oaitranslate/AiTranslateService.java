@@ -29,9 +29,7 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
-import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
-import com.box.l10n.mojito.openai.OpenAIClient.CreateBatchResponse;
-import com.box.l10n.mojito.openai.OpenAIClient.RequestBatchFileLine;
+import com.box.l10n.mojito.openai.OpenAIClient.*;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
@@ -42,6 +40,8 @@ import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTr
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateBatchesImportJob.AiTranslateBatchesImportOutput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionInput;
 import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionInput.ExistingTarget;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionMultiTextUnitInput;
+import com.box.l10n.mojito.service.oaitranslate.AiTranslateType.CompletionMultiTextUnitInput.TextUnit;
 import com.box.l10n.mojito.service.oaitranslate.GlossaryService.GlossaryTrie;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.MsgArg;
@@ -53,6 +53,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.ImportResult;
@@ -63,6 +64,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
+import com.box.l10n.mojito.util.ImageBytes;
 import com.box.l10n.mojito.utils.FilePosition;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -75,14 +77,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,6 +101,8 @@ public class AiTranslateService {
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiTranslateService.class);
+
+  private final AiTranslateScreenshotService aiTranslateScreenshotService;
 
   AssetTextUnitRepository assetTextUnitRepository;
 
@@ -158,7 +155,9 @@ public class AiTranslateService {
       TextUnitDTOsCacheService textUnitDTOsCacheService,
       AssetTextUnitRepository assetTextUnitRepository,
       TMTextUnitVariantRepository tmTextUnitVariantRepository,
-      GlossaryService glossaryService) {
+      GlossaryService glossaryService,
+      ScreenshotService screenshotService,
+      AiTranslateScreenshotService aiTranslateScreenshotService) {
     this.textUnitSearcher = textUnitSearcher;
     this.repositoryRepository = repositoryRepository;
     this.repositoryService = repositoryService;
@@ -176,6 +175,7 @@ public class AiTranslateService {
     this.assetTextUnitRepository = assetTextUnitRepository;
     this.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     this.glossaryService = glossaryService;
+    this.aiTranslateScreenshotService = aiTranslateScreenshotService;
   }
 
   public record AiTranslateInput(
@@ -234,6 +234,39 @@ public class AiTranslateService {
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }
 
+  record TextUnitsByScreenshot(
+      String groupId,
+      String screenshotUUID,
+      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList) {}
+
+  static Map<String, TextUnitsByScreenshot> groupTextUnitsByScreenshot(
+      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList) {
+    Map<String, TextUnitsByScreenshot> groups = new LinkedHashMap<>();
+
+    for (TextUnitDTOWithVariantComments textUnitDTOWithVariantComments :
+        textUnitDTOWithVariantCommentsList) {
+
+      TextUnitDTO textUnitDTO = textUnitDTOWithVariantComments.textUnitDTO();
+
+      String screenshotUUID =
+          AiTranslateScreenshotService.extractScreenshotUUID(textUnitDTO.getComment());
+      String groupId =
+          (screenshotUUID != null)
+              ? screenshotUUID
+              : textUnitDTO.getTmTextUnitVariantId() == null
+                  ? textUnitDTO.getTmTextUnitId().toString()
+                  : textUnitDTO.getTmTextUnitVariantId().toString();
+
+      TextUnitsByScreenshot group =
+          groups.computeIfAbsent(
+              groupId, k -> new TextUnitsByScreenshot(k, screenshotUUID, new ArrayList<>()));
+
+      group.textUnitDTOWithVariantCommentsList().add(textUnitDTOWithVariantComments);
+    }
+
+    return groups;
+  }
+
   public void aiTranslate(AiTranslateInput aiTranslateInput, PollableTask currentTask)
       throws AiTranslateException {
     if (aiTranslateInput.useBatch()) {
@@ -247,6 +280,16 @@ public class AiTranslateService {
       ChatCompletionsRequest chatCompletionsRequest,
       TextUnitDTO textUnitDTO,
       CompletableFuture<ChatCompletionsResponse> chatCompletionsResponseCompletableFuture) {}
+
+  record TextextUnitsByScreenshotWithResponsesResponse(
+      ResponsesRequest responsesRequest,
+      TextUnitsByScreenshot textUnitsByScreenshot,
+      CompletableFuture<ResponsesResponse> responsesResponseCompletableFuture) {}
+
+  record TextUnitDTOWithResponsesResponse(
+      ResponsesRequest responsesRequest,
+      TextUnitDTO textUnitDTO,
+      CompletableFuture<ResponsesResponse> responsesResponseCompletableFuture) {}
 
   public void aiTranslateNoBatch(AiTranslateInput aiTranslateInput, PollableTask currentTask) {
     Repository repository = getRepository(aiTranslateInput);
@@ -302,86 +345,140 @@ public class AiTranslateService {
           repository.getName(),
           bcp47Tag);
 
-      List<TextUnitDTOWithChatCompletionResponse> responses = new ArrayList<>();
-
       String model = getModel(aiTranslateInput);
       AiTranslateType aiTranslateType =
           AiTranslateType.fromString(aiTranslateInput.translateType());
       String prompt = getPrompt(aiTranslateType.getPrompt(), aiTranslateInput.promptSuffix());
       Status importStatus = Status.valueOf(aiTranslateInput.importStatus());
 
-      for (TextUnitDTOWithVariantComments textUnitDTOWithVariantComments :
-          textUnitDTOWithVariantCommentsList) {
-        TextUnitDTO textUnitDTO = textUnitDTOWithVariantComments.textUnitDTO();
+      List<TextextUnitsByScreenshotWithResponsesResponse>
+          textUnitsByScreenshotWithResponsesResponseList = new ArrayList<>();
 
-        FoundGlossaryTerms glossaryTermsOrSkip =
-            findGlossaryTermsOrSkip(
-                glossaryTrie,
-                aiTranslateInput.glossaryOnlyMatchedTextUnits(),
-                textUnitDTOWithVariantComments);
+      for (TextUnitsByScreenshot textUnitsByScreenshot :
+          groupTextUnitsByScreenshot(textUnitDTOWithVariantCommentsList).values()) {
 
-        if (glossaryTermsOrSkip.shouldSkip()) {
-          continue;
+        CompletionMultiTextUnitInput.Builder builder =
+            CompletionMultiTextUnitInput.builder(bcp47Tag);
+
+        for (TextUnitDTOWithVariantComments textUnitDTOWithVariantComments :
+            textUnitsByScreenshot.textUnitDTOWithVariantCommentsList()) {
+
+          TextUnitDTO textUnitDTO = textUnitDTOWithVariantComments.textUnitDTO();
+
+          FoundGlossaryTerms glossaryTermsOrSkip =
+              findGlossaryTermsOrSkip(
+                  glossaryTrie,
+                  aiTranslateInput.glossaryOnlyMatchedTextUnits(),
+                  textUnitDTOWithVariantComments);
+
+          if (glossaryTermsOrSkip.shouldSkip()) {
+            // base on option we can skip translation, with the screenshot base grouping we could
+            // still do that BUT
+            // ideally we'd pass the string as context. this is a bit overcomplicated and an edge
+            // case.
+            // for now we just fully remove it.
+            continue;
+          }
+
+          builder.addTextUnit(
+              new TextUnit(
+                  textUnitDTO.getTmTextUnitId(),
+                  textUnitDTO.getSource(),
+                  textUnitDTO.getComment(),
+                  textUnitDTO.getTarget() == null
+                      ? null
+                      : new TextUnit.ExistingTarget(
+                          textUnitDTO.getTarget(),
+                          textUnitDTO.getTargetComment(),
+                          !textUnitDTO.isIncludedInLocalizedFile(),
+                          textUnitDTOWithVariantComments.tmTextUnitVariantComments().stream()
+                              .filter(
+                                  tmTextUnitVariantComment ->
+                                      TMTextUnitVariantComment.Severity.ERROR.equals(
+                                          tmTextUnitVariantComment.getSeverity()))
+                              .map(TMTextUnitVariantComment::getContent)
+                              .toList()),
+                  glossaryTermsOrSkip.terms().stream()
+                      .map(AiTranslateService::convertGlossaryTermForMulti)
+                      .toList()));
         }
 
-        CompletionInput completionInput =
-            getCompletionInput(
-                textUnitDTOWithVariantComments,
-                relatedStringsProvider,
-                glossaryTermsOrSkip.terms());
+        CompletionMultiTextUnitInput completionMultiTextUnitInput = builder.build();
 
-        ChatCompletionsRequest chatCompletionsRequest =
-            getChatCompletionsRequest(model, prompt, completionInput, aiTranslateType);
+        String inputAsJsonString =
+            objectMapper.writeValueAsStringUnchecked(completionMultiTextUnitInput);
 
-        CompletableFuture<ChatCompletionsResponse> chatCompletionsResponseCompletableFuture =
+        ResponsesRequest.Builder requestBuilder =
+            ResponsesRequest.builder()
+                .model(model)
+                .instructions(prompt)
+                .addUserText(objectMapper.writeValueAsStringUnchecked(inputAsJsonString))
+                .addJsonSchema(aiTranslateType.getOutputJsonSchemaClass());
+
+        Optional.ofNullable(textUnitsByScreenshot.screenshotUUID())
+            .flatMap(aiTranslateScreenshotService::getImageBytes)
+            .map(ImageBytes::toDataUrl)
+            .ifPresent(requestBuilder::addUserImageUrl);
+
+        ResponsesRequest responsesRequest = requestBuilder.build();
+
+        CompletableFuture<ResponsesResponse> responsesResponseCompletableFuture =
             openAIClientPool.submit(
-                openAIClient -> {
-                  CompletableFuture<ChatCompletionsResponse> chatCompletions =
-                      openAIClient.getChatCompletions(
-                          chatCompletionsRequest,
-                          Duration.ofSeconds(CHAT_COMPLETION_REQUEST_TIMEOUT));
-                  return chatCompletions;
-                });
+                openAIClient ->
+                    openAIClient.getResponses(
+                        responsesRequest, Duration.ofSeconds(CHAT_COMPLETION_REQUEST_TIMEOUT)));
 
-        responses.add(
-            new TextUnitDTOWithChatCompletionResponse(
-                chatCompletionsRequest, textUnitDTO, chatCompletionsResponseCompletableFuture));
+        TextextUnitsByScreenshotWithResponsesResponse
+            textextUnitsByScreenshotWithResponsesResponse =
+                new TextextUnitsByScreenshotWithResponsesResponse(
+                    responsesRequest, textUnitsByScreenshot, responsesResponseCompletableFuture);
+        textUnitsByScreenshotWithResponsesResponseList.add(
+            textextUnitsByScreenshotWithResponsesResponse);
       }
 
       List<TextUnitDTOWithVariantCommentOrError> textUnitDTOWithVariantCommentOrErrors =
-          responses.stream()
-              .map(
-                  textUnitDTOWithChatCompletionResponse -> {
-                    TextUnitDTO textUnitDTO = textUnitDTOWithChatCompletionResponse.textUnitDTO();
-
-                    ChatCompletionsResponse chatCompletionsResponse;
-
+          textUnitsByScreenshotWithResponsesResponseList.stream()
+              .flatMap(
+                  textUnitsByScreenshotWithResponsesResponse -> {
+                    ResponsesResponse responsesResponse;
                     try {
-                      chatCompletionsResponse =
-                          textUnitDTOWithChatCompletionResponse
-                              .chatCompletionsResponseCompletableFuture()
+                      responsesResponse =
+                          textUnitsByScreenshotWithResponsesResponse
+                              .responsesResponseCompletableFuture()
                               .join();
                     } catch (Throwable t) {
                       String errorMessage =
-                          "Error when getting the chatCompletionsResponse: %s"
-                              .formatted(t.getMessage());
+                          "Error when getting the responsesResponse: %s".formatted(t.getMessage());
                       logger.error(
-                          errorMessage + ", skipping tmTextUnit: {}, locale: {}",
-                          textUnitDTO.getTmTextUnitId(),
+                          errorMessage + ", skipping tmTextUnits: {}, locale: {}",
+                          textUnitsByScreenshotWithResponsesResponse
+                              .textUnitsByScreenshot()
+                              .textUnitDTOWithVariantCommentsList
+                              .stream()
+                              .map(TextUnitDTOWithVariantComments::textUnitDTO)
+                              .map(TextUnitDTO::getTmTextUnitId)
+                              .toList(),
                           repositoryLocale.getLocale().getBcp47Tag(),
                           t);
-                      return new TextUnitDTOWithVariantCommentOrError(
-                          textUnitDTOWithChatCompletionResponse.chatCompletionsRequest(),
-                          null,
-                          new TextUnitDTOWithVariantComment(textUnitDTO, null),
-                          textUnitDTO.getTarget(),
-                          errorMessage);
+
+                      return textUnitsByScreenshotWithResponsesResponse
+                          .textUnitsByScreenshot()
+                          .textUnitDTOWithVariantCommentsList
+                          .stream()
+                          .map(
+                              textUnitDTOWithVariantComments ->
+                                  new TextUnitDTOWithVariantCommentOrError(
+                                      textUnitsByScreenshotWithResponsesResponse.responsesRequest(),
+                                      null,
+                                      new TextUnitDTOWithVariantComment(
+                                          textUnitDTOWithVariantComments.textUnitDTO(), null),
+                                      textUnitDTOWithVariantComments.textUnitDTO().getTarget(),
+                                      errorMessage));
                     }
 
                     Object completionOutput;
                     try {
-                      String completionOutputAsJson =
-                          chatCompletionsResponse.choices().getFirst().message().content();
+                      String completionOutputAsJson = responsesResponse.outputText();
 
                       completionOutput =
                           objectMapper.readValueUnchecked(
@@ -391,21 +488,35 @@ public class AiTranslateService {
                           "Error trying to parse the JSON completion output: %s"
                               .formatted(t.getMessage());
                       logger.debug(errorMessage, t);
-                      return new TextUnitDTOWithVariantCommentOrError(
-                          textUnitDTOWithChatCompletionResponse.chatCompletionsRequest(),
-                          chatCompletionsResponse.id(),
-                          new TextUnitDTOWithVariantComment(textUnitDTO, null),
-                          textUnitDTO.getTarget(),
-                          errorMessage);
+
+                      return textUnitsByScreenshotWithResponsesResponse
+                          .textUnitsByScreenshot()
+                          .textUnitDTOWithVariantCommentsList
+                          .stream()
+                          .map(
+                              textUnitDTOWithVariantComments ->
+                                  new TextUnitDTOWithVariantCommentOrError(
+                                      textUnitsByScreenshotWithResponsesResponse.responsesRequest(),
+                                      responsesResponse.id(),
+                                      new TextUnitDTOWithVariantComment(
+                                          textUnitDTOWithVariantComments.textUnitDTO(), null),
+                                      textUnitDTOWithVariantComments.textUnitDTO().getTarget(),
+                                      errorMessage));
                     }
 
-                    return prepareForTextUnitDTOForImport(
-                        textUnitDTOWithChatCompletionResponse.chatCompletionsRequest(),
-                        chatCompletionsResponse.id(),
-                        aiTranslateType,
-                        importStatus,
-                        textUnitDTO,
-                        completionOutput);
+                    return textUnitsByScreenshotWithResponsesResponse
+                        .textUnitsByScreenshot()
+                        .textUnitDTOWithVariantCommentsList()
+                        .stream()
+                        .map(
+                            textUnitDTOWithVariantComments ->
+                                prepareForTextUnitDTOForImport(
+                                    textUnitsByScreenshotWithResponsesResponse.responsesRequest(),
+                                    responsesResponse.id(),
+                                    aiTranslateType,
+                                    importStatus,
+                                    textUnitDTOWithVariantComments.textUnitDTO(),
+                                    completionOutput));
                   })
               .toList();
 
@@ -413,11 +524,13 @@ public class AiTranslateService {
 
       logger.info(
           "Translated {} text units for repository: {} and locale: {} in {}. qps: {}",
-          responses.size(),
+          textUnitsByScreenshotWithResponsesResponseList.size(),
           repository.getName(),
           bcp47Tag,
           elapsed.toString(),
-          elapsed.toSeconds() == 0 ? "n/a" : responses.size() / elapsed.toSeconds());
+          elapsed.toSeconds() == 0
+              ? "n/a"
+              : textUnitsByScreenshotWithResponsesResponseList.size() / elapsed.toSeconds());
 
       final Map<Long, ImportResult> importResultByTmTextUnitId =
           aiTranslateInput.dryRun()
@@ -469,7 +582,7 @@ public class AiTranslateService {
                     }
 
                     return new ImportReport.ImportReportLine(
-                        tu.chatCompletionsRequest(),
+                        tu.responsesRequest(),
                         tu.completionId(),
                         textUnitDTO.getTmTextUnitId(),
                         repositoryLocale.getLocale().getBcp47Tag(),
@@ -565,7 +678,7 @@ public class AiTranslateService {
 
   record ImportReport(List<ImportReportLine> lines) {
     record ImportReportLine(
-        ChatCompletionsRequest chatCompletionsRequest,
+        ResponsesRequest responsesRequest,
         String completionId,
         long tmTexUnitId,
         String locale,
@@ -750,7 +863,7 @@ public class AiTranslateService {
   }
 
   record TextUnitDTOWithVariantCommentOrError(
-      ChatCompletionsRequest chatCompletionsRequest,
+      ResponsesRequest responsesRequest,
       String completionId,
       TextUnitDTOWithVariantComment textUnitDTOWithVariantComment,
       String oldTarget,
@@ -862,7 +975,7 @@ public class AiTranslateService {
   }
 
   private static TextUnitDTOWithVariantCommentOrError prepareForTextUnitDTOForImport(
-      ChatCompletionsRequest chatCompletionsRequest,
+      ResponsesRequest responsesRequest,
       String completionId,
       AiTranslateType aiTranslateType,
       Status importStatus,
@@ -872,7 +985,20 @@ public class AiTranslateService {
     String oldTarget = textUnitDTO.getTarget();
 
     AiTranslateType.TargetWithMetadata targetWithMetadata =
-        aiTranslateType.getTargetWithMetadata(completionOutput);
+        aiTranslateType.getTargetWithMetadata(textUnitDTO.getTmTextUnitId(), completionOutput);
+
+    if (targetWithMetadata == null) {
+      logger.error(
+          "Cannot find the target for tmTextUnitId: {} is missing in map: {}",
+          textUnitDTO.getTmTextUnitId(),
+          completionOutput);
+      return new TextUnitDTOWithVariantCommentOrError(
+          responsesRequest,
+          completionId,
+          new TextUnitDTOWithVariantComment(textUnitDTO, null),
+          oldTarget,
+          "Cannot find the target for tmTextUnitId: %s".formatted(textUnitDTO.getTmTextUnitId()));
+    }
 
     textUnitDTO.setStatus(importStatus);
     String newTarget =
@@ -888,7 +1014,7 @@ public class AiTranslateService {
     tmTextUnitVariantComment.setContent(targetWithMetadata.targetComment());
 
     return new TextUnitDTOWithVariantCommentOrError(
-        chatCompletionsRequest,
+        responsesRequest,
         completionId,
         new TextUnitDTOWithVariantComment(textUnitDTO, tmTextUnitVariantComment),
         oldTarget,
@@ -1172,6 +1298,15 @@ public class AiTranslateService {
     String target = gt.doNotTranslate() && gt.target() == null ? gt.source() : gt.target();
 
     return new CompletionInput.GlossaryTerm(gt.source(), gt.comment(), target, gt.targetComment());
+  }
+
+  private static CompletionMultiTextUnitInput.TextUnit.GlossaryTerm convertGlossaryTermForMulti(
+      GlossaryService.GlossaryTerm gt) {
+
+    String target = gt.doNotTranslate() && gt.target() == null ? gt.source() : gt.target();
+
+    return new CompletionMultiTextUnitInput.TextUnit.GlossaryTerm(
+        gt.source(), gt.comment(), target, gt.targetComment());
   }
 
   class RelatedStringsProvider {

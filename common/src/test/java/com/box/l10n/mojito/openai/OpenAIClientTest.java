@@ -14,9 +14,12 @@ import com.box.l10n.mojito.openai.OpenAIClient.OpenAIClientResponseException;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest.BinaryContent;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
@@ -32,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Flow;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 public class OpenAIClientTest {
 
@@ -175,6 +179,100 @@ public class OpenAIClientTest {
                     "param": null,
                     "code": "model_not_found"
                 }"""));
+  }
+
+  @Test
+  public void testGetResponsesSuccessWithTextOnly() throws Exception {
+    OpenAIClient.ResponsesRequest responsesRequest =
+        OpenAIClient.ResponsesRequest.builder()
+            .model("gpt-4o-mini")
+            .addUserText("Translate 'Save' to French. Output only the translation.")
+            .build();
+
+    String jsonResponse =
+        """
+        {
+          "id": "resp_abc123",
+          "object": "response",
+          "created_at": 1755702430,
+          "status": "completed",
+          "model": "gpt-4o-mini",
+          "output": [
+            {
+              "id": "msg_abc123",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                { "type": "output_text", "text": "Enregistrer" }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "output_text": ["Enregistrer"]
+        }
+        """;
+
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.body()).thenReturn(jsonResponse);
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    when(mockHttpClient.sendAsync(
+            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
+        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClient.ResponsesResponse responsesResponse =
+        openAIClient.getResponses(responsesRequest, Duration.ofSeconds(5)).join();
+
+    assertNotNull(responsesResponse);
+    assertEquals("resp_abc123", responsesResponse.id());
+    assertEquals("gpt-4o-mini", responsesResponse.model());
+    assertEquals("completed", responsesResponse.status());
+    assertEquals(1, responsesResponse.output().size());
+    assertEquals("Enregistrer", responsesResponse.outputText());
+  }
+
+  @Test
+  public void testGetResponsesRequestError() throws Exception {
+    OpenAIClient.ResponsesRequest responsesRequest =
+        OpenAIClient.ResponsesRequest.builder()
+            .model("gpt-4o-mini")
+            .addUserText("Translate 'Save' to French. Output only the translation.")
+            .build();
+
+    String errorMsg =
+        """
+        {
+          "error": {
+            "message": "Invalid model",
+            "type": "invalid_request_error",
+            "param": "model",
+            "code": "model_not_found"
+          }
+        }
+        """;
+
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(400);
+    when(mockResponse.body()).thenReturn(errorMsg);
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    when(mockHttpClient.sendAsync(
+            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
+        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+
+    OpenAIClient openAIClient =
+        OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    CompletionException completionException =
+        assertThrows(
+            CompletionException.class,
+            () -> openAIClient.getResponses(responsesRequest, Duration.ofSeconds(5)).join());
+    assertEquals("Responses API failed", completionException.getCause().getMessage());
+    assertTrue(completionException.getMessage().contains("Invalid model"));
   }
 
   @Test
@@ -360,6 +458,143 @@ public class OpenAIClientTest {
     byte[] payload = Arrays.copyOfRange(bodyBytes, start, end);
 
     assertArrayEquals(fakePng, payload);
+  }
+
+  @Test
+  public void testUploadVisionAndResponsesWithImageFileId() throws Exception {
+    HttpResponse<String> mockUploadResponse = mock(HttpResponse.class);
+    when(mockUploadResponse.statusCode()).thenReturn(200);
+    when(mockUploadResponse.body())
+        .thenReturn(
+            """
+            {
+              "id": "file_vision_123",
+              "filename": "test.png",
+              "status": "uploaded",
+              "created_at": 1710000000
+            }
+            """);
+
+    HttpResponse<String> mockResponsesResponse = mock(HttpResponse.class);
+    when(mockResponsesResponse.statusCode()).thenReturn(200);
+    when(mockResponsesResponse.body())
+        .thenReturn(
+            """
+            {
+              "id": "resp_abc",
+              "object": "response",
+              "created_at": 1755702430,
+              "status": "completed",
+              "model": "gpt-4.1-mini",
+              "output": [
+                {
+                  "id": "msg_abc",
+                  "type": "message",
+                  "status": "completed",
+                  "content": [
+                    { "type": "output_text", "text": "Enregistrer" }
+                  ],
+                  "role": "assistant"
+                }
+              ],
+              "output_text": ["Enregistrer"]
+            }
+            """);
+
+    HttpClient mockHttpClient = mock(HttpClient.class);
+
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockUploadResponse);
+    when(mockHttpClient.sendAsync(
+            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
+        .thenReturn(CompletableFuture.completedFuture(mockResponsesResponse));
+
+    OpenAIClient client = OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClient.UploadFileResponse uploaded =
+        client.uploadFile(
+            new OpenAIClient.UploadFileRequest(
+                "vision",
+                "test.png",
+                new OpenAIClient.UploadFileRequest.BinaryContent(
+                    new byte[] {(byte) 0x89, 'P', 'N', 'G'}, "image/png")));
+
+    assertEquals("file_vision_123", uploaded.id());
+
+    OpenAIClient.ResponsesRequest rr =
+        OpenAIClient.ResponsesRequest.builder()
+            .model("gpt-4.1-mini")
+            .addUserText("what's in this image?")
+            .addUserImageFileId(uploaded.id())
+            .build();
+
+    OpenAIClient.ResponsesResponse responses =
+        client.getResponses(rr, Duration.ofSeconds(10)).join();
+
+    assertNotNull(responses);
+    assertEquals("completed", responses.status());
+    assertEquals(1, responses.output().size());
+    assertEquals("Enregistrer", responses.output().getFirst().content().getFirst().text());
+    assertEquals("Enregistrer", responses.outputText());
+  }
+
+  @Test
+  public void testResponsesBuilderAccumulatesMultipleMessages() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    HttpResponse<String> mockResponses = mock(HttpResponse.class);
+    when(mockResponses.statusCode()).thenReturn(200);
+    when(mockResponses.body())
+        .thenReturn(
+            """
+            {"id":"resp_ok","object":"response","created_at":1755702430,
+             "status":"completed","model":"gpt-4o-mini","output":[],"output_text":[]}
+            """);
+
+    final CompletableFuture<HttpResponse<String>> cf =
+        CompletableFuture.completedFuture(mockResponses);
+    ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+    when(mockHttpClient.sendAsync(requestCaptor.capture(), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(cf);
+
+    OpenAIClient client = OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
+
+    OpenAIClient.ResponsesRequest rr =
+        OpenAIClient.ResponsesRequest.builder()
+            .model("gpt-4o-mini")
+            .addUserText("First")
+            .addUserImageFileId("file_123")
+            .addUserText("Second")
+            .addUserImageUrl("data:image/png;base64,AAA")
+            .build();
+
+    client.getResponses(rr, Duration.ofSeconds(5)).join();
+
+    HttpRequest sent = requestCaptor.getValue();
+    assertNotNull(sent);
+    assertEquals(URI.create("https://api.openai.com/v1/responses"), sent.uri());
+    assertTrue(sent.bodyPublisher().isPresent());
+    String body = bodyPublisherToString(sent.bodyPublisher().get());
+
+    ObjectMapper om = new ObjectMapper();
+    JsonNode root = om.readTree(body);
+    JsonNode input = root.get("input");
+    assertNotNull(input);
+    assertTrue(input.isArray());
+    assertEquals(4, input.size());
+
+    assertEquals("user", input.get(0).get("role").asText());
+    assertEquals("input_text", input.get(0).get("content").get(0).get("type").asText());
+    assertEquals("First", input.get(0).get("content").get(0).get("text").asText());
+
+    assertEquals("input_image", input.get(1).get("content").get(0).get("type").asText());
+    assertEquals("file_123", input.get(1).get("content").get(0).get("file_id").asText());
+
+    assertEquals("input_text", input.get(2).get("content").get(0).get("type").asText());
+    assertEquals("Second", input.get(2).get("content").get(0).get("text").asText());
+
+    assertEquals("input_image", input.get(3).get("content").get(0).get("type").asText());
+    assertEquals(
+        "data:image/png;base64,AAA", input.get(3).get("content").get(0).get("image_url").asText());
   }
 
   private static String bodyPublisherToString(BodyPublisher bodyPublisher) {
