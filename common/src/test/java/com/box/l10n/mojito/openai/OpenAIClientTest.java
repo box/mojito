@@ -4,11 +4,7 @@ import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.Mod
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.SystemMessage.systemMessageBuilder;
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.UserMessage.userMessageBuilder;
 import static com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsRequest.chatCompletionsRequest;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -16,17 +12,25 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.openai.OpenAIClient.ChatCompletionsResponse;
 import com.box.l10n.mojito.openai.OpenAIClient.OpenAIClientResponseException;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
+import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest.BinaryContent;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Flow;
 import org.junit.jupiter.api.Test;
 
 public class OpenAIClientTest {
@@ -46,7 +50,7 @@ public class OpenAIClientTest {
   }
 
   @Test
-  void testOpenAIClientBuilderApiKeyMustBeProvided() {
+  public void testOpenAIClientBuilderApiKeyMustBeProvided() {
     IllegalStateException illegalStateException =
         assertThrowsExactly(IllegalStateException.class, () -> OpenAIClient.builder().build());
     assertEquals("API key must be provided", illegalStateException.getMessage());
@@ -315,22 +319,104 @@ public class OpenAIClientTest {
   @Test
   public void testFileUploadRequestMultiPartBody() {
     UploadFileRequest uploadFileRequest = UploadFileRequest.forBatch("test.jsonl", "{}\n{}");
-    String actual = uploadFileRequest.getMultipartBody("test-boundary");
+    BodyPublisher bodyPublisher = uploadFileRequest.getMultipartBodyPublisher("test-boundary");
+    String actual = bodyPublisherToString(bodyPublisher);
     assertEquals(
         """
-        --test-boundary\r
-        Content-Disposition: form-data; name="purpose"\r
-        \r
-        batch\r
-        --test-boundary\r
-        Content-Disposition: form-data; name="file"; filename="test.jsonl"\r
-        Content-Type: application/json\r
-        \r
-        {}
-        {}\r
-        --test-boundary--\r
-        """,
+            --test-boundary\r
+            Content-Disposition: form-data; name="purpose"\r
+            \r
+            batch\r
+            --test-boundary\r
+            Content-Disposition: form-data; name="file"; filename="test.jsonl"\r
+            Content-Type: application/json\r
+            \r
+            {}
+            {}\r
+            --test-boundary--\r
+            """,
         actual);
+  }
+
+  @Test
+  public void testFileUploadRequestMultiPartBodyForImage() {
+    byte[] fakePng = new byte[] {(byte) 0x89, 'P', 'N', 'G'}; // minimal header
+
+    UploadFileRequest req =
+        new UploadFileRequest("vision", "test.png", new BinaryContent(fakePng, "image/png"));
+
+    byte[] bodyBytes = bodyPublisherToBytes(req.getMultipartBodyPublisher("img-boundary"));
+    String bodyAsText = new String(bodyBytes, StandardCharsets.UTF_8);
+
+    assertTrue(bodyAsText.contains("Content-Disposition: form-data; name=\"purpose\""));
+    assertTrue(bodyAsText.contains("vision"));
+    assertTrue(bodyAsText.contains("filename=\"test.png\""));
+    assertTrue(bodyAsText.contains("Content-Type: image/png"));
+
+    String marker = "Content-Type: image/png\r\n\r\n";
+    int start = bodyAsText.indexOf(marker) + marker.length();
+    int end = bodyAsText.indexOf("\r\n--img-boundary--", start);
+
+    byte[] payload = Arrays.copyOfRange(bodyBytes, start, end);
+
+    assertArrayEquals(fakePng, payload);
+  }
+
+  private static String bodyPublisherToString(BodyPublisher bodyPublisher) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    bodyPublisher.subscribe(
+        new Flow.Subscriber<>() {
+
+          @Override
+          public void onSubscribe(Flow.Subscription subscription) {
+            subscription.request(Long.MAX_VALUE);
+          }
+
+          @Override
+          public void onNext(ByteBuffer item) {
+            byte[] buf = new byte[item.remaining()];
+            item.get(buf);
+            try {
+              baos.write(buf);
+            } catch (IOException e) {
+              throw new UncheckedIOException(e);
+            }
+          }
+
+          @Override
+          public void onError(Throwable throwable) {}
+
+          @Override
+          public void onComplete() {}
+        });
+    return baos.toString(StandardCharsets.UTF_8);
+  }
+
+  private static byte[] bodyPublisherToBytes(BodyPublisher bodyPublisher) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    bodyPublisher.subscribe(
+        new Flow.Subscriber<>() {
+          @Override
+          public void onSubscribe(Flow.Subscription subscription) {
+            subscription.request(Long.MAX_VALUE);
+          }
+
+          @Override
+          public void onNext(ByteBuffer item) {
+            byte[] buf = new byte[item.remaining()];
+            item.get(buf);
+            baos.writeBytes(buf);
+          }
+
+          @Override
+          public void onError(Throwable throwable) {
+            throw new RuntimeException(throwable);
+          }
+
+          @Override
+          public void onComplete() {}
+        });
+    return baos.toByteArray();
   }
 
   @Test

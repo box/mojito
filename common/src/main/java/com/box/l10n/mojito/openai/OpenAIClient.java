@@ -20,11 +20,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -642,14 +638,14 @@ public class OpenAIClient {
 
     final String boundary = UUID.randomUUID().toString();
 
-    String body = uploadFileRequest.getMultipartBody(boundary);
+    HttpRequest.BodyPublisher body = uploadFileRequest.getMultipartBodyPublisher(boundary);
 
     HttpRequest request =
         HttpRequest.newBuilder()
             .uri(getUriForEndpoint(UploadFileRequest.ENDPOINT))
             .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "multipart/form-data; boundary=" + boundary)
-            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .POST(body)
             .build();
 
     HttpResponse<String> response;
@@ -672,13 +668,26 @@ public class OpenAIClient {
     return uploadFileResponse;
   }
 
-  public record UploadFileRequest(
-      String purpose, String filename, String content, String contentType) {
+  public record UploadFileRequest(String purpose, String filename, FileContent fileContent) {
 
     static final String ENDPOINT = "/v1/files";
 
+    sealed interface FileContent permits TextContent, BinaryContent {
+      String contentType();
+    }
+
+    record TextContent(String value, String contentType) implements FileContent {}
+
+    record BinaryContent(byte[] value, String contentType) implements FileContent {}
+
     public static UploadFileRequest forBatch(String filename, String content) {
-      return new UploadFileRequest(Purpose.BATCH.toString(), filename, content, "application/json");
+      return new UploadFileRequest(
+          Purpose.BATCH.toString(), filename, new TextContent(content, "application/json"));
+    }
+
+    public static UploadFileRequest forVision(String filename, byte[] content, String contentType) {
+      return new UploadFileRequest(
+          Purpose.VISION.toString(), filename, new BinaryContent(content, contentType));
     }
 
     enum Purpose {
@@ -712,22 +721,40 @@ public class OpenAIClient {
       }
     }
 
-    String getMultipartBody(String boundary) {
-      String body =
-          """
-      --%1$s\r
-      Content-Disposition: form-data; name="purpose"\r
-      \r
-      %5$s\r
-      --%1$s\r
-      Content-Disposition: form-data; name="file"; filename="%2$s"\r
-      Content-Type: %3$s\r
-      \r
-      %4$s\r
-      --%1$s--\r
-      """
-              .formatted(boundary, filename, contentType, content, purpose);
-      return body;
+    HttpRequest.BodyPublisher getMultipartBodyPublisher(String boundary) {
+      String part1 =
+          "--"
+              + boundary
+              + "\r\n"
+              + "Content-Disposition: form-data; name=\"purpose\"\r\n\r\n"
+              + purpose
+              + "\r\n";
+
+      String part2Header =
+          "--"
+              + boundary
+              + "\r\n"
+              + "Content-Disposition: form-data; name=\"file\"; filename=\""
+              + filename
+              + "\"\r\n"
+              + "Content-Type: "
+              + fileContent().contentType()
+              + "\r\n\r\n";
+
+      String ending = "\r\n--" + boundary + "--\r\n";
+
+      return switch (fileContent()) {
+        case TextContent t ->
+            HttpRequest.BodyPublishers.ofByteArrays(
+                List.of(
+                    part1.getBytes(),
+                    part2Header.getBytes(),
+                    t.value().getBytes(StandardCharsets.UTF_8),
+                    ending.getBytes()));
+        case BinaryContent b ->
+            HttpRequest.BodyPublishers.ofByteArrays(
+                List.of(part1.getBytes(), part2Header.getBytes(), b.value(), ending.getBytes()));
+      };
     }
   }
 
