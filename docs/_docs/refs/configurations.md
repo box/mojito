@@ -195,6 +195,36 @@ You can override Java system property for user.name with `-Duser.name=admin`.  F
 
     java -Duser.name=admin -jar mojito-cli-<version>.jar <cli-commands>
 
+### CLI Stateless Auth (MSAL)
+
+The CLI can authenticate with Azure AD using MSAL in a stateless mode. Choose one of the providers and set the corresponding properties.
+
+Common flags:
+
+```
+l10n.resttemplate.authentication-mode=STATELESS
+# OR legacy: l10n.resttemplate.authentication-mode=STATEFUL
+```
+
+Providers and properties:
+
+- MSAL_DEVICE_CODE (interactive on the terminal)
+  - `l10n.resttemplate.stateless.provider=MSAL_DEVICE_CODE`
+  - `l10n.resttemplate.stateless.msal.authority=https://login.microsoftonline.com/<tenant-id>`
+  - `l10n.resttemplate.stateless.msal.client-id=<expose-api-client-id>`
+  - `l10n.resttemplate.stateless.msal.scopes=api://<audience>/<scope>`
+
+- MSAL_BROWSER_CODE (interactive via system browser)
+  - `l10n.resttemplate.stateless.provider=MSAL_BROWSER_CODE`
+  - same properties as device code
+
+- MSAL_CLIENT_CREDENTIALS (non-interactive; application permissions)
+  - `l10n.resttemplate.stateless.provider=MSAL_CLIENT_CREDENTIALS`
+  - `l10n.resttemplate.stateless.msal.authority=https://login.microsoftonline.com/<tenant-id>`
+  - `l10n.resttemplate.stateless.msal.client-id=<application-client-id>`
+  - `l10n.resttemplate.stateless.msal.client-secret=<client-credential-client-secret-id>`
+  - `l10n.resttemplate.stateless.msal.scopes=<Application ID URI>/.default`
+
 ## Box Platform Integration
 
 ### Custom Configurations

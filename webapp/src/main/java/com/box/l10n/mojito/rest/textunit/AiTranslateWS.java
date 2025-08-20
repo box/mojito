@@ -60,7 +60,10 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.glossaryTermSourceDescription(),
                 protoAiTranslateRequest.glossaryTermTarget(),
                 protoAiTranslateRequest.glossaryTermTargetDescription(),
-                protoAiTranslateRequest.glossaryOnlyMatchedTextUnits()));
+                protoAiTranslateRequest.glossaryTermDoNotTranslate(),
+                protoAiTranslateRequest.glossaryTermCaseSensitive(),
+                protoAiTranslateRequest.glossaryOnlyMatchedTextUnits(),
+                protoAiTranslateRequest.dryRun()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -82,7 +85,10 @@ public class AiTranslateWS {
       String glossaryTermSourceDescription,
       String glossaryTermTarget,
       String glossaryTermTargetDescription,
-      boolean glossaryOnlyMatchedTextUnits) {}
+      boolean glossaryTermDoNotTranslate,
+      boolean glossaryTermCaseSensitive,
+      boolean glossaryOnlyMatchedTextUnits,
+      boolean dryRun) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 

@@ -62,6 +62,12 @@
             <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>msal4j</artifactId>
+            <version>1.13.8</version>
+        </dependency>
+
     </dependencies>
 
     <build>
