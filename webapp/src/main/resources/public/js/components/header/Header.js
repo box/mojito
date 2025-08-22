@@ -114,12 +114,19 @@ class Header extends React.Component {
                     }}>
                         <NavItem><FormattedMessage id="header.branches"/></NavItem>
                     </LinkContainer>
-                    <LinkContainer to="/screenshots" onClick={() => {
-                        if (this.props.router.isActive("/screenshots")) {
-                            ScreenshotsPageActions.resetScreenshotSearchParams();
-                            ScreenshotsRepositoryActions.getAllRepositories();
-                        }
-                    }}><NavItem><FormattedMessage id="header.screenshots"/></NavItem></LinkContainer>
+                    <LinkContainer to="/screenshots">
+                        <NavItem><FormattedMessage id="header.screenshots"/></NavItem>
+                    </LinkContainer>
+                    {this.props.appConfig.screenshots && this.props.appConfig.screenshots.legacyEnabled && (
+                        <LinkContainer to="/screenshots-legacy" onClick={() => {
+                            if (this.props.router.isActive("/screenshots-legacy")) {
+                                ScreenshotsPageActions.resetScreenshotSearchParams();
+                                ScreenshotsRepositoryActions.getAllRepositories();
+                            }
+                        }}>
+                            <NavItem>Screenshots (legacy)</NavItem>
+                        </LinkContainer>
+                    )}
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={this.getUsernameDisplay()} id="user-menu">

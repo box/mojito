@@ -451,6 +451,15 @@ div.textunit label {
     color: $brand-success;
 }
 
+.textunit:hover .textunit-screenshot {
+    visibility: visible;
+}
+
+.textunit-name .textunit-screenshot {
+    visibility: hidden;
+    color: $brand-success;
+}
+
 .textunit-returnline {
     color: $brand-primary;
     font-size: 10px;
@@ -481,6 +490,17 @@ div.textunit label {
 .ai-review-modal .modal-dialog {
     max-width: 100%;
     width: 90%;
+}
+
+// Screenshot preview modal sizing
+.screenshot-modal .modal-dialog {
+    max-width: 100%;
+    width: 90%;
+}
+
+.screenshot-modal .modal-body {
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 

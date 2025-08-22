@@ -97,7 +97,7 @@ public class AiTranslateService {
 
   static final String METADATA__TEXT_UNIT_DTOS__BLOB_ID = "textUnitDTOs";
   static final Integer MAX_COMPLETION_TOKENS = null;
-  static final int CHAT_COMPLETION_REQUEST_TIMEOUT = 15;
+  static final int CHAT_COMPLETION_REQUEST_TIMEOUT = 60;
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiTranslateService.class);

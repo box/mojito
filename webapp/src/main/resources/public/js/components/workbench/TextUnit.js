@@ -92,7 +92,10 @@ let TextUnit = createReactClass({
             "isCancelConfirmShown": false,
 
             /** @type {TextUnitError} */
-            "error": null
+            "error": null,
+
+            /** @type {string|null} */
+            "screenshotUuid": null
         };
     },
 
@@ -666,6 +669,30 @@ let TextUnit = createReactClass({
         AiReviewActions.openWithTextUnit(this.props.textUnit);
     },
 
+    onScreenshotClick(e){
+        e.stopPropagation();
+        const uuid = this.getScreenshotUuidFromComment();
+        if (uuid) {
+            this.setState({ screenshotUuid: uuid });
+        }
+    },
+
+    closeScreenshotModal(){
+        this.setState({ screenshotUuid: null });
+    },
+
+    /**
+     * Extracts a screenshot UUID from the text unit comment if present.
+     * Looks for pattern s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+     * @returns {string|null}
+     */
+    getScreenshotUuidFromComment() {
+        const comment = this.props.textUnit.getComment && this.props.textUnit.getComment();
+        if (!comment) return null;
+        const m = comment.match(/\bs:([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b/);
+        return m ? m[1] : null;
+    },
+
     /**
      * Handle click on the asset path icon: stop event propagation (no need to bubble
      * up as we're reloading the workbench with new data) and update the search
@@ -870,6 +897,9 @@ let TextUnit = createReactClass({
         let aiReviewTooltip =
             <Tooltip id={`${id}-${locale}-ai-review`}>{this.props.intl.formatMessage( {id: 'workbench.aiReviewModal.info'} )}</Tooltip>;
 
+        let screenshotUuid = this.getScreenshotUuidFromComment();
+        let screenshotTooltip = <Tooltip id={`${id}-${locale}-screenshot`}>Screenshot</Tooltip>;
+
 
         // Only show the overlay trigger for the translation history if there is a current text unit variant (ie. there is
         // at least one translation) If not, we have no history to show anyways!
@@ -898,6 +928,13 @@ let TextUnit = createReactClass({
                         <span className="textunit-ai-review glyphicon glyphicon-flash mls"
                               onClick={this.onAiReviewClick} />
                     </OverlayTrigger>
+
+                    {screenshotUuid && (
+                        <OverlayTrigger placement="top" overlay={screenshotTooltip}>
+                            <span className="textunit-screenshot glyphicon glyphicon-picture mls"
+                                  onClick={this.onScreenshotClick} />
+                        </OverlayTrigger>
+                    )}
                 </span>
         );
     },
@@ -1069,8 +1106,18 @@ let TextUnit = createReactClass({
                             </span>
                         </div>
                     </div>
-                </div>
+            </div>
                 {this.getTextUnitReviewModal()}
+                {this.state.screenshotUuid && (
+                    <Modal show={true} onHide={this.closeScreenshotModal}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Screenshot</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <img src={`api/images/${this.state.screenshotUuid}`} alt="screenshot" style={{maxWidth: '100%', height: 'auto'}} />
+                        </Modal.Body>
+                    </Modal>
+                )}
                 {this.getCancelConfirmationModel()}
             </div>
         );
