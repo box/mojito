@@ -16,6 +16,7 @@ import Repositories from "./components/repositories/Repositories";
 import BranchesPage from "./components/branches/BranchesPage";
 import Drops from "./components/drops/Drops";
 import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
+import ScreenshotDropzonePage from "./components/screenshots/ScreenshotDropzonePage";
 import UserManagement from "./components/users/UserManagement";
 import Settings from "./components/settings/Settings";
 import BoxSettings from "./components/settings/BoxSettings";
@@ -118,7 +119,8 @@ function startApp(messages) {
                             <Route path="branches" component={BranchesPage}
                                    onEnter={onEnterBranches}
                                    onLeave={BranchesPageActions.resetBranchesSearchParams}/>
-                            <Route path="screenshots" component={ScreenshotsPage}
+                            <Route path="screenshots" component={ScreenshotDropzonePage}/>
+                            <Route path="screenshots-legacy" component={ScreenshotsPage}
                                    onEnter={onEnterScreenshots}
                                    onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
                             <Route path="settings" component={Settings} onEnter={onEnterSettings} onChange={onChangeSettings}>
@@ -265,7 +267,7 @@ function loadBasedOnLocation(location) {
         }
     }
 
-    if (location.pathname === '/screenshots' && location.action === 'POP') {
+    if (location.pathname === '/screenshots-legacy' && location.action === 'POP') {
         ScreenshotsHistoryStore.initStoreFromLocationQuery(location.query);
     }
 
@@ -276,7 +278,7 @@ function loadBasedOnLocation(location) {
 
 function onScreenshotsHistoryStoreChange() {
     if (!ScreenshotsHistoryStore.getState().skipLocationHistoryUpdate) {
-        LocationHistory.updateLocation(browserHistory, "/screenshots", ScreenshotsHistoryStore.getQueryParams());
+        LocationHistory.updateLocation(browserHistory, "/screenshots-legacy", ScreenshotsHistoryStore.getQueryParams());
     }
 }
 

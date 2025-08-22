@@ -17,6 +17,8 @@ public class ReactStaticAppConfig {
 
   @Autowired ReactStatelessSecurityConfig stateless;
 
+  @Autowired ScreenshotsUiConfig screenshots;
+
   public LinkConfig getLink() {
     return link;
   }
@@ -55,5 +57,13 @@ public class ReactStaticAppConfig {
 
   public void setStateless(ReactStatelessSecurityConfig stateless) {
     this.stateless = stateless;
+  }
+
+  public ScreenshotsUiConfig getScreenshots() {
+    return screenshots;
+  }
+
+  public void setScreenshots(ScreenshotsUiConfig screenshots) {
+    this.screenshots = screenshots;
   }
 }

@@ -128,6 +128,7 @@ public class WebSecurityJWTConfig {
                 "/workbench",
                 "/branches",
                 "/screenshots",
+                "/screenshots-legacy",
                 "/settings/**"));
 
     // forwarding was for the old implementation and is not needed anymore so

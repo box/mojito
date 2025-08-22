@@ -78,9 +78,10 @@ public class ReactAppController {
     "workbench",
     "branches",
     "screenshots",
+    "screenshots-legacy",
     "settings",
     "settings/user-management",
-    "settings/box"
+    "settings/box",
   })
   ResponseEntity<String> getIndex(
       HttpServletRequest httpServletRequest,
