@@ -194,6 +194,12 @@ public class RepositoryAiTranslationCommand extends Command {
       description = "Download report JSON files (only works in non-batch mode)")
   boolean downloadReport = false;
 
+  @Parameter(
+      names = {"--timeout-seconds"},
+      arity = 1,
+      description = "Timeout in seconds for each translation request (non-batch mode)")
+  Integer timeoutSeconds;
+
   @Parameter(names = "--dry-run", description = "Perform a dry-run")
   boolean dryRun = false;
 
@@ -305,7 +311,8 @@ public class RepositoryAiTranslationCommand extends Command {
                   glossaryTermDoNotTranslate,
                   glossaryTermCaseSensitive,
                   glossaryOnlyMatchedTextUnits,
-                  dryRun));
+                  dryRun,
+                  timeoutSeconds));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
       if (useBatch) {
