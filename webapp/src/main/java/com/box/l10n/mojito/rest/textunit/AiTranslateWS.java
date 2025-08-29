@@ -63,7 +63,8 @@ public class AiTranslateWS {
                 protoAiTranslateRequest.glossaryTermDoNotTranslate(),
                 protoAiTranslateRequest.glossaryTermCaseSensitive(),
                 protoAiTranslateRequest.glossaryOnlyMatchedTextUnits(),
-                protoAiTranslateRequest.dryRun()));
+                protoAiTranslateRequest.dryRun(),
+                protoAiTranslateRequest.timeoutSeconds()));
 
     return new ProtoAiTranslateResponse(pollableFuture.getPollableTask());
   }
@@ -88,7 +89,8 @@ public class AiTranslateWS {
       boolean glossaryTermDoNotTranslate,
       boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits,
-      boolean dryRun) {}
+      boolean dryRun,
+      Integer timeoutSeconds) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 

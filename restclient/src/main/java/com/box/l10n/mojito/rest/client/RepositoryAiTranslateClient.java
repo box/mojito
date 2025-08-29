@@ -69,7 +69,8 @@ public class RepositoryAiTranslateClient extends BaseClient {
       boolean glossaryTermDoNotTranslate,
       boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits,
-      boolean dryRun) {}
+      boolean dryRun,
+      Integer timeoutSeconds) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
 

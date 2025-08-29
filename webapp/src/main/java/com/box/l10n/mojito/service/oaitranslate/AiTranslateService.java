@@ -97,7 +97,7 @@ public class AiTranslateService {
 
   static final String METADATA__TEXT_UNIT_DTOS__BLOB_ID = "textUnitDTOs";
   static final Integer MAX_COMPLETION_TOKENS = null;
-  static final int CHAT_COMPLETION_REQUEST_TIMEOUT = 60;
+  static final int CHAT_COMPLETION_REQUEST_TIMEOUT = 15;
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(AiTranslateService.class);
@@ -198,7 +198,8 @@ public class AiTranslateService {
       boolean glossaryTermDoNotTranslate,
       boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits,
-      boolean dryRun) {}
+      boolean dryRun,
+      Integer timeoutSeconds) {}
 
   public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
 
@@ -422,11 +423,15 @@ public class AiTranslateService {
 
         ResponsesRequest responsesRequest = requestBuilder.build();
 
+        int timeout =
+            aiTranslateInput.timeoutSeconds() == null
+                ? CHAT_COMPLETION_REQUEST_TIMEOUT
+                : aiTranslateInput.timeoutSeconds();
+
         CompletableFuture<ResponsesResponse> responsesResponseCompletableFuture =
             openAIClientPool.submit(
                 openAIClient ->
-                    openAIClient.getResponses(
-                        responsesRequest, Duration.ofSeconds(CHAT_COMPLETION_REQUEST_TIMEOUT)));
+                    openAIClient.getResponses(responsesRequest, Duration.ofSeconds(timeout)));
 
         TextextUnitsByScreenshotWithResponsesResponse
             textextUnitsByScreenshotWithResponsesResponse =
