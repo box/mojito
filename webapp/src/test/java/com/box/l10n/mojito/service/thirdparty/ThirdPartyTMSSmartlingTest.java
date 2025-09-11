@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -198,12 +199,11 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             anyString(),
             anyString(),
             anyString());
-    doReturn(null)
-        .when(mockTextUnitBatchImporterService)
-        .importTextUnits(
-            any(),
+    when(mockTextUnitBatchImporterService.importTextUnits(
+            anyList(),
             eq(fromLegacy(false, true)),
-            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
+            eq(TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT)))
+        .thenReturn(null);
     resultProcessor = new StubSmartlingResultProcessor();
     tmsSmartling =
         new ThirdPartyTMSSmartling(

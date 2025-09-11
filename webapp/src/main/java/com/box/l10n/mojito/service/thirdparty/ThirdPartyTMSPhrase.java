@@ -8,9 +8,7 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentReader;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter.EscapeType;
-import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.thirdparty.phrase.PhraseClient;
@@ -492,10 +490,26 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
     // communicate some comments, but anyway it should not be the source comment
     textUnitDTOS.forEach(t -> t.setComment(null));
 
-    Stopwatch importStopWatch = Stopwatch.createStarted();
+    List<TextUnitBatchImporterService.TextUnitDTOWithVariantComment>
+        textUnitDTOWithVariantComments =
+            textUnitDTOS.stream()
+                .map(
+                    t -> {
+                      t.setStatus(TMTextUnitVariant.Status.REVIEW_NEEDED);
+                      TMTextUnitVariantComment tmTextUnitVariantComment =
+                          new TMTextUnitVariantComment();
+                      tmTextUnitVariantComment.setType(
+                          TMTextUnitVariantComment.Type.THIRD_PARTY_TMS_PULL);
+                      tmTextUnitVariantComment.setSeverity(TMTextUnitVariantComment.Severity.INFO);
+                      tmTextUnitVariantComment.setContent("Import from Phrase Strings");
+                      return new TextUnitBatchImporterService.TextUnitDTOWithVariantComment(
+                          t, tmTextUnitVariantComment);
+                    })
+                .toList();
 
-    textUnitBatchImporterService.importTextUnits(
-        textUnitDTOS, integrityChecksType, SKIP_IF_ACCEPTED);
+    Stopwatch importStopWatch = Stopwatch.createStarted();
+    textUnitBatchImporterService.importTextUnitsWithVariantComment(
+        textUnitDTOWithVariantComments, integrityChecksType, SKIP_IF_ACCEPTED);
     logger.info("Time importing text units: {}", importStopWatch.elapsed());
   }
 
