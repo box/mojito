@@ -129,7 +129,9 @@ public class RepositoryMachineTranslationService {
                         .collect(Collectors.toList());
 
                 textUnitBatchImporterService.importTextUnits(
-                    machineTranslatedTextUnitDTOs, fromLegacy(false, true));
+                    machineTranslatedTextUnitDTOs,
+                    fromLegacy(false, true),
+                    TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
               });
     }
 
