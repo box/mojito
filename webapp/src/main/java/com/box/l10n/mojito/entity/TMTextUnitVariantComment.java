@@ -49,7 +49,8 @@ public class TMTextUnitVariantComment extends AuditableEntity {
     LEVERAGING,
     INTEGRITY_CHECK,
     AI_TRANSLATE,
-    QUALITY_CHECK
+    QUALITY_CHECK,
+    THIRD_PARTY_TMS_PULL,
   }
 
   public enum Severity {
