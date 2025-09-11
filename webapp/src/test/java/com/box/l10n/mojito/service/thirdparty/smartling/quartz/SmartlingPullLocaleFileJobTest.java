@@ -86,7 +86,10 @@ public class SmartlingPullLocaleFileJobTest {
             anyString());
     doReturn(null)
         .when(textUnitBatchImporterServiceMock)
-        .importTextUnits(any(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            any(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
 
     RetryBackoffSpec retryConfiguration =
         Retry.backoff(10, Duration.ofMillis(1)).maxBackoff(Duration.ofMillis(10));
@@ -133,7 +136,10 @@ public class SmartlingPullLocaleFileJobTest {
     smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
 
     verify(textUnitBatchImporterServiceMock, times(1))
-        .importTextUnits(textUnitListCaptor.capture(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            textUnitListCaptor.capture(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
 
     List<TextUnitDTO> captured = textUnitListCaptor.getValue();
 
@@ -187,7 +193,10 @@ public class SmartlingPullLocaleFileJobTest {
     smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
 
     verify(textUnitBatchImporterServiceMock, times(1))
-        .importTextUnits(textUnitListCaptor.capture(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            textUnitListCaptor.capture(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
 
     List<TextUnitDTO> captured = textUnitListCaptor.getValue();
 
@@ -252,7 +261,10 @@ public class SmartlingPullLocaleFileJobTest {
     smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
 
     verify(textUnitBatchImporterServiceMock, times(1))
-        .importTextUnits(textUnitListCaptor.capture(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            textUnitListCaptor.capture(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
 
     List<TextUnitDTO> captured = textUnitListCaptor.getValue();
 
@@ -320,7 +332,10 @@ public class SmartlingPullLocaleFileJobTest {
     smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
 
     verify(textUnitBatchImporterServiceMock, times(0))
-        .importTextUnits(textUnitListCaptor.capture(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            textUnitListCaptor.capture(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
   }
 
   @Test(expected = SmartlingClientException.class)
@@ -371,7 +386,10 @@ public class SmartlingPullLocaleFileJobTest {
     smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
 
     verify(textUnitBatchImporterServiceMock, times(0))
-        .importTextUnits(textUnitListCaptor.capture(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            textUnitListCaptor.capture(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
 
     verify(thirdPartyFileChecksumRepositoryMock, times(0)).save(any(ThirdPartyFileChecksum.class));
   }
@@ -413,7 +431,10 @@ public class SmartlingPullLocaleFileJobTest {
     smartlingPullLocaleFileJob.call(smartlingPullLocaleFileJobInput);
 
     verify(textUnitBatchImporterServiceMock, times(1))
-        .importTextUnits(textUnitListCaptor.capture(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            textUnitListCaptor.capture(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
 
     verify(thirdPartyFileChecksumRepositoryMock, times(1)).save(any(ThirdPartyFileChecksum.class));
   }

@@ -253,7 +253,9 @@ public class ThirdPartyTMSSmartlingWithJson {
                             });
 
                     textUnitBatchImporterService.importTextUnits(
-                        textUnitDTOS, fromLegacy(false, true));
+                        textUnitDTOS,
+                        fromLegacy(false, true),
+                        TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
                   });
         });
   }

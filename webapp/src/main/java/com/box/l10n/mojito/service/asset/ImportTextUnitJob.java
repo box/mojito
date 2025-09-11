@@ -28,7 +28,10 @@ public class ImportTextUnitJob extends QuartzPollableJob<ImportTextUnitJobInput,
     logger.debug("Run ImportTextUnitJob");
     List<TextUnitDTO> textUnitDTOs = input.getTextUnitDTOs();
 
-    textUnitBatchImporterService.importTextUnits(textUnitDTOs, input.getIntegrityChecksType());
+    textUnitBatchImporterService.importTextUnits(
+        textUnitDTOs,
+        input.getIntegrityChecksType(),
+        TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
     return null;
   }
 }

@@ -200,7 +200,10 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             anyString());
     doReturn(null)
         .when(mockTextUnitBatchImporterService)
-        .importTextUnits(any(), eq(fromLegacy(false, true)));
+        .importTextUnits(
+            any(),
+            eq(fromLegacy(false, true)),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
     resultProcessor = new StubSmartlingResultProcessor();
     tmsSmartling =
         new ThirdPartyTMSSmartling(

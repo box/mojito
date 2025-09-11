@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.ImportMode.SKIP_IF_ACCEPTED;
+
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.android.strings.AndroidStringDocument;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
@@ -492,7 +494,8 @@ public class ThirdPartyTMSPhrase implements ThirdPartyTMS {
 
     Stopwatch importStopWatch = Stopwatch.createStarted();
 
-    textUnitBatchImporterService.importTextUnits(textUnitDTOS, integrityChecksType);
+    textUnitBatchImporterService.importTextUnits(
+        textUnitDTOS, integrityChecksType, SKIP_IF_ACCEPTED);
     logger.info("Time importing text units: {}", importStopWatch.elapsed());
   }
 

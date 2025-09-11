@@ -150,7 +150,9 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
                       .collect(ImmutableList.toImmutableList());
 
               textUnitBatchImporterService.importTextUnits(
-                  localizedTextUnitDTOs, fromLegacy(false, false));
+                  localizedTextUnitDTOs,
+                  fromLegacy(false, false),
+                  TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
             });
 
     SmartlingOptions smartlingOptions = SmartlingOptions.parseList(ImmutableList.of());
@@ -389,7 +391,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
     ArgumentCaptor<ImmutableList<TextUnitDTO>> dtoListCaptor =
         ArgumentCaptor.forClass(ImmutableList.class);
     Mockito.verify(textUnitBatchImporterServiceMock, times(1))
-        .importTextUnits(dtoListCaptor.capture(), any());
+        .importTextUnits(
+            dtoListCaptor.capture(), any(), TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
     ImmutableList<TextUnitDTO> translatedUnits = dtoListCaptor.getValue();
 
     // Expecting two fully translated units
@@ -412,7 +415,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
     dtoListCaptor = ArgumentCaptor.forClass(ImmutableList.class);
     Mockito.verify(textUnitBatchImporterServiceMock, times(2))
-        .importTextUnits(dtoListCaptor.capture(), any());
+        .importTextUnits(
+            dtoListCaptor.capture(), any(), TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
     translatedUnits = dtoListCaptor.getValue();
 
     // Expecting two fully translated units

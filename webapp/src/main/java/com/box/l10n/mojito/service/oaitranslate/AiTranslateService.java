@@ -16,6 +16,7 @@ import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest;
 import static com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
 import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Prefix.AI_TRANSALATE_NO_BATCH_OUTPUT;
 import static com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage.Prefix.AI_TRANSLATE_WS;
+import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
@@ -548,7 +549,8 @@ public class AiTranslateService {
                           .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
                           .toList(),
                       TextUnitBatchImporterService.IntegrityChecksType
-                          .KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED)
+                          .KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED,
+                      ALWAYS_IMPORT)
                   .stream()
                   .collect(
                       toMap(
@@ -971,7 +973,8 @@ public class AiTranslateService {
             .map(TextUnitDTOWithVariantCommentOrError::textUnitDTOWithVariantComment)
             .toList(),
         TextUnitBatchImporterService.IntegrityChecksType
-            .KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED);
+            .KEEP_STATUS_IF_SAME_TARGET_AND_NOT_INCLUDED,
+        ALWAYS_IMPORT);
 
     return forImport.stream()
         .filter(t -> t.error() != null)
