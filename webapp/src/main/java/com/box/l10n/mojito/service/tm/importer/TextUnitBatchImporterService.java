@@ -102,6 +102,11 @@ public class TextUnitBatchImporterService {
   @Value("${l10n.textUnitBatchImporterService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
+  public enum ImportMode {
+    SKIP_IF_ACCEPTED,
+    ALWAYS_IMPORT
+  }
+
   public enum IntegrityChecksType {
     /** Don't run integrity checks */
     SKIP,
@@ -180,7 +185,8 @@ public class TextUnitBatchImporterService {
   @StopWatch
   public List<ImportResult> importTextUnitsWithVariantComment(
       List<TextUnitDTOWithVariantComment> textUnitDTOWithVariantComments,
-      IntegrityChecksType integrityChecksType) {
+      IntegrityChecksType integrityChecksType,
+      ImportMode importMode) {
 
     return meterRegistry
         .timer("TextUnitBatchImporterService.importTextUnits")
@@ -232,7 +238,7 @@ public class TextUnitBatchImporterService {
                                     }
                                     List<ImportResult> addTMTextUnitCurrentVariantResults =
                                         importTextUnitsOfLocaleAndAsset(
-                                            locale, asset, textUnitsForBatchImport);
+                                            locale, asset, textUnitsForBatchImport, importMode);
 
                                     return addTMTextUnitCurrentVariantResults.stream();
                                   }
@@ -243,10 +249,13 @@ public class TextUnitBatchImporterService {
   }
 
   public List<ImportResult> importTextUnits(
-      List<TextUnitDTO> textUnitDTOs, IntegrityChecksType integrityChecksType) {
+      List<TextUnitDTO> textUnitDTOs,
+      IntegrityChecksType integrityChecksType,
+      ImportMode noImportForAccepted) {
     return importTextUnitsWithVariantComment(
         textUnitDTOs.stream().map(t -> new TextUnitDTOWithVariantComment(t, null)).toList(),
-        integrityChecksType);
+        integrityChecksType,
+        noImportForAccepted);
   }
 
   /**
@@ -273,7 +282,10 @@ public class TextUnitBatchImporterService {
   @StopWatch
   @Transactional
   List<ImportResult> importTextUnitsOfLocaleAndAsset(
-      Locale locale, Asset asset, List<TextUnitForBatchMatcherImport> textUnitsToImport) {
+      Locale locale,
+      Asset asset,
+      List<TextUnitForBatchMatcherImport> textUnitsToImport,
+      ImportMode importMode) {
     ZonedDateTime importTime = JSR310Migration.newDateTimeEmptyCtor();
     logger.info(
         "Start import text units for asset: {}, locale: {}, count: {}",
@@ -297,7 +309,7 @@ public class TextUnitBatchImporterService {
                     TextUnitForBatchMatcherImport::getName))
             .filter(
                 logIfFalse(
-                    this::isUpdateNeeded,
+                    t -> isUpdateNeeded(t, importMode),
                     logger,
                     "Update not needed, skip: {}",
                     TextUnitForBatchMatcherImport::getName))
@@ -308,18 +320,37 @@ public class TextUnitBatchImporterService {
                       textUnitForBatchImport.getName(),
                       textUnitForBatchImport.getContent());
 
+                  // Important: this path runs only when the translation must be added or updated.
+                  // The previous filter already decided that via isUpdateNeeded(t, importMode).
+
                   TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
 
                   TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
                   if (currentTextUnit.getTmTextUnitCurrentVariantId() != null) {
-                    // this is making many calls!
+                    // This causes N+1 queries (N = number of text units to import).
+                    //
+                    // To batch fetch, we would first collect all candidate text units in this
+                    // stream,
+                    // then load the TMTextUnitCurrentVariant records in one shot, and finally run
+                    // the import.
+                    //
+                    // In practice this runs only for new or updated strings, so volume is usually
+                    // low,
+                    // except during the first initial import if large. We also delay fetching
+                    // because the
+                    // prior filter decides what actually needs import. Prefetching here would
+                    // overfetch.
+
                     tmTextUnitCurrentVariant =
                         tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
                             currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
                   }
 
+                  AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantResult;
+                  List<TMTextUnitVariantComment> tmTextUnitVariantComments = null;
+
                   User importedBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
-                  AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantResult =
+                  addTMTextUnitCurrentVariantResult =
                       tmService.addTMTextUnitCurrentVariantWithResult(
                           tmTextUnitCurrentVariant,
                           asset.getRepository().getTm().getId(),
@@ -333,8 +364,6 @@ public class TextUnitBatchImporterService {
                           importTime,
                           importedBy);
 
-                  List<TMTextUnitVariantComment> tmTextUnitVariantComments = null;
-
                   if (addTMTextUnitCurrentVariantResult.isTmTextUnitCurrentVariantUpdated()) {
 
                     Long tmTextUnitVariantId =
@@ -346,19 +375,15 @@ public class TextUnitBatchImporterService {
                     tmTextUnitVariantComments =
                         textUnitForBatchImport.getTmTextUnitVariantComments().stream()
                             .map(
-                                tmTextUnitVariantComment -> {
-
-                                  /// how can this be null!
-                                  return tmMTextUnitVariantCommentService.addComment(
-                                      tmTextUnitVariantId,
-                                      tmTextUnitVariantComment.getType(),
-                                      tmTextUnitVariantComment.getSeverity(),
-                                      tmTextUnitVariantComment.getContent());
-                                })
+                                tmTextUnitVariantComment ->
+                                    tmMTextUnitVariantCommentService.addComment(
+                                        tmTextUnitVariantId,
+                                        tmTextUnitVariantComment.getType(),
+                                        tmTextUnitVariantComment.getSeverity(),
+                                        tmTextUnitVariantComment.getContent()))
                             .toList();
                   }
 
-                  // we don't have the comments which is very useful
                   return new ImportResult(
                       addTMTextUnitCurrentVariantResult, tmTextUnitVariantComments);
                 })
@@ -372,9 +397,14 @@ public class TextUnitBatchImporterService {
       List<TMTextUnitVariantComment> tmTextUnitVariantComments) {}
   ;
 
-  boolean isUpdateNeeded(TextUnitForBatchMatcherImport textUnitForBatchImport) {
-
+  boolean isUpdateNeeded(
+      TextUnitForBatchMatcherImport textUnitForBatchImport, ImportMode importMode) {
     TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
+
+    if (ImportMode.SKIP_IF_ACCEPTED.equals(importMode)
+        && currentTextUnit.getStatus().equals(Status.APPROVED)) {
+      return false;
+    }
 
     return currentTextUnit.getTarget() == null
         || tmService.isUpdateNeededForTmTextUnitVariant(

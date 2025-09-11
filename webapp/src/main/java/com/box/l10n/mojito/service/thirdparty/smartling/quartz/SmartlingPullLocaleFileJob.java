@@ -113,7 +113,10 @@ public class SmartlingPullLocaleFileJob
       if (!input.isDryRun()) {
         logger.debug("Importing text units for locale: {}", smartlingLocale);
 
-        textUnitBatchImporterService.importTextUnits(textUnits, fromLegacy(false, true));
+        textUnitBatchImporterService.importTextUnits(
+            textUnits,
+            fromLegacy(false, true),
+            TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
       }
     }
     return null;
