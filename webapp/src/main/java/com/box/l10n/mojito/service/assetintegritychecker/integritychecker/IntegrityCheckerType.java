@@ -7,6 +7,7 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
  */
 public enum IntegrityCheckerType {
   MESSAGE_FORMAT(MessageFormatIntegrityChecker.class.getName()),
+  FLUENT(FluentIntegrityChecker.class.getName()),
   MESSAGE_FORMAT_DOUBLE_BRACES(MessageFormatDoubleBracesIntegrityChecker.class.getName()),
   PRINTF_LIKE(PrintfLikeIntegrityChecker.class.getName()),
   SIMPLE_PRINTF_LIKE(SimplePrintfLikeIntegrityChecker.class.getName()),
