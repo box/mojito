@@ -26,6 +26,10 @@ import AuthorityService from "../../utils/AuthorityService";
 import AIReviewModal from "./AIReviewModal";
 import AiReviewActions from "../../actions/workbench/AiReviewActions";
 import AIReviewStore from "../../stores/workbench/AiReviewStore";
+import ExportSearchResultsButton from "./ExportSearchResultsButton";
+import ExportSearchResultsModal from "./ExportSearchResultsModal";
+import ExportSearchResultsActions from "../../actions/workbench/ExportSearchResultsActions";
+import ExportSearchResultsStore from "../../stores/workbench/ExportSearchResultsStore";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -41,6 +45,7 @@ let Workbench = createReactClass({
                 <SearchText />
                 <StatusDropdown/>
                 <ShareSearchParamsButton onClick={ShareSearchParamsModalActions.open}/>
+                <ExportSearchResultsButton onClick={ExportSearchResultsActions.open}/>
 
                 <div className="mtl mbl">
                     <SearchResults />
@@ -87,6 +92,11 @@ let Workbench = createReactClass({
                                 .then(ShareSearchParamsModalActions.close)
                                 .catch(err => ShareSearchParamsModalActions.setError(ShareSearchParamsModalStore.ERROR_TYPES.COPY_TO_CLIPBOARD));
                         }}/>
+                </AltContainer>
+                <AltContainer store={ExportSearchResultsStore}>
+                    <ExportSearchResultsModal
+                        onClose={ExportSearchResultsActions.close}
+                    />
                 </AltContainer>
             </div>
         );

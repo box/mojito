@@ -159,6 +159,11 @@ a.label-container:hover {
     opacity: 0.5;
 }
 
+.modal-dialog.workbench-export-modal {
+    width: 80%;
+    max-width: 1100px;
+}
+
 .dropdown-menu {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
