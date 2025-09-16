@@ -47,6 +47,15 @@ const EXPORTABLE_FIELDS = [
     {name: "used", labelId: "workbench.export.fields.used"},
 ];
 
+const EXPORT_FIELD_PRIORITY = [
+    "targetLocale",
+    "source",
+    "comment",
+    "target",
+    "repositoryName",
+    "tmTextUnitId",
+];
+
 const FIELD_EXTRACTORS = {
     "tmTextUnitId": (textUnit) => textUnit.getTmTextUnitId(),
     "tmTextUnitVariantId": (textUnit) => textUnit.getTmTextUnitVariantId(),
@@ -147,13 +156,16 @@ class ExportSearchResultsModal extends React.Component {
 
         try {
             const textUnits = await this.fetchAllTextUnits(textUnitSearcherParameters, parsedLimit);
-            const rows = this.buildRows(textUnits, selectedFields);
+            const fieldsForExport = EXPORT_FIELD_PRIORITY
+                .filter(field => selectedFields.indexOf(field) !== -1)
+                .concat(selectedFields.filter(field => EXPORT_FIELD_PRIORITY.indexOf(field) === -1));
+            const rows = this.buildRows(textUnits, fieldsForExport);
 
             let blob;
             let extension;
 
             if (format === EXPORT_FORMATS.CSV) {
-                const csv = this.convertRowsToCsv(rows, selectedFields);
+                const csv = this.convertRowsToCsv(rows, fieldsForExport);
                 blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
                 extension = "csv";
             } else {
