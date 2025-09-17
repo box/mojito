@@ -30,6 +30,10 @@ import ExportSearchResultsButton from "./ExportSearchResultsButton";
 import ExportSearchResultsModal from "./ExportSearchResultsModal";
 import ExportSearchResultsActions from "../../actions/workbench/ExportSearchResultsActions";
 import ExportSearchResultsStore from "../../stores/workbench/ExportSearchResultsStore";
+import ImportSearchResultsButton from "./ImportSearchResultsButton";
+import ImportSearchResultsModal from "./ImportSearchResultsModal";
+import ImportSearchResultsActions from "../../actions/workbench/ImportSearchResultsActions";
+import ImportSearchResultsStore from "../../stores/workbench/ImportSearchResultsStore";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -46,6 +50,7 @@ let Workbench = createReactClass({
                 <StatusDropdown/>
                 <ShareSearchParamsButton onClick={ShareSearchParamsModalActions.open}/>
                 <ExportSearchResultsButton onClick={ExportSearchResultsActions.open}/>
+                <ImportSearchResultsButton onClick={ImportSearchResultsActions.open}/>
 
                 <div className="mtl mbl">
                     <SearchResults />
@@ -96,6 +101,11 @@ let Workbench = createReactClass({
                 <AltContainer store={ExportSearchResultsStore}>
                     <ExportSearchResultsModal
                         onClose={ExportSearchResultsActions.close}
+                    />
+                </AltContainer>
+                <AltContainer store={ImportSearchResultsStore}>
+                    <ImportSearchResultsModal
+                        onClose={ImportSearchResultsActions.close}
                     />
                 </AltContainer>
             </div>
