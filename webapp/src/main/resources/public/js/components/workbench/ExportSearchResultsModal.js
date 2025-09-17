@@ -1,10 +1,12 @@
 import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
-import {Alert, Button, ControlLabel, FormControl, FormGroup, Modal} from "react-bootstrap";
+import {Alert, Button, Checkbox, ControlLabel, FormControl, FormGroup, HelpBlock, Modal} from "react-bootstrap";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import {buildTextUnitSearcherParameters} from "../../utils/TextUnitSearcherParametersBuilder";
 import TextUnitClient from "../../sdk/TextUnitClient";
+import RepositoryStore from "../../stores/RepositoryStore";
+import {buildZipFile} from "../../utils/ZipBuilder";
 
 const DEFAULT_LIMIT = 10000;
 const DEFAULT_FIELDS = [
@@ -98,13 +100,36 @@ class ExportSearchResultsModal extends React.Component {
     }
 
     getDefaultState() {
+        const {availableLocales, defaultSelectedLocales} = this.getInitialLocales();
         return {
             selectedFields: DEFAULT_FIELDS.slice(),
             limit: DEFAULT_LIMIT.toString(),
             isExporting: false,
             errorMessage: null,
             format: EXPORT_FORMATS.CSV,
+            splitByLocale: false,
+            availableLocales,
+            selectedLocales: defaultSelectedLocales,
         };
+    }
+
+    getInitialLocales() {
+        const searchParams = {...SearchParamsStore.getState()};
+        const repoIds = Array.isArray(searchParams.repoIds) ? searchParams.repoIds : [];
+        let availableLocales = [];
+        if (repoIds && repoIds.length) {
+            availableLocales = RepositoryStore.getAllBcp47TagsForRepositoryIds(repoIds) || [];
+        }
+        availableLocales = Array.from(new Set(availableLocales)).sort();
+
+        let defaultSelectedLocales = [];
+        if (Array.isArray(searchParams.bcp47Tags) && searchParams.bcp47Tags.length) {
+            defaultSelectedLocales = searchParams.bcp47Tags.filter(tag => availableLocales.indexOf(tag) !== -1);
+        } else {
+            defaultSelectedLocales = availableLocales.slice();
+        }
+
+        return {availableLocales, defaultSelectedLocales};
     }
 
     toggleField(fieldName) {
@@ -142,8 +167,28 @@ class ExportSearchResultsModal extends React.Component {
             return;
         }
 
-        const searchParams = {...SearchParamsStore.getState()};
-        const {textUnitSearcherParameters, returnEmpty} = buildTextUnitSearcherParameters(searchParams);
+        const baseSearchParams = {...SearchParamsStore.getState()};
+        const fieldsForExport = EXPORT_FIELD_PRIORITY
+            .filter(field => selectedFields.indexOf(field) !== -1)
+            .concat(selectedFields.filter(field => EXPORT_FIELD_PRIORITY.indexOf(field) === -1));
+
+        if (this.state.splitByLocale && this.state.selectedLocales.length) {
+            this.setState({isExporting: true, errorMessage: null});
+            try {
+                await this.exportPerLocaleWithFetch(parsedLimit, fieldsForExport, format, baseSearchParams);
+            } catch (error) {
+                console.error("Failed to export search results", error);
+                const fallbackMessage = intl.formatMessage({id: "workbench.export.modal.error.generic"});
+                const normalizedError = (error && error.message) ? error.message : null;
+                this.setState({
+                    isExporting: false,
+                    errorMessage: normalizedError ? `${fallbackMessage} (${normalizedError})` : fallbackMessage,
+                });
+            }
+            return;
+        }
+
+        const {textUnitSearcherParameters, returnEmpty} = buildTextUnitSearcherParameters(baseSearchParams);
 
         if (returnEmpty) {
             this.setState({errorMessage: intl.formatMessage({id: "workbench.export.modal.error.searchNotReady"})});
@@ -156,26 +201,9 @@ class ExportSearchResultsModal extends React.Component {
 
         try {
             const textUnits = await this.fetchAllTextUnits(textUnitSearcherParameters, parsedLimit);
-            const fieldsForExport = EXPORT_FIELD_PRIORITY
-                .filter(field => selectedFields.indexOf(field) !== -1)
-                .concat(selectedFields.filter(field => EXPORT_FIELD_PRIORITY.indexOf(field) === -1));
             const rows = this.buildRows(textUnits, fieldsForExport);
-
-            let blob;
-            let extension;
-
-            if (format === EXPORT_FORMATS.CSV) {
-                const csv = this.convertRowsToCsv(rows, fieldsForExport);
-                blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
-                extension = "csv";
-            } else {
-                const json = JSON.stringify(rows, null, 2);
-                blob = new Blob([json], {type: "application/json;charset=utf-8;"});
-                extension = "json";
-            }
-
+            const {blob, extension} = this.buildExportPayload(rows, fieldsForExport, format);
             this.triggerDownload(blob, `workbench-export-${Date.now()}.${extension}`);
-
             this.setState({isExporting: false}, () => this.props.onClose());
         } catch (error) {
             console.error("Failed to export search results", error);
@@ -186,6 +214,128 @@ class ExportSearchResultsModal extends React.Component {
                 errorMessage: normalizedError ? `${fallbackMessage} (${normalizedError})` : fallbackMessage,
             });
         }
+    }
+
+    isExportDisabled() {
+        if (this.state.isExporting) {
+            return true;
+        }
+        if (!this.state.selectedFields.length) {
+            return true;
+        }
+        if (this.state.splitByLocale && !this.state.selectedLocales.length) {
+            return true;
+        }
+        return false;
+    }
+
+    onSplitByLocaleToggle(splitByLocale) {
+        if (this.state.isExporting) {
+            return;
+        }
+        if (splitByLocale && !this.state.availableLocales.length) {
+            this.setState({splitByLocale: false});
+            return;
+        }
+        let nextSelectedLocales = this.state.selectedLocales;
+        if (splitByLocale && nextSelectedLocales.length === 0) {
+            nextSelectedLocales = this.state.availableLocales.slice();
+        }
+        this.setState({splitByLocale, selectedLocales: nextSelectedLocales});
+    }
+
+    onLocalesChange(event) {
+        if (this.state.isExporting) {
+            return;
+        }
+        const options = event.target.options;
+        const selectedLocales = [];
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].selected) {
+                selectedLocales.push(options[i].value);
+            }
+        }
+        this.setState({selectedLocales});
+    }
+
+    buildExportPayload(rows, fieldsForExport, format) {
+        const encoder = new TextEncoder();
+        if (format === EXPORT_FORMATS.CSV) {
+            const csv = this.convertRowsToCsv(rows, fieldsForExport);
+            const bytes = encoder.encode(csv);
+            return {
+                blob: new Blob([bytes], {type: "text/csv;charset=utf-8;"}),
+                extension: "csv",
+                bytes,
+            };
+        }
+        const json = JSON.stringify(rows, null, 2);
+        const bytes = encoder.encode(json);
+        return {
+            blob: new Blob([bytes], {type: "application/json;charset=utf-8;"}),
+            extension: "json",
+            bytes,
+        };
+    }
+
+    async exportPerLocaleWithFetch(limit, fieldsForExport, format, baseSearchParams) {
+        const {intl} = this.props;
+        const {selectedLocales} = this.state;
+        const timestamp = Date.now();
+        let filesGenerated = 0;
+        const missingLocales = [];
+        const files = [];
+
+        for (const locale of selectedLocales) {
+            const localeSearchParams = {...baseSearchParams, bcp47Tags: [locale]};
+            const {textUnitSearcherParameters, returnEmpty} = buildTextUnitSearcherParameters(localeSearchParams);
+
+            if (returnEmpty) {
+                missingLocales.push(locale);
+                continue;
+            }
+
+            textUnitSearcherParameters.offset(0);
+
+            const localeTextUnits = await this.fetchAllTextUnits(textUnitSearcherParameters, limit);
+
+            if (!localeTextUnits.length) {
+                missingLocales.push(locale);
+                continue;
+            }
+
+            const rows = this.buildRows(localeTextUnits, fieldsForExport);
+            const payload = this.buildExportPayload(rows, fieldsForExport, format);
+            const safeLocale = locale.replace(/[^A-Za-z0-9._-]/g, '_');
+            files.push({
+                name: `workbench-export-${safeLocale}-${timestamp}.${payload.extension}`,
+                content: payload.bytes,
+            });
+            filesGenerated += 1;
+        }
+
+        if (!filesGenerated) {
+            const message = selectedLocales.length
+                ? intl.formatMessage({id: "workbench.export.modal.error.localesEmpty"})
+                : intl.formatMessage({id: "workbench.export.modal.error.localesMissingSelection"});
+            this.setState({isExporting: false, errorMessage: message});
+            return;
+        }
+
+        const zipArray = buildZipFile(files);
+        const zipBlob = new Blob([zipArray], {type: "application/zip"});
+        this.triggerDownload(zipBlob, `workbench-export-locales-${timestamp}.zip`);
+
+        if (missingLocales.length) {
+            const message = intl.formatMessage(
+                {id: "workbench.export.modal.error.localesSkipped"},
+                {locales: missingLocales.join(', ')}
+            );
+            this.setState({isExporting: false, errorMessage: message});
+            return;
+        }
+
+        this.setState({isExporting: false}, () => this.props.onClose());
     }
 
     renderFields() {
@@ -237,6 +387,8 @@ class ExportSearchResultsModal extends React.Component {
 
     render() {
         const {intl} = this.props;
+        const {splitByLocale, availableLocales, selectedLocales} = this.state;
+        const localesEnabled = availableLocales.length > 0;
         return (
             <Modal show={this.props.show}
                    onHide={() => !this.state.isExporting && this.props.onClose()}
@@ -259,6 +411,31 @@ class ExportSearchResultsModal extends React.Component {
                             <option value={EXPORT_FORMATS.JSON}>{intl.formatMessage({id: "workbench.export.modal.format.json"})}</option>
                             <option value={EXPORT_FORMATS.CSV}>{intl.formatMessage({id: "workbench.export.modal.format.csv"})}</option>
                         </FormControl>
+                        <Checkbox
+                            className="mtm"
+                            checked={splitByLocale}
+                            onChange={(e) => this.onSplitByLocaleToggle(e.target.checked)}
+                            disabled={this.state.isExporting || !localesEnabled}>
+                            <FormattedMessage id="workbench.export.modal.splitByLocale"/>
+                        </Checkbox>
+                        {!localesEnabled &&
+                            <HelpBlock><FormattedMessage id="workbench.export.modal.splitByLocale.disabled"/></HelpBlock>
+                        }
+                        {splitByLocale && localesEnabled &&
+                            <div className="mtm">
+                                <ControlLabel><FormattedMessage id="workbench.export.modal.localesLabel"/></ControlLabel>
+                                <FormControl componentClass="select"
+                                             multiple
+                                             value={selectedLocales}
+                                             onChange={(e) => this.onLocalesChange(e)}
+                                             disabled={this.state.isExporting}>
+                                    {availableLocales.map(locale => (
+                                        <option key={locale} value={locale}>{locale}</option>
+                                    ))}
+                                </FormControl>
+                                <HelpBlock><FormattedMessage id="workbench.export.modal.localesHelp"/></HelpBlock>
+                            </div>
+                        }
                     </FormGroup>
                     <FormGroup>
                         <ControlLabel><FormattedMessage id="workbench.export.modal.fieldsLabel"/></ControlLabel>
@@ -285,7 +462,7 @@ class ExportSearchResultsModal extends React.Component {
                     </Button>
                     <Button bsStyle="primary"
                             onClick={() => this.startExport()}
-                            disabled={this.state.isExporting || this.state.selectedFields.length === 0}>
+                            disabled={this.isExportDisabled()}>
                         <FormattedMessage id="workbench.export.modal.export"/>
                     </Button>
                 </Modal.Footer>
