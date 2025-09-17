@@ -252,10 +252,20 @@ public class TextUnitBatchImporterService {
       List<TextUnitDTO> textUnitDTOs,
       IntegrityChecksType integrityChecksType,
       ImportMode noImportForAccepted) {
+    return importTextUnits(textUnitDTOs, integrityChecksType, noImportForAccepted, null);
+  }
+
+  public List<ImportResult> importTextUnits(
+      List<TextUnitDTO> textUnitDTOs,
+      IntegrityChecksType integrityChecksType,
+      ImportMode importMode,
+      String importComment) {
     return importTextUnitsWithVariantComment(
-        textUnitDTOs.stream().map(t -> new TextUnitDTOWithVariantComment(t, null)).toList(),
+        textUnitDTOs.stream()
+            .map(t -> new TextUnitDTOWithVariantComment(t, createImportComment(importComment)))
+            .toList(),
         integrityChecksType,
-        noImportForAccepted);
+        importMode);
   }
 
   /**
@@ -513,6 +523,18 @@ public class TextUnitBatchImporterService {
         }
       }
     }
+  }
+
+  TMTextUnitVariantComment createImportComment(String importComment) {
+    if (Strings.isNullOrEmpty(importComment)) {
+      return null;
+    }
+
+    TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
+    tmTextUnitVariantComment.setSeverity(TMTextUnitVariantComment.Severity.INFO);
+    tmTextUnitVariantComment.setType(TMTextUnitVariantComment.Type.WORKBENCH_IMPORT);
+    tmTextUnitVariantComment.setContent(importComment);
+    return tmTextUnitVariantComment;
   }
 
   List<TextUnitForBatchMatcherImport> skipInvalidAndConvertToTextUnitForBatchImport(

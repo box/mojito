@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.asset;
 
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
@@ -28,10 +29,15 @@ public class ImportTextUnitJob extends QuartzPollableJob<ImportTextUnitJobInput,
     logger.debug("Run ImportTextUnitJob");
     List<TextUnitDTO> textUnitDTOs = input.getTextUnitDTOs();
 
+    PollableTask currentTask = getCurrentPollableTask();
+    String taskId = currentTask != null ? currentTask.getId().toString() : "unknown";
+    String importComment = String.format("Imported via workbench UI (taskId=%s)", taskId);
+
     textUnitBatchImporterService.importTextUnits(
         textUnitDTOs,
         input.getIntegrityChecksType(),
-        TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT);
+        TextUnitBatchImporterService.ImportMode.ALWAYS_IMPORT,
+        importComment);
     return null;
   }
 }

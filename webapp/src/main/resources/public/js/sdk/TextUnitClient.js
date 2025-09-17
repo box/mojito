@@ -91,6 +91,17 @@ class TextUnitClient extends BaseClient {
         });
     }
 
+    importTextUnitsBatch(importPayload) {
+        return this.post(this.getUrl() + 'Batch', importPayload).then(function (pollableTask) {
+            return PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id).then(function (resolvedTask) {
+                if (resolvedTask.errorMessage) {
+                    throw new Error(resolvedTask.errorMessage);
+                }
+                return resolvedTask;
+            });
+        });
+    }
+
     getAssetTextUnitsUrl(assetId) {
         return this.baseUrl + 'virtualAssets/' + assetId + '/textUnits';
     }
@@ -123,6 +134,4 @@ class TextUnitClient extends BaseClient {
 ;
 
 export default new TextUnitClient();
-
-
 
