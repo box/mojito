@@ -225,6 +225,21 @@ Providers and properties:
   - `l10n.resttemplate.stateless.msal.client-secret=<client-credential-client-secret-id>`
   - `l10n.resttemplate.stateless.msal.scopes=<Application ID URI>/.default`
 
+### CLI Header Auth (e.g., Cloudflare Access)
+
+Configure the CLI to attach static headers (such as Cloudflare Access credentials) to each request
+instead of performing the legacy form login or MSAL flows.
+
+```
+l10n.resttemplate.authentication-mode=HEADER
+l10n.resttemplate.header.headers.CF-Access-Client-Id=<client-id>
+l10n.resttemplate.header.headers.CF-Access-Client-Secret=<client-secret>
+```
+
+Add additional headers as needed by appending more `headers.<Name>=<value>` properties. Values can
+also be provided through environment variables using Spring Boot's relaxed binding, for example
+`L10N_RESTTEMPLATE_HEADER_HEADERS_CF-ACCESS-CLIENT-SECRET`.
+
 ## Box Platform Integration
 
 ### Custom Configurations

@@ -72,28 +72,44 @@ public class AuthenticatedRestTemplate {
     makeRestTemplateWithCustomObjectMapper(restTemplate);
     setErrorHandlerWithLogging(restTemplate);
 
-    boolean stateless =
-        resttemplateConfig
-            .getAuthenticationMode()
-            .equals(ResttemplateConfig.AuthenticationMode.STATELESS);
+    ResttemplateConfig.AuthenticationMode mode = resttemplateConfig.getAuthenticationMode();
 
-    if (stateless) {
-      logger.info("Using stateless Bearer token interceptor");
-      if (bearerTokenInterceptor == null) {
-        throw new IllegalStateException(
-            "Stateless auth selected but BearerTokenInterceptor is not available. Ensure MSAL config is set.");
+    switch (mode) {
+      case STATELESS -> {
+        logger.info("Using stateless Bearer token interceptor");
+        if (bearerTokenInterceptor == null) {
+          throw new IllegalStateException(
+              "Stateless auth selected but BearerTokenInterceptor is not available. Ensure MSAL config is set.");
+        }
+        List<ClientHttpRequestInterceptor> interceptors =
+            Collections.<ClientHttpRequestInterceptor>singletonList(bearerTokenInterceptor);
+        restTemplate.setRequestFactory(
+            new InterceptingClientHttpRequestFactory(
+                restTemplate.getRequestFactory(), interceptors));
       }
-      List<ClientHttpRequestInterceptor> interceptors =
-          Collections.<ClientHttpRequestInterceptor>singletonList(bearerTokenInterceptor);
-      restTemplate.setRequestFactory(
-          new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
-    } else {
-      logger.info("Using stateful CSRF interceptor");
-      List<ClientHttpRequestInterceptor> interceptors =
-          Collections.<ClientHttpRequestInterceptor>singletonList(
-              formLoginAuthenticationCsrfTokenInterceptor);
-      restTemplate.setRequestFactory(
-          new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
+      case HEADER -> {
+        logger.info("Using header-based authentication");
+        Map<String, String> headers = resttemplateConfig.getHeader().getHeaders();
+        if (headers == null || headers.isEmpty()) {
+          throw new IllegalStateException(
+              "Header authentication selected but no headers have been configured (l10n.resttemplate.header.headers)");
+        }
+        List<ClientHttpRequestInterceptor> interceptors =
+            Collections.<ClientHttpRequestInterceptor>singletonList(
+                new HeaderAuthenticationInterceptor(headers));
+        restTemplate.setRequestFactory(
+            new InterceptingClientHttpRequestFactory(
+                restTemplate.getRequestFactory(), interceptors));
+      }
+      case STATEFUL -> {
+        logger.info("Using stateful CSRF interceptor");
+        List<ClientHttpRequestInterceptor> interceptors =
+            Collections.<ClientHttpRequestInterceptor>singletonList(
+                formLoginAuthenticationCsrfTokenInterceptor);
+        restTemplate.setRequestFactory(
+            new InterceptingClientHttpRequestFactory(
+                restTemplate.getRequestFactory(), interceptors));
+      }
     }
   }
 
