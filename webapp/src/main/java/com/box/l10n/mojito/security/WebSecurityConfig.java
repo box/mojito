@@ -159,7 +159,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation")
                 .hasIpAddress("127.0.0.1")
                 // Everyone can access the session endpoint
-                .requestMatchers("/api/users/session", "/api/users/pw")
+                .requestMatchers("/api/users/session", "/api/users/me", "/api/users/pw")
                 .authenticated()
                 // user management is only allowed for ADMINs and PMs
                 .requestMatchers("/api/users/**")
