@@ -74,18 +74,7 @@ public class WebSecurityJWTConfig {
                   jwtConfigurer.jwtAuthenticationConverter(
                       jwt -> {
                         logger.debug("Getting info from the JWT");
-                        String oid = jwt.getClaimAsString("oid");
-                        String upn = jwt.getClaimAsString("preferred_username");
-                        String name = jwt.getClaimAsString("name");
-                        String given = jwt.getClaimAsString("given_name");
-                        String family = jwt.getClaimAsString("family_name");
-
-                        String username =
-                            (upn != null && upn.contains("@"))
-                                ? upn.substring(0, upn.indexOf('@'))
-                                : oid;
-                        User user =
-                            userService.getOrCreateOrUpdateBasicUser(username, given, family, name);
+                        User user = ensureUserFromJwt(jwt);
 
                         List<SimpleGrantedAuthority> authoritiesFromUser =
                             user.getAuthorities().stream()
@@ -135,6 +124,79 @@ public class WebSecurityJWTConfig {
     // hardcoded to false.
     spaSpecificPermitAll.addAll(WebSecurityConfig.getHealthcheckPatterns(false));
     WebSecurityConfig.setAuthorizationRequests(http, spaSpecificPermitAll);
+  }
+
+  private User ensureUserFromJwt(Jwt jwt) {
+    String issuer = jwt.getIssuer() != null ? jwt.getIssuer().toString() : null;
+    IdStrategy strategy = pickStrategy(issuer);
+
+    String email = jwt.getClaimAsString("email");
+    String upn = jwt.getClaimAsString("preferred_username");
+    String oid = jwt.getClaimAsString("oid");
+    String sub = jwt.getSubject();
+    String name = jwt.getClaimAsString("name");
+    String given = jwt.getClaimAsString("given_name");
+    String family = jwt.getClaimAsString("family_name");
+
+    String username =
+        switch (strategy) {
+          case AZURE_AD -> firstNonBlank(localPart(upn), localPart(email), sub, oid);
+          case CLOUDFLARE -> firstNonBlank(localPart(email), sub, oid, localPart(upn));
+          case AUTO -> firstNonBlank(localPart(email), localPart(upn), sub, oid);
+        };
+
+    if (!StringUtils.hasText(username)) {
+      username = firstNonBlank(sub, oid, jwt.getTokenValue());
+    }
+
+    if (!StringUtils.hasText(name)) {
+      String built = ((given != null ? given : "") + " " + (family != null ? family : "")).trim();
+      name = StringUtils.hasText(built) ? built : username;
+    }
+
+    return userService.getOrCreateOrUpdateBasicUser(username, given, family, name);
+  }
+
+  private IdStrategy pickStrategy(String issuer) {
+    if (issuer == null) {
+      return IdStrategy.AUTO;
+    }
+    if (issuer.contains("login.microsoftonline.com")) {
+      return IdStrategy.AZURE_AD;
+    }
+    if (issuer.contains("cloudflareaccess.com")) {
+      return IdStrategy.CLOUDFLARE;
+    }
+    return IdStrategy.AUTO;
+  }
+
+  private String firstNonBlank(String... values) {
+    if (values == null) {
+      return null;
+    }
+    for (String value : values) {
+      if (StringUtils.hasText(value)) {
+        return value;
+      }
+    }
+    return null;
+  }
+
+  private String localPart(String value) {
+    if (!StringUtils.hasText(value)) {
+      return null;
+    }
+    int at = value.indexOf('@');
+    if (at > 0) {
+      return value.substring(0, at).trim();
+    }
+    return value.trim();
+  }
+
+  private enum IdStrategy {
+    AUTO,
+    AZURE_AD,
+    CLOUDFLARE
   }
 
   static class StatelessAuthenticationToken extends AbstractAuthenticationToken {
