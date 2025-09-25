@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -110,8 +111,8 @@ public class HtmlTagIntegrityCheckerTest {
 
   @Test
   public void testHtmlTagCheckWorksForUnmatchedTags() {
-    String source = "There are <img src=\"image.jpg\">%1 files and %2 folders";
-    String target = "Il y a <img src=\"image.jpg\">%1 fichiers et %2 dossiers";
+    String source = "There are <img src=\"image.jpg\"/>%1 files and %2 folders";
+    String target = "Il y a <img src=\"image.jpg\"/>%1 fichiers et %2 dossiers";
 
     checker.check(source, target);
   }
@@ -202,6 +203,14 @@ public class HtmlTagIntegrityCheckerTest {
   }
 
   @Test
+  public void testHtmlTagCheckWithDuplicatedAnnotationInBoth() {
+    String source = "<annotation <annotation url=\"https://something.com\">text</annotation>";
+    String target = "<annotation <annotation url=\"https://something.com\">text</annotation>";
+
+    checker.check(source, target);
+  }
+
+  @Test
   public void testHtmlTagCheckNonTagLessThanDoesntConfuseThings() {
     String source = "Upload is <10% complete.";
     String target = "Le téléchargement est terminé < 10 %.";
@@ -215,5 +224,20 @@ public class HtmlTagIntegrityCheckerTest {
     Set<String> placeholders = checker.getPlaceholders(source);
     Assertions.assertThat(placeholders)
         .containsExactly("<sign-up>", "</sign-up>", "<login>", "</login>");
+  }
+
+  @Test
+  public void testHtmlTagCheckWithSelfClosing() {
+    String source = "<details><summary>Info</summary><br/>$settings</details>";
+    String target = "<details><summary>Infos</summary><br/>$settings</details>";
+
+    checker.check(source, target);
+  }
+
+  @Test
+  public void testIsValidTagOrderWithNestedSelfClosingTags() {
+    List<String> tags = checker.getHtmlTags("<div><br/></div>");
+
+    Assertions.assertThat(HtmlTagIntegrityChecker.isValidTagOrder(tags)).isTrue();
   }
 }

@@ -117,7 +117,9 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
 
     for (String tag : tags) {
       if (!tag.startsWith("</")) {
-        stack.push(tag);
+        if (!tag.endsWith("/>")) {
+          stack.push(tag);
+        }
       } else {
         if (stack.isEmpty()
             || !stack.peek().startsWith(tag.substring(0, tag.length() - 1).replace("</", "<"))) {
