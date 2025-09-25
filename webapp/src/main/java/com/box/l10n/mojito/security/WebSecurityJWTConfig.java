@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.service.security.user.UserService;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
 
@@ -33,14 +35,20 @@ public class WebSecurityJWTConfig {
 
   UserService userService;
 
+  SecurityConfig securityConfig;
+
   @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:}")
   String issuerUri;
 
   @Value("${spring.security.oauth2.resourceserver.jwt.audience:}")
   String audience;
 
-  public WebSecurityJWTConfig(UserService userService) {
+  private final DefaultBearerTokenResolver defaultBearerTokenResolver;
+
+  public WebSecurityJWTConfig(UserService userService, SecurityConfig securityConfig) {
     this.userService = userService;
+    this.securityConfig = securityConfig;
+    this.defaultBearerTokenResolver = new DefaultBearerTokenResolver();
   }
 
   @PostConstruct
@@ -59,35 +67,33 @@ public class WebSecurityJWTConfig {
   @Order(2)
   SecurityFilterChain security(HttpSecurity http) throws Exception {
 
-    http.securityMatcher(
-        req -> {
-          String h = req.getHeader("Authorization");
-          return h != null && h.startsWith("Bearer ");
-        });
+    http.securityMatcher(req -> StringUtils.hasText(resolveAccessToken(req)));
 
     applyStatelessSharedConfig(http);
 
     http.oauth2ResourceServer(
         oauth ->
-            oauth.jwt(
-                jwtConfigurer -> {
-                  jwtConfigurer.jwtAuthenticationConverter(
-                      jwt -> {
-                        logger.debug("Getting info from the JWT");
-                        User user = ensureUserFromJwt(jwt);
+            oauth
+                .bearerTokenResolver(this::resolveAccessToken)
+                .jwt(
+                    jwtConfigurer -> {
+                      jwtConfigurer.jwtAuthenticationConverter(
+                          jwt -> {
+                            logger.debug("Getting info from the JWT");
+                            User user = ensureUserFromJwt(jwt);
 
-                        List<SimpleGrantedAuthority> authoritiesFromUser =
-                            user.getAuthorities().stream()
-                                .map(Authority::getAuthority)
-                                .map(SimpleGrantedAuthority::new)
-                                .toList();
+                            List<SimpleGrantedAuthority> authoritiesFromUser =
+                                user.getAuthorities().stream()
+                                    .map(Authority::getAuthority)
+                                    .map(SimpleGrantedAuthority::new)
+                                    .toList();
 
-                        logger.debug("Authorities from User: {}", authoritiesFromUser);
-                        var userDetails = new UserDetailsImpl(user);
-                        return new StatelessAuthenticationToken(
-                            userDetails, authoritiesFromUser, jwt);
-                      });
-                }));
+                            logger.debug("Authorities from User: {}", authoritiesFromUser);
+                            var userDetails = new UserDetailsImpl(user);
+                            return new StatelessAuthenticationToken(
+                                userDetails, authoritiesFromUser, jwt);
+                          });
+                    }));
 
     return http.build();
   }
@@ -128,7 +134,7 @@ public class WebSecurityJWTConfig {
 
   private User ensureUserFromJwt(Jwt jwt) {
     String issuer = jwt.getIssuer() != null ? jwt.getIssuer().toString() : null;
-    IdStrategy strategy = pickStrategy(issuer);
+    IdentityProviderType providerType = resolveProviderType(issuer);
 
     String email = jwt.getClaimAsString("email");
     String upn = jwt.getClaimAsString("preferred_username");
@@ -139,7 +145,7 @@ public class WebSecurityJWTConfig {
     String family = jwt.getClaimAsString("family_name");
 
     String username =
-        switch (strategy) {
+        switch (providerType) {
           case AZURE_AD -> firstNonBlank(localPart(upn), localPart(email), sub, oid);
           case CLOUDFLARE -> firstNonBlank(localPart(email), sub, oid, localPart(upn));
           case AUTO -> firstNonBlank(localPart(email), localPart(upn), sub, oid);
@@ -157,17 +163,81 @@ public class WebSecurityJWTConfig {
     return userService.getOrCreateOrUpdateBasicUser(username, given, family, name);
   }
 
-  private IdStrategy pickStrategy(String issuer) {
+  private String resolveAccessToken(HttpServletRequest request) {
+    if (request == null) {
+      return null;
+    }
+
+    CustomTokenHeader customTokenHeader = getCustomTokenHeader();
+    if (customTokenHeader == null) {
+      String token = defaultBearerTokenResolver.resolve(request);
+      if (StringUtils.hasText(token)) {
+        return token;
+      }
+      return null;
+    }
+
+    String headerValue = request.getHeader(customTokenHeader.name());
+    if (!StringUtils.hasText(headerValue)) {
+      return null;
+    }
+
+    String candidate = headerValue.trim();
+    if (!StringUtils.hasText(candidate)) {
+      return null;
+    }
+
+    String prefix = customTokenHeader.prefix();
+    if (!StringUtils.hasText(prefix)) {
+      return candidate;
+    }
+
+    if (candidate.startsWith(prefix)) {
+      String stripped = candidate.substring(prefix.length()).trim();
+      return StringUtils.hasText(stripped) ? stripped : null;
+    }
+
+    return null;
+  }
+
+  private CustomTokenHeader getCustomTokenHeader() {
+    SecurityConfig.Jwt jwtConfig = securityConfig.getJwt();
+    if (jwtConfig == null) {
+      return null;
+    }
+
+    String headerName = jwtConfig.getTokenHeaderName();
+    if (!StringUtils.hasText(headerName)) {
+      return null;
+    }
+
+    String name = headerName.trim();
+    if (!StringUtils.hasText(name)) {
+      return null;
+    }
+
+    String prefix = jwtConfig.getTokenHeaderPrefix();
+    if (StringUtils.hasText(prefix)) {
+      prefix = prefix.trim();
+      prefix = StringUtils.hasText(prefix) ? prefix : null;
+    } else {
+      prefix = null;
+    }
+
+    return new CustomTokenHeader(name, prefix);
+  }
+
+  private IdentityProviderType resolveProviderType(String issuer) {
     if (issuer == null) {
-      return IdStrategy.AUTO;
+      return IdentityProviderType.AUTO;
     }
     if (issuer.contains("login.microsoftonline.com")) {
-      return IdStrategy.AZURE_AD;
+      return IdentityProviderType.AZURE_AD;
     }
     if (issuer.contains("cloudflareaccess.com")) {
-      return IdStrategy.CLOUDFLARE;
+      return IdentityProviderType.CLOUDFLARE;
     }
-    return IdStrategy.AUTO;
+    return IdentityProviderType.AUTO;
   }
 
   private String firstNonBlank(String... values) {
@@ -193,11 +263,13 @@ public class WebSecurityJWTConfig {
     return value.trim();
   }
 
-  private enum IdStrategy {
+  private enum IdentityProviderType {
     AUTO,
     AZURE_AD,
     CLOUDFLARE
   }
+
+  private record CustomTokenHeader(String name, String prefix) {}
 
   static class StatelessAuthenticationToken extends AbstractAuthenticationToken {
 
