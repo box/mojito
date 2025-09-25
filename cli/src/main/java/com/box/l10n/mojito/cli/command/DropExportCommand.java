@@ -168,7 +168,7 @@ public class DropExportCommand extends Command {
         RepositoryStatistic repoStat = repository.getRepositoryStatistic();
         if (repoStat != null) {
             for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
-                if (bcp47TagsForTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag()) && repoLocaleStat.getForTranslationCount() > 0L) {
+                if (bcp47TagsForTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag()) && repoLocaleStat.getForTranslationWordCount() > 0L) {
                     createDrop = true;
                     break;
                 }
