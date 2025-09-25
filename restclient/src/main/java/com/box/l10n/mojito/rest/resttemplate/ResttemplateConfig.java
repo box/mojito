@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.resttemplate;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ public class ResttemplateConfig {
   Authentication authentication = new Authentication();
 
   StatelessAuthentication stateless = new StatelessAuthentication();
+
+  HeaderAuthentication header = new HeaderAuthentication();
 
   AuthenticationMode authenticationMode = AuthenticationMode.STATEFUL;
 
@@ -63,7 +67,21 @@ public class ResttemplateConfig {
 
   public enum AuthenticationMode {
     STATEFUL,
-    STATELESS
+    STATELESS,
+    HEADER
+  }
+
+  public static class HeaderAuthentication {
+
+    Map<String, String> headers = new HashMap<>();
+
+    public Map<String, String> getHeaders() {
+      return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+      this.headers = headers;
+    }
   }
 
   public static class StatelessAuthentication {
@@ -182,6 +200,14 @@ public class ResttemplateConfig {
 
   public void setStateless(StatelessAuthentication stateless) {
     this.stateless = stateless;
+  }
+
+  public HeaderAuthentication getHeader() {
+    return header;
+  }
+
+  public void setHeader(HeaderAuthentication header) {
+    this.header = header;
   }
 
   public AuthenticationMode getAuthenticationMode() {

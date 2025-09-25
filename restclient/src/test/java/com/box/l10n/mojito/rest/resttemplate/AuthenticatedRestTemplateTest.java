@@ -56,6 +56,8 @@ public class AuthenticatedRestTemplateTest {
 
     // resets the mock server that was set inside the rest template
     authenticatedRestTemplate.restTemplate = new CookieStoreRestTemplate();
+    resttemplateConfig.setAuthenticationMode(ResttemplateConfig.AuthenticationMode.STATEFUL);
+    resttemplateConfig.getHeader().getHeaders().clear();
     authenticatedRestTemplate.init();
 
     // if port was 0, then the server will randomize it on start up, and now we
@@ -224,6 +226,40 @@ public class AuthenticatedRestTemplateTest {
         WireMock.postRequestedFor(WireMock.urlMatching("/random-401-endpoint"))
             .withHeader("Accept", WireMock.matching("text/plain.*"))
             .withHeader("X-CSRF-TOKEN", WireMock.matching("madeup-csrf-value")));
+  }
+
+  @Test
+  public void testHeaderAuthenticationAddsConfiguredHeaders() {
+    Map<String, String> originalHeaders =
+        new HashMap<>(resttemplateConfig.getHeader().getHeaders());
+    ResttemplateConfig.AuthenticationMode originalMode = resttemplateConfig.getAuthenticationMode();
+
+    try {
+      resttemplateConfig.setAuthenticationMode(ResttemplateConfig.AuthenticationMode.HEADER);
+      resttemplateConfig.getHeader().getHeaders().clear();
+      resttemplateConfig.getHeader().getHeaders().put("CF-Access-Client-Id", "client-id");
+      resttemplateConfig.getHeader().getHeaders().put("CF-Access-Client-Secret", "client-secret");
+
+      authenticatedRestTemplate.restTemplate = new CookieStoreRestTemplate();
+      authenticatedRestTemplate.init();
+
+      WireMock.stubFor(
+          WireMock.get(WireMock.urlEqualTo("/header-protected"))
+              .willReturn(WireMock.aResponse().withStatus(HttpStatus.OK.value())));
+
+      authenticatedRestTemplate.getForObject("header-protected", String.class);
+
+      WireMock.verify(
+          WireMock.getRequestedFor(WireMock.urlEqualTo("/header-protected"))
+              .withHeader("CF-Access-Client-Id", WireMock.equalTo("client-id"))
+              .withHeader("CF-Access-Client-Secret", WireMock.equalTo("client-secret")));
+    } finally {
+      resttemplateConfig.setAuthenticationMode(originalMode);
+      resttemplateConfig.getHeader().getHeaders().clear();
+      resttemplateConfig.getHeader().getHeaders().putAll(originalHeaders);
+      authenticatedRestTemplate.restTemplate = new CookieStoreRestTemplate();
+      authenticatedRestTemplate.init();
+    }
   }
 
   protected void initialAuthenticationMock() {
