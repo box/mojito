@@ -34,6 +34,8 @@ public class SecurityConfig {
 
   Map<String, OAuth2> oAuth2 = new HashMap<>();
 
+  Jwt jwt;
+
   public List<AuthenticationType> getAuthenticationType() {
     return authenticationType;
   }
@@ -56,6 +58,14 @@ public class SecurityConfig {
 
   public void setoAuth2(Map<String, OAuth2> oAuth2) {
     this.oAuth2 = oAuth2;
+  }
+
+  public Jwt getJwt() {
+    return jwt;
+  }
+
+  public void setJwt(Jwt jwt) {
+    this.jwt = jwt;
   }
 
   /** Types of authentication available */
@@ -134,6 +144,31 @@ public class SecurityConfig {
 
     public void setUsernameFromEmail(boolean usernameFromEmail) {
       this.usernameFromEmail = usernameFromEmail;
+    }
+  }
+
+  public static class Jwt {
+
+    /** Optional alternate header that carries the access token when not using Authorization. */
+    String tokenHeaderName;
+
+    /** Optional prefix (e.g. "Bearer") stripped from the configured token header value. */
+    String tokenHeaderPrefix;
+
+    public String getTokenHeaderName() {
+      return tokenHeaderName;
+    }
+
+    public void setTokenHeaderName(String tokenHeaderName) {
+      this.tokenHeaderName = tokenHeaderName;
+    }
+
+    public String getTokenHeaderPrefix() {
+      return tokenHeaderPrefix;
+    }
+
+    public void setTokenHeaderPrefix(String tokenHeaderPrefix) {
+      this.tokenHeaderPrefix = tokenHeaderPrefix;
     }
   }
 }
