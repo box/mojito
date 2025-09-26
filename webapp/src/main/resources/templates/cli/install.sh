@@ -33,6 +33,25 @@ chmod +x {{installDirectory}}/mojito
 
 # Export the PATH to have access to the bash wrapper once installation is done
 export PATH={{installDirectory}}:${PATH}
+{{#hasHeaders}}
+# Ensure Cloudflare Zero Trust headers are available for authenticated downloads
+{{#headers}}
+if [ -z "{{{envVarPresenceCheck}}}" ]; then
+  echo "Environment variable {{envVar}} must be set before running this installation script."
+  exit 1
+fi
+{{/headers}}
+
+{{#authenticationMode}}
+export L10N_RESTTEMPLATE_AUTHENTICATION_MODE={{authenticationMode}}
+{{/authenticationMode}}
+
+CURL_HEADERS=(
+{{#headers}}
+  -H "{{name}}: ${{{envVar}}}"
+{{/headers}}
+)
+{{/hasHeaders}}
 
 # Download/Upgrade the jar file if needed to match server version
-mojito --check-server-version 2>/dev/null || curl -L -s -o {{installDirectory}}/mojito-cli.jar {{scheme}}://{{host}}:{{port}}/cli/mojito-cli.jar
+mojito --check-server-version 2>/dev/null || curl -L -s{{#hasHeaders}} "${CURL_HEADERS[@]}"{{/hasHeaders}} -o {{installDirectory}}/mojito-cli.jar {{scheme}}://{{host}}:{{port}}/cli/mojito-cli.jar

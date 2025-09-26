@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.cli;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import com.box.l10n.mojito.rest.cli.CliWS;
 import com.box.l10n.mojito.rest.cli.GitInfo;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
@@ -10,6 +11,9 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,7 +63,7 @@ public class CliServiceTest extends ServiceTestBase {
   public void generateInstallCliScript() throws IOException {
     String installScript =
         cliService.generateInstallCliScript(
-            "http://localhost:8080/cli/install.sh", "${PWD}/.mojito");
+            "http://localhost:8080/cli/install.sh", "${PWD}/.mojito", Collections.emptyMap());
     //        Files.write(installScript, new
     // File("src/test/resources/com/box/l10n/mojito/service/cli/install.sh"),
     // StandardCharsets.UTF_8);
@@ -71,9 +75,30 @@ public class CliServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void generateInstallCliScriptWithHeaders() throws IOException {
+    Map<String, String> headers = new LinkedHashMap<>();
+    headers.put(
+        CliWS.CF_ACCESS_HEADER_CLIENT_ID, "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID");
+    headers.put(
+        CliWS.CF_ACCESS_HEADER_CLIENT_SECRET,
+        "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET");
+
+    String installScript =
+        cliService.generateInstallCliScript(
+            "http://localhost:8080/cli/install.sh", "${PWD}/.mojito", headers);
+
+    String expected =
+        Resources.toString(
+            Resources.getResource("com/box/l10n/mojito/service/cli/install_with_cf_headers.sh"),
+            StandardCharsets.UTF_8);
+    assertEquals(expected, installScript);
+  }
+
+  @Test
   public void getInstallCliContext() {
     InstallCliContext installCliContext =
-        cliService.getInstallCliContext("https://someinstall.org/cli/install.sh", "someplace");
+        cliService.getInstallCliContext(
+            "https://someinstall.org/cli/install.sh", "someplace", Collections.emptyMap());
     assertEquals("https", installCliContext.scheme);
     assertEquals("someinstall.org", installCliContext.host);
     assertEquals("443", installCliContext.port);
