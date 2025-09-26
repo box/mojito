@@ -19,7 +19,7 @@
 mkdir -p ${PWD}/.mojito
 
 # Create the bash wrapper for the CLI
-cat > ${PWD}/.mojito/mojito << EOF
+cat > ${PWD}/.mojito/mojito << 'EOF'
 #!/usr/bin/env bash
 java -Dl10n.resttemplate.host=localhost \\
      -Dl10n.resttemplate.scheme=http \\

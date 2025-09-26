@@ -19,7 +19,7 @@
 mkdir -p {{installDirectory}}
 
 # Create the bash wrapper for the CLI
-cat > {{installDirectory}}/mojito << EOF
+cat > {{installDirectory}}/mojito << 'EOF'
 #!/usr/bin/env bash
 {{#hasHeaders}}
 {{#headers}}
@@ -32,11 +32,11 @@ fi
 export L10N_RESTTEMPLATE_AUTHENTICATION_MODE={{authenticationMode}}
 {{/authenticationMode}}
 {{/hasHeaders}}
-java -Dl10n.resttemplate.host={{host}} \\
-     -Dl10n.resttemplate.scheme={{scheme}} \\
-     -Dl10n.resttemplate.port={{port}} \\
-     -Dlogging.file.path={{installDirectory}} \\
-     -jar {{installDirectory}}/mojito-cli.jar "\$@" ;
+java -Dl10n.resttemplate.host={{host}} \
+     -Dl10n.resttemplate.scheme={{scheme}} \
+     -Dl10n.resttemplate.port={{port}} \
+     -Dlogging.file.path={{installDirectory}} \
+     -jar {{installDirectory}}/mojito-cli.jar "$@" ;
 EOF
 
 # Make the wrapper executable
