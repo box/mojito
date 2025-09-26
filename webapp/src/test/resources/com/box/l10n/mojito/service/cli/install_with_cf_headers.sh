@@ -21,6 +21,15 @@ mkdir -p ${PWD}/.mojito
 # Create the bash wrapper for the CLI
 cat > ${PWD}/.mojito/mojito << EOF
 #!/usr/bin/env bash
+if [ -z "${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID:-}" ]; then
+  echo "Environment variable L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID must be set before running this command."
+  exit 1
+fi
+if [ -z "${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET:-}" ]; then
+  echo "Environment variable L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET must be set before running this command."
+  exit 1
+fi
+export L10N_RESTTEMPLATE_AUTHENTICATION_MODE=HEADER
 java -Dl10n.resttemplate.host=localhost \\
      -Dl10n.resttemplate.scheme=http \\
      -Dl10n.resttemplate.port=8080 \\

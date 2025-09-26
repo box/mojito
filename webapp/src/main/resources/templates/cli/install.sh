@@ -21,6 +21,17 @@ mkdir -p {{installDirectory}}
 # Create the bash wrapper for the CLI
 cat > {{installDirectory}}/mojito << EOF
 #!/usr/bin/env bash
+{{#hasHeaders}}
+{{#headers}}
+if [ -z "{{{envVarPresenceCheck}}}" ]; then
+  echo "Environment variable {{envVar}} must be set before running this command."
+  exit 1
+fi
+{{/headers}}
+{{#authenticationMode}}
+export L10N_RESTTEMPLATE_AUTHENTICATION_MODE={{authenticationMode}}
+{{/authenticationMode}}
+{{/hasHeaders}}
 java -Dl10n.resttemplate.host={{host}} \\
      -Dl10n.resttemplate.scheme={{scheme}} \\
      -Dl10n.resttemplate.port={{port}} \\
