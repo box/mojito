@@ -19,7 +19,7 @@
 mkdir -p ${PWD}/.mojito
 
 # Create the bash wrapper for the CLI
-cat > ${PWD}/.mojito/mojito << EOF
+cat > ${PWD}/.mojito/mojito << 'EOF'
 #!/usr/bin/env bash
 if [ -z "${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID:-}" ]; then
   echo "Environment variable L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID must be set before running this command."
