@@ -53,7 +53,7 @@ source <(curl -L -N -s http://localhost:8080/cli/install.sh?installDirectory=myd
 # When Cloudflare Zero Trust protects the endpoint, set the headers:
 export L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID=<client-id>
 export L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET=<client-secret>
-source /dev/stdin <<< "$(curl -L -N -s -H "CF-Access-Client-Id: ${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID}" -H "CF-Access-Client-Secret: ${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET}" http://localhost:8080/cli/install.sh)"
+source /dev/stdin <<< "$(curl -L -N -s -H \"CF-Access-Client-Id: ${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID}\" -H \"CF-Access-Client-Secret: ${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET}\" http://localhost:8080/cli/install.sh)"
 
 The install script automatically exports `L10N_RESTTEMPLATE_AUTHENTICATION_MODE=HEADER` when these
 headers are present.
