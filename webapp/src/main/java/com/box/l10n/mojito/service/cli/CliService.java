@@ -9,9 +9,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,16 +86,36 @@ public class CliService {
    * @return the bash script
    * @throws IOException
    */
-  public String generateInstallCliScript(String requestUrl, String installDirectory) {
-    return mustacheTemplateEngine.render(
-        INSTALL_CLI_TEMPLATE, getInstallCliContext(requestUrl, installDirectory));
+  public String generateInstallCliScript(
+      String requestUrl, String installDirectory, Map<String, String> headerNameToEnvVar) {
+    InstallCliContext installCliContext =
+        getInstallCliContext(requestUrl, installDirectory, headerNameToEnvVar);
+
+    return mustacheTemplateEngine.render(INSTALL_CLI_TEMPLATE, installCliContext);
   }
 
-  InstallCliContext getInstallCliContext(String requestUrl, String installDirectory) {
+  InstallCliContext getInstallCliContext(
+      String requestUrl, String installDirectory, Map<String, String> headerNameToEnvVar) {
     try {
       URL url = new URL(requestUrl);
-      return new InstallCliContext(
-          installDirectory, url.getProtocol(), url.getHost(), getPort(url));
+      InstallCliContext installCliContext =
+          new InstallCliContext(installDirectory, url.getProtocol(), url.getHost(), getPort(url));
+
+      if (headerNameToEnvVar != null && !headerNameToEnvVar.isEmpty()) {
+        List<InstallCliContext.Header> headers =
+            headerNameToEnvVar.entrySet().stream()
+                .map(entry -> new InstallCliContext.Header(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+        installCliContext.headers = headers;
+        installCliContext.hasHeaders = true;
+        installCliContext.authenticationMode = "HEADER";
+      } else {
+        installCliContext.headers = Collections.emptyList();
+        installCliContext.hasHeaders = false;
+        installCliContext.authenticationMode = null;
+      }
+
+      return installCliContext;
     } catch (MalformedURLException e) {
       throw new RuntimeException("Can't get install CLI context because of malformed URL", e);
     }

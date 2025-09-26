@@ -49,6 +49,14 @@ source /dev/stdin <<< "$(curl -L -N -s http://localhost:8080/cli/install.sh)"
 
 # Optional: specify the install directory: 
 source <(curl -L -N -s http://localhost:8080/cli/install.sh?installDirectory=mydirectory)
+
+# When Cloudflare Zero Trust protects the endpoint, set the headers:
+export L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID=<client-id>
+export L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET=<client-secret>
+source /dev/stdin <<< "$(curl -L -N -s -H "CF-Access-Client-Id: ${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID}" -H "CF-Access-Client-Secret: ${L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET}" http://localhost:8080/cli/install.sh)"
+
+The install script automatically exports `L10N_RESTTEMPLATE_AUTHENTICATION_MODE=HEADER` when these
+headers are present.
 ```
 
 After that in the current console, `mojito` is available
@@ -197,4 +205,3 @@ INSERT INTO flyway_clean_protection (enabled) VALUES (1);
 Note that this check is optimistic and if for some reason the query fails it will consider that the database not 
  protected. This is just an additional protection in case the settings are missued but you should not rely exclusively
  on it.  
-
