@@ -143,11 +143,12 @@ public class WebSecurityJWTConfig {
     String name = jwt.getClaimAsString("name");
     String given = jwt.getClaimAsString("given_name");
     String family = jwt.getClaimAsString("family_name");
+    String commonName = jwt.getClaimAsString("common_name");
 
     String username =
         switch (providerType) {
           case AZURE_AD -> firstNonBlank(localPart(upn), localPart(email), sub, oid);
-          case CLOUDFLARE -> firstNonBlank(localPart(email), sub, oid, localPart(upn));
+          case CLOUDFLARE -> firstNonBlank(localPart(email), sub, oid, commonName, localPart(upn));
           case AUTO -> firstNonBlank(localPart(email), localPart(upn), sub, oid);
         };
 
