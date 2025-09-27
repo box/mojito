@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,9 @@ public class CliService {
 
   static final String INSTALL_CLI_TEMPLATE = "cli/install.sh";
   static Logger logger = LoggerFactory.getLogger(CliService.class);
+  public static final String AUTHENTICATION_MODE_CF_SERVICE_TOKEN = "CF_SERVICE_TOKEN";
+
+  static final Map<String, String> CF_SERVICE_TOKEN_HEADER_TO_ENV_VAR = cfServiceTokenHeaders();
 
   @Value("${info.build.version}")
   String version;
@@ -87,28 +91,37 @@ public class CliService {
    * @throws IOException
    */
   public String generateInstallCliScript(
-      String requestUrl, String installDirectory, Map<String, String> headerNameToEnvVar) {
+      String requestUrl, String installDirectory, String authenticationMode) {
+    Map<String, String> headersToUse = resolveHeaders(authenticationMode);
+    String effectiveAuthenticationMode = headersToUse.isEmpty() ? null : "HEADER";
+
     InstallCliContext installCliContext =
-        getInstallCliContext(requestUrl, installDirectory, headerNameToEnvVar);
+        getInstallCliContext(
+            requestUrl, installDirectory, effectiveAuthenticationMode, headersToUse);
 
     return mustacheTemplateEngine.render(INSTALL_CLI_TEMPLATE, installCliContext);
   }
 
   InstallCliContext getInstallCliContext(
-      String requestUrl, String installDirectory, Map<String, String> headerNameToEnvVar) {
+      String requestUrl,
+      String installDirectory,
+      String authenticationMode,
+      Map<String, String> headerNameToEnvVar) {
     try {
       URL url = new URL(requestUrl);
       InstallCliContext installCliContext =
           new InstallCliContext(installDirectory, url.getProtocol(), url.getHost(), getPort(url));
 
-      if (headerNameToEnvVar != null && !headerNameToEnvVar.isEmpty()) {
+      if (authenticationMode != null
+          && headerNameToEnvVar != null
+          && !headerNameToEnvVar.isEmpty()) {
         List<InstallCliContext.Header> headers =
             headerNameToEnvVar.entrySet().stream()
                 .map(entry -> new InstallCliContext.Header(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
         installCliContext.headers = headers;
         installCliContext.hasHeaders = true;
-        installCliContext.authenticationMode = "HEADER";
+        installCliContext.authenticationMode = authenticationMode;
       } else {
         installCliContext.headers = Collections.emptyList();
         installCliContext.hasHeaders = false;
@@ -119,6 +132,23 @@ public class CliService {
     } catch (MalformedURLException e) {
       throw new RuntimeException("Can't get install CLI context because of malformed URL", e);
     }
+  }
+
+  Map<String, String> resolveHeaders(String authenticationMode) {
+    if (authenticationMode != null
+        && AUTHENTICATION_MODE_CF_SERVICE_TOKEN.equalsIgnoreCase(authenticationMode)) {
+      return CF_SERVICE_TOKEN_HEADER_TO_ENV_VAR;
+    }
+    return Collections.emptyMap();
+  }
+
+  private static Map<String, String> cfServiceTokenHeaders() {
+    Map<String, String> headerToEnvVar = new LinkedHashMap<>();
+    headerToEnvVar.put(
+        "CF-Access-Client-Id", "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID");
+    headerToEnvVar.put(
+        "CF-Access-Client-Secret", "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET");
+    return Collections.unmodifiableMap(headerToEnvVar);
   }
 
   String getPort(URL url) {
