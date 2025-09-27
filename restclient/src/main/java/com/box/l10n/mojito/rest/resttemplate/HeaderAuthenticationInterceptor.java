@@ -21,6 +21,8 @@ class HeaderAuthenticationInterceptor implements ClientHttpRequestInterceptor {
     headers.forEach(
         (name, value) -> {
           if (name != null && value != null) {
+            name = name.replace(".", "-");
+
             request.getHeaders().set(name, value);
           }
         });

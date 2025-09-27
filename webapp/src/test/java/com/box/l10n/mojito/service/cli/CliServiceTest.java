@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.cli;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import com.box.l10n.mojito.rest.cli.CliWS;
 import com.box.l10n.mojito.rest.cli.GitInfo;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
@@ -12,8 +11,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,6 +52,7 @@ public class CliServiceTest extends ServiceTestBase {
 
   @Test
   public void getLocalCliFileDefaultNoFile() {
+    cliService.cliConfig.setFile("target/nonexistent-" + System.nanoTime() + ".jar");
     Optional<FileSystemResource> localCliFile = cliService.getLocalCliFile();
     assertFalse(localCliFile.isPresent());
   }
@@ -63,7 +61,7 @@ public class CliServiceTest extends ServiceTestBase {
   public void generateInstallCliScript() throws IOException {
     String installScript =
         cliService.generateInstallCliScript(
-            "http://localhost:8080/cli/install.sh", "${PWD}/.mojito", Collections.emptyMap());
+            "http://localhost:8080/cli/install.sh", "${PWD}/.mojito", null);
     //        Files.write(installScript, new
     // File("src/test/resources/com/box/l10n/mojito/service/cli/install.sh"),
     // StandardCharsets.UTF_8);
@@ -76,16 +74,11 @@ public class CliServiceTest extends ServiceTestBase {
 
   @Test
   public void generateInstallCliScriptWithHeaders() throws IOException {
-    Map<String, String> headers = new LinkedHashMap<>();
-    headers.put(
-        CliWS.CF_ACCESS_HEADER_CLIENT_ID, "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID");
-    headers.put(
-        CliWS.CF_ACCESS_HEADER_CLIENT_SECRET,
-        "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET");
-
     String installScript =
         cliService.generateInstallCliScript(
-            "http://localhost:8080/cli/install.sh", "${PWD}/.mojito", headers);
+            "http://localhost:8080/cli/install.sh",
+            "${PWD}/.mojito",
+            CliService.AUTHENTICATION_MODE_CF_SERVICE_TOKEN);
 
     String expected =
         Resources.toString(
@@ -98,7 +91,7 @@ public class CliServiceTest extends ServiceTestBase {
   public void getInstallCliContext() {
     InstallCliContext installCliContext =
         cliService.getInstallCliContext(
-            "https://someinstall.org/cli/install.sh", "someplace", Collections.emptyMap());
+            "https://someinstall.org/cli/install.sh", "someplace", null, Collections.emptyMap());
     assertEquals("https", installCliContext.scheme);
     assertEquals("someinstall.org", installCliContext.host);
     assertEquals("443", installCliContext.port);

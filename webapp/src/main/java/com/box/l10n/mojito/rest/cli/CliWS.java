@@ -4,9 +4,6 @@ import com.box.l10n.mojito.service.cli.CliService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,20 +25,6 @@ public class CliWS {
   static Logger logger = LoggerFactory.getLogger(CliWS.class);
 
   @Autowired CliService cliService;
-
-  public static final String CF_ACCESS_HEADER_CLIENT_ID = "CF-Access-Client-Id";
-  public static final String CF_ACCESS_HEADER_CLIENT_SECRET = "CF-Access-Client-Secret";
-
-  static final Map<String, String> SUPPORTED_HEADER_TO_ENV_VAR;
-
-  static {
-    Map<String, String> headerToEnvVar = new LinkedHashMap<>();
-    headerToEnvVar.put(
-        CF_ACCESS_HEADER_CLIENT_ID, "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_ID");
-    headerToEnvVar.put(
-        CF_ACCESS_HEADER_CLIENT_SECRET, "L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_CLIENT_SECRET");
-    SUPPORTED_HEADER_TO_ENV_VAR = Collections.unmodifiableMap(headerToEnvVar);
-  }
 
   /**
    * Entry point do download the CLI that corresponds to this server version.
@@ -89,25 +72,11 @@ public class CliWS {
   public String getInstallCliScript(
       HttpServletRequest httpServletRequest,
       @RequestParam(value = "installDirectory", defaultValue = "#{'$'}{PWD}/.mojito")
-          String installDirectory)
+          String installDirectory,
+      @RequestParam(value = "authMode", required = false) String authenticationMode)
       throws IOException {
     String requestUrl = httpServletRequest.getRequestURL().toString();
-    Map<String, String> authenticationHeaders = getAuthenticationHeaders(httpServletRequest);
-
-    return cliService.generateInstallCliScript(requestUrl, installDirectory, authenticationHeaders);
-  }
-
-  Map<String, String> getAuthenticationHeaders(HttpServletRequest httpServletRequest) {
-    Map<String, String> headers = new LinkedHashMap<>();
-
-    SUPPORTED_HEADER_TO_ENV_VAR.forEach(
-        (headerName, envVar) -> {
-          if (httpServletRequest.getHeader(headerName) != null) {
-            headers.put(headerName, envVar);
-          }
-        });
-
-    return headers;
+    return cliService.generateInstallCliScript(requestUrl, installDirectory, authenticationMode);
   }
 
   /**
