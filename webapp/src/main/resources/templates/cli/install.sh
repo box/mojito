@@ -19,7 +19,7 @@
 mkdir -p {{installDirectory}}
 
 # Create the bash wrapper for the CLI
-cat > {{installDirectory}}/mojito << 'EOF'
+cat << 'EOF' | envsubst '$PWD' > {{installDirectory}}/mojito
 #!/usr/bin/env bash
 {{#hasHeaders}}
 {{#headers}}
