@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "./header/Header";
 import BaseClient from "../sdk/BaseClient";
-import { isStateless } from "../auth/AuthFlags";
+import { isMsalStateless, isCloudflareStateless, getCloudflareLocalJwtAssertion } from "../auth/AuthFlags";
 import TokenProvider from "../auth/TokenProvider";
 import { withAppConfig } from "../utils/AppConfig";
 
@@ -22,8 +22,8 @@ class App extends React.Component {
     }
 
     isSessionExpired() {
-        if (isStateless()) {
-            // In stateless mode, MSAL manages token lifetime. Attempt a silent token
+        if (isMsalStateless()) {
+            // In stateless MSAL mode, MSAL manages token lifetime. Attempt a silent token
             // acquisition; if interaction is required, TokenProvider will trigger
             // a redirect login automatically. Then fetch the current user to update app context.
             TokenProvider.getAccessToken().then(token => {
@@ -39,6 +39,32 @@ class App extends React.Component {
                   })
                   .catch(() => {});
             });
+            return;
+        }
+
+        if (isCloudflareStateless()) {
+            const headers = {};
+            const assertion = getCloudflareLocalJwtAssertion();
+            if (assertion) {
+                headers['CF-Access-Jwt-Assertion'] = assertion;
+            }
+
+            fetch(window.location.origin + '/api/users/me', {
+                credentials: 'include',
+                headers
+            }).then(r => {
+                if (r.status !== 200) {
+                    BaseClient.authenticateHandler();
+                    return null;
+                }
+                return r.json();
+            })
+              .then(user => {
+                  if (user && this.props.setAppUser) {
+                      this.props.setAppUser(user);
+                  }
+              })
+              .catch(() => {});
             return;
         }
 

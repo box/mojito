@@ -1,5 +1,5 @@
 import UrlHelper from '../utils/UrlHelper';
-import { isStateless } from '../auth/AuthFlags';
+import { isStateless, isMsalStateless, isCloudflareStateless, getCloudflareLocalJwtAssertion } from '../auth/AuthFlags';
 import TokenProvider from '../auth/TokenProvider';
 
 class BaseClient {
@@ -78,7 +78,8 @@ class BaseClient {
 
     /**
      * Build headers based on auth mode, HTTP method and content type.
-     * - Stateless: always include Authorization; include Content-Type for JSON payloads only
+     * - Stateless (MSAL): include Authorization; include Content-Type for JSON payloads only
+     * - Stateless (Cloudflare): include optional CF header override; include Content-Type for JSON payloads only
      * - Stateful: include X-CSRF-TOKEN for non-GET; include Content-Type for JSON payloads only
      *
      * @param {string} method HTTP method (GET, POST, PUT, PATCH, DELETE)
@@ -89,12 +90,24 @@ class BaseClient {
         const stateless = isStateless();
 
         if (stateless) {
-            return TokenProvider.getAccessToken().then(token => {
+            if (isCloudflareStateless()) {
                 const headers = {};
                 if (!isBinary) headers['Content-Type'] = 'application/json';
-                headers['Authorization'] = `Bearer ${token}`;
-                return headers;
-            });
+                const localAssertion = getCloudflareLocalJwtAssertion();
+                if (localAssertion) {
+                    headers['CF-Access-Jwt-Assertion'] = localAssertion;
+                }
+                return Promise.resolve(headers);
+            }
+
+            if (isMsalStateless()) {
+                return TokenProvider.getAccessToken().then(token => {
+                    const headers = {};
+                    if (!isBinary) headers['Content-Type'] = 'application/json';
+                    headers['Authorization'] = `Bearer ${token}`;
+                    return headers;
+                });
+            }
         } else {
             const headers = {};
             if (method !== 'GET') {
@@ -103,6 +116,8 @@ class BaseClient {
             }
             return Promise.resolve(headers);
         }
+
+        return Promise.resolve({});
     }
 
     /**

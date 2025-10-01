@@ -1,11 +1,11 @@
 import {PublicClientApplication, InteractionRequiredAuthError} from '@azure/msal-browser';
-import {isStateless} from './AuthFlags';
+import {isMsalStateless} from './AuthFlags';
 
 let msalInstance = null;
 let msalReadyPromise = null;
 
 function ensureMsalReady() {
-    if (!isStateless()) return Promise.resolve(null);
+    if (!isMsalStateless()) return Promise.resolve(null);
 
     if (!msalInstance) {
         const config = (APP_CONFIG.stateless && APP_CONFIG.stateless.msal) || {};
@@ -52,7 +52,7 @@ const TokenProvider = {
 
     login(returnTo) {
         return ensureMsalReady().then(instance => {
-            if (!instance) return Promise.reject(new Error('TokenProvider.login called in stateful mode'));
+            if (!instance) return Promise.reject(new Error('TokenProvider.login called while MSAL auth not active'));
 
             const state = returnTo || (location.pathname.substr(APP_CONFIG.contextPath.length) + location.search);
             instance.loginRedirect({
@@ -65,15 +65,15 @@ const TokenProvider = {
 
     logout() {
         return ensureMsalReady().then(instance => {
-            if (!instance) return Promise.reject(new Error('TokenProvider.logout called in stateful mode'));
+            if (!instance) return Promise.reject(new Error('TokenProvider.logout called while MSAL auth not active'));
             const account = instance.getActiveAccount();
             return instance.logoutRedirect({account});
         });
     },
 
     getAccessToken() {
-        if (!isStateless()) {
-            return Promise.reject(new Error('TokenProvider called in stateful mode'));
+        if (!isMsalStateless()) {
+            return Promise.reject(new Error('TokenProvider called while MSAL auth not active'));
         }
 
         return ensureMsalReady().then(instance => {
