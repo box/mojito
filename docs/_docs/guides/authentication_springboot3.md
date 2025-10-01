@@ -109,3 +109,26 @@ configuration:
     l10n.security.authenticationType=HEADER,DATABASE
     
  The username is read from the `x-forwarded-user` http header. 
+
+### React Stateless Auth Modes
+
+The web UI can operate without Mojito-managed sessions by enabling stateless mode and choosing an auth type:
+
+```
+l10n.security.stateless.enabled=true
+l10n.security.stateless.type=MSAL   # or CLOUDFLARE
+```
+
+- `MSAL` keeps the existing Azure AD SPA integration and requires the `l10n.security.stateless.msal.*`
+  properties that were previously supported.
+- `CLOUDFLARE` trusts Cloudflare Access to inject the `CF-Access-Jwt-Assertion` header. When calling the backend
+  locally (without the Access proxy), you can mimic the header by providing an optional value:
+
+  ```
+  l10n.security.stateless.cloudflare.local-jwt-assertion=<copied-jwt-for-local-testing>
+  ```
+
+  The UI attaches this value to API requests only when present so production traffic continues to rely on the
+  proxy-managed header.
+
+  Similarly on the CLI, use `export L10N_RESTTEMPLATE_HEADER_HEADERS_CF_ACCESS_JWT_ASSERTION=<value>` 

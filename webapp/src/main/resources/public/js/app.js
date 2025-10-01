@@ -52,7 +52,7 @@ import enMessages from '../../properties/en.properties';
 import GoogleAnalytics from "./utils/GoogleAnalytics";
 import ShareSearchParamsModalActions from "./actions/workbench/ShareSearchParamsModalActions";
 import AuthorityService from "./utils/AuthorityService";
-import { isStateless } from './auth/AuthFlags';
+import { isMsalStateless } from './auth/AuthFlags';
 import TokenProvider from './auth/TokenProvider';
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
@@ -142,7 +142,7 @@ function startApp(messages) {
      * Override handler to customise behavior
      */
     BaseClient.authenticateHandler = function () {
-        if (isStateless()) {
+        if (isMsalStateless()) {
             // unlikely to happen but keeping in case
             const pathRelativeToContext = location.pathname.substr(APP_CONFIG.contextPath.length) + window.location.search;
             TokenProvider.login(pathRelativeToContext);
