@@ -48,6 +48,10 @@ class AuthorityService {
         return this.userHasPermission("edit-screenshots");
     }
 
+    static isAdmin() {
+        return APP_CONFIG.user.role === UserStatics.authorityAdmin();
+    }
+
     static canTranslateLocale(tag) {
         if (!this.canEditTranslations()) {
             return false;

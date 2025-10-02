@@ -20,6 +20,7 @@ import ScreenshotDropzonePage from "./components/screenshots/ScreenshotDropzoneP
 import UserManagement from "./components/users/UserManagement";
 import Settings from "./components/settings/Settings";
 import BoxSettings from "./components/settings/BoxSettings";
+import DbLatencyMonitoring from "./components/settings/DbLatencyMonitoring";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
 import RepositoryActions from "./actions/RepositoryActions";
 import ScreenshotsPageActions from "./actions/screenshots/ScreenshotsPageActions";
@@ -127,6 +128,7 @@ function startApp(messages) {
                                 <Route path="user-management" component={UserManagement}/>
                                 <Route path="box" component={BoxSettings}/>
                             </Route>
+                            <Route path="monitoring" component={DbLatencyMonitoring}/>
                         </Route>
                         <Route path="auth/callback" component={AuthCallback}></Route>
                         <Route path="login" component={Login}></Route>

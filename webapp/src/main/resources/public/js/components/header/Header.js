@@ -20,6 +20,7 @@ import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 import {withAppConfig} from "../../utils/AppConfig";
 import { isMsalStateless } from '../../auth/AuthFlags';
 import TokenProvider from '../../auth/TokenProvider';
+import AuthorityService from "../../utils/AuthorityService";
 
 class Header extends React.Component {
     state = {
@@ -139,6 +140,14 @@ class Header extends React.Component {
                                 <Glyphicon glyph="wrench"/> <FormattedMessage id="header.settings"/>
                             </MenuItem>
                         </LinkContainer>
+
+                        {AuthorityService.isAdmin() && (
+                            <LinkContainer to="/monitoring">
+                                <MenuItem>
+                                    <Glyphicon glyph="stats"/> <FormattedMessage id="header.monitoring" defaultMessage="Monitoring"/>
+                                </MenuItem>
+                            </LinkContainer>
+                        )}
 
                         <MenuItem divider/>
 
