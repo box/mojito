@@ -19,14 +19,18 @@
 mkdir -p ${PWD}/.mojito
 
 # Create the bash wrapper for the CLI
-cat > ${PWD}/.mojito/mojito << 'EOF'
+cat > ${PWD}/.mojito/mojito-tmp << 'EOF'
 #!/usr/bin/env bash
-java -Dl10n.resttemplate.host=localhost \\
-     -Dl10n.resttemplate.scheme=http \\
-     -Dl10n.resttemplate.port=8080 \\
-     -Dlogging.file.path=${PWD}/.mojito \\
-     -jar ${PWD}/.mojito/mojito-cli.jar "\$@" ;
+java -Dl10n.resttemplate.host=localhost \
+     -Dl10n.resttemplate.scheme=http \
+     -Dl10n.resttemplate.port=8080 \
+     -Dlogging.file.path=${PWD}/.mojito \
+     -jar ${PWD}/.mojito/mojito-cli.jar "$@" ;
 EOF
+
+_ESC="$(printf '%s' "${PWD}" | sed 's/[\/&]/\\&/g')"
+sed "s|\${PWD}|$_ESC|g" ${PWD}/.mojito/mojito-tmp > ${PWD}/.mojito/mojito
+rm ${PWD}/.mojito/mojito-tmp
 
 # Make the wrapper executable
 chmod +x ${PWD}/.mojito/mojito
