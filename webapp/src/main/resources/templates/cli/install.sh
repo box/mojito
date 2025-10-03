@@ -19,13 +19,12 @@
 mkdir -p {{installDirectory}}
 
 # Create the bash wrapper for the CLI
-cat << 'EOF' | envsubst '$PWD' > {{installDirectory}}/mojito
+cat > {{installDirectory}}/mojito-tmp << 'EOF'
 #!/usr/bin/env bash
 {{#hasHeaders}}
 {{#headers}}
 if [ -z "{{{envVarPresenceCheck}}}" ]; then
   echo "Environment variable {{envVar}} must be set before running this command."
-  exit 1
 fi
 {{/headers}}
 {{#authenticationMode}}
@@ -38,6 +37,10 @@ java -Dl10n.resttemplate.host={{host}} \
      -Dlogging.file.path={{installDirectory}} \
      -jar {{installDirectory}}/mojito-cli.jar "$@" ;
 EOF
+
+_ESC="$(printf '%s' "${PWD}" | sed 's/[\/&]/\\&/g')"
+sed "s|\${PWD}|$_ESC|g" {{installDirectory}}/mojito-tmp > {{installDirectory}}/mojito
+rm {{installDirectory}}/mojito-tmp
 
 # Make the wrapper executable
 chmod +x {{installDirectory}}/mojito
