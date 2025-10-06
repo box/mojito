@@ -13,11 +13,8 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.rest.entity.XliffExportBody;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -438,7 +435,7 @@ public class AssetClient extends BaseClient {
    */
   public List<Long> getAssetIds(
       Long repositoryId, Boolean deleted, Boolean virtual, Long branchId) {
-    Assert.notNull(repositoryId);
+    Objects.requireNonNull(repositoryId);
 
     UriComponentsBuilder uriBuilder =
         UriComponentsBuilder.fromPath(getBasePathForEntity() + "/ids");

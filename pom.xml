@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.5</version>
+        <version>3.2.3</version>
     </parent>
 
     <properties>
@@ -35,8 +35,8 @@
         <icu4j.version>64.2</icu4j.version>
         <docker.compose.detached.mode>true</docker.compose.detached.mode>
         <docker.compose.remove.volumes>true</docker.compose.remove.volumes>
-        <aspectj.version>1.9.21</aspectj.version>
-        <jackson.version>2.13.5</jackson.version>
+        <aspectj.version>1.9.24</aspectj.version>
+        <jackson.version>2.15.4</jackson.version>
     </properties>
 
     <dependencies>
