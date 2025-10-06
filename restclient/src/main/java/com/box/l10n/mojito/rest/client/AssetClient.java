@@ -13,17 +13,13 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.rest.entity.XliffExportBody;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -288,8 +284,8 @@ public class AssetClient extends BaseClient {
   public Asset getAssetByPathAndRepositoryId(String path, Long repositoryId)
       throws AssetNotFoundException {
 
-    Assert.notNull(path, "path must not be null");
-    Assert.notNull(repositoryId, "repository must not be null");
+    Objects.requireNonNull(path, "path must not be null");
+    Objects.requireNonNull(repositoryId, "repository must not be null");
 
     List<Asset> assets = getAssets(path, repositoryId);
 
@@ -438,7 +434,7 @@ public class AssetClient extends BaseClient {
    */
   public List<Long> getAssetIds(
       Long repositoryId, Boolean deleted, Boolean virtual, Long branchId) {
-    Assert.notNull(repositoryId);
+    Objects.requireNonNull(repositoryId);
 
     UriComponentsBuilder uriBuilder =
         UriComponentsBuilder.fromPath(getBasePathForEntity() + "/ids");
