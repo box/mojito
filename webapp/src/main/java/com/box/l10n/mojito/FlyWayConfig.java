@@ -82,9 +82,9 @@ public class FlyWayConfig {
     void tryToMigrateIfMysql8Migration(Flyway flyway, FlywayException fe) {
         if (fe.getMessage()
                 .contains(
-                        "Migration checksum mismatch for migration version 1\n"
-                                + "-> Applied to database : 1443976515\n"
-                                + "-> Resolved locally    : -998267617")) {
+                        "Migration Checksum mismatch for migration 1\n"
+                                + "-> Applied to database : 147381909\n"
+                                + "-> Resolved locally    : -1294323746")) {
 
             logger.info("Flyway repair()");
             flyway.repair();
