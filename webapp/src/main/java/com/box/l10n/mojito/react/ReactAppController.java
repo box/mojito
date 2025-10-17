@@ -79,6 +79,7 @@ public class ReactAppController {
     "branches",
     "screenshots",
     "screenshots-legacy",
+    "ai-translate",
     "settings",
     "settings/user-management",
     "settings/box",

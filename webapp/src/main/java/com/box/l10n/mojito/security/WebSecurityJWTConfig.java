@@ -124,6 +124,7 @@ public class WebSecurityJWTConfig {
                 "/branches",
                 "/screenshots",
                 "/screenshots-legacy",
+                "/ai-translate",
                 "/settings/**"));
 
     // forwarding was for the old implementation and is not needed anymore so
