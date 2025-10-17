@@ -106,6 +106,11 @@ class Header extends React.Component {
                     }}><NavItem><FormattedMessage id="header.workbench"/></NavItem></LinkContainer>
                     <LinkContainer to="/project-requests"><NavItem><FormattedMessage
                         id="header.projectRequests"/></NavItem></LinkContainer>
+                    {AuthorityService.isAdmin() && (
+                        <LinkContainer to="/ai-translate">
+                            <NavItem><FormattedMessage id="header.aiTranslate"/></NavItem>
+                        </LinkContainer>
+                    )}
                     <LinkContainer to="/branches" onClick={() => {
                         if (this.props.router.isActive("/branches")) {
                             BranchesPageActions.resetBranchesSearchParams();
