@@ -21,6 +21,7 @@ import UserManagement from "./components/users/UserManagement";
 import Settings from "./components/settings/Settings";
 import BoxSettings from "./components/settings/BoxSettings";
 import DbLatencyMonitoring from "./components/settings/DbLatencyMonitoring";
+import RepositoryAiTranslatePage from "./components/aiTranslate/RepositoryAiTranslatePage";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
 import RepositoryActions from "./actions/RepositoryActions";
 import ScreenshotsPageActions from "./actions/screenshots/ScreenshotsPageActions";
@@ -117,6 +118,7 @@ function startApp(messages) {
                             <Route path="repositories" component={Repositories}
                                    onEnter={getAllRepositoriesDeffered}/>
                             <Route path="project-requests" component={Drops}/>
+                            <Route path="ai-translate" component={RepositoryAiTranslatePage} onEnter={onEnterAiTranslate}/>
                             <Route path="branches" component={BranchesPage}
                                    onEnter={onEnterBranches}
                                    onLeave={BranchesPageActions.resetBranchesSearchParams}/>
@@ -227,6 +229,14 @@ function onEnterScreenshots() {
     setTimeout(() => {
         ScreenshotsRepositoryActions.getAllRepositories();
     }, 1);
+}
+
+function onEnterAiTranslate(nextState, replace) {
+    if (!AuthorityService.isAdmin()) {
+        replace('/repositories');
+    } else {
+        getAllRepositoriesDeffered();
+    }
 }
 
 function onEnterRoot(nextState, replace) {
