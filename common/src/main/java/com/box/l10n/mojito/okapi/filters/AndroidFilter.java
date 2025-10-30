@@ -63,6 +63,9 @@ public class AndroidFilter extends XMLFilter {
   private static final String POST_PROCESS_REMOVE_TRANSLATABLE_FALSE =
       "postRemoveTranslatableFalse";
 
+  private static final String POST_PROCESS_EMPTY_RESOURCES_TO_EMPTY_FILE =
+      "postEmptyResourcesToEmptyFile";
+
   private static final Pattern PATTERN_PLURAL_START = Pattern.compile("<plurals");
   private static final Pattern PATTERN_PLURAL_END = Pattern.compile("</plurals>");
   private static final Pattern PATTERN_XML_COMMENT = Pattern.compile("<!--(?<comment>.*?)-->");
@@ -116,6 +119,8 @@ public class AndroidFilter extends XMLFilter {
 
   boolean removeTranslatableFalse = false;
 
+  boolean emptyResourcesToEmptyFile = false;
+
   int postProcessIndent = 2;
 
   /**
@@ -140,6 +145,7 @@ public class AndroidFilter extends XMLFilter {
                 removeDescription,
                 postProcessIndent,
                 removeTranslatableFalse,
+                emptyResourcesToEmptyFile,
                 shouldApplyPostProcessingRemoveUntranslatedExcluded)));
   }
 
@@ -168,6 +174,13 @@ public class AndroidFilter extends XMLFilter {
           POST_PROCESS_REMOVE_TRANSLATABLE_FALSE,
           b -> {
             removeTranslatableFalse = b;
+            shouldApplyPostProcessingRemoveUntranslatedExcluded = true;
+          });
+
+      filterOptions.getBoolean(
+          POST_PROCESS_EMPTY_RESOURCES_TO_EMPTY_FILE,
+          b -> {
+            emptyResourcesToEmptyFile = b;
             shouldApplyPostProcessingRemoveUntranslatedExcluded = true;
           });
 
@@ -446,6 +459,7 @@ public class AndroidFilter extends XMLFilter {
     boolean removeDescription;
     boolean removeTranslatableFalse;
     int indent;
+    boolean emptyResourcesToEmptyFile;
     boolean shouldApplyPostProcessingRemoveUntranslatedExcluded;
 
     AndroidFilePostProcessor(
@@ -453,11 +467,13 @@ public class AndroidFilter extends XMLFilter {
         boolean removeDescription,
         int indent,
         boolean removeTranslatableFalse,
+        boolean emptyResourcesToEmptyFile,
         boolean shouldApplyPostProcessingRemoveUntranslatedExcluded) {
       this.setRemoveUntranslated(removeUntranslated);
       this.removeDescription = removeDescription;
       this.removeTranslatableFalse = removeTranslatableFalse;
       this.indent = indent;
+      this.emptyResourcesToEmptyFile = emptyResourcesToEmptyFile;
       this.shouldApplyPostProcessingRemoveUntranslatedExcluded =
           shouldApplyPostProcessingRemoveUntranslatedExcluded;
     }
@@ -540,6 +556,10 @@ public class AndroidFilter extends XMLFilter {
         }
         removeWhitespaceNodes(document);
 
+        if (emptyResourcesToEmptyFile && isResourcesEmpty(document)) {
+          return "";
+        }
+
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -600,6 +620,27 @@ public class AndroidFilter extends XMLFilter {
           }
         }
       }
+    }
+
+    boolean isResourcesEmpty(Document document) {
+      Element root = document.getDocumentElement();
+      if (root == null) {
+        return false;
+      }
+
+      NodeList childNodes = root.getChildNodes();
+      for (int i = 0; i < childNodes.getLength(); i++) {
+        Node child = childNodes.item(i);
+        if (child.getNodeType() == Node.ELEMENT_NODE) {
+          String nodeName = child.getNodeName();
+          if ("string".equals(nodeName)
+              || "plurals".equals(nodeName)
+              || "string-array".equals(nodeName)) {
+            return false;
+          }
+        }
+      }
+      return true;
     }
   }
 }

@@ -49,6 +49,7 @@ public class PullCommandParallel extends PullCommand {
     this.pullRunName = pullCommand.pullRunName;
     this.recordPullRun = pullCommand.recordPullRun;
     this.isParallel = pullCommand.isParallel;
+    this.skipEmptyOutput = pullCommand.skipEmptyOutput;
   }
 
   public void pull() throws CommandException {
@@ -116,6 +117,10 @@ public class PullCommandParallel extends PullCommand {
         commandDirectories
             .getTargetDirectoryPath()
             .resolve(sourceFileMatch.getTargetPath(localizedAsset.getBcp47Tag()));
+
+    if (skipWritingEmptyOutput(localizedAsset.getContent(), targetPath, sourceFileMatch)) {
+      return;
+    }
 
     commandHelper.writeFileContent(localizedAsset.getContent(), targetPath, sourceFileMatch);
 

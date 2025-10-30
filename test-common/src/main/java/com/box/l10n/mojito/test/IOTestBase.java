@@ -13,6 +13,11 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.NotFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -234,8 +239,13 @@ public class IOTestBase {
       throws DifferentDirectoryContentException {
 
     try {
-      Collection<File> listFiles1 = FileUtils.listFiles(dir1, null, true);
-      Collection<File> listFiles2 = FileUtils.listFiles(dir2, null, true);
+      IOFileFilter filesToCompare =
+          new NotFileFilter(new NameFileFilter(".gitkeep", IOCase.SENSITIVE));
+
+      Collection<File> listFiles1 =
+          FileUtils.listFiles(dir1, filesToCompare, TrueFileFilter.INSTANCE);
+      Collection<File> listFiles2 =
+          FileUtils.listFiles(dir2, filesToCompare, TrueFileFilter.INSTANCE);
 
       // Get all the files inside the source directory, recursively
       for (File file1 : listFiles1) {
