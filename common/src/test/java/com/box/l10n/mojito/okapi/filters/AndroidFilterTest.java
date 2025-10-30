@@ -113,7 +113,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingKeepDescription() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, false, 2, false, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, false, 2, false, false, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -157,7 +157,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingRemoveDescription() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -201,7 +201,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingEmptyFile() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false, false);
     String input = "";
     String output = androidFilePostProcessor.execute(input);
     String expected = "";
@@ -209,9 +209,25 @@ public class AndroidFilterTest {
   }
 
   @Test
+  public void testPostProcessingEmptyResourcesToEmptyFile() {
+    AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
+        new AndroidFilter.AndroidFilePostProcessor(false, false, 2, false, true, true);
+    String input =
+        """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <resources>
+                <!-- translated elsewhere -->
+            </resources>
+            """;
+
+    String output = androidFilePostProcessor.execute(input);
+    assertEquals("", output);
+  }
+
+  @Test
   public void testPostProcessingNoProlog() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, false, false, false);
     String input =
         """
             <resources>
@@ -232,7 +248,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingRemoveTranslatableFalse() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false, false);
     String input =
         """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -271,7 +287,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingRemoveMissingOther() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false, false);
     String input =
         """
           <?xml version="1.0" encoding="UTF-8"?>
@@ -293,7 +309,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingRemoveMissingOtherUntranslated() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false, false);
     String input =
         """
           <?xml version="1.0" encoding="UTF-8"?>
@@ -316,7 +332,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingStandaloneNo() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false, false);
     String input =
         """
                 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -355,7 +371,7 @@ public class AndroidFilterTest {
   @Test
   public void testPostProcessingStandaloneYes() {
     AndroidFilter.AndroidFilePostProcessor androidFilePostProcessor =
-        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false);
+        new AndroidFilter.AndroidFilePostProcessor(true, true, 2, true, false, false);
     String input =
         """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>

@@ -17,6 +17,8 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
@@ -104,6 +106,12 @@ public class PullCommand extends Command {
       required = false,
       description = Param.FILTER_OPTIONS_DESCRIPTION)
   List<String> filterOptionsParam;
+
+  @Parameter(
+      names = {"--skip-empty-output"},
+      description =
+          "Skip writing localized files when the generated content is empty (also requests the Android filter to blank empty resources)")
+  boolean skipEmptyOutput = false;
 
   @Parameter(
       names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT},
@@ -431,10 +439,38 @@ public class PullCommand extends Command {
             .getTargetDirectoryPath()
             .resolve(sourceFileMatch.getTargetPath(localizedAsset.getBcp47Tag()));
 
+    if (skipWritingEmptyOutput(localizedAsset.getContent(), targetPath, sourceFileMatch)) {
+      return;
+    }
+
     commandHelper.writeFileContent(localizedAsset.getContent(), targetPath, sourceFileMatch);
 
     Path relativeTargetFilePath = commandDirectories.relativizeWithUserDirectory(targetPath);
     consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
+  }
+
+  boolean skipWritingEmptyOutput(String content, Path targetPath, FileMatch sourceFileMatch)
+      throws CommandException {
+    if (!skipEmptyOutput || !(content == null || content.isBlank())) {
+      return false;
+    }
+
+    try {
+      Files.deleteIfExists(targetPath);
+    } catch (IOException e) {
+      throw new CommandException(
+          "Cannot delete empty output file in path: " + targetPath.toString(), e);
+    }
+
+    Path relativeTargetFilePath = commandDirectories.relativizeWithUserDirectory(targetPath);
+    consoleWriter
+        .a(" --> ")
+        .fg(Color.MAGENTA)
+        .a("skipped empty content: ")
+        .a(relativeTargetFilePath.toString())
+        .println();
+
+    return true;
   }
 
   LocalizedAssetBody getLocalizedAsset(
