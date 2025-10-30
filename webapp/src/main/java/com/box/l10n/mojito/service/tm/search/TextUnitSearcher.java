@@ -361,6 +361,14 @@ public class TextUnitSearcher {
           conjunction.add(
               new NativeEqExpFix("tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()));
           break;
+        case REVIEW_NEEDED_OR_REJECTED:
+          conjunction.add(
+              NativeExps.disjunction(
+                  Arrays.asList(
+                      new NativeEqExpFix(
+                          "tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()),
+                      new NativeEqExpFix("tuv.included_in_localized_file", Boolean.FALSE))));
+          break;
         case REVIEW_NOT_NEEDED:
           conjunction.add(
               NativeExps.notEq("tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()));

@@ -448,6 +448,57 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         textUnitDTOs.get(0).getTmTextUnitId());
   }
 
+  @Transactional(noRollbackFor = {Throwable.class})
+  @Test
+  public void testReviewNeededOrRejected() {
+    TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+    Long reviewNeededTmTextUnitId =
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId();
+    tmService.addTMTextUnitCurrentVariant(
+        reviewNeededTmTextUnitId,
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
+        "mark as review needed",
+        TMTextUnitVariant.Status.REVIEW_NEEDED);
+
+    Long rejectedTmTextUnitId = tmTestData.addCurrentTMTextUnitVariant3FrFR.getTmTextUnit().getId();
+    tmService.addTMTextUnitCurrentVariant(
+        rejectedTmTextUnitId,
+        tmTestData.addCurrentTMTextUnitVariant3FrFR.getLocale().getId(),
+        tmTestData.addCurrentTMTextUnitVariant3FrFR.getContent(),
+        "mark as rejected",
+        TMTextUnitVariant.Status.APPROVED,
+        false);
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParametersForTesting();
+    textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+    textUnitSearcherParameters.setLocaleId(tmTestData.frFR.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NEEDED_OR_REJECTED);
+
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+    assertEquals(
+        "The searcher should return review needed and rejected text unit DTOs",
+        2,
+        textUnitDTOs.size());
+
+    boolean reviewNeededFound = false;
+    boolean rejectedFound = false;
+
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      if (reviewNeededTmTextUnitId.equals(textUnitDTO.getTmTextUnitId())) {
+        reviewNeededFound = true;
+      } else if (rejectedTmTextUnitId.equals(textUnitDTO.getTmTextUnitId())) {
+        rejectedFound = true;
+      }
+    }
+
+    assertTrue("Review needed text unit should be present", reviewNeededFound);
+    assertTrue("Rejected text unit should be present", rejectedFound);
+  }
+
   @Test
   public void testCountNone() throws Exception {
     TMTestData tmTestData = new TMTestData(testIdWatcher);
