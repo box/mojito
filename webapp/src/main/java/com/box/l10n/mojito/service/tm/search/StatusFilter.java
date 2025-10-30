@@ -42,6 +42,11 @@ public enum StatusFilter {
   FOR_TRANSLATION,
   /** TextUnits with status ({@link TMTextUnitVariant.Status#REVIEW_NEEDED}). */
   REVIEW_NEEDED,
+  /**
+   * TextUnits with status ({@link TMTextUnitVariant.Status#REVIEW_NEEDED}) or not included in the
+   * localized file ({@link TMTextUnitVariant#includedInLocalizedFile} is false).
+   */
+  REVIEW_NEEDED_OR_REJECTED,
   /** TextUnits that don't have status ({@link TMTextUnitVariant.Status#REVIEW_NEEDED}). */
   REVIEW_NOT_NEEDED,
   /** TextUnits with status ({@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}). */

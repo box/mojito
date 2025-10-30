@@ -349,9 +349,12 @@ public class TextUnitDTOsCacheService {
         case NOT_REJECTED:
           return t.isIncludedInLocalizedFile();
         case REJECTED:
-          return !t.isIncludedInLocalizedFile();
+          return t.getTmTextUnitVariantId() != null && !t.isIncludedInLocalizedFile();
         case REVIEW_NEEDED:
           return TMTextUnitVariant.Status.REVIEW_NEEDED.equals(t.getStatus());
+        case REVIEW_NEEDED_OR_REJECTED:
+          return TMTextUnitVariant.Status.REVIEW_NEEDED.equals(t.getStatus())
+              || (t.getTmTextUnitVariantId() != null && !t.isIncludedInLocalizedFile());
         case REVIEW_NOT_NEEDED:
           return !TMTextUnitVariant.Status.REVIEW_NEEDED.equals(t.getStatus());
         case TRANSLATION_NEEDED:
