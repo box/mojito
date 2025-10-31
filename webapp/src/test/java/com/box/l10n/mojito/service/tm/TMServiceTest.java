@@ -1502,9 +1502,11 @@ public class TMServiceTest extends ServiceTestBase {
     String assetContent =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<resources>\n"
+            + "    <string description=\"Text for when user is drawing.\" name=\"test_annotation\"><annotation tag=\"user\">%1$s</annotation> is drawing…</string>"
             + "    <string description=\"Example html markup string1\" name=\"welcome1\">Welcome to <b>Android</b>!</string>\n"
             + "    <string description=\"Example html markup string2\" name=\"welcome2\">Welcome to <i>Android</i>!</string>\n"
             + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
+            + "    <string description=\"Example html markup string4\" name=\"welcome4\">Welcome to <annotation font=\"title_emphasis\">Android</annotation>!</string>\n"
             + "    <string name=\"subheader_text1\">\\\'Make sure you\\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
             + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
             + "    <string name=\"escape_dot\">\\.</string>\n"
@@ -1559,9 +1561,11 @@ public class TMServiceTest extends ServiceTestBase {
     String expected =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<resources>\n"
+            + "    <string description=\"Text for when user is drawing.\" name=\"test_annotation\"><annotation tag=\"user\">%1$s</annotation> is drawing…</string>"
             + "    <string description=\"Example html markup string1\" name=\"welcome1\">Welcome to <b>Android</b>!</string>\n"
             + "    <string description=\"Example html markup string2\" name=\"welcome2\">Welcome to <i>Android</i>!</string>\n"
             + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
+            + "    <string description=\"Example html markup string4\" name=\"welcome4\">Welcome to <annotation font=\"title_emphasis\">Android</annotation>!</string>\n"
             + "    <string name=\"subheader_text1\">\\'Make sure you\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
             + "    <string name=\"subheader_text2\">This\\'ll also work</string>\n"
             + "    <string name=\"escape_dot\">.</string>\n"

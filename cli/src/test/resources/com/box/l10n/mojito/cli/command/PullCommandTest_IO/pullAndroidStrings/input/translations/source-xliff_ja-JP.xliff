@@ -3,9 +3,9 @@
     <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined">
         <body>
             <trans-unit id="" resname="100_character_description_" xml:space="preserve">
-                <source>&lt;b>100&lt;/b> "character" 'description':
+                <source>&lt;annotation tag="user">%1$s en&lt;/annotation>&lt;b>100&lt;/b> "character" 'description':
 </source>
-                <target>&lt;b>100&lt;/b>"文字"'の説明'：
+                <target>&lt;annotation tag="user">%1$s fr&lt;/annotation>&lt;b>100&lt;/b>"文字"'の説明'：
 </target>
             </trans-unit>
             <trans-unit id="" resname="15_min_duration">
