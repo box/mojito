@@ -658,6 +658,18 @@ public class PullCommandTest extends CLITestBase {
             "-r",
             repository.getName(),
             "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("removeDescription").getAbsolutePath(),
+            "-fo",
+            "removeDescription=true");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
             getInputResourcesTestDir("source_modified").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath());
