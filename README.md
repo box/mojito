@@ -1,6 +1,8 @@
 Mojito 
 ====
 
+> :warning: **This branch holds experimental Mojito patches carried over from the [`legacy`](https://github.com/box/mojito/tree/legacy) branch.**
+
 [![Join the chat at https://gitter.im/box/mojito](https://badges.gitter.im/box/mojito.svg)](https://gitter.im/box/mojito?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Project Status](http://opensource.box.com/badges/active.svg)](http://opensource.box.com/badges)
 [![Build Status](https://travis-ci.org/box/mojito.svg?branch=master)](https://travis-ci.org/box/mojito/branches)
