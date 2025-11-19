@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.ApplicationPidFileWriter;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 @EnableRetry
 @EntityScan(basePackageClasses = BaseEntity.class)
+@ConfigurationPropertiesScan
 public class Application {
 
   // TODO(spring2), find replacement - this was commented in previous attempt

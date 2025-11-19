@@ -14,12 +14,15 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.entity.security.user.UserLocale;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.View;
+import com.box.l10n.mojito.rest.textunit.TextUnitWS.SearchTextUnitsHybridResponse.HybridSearchError;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetPathNotFoundException;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
+import com.box.l10n.mojito.service.blobstorage.Retention;
+import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
 import com.box.l10n.mojito.service.gitblame.GitBlameWithUsage;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -42,16 +45,24 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -101,6 +112,18 @@ public class TextUnitWS {
 
   @Autowired UserRepository userRepository;
 
+  @Autowired StructuredBlobStorage structuredBlobStorage;
+
+  @Autowired
+  @Qualifier("fail_on_unknown_properties_false")
+  ObjectMapper objectMapper;
+
+  @Autowired SearchTextUnitsHybridProperties searchTextUnitsHybridProperties;
+
+  @Autowired
+  @Qualifier("searchTextUnitsHybridExecutor")
+  ThreadPoolTaskExecutor searchTextUnitsHybridExecutor;
+
   /**
    * Gets the TextUnits that matches the search parameters.
    *
@@ -145,6 +168,157 @@ public class TextUnitWS {
 
     List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
     return search;
+  }
+
+  record SearchTextUnitsHybridResponse(
+      List<TextUnitDTO> results, PollingToken pollingToken, HybridSearchError error) {
+    record PollingToken(UUID requestId, long recommendedPollingDurationMillis) {}
+
+    record HybridSearchError(String type, String message, String stackTrace, boolean expected) {}
+  }
+
+  /**
+   * Hybrid text unit search that returns results synchronously when the query completes quickly or
+   * falls back to asynchronous polling for longer queries.
+   *
+   * <p><b>Response semantics (same envelope for POST and polling GET):</b>
+   *
+   * <ul>
+   *   <li>{@code 200 OK}: {@link SearchTextUnitsHybridResponse#results() results()} contains the
+   *       {@link TextUnitDTO}s; {@code pollingToken} and {@code error} are {@code null}.
+   *   <li>{@code 202 Accepted}: {@code pollingToken} contains a {@code requestId} and {@code
+   *       recommendedPollingDurationMillis}; {@code results} and {@code error} are {@code null}.
+   *       Clients should poll {@code GET /api/textunits/search-hybrid/results/{requestId}} until it
+   *       returns a 200 or until their own timeout elapses. The recommended duration is a hint for
+   *       pacing retries.
+   *   <li>{@code 4xx/5xx}: {@code error} is populated for expected validation errors (4xx) or
+   *       unexpected failures (5xx); {@code results} and {@code pollingToken} are {@code null}.
+   * </ul>
+   *
+   * <p><b>Frontend implementation notes:</b>
+   *
+   * <ul>
+   *   <li>POST {@code /api/textunits/search-hybrid} with the usual search parameters.
+   *   <li>If the response contains {@code results()}, convert it to {@link TextUnitDTO}s as before.
+   *   <li>If the response contains a {@code pollingToken}, start polling the async GET endpoint
+   *       using the provided {@code requestId}. Respect the {@code
+   *       recommendedPollingDurationMillis} hint when calculating when to stop polling.
+   *   <li>The polling endpoint returns the same envelope: 200 with {@code results()}, 202 with a
+   *       {@code pollingToken}, or 4xx/5xx with {@code error}.
+   * </ul>
+   */
+  @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/search-hybrid")
+  public ResponseEntity<SearchTextUnitsHybridResponse> searchTextUnitsHybrid(
+      @RequestBody TextUnitSearchBody textUnitSearchBody)
+      throws InvalidTextUnitSearchParameterException {
+
+    final UUID requestId = UUID.randomUUID();
+    final AtomicBoolean forceAsyncPersistence = new AtomicBoolean(false);
+    final long searchStartedAtNanos = System.nanoTime();
+
+    Future<List<TextUnitDTO>> searchFuture =
+        searchTextUnitsHybridExecutor.submit(
+            () -> {
+              List<TextUnitDTO> results;
+              try {
+                results = getTextUnits(textUnitSearchBody);
+              } catch (Exception e) {
+                if (forceAsyncPersistence.get()) {
+                  HybridSearchError error =
+                      new HybridSearchError(
+                          e.getClass().getName(),
+                          e.getMessage(),
+                          Throwables.getStackTraceAsString(e),
+                          e instanceof InvalidTextUnitSearchParameterException);
+                  SearchTextUnitsHybridResponse payload =
+                      new SearchTextUnitsHybridResponse(null, null, error);
+                  String payloadJson = objectMapper.writeValueAsStringUnchecked(payload);
+                  structuredBlobStorage.put(
+                      StructuredBlobStorage.Prefix.TEXT_UNIT_WS_SEARCH_ASYNC,
+                      requestId.toString(),
+                      payloadJson,
+                      Retention.MIN_1_DAY);
+                }
+                throw e;
+              }
+              long searchCompletedAtNanos = System.nanoTime();
+
+              if (forceAsyncPersistence.get()
+                  || searchCompletedAtNanos - searchStartedAtNanos
+                      >= searchTextUnitsHybridProperties.convertToAsyncAfter().toNanos()) {
+                logger.debug("search was slow, we must persist result for eventual polling");
+                SearchTextUnitsHybridResponse payload =
+                    new SearchTextUnitsHybridResponse(results, null, null);
+                String payloadJson = objectMapper.writeValueAsStringUnchecked(payload);
+                structuredBlobStorage.put(
+                    StructuredBlobStorage.Prefix.TEXT_UNIT_WS_SEARCH_ASYNC,
+                    requestId.toString(),
+                    payloadJson,
+                    Retention.MIN_1_DAY);
+              }
+              return results;
+            });
+
+    try {
+      List<TextUnitDTO> results =
+          searchFuture.get(
+              searchTextUnitsHybridProperties.convertToAsyncAfter().toNanos(),
+              TimeUnit.NANOSECONDS);
+      SearchTextUnitsHybridResponse response =
+          new SearchTextUnitsHybridResponse(results, null, null);
+      return ResponseEntity.ok(response);
+    } catch (TimeoutException e) {
+      forceAsyncPersistence.set(true);
+      SearchTextUnitsHybridResponse response =
+          new SearchTextUnitsHybridResponse(null, buildPollingToken(requestId), null);
+      return ResponseEntity.accepted().body(response);
+    } catch (ExecutionException e) {
+      if (e.getCause() instanceof InvalidTextUnitSearchParameterException) {
+        throw (InvalidTextUnitSearchParameterException) e.getCause();
+      } else {
+        throw new UncheckedExecutionException(e);
+      }
+    } catch (InterruptedException e) {
+      searchFuture.cancel(true);
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
+  }
+
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = "/api/textunits/search-hybrid/results/{requestId}")
+  public ResponseEntity<?> searchTextUnitsHybridGetResults(@PathVariable UUID requestId) {
+
+    ResponseEntity<SearchTextUnitsHybridResponse> response = null;
+    Optional<String> storedResult =
+        structuredBlobStorage.getString(
+            StructuredBlobStorage.Prefix.TEXT_UNIT_WS_SEARCH_ASYNC, requestId.toString());
+
+    if (storedResult.isEmpty()) {
+      SearchTextUnitsHybridResponse searchTextUnitsHybridResponse =
+          new SearchTextUnitsHybridResponse(null, buildPollingToken(requestId), null);
+      response = ResponseEntity.accepted().body(searchTextUnitsHybridResponse);
+
+    } else {
+      SearchTextUnitsHybridResponse searchTextUnitsHybridResponse =
+          objectMapper.readValueUnchecked(storedResult.get(), SearchTextUnitsHybridResponse.class);
+
+      if (searchTextUnitsHybridResponse.error() == null) {
+        response = ResponseEntity.ok(searchTextUnitsHybridResponse);
+      } else if (searchTextUnitsHybridResponse.error().expected()) {
+        response = ResponseEntity.badRequest().body(searchTextUnitsHybridResponse);
+      } else {
+        response = ResponseEntity.internalServerError().body(searchTextUnitsHybridResponse);
+      }
+    }
+
+    return response;
+  }
+
+  private SearchTextUnitsHybridResponse.PollingToken buildPollingToken(UUID requestId) {
+    return new SearchTextUnitsHybridResponse.PollingToken(
+        requestId, searchTextUnitsHybridProperties.recommendedPollingDuration().toMillis());
   }
 
   void applySharedSearchAndCountParameters(TextUnitSearcherParameters textUnitSearcherParameters) {
