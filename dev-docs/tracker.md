@@ -14,3 +14,4 @@ Backlog
 - FRONTEND-01 — Add ESLint/Prettier/Vitest to `webapp/new-frontend` for consistent code quality.
 - DEV-01 — Evaluate upgrading repository-wide Node version to 22 LTS and update Maven/legacy UI accordingly.
 - DEV-02 — Replace `npm install` with `npm ci` in Maven plugin executions for reproducible builds.
+- AUTH-01 — Figure out OSS-friendly auth story for static assets + APIs without Cloudflare: likely a tiny reverse proxy that terminates auth and sets a secure cookie for `/` and `/n/**`; dev can mimic edge by injecting `CF-Access-Jwt-Assertion`/`Authorization` headers via Vite proxy; document requirements (covers assets, avoids CSRF if cookies used) so we don’t restart from scratch.
