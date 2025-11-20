@@ -11,3 +11,6 @@ How to use
 - When an item becomes active, move it to a dedicated design doc (see `dev-docs/design/`) or ticket system.
 
 Backlog
+- FRONTEND-01 — Add ESLint/Prettier/Vitest to `webapp/new-frontend` for consistent code quality.
+- DEV-01 — Evaluate upgrading repository-wide Node version to 22 LTS and update Maven/legacy UI accordingly.
+- DEV-02 — Replace `npm install` with `npm ci` in Maven plugin executions for reproducible builds.
