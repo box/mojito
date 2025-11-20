@@ -510,6 +510,10 @@
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
                         <version>${frontend.maven.plugin.version}</version>
+                        <configuration>
+                            <!-- Share the same Node/npm install across legacy and new frontends -->
+                            <installDirectory>${project.basedir}</installDirectory>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>install node and npm</id>
@@ -538,6 +542,28 @@
                                 <phase>compile</phase>
                                 <configuration>
                                     <arguments>run build</arguments>
+                                </configuration>
+                            </execution>
+
+                            <execution>
+                                <id>npm install (new-frontend)</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>install</arguments>
+                                    <workingDirectory>new-frontend</workingDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm build (new-frontend)</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <arguments>run build</arguments>
+                                    <workingDirectory>new-frontend</workingDirectory>
                                 </configuration>
                             </execution>
                         </executions>
