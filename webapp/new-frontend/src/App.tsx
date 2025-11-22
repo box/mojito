@@ -1,8 +1,9 @@
 import './app.css';
 
 import type { ReactNode } from 'react';
-
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
+
+import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 
 type NavItem = {
   to: string;
@@ -11,7 +12,7 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { to: '/repositories', label: 'Repositories', element: <>Repositories</> },
+  { to: '/repositories', label: 'Repositories', element: <RepositoriesPage /> },
   { to: '/workbench', label: 'Workbench', element: <>Workbench</> },
   { to: '/projects', label: 'Projects', element: <>Projects</> },
 ];

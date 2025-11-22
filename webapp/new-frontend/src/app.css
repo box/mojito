@@ -6,8 +6,9 @@
   --color-surface-muted: #f5f6f8;
   --color-text: #0f172a;
   --color-text-muted: #4b5563;
+  --color-text-subtle: #9ca3af;
   --color-border: #e5e7eb;
-  --color-accent: #2563eb;
+  --color-accent: #1f7ae0;
   --radius-2: 8px;
   --space-1: 4px;
   --space-2: 8px;
@@ -28,6 +29,7 @@
     --color-surface-muted: #141a2a;
     --color-text: #e5e7eb;
     --color-text-muted: #9ca3af;
+    --color-text-subtle: #cbd5e1;
     --color-border: #1f2937;
     --color-accent: #60a5fa;
   }
@@ -75,7 +77,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  height: calc(var(--app-shell-header-height));
+  height: var(--app-shell-header-height);
   padding: 0 var(--space-3);
   color: var(--color-text-muted);
   text-decoration: none;
@@ -89,7 +91,7 @@ body {
 
 .app-shell__nav-link.is-active {
   color: var(--color-accent);
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(31, 122, 224, 0.08);
 }
 
 .app-shell__main {
