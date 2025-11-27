@@ -149,6 +149,26 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
     this.dropsFolderId = dropsFolderId;
   }
 
+  public String getProxyHost() {
+    /* TODO add proxy support */
+    return null;
+  }
+
+  public Integer getProxyPort() {
+    /* TODO add proxy support */
+    return null;
+  }
+
+  public String getProxyUser() {
+    /* TODO add proxy support */
+    return null;
+  }
+
+  public String getProxyPassword() {
+    /* TODO add proxy support */
+    return null;
+  }
+
   public Boolean getBootstrap() {
     return bootstrap;
   }

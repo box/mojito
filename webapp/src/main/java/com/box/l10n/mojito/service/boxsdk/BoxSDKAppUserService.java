@@ -11,6 +11,8 @@ import com.box.sdk.CreateUserParams;
 import com.box.sdk.InMemoryLRUAccessTokenCache;
 import com.box.sdk.JWTEncryptionPreferences;
 import com.ibm.icu.text.MessageFormat;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,7 +43,11 @@ public class BoxSDKAppUserService {
       String publicKeyId,
       String privateKey,
       String privateKeyPassword,
-      String enterpriseId)
+      String enterpriseId,
+      String proxyHost,
+      Integer proxyPort,
+      String proxyUser,
+      String proxyPassword)
       throws BoxSDKServiceException {
 
     try {
@@ -56,6 +62,16 @@ public class BoxSDKAppUserService {
               clientSecret,
               jwtEncryptionPreferences,
               new InMemoryLRUAccessTokenCache(5));
+
+      if (proxyHost != null && proxyPort != null) {
+        logger.debug("Setting proxy for Box API connection");
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+        appEnterpriseConnection.setProxy(proxy);
+
+        if (proxyUser != null) {
+          appEnterpriseConnection.setProxyBasicAuthentication(proxyUser, proxyPassword);
+        }
+      }
 
       CreateUserParams createUserParams = new CreateUserParams();
       createUserParams.setSpaceAmount(UNLIMITED_SPACE);
