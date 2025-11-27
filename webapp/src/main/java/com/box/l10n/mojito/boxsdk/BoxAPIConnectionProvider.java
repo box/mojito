@@ -7,6 +7,8 @@ import com.box.sdk.BoxDeveloperEditionAPIConnection;
 import com.box.sdk.IAccessTokenCache;
 import com.box.sdk.InMemoryLRUAccessTokenCache;
 import com.box.sdk.JWTEncryptionPreferences;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,12 +61,30 @@ public class BoxAPIConnectionProvider {
     JWTEncryptionPreferences encryptionPref =
         boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
 
-    return BoxDeveloperEditionAPIConnection.getUserConnection(
-        boxSDKServiceConfig.getAppUserId(),
-        boxSDKServiceConfig.getClientId(),
-        boxSDKServiceConfig.getClientSecret(),
-        encryptionPref,
-        getAccessTokenCache());
+    BoxAPIConnection connection =
+        BoxDeveloperEditionAPIConnection.getUserConnection(
+            boxSDKServiceConfig.getAppUserId(),
+            boxSDKServiceConfig.getClientId(),
+            boxSDKServiceConfig.getClientSecret(),
+            encryptionPref,
+            getAccessTokenCache());
+
+    if (boxSDKServiceConfig.getProxyHost() != null && boxSDKServiceConfig.getProxyPort() != null) {
+      logger.debug("Setting proxy for Box API connection");
+      Proxy proxy =
+          new Proxy(
+              Proxy.Type.HTTP,
+              new InetSocketAddress(
+                  boxSDKServiceConfig.getProxyHost(), boxSDKServiceConfig.getProxyPort()));
+      connection.setProxy(proxy);
+
+      if (boxSDKServiceConfig.getProxyUser() != null) {
+        connection.setProxyBasicAuthentication(
+            boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
+      }
+    }
+
+    return connection;
   }
 
   /**

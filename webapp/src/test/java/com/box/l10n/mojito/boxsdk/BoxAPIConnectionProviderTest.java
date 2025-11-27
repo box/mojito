@@ -103,4 +103,7 @@ public class BoxAPIConnectionProviderTest {
         "Box API connection should only be created twice.  The first time getConnection was called and when config was changed.");
     Mockito.verify(providerSpy, Mockito.times(2)).createBoxAPIConnection();
   }
+
+  // TODO testGetConnectionWillCreateProxiedConnection()
+  // TODO testGetConnectionWillCreateAuthenticatedProxiedConnection()
 }
