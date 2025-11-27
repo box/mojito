@@ -52,19 +52,7 @@ public class BoxAPIConnectionProvider {
    */
   protected BoxAPIConnection createBoxAPIConnection() throws BoxSDKServiceException {
     logger.debug("Getting a new App User Connection using the current config");
-
-    BoxSDKServiceConfig boxSDKServiceConfig = boxSDKServiceConfigProvider.getConfig();
-    JWTEncryptionPreferences encryptionPref =
-        boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
-
-    BoxDeveloperEditionAPIConnection connection =
-        new BoxDeveloperEditionAPIConnection(
-            boxSDKServiceConfig.getAppUserId(),
-            DeveloperEditionEntityType.USER,
-            boxSDKServiceConfig.getClientId(),
-            boxSDKServiceConfig.getClientSecret(),
-            encryptionPref,
-            getAccessTokenCache());
+    BoxDeveloperEditionAPIConnection connection = createUserConnection();
 
     if (boxSDKServiceConfig.getProxyHost() != null && boxSDKServiceConfig.getProxyPort() != null) {
       logger.debug("Setting proxy for Box API connection");
@@ -75,7 +63,9 @@ public class BoxAPIConnectionProvider {
                   boxSDKServiceConfig.getProxyHost(), boxSDKServiceConfig.getProxyPort()));
       connection.setProxy(proxy);
 
-      if (boxSDKServiceConfig.getProxyUser() != null) {
+      if (boxSDKServiceConfig.getProxyUser() != null
+          && boxSDKServiceConfig.getProxyPassword() != null) {
+        logger.debug("Setting proxy basic auth for Box API connection");
         connection.setProxyBasicAuthentication(
             boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
       }
@@ -84,6 +74,19 @@ public class BoxAPIConnectionProvider {
     connection.authenticate();
 
     return connection;
+  }
+
+  protected BoxDeveloperEditionAPIConnection createUserConnection() {
+    JWTEncryptionPreferences encryptionPref =
+        boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
+
+    return new BoxDeveloperEditionAPIConnection(
+        boxSDKServiceConfig.getAppUserId(),
+        DeveloperEditionEntityType.USER,
+        boxSDKServiceConfig.getClientId(),
+        boxSDKServiceConfig.getClientSecret(),
+        encryptionPref,
+        getAccessTokenCache());
   }
 
   /**

@@ -3,6 +3,7 @@ package com.box.l10n.mojito.boxsdk;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.sdk.BoxAPIConnection;
+import com.box.sdk.BoxDeveloperEditionAPIConnection;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,17 @@ public class BoxAPIConnectionProviderTest {
         .doReturn(boxAPIConnection2)
         .when(providerSpy)
         .createBoxAPIConnection();
+    return providerSpy;
+  }
+
+  public BoxAPIConnectionProvider createUserConnectionProviderMock() throws BoxSDKServiceException {
+    BoxAPIConnection boxAPIConnection = Mockito.mock(BoxAPIConnection.class);
+    BoxAPIConnection boxAPIConnection2 = Mockito.mock(BoxAPIConnection.class);
+    BoxAPIConnectionProvider providerSpy = Mockito.spy(boxAPIConnectionProvider);
+    Mockito.doReturn(boxAPIConnection)
+        .doReturn(boxAPIConnection2)
+        .when(providerSpy)
+        .createUserConnection();
     return providerSpy;
   }
 
@@ -104,6 +116,41 @@ public class BoxAPIConnectionProviderTest {
     Mockito.verify(providerSpy, Mockito.times(2)).createBoxAPIConnection();
   }
 
-  // TODO testGetConnectionWillCreateProxiedConnection()
-  // TODO testGetConnectionWillCreateAuthenticatedProxiedConnection()
+  @Test
+  public void testGetConnectionWillCreateProxiedConnection() throws Exception {
+    BoxSDKServiceConfig config = Mockito.mock(BoxSDKServiceConfigFromProperties.class);
+    Mockito.when(config.getProxyHost()).thenReturn("proxy-host");
+    Mockito.when(config.getProxyPort()).thenReturn(9999);
+    Mockito.when(boxSDKServiceConfigProvider.getConfig()).thenReturn(config);
+
+    BoxAPIConnection boxAPIConnectionMock = Mockito.mock(BoxDeveloperEditionAPIConnection.class);
+
+    BoxAPIConnectionProvider providerSpy = Mockito.spy(boxAPIConnectionProvider);
+    Mockito.doReturn(boxAPIConnectionMock).when(providerSpy).createUserConnection();
+
+    providerSpy.getConnection();
+
+    Mockito.verify(boxAPIConnectionMock, Mockito.times(1)).setProxy(Mockito.any());
+  }
+
+  @Test
+  public void testGetConnectionWillCreateAuthenticatedProxiedConnection() throws Exception {
+    BoxSDKServiceConfig config = Mockito.mock(BoxSDKServiceConfigFromProperties.class);
+    Mockito.when(config.getProxyHost()).thenReturn("proxy-host");
+    Mockito.when(config.getProxyPort()).thenReturn(9999);
+    Mockito.when(config.getProxyUser()).thenReturn("proxy-user");
+    Mockito.when(config.getProxyPassword()).thenReturn("proxy-password");
+    Mockito.when(boxSDKServiceConfigProvider.getConfig()).thenReturn(config);
+
+    BoxAPIConnection boxAPIConnectionMock = Mockito.mock(BoxDeveloperEditionAPIConnection.class);
+
+    BoxAPIConnectionProvider providerSpy = Mockito.spy(boxAPIConnectionProvider);
+    Mockito.doReturn(boxAPIConnectionMock).when(providerSpy).createUserConnection();
+
+    providerSpy.getConnection();
+
+    Mockito.verify(boxAPIConnectionMock, Mockito.times(1)).setProxy(Mockito.any());
+    Mockito.verify(boxAPIConnectionMock, Mockito.times(1))
+        .setProxyBasicAuthentication(Mockito.anyString(), Mockito.anyString());
+  }
 }
