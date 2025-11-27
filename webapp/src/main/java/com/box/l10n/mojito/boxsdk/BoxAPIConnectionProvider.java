@@ -59,7 +59,7 @@ public class BoxAPIConnectionProvider {
     JWTEncryptionPreferences encryptionPref =
         boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
 
-    return BoxDeveloperEditionAPIConnection.getAppUserConnection(
+    return BoxDeveloperEditionAPIConnection.getUserConnection(
         boxSDKServiceConfig.getAppUserId(),
         boxSDKServiceConfig.getClientId(),
         boxSDKServiceConfig.getClientSecret(),
