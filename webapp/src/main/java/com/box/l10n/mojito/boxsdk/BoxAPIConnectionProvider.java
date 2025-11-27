@@ -2,11 +2,7 @@ package com.box.l10n.mojito.boxsdk;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.box.sdk.BoxAPIConnection;
-import com.box.sdk.BoxDeveloperEditionAPIConnection;
-import com.box.sdk.IAccessTokenCache;
-import com.box.sdk.InMemoryLRUAccessTokenCache;
-import com.box.sdk.JWTEncryptionPreferences;
+import com.box.sdk.*;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Objects;
@@ -61,9 +57,10 @@ public class BoxAPIConnectionProvider {
     JWTEncryptionPreferences encryptionPref =
         boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
 
-    BoxAPIConnection connection =
-        BoxDeveloperEditionAPIConnection.getUserConnection(
+    BoxDeveloperEditionAPIConnection connection =
+        new BoxDeveloperEditionAPIConnection(
             boxSDKServiceConfig.getAppUserId(),
+            DeveloperEditionEntityType.USER,
             boxSDKServiceConfig.getClientId(),
             boxSDKServiceConfig.getClientSecret(),
             encryptionPref,
@@ -83,6 +80,8 @@ public class BoxAPIConnectionProvider {
             boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
       }
     }
+
+    connection.authenticate();
 
     return connection;
   }
