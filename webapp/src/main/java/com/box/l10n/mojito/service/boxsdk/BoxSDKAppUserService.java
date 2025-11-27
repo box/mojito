@@ -4,12 +4,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.boxsdk.BoxSDKJWTProvider;
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
-import com.box.sdk.BoxAPIException;
-import com.box.sdk.BoxDeveloperEditionAPIConnection;
-import com.box.sdk.BoxUser;
-import com.box.sdk.CreateUserParams;
-import com.box.sdk.InMemoryLRUAccessTokenCache;
-import com.box.sdk.JWTEncryptionPreferences;
+import com.box.sdk.*;
 import com.ibm.icu.text.MessageFormat;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -56,8 +51,9 @@ public class BoxSDKAppUserService {
           boxSDKJWTProvider.getJWTEncryptionPreferences(
               publicKeyId, privateKey, privateKeyPassword);
       BoxDeveloperEditionAPIConnection appEnterpriseConnection =
-          BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(
+          new BoxDeveloperEditionAPIConnection(
               enterpriseId,
+              DeveloperEditionEntityType.ENTERPRISE,
               clientId,
               clientSecret,
               jwtEncryptionPreferences,
@@ -72,6 +68,8 @@ public class BoxSDKAppUserService {
           appEnterpriseConnection.setProxyBasicAuthentication(proxyUser, proxyPassword);
         }
       }
+
+      appEnterpriseConnection.authenticate();
 
       CreateUserParams createUserParams = new CreateUserParams();
       createUserParams.setSpaceAmount(UNLIMITED_SPACE);
