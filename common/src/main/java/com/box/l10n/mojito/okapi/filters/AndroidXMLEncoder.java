@@ -31,7 +31,7 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
   // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
   private static final Pattern ANDROID_VARIABLE_WITHIN_HTML =
       Pattern.compile(
-          "(&lt;(?:b|i|u|annotation.*?)&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/(?:b|i|u|annotation.*?)&gt;)");
+          "(&lt;[biu]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[biu]&gt;)");
   private static final Pattern ANDROID_HTML =
       Pattern.compile("(&lt;)(/?)(b|i|u|annotation.*?)(&gt;)");
   private static final Pattern LINE_FEED = Pattern.compile("\n");

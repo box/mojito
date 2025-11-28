@@ -173,6 +173,8 @@ public class WebSecurityConfig {
                 // Searching is also OK for users
                 .requestMatchers(HttpMethod.POST, "/api/textunits/search")
                 .authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/textunits/search-hybrid")
+                .authenticated()
                 // USERs are not allowed to change translations
                 .requestMatchers("/api/textunits/**")
                 .hasAnyRole("TRANSLATOR", "PM", "ADMIN")

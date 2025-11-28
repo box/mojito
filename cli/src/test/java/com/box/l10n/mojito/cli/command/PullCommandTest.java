@@ -658,9 +658,57 @@ public class PullCommandTest extends CLITestBase {
             "-r",
             repository.getName(),
             "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("removeDescription").getAbsolutePath(),
+            "-fo",
+            "removeDescription=true");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
             getInputResourcesTestDir("source_modified").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath());
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void pullAndroidStringsSkipEmpty() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("res/values/strings.xml", repository.getId());
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "-fo",
+            "postEmptyResourcesToEmptyFile=true",
+            "postRemoveTranslatableFalse=true",
+            "removeDescription=true",
+            "--inheritance-mode",
+            "REMOVE_UNTRANSLATED",
+            "--skip-empty-output");
 
     checkExpectedGeneratedResources();
   }

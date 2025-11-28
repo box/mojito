@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.tm.textunitdtocache;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.REVIEW_NEEDED;
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.TRANSLATION_NEEDED;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.APPROVED_AND_NOT_REJECTED;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -207,6 +209,45 @@ public class TextUnitDTOsCacheServiceTest extends ServiceTestBase {
         .as("All should be marked as deleted")
         .extracting(TextUnitDTO::isAssetDeleted)
         .containsOnly(true);
+  }
+
+  @Test
+  public void testStatusPredicateReviewNeededOrRejected() {
+    TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+    Long reviewNeededTmTextUnitId =
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId();
+    tmService.addTMTextUnitCurrentVariant(
+        reviewNeededTmTextUnitId,
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
+        "mark as review needed",
+        TMTextUnitVariant.Status.REVIEW_NEEDED);
+
+    Long rejectedTmTextUnitId = tmTestData.addCurrentTMTextUnitVariant3FrFR.getTmTextUnit().getId();
+    tmService.addTMTextUnitCurrentVariant(
+        rejectedTmTextUnitId,
+        tmTestData.addCurrentTMTextUnitVariant3FrFR.getLocale().getId(),
+        tmTestData.addCurrentTMTextUnitVariant3FrFR.getContent(),
+        "mark as rejected",
+        TMTextUnitVariant.Status.APPROVED,
+        false);
+
+    ImmutableMap<String, TextUnitDTO> result =
+        textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(
+            tmTestData.asset.getId(),
+            tmTestData.frFR.getId(),
+            StatusFilter.REVIEW_NEEDED_OR_REJECTED,
+            false,
+            UpdateType.ALWAYS);
+
+    assertThat(result.values().stream())
+        .as("Only review needed or rejected strings")
+        .extracting(
+            TextUnitDTO::getName, TextUnitDTO::getStatus, TextUnitDTO::isIncludedInLocalizedFile)
+        .containsExactlyInAnyOrder(
+            tuple("zuora_error_message_verify_state_province", REVIEW_NEEDED, true),
+            tuple("TEST3", APPROVED, false));
   }
 
   @Test
