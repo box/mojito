@@ -45,7 +45,7 @@ import org.springframework.data.annotation.CreatedBy;
           attributeNodes = {@NamedAttributeNode("createdByUser"), @NamedAttributeNode("user")}),
       @NamedSubgraph(
           name = "User.legacy.userLocales",
-          attributeNodes = {@NamedAttributeNode("user")}),
+          attributeNodes = {@NamedAttributeNode("user"), @NamedAttributeNode("locale")}),
     })
 public class User extends AuditableEntity implements Serializable {
 
