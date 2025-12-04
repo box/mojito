@@ -9,6 +9,7 @@ import com.box.l10n.mojito.rest.client.UserClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Role;
 import com.box.l10n.mojito.rest.entity.User;
+import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,12 @@ public class UserCreateCommand extends Command {
       description = Param.COMMON_NAME_DESCRIPTION)
   String commonName;
 
+  @Parameter(
+      names = {"--locales", "-l"},
+      variableArity = true,
+      description = "List of locales (BCP47 tags) translators can work on, e.g. fr-FR ja-JP")
+  List<String> locales;
+
   @Autowired Console console;
 
   @Override
@@ -81,7 +88,24 @@ public class UserCreateCommand extends Command {
       String password = console.readPassword();
 
       Role role = Role.fromString(rolename);
-      User user = userClient.createUser(username, password, role, surname, givenName, commonName);
+
+      User user;
+      if (Role.ROLE_TRANSLATOR.equals(role)) {
+        boolean hasLocales = locales != null && !locales.isEmpty();
+        boolean canTranslateAllLocales = !hasLocales;
+        user =
+            userClient.createUser(
+                username,
+                password,
+                role,
+                surname,
+                givenName,
+                commonName,
+                locales,
+                canTranslateAllLocales);
+      } else {
+        user = userClient.createUser(username, password, role, surname, givenName, commonName);
+      }
       consoleWriter
           .newLine()
           .a("created --> user: ")

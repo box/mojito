@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,10 @@ import com.box.l10n.mojito.cli.console.Console;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -62,7 +67,29 @@ public class UserCreateCommandTest extends CLITestBase {
         outputCapture.toString().contains("User with username [" + username + "] already exists"));
   }
 
+  @Test
+  public void testCreateTranslatorWithLocales() throws Exception {
+
+    String username = testIdWatcher.getEntityName("user");
+    List<String> locales = Arrays.asList("fr-FR", "ja-JP");
+    String commonName = createTestUser(username, "TRANSLATOR", locales);
+
+    User user = userRepository.findByUsername(username);
+    assertEquals(commonName, user.getCommonName());
+    assertFalse(user.getCanTranslateAllLocales());
+    assertEquals(
+        locales.stream().collect(Collectors.toSet()),
+        user.getUserLocales().stream()
+            .map(userLocale -> userLocale.getLocale().getBcp47Tag())
+            .collect(Collectors.toSet()));
+  }
+
   private String createTestUser(String username, String role) throws Exception {
+    return createTestUser(username, role, null);
+  }
+
+  private String createTestUser(String username, String role, List<String> localeTags)
+      throws Exception {
     String surname = "Mojito";
     String givenName = "Test";
     String commonName = "Test Mojito " + username;
@@ -83,31 +110,29 @@ public class UserCreateCommandTest extends CLITestBase {
     userCreateCommand.console = mockConsole;
 
     logger.debug("Creating user with username: {}", username);
-    if (role == null) {
-      l10nJCommander.run(
-          "user-create",
-          Param.USERNAME_SHORT,
-          username,
-          Param.SURNAME_SHORT,
-          surname,
-          Param.GIVEN_NAME_SHORT,
-          givenName,
-          Param.COMMON_NAME_SHORT,
-          commonName);
-    } else {
-      l10nJCommander.run(
-          "user-create",
-          Param.USERNAME_SHORT,
-          username,
-          Param.ROLE_SHORT,
-          role,
-          Param.SURNAME_SHORT,
-          surname,
-          Param.GIVEN_NAME_SHORT,
-          givenName,
-          Param.COMMON_NAME_SHORT,
-          commonName);
+    List<String> params =
+        new ArrayList<>(
+            Arrays.asList(
+                "user-create",
+                Param.USERNAME_SHORT,
+                username,
+                Param.SURNAME_SHORT,
+                surname,
+                Param.GIVEN_NAME_SHORT,
+                givenName,
+                Param.COMMON_NAME_SHORT,
+                commonName));
+
+    if (role != null) {
+      params.addAll(Arrays.asList(Param.ROLE_SHORT, role));
     }
+
+    if (localeTags != null && !localeTags.isEmpty()) {
+      params.add("-l");
+      params.addAll(localeTags);
+    }
+
+    l10nJCommander.run(params.toArray(new String[0]));
 
     assertTrue(outputCapture.toString().contains("created --> user: "));
     return commonName;
