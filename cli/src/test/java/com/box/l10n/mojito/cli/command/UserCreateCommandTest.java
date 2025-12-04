@@ -68,6 +68,17 @@ public class UserCreateCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testCreateUserWithGeneratedPassword() throws Exception {
+
+    String username = testIdWatcher.getEntityName("user");
+    String commonName = createTestUser(username, null, null, true);
+
+    User user = userRepository.findByUsername(username);
+    assertEquals(commonName, user.getCommonName());
+    assertTrue(outputCapture.toString().contains("Generated password for " + username + ":"));
+  }
+
+  @Test
   public void testCreateTranslatorWithLocales() throws Exception {
 
     String username = testIdWatcher.getEntityName("user");
@@ -89,6 +100,12 @@ public class UserCreateCommandTest extends CLITestBase {
   }
 
   private String createTestUser(String username, String role, List<String> localeTags)
+      throws Exception {
+    return createTestUser(username, role, localeTags, false);
+  }
+
+  private String createTestUser(
+      String username, String role, List<String> localeTags, boolean generatePassword)
       throws Exception {
     String surname = "Mojito";
     String givenName = "Test";
@@ -130,6 +147,10 @@ public class UserCreateCommandTest extends CLITestBase {
     if (localeTags != null && !localeTags.isEmpty()) {
       params.add("-l");
       params.addAll(localeTags);
+    }
+
+    if (generatePassword) {
+      params.add("-gp");
     }
 
     l10nJCommander.run(params.toArray(new String[0]));

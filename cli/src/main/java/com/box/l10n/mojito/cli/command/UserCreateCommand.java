@@ -9,6 +9,8 @@ import com.box.l10n.mojito.rest.client.UserClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Role;
 import com.box.l10n.mojito.rest.entity.User;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -77,15 +79,35 @@ public class UserCreateCommand extends Command {
       description = "List of locales (BCP47 tags) translators can work on, e.g. fr-FR ja-JP")
   List<String> locales;
 
+  @Parameter(
+      names = {"--generate-password", "-gp"},
+      description = "Generate a secure random password instead of prompting")
+  boolean generatePassword = false;
+
   @Autowired Console console;
+
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   @Override
   protected void execute() throws CommandException {
     consoleWriter.a("Create user: ").fg(Ansi.Color.CYAN).a(username).println();
 
     try {
-      consoleWriter.a("Enter new password for " + username + ":").println();
-      String password = console.readPassword();
+      String password;
+      if (generatePassword) {
+        password = generateSecurePassword();
+        consoleWriter
+            .a("Generated password for ")
+            .fg(Ansi.Color.CYAN)
+            .a(username)
+            .a(": ")
+            .fg(Ansi.Color.YELLOW)
+            .a(password)
+            .println();
+      } else {
+        consoleWriter.a("Enter new password for " + username + ":").println();
+        password = console.readPassword();
+      }
 
       Role role = Role.fromString(rolename);
 
@@ -115,5 +137,11 @@ public class UserCreateCommand extends Command {
     } catch (ResourceNotCreatedException ex) {
       throw new CommandException(ex.getMessage(), ex);
     }
+  }
+
+  private String generateSecurePassword() {
+    byte[] bytes = new byte[18];
+    SECURE_RANDOM.nextBytes(bytes);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
   }
 }
