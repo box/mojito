@@ -13,6 +13,10 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+        headers: {
+          // Login as admin automatically, requires backend to have HEADER auth on
+          'x-forwarded-user': 'admin',
+        },
       },
     },
   },
