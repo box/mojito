@@ -1,5 +1,6 @@
 import './app.css';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
@@ -16,6 +17,8 @@ const navItems: NavItem[] = [
   { to: '/workbench', label: 'Workbench', element: <>Workbench</> },
   { to: '/projects', label: 'Projects', element: <>Projects</> },
 ];
+
+const queryClient = new QueryClient();
 
 function AppLayout() {
   return (
@@ -42,16 +45,18 @@ function AppLayout() {
 
 export function App() {
   return (
-    <BrowserRouter basename="/n">
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/repositories" replace />} />
-          {navItems.map(({ to, element }) => (
-            <Route key={to} path={to} element={element} />
-          ))}
-          <Route path="*" element={<Navigate to="/repositories" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter basename="/n">
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Navigate to="/repositories" replace />} />
+            {navItems.map(({ to, element }) => (
+              <Route key={to} path={to} element={element} />
+            ))}
+            <Route path="*" element={<Navigate to="/repositories" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
