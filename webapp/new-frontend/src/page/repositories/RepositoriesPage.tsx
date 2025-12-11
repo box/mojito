@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { LocaleRow, RepositoryRow } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
 const REPOSITORIES: Omit<RepositoryRow, 'selected'>[] = [
-  { id: 1, name: 'Web App', rejected: 16, needsTranslation: 58, needsReview: 27 },
-  { id: 2, name: 'Mobile App', rejected: 6, needsTranslation: 16, needsReview: 8 },
+  { id: 1, name: 'Web App', rejected: 8, needsTranslation: 58, needsReview: 120 },
+  { id: 2, name: 'Mobile App', rejected: 3, needsTranslation: 20, needsReview: 95 },
   { id: 3, name: 'Marketing Site', rejected: 0, needsTranslation: 0, needsReview: 0 },
   ...Array.from({ length: 47 }, (_, index) => ({
     id: index + 4,
@@ -32,7 +32,7 @@ const LOCALES: LocaleRow[] = [
 ];
 
 export function RepositoriesPage() {
-  const [selectedRepositoryId, setSelectedRepositoryId] = useState<number>(REPOSITORIES[0].id);
+  const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState('');
 
   const filteredRepositories = useMemo(() => {
@@ -44,18 +44,108 @@ export function RepositoriesPage() {
     return REPOSITORIES.filter((repo) => repo.name.toLowerCase().includes(search));
   }, [searchValue]);
 
-  const repositoriesWithSelection: RepositoryRow[] = filteredRepositories.map((repo) => ({
-    ...repo,
-    selected: repo.id === selectedRepositoryId,
-  }));
+  const repositoriesWithSelection: RepositoryRow[] = useMemo(
+    () =>
+      filteredRepositories.map((repo) => ({
+        ...repo,
+        selected: repo.id === selectedRepositoryId,
+      })),
+    [filteredRepositories, selectedRepositoryId],
+  );
+
+  useEffect(() => {
+    if (selectedRepositoryId == null) {
+      return;
+    }
+
+    const stillVisible = filteredRepositories.some((repo) => repo.id === selectedRepositoryId);
+    if (!stillVisible) {
+      setSelectedRepositoryId(null);
+    }
+  }, [filteredRepositories, selectedRepositoryId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        setSelectedRepositoryId(null);
+        return;
+      }
+
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable) {
+          return;
+        }
+      }
+
+      if (!repositoriesWithSelection.length) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const currentIndex = repositoriesWithSelection.findIndex(
+        (repo) => repo.id === selectedRepositoryId,
+      );
+
+      if (event.key === 'ArrowDown') {
+        const nextIndex =
+          currentIndex >= 0 ? Math.min(currentIndex + 1, repositoriesWithSelection.length - 1) : 0;
+        const nextRepo = repositoriesWithSelection[nextIndex];
+        if (nextRepo && nextRepo.id !== selectedRepositoryId) {
+          setSelectedRepositoryId(nextRepo.id);
+        }
+      } else {
+        const previousIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+        const previousRepo = repositoriesWithSelection[previousIndex];
+        if (previousRepo && previousRepo.id !== selectedRepositoryId) {
+          setSelectedRepositoryId(previousRepo.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [repositoriesWithSelection, selectedRepositoryId]);
+
+  const localesForSelectedRepository = useMemo(() => {
+    if (selectedRepositoryId == null) {
+      return [];
+    }
+
+    // simple derived data to visualize repo-specific locale numbers
+    const factor = (selectedRepositoryId % 4) + 1;
+    const offset = selectedRepositoryId % 3;
+
+    return LOCALES.map((locale, index) => ({
+      ...locale,
+      rejected: (locale.rejected + offset + index) % 10,
+      needsTranslation: (locale.needsTranslation + factor + index) % 30,
+      needsReview: (locale.needsReview + factor + offset + index) % 22,
+    }));
+  }, [selectedRepositoryId]);
+
+  const handleSelectRepository = useCallback((id: number) => {
+    setSelectedRepositoryId((previous) => (previous === id ? null : id));
+  }, []);
 
   return (
     <RepositoriesPageView
       repositories={repositoriesWithSelection}
-      locales={LOCALES}
+      locales={localesForSelectedRepository}
+      hasSelection={selectedRepositoryId != null}
       searchValue={searchValue}
       onSearchChange={setSearchValue}
-      onSelectRepository={setSelectedRepositoryId}
+      onSelectRepository={handleSelectRepository}
     />
   );
 }

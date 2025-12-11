@@ -9,6 +9,9 @@
   --color-text-subtle: #9ca3af;
   --color-border: #e5e7eb;
   --color-accent: #1f7ae0;
+  --color-surface-selected: rgba(31, 122, 224, 0.08);
+  --color-focus-outline: rgba(31, 122, 224, 0.2);
+  --color-focus-border: rgba(31, 122, 224, 0.4);
   --radius-2: 8px;
   --space-1: 4px;
   --space-2: 8px;
@@ -32,6 +35,9 @@
     --color-text-subtle: #cbd5e1;
     --color-border: #1f2937;
     --color-accent: #60a5fa;
+    --color-surface-selected: rgba(96, 165, 250, 0.12);
+    --color-focus-outline: rgba(96, 165, 250, 0.25);
+    --color-focus-border: rgba(96, 165, 250, 0.5);
   }
 }
 

@@ -1,80 +1,167 @@
 .repositories-page {
   --repositories-page-header-height: 58px;
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) 1px minmax(0, 2fr);
-  column-gap: var(--space-5);
+  --repositories-page-row-height: 48px;
+  --repositories-page-grid-columns-locale: 2fr 1fr 1fr 1fr;
+  --repositories-page-grid-columns-repo: 32px 2fr 1fr 1fr 1fr;
   height: calc(100vh - var(--app-shell-header-height));
-  padding: var(--space-6) var(--space-6) 0;
-  background: var(--color-bg);
+  padding: var(--space-4) calc(2 * var(--space-4)) var(--space-4) var(--space-4);
+  background: var(--color-surface);
   overflow: hidden;
 }
 
-.repositories-page__section {
+.repositories-page--single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.repositories-page--split {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) 1px minmax(0, 3fr);
+  column-gap: var(--space-5);
+}
+
+.repositories-page__pane {
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   min-width: 0;
   min-height: 0;
-  background: var(--color-surface);
-  scroll-snap-type: y proximity;
-  scroll-padding-top: var(--repositories-page-header-height);
 }
 
-.repositories-page__table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.repositories-page__table thead {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--color-surface);
-  box-shadow: 0 var(--border-width) 0 0 var(--color-border);
-}
-
-.repositories-page__table thead th {
+.repositories-page__header {
+  display: grid;
+  align-items: center;
   height: var(--repositories-page-header-height);
-  vertical-align: middle;
   padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
   color: var(--color-text-subtle);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
-.repositories-page__header-cell--searchable {
+.repositories-page__header--repo {
+  grid-template-columns: var(--repositories-page-grid-columns-repo);
+}
+
+.repositories-page__header--locale {
+  grid-template-columns: var(--repositories-page-grid-columns-locale);
+}
+
+.repositories-page__header-cell {
   display: flex;
-  flex-direction: row;
   align-items: center;
   gap: var(--space-3);
 }
 
+.repositories-page__header-cell--number {
+  justify-content: flex-end;
+}
+
+.repositories-page__locale-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.repositories-page__locale-scroll-row {
+  display: grid;
+  grid-template-columns: var(--repositories-page-grid-columns-locale);
+  align-items: center;
+  min-height: var(--repositories-page-row-height);
+  padding: 0 var(--space-4);
+}
+
+.repositories-page__pane-placeholder {
+  padding: var(--space-4);
+  color: var(--color-text-subtle);
+}
+
+.repositories-page__repo-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.repositories-page__repo-scroll-inner {
+  position: relative;
+  width: 100%;
+}
+
+.repositories-page__repo-scroll-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+  display: grid;
+  grid-template-columns: var(--repositories-page-grid-columns-repo);
+  align-items: center;
+  min-height: var(--repositories-page-row-height);
+  padding: 0 var(--space-4);
+}
+
+.repositories-page__repo-scroll-row--selected {
+  background: var(--color-surface-selected, rgba(31, 122, 224, 0.08));
+}
+
 .repositories-page__cell {
-  padding: var(--space-3) var(--space-4);
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text);
-  text-align: left;
 }
 
-.repositories-page__cell--number,
-.repositories-page__header-cell--number {
+.repositories-page__cell--name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.repositories-page__cell--number {
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: end;
 }
 
-.repositories-page__row--selected {
-  background: rgba(31, 122, 224, 0.08);
+.repositories-page__repo-scroll-row-select {
+  --repositories-page-select-size: 10px;
+  width: var(--repositories-page-select-size);
+  height: var(--repositories-page-select-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
-.repositories-page__row {
-  scroll-snap-align: start;
+.repositories-page__repo-scroll-row-select--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
-.repositories-page__search {
+.repositories-page__repo-scroll-row--selected .repositories-page__repo-scroll-row-select,
+.repositories-page__repo-scroll-row:hover .repositories-page__repo-scroll-row-select,
+.repositories-page__repo-scroll-row-select:focus-visible {
+  opacity: 1;
+}
+
+.repositories-page__repo-header-name-search {
   width: 200px;
   height: 22px;
   padding: 0 var(--space-2);
@@ -87,11 +174,32 @@
   font-family: inherit;
 }
 
-.repositories-page__search:focus {
-  outline: 2px solid rgba(31, 122, 224, 0.2);
-  border-color: rgba(31, 122, 224, 0.4);
+.repositories-page__repo-header-name-search:focus {
+  outline: 2px solid var(--color-focus-outline);
+  border-color: var(--color-focus-border);
 }
 
 .repositories-page__divider {
   background: var(--color-border);
+  position: relative;
+}
+
+.repositories-page__divider-action {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.repositories-page__divider-action:focus {
+  outline: 2px solid var(--color-focus-outline);
+  border-color: var(--color-focus-border);
 }
