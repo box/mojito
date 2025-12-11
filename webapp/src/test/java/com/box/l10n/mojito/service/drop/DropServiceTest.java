@@ -410,6 +410,30 @@ public class DropServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void importNonExistentId() throws Exception {
+
+    // don't create any drops
+    Long nonExistentDropId = 9999L;
+
+    logger.debug("Import drop");
+    PollableFuture<Void> startImportDrop =
+        dropService.importDrop(nonExistentDropId, null, PollableTask.INJECT_CURRENT_TASK);
+
+    logger.debug("Wait for import to finish");
+    try {
+      pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+      fail();
+    } catch (PollableTaskException pte) {
+      PollableTask importPollableTask =
+          pollableTaskService.getPollableTask(startImportDrop.getPollableTask().getId());
+      assertTrue(
+          importPollableTask
+              .getErrorMessage()
+              .contains("Drop with ID [" + nonExistentDropId + "] does not exist"));
+    }
+  }
+
+  @Test
   public void forNoEmptyXliffs() throws Exception {
 
     TMTestData tmTestData = new TMTestData(testIdWatcher);
@@ -895,6 +919,31 @@ public class DropServiceTest extends ServiceTestBase {
 
     logger.debug("Wait for cancellation to finish");
     pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 600000L);
+  }
+
+  @Test
+  public void testCancelDropNonExistentId()
+      throws DropExporterException, InterruptedException, CancelDropException {
+
+    // don't create any drops
+    Long nonExistentDropId = 9999L;
+
+    PollableFuture<Drop> dropPollableFuture =
+        dropService.cancelDrop(nonExistentDropId, PollableTask.INJECT_CURRENT_TASK);
+    PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
+    pollableTaskService.getPollableTask(cancelDropPollableTask.getId());
+
+    try {
+      pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 60000L);
+      fail();
+    } catch (PollableTaskException pte) {
+      PollableTask importPollableTask =
+          pollableTaskService.getPollableTask(cancelDropPollableTask.getId());
+      assertTrue(
+          importPollableTask
+              .getErrorMessage()
+              .contains("Drop with ID [" + nonExistentDropId + "] does not exist"));
+    }
   }
 }
 

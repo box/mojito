@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.exceptions.OkapiIOException;
 import org.slf4j.Logger;
@@ -224,7 +225,13 @@ public class DropService {
 
     logger.debug("Start importing drop");
 
-    Drop drop = getDropInTX(dropId);
+    Drop drop;
+    try {
+      drop = getDropInTX(dropId);
+    } catch (NoSuchElementException e) {
+      throw new ImportDropException("Drop with ID [" + dropId + "] does not exist", e);
+    }
+
     drop.setLastImportedDate(JSR310Migration.newDateTimeEmptyCtor());
     drop.setImportPollableTask(currentTask);
     drop.setImportFailed(null);
@@ -417,7 +424,12 @@ public class DropService {
       throws DropExporterException, CancelDropException {
 
     logger.debug("Canceling Drop: {}", dropId);
-    Drop drop = getDropInTX(dropId);
+    Drop drop;
+    try {
+      drop = getDropInTX(dropId);
+    } catch (NoSuchElementException e) {
+      throw new CancelDropException("Drop with ID [" + dropId + "] does not exist", e);
+    }
 
     if (isDropBeingProcessed(drop)) {
       throw new CancelDropException(
@@ -440,8 +452,8 @@ public class DropService {
   }
 
   @Transactional
-  Drop getDropInTX(Long dropId) {
-    final Drop drop = dropRepository.findById(dropId).orElse(null);
+  Drop getDropInTX(Long dropId) throws NoSuchElementException {
+    final Drop drop = dropRepository.findById(dropId).orElseThrow();
     if (drop.getExportPollableTask() != null) {
       pollableTaskService.fetchSubTasks(drop.getExportPollableTask());
     }
