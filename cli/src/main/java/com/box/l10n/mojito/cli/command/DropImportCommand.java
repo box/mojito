@@ -10,10 +10,7 @@ import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
@@ -73,6 +70,13 @@ public class DropImportCommand extends Command {
       description = "Import all fetched drops")
   Boolean importFetchedParam = false;
 
+  @Parameter(
+      names = {"--drop-id", "-i"},
+      arity = 1,
+      required = false,
+      description = "ID of a drop to import (skip drop fetching and process only given ID)")
+  Long importDropId = null;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired Console console;
@@ -84,66 +88,81 @@ public class DropImportCommand extends Command {
 
     Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-    Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
+    Collection<Long> dropIds;
 
-    if (numberedAvailableDrops.isEmpty()) {
-      consoleWriter.newLine().a("No drop available").println();
+    if (importDropId != null) {
+      dropIds = Collections.singletonList(importDropId);
     } else {
-      consoleWriter.newLine().a("Drops available").println();
+      Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
 
-      logger.debug("Display drops information");
-      for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
+      if (numberedAvailableDrops.isEmpty()) {
+        // command should not error when no drops are available
+        consoleWriter.newLine().a("No drop available").println();
+        dropIds = Collections.emptyList();
+      } else {
+        consoleWriter.newLine().a("Drops available").println();
+        displayAvailableDrops(numberedAvailableDrops);
 
-        Drop drop = entry.getValue();
-
-        consoleWriter
-            .a("  ")
-            .fg(Color.CYAN)
-            .a(entry.getKey())
-            .reset()
-            .a(" - id: ")
-            .fg(Color.MAGENTA)
-            .a(drop.getId())
-            .reset()
-            .a(", name: ")
-            .fg(Color.MAGENTA)
-            .a(drop.getName())
-            .reset();
-
-        if (Boolean.TRUE.equals(drop.getCanceled())) {
-          consoleWriter.fg(Color.GREEN).a(" CANCELED");
-        } else if (drop.getLastImportedDate() == null) {
-          consoleWriter.fg(Color.GREEN).a(" NEW");
+        if (Boolean.TRUE.equals(importFetchedParam)) {
+          dropIds = getWithImportFetchedDropIds(numberedAvailableDrops);
         } else {
-          consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+          dropIds = getFromConsoleDropIds(numberedAvailableDrops);
         }
-
-        consoleWriter.println();
-      }
-
-      List<Long> dropIds = getSelectedDropIds(numberedAvailableDrops);
-
-      for (Long dropId : dropIds) {
-        consoleWriter
-            .newLine()
-            .a("Import drop: ")
-            .fg(Color.CYAN)
-            .a(dropId)
-            .reset()
-            .a(" in repository: ")
-            .fg(Color.CYAN)
-            .a(repositoryParam)
-            .println(2);
-
-        ImportDropConfig importDropConfig =
-            dropClient.importDrop(repository, dropId, importStatusParam);
-        PollableTask pollableTask = importDropConfig.getPollableTask();
-
-        commandHelper.waitForPollableTask(pollableTask.getId());
       }
     }
 
+    for (Long dropId : dropIds) {
+      consoleWriter
+          .newLine()
+          .a("Import drop: ")
+          .fg(Color.CYAN)
+          .a(dropId)
+          .reset()
+          .a(" in repository: ")
+          .fg(Color.CYAN)
+          .a(repositoryParam)
+          .println(2);
+
+      ImportDropConfig importDropConfig =
+          dropClient.importDrop(repository, dropId, importStatusParam);
+      PollableTask pollableTask = importDropConfig.getPollableTask();
+
+      commandHelper.waitForPollableTask(pollableTask.getId());
+    }
+
     consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+  }
+
+  private void displayAvailableDrops(Map<Long, Drop> numberedAvailableDrops) {
+    logger.debug("Display drops information");
+    for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
+
+      Drop drop = entry.getValue();
+
+      consoleWriter
+          .a("  ")
+          .fg(Color.CYAN)
+          .a(entry.getKey())
+          .reset()
+          .a(" - id: ")
+          .fg(Color.MAGENTA)
+          .a(drop.getId())
+          .reset()
+          .a(", name: ")
+          .fg(Color.MAGENTA)
+          .a(drop.getName())
+          .reset();
+
+      if (Boolean.TRUE.equals(drop.getCanceled())) {
+        consoleWriter.fg(Color.GREEN).a(" CANCELED");
+      } else if (drop.getLastImportedDate() == null) {
+        consoleWriter.fg(Color.GREEN).a(" NEW");
+      } else {
+        consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+      }
+
+      consoleWriter.println();
+    }
   }
 
   /**
@@ -177,7 +196,7 @@ public class DropImportCommand extends Command {
    * @return the imported filter to get drops
    */
   private Boolean getImportedFilter() {
-    return alsoShowImportedParam ? null : false;
+    return Boolean.TRUE.equals(alsoShowImportedParam) ? null : false;
   }
 
   /**
@@ -191,19 +210,6 @@ public class DropImportCommand extends Command {
    * @throws CommandException if the input doesn't match a number from the map of available {@link
    *     Drop}s
    */
-  private List<Long> getSelectedDropIds(Map<Long, Drop> numberedAvailableDrops)
-      throws CommandException {
-    List<Long> selectedDropIds;
-
-    if (importFetchedParam) {
-      selectedDropIds = getWithImportFetchedDropIds(numberedAvailableDrops);
-    } else {
-      selectedDropIds = getFromConsoleDropIds(numberedAvailableDrops);
-    }
-
-    return selectedDropIds;
-  }
-
   private List<Long> getFromConsoleDropIds(Map<Long, Drop> numberedAvailableDrops)
       throws CommandException {
     consoleWriter.newLine().a("Enter Drop number to import").println();
