@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.client;
 
+import com.box.l10n.mojito.rest.entity.CancelDropConfig;
 import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.ExportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
@@ -144,5 +145,59 @@ public class DropClient extends BaseClient {
     return authenticatedRestTemplate
         .postForObject(importXliffPath, importXliffBody, ImportXliffBody.class)
         .getXliffContent();
+  }
+
+  /**
+   * Cancels a drop for a given drop ID
+   *
+   * @param dropId the drop ID to be canceled
+   * @return {@link CancelDropConfig} that contains information about the drop being canceled
+   */
+  public CancelDropConfig cancelDrop(Long dropId) {
+
+    CancelDropConfig cancelDropConfig = new CancelDropConfig();
+    // repositoryId is not required when referring to a Drop by its dropId
+    cancelDropConfig.setDropId(dropId);
+
+    String cancelPath =
+        UriComponentsBuilder.fromPath(getBasePathForEntity()).pathSegment("cancel").toUriString();
+
+    return authenticatedRestTemplate.postForObject(
+        cancelPath, cancelDropConfig, CancelDropConfig.class);
+  }
+
+  /**
+   * Force completes a drop for a given drop ID
+   *
+   * <p>Note: Currently there is no response from "complete" endpoint ({@link
+   * com.box.l10n.mojito.service.drop.DropService#completeDrop}), so there is no way to tell if the
+   * drop has actually been marked as completed; in particular, if given drop has NOT ever been
+   * partially imported yet, the call succeeds but the drop does not seem get marked as completed
+   * according to webapp UI
+   *
+   * <p>TODO: make drop completion behaviour consistent with drop cancellation:
+   *
+   * <ul>
+   *   <li>use @RequestBody instead of @PathVariable in {@link
+   *       com.box.l10n.mojito.rest.drop.DropWS#completeDropById}
+   *   <li>add state validation in {@link com.box.l10n.mojito.service.drop.DropService#completeDrop}
+   *       (check if partially imported, if at rest etc.)
+   *   <li>consider using PollableTask througout and making {@link
+   *       com.box.l10n.mojito.service.drop.DropService#completeDrop} @Pollable
+   * </ul>
+   *
+   * @param dropId the drop ID to be canceled
+   */
+  public void completeDrop(Long dropId) {
+    Map<String, String> params = new HashMap<>();
+    params.put("dropId", dropId.toString());
+
+    String completePath =
+        UriComponentsBuilder.fromPath(getBasePathForEntity())
+            .pathSegment("complete", "{dropId}")
+            .buildAndExpand(params)
+            .toUriString();
+
+    authenticatedRestTemplate.postForObject(completePath, null, Void.class);
   }
 }
