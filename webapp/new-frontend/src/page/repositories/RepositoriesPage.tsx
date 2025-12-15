@@ -1,56 +1,149 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type {
+  ApiLocale,
+  ApiRepository,
+  ApiRepositoryLocaleStatistic,
+} from '../../api/repositories';
+import { useRepositories } from '../../hooks/useRepositories';
+import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import type { LocaleRow, RepositoryRow } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
-const REPOSITORIES: Omit<RepositoryRow, 'selected'>[] = [
-  { id: 1, name: 'Web App', rejected: 8, needsTranslation: 58, needsReview: 120 },
-  { id: 2, name: 'Mobile App', rejected: 3, needsTranslation: 20, needsReview: 95 },
-  { id: 3, name: 'Marketing Site', rejected: 0, needsTranslation: 0, needsReview: 0 },
-  ...Array.from({ length: 47 }, (_, index) => ({
-    id: index + 4,
-    name: `Repo ${index + 1}`,
-    rejected: (index * 3) % 12,
-    needsTranslation: (index * 7) % 20,
-    needsReview: (index * 5) % 15,
-  })),
-];
+const getLocaleTag = (locale: ApiLocale | null) => locale?.bcp47Tag ?? '';
 
-const LOCALES: LocaleRow[] = [
-  { id: 1, name: 'Spanish (Spain)', rejected: 5, needsTranslation: 12, needsReview: 6 },
-  { id: 2, name: 'Japanese', rejected: 1, needsTranslation: 4, needsReview: 2 },
-  { id: 3, name: 'French (France)', rejected: 0, needsTranslation: 5, needsReview: 2 },
-  { id: 4, name: 'German', rejected: 0, needsTranslation: 3, needsReview: 1 },
-  { id: 5, name: 'Portuguese (Brazil)', rejected: 0, needsTranslation: 6, needsReview: 3 },
-  ...Array.from({ length: 45 }, (_, index) => ({
-    id: index + 6,
-    name: `Locale ${index + 1}`,
-    rejected: (index * 2) % 7,
-    needsTranslation: (index * 3) % 12,
-    needsReview: (index * 4) % 10,
-  })),
-];
+const getRejectedCount = (localeStat: ApiRepositoryLocaleStatistic) => {
+  const translated = localeStat.translatedCount ?? 0;
+  const includeInFile = localeStat.includeInFileCount ?? 0;
+  const rejected = translated - includeInFile;
+  return rejected > 0 ? rejected : 0;
+};
+
+const getFullyTranslatedLocaleTags = (repository: ApiRepository) => {
+  const locales = repository.repositoryLocales ?? [];
+  const tags = locales
+    .filter((repoLocale) => repoLocale.toBeFullyTranslated)
+    .map((repoLocale) => getLocaleTag(repoLocale.locale))
+    .filter((tag): tag is string => Boolean(tag));
+
+  return new Set(tags);
+};
+
+const buildRepositoryRow = (
+  repository: ApiRepository,
+  selectedRepositoryId: number | null,
+): RepositoryRow => {
+  const fullyTranslatedTags = getFullyTranslatedLocaleTags(repository);
+  const localeStats = repository.repositoryStatistic?.repositoryLocaleStatistics ?? [];
+
+  let rejected = 0;
+  let needsTranslation = 0;
+  let needsReview = 0;
+
+  localeStats.forEach((localeStat) => {
+    const localeTag = getLocaleTag(localeStat.locale);
+    rejected += getRejectedCount(localeStat);
+    needsReview += localeStat.reviewNeededCount ?? 0;
+
+    if (localeTag && fullyTranslatedTags.has(localeTag)) {
+      needsTranslation += localeStat.forTranslationCount ?? 0;
+    }
+  });
+
+  return {
+    id: repository.id,
+    name: repository.name,
+    rejected,
+    needsTranslation,
+    needsReview,
+    selected: repository.id === selectedRepositoryId,
+  };
+};
+
+const buildRepositoriesWithSelection = (
+  repositories: ApiRepository[],
+  selectedRepositoryId: number | null,
+): RepositoryRow[] =>
+  repositories.map((repository) => buildRepositoryRow(repository, selectedRepositoryId));
+
+const buildLocaleRows = (
+  repository: ApiRepository,
+  resolveLocaleName: (tag: string) => string,
+): LocaleRow[] => {
+  const localeStats = repository.repositoryStatistic?.repositoryLocaleStatistics ?? [];
+  const sourceLocaleTag = repository.sourceLocale?.bcp47Tag;
+
+  return localeStats
+    .map((localeStat, index) => {
+      const localeTag = getLocaleTag(localeStat.locale);
+      if (!localeTag || localeTag === sourceLocaleTag) {
+        return null;
+      }
+
+      return {
+        id: localeTag || `locale-${index}`,
+        name: resolveLocaleName(localeTag),
+        rejected: getRejectedCount(localeStat),
+        needsTranslation: localeStat.forTranslationCount ?? 0,
+        needsReview: localeStat.reviewNeededCount ?? 0,
+      };
+    })
+    .filter((localeRow): localeRow is LocaleRow => Boolean(localeRow))
+    .sort((first, second) =>
+      first.name.localeCompare(second.name, undefined, { sensitivity: 'base' }),
+    );
+};
+
+const buildLocalesForRepository = (
+  repository: ApiRepository | null,
+  resolveLocaleName: (tag: string) => string,
+): LocaleRow[] => {
+  if (!repository) {
+    return [];
+  }
+
+  return buildLocaleRows(repository, resolveLocaleName);
+};
 
 export function RepositoriesPage() {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState('');
+  const resolveLocaleDisplayName = useLocaleDisplayNameResolver();
+
+  const { data: repositoryData, isLoading, isError, error, refetch } = useRepositories();
+  const handleRetryFetch = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const status: 'loading' | 'error' | 'ready' = isLoading ? 'loading' : isError ? 'error' : 'ready';
+  const errorMessage = isError
+    ? error instanceof Error
+      ? error.message
+      : 'Failed to load repositories.'
+    : undefined;
+
+  const repositories = useMemo(() => repositoryData ?? [], [repositoryData]);
+
+  const normalizedSearchValue = searchValue.trim().toLowerCase();
 
   const filteredRepositories = useMemo(() => {
-    if (!searchValue.trim()) {
-      return REPOSITORIES;
+    if (!normalizedSearchValue) {
+      return repositories;
     }
 
-    const search = searchValue.trim().toLowerCase();
-    return REPOSITORIES.filter((repo) => repo.name.toLowerCase().includes(search));
-  }, [searchValue]);
+    return repositories.filter((repository) =>
+      repository.name.toLowerCase().includes(normalizedSearchValue),
+    );
+  }, [normalizedSearchValue, repositories]);
 
-  const repositoriesWithSelection: RepositoryRow[] = useMemo(
-    () =>
-      filteredRepositories.map((repo) => ({
-        ...repo,
-        selected: repo.id === selectedRepositoryId,
-      })),
+  const repositoriesWithSelection = useMemo(
+    () => buildRepositoriesWithSelection(filteredRepositories, selectedRepositoryId),
     [filteredRepositories, selectedRepositoryId],
+  );
+
+  const selectedRepository = useMemo(
+    () => repositories.find((repository) => repository.id === selectedRepositoryId) ?? null,
+    [repositories, selectedRepositoryId],
   );
 
   useEffect(() => {
@@ -117,22 +210,9 @@ export function RepositoriesPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [repositoriesWithSelection, selectedRepositoryId]);
 
-  const localesForSelectedRepository = useMemo(() => {
-    if (selectedRepositoryId == null) {
-      return [];
-    }
-
-    // simple derived data to visualize repo-specific locale numbers
-    const factor = (selectedRepositoryId % 4) + 1;
-    const offset = selectedRepositoryId % 3;
-
-    return LOCALES.map((locale, index) => ({
-      ...locale,
-      rejected: (locale.rejected + offset + index) % 10,
-      needsTranslation: (locale.needsTranslation + factor + index) % 30,
-      needsReview: (locale.needsReview + factor + offset + index) % 22,
-    }));
-  }, [selectedRepositoryId]);
+  const localesForSelectedRepository = useMemo<LocaleRow[]>(() => {
+    return buildLocalesForRepository(selectedRepository ?? null, resolveLocaleDisplayName);
+  }, [resolveLocaleDisplayName, selectedRepository]);
 
   const handleSelectRepository = useCallback((id: number) => {
     setSelectedRepositoryId((previous) => (previous === id ? null : id));
@@ -140,6 +220,9 @@ export function RepositoriesPage() {
 
   return (
     <RepositoriesPageView
+      status={status}
+      errorMessage={errorMessage}
+      errorOnRetry={handleRetryFetch}
       repositories={repositoriesWithSelection}
       locales={localesForSelectedRepository}
       hasSelection={selectedRepositoryId != null}

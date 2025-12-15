@@ -15,7 +15,7 @@ export type RepositoryRow = {
 };
 
 export type LocaleRow = {
-  id: number;
+  id: string;
   name: string;
   rejected: number;
   needsTranslation: number;
@@ -23,6 +23,9 @@ export type LocaleRow = {
 };
 
 type Props = {
+  status: 'loading' | 'error' | 'ready';
+  errorMessage?: string;
+  errorOnRetry?: () => void;
   repositories: RepositoryRow[];
   locales: LocaleRow[];
   hasSelection: boolean;
@@ -43,6 +46,37 @@ type RepositoryTableProps = {
 type LocaleTableProps = {
   locales: LocaleRow[];
 };
+
+type ErrorStateProps = {
+  message?: string;
+  onRetry?: () => void;
+};
+
+function LoadingState() {
+  return <div className="repositories-page__state">Loading repositories…</div>;
+}
+
+function ErrorState({ message, onRetry }: ErrorStateProps) {
+  const errorMessage = message || 'Failed to load repositories.';
+  const handleRetry = () => {
+    if (onRetry) {
+      onRetry();
+    }
+  };
+
+  return (
+    <div className="repositories-page__state repositories-page__state--error">
+      <div>
+        <p>{errorMessage}</p>
+        {onRetry ? (
+          <button type="button" className="repositories-page__state-action" onClick={handleRetry}>
+            Try again
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 function RepositoryTable({
   repositories,
@@ -222,6 +256,9 @@ function LocaleTable({ locales }: LocaleTableProps) {
 }
 
 export function RepositoriesPageView({
+  status,
+  errorMessage,
+  errorOnRetry,
   repositories,
   locales,
   hasSelection,
@@ -229,6 +266,14 @@ export function RepositoriesPageView({
   onSearchChange,
   onSelectRepository,
 }: Props) {
+  if (status === 'loading') {
+    return <LoadingState />;
+  }
+
+  if (status === 'error') {
+    return <ErrorState message={errorMessage} onRetry={errorOnRetry} />;
+  }
+
   const selectedRepoId = repositories.find((repo) => repo.selected)?.id ?? null;
 
   const repositoryPane = (
