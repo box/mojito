@@ -40,11 +40,6 @@
   border-color: var(--color-focus-border);
 }
 
-.repositories-page--single {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .repositories-page--split {
   display: grid;
   grid-template-columns: minmax(0, 4fr) 1px minmax(0, 3fr);
@@ -109,6 +104,18 @@
 .repositories-page__pane-placeholder {
   padding: var(--space-4);
   color: var(--color-text-subtle);
+}
+
+.repositories-page__locale-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex: 1;
+  color: var(--color-text-subtle);
+  text-align: center;
+  padding: 0 var(--space-4);
 }
 
 .repositories-page__repo-scroll {

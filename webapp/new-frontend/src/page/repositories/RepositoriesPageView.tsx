@@ -45,6 +45,7 @@ type RepositoryTableProps = {
 
 type LocaleTableProps = {
   locales: LocaleRow[];
+  hasSelection: boolean;
 };
 
 type ErrorStateProps = {
@@ -202,7 +203,17 @@ function RepositoryTable({
   );
 }
 
-function LocaleTable({ locales }: LocaleTableProps) {
+function LocaleTable({ locales, hasSelection }: LocaleTableProps) {
+  if (!hasSelection) {
+    return (
+      <div className="repositories-page__pane">
+        <div className="repositories-page__locale-placeholder">
+          Select a repository to show locale info.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="repositories-page__pane">
       <div className="repositories-page__header repositories-page__header--locale">
@@ -276,37 +287,31 @@ export function RepositoriesPageView({
 
   const selectedRepoId = repositories.find((repo) => repo.selected)?.id ?? null;
 
-  const repositoryPane = (
-    <RepositoryTable
-      repositories={repositories}
-      searchValue={searchValue}
-      onSearchChange={onSearchChange}
-      onSelectRepository={onSelectRepository}
-    />
-  );
-
-  if (!hasSelection) {
-    return <div className="repositories-page repositories-page--single">{repositoryPane}</div>;
-  }
-
   return (
     <div className="repositories-page repositories-page--split">
-      {repositoryPane}
+      <RepositoryTable
+        repositories={repositories}
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
+        onSelectRepository={onSelectRepository}
+      />
       <div className="repositories-page__divider">
-        <button
-          type="button"
-          className="repositories-page__divider-action"
-          onClick={() => {
-            if (selectedRepoId != null) {
-              onSelectRepository(selectedRepoId);
-            }
-          }}
-          aria-label="Hide locale stats"
-        >
-          ×
-        </button>
+        {hasSelection ? (
+          <button
+            type="button"
+            className="repositories-page__divider-action"
+            onClick={() => {
+              if (selectedRepoId != null) {
+                onSelectRepository(selectedRepoId);
+              }
+            }}
+            aria-label="Hide locale stats"
+          >
+            ×
+          </button>
+        ) : null}
       </div>
-      <LocaleTable locales={locales} />
+      <LocaleTable locales={locales} hasSelection={hasSelection} />
     </div>
   );
 }
