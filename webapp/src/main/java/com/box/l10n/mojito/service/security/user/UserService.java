@@ -449,6 +449,7 @@ public class UserService {
                     Hibernate.initialize(a.getCreatedByUser());
                   });
           Hibernate.initialize(u.getCreatedByUser());
+          Hibernate.initialize(u.getUserLocales());
         });
     return users;
   }
