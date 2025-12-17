@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
+import { WorkbenchPage } from './page/workbench/WorkbenchPage';
 
 type NavItem = {
   to: string;
@@ -14,7 +15,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { to: '/repositories', label: 'Repositories', element: <RepositoriesPage /> },
-  { to: '/workbench', label: 'Workbench', element: <>Workbench</> },
+  { to: '/workbench', label: 'Workbench', element: <WorkbenchPage /> },
   { to: '/projects', label: 'Projects', element: <>Projects</> },
 ];
 
