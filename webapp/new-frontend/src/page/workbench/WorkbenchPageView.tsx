@@ -3,6 +3,7 @@ import './workbench-page.css';
 import type { RefObject } from 'react';
 
 import { AutoTextarea } from '../../components/AutoTextarea';
+import { UnsavedChangesModal } from '../../components/UnsavedChangesModal';
 import { isRtlLocale } from '../../utils/localeDirection';
 
 export type WorkbenchRow = {
@@ -27,6 +28,9 @@ type Props = {
   onChangeEditingValue: (value: string) => void;
   onChangeStatus: (rowId: string, status: string) => void;
   statusOptions: string[];
+  showDiscardDialog: boolean;
+  onConfirmDiscardEditing: () => void;
+  onDismissDiscardEditing: () => void;
   translationInputRef: RefObject<HTMLTextAreaElement | null>;
   registerRowRef: (rowId: string, element: HTMLDivElement | null) => void;
 };
@@ -41,6 +45,9 @@ export function WorkbenchPageView({
   onChangeEditingValue,
   onChangeStatus,
   statusOptions,
+  showDiscardDialog,
+  onConfirmDiscardEditing,
+  onDismissDiscardEditing,
   translationInputRef,
   registerRowRef,
 }: Props) {
@@ -158,6 +165,15 @@ export function WorkbenchPageView({
           })}
         </div>
       </div>
+      <UnsavedChangesModal
+        open={showDiscardDialog}
+        title="Unsaved translation"
+        body="You have unsaved edits. Do you want to discard them?"
+        confirmLabel="Discard & switch"
+        cancelLabel="Keep editing"
+        onConfirm={onConfirmDiscardEditing}
+        onCancel={onDismissDiscardEditing}
+      />
     </div>
   );
 }

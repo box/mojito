@@ -1,0 +1,60 @@
+.unsaved-changes-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unsaved-changes-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.unsaved-changes-modal__card {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3);
+  background: var(--color-surface);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  padding: var(--space-5);
+  max-width: 360px;
+  width: min(360px, 90%);
+}
+
+.unsaved-changes-modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.unsaved-changes-modal__body {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.unsaved-changes-modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.unsaved-changes-modal__button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: 0 var(--space-3);
+  height: 32px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.unsaved-changes-modal__button--danger {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}

@@ -382,6 +382,10 @@ export function WorkbenchPage() {
   const [rows, setRows] = useState(mockRows);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
+  const [editingInitialValue, setEditingInitialValue] = useState('');
+  const [pendingEditingTarget, setPendingEditingTarget] = useState<
+    { rowId: string; translation: string | null } | null
+  >(null);
   const translationInputRef = useRef<HTMLTextAreaElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -390,17 +394,47 @@ export function WorkbenchPage() {
   }, []);
 
   const handleStartEditing = useCallback((rowId: string, translation: string | null) => {
+    const nextValue = translation ?? '';
     setEditingRowId(rowId);
-    setEditingValue(translation ?? '');
+    setEditingValue(nextValue);
+    setEditingInitialValue(nextValue);
+    setPendingEditingTarget(null);
   }, []);
 
   const handleCancelEditing = useCallback(() => {
     setEditingRowId(null);
     setEditingValue('');
+    setEditingInitialValue('');
+    setPendingEditingTarget(null);
   }, []);
 
   const handleChangeEditingValue = useCallback((value: string) => {
     setEditingValue(value);
+  }, []);
+
+  const hasUnsavedChanges = editingRowId !== null && editingValue !== editingInitialValue;
+
+  const handleRequestStartEditing = useCallback(
+    (rowId: string, translation: string | null) => {
+      if (editingRowId && editingRowId !== rowId && hasUnsavedChanges) {
+        setPendingEditingTarget({ rowId, translation });
+        return;
+      }
+
+      handleStartEditing(rowId, translation);
+    },
+    [editingRowId, hasUnsavedChanges, handleStartEditing],
+  );
+
+  const handleConfirmDiscardEditing = useCallback(() => {
+    if (!pendingEditingTarget) {
+      return;
+    }
+    handleStartEditing(pendingEditingTarget.rowId, pendingEditingTarget.translation);
+  }, [pendingEditingTarget, handleStartEditing]);
+
+  const handleDismissDiscardEditing = useCallback(() => {
+    setPendingEditingTarget(null);
   }, []);
 
   const handleSaveEditing = useCallback(() => {
@@ -447,12 +481,15 @@ export function WorkbenchPage() {
       rows={rows}
       editingRowId={editingRowId}
       editingValue={editingValue}
-      onStartEditing={handleStartEditing}
+      onStartEditing={handleRequestStartEditing}
       onCancelEditing={handleCancelEditing}
       onSaveEditing={handleSaveEditing}
       onChangeEditingValue={handleChangeEditingValue}
       onChangeStatus={handleChangeStatus}
       statusOptions={statusOptions}
+      showDiscardDialog={pendingEditingTarget !== null}
+      onConfirmDiscardEditing={handleConfirmDiscardEditing}
+      onDismissDiscardEditing={handleDismissDiscardEditing}
       translationInputRef={translationInputRef}
       registerRowRef={registerRowRef}
     />
