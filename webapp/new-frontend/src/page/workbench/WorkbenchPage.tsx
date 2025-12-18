@@ -362,6 +362,8 @@ const textUnitMocks: MockTextUnit[] = [
   },
 ];
 
+const statusOptions = ['Accepted', 'To review', 'To translate', 'Rejected'];
+
 const mockRows: WorkbenchRow[] = textUnitMocks.flatMap((unit) =>
   unit.locales.map((localeVariant) => ({
     id: `${unit.textUnitName}:${localeVariant.locale}`,
@@ -408,12 +410,22 @@ export function WorkbenchPage() {
     setRows((previousRows) =>
       previousRows.map((row) =>
         row.id === editingRowId
-          ? { ...row, translation: editingValue === '' ? null : editingValue }
+          ? {
+              ...row,
+              translation: editingValue === '' ? null : editingValue,
+              status: 'Accepted',
+            }
           : row,
       ),
     );
     handleCancelEditing();
   }, [editingRowId, editingValue, handleCancelEditing]);
+
+  const handleChangeStatus = useCallback((rowId: string, status: string) => {
+    setRows((previousRows) =>
+      previousRows.map((row) => (row.id === rowId ? { ...row, status } : row)),
+    );
+  }, []);
 
   useEffect(() => {
     if (!editingRowId) {
@@ -439,6 +451,8 @@ export function WorkbenchPage() {
       onCancelEditing={handleCancelEditing}
       onSaveEditing={handleSaveEditing}
       onChangeEditingValue={handleChangeEditingValue}
+      onChangeStatus={handleChangeStatus}
+      statusOptions={statusOptions}
       translationInputRef={translationInputRef}
       registerRowRef={registerRowRef}
     />

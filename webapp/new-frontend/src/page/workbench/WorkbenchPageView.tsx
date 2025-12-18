@@ -25,6 +25,8 @@ type Props = {
   onCancelEditing: () => void;
   onSaveEditing: () => void;
   onChangeEditingValue: (value: string) => void;
+  onChangeStatus: (rowId: string, status: string) => void;
+  statusOptions: string[];
   translationInputRef: RefObject<HTMLTextAreaElement | null>;
   registerRowRef: (rowId: string, element: HTMLDivElement | null) => void;
 };
@@ -37,6 +39,8 @@ export function WorkbenchPageView({
   onCancelEditing,
   onSaveEditing,
   onChangeEditingValue,
+  onChangeStatus,
+  statusOptions,
   translationInputRef,
   registerRowRef,
 }: Props) {
@@ -117,7 +121,7 @@ export function WorkbenchPageView({
                           onSaveEditing();
                         }}
                       >
-                        Save
+                        Accept
                       </button>
                       <button
                         type="button"
@@ -136,7 +140,18 @@ export function WorkbenchPageView({
                   <span className="workbench-page__locale-pill">{row.locale}</span>
                 </div>
                 <div className="workbench-page__cell workbench-page__cell--status">
-                  {row.status}
+                  <select
+                    className="workbench-page__status-select"
+                    value={row.status}
+                    aria-label="Translation status"
+                    onChange={(event) => onChangeStatus(row.id, event.target.value)}
+                  >
+                    {statusOptions.map((statusOption) => (
+                      <option key={statusOption} value={statusOption}>
+                        {statusOption}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             );
