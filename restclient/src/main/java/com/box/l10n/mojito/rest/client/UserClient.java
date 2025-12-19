@@ -3,21 +3,25 @@ package com.box.l10n.mojito.rest.client;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException;
 import com.box.l10n.mojito.rest.entity.Authority;
+import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Page;
 import com.box.l10n.mojito.rest.entity.Role;
 import com.box.l10n.mojito.rest.entity.User;
+import com.box.l10n.mojito.rest.entity.UserLocale;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
@@ -78,6 +82,33 @@ public class UserClient extends BaseClient {
       String givenName,
       String commonName)
       throws ResourceNotCreatedException {
+    return createUser(username, password, role, surname, givenName, commonName, null, true);
+  }
+
+  /**
+   * Creates a {@link User}
+   *
+   * @param username
+   * @param password
+   * @param role
+   * @param surname
+   * @param givenName
+   * @param commonName
+   * @param localeTags
+   * @param canTranslateAllLocales
+   * @return
+   * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException
+   */
+  public User createUser(
+      String username,
+      String password,
+      Role role,
+      String surname,
+      String givenName,
+      String commonName,
+      List<String> localeTags,
+      boolean canTranslateAllLocales)
+      throws ResourceNotCreatedException {
     logger.debug("Creating user with username [{}]", username);
 
     User userToCreate = new User();
@@ -86,11 +117,21 @@ public class UserClient extends BaseClient {
     userToCreate.setSurname(surname);
     userToCreate.setGivenName(givenName);
     userToCreate.setCommonName(commonName);
+    userToCreate.setCanTranslateAllLocales(canTranslateAllLocales);
 
     if (role != null) {
       Authority authority = new Authority();
       authority.setAuthority(role.toString());
       userToCreate.setAuthorities(Sets.newHashSet(authority));
+    }
+
+    if (localeTags != null) {
+      Set<UserLocale> userLocales =
+          localeTags.stream()
+              .filter(StringUtils::hasText)
+              .map(this::createUserLocale)
+              .collect(Collectors.toSet());
+      userToCreate.setUserLocales(userLocales);
     }
 
     try {
@@ -104,6 +145,14 @@ public class UserClient extends BaseClient {
         throw exception;
       }
     }
+  }
+
+  private UserLocale createUserLocale(String localeTag) {
+    Locale locale = new Locale();
+    locale.setBcp47Tag(localeTag);
+    UserLocale userLocale = new UserLocale();
+    userLocale.setLocale(locale);
+    return userLocale;
   }
 
   /**
