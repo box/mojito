@@ -46,10 +46,11 @@ public class FlyWayConfig {
           flyway.migrate();
           logger.info("Flyway migrate() finished");
         } catch (FlywayException fe) {
-          if (flyway.info().current().getVersion().getVersion().equals("63")) {
-            tryToMigrateIfMysql8Migration(flyway, fe);
-          } else {
-            tryToMigrateIfSpringMigration(flyway, fe);
+          logger.debug("Flyway migrate() failed", fe);
+          if (!(tryToMigrateIfSpringMigration(flyway, fe)
+              || tryToMigrateIfMysql8Migration(flyway, fe))) {
+            // known fixes failed, rethrow
+            throw fe;
           }
         }
       }
@@ -74,33 +75,38 @@ public class FlyWayConfig {
     }
   }
 
-  void tryToMigrateIfSpringMigration(Flyway flyway, FlywayException fe) {
-    if (fe.getMessage()
-        .contains(
-            "but no schema history table. Use baseline() or set baselineOnMigrate to true to initialize the schema history table")) {
-      logger.info(
-          "There is no schema history table, we assume were migrating from Spring 1.x to 2.x");
+  boolean tryToMigrateIfSpringMigration(Flyway flyway, FlywayException fe) {
+    boolean shouldApply =
+        fe.getMessage()
+            .contains(
+                "but no schema history table. Use baseline() or set baselineOnMigrate to true to initialize the schema history table");
 
-      String baselineVersion = getBaselineVersionFromOldFlywayTable();
-      logger.info("version: {}", baselineVersion);
-      if (baselineVersion == null) {
-        throw new RuntimeException(
-            "Can't read the version from the database, you must provide a Flyway baseline version to upgrade Mojito using spring.flyway.baseline-version");
-      }
-
-      flyway = rebuildFlywayInstanceWithBaselineFromOldTable(flyway, baselineVersion);
-
-      logger.info(
-          "Run baseline() with version: {}",
-          flyway.getConfiguration().getBaselineVersion().getVersion());
-      flyway.baseline();
-
-      logger.info("Try Flyway migrate() again");
-      flyway.migrate();
-      logger.info("Flyway migrate() finished");
-    } else {
-      throw fe;
+    if (!shouldApply) {
+      return false;
     }
+
+    logger.info(
+        "There is no schema history table, we assume were migrating from Spring 1.x to 2.x");
+
+    String baselineVersion = getBaselineVersionFromOldFlywayTable();
+    logger.info("version: {}", baselineVersion);
+    if (baselineVersion == null) {
+      throw new RuntimeException(
+          "Can't read the version from the database, you must provide a Flyway baseline version to upgrade Mojito using spring.flyway.baseline-version");
+    }
+
+    flyway = rebuildFlywayInstanceWithBaselineFromOldTable(flyway, baselineVersion);
+
+    logger.info(
+        "Run baseline() with version: {}",
+        flyway.getConfiguration().getBaselineVersion().getVersion());
+    flyway.baseline();
+
+    logger.info("Try Flyway migrate() again");
+    flyway.migrate();
+    logger.info("Flyway migrate() finished");
+
+    return true;
   }
 
   Flyway rebuildFlywayInstanceWithBaselineFromOldTable(Flyway flyway, String baselineVersion) {
@@ -134,19 +140,26 @@ public class FlyWayConfig {
    * @param flyway
    * @param fe
    */
-  void tryToMigrateIfMysql8Migration(Flyway flyway, FlywayException fe) {
-    if (fe.getMessage()
-        .contains(
-            "Migration checksum mismatch for migration version 1\n"
-                + "-> Applied to database : 1443976515\n"
-                + "-> Resolved locally    : -998267617")) {
+  boolean tryToMigrateIfMysql8Migration(Flyway flyway, FlywayException fe) {
+    boolean shouldApply =
+        fe.getMessage()
+                .contains(
+                    "Migration checksum mismatch for migration version 1\n"
+                        + "-> Applied to database : 1443976515\n"
+                        + "-> Resolved locally    : -998267617")
+            && flyway.info().current().getVersion().getVersion().equals("63");
 
-      logger.info("Flyway repair()");
-      flyway.repair();
-      logger.info("Flyway repair() finished");
-    } else {
-      throw fe;
+    if (!shouldApply) {
+      return false;
     }
+
+    logger.info("Repairing Flyway schema for MySQL8 migration");
+
+    logger.info("Flyway repair()");
+    flyway.repair();
+    logger.info("Flyway repair() finished");
+
+    return true;
   }
 
   /**
