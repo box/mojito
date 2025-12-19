@@ -1,3 +1,4 @@
+import './chip-dropdown.css';
 import './multi-select-chip.css';
 
 import { useEffect, useRef, useState } from 'react';
@@ -125,7 +126,9 @@ export function MultiSelectChip<T extends string | number>({
       )
     : options;
 
-  const resolvedClassName = ['multi-select-chip', className].filter(Boolean).join(' ');
+  const resolvedClassName = ['chip-dropdown', 'multi-select-chip', className]
+    .filter(Boolean)
+    .join(' ');
   const resolvedButtonAriaLabel = buttonAriaLabel ?? label;
   const noResultsText = noResultsLabel ?? 'No matches';
   const selectAllText = selectAllLabel ?? 'Select all';
@@ -140,19 +143,19 @@ export function MultiSelectChip<T extends string | number>({
     >
       <button
         type="button"
-        className="multi-select-chip__button"
+        className="chip-dropdown__button"
         onClick={() => setIsOpen((previous) => !previous)}
         disabled={!options.length}
         aria-expanded={isOpen}
         aria-label={resolvedButtonAriaLabel}
       >
-        <span className={`multi-select-chip__summary${isPlaceholder ? ' is-placeholder' : ''}`}>
+        <span className={`chip-dropdown__summary${isPlaceholder ? ' is-placeholder' : ''}`}>
           {summary}
         </span>
-        <span className="multi-select-chip__chevron" aria-hidden="true" />
+        <span className="chip-dropdown__chevron" aria-hidden="true" />
       </button>
       {isOpen ? (
-        <div className="multi-select-chip__panel" role="menu">
+        <div className="chip-dropdown__panel" role="menu">
           {options.length ? (
             <>
               <input
