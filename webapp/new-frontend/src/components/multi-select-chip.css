@@ -1,0 +1,163 @@
+.multi-select-chip {
+  position: relative;
+  display: inline-flex;
+  min-width: 200px;
+  flex: 0 0 auto;
+}
+
+.multi-select-chip__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  min-height: 32px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.multi-select-chip__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.multi-select-chip__button:not(:disabled):hover,
+.multi-select-chip__button:not(:disabled):focus-visible {
+  border-color: color-mix(in srgb, var(--color-border) 90%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-border) 50%, transparent);
+}
+
+.multi-select-chip__summary {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multi-select-chip__summary.is-placeholder {
+  color: var(--color-text-subtle);
+}
+
+.multi-select-chip__chevron {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--color-text-subtle);
+  margin-left: var(--space-2);
+}
+
+.multi-select-chip__panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  z-index: 20;
+  min-width: 260px;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.multi-select-chip[data-align='right'] .multi-select-chip__panel {
+  left: auto;
+  right: 0;
+}
+
+.multi-select-chip__search {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: var(--radius-2);
+  padding: 0 var(--space-2);
+  height: 30px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.multi-select-chip__search:focus {
+  outline: none;
+  border-color: var(--color-focus-border);
+  box-shadow: 0 0 0 2px var(--color-focus-outline);
+}
+
+.multi-select-chip__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.multi-select-chip__action-button {
+  flex: 1;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  padding: 0 var(--space-2);
+  height: 26px;
+  cursor: pointer;
+}
+
+.multi-select-chip__action-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.multi-select-chip__options {
+  max-height: 220px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.multi-select-chip__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.multi-select-chip__option input {
+  cursor: pointer;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.multi-select-chip__only {
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: inherit;
+  font-size: 11px;
+  padding: 0 var(--space-2);
+  height: 20px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.multi-select-chip__option:hover .multi-select-chip__only,
+.multi-select-chip__option:focus-within .multi-select-chip__only {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.multi-select-chip__empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
