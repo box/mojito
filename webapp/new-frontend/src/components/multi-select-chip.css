@@ -23,7 +23,7 @@
 .multi-select-chip__action-button {
   flex: 1;
   border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text);
   font: inherit;
@@ -63,7 +63,7 @@
 .multi-select-chip__only {
   margin-left: auto;
   border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-text-subtle);
   font: inherit;

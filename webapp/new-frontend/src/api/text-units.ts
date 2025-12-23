@@ -1,4 +1,12 @@
-import type { SearchAttribute, SearchType } from '../page/workbench/types';
+export type SearchAttribute =
+  | 'stringId'
+  | 'source'
+  | 'target'
+  | 'asset'
+  | 'pluralFormOther'
+  | 'tmTextUnitIds';
+
+export type SearchType = 'exact' | 'contains' | 'ilike';
 
 export type ApiTextUnit = {
   tmTextUnitId: number;
