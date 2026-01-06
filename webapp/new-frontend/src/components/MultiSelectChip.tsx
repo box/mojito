@@ -23,6 +23,7 @@ export type MultiSelectChipProps<T extends string | number> = {
   emptyOptionsLabel: string;
   className?: string;
   align?: 'left' | 'right';
+  disabled?: boolean;
   buttonAriaLabel?: string;
   searchPlaceholder?: string;
   noResultsLabel?: string;
@@ -41,6 +42,7 @@ export function MultiSelectChip<T extends string | number>({
   emptyOptionsLabel,
   className,
   align = 'left',
+  disabled = false,
   buttonAriaLabel,
   searchPlaceholder,
   noResultsLabel,
@@ -54,6 +56,10 @@ export function MultiSelectChip<T extends string | number>({
   const [filterQuery, setFilterQuery] = useState('');
 
   useEffect(() => {
+    if (disabled && isOpen) {
+      setIsOpen(false);
+      return;
+    }
     if (!isOpen) {
       setFilterQuery('');
       return;
@@ -67,7 +73,7 @@ export function MultiSelectChip<T extends string | number>({
 
     window.addEventListener('pointerdown', handlePointerDown);
     return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [isOpen]);
+  }, [disabled, isOpen]);
 
   const selectedSet = new Set(selectedValues);
 
@@ -145,7 +151,7 @@ export function MultiSelectChip<T extends string | number>({
         type="button"
         className="chip-dropdown__button"
         onClick={() => setIsOpen((previous) => !previous)}
-        disabled={!options.length}
+        disabled={disabled || !options.length}
         aria-expanded={isOpen}
         aria-label={resolvedButtonAriaLabel}
       >

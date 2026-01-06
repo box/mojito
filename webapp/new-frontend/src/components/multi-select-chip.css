@@ -39,7 +39,7 @@
 }
 
 .multi-select-chip__options {
-  max-height: 220px;
+  max-height: min(60vh, 520px);
   overflow: auto;
   display: flex;
   flex-direction: column;
