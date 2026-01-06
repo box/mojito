@@ -1,4 +1,4 @@
-import './unsaved-changes-modal.css';
+import { Modal } from './Modal';
 
 type Props = {
   open: boolean;
@@ -19,29 +19,18 @@ export function UnsavedChangesModal({
   onConfirm,
   onCancel,
 }: Props) {
-  if (!open) {
-    return null;
-  }
-
   return (
-    <div className="unsaved-changes-modal" role="alertdialog" aria-modal="true">
-      <div className="unsaved-changes-modal__backdrop" aria-hidden="true" />
-      <div className="unsaved-changes-modal__card">
-        <div className="unsaved-changes-modal__title">{title}</div>
-        <div className="unsaved-changes-modal__body">{body}</div>
-        <div className="unsaved-changes-modal__actions">
-          <button
-            type="button"
-            className="unsaved-changes-modal__button unsaved-changes-modal__button--danger"
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </button>
-          <button type="button" className="unsaved-changes-modal__button" onClick={onCancel}>
-            {cancelLabel}
-          </button>
-        </div>
+    <Modal open={open} size="sm" role="alertdialog" ariaLabel={title}>
+      <div className="modal__title">{title}</div>
+      <div className="modal__body">{body}</div>
+      <div className="modal__actions">
+        <button type="button" className="modal__button modal__button--danger" onClick={onConfirm}>
+          {confirmLabel}
+        </button>
+        <button type="button" className="modal__button" onClick={onCancel}>
+          {cancelLabel}
+        </button>
       </div>
-    </div>
+    </Modal>
   );
 }
