@@ -13,6 +13,7 @@
   --color-focus-outline: rgba(31, 122, 224, 0.2);
   --color-focus-border: rgba(31, 122, 224, 0.4);
   --radius-2: 8px;
+  --radius-3: 12px;
   --radius-pill: 999px;
   --space-1: 4px;
   --space-2: 8px;
@@ -57,6 +58,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+/* Shared typography for in-app hint copy (empty states, prompts, inline hints). */
+.hint {
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .app-shell {

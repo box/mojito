@@ -1,48 +1,75 @@
-.unsaved-changes-modal {
+.modal {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 70;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-6);
 }
 
-.unsaved-changes-modal__backdrop {
+.modal__backdrop {
   position: absolute;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(3px);
 }
 
-.unsaved-changes-modal__card {
+.modal__card {
   position: relative;
+  width: min(var(--modal-max-width, 520px), 92vw);
+  max-height: min(86vh, 900px);
+  overflow: auto;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-3);
+  border-radius: var(--radius-3, 12px);
   background: var(--color-surface);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
   padding: var(--space-5);
-  max-width: 360px;
-  width: min(360px, 90%);
 }
 
-.unsaved-changes-modal__title {
-  font-size: 16px;
-  font-weight: 600;
+.modal--sm {
+  --modal-max-width: 360px;
+}
+
+.modal--md {
+  --modal-max-width: 520px;
+}
+
+.modal--lg {
+  --modal-max-width: 760px;
+}
+
+.modal--xl {
+  --modal-max-width: 960px;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-2);
 }
 
-.unsaved-changes-modal__body {
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-4);
+.modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
 }
 
-.unsaved-changes-modal__actions {
+.modal__body {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  white-space: pre-line;
+}
+
+.modal__actions {
   display: flex;
   gap: var(--space-3);
   justify-content: flex-end;
 }
 
-.unsaved-changes-modal__button {
+.modal__button {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2);
   padding: 0 var(--space-3);
@@ -53,7 +80,8 @@
   cursor: pointer;
 }
 
-.unsaved-changes-modal__button--danger {
+.modal__button--primary,
+.modal__button--danger {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: #fff;
