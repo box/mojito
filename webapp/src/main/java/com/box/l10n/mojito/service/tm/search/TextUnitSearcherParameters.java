@@ -36,7 +36,7 @@ public class TextUnitSearcherParameters {
   boolean forRootLocale = false;
   boolean rootLocaleExcluded = true;
   Boolean toBeFullyTranslatedFilter;
-  boolean untranslatedOrTranslationNeeded = false;
+
   boolean pluralFormsFiltered = true;
   boolean pluralFormsExcluded = false;
 
