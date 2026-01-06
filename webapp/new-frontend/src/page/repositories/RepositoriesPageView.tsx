@@ -54,7 +54,14 @@ type ErrorStateProps = {
 };
 
 function LoadingState() {
-  return <div className="repositories-page__state">Loading repositories…</div>;
+  return (
+    <div className="repositories-page__state">
+      <div className="repositories-page__state-content">
+        <span className="repositories-page__spinner" aria-hidden="true" />
+        <div className="hint">Loading repositories…</div>
+      </div>
+    </div>
+  );
 }
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
@@ -67,8 +74,8 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
 
   return (
     <div className="repositories-page__state repositories-page__state--error">
-      <div>
-        <p>{errorMessage}</p>
+      <div className="repositories-page__state-content">
+        <div className="hint">{errorMessage}</div>
         {onRetry ? (
           <button type="button" className="repositories-page__state-action" onClick={handleRetry}>
             Try again
@@ -208,7 +215,7 @@ function LocaleTable({ locales, hasSelection }: LocaleTableProps) {
     return (
       <div className="repositories-page__pane">
         <div className="repositories-page__locale-placeholder">
-          Select a repository to show locale info.
+          <span className="hint">Select a repository to show locale info.</span>
         </div>
       </div>
     );
@@ -229,7 +236,7 @@ function LocaleTable({ locales, hasSelection }: LocaleTableProps) {
         </div>
       </div>
       {locales.length === 0 ? (
-        <div className="repositories-page__pane-placeholder">No locale data available.</div>
+        <div className="repositories-page__pane-placeholder hint">No locale data available.</div>
       ) : (
         <div className="repositories-page__locale-scroll">
           {locales.map((locale) => (

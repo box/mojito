@@ -16,12 +16,35 @@
   justify-content: center;
   padding: var(--space-4);
   background: var(--color-surface);
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   text-align: center;
 }
 
 .repositories-page__state--error {
-  color: var(--color-text);
+  color: var(--color-text-muted);
+}
+
+.repositories-page__state-content {
+  max-width: 520px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.repositories-page__spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
+  animation: repositories-spin 0.8s linear infinite;
+}
+
+@keyframes repositories-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .repositories-page__state-action {
