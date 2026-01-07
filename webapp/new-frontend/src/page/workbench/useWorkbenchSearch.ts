@@ -2,6 +2,7 @@ import type { InfiniteData } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { ApiRepository } from '../../api/repositories';
 import {
   type ApiTextUnit,
   type SearchAttribute,
@@ -30,6 +31,7 @@ type Params = {
 
 type SearchState = {
   repositoryOptions: RepositoryOption[];
+  repositories: ApiRepository[];
   localeOptions: LocaleOption[];
   isRepositoriesLoading: boolean;
   repositoryErrorMessage: string | null;
@@ -85,7 +87,8 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
   const [createdBefore, setCreatedBefore] = useState<string | null>(null);
   const [createdAfter, setCreatedAfter] = useState<string | null>(null);
   const [worksetSize, setWorksetSize] = useState<number>(WORKSET_SIZE_DEFAULT);
-  const hydratedSignatureRef = useRef<string | null>(null);
+  const hydratedSearchSignatureRef = useRef<string | null>(null);
+  const lastHydratedRequestRef = useRef<TextUnitSearchRequest | null>(null);
   const [hasHydratedSearch, setHasHydratedSearch] = useState(false);
   const [shouldRestoreReposFromHydration, setShouldRestoreReposFromHydration] = useState(false);
   const [shouldRestoreLocalesFromHydration, setShouldRestoreLocalesFromHydration] = useState(false);
@@ -102,12 +105,14 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     () => (initialSearchRequest ? serializeSearchRequest(initialSearchRequest) : null),
     [initialSearchRequest],
   );
-
   useEffect(() => {
     if (!initialSearchRequest || !initialSearchSignature) {
       return;
     }
-    if (hydratedSignatureRef.current === initialSearchSignature) {
+    const alreadyHydrated =
+      hydratedSearchSignatureRef.current === initialSearchSignature &&
+      lastHydratedRequestRef.current === initialSearchRequest;
+    if (alreadyHydrated) {
       return;
     }
 
@@ -140,7 +145,8 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     } else {
       setAppliedSearchRequest(null);
     }
-    hydratedSignatureRef.current = initialSearchSignature;
+    hydratedSearchSignatureRef.current = initialSearchSignature;
+    lastHydratedRequestRef.current = initialSearchRequest;
     setHasHydratedSearch(true);
     setShouldRestoreReposFromHydration(true);
     setShouldRestoreLocalesFromHydration(true);
@@ -497,6 +503,7 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
 
   return {
     repositoryOptions,
+    repositories: repositories ?? [],
     localeOptions,
     isRepositoriesLoading,
     repositoryErrorMessage,

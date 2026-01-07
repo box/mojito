@@ -3,6 +3,7 @@ import './workbench-page.css';
 
 import { type RefObject, useState } from 'react';
 
+import type { ApiRepository } from '../../api/repositories';
 import type { SearchAttribute, SearchType, TextUnitSearchRequest } from '../../api/text-units';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Modal } from '../../components/Modal';
@@ -87,6 +88,7 @@ type Props = {
   onRetrySearch: () => void;
   canSearch: boolean;
   appliedSearchRequest: TextUnitSearchRequest | null;
+  repositories: ApiRepository[];
 };
 
 function HydrationModal({
@@ -183,6 +185,7 @@ export function WorkbenchPageView({
   onRetrySearch,
   canSearch,
   appliedSearchRequest,
+  repositories,
 }: Props) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const editedCount = editedRowIds.size;
@@ -261,6 +264,8 @@ export function WorkbenchPageView({
         searchErrorMessage={searchErrorMessage}
         onRetrySearch={onRetrySearch}
         hasSearched={hasSearched}
+        appliedSearchRequest={appliedSearchRequest}
+        repositories={repositories}
       />
       <HydrationModal data={hydrationModal} onClose={onDismissHydrationModal} />
       <ConfirmModal

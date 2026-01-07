@@ -214,6 +214,7 @@ export function WorkbenchPage() {
       }}
       canSearch={search.canSearch}
       appliedSearchRequest={search.appliedSearchRequest}
+      repositories={search.repositories}
     />
   );
 }

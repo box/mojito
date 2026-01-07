@@ -1,11 +1,15 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import type { ApiRepository } from '../../api/repositories';
+import type { TextUnitSearchRequest } from '../../api/text-units';
 import { AutoTextarea } from '../../components/AutoTextarea';
 import { Modal } from '../../components/Modal';
 import { Pill } from '../../components/Pill';
 import { PillDropdown } from '../../components/PillDropdown';
 import { isRtlLocale } from '../../utils/localeDirection';
+import { getRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import type { WorkbenchDiffModalData, WorkbenchRow } from './workbench-types';
 
 type WorkbenchBodyProps = {
@@ -32,6 +36,8 @@ type WorkbenchBodyProps = {
   searchErrorMessage: string | null;
   onRetrySearch: () => void;
   hasSearched: boolean;
+  appliedSearchRequest: TextUnitSearchRequest | null;
+  repositories: ApiRepository[];
 };
 
 export function WorkbenchBody({
@@ -58,7 +64,10 @@ export function WorkbenchBody({
   searchErrorMessage,
   onRetrySearch,
   hasSearched,
+  appliedSearchRequest,
+  repositories,
 }: WorkbenchBodyProps) {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const rowRefCallbacks = useRef(new Map<string, (element: HTMLDivElement | null) => void>());
   const registerRowRefRef = useRef(registerRowRef);
@@ -108,6 +117,76 @@ export function WorkbenchBody({
   const showInlineErrorNotice =
     hasRows &&
     (Boolean(repositoryErrorMessage) || Boolean(saveErrorMessage) || Boolean(searchErrorMessage));
+
+  const getRepositoryScope = useCallback(
+    (row: WorkbenchRow): { repoId: number; localeTags: string[] } | null => {
+      const repository = repositories.find((repo) => repo.name === row.repositoryName);
+      const repoId = repository?.id ?? appliedSearchRequest?.repositoryIds?.[0];
+      if (!repoId) {
+        return null;
+      }
+
+      const repoLocales = repository ? getRepositoryLocaleTags(repository) : [];
+      const localeTags =
+        repoLocales.length > 0
+          ? repoLocales
+          : appliedSearchRequest?.localeTags?.length
+            ? appliedSearchRequest.localeTags
+            : [row.locale];
+
+      if (!localeTags.length) {
+        return null;
+      }
+
+      return { repoId, localeTags };
+    },
+    [appliedSearchRequest, repositories],
+  );
+
+  const openTextUnitLink = useCallback(
+    (row: WorkbenchRow) => {
+      const scope = getRepositoryScope(row);
+      if (!scope) {
+        return;
+      }
+
+      const request: TextUnitSearchRequest = {
+        repositoryIds: [scope.repoId],
+        localeTags: scope.localeTags,
+        searchAttribute: 'tmTextUnitIds',
+        searchType: 'exact',
+        searchText: String(row.tmTextUnitId),
+        offset: 0,
+      };
+
+      void navigate('/workbench', { state: { workbenchSearch: request } });
+    },
+    [getRepositoryScope, navigate],
+  );
+
+  const openAssetLink = useCallback(
+    (row: WorkbenchRow) => {
+      if (!row.assetPath) {
+        return;
+      }
+      const scope = getRepositoryScope(row);
+      if (!scope) {
+        return;
+      }
+
+      const request: TextUnitSearchRequest = {
+        repositoryIds: [scope.repoId],
+        localeTags: scope.localeTags,
+        searchAttribute: 'asset',
+        searchType: 'exact',
+        searchText: row.assetPath,
+        offset: 0,
+      };
+
+      void navigate('/workbench', { state: { workbenchSearch: request } });
+    },
+    [getRepositoryScope, navigate],
+  );
 
   const getScrollElement = useCallback(() => scrollRef.current, []);
   const estimateSize = useCallback(() => 190, []);
@@ -257,8 +336,38 @@ export function WorkbenchBody({
                     }}
                   >
                     <div className="workbench-page__cell workbench-page__cell--meta">
-                      <span className="workbench-page__meta-id">{row.textUnitName}</span>
-                      <span className="workbench-page__meta-asset">{row.assetPath ?? ''}</span>
+                      <div className="workbench-page__meta-link">
+                        <span className="workbench-page__meta-id">{row.textUnitName}</span>
+                        <button
+                          type="button"
+                          className="workbench-link-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openTextUnitLink(row);
+                          }}
+                          aria-label={`Open ${row.textUnitName} in workbench`}
+                          title="Open in workbench"
+                        >
+                          ↗
+                        </button>
+                      </div>
+                      <div className="workbench-page__meta-link">
+                        <span className="workbench-page__meta-asset">{row.assetPath ?? ''}</span>
+                        {row.assetPath ? (
+                          <button
+                            type="button"
+                            className="workbench-link-button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openAssetLink(row);
+                            }}
+                            aria-label={`Open asset ${row.assetPath} in workbench`}
+                            title="Open asset in workbench"
+                          >
+                            ↗
+                          </button>
+                        ) : null}
+                      </div>
                       <span className="workbench-page__repo-name">{row.repositoryName}</span>
                     </div>
                     <div className="workbench-page__cell workbench-page__cell--source">

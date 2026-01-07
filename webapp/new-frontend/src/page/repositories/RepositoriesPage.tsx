@@ -9,6 +9,7 @@ import type {
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
+import { getRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import type { LocaleRow, RepositoryRow } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
@@ -235,10 +236,7 @@ export function RepositoriesPage() {
       if (!repository) {
         return;
       }
-      const sourceLocaleTag = repository.sourceLocale?.bcp47Tag;
-      const allLocaleTags = (repository.repositoryLocales ?? [])
-        .map((repoLocale) => repoLocale.locale?.bcp47Tag)
-        .filter((tag): tag is string => Boolean(tag) && tag !== sourceLocaleTag);
+      const allLocaleTags = getRepositoryLocaleTags(repository);
 
       const localeTags =
         localeTag && allLocaleTags.includes(localeTag) ? [localeTag] : allLocaleTags;
