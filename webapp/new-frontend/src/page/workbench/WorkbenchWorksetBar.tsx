@@ -75,9 +75,7 @@ export function WorkbenchWorksetBar({
     ),
   );
 
-  if (rowCount > 0) {
-    parts.push(<SearchShareButton key="share" onClick={onOpenShareModal} disabled={disabled} />);
-  }
+  parts.push(<SearchShareButton key="share" onClick={onOpenShareModal} disabled={disabled} />);
 
   const content = parts.flatMap((part, index) =>
     index === 0

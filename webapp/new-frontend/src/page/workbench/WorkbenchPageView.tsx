@@ -3,7 +3,7 @@ import './workbench-page.css';
 
 import { type RefObject, useState } from 'react';
 
-import type { SearchAttribute, SearchType } from '../../api/text-units';
+import type { SearchAttribute, SearchType, TextUnitSearchRequest } from '../../api/text-units';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Modal } from '../../components/Modal';
 import type {
@@ -15,6 +15,7 @@ import type {
 } from './workbench-types';
 import { DiffModal, WorkbenchBody } from './WorkbenchBody';
 import { WorkbenchHeader } from './WorkbenchHeader';
+import { WorkbenchShareModal } from './WorkbenchShareModal';
 import { WorkbenchWorksetBar } from './WorkbenchWorksetBar';
 
 type Props = {
@@ -81,9 +82,37 @@ type Props = {
   onChangeCreatedAfter: (value: string | null) => void;
   isSearchLoading: boolean;
   searchErrorMessage: string | null;
+  hydrationModal?: { title: string; body: string } | null;
+  onDismissHydrationModal?: () => void;
   onRetrySearch: () => void;
   canSearch: boolean;
+  appliedSearchRequest: TextUnitSearchRequest | null;
 };
+
+function HydrationModal({
+  data,
+  onClose,
+}: {
+  data?: { title: string; body: string } | null;
+  onClose?: () => void;
+}) {
+  if (!data) {
+    return null;
+  }
+  return (
+    <Modal open size="md" ariaLabel={data.title} onClose={onClose} closeOnBackdrop>
+      <div className="modal__header">
+        <div className="modal__title">{data.title}</div>
+      </div>
+      <div className="modal__body">{data.body}</div>
+      <div className="modal__actions">
+        <button type="button" className="modal__button modal__button--primary" onClick={onClose}>
+          Got it
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
 export function WorkbenchPageView({
   hasSearched,
@@ -149,8 +178,11 @@ export function WorkbenchPageView({
   onChangeCreatedAfter,
   isSearchLoading,
   searchErrorMessage,
+  hydrationModal,
+  onDismissHydrationModal,
   onRetrySearch,
   canSearch,
+  appliedSearchRequest,
 }: Props) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const editedCount = editedRowIds.size;
@@ -230,6 +262,7 @@ export function WorkbenchPageView({
         onRetrySearch={onRetrySearch}
         hasSearched={hasSearched}
       />
+      <HydrationModal data={hydrationModal} onClose={onDismissHydrationModal} />
       <ConfirmModal
         open={showValidationDialog}
         title="Translation check failed"
@@ -249,26 +282,13 @@ export function WorkbenchPageView({
         onCancel={onDismissDiscardEditing}
       />
       <DiffModal data={diffModal} onClose={onCloseDiff} />
-      <ShareLinkModal open={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
+      <WorkbenchShareModal
+        open={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        searchRequest={appliedSearchRequest}
+        rows={rows}
+        availableLocales={selectedLocaleTags}
+      />
     </div>
-  );
-}
-
-type ShareLinkModalProps = {
-  open: boolean;
-  onClose: () => void;
-};
-
-function ShareLinkModal({ open, onClose }: ShareLinkModalProps) {
-  return (
-    <Modal open={open} size="sm" ariaLabel="Share workbench" onClose={onClose} closeOnBackdrop>
-      <div className="modal__header">
-        <div className="modal__title">Share this view</div>
-        <button type="button" className="modal__button" onClick={onClose}>
-          Close
-        </button>
-      </div>
-      <div className="modal__body">This is a placeholder for the upcoming sharing workflow.</div>
-    </Modal>
   );
 }
