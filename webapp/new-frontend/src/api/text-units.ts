@@ -8,9 +8,15 @@ export type SearchAttribute =
 
 export type SearchType = 'exact' | 'contains' | 'ilike';
 
+// Backend-defined status values for a translation variant.
+// Note: untranslated rows can still appear in results, but will have `target: null` (and `status` may be null/undefined).
+export type ApiTextUnitStatus = 'APPROVED' | 'REVIEW_NEEDED' | 'TRANSLATION_NEEDED';
+
 export type ApiTextUnit = {
   tmTextUnitId: number;
   tmTextUnitVariantId?: number | null;
+  tmTextUnitCurrentVariantId?: number | null;
+  localeId?: number | null;
   name: string;
   source?: string | null;
   comment?: string | null;
@@ -19,11 +25,12 @@ export type ApiTextUnit = {
   targetComment?: string | null;
   assetPath?: string | null;
   repositoryName?: string | null;
-  status?: string | null;
+  status?: ApiTextUnitStatus | null;
   includedInLocalizedFile?: boolean;
 };
 
-const DEFAULT_RESULT_LIMIT = 50;
+// Backend default (TextUnitSearchBody.limit) is 10; keep the client aligned if a caller omits limit.
+const DEFAULT_SEARCH_LIMIT = 10;
 const ASYNC_POLL_TIMEOUT_MS = 60_000;
 const DEFAULT_POLL_INTERVAL_MS = 1000;
 
@@ -40,6 +47,25 @@ export type TextUnitSearchRequest = {
   doNotTranslateFilter?: boolean;
   tmTextUnitCreatedBefore?: string;
   tmTextUnitCreatedAfter?: string;
+};
+
+export type SaveTextUnitRequest = {
+  tmTextUnitId: number;
+  localeId: number;
+  target: string;
+  targetComment?: string | null;
+  status: ApiTextUnitStatus;
+  includedInLocalizedFile: boolean;
+};
+
+export type TextUnitIntegrityCheckRequest = {
+  tmTextUnitId: number;
+  content: string;
+};
+
+export type TextUnitIntegrityCheckResult = {
+  checkResult?: boolean | null;
+  failureDetail?: string | null;
 };
 
 type SearchTextUnitsHybridResponse = {
@@ -96,8 +122,18 @@ export async function searchTextUnits(request: TextUnitSearchRequest): Promise<A
   throw new Error('Unexpected search response');
 }
 
+export async function saveTextUnit(request: SaveTextUnitRequest): Promise<ApiTextUnit> {
+  return postJson<ApiTextUnit>('/api/textunits', request);
+}
+
+export async function checkTextUnitIntegrity(
+  request: TextUnitIntegrityCheckRequest,
+): Promise<TextUnitIntegrityCheckResult> {
+  return postJson<TextUnitIntegrityCheckResult>('/api/textunits/check', request);
+}
+
 function buildSearchBody(request: TextUnitSearchRequest): TextUnitSearchBody {
-  const limit = request.limit ?? DEFAULT_RESULT_LIMIT;
+  const limit = request.limit ?? DEFAULT_SEARCH_LIMIT;
   const offset = request.offset ?? 0;
   const searchText = request.searchText?.trim();
 

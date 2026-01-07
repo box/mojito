@@ -10,7 +10,7 @@ type Props = {
   onCancel: () => void;
 };
 
-export function UnsavedChangesModal({
+export function ConfirmModal({
   open,
   title,
   body,
