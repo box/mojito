@@ -32,21 +32,6 @@
   gap: var(--space-2);
 }
 
-.repositories-page__spinner {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
-  border-top-color: currentColor;
-  animation: repositories-spin 0.8s linear infinite;
-}
-
-@keyframes repositories-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .repositories-page__state-action {
   margin-top: var(--space-4);
   padding: var(--space-2) var(--space-3);

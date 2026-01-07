@@ -66,6 +66,27 @@ body {
   line-height: 1.5;
 }
 
+/* Shared spinner (uses currentColor). Use size modifiers to override. */
+.spinner {
+  width: var(--spinner-size, 14px);
+  height: var(--spinner-size, 14px);
+  border-radius: 999px;
+  border: var(--spinner-border, 2px) solid color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
+  animation: spinner-spin 0.8s linear infinite;
+}
+
+.spinner--md {
+  --spinner-size: 18px;
+  --spinner-border: 2px;
+}
+
+@keyframes spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .app-shell {
   display: flex;
   flex-direction: column;

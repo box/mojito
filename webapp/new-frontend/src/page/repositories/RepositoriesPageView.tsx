@@ -57,7 +57,7 @@ function LoadingState() {
   return (
     <div className="repositories-page__state">
       <div className="repositories-page__state-content">
-        <span className="repositories-page__spinner" aria-hidden="true" />
+        <span className="spinner spinner--md" aria-hidden="true" />
         <div className="hint">Loading repositories…</div>
       </div>
     </div>
