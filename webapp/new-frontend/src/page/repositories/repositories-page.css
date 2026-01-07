@@ -173,6 +173,30 @@
   text-align: end;
 }
 
+.repositories-page__cell-link {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.repositories-page__cell-link:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  outline-offset: 2px;
+}
+
+.repositories-page__cell-link--name {
+  text-align: start;
+}
+
+.repositories-page__cell-link.is-muted {
+  color: var(--color-text-subtle);
+}
+
 .repositories-page__repo-scroll-row-select {
   --repositories-page-select-size: 10px;
   width: var(--repositories-page-select-size);

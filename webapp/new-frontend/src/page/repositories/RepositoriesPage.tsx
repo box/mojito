@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import type {
   ApiLocale,
   ApiRepository,
   ApiRepositoryLocaleStatistic,
 } from '../../api/repositories';
+import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import type { LocaleRow, RepositoryRow } from './RepositoriesPageView';
@@ -108,6 +110,7 @@ const buildLocalesForRepository = (
 export function RepositoriesPage() {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState('');
+  const navigate = useNavigate();
   const resolveLocaleDisplayName = useLocaleDisplayNameResolver();
 
   const { data: repositoryData, isLoading, isError, error, refetch } = useRepositories();
@@ -218,6 +221,45 @@ export function RepositoriesPage() {
     setSelectedRepositoryId((previous) => (previous === id ? null : id));
   }, []);
 
+  const handleOpenWorkbench = useCallback(
+    ({
+      repositoryId,
+      status,
+      localeTag,
+    }: {
+      repositoryId: number;
+      status?: string | null;
+      localeTag?: string | null;
+    }) => {
+      const repository = repositories.find((repo) => repo.id === repositoryId);
+      if (!repository) {
+        return;
+      }
+      const sourceLocaleTag = repository.sourceLocale?.bcp47Tag;
+      const allLocaleTags = (repository.repositoryLocales ?? [])
+        .map((repoLocale) => repoLocale.locale?.bcp47Tag)
+        .filter((tag): tag is string => Boolean(tag) && tag !== sourceLocaleTag);
+
+      const localeTags =
+        localeTag && allLocaleTags.includes(localeTag) ? [localeTag] : allLocaleTags;
+      if (!localeTags.length) {
+        return;
+      }
+
+      const searchRequest: TextUnitSearchRequest = {
+        repositoryIds: [repositoryId],
+        localeTags,
+        searchAttribute: 'target',
+        searchType: 'contains',
+        searchText: '',
+        statusFilter: status ?? undefined,
+      };
+
+      void navigate('/workbench', { state: { workbenchSearch: searchRequest } });
+    },
+    [navigate, repositories],
+  );
+
   return (
     <RepositoriesPageView
       status={status}
@@ -229,6 +271,8 @@ export function RepositoriesPage() {
       searchValue={searchValue}
       onSearchChange={setSearchValue}
       onSelectRepository={handleSelectRepository}
+      onOpenWorkbench={handleOpenWorkbench}
+      selectedRepositoryId={selectedRepositoryId}
     />
   );
 }

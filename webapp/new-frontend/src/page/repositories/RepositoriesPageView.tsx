@@ -29,9 +29,15 @@ type Props = {
   repositories: RepositoryRow[];
   locales: LocaleRow[];
   hasSelection: boolean;
+  selectedRepositoryId: number | null;
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSelectRepository: (id: number) => void;
+  onOpenWorkbench: (params: {
+    repositoryId: number;
+    status?: string | null;
+    localeTag?: string | null;
+  }) => void;
 };
 
 const formatCount = (value: number) => (value === 0 ? '' : value);
@@ -41,17 +47,63 @@ type RepositoryTableProps = {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSelectRepository: (id: number) => void;
+  onOpenWorkbench: (params: { repositoryId: number; status?: string | null }) => void;
 };
 
 type LocaleTableProps = {
   locales: LocaleRow[];
   hasSelection: boolean;
+  repositoryId: number | null;
+  onOpenWorkbench: (params: {
+    repositoryId: number;
+    status?: string | null;
+    localeTag?: string | null;
+  }) => void;
 };
 
 type ErrorStateProps = {
   message?: string;
   onRetry?: () => void;
 };
+
+type CellLinkProps = {
+  children: React.ReactNode;
+  onClick: () => void;
+  muted?: boolean;
+  className?: string;
+  ariaLabel?: string;
+  title?: string;
+  stopPropagation?: boolean;
+};
+
+function CellLink({
+  children,
+  onClick,
+  muted = false,
+  className = '',
+  ariaLabel,
+  title,
+  stopPropagation,
+}: CellLinkProps) {
+  return (
+    <button
+      type="button"
+      className={`repositories-page__cell-link${muted ? ' is-muted' : ''}${
+        className ? ` ${className}` : ''
+      }`}
+      onClick={(event) => {
+        if (stopPropagation) {
+          event.stopPropagation();
+        }
+        onClick();
+      }}
+      aria-label={ariaLabel}
+      title={title}
+    >
+      {children}
+    </button>
+  );
+}
 
 function LoadingState() {
   return (
@@ -91,6 +143,7 @@ function RepositoryTable({
   searchValue,
   onSearchChange,
   onSelectRepository,
+  onOpenWorkbench,
 }: RepositoryTableProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const selectedIndex = useMemo(
@@ -176,10 +229,23 @@ function RepositoryTable({
                   }`}
                 ></div>
                 <div className="repositories-page__cell repositories-page__cell--name">
-                  <span>{repo.name}</span>
+                  <CellLink
+                    className="repositories-page__cell-link--name"
+                    stopPropagation
+                    onClick={() => onOpenWorkbench({ repositoryId: repo.id, status: null })}
+                  >
+                    {repo.name}
+                  </CellLink>
                 </div>
                 <div className="repositories-page__cell repositories-page__cell--number">
-                  {formatCount(repo.rejected)}
+                  <CellLink
+                    muted={repo.rejected === 0}
+                    stopPropagation
+                    onClick={() => onOpenWorkbench({ repositoryId: repo.id, status: 'REJECTED' })}
+                    ariaLabel={`Open rejected units for ${repo.name} in workbench`}
+                  >
+                    {formatCount(repo.rejected) || '-'}
+                  </CellLink>
                 </div>
                 <div
                   className="repositories-page__cell repositories-page__cell--number"
@@ -189,7 +255,16 @@ function RepositoryTable({
                       : ''
                   }
                 >
-                  {formatCount(repo.needsTranslation)}
+                  <CellLink
+                    muted={repo.needsTranslation === 0}
+                    stopPropagation
+                    onClick={() =>
+                      onOpenWorkbench({ repositoryId: repo.id, status: 'FOR_TRANSLATION' })
+                    }
+                    ariaLabel={`Open "to translate" units for ${repo.name} in workbench`}
+                  >
+                    {formatCount(repo.needsTranslation) || '-'}
+                  </CellLink>
                 </div>
                 <div
                   className="repositories-page__cell repositories-page__cell--number"
@@ -199,7 +274,16 @@ function RepositoryTable({
                       : ''
                   }
                 >
-                  {formatCount(repo.needsReview)}
+                  <CellLink
+                    muted={repo.needsReview === 0}
+                    stopPropagation
+                    onClick={() =>
+                      onOpenWorkbench({ repositoryId: repo.id, status: 'REVIEW_NEEDED' })
+                    }
+                    ariaLabel={`Open "to review" units for ${repo.name} in workbench`}
+                  >
+                    {formatCount(repo.needsReview) || '-'}
+                  </CellLink>
                 </div>
               </div>
             );
@@ -210,7 +294,7 @@ function RepositoryTable({
   );
 }
 
-function LocaleTable({ locales, hasSelection }: LocaleTableProps) {
+function LocaleTable({ locales, hasSelection, repositoryId, onOpenWorkbench }: LocaleTableProps) {
   if (!hasSelection) {
     return (
       <div className="repositories-page__pane">
@@ -241,29 +325,74 @@ function LocaleTable({ locales, hasSelection }: LocaleTableProps) {
         <div className="repositories-page__locale-scroll">
           {locales.map((locale) => (
             <div key={locale.id} className="repositories-page__locale-scroll-row">
-              <div className="repositories-page__cell">{locale.name}</div>
+              <div className="repositories-page__cell">
+                <CellLink
+                  className="repositories-page__cell-link--name"
+                  onClick={() =>
+                    onOpenWorkbench({
+                      repositoryId: repositoryId ?? -1,
+                      status: null,
+                      localeTag: locale.id,
+                    })
+                  }
+                >
+                  {locale.name}
+                </CellLink>
+              </div>
               <div className="repositories-page__cell repositories-page__cell--number">
-                {formatCount(locale.rejected)}
+                <CellLink
+                  muted={locale.rejected === 0}
+                  onClick={() =>
+                    onOpenWorkbench({
+                      repositoryId: repositoryId ?? -1,
+                      status: 'REJECTED',
+                      localeTag: locale.id,
+                    })
+                  }
+                  ariaLabel={`Open rejected units for ${locale.name} in workbench`}
+                >
+                  {formatCount(locale.rejected) || '-'}
+                </CellLink>
               </div>
-              <div
-                className="repositories-page__cell repositories-page__cell--number"
-                title={
-                  locale.needsTranslation
-                    ? `${formatCount(locale.needsTranslation)} units\n${formatCount(locale.needsTranslation * 10)} words`
-                    : ''
-                }
-              >
-                {formatCount(locale.needsTranslation)}
+              <div className="repositories-page__cell repositories-page__cell--number">
+                <CellLink
+                  muted={locale.needsTranslation === 0}
+                  onClick={() =>
+                    onOpenWorkbench({
+                      repositoryId: repositoryId ?? -1,
+                      status: 'FOR_TRANSLATION',
+                      localeTag: locale.id,
+                    })
+                  }
+                  ariaLabel={`Open "to translate" units for ${locale.name} in workbench`}
+                  title={
+                    locale.needsTranslation
+                      ? `${formatCount(locale.needsTranslation)} units\n${formatCount(locale.needsTranslation * 10)} words`
+                      : ''
+                  }
+                >
+                  {formatCount(locale.needsTranslation) || '-'}
+                </CellLink>
               </div>
-              <div
-                className="repositories-page__cell repositories-page__cell--number"
-                title={
-                  locale.needsReview
-                    ? `${formatCount(locale.needsReview)} units\n${formatCount(locale.needsReview * 8)} words`
-                    : ''
-                }
-              >
-                {formatCount(locale.needsReview)}
+              <div className="repositories-page__cell repositories-page__cell--number">
+                <CellLink
+                  muted={locale.needsReview === 0}
+                  onClick={() =>
+                    onOpenWorkbench({
+                      repositoryId: repositoryId ?? -1,
+                      status: 'REVIEW_NEEDED',
+                      localeTag: locale.id,
+                    })
+                  }
+                  ariaLabel={`Open "to review" units for ${locale.name} in workbench`}
+                  title={
+                    locale.needsReview
+                      ? `${formatCount(locale.needsReview)} units\n${formatCount(locale.needsReview * 8)} words`
+                      : ''
+                  }
+                >
+                  {formatCount(locale.needsReview) || '-'}
+                </CellLink>
               </div>
             </div>
           ))}
@@ -283,6 +412,7 @@ export function RepositoriesPageView({
   searchValue,
   onSearchChange,
   onSelectRepository,
+  onOpenWorkbench,
 }: Props) {
   if (status === 'loading') {
     return <LoadingState />;
@@ -301,6 +431,7 @@ export function RepositoriesPageView({
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         onSelectRepository={onSelectRepository}
+        onOpenWorkbench={onOpenWorkbench}
       />
       <div className="repositories-page__divider">
         {hasSelection ? (
@@ -318,7 +449,12 @@ export function RepositoriesPageView({
           </button>
         ) : null}
       </div>
-      <LocaleTable locales={locales} hasSelection={hasSelection} />
+      <LocaleTable
+        locales={locales}
+        hasSelection={hasSelection}
+        repositoryId={selectedRepoId}
+        onOpenWorkbench={onOpenWorkbench}
+      />
     </div>
   );
 }
