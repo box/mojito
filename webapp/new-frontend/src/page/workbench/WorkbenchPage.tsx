@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useWorkbenchEdits } from './useWorkbenchEdits';
@@ -9,8 +9,19 @@ import { WorkbenchPageView } from './WorkbenchPageView';
 
 const statusOptions = ['Accepted', 'To review', 'To translate', 'Rejected'];
 
+type WorkbenchLocationState = { workbenchSearch?: TextUnitSearchRequest | null } & Record<
+  string,
+  unknown
+>;
+
+function isWorkbenchLocationState(state: unknown): state is WorkbenchLocationState {
+  return typeof state === 'object' && state !== null && 'workbenchSearch' in state;
+}
+
 export function WorkbenchPage() {
   const [isEditMode, setIsEditMode] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const shareId = searchParams.get('shareId');
   const [shareIdToHydrate, setShareIdToHydrate] = useState<string | null>(shareId);
@@ -23,11 +34,33 @@ export function WorkbenchPage() {
   const [hydrationModal, setHydrationModal] = useState<{ title: string; body: string } | null>(
     null,
   );
+  const stateSearchRequest =
+    (location.state as { workbenchSearch?: TextUnitSearchRequest | null } | null)
+      ?.workbenchSearch ?? null;
 
   const search = useWorkbenchSearch({
     isEditMode,
     initialSearchRequest: hydratedSearchRequest,
   });
+
+  const clearShareIdFromUrl = useCallback(() => {
+    const nextParams = new URLSearchParams(shareSearchParamsRef.current ?? undefined);
+    if (!nextParams.has('shareId')) {
+      return;
+    }
+    nextParams.delete('shareId');
+    setSearchParams(nextParams, { replace: true });
+    shareSearchParamsRef.current = nextParams;
+  }, [setSearchParams]);
+
+  const clearWorkbenchSearchState = useCallback(() => {
+    if (!isWorkbenchLocationState(location.state)) {
+      return;
+    }
+    const rest = { ...location.state };
+    delete rest.workbenchSearch;
+    void navigate(location.pathname + location.search, { replace: true, state: rest });
+  }, [location.pathname, location.search, location.state, navigate]);
 
   useEffect(() => {
     if (!shareId) {
@@ -36,6 +69,16 @@ export function WorkbenchPage() {
     setShareIdToHydrate(shareId);
     shareSearchParamsRef.current = new URLSearchParams(searchParams);
   }, [shareId, searchParams]);
+
+  useEffect(() => {
+    if (!stateSearchRequest) {
+      return;
+    }
+    setShareIdToHydrate(null);
+    setHydrationModal(null);
+    setHydratedSearchRequest(stateSearchRequest);
+    clearWorkbenchSearchState();
+  }, [clearWorkbenchSearchState, stateSearchRequest]);
 
   useEffect(() => {
     if (!shareIdToHydrate) {
@@ -70,16 +113,12 @@ export function WorkbenchPage() {
         if (cancelled) {
           return;
         }
-        const nextParams = new URLSearchParams(shareSearchParamsRef.current ?? undefined);
-        if (nextParams.has('shareId')) {
-          nextParams.delete('shareId');
-          setSearchParams(nextParams, { replace: true });
-        }
+        clearShareIdFromUrl();
       });
     return () => {
       cancelled = true;
     };
-  }, [setSearchParams, shareIdToHydrate]);
+  }, [clearShareIdFromUrl, shareIdToHydrate]);
 
   const edits = useWorkbenchEdits({
     apiRows: search.rows,
