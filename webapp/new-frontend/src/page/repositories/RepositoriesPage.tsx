@@ -10,7 +10,7 @@ import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import { getRepositoryLocaleTags } from '../../utils/repositoryLocales';
-import type { LocaleRow, RepositoryRow } from './RepositoriesPageView';
+import type { LocaleRow, RepositoryRow, RepositoryStatusFilter } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
 const getLocaleTag = (locale: ApiLocale | null) => locale?.bcp47Tag ?? '';
@@ -36,6 +36,25 @@ const buildRepositoryRow = (
   repository: ApiRepository,
   selectedRepositoryId: number | null,
 ): RepositoryRow => {
+  const summary = getRepositorySummary(repository);
+
+  return {
+    id: repository.id,
+    name: repository.name,
+    rejected: summary.rejected,
+    needsTranslation: summary.needsTranslation,
+    needsReview: summary.needsReview,
+    selected: repository.id === selectedRepositoryId,
+  };
+};
+
+const buildRepositoriesWithSelection = (
+  repositories: ApiRepository[],
+  selectedRepositoryId: number | null,
+): RepositoryRow[] =>
+  repositories.map((repository) => buildRepositoryRow(repository, selectedRepositoryId));
+
+const getRepositorySummary = (repository: ApiRepository) => {
   const fullyTranslatedTags = getFullyTranslatedLocaleTags(repository);
   const localeStats = repository.repositoryStatistic?.repositoryLocaleStatistics ?? [];
 
@@ -53,21 +72,8 @@ const buildRepositoryRow = (
     }
   });
 
-  return {
-    id: repository.id,
-    name: repository.name,
-    rejected,
-    needsTranslation,
-    needsReview,
-    selected: repository.id === selectedRepositoryId,
-  };
+  return { rejected, needsTranslation, needsReview };
 };
-
-const buildRepositoriesWithSelection = (
-  repositories: ApiRepository[],
-  selectedRepositoryId: number | null,
-): RepositoryRow[] =>
-  repositories.map((repository) => buildRepositoryRow(repository, selectedRepositoryId));
 
 const buildLocaleRows = (
   repository: ApiRepository,
@@ -111,6 +117,7 @@ const buildLocalesForRepository = (
 export function RepositoriesPage() {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState<RepositoryStatusFilter>('all');
   const navigate = useNavigate();
   const resolveLocaleDisplayName = useLocaleDisplayNameResolver();
 
@@ -131,14 +138,26 @@ export function RepositoriesPage() {
   const normalizedSearchValue = searchValue.trim().toLowerCase();
 
   const filteredRepositories = useMemo(() => {
-    if (!normalizedSearchValue) {
-      return repositories;
-    }
+    return repositories.filter((repository) => {
+      if (normalizedSearchValue && !repository.name.toLowerCase().includes(normalizedSearchValue)) {
+        return false;
+      }
 
-    return repositories.filter((repository) =>
-      repository.name.toLowerCase().includes(normalizedSearchValue),
-    );
-  }, [normalizedSearchValue, repositories]);
+      const summary = getRepositorySummary(repository);
+
+      if (statusFilter === 'rejected') {
+        return summary.rejected > 0;
+      }
+      if (statusFilter === 'needs-translation') {
+        return summary.needsTranslation > 0;
+      }
+      if (statusFilter === 'needs-review') {
+        return summary.needsReview > 0;
+      }
+
+      return true;
+    });
+  }, [normalizedSearchValue, repositories, statusFilter]);
 
   const repositoriesWithSelection = useMemo(
     () => buildRepositoriesWithSelection(filteredRepositories, selectedRepositoryId),
@@ -268,6 +287,8 @@ export function RepositoriesPage() {
       hasSelection={selectedRepositoryId != null}
       searchValue={searchValue}
       onSearchChange={setSearchValue}
+      statusFilter={statusFilter}
+      onStatusFilterChange={setStatusFilter}
       onSelectRepository={handleSelectRepository}
       onOpenWorkbench={handleOpenWorkbench}
       selectedRepositoryId={selectedRepositoryId}

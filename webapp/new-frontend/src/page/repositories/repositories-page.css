@@ -4,7 +4,8 @@
   --repositories-page-grid-columns-locale: 2fr 1fr 1fr 1fr;
   --repositories-page-grid-columns-repo: 32px 2fr 1fr 1fr 1fr;
   height: calc(100vh - var(--app-shell-header-height));
-  padding: var(--space-4) calc(2 * var(--space-4)) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
   background: var(--color-surface);
   overflow: hidden;
 }
@@ -48,6 +49,92 @@
   border-color: var(--color-focus-border);
 }
 
+.repositories-page__bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-surface);
+  flex-wrap: wrap;
+}
+
+.repositories-page__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.repositories-page__search {
+  display: flex;
+  align-items: center;
+  min-width: 260px;
+  max-width: 420px;
+  width: min(100%, 420px);
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  padding: 0 var(--space-2);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.repositories-page__search:focus-within {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+
+.repositories-page__search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  font: inherit;
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+}
+
+.repositories-page__search-input:focus {
+  outline: none;
+}
+
+.repositories-page__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.repositories-page__filter-button {
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  height: 28px;
+  padding: 0 var(--space-2);
+  cursor: pointer;
+}
+
+.repositories-page__filter-button.is-active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.repositories-page__content {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-3) var(--space-6) var(--space-6);
+}
+
 .repositories-page--split {
   display: grid;
   grid-template-columns: minmax(0, 4fr) 1px minmax(0, 3fr);
@@ -65,8 +152,7 @@
 .repositories-page__header {
   display: grid;
   align-items: center;
-  height: var(--repositories-page-header-height);
-  padding: var(--space-3) var(--space-4);
+  padding: 0 var(--space-4) var(--space-2);
   background: var(--color-surface);
   border-bottom: var(--border-width) solid var(--color-border);
   color: var(--color-text-subtle);
@@ -229,24 +315,6 @@
 .repositories-page__repo-scroll-row:hover .repositories-page__repo-scroll-row-select,
 .repositories-page__repo-scroll-row-select:focus-visible {
   opacity: 1;
-}
-
-.repositories-page__repo-header-name-search {
-  width: 200px;
-  height: 22px;
-  padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2);
-  background: var(--color-surface);
-  color: var(--color-text-subtle);
-  font-size: var(--font-size-xs);
-  font-weight: inherit;
-  font-family: inherit;
-}
-
-.repositories-page__repo-header-name-search:focus {
-  outline: 2px solid var(--color-focus-outline);
-  border-color: var(--color-focus-border);
 }
 
 .repositories-page__divider {

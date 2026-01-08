@@ -22,6 +22,8 @@ export type LocaleRow = {
   needsReview: number;
 };
 
+export type RepositoryStatusFilter = 'all' | 'rejected' | 'needs-translation' | 'needs-review';
+
 type Props = {
   status: 'loading' | 'error' | 'ready';
   errorMessage?: string;
@@ -32,6 +34,8 @@ type Props = {
   selectedRepositoryId: number | null;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  statusFilter: RepositoryStatusFilter;
+  onStatusFilterChange: (value: RepositoryStatusFilter) => void;
   onSelectRepository: (id: number) => void;
   onOpenWorkbench: (params: {
     repositoryId: number;
@@ -44,8 +48,6 @@ const formatCount = (value: number) => (value === 0 ? '' : value);
 
 type RepositoryTableProps = {
   repositories: RepositoryRow[];
-  searchValue: string;
-  onSearchChange: (value: string) => void;
   onSelectRepository: (id: number) => void;
   onOpenWorkbench: (params: { repositoryId: number; status?: string | null }) => void;
 };
@@ -140,8 +142,6 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
 
 function RepositoryTable({
   repositories,
-  searchValue,
-  onSearchChange,
   onSelectRepository,
   onOpenWorkbench,
 }: RepositoryTableProps) {
@@ -178,17 +178,7 @@ function RepositoryTable({
     <div className="repositories-page__pane">
       <div className="repositories-page__header repositories-page__header--repo">
         <div className="repositories-page__header-cell" aria-hidden="true"></div>
-        <div className="repositories-page__header-cell">
-          <span>Name</span>
-          <input
-            type="search"
-            className="repositories-page__repo-header-name-search"
-            placeholder="Search"
-            aria-label="Search repositories"
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
-        </div>
+        <div className="repositories-page__header-cell">Name</div>
         <div className="repositories-page__header-cell repositories-page__header-cell--number">
           Rejected
         </div>
@@ -411,6 +401,8 @@ export function RepositoriesPageView({
   hasSelection,
   searchValue,
   onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
   onSelectRepository,
   onOpenWorkbench,
 }: Props) {
@@ -425,36 +417,70 @@ export function RepositoriesPageView({
   const selectedRepoId = repositories.find((repo) => repo.selected)?.id ?? null;
 
   return (
-    <div className="repositories-page repositories-page--split">
-      <RepositoryTable
-        repositories={repositories}
-        searchValue={searchValue}
-        onSearchChange={onSearchChange}
-        onSelectRepository={onSelectRepository}
-        onOpenWorkbench={onOpenWorkbench}
-      />
-      <div className="repositories-page__divider">
-        {hasSelection ? (
-          <button
-            type="button"
-            className="repositories-page__divider-action"
-            onClick={() => {
-              if (selectedRepoId != null) {
-                onSelectRepository(selectedRepoId);
-              }
-            }}
-            aria-label="Hide locale stats"
-          >
-            ×
-          </button>
-        ) : null}
+    <div className="repositories-page">
+      <div className="repositories-page__bar">
+        <div className="repositories-page__controls">
+          <div className="repositories-page__search">
+            <input
+              type="search"
+              className="repositories-page__search-input"
+              placeholder="Search repositories by name"
+              aria-label="Search repositories by name"
+              value={searchValue}
+              onChange={(event) => onSearchChange(event.target.value)}
+            />
+          </div>
+          <div className="repositories-page__filters" role="group" aria-label="Filter repositories">
+            {[
+              { value: 'all', label: 'All' },
+              { value: 'rejected', label: 'Rejected' },
+              { value: 'needs-translation', label: 'To translate' },
+              { value: 'needs-review', label: 'To review' },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`repositories-page__filter-button${
+                  statusFilter === option.value ? ' is-active' : ''
+                }`}
+                onClick={() => onStatusFilterChange(option.value as RepositoryStatusFilter)}
+                aria-pressed={statusFilter === option.value}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      <LocaleTable
-        locales={locales}
-        hasSelection={hasSelection}
-        repositoryId={selectedRepoId}
-        onOpenWorkbench={onOpenWorkbench}
-      />
+      <div className="repositories-page__content repositories-page--split">
+        <RepositoryTable
+          repositories={repositories}
+          onSelectRepository={onSelectRepository}
+          onOpenWorkbench={onOpenWorkbench}
+        />
+        <div className="repositories-page__divider">
+          {hasSelection ? (
+            <button
+              type="button"
+              className="repositories-page__divider-action"
+              onClick={() => {
+                if (selectedRepoId != null) {
+                  onSelectRepository(selectedRepoId);
+                }
+              }}
+              aria-label="Hide locale stats"
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
+        <LocaleTable
+          locales={locales}
+          hasSelection={hasSelection}
+          repositoryId={selectedRepoId}
+          onOpenWorkbench={onOpenWorkbench}
+        />
+      </div>
     </div>
   );
 }
