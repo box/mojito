@@ -63,7 +63,7 @@ type SearchState = {
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   canSearch: boolean;
-  appliedSearchRequest: TextUnitSearchRequest | null;
+  activeSearchRequest: TextUnitSearchRequest | null;
   isSearchLoading: boolean;
   searchErrorMessage: string | null;
   rows: WorkbenchRow[];
@@ -71,7 +71,7 @@ type SearchState = {
 };
 
 export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params): SearchState {
-  const [appliedSearchRequest, setAppliedSearchRequest] = useState<TextUnitSearchRequest | null>(
+  const [activeSearchRequest, setActiveSearchRequest] = useState<TextUnitSearchRequest | null>(
     null,
   );
   const [searchAttribute, setSearchAttribute] = useState<SearchAttribute>('target');
@@ -141,9 +141,9 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     setWorksetSize(clampWorksetSize(initialSearchRequest.limit ?? WORKSET_SIZE_DEFAULT));
 
     if (initialSearchRequest.localeTags && initialSearchRequest.localeTags.length > 0) {
-      setAppliedSearchRequest(initialSearchRequest);
+      setActiveSearchRequest(initialSearchRequest);
     } else {
-      setAppliedSearchRequest(null);
+      setActiveSearchRequest(null);
     }
     hydratedSearchSignatureRef.current = initialSearchSignature;
     lastHydratedRequestRef.current = initialSearchRequest;
@@ -294,7 +294,7 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
   const debouncedSearchInput = useDebouncedValue(searchInputValue, 350);
   const searchLimit = clampWorksetSize(worksetSize);
 
-  const buildSearchRequest = useCallback(
+  const buildPendingSearchRequest = useCallback(
     (searchText: string): TextUnitSearchRequest | null => {
       if (!selectedRepositoryIds.length || !selectedLocaleTags.length) {
         return null;
@@ -357,22 +357,22 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     ],
   );
 
-  const draftSearchRequest = useMemo(
-    () => buildSearchRequest(searchInputValue.trim()),
-    [buildSearchRequest, searchInputValue],
+  const pendingSearchRequest = useMemo(
+    () => buildPendingSearchRequest(searchInputValue.trim()),
+    [buildPendingSearchRequest, searchInputValue],
   );
 
-  const autoSearchRequest = useMemo(
-    () => buildSearchRequest(debouncedSearchInput.trim()),
-    [buildSearchRequest, debouncedSearchInput],
+  const pendingSearchRequestDebounced = useMemo(
+    () => buildPendingSearchRequest(debouncedSearchInput.trim()),
+    [buildPendingSearchRequest, debouncedSearchInput],
   );
 
   const nonTextDraftSignature = useMemo(() => {
-    if (!draftSearchRequest) {
+    if (!pendingSearchRequest) {
       return null;
     }
-    return serializeSearchRequest({ ...draftSearchRequest, searchText: '' });
-  }, [draftSearchRequest]);
+    return serializeSearchRequest({ ...pendingSearchRequest, searchText: '' });
+  }, [pendingSearchRequest]);
 
   const lastAppliedNonTextSignatureRef = useRef<string | null>(null);
   const lastSuccessfulSearchDataRef = useRef<InfiniteData<ApiTextUnit[], number> | undefined>(
@@ -381,7 +381,7 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
 
   // Auto-apply non-text changes immediately when not locked.
   useEffect(() => {
-    if (isEditMode || !draftSearchRequest || !canSearch) {
+    if (isEditMode || !pendingSearchRequest || !canSearch) {
       return;
     }
     if (nonTextDraftSignature === null) {
@@ -393,16 +393,16 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     }
 
     lastAppliedNonTextSignatureRef.current = nonTextDraftSignature;
-    setAppliedSearchRequest(draftSearchRequest);
-  }, [canSearch, draftSearchRequest, isEditMode, nonTextDraftSignature]);
+    setActiveSearchRequest(pendingSearchRequest);
+  }, [canSearch, isEditMode, nonTextDraftSignature, pendingSearchRequest]);
 
   // Auto-apply text changes with debounce when not locked.
   useEffect(() => {
-    if (isEditMode || !autoSearchRequest || !canSearch) {
+    if (isEditMode || !pendingSearchRequestDebounced || !canSearch) {
       return;
     }
-    setAppliedSearchRequest(autoSearchRequest);
-  }, [autoSearchRequest, canSearch, isEditMode]);
+    setActiveSearchRequest(pendingSearchRequestDebounced);
+  }, [canSearch, isEditMode, pendingSearchRequestDebounced]);
 
   // Reset search state if the scope is cleared.
   useEffect(() => {
@@ -411,21 +411,21 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     }
     lastAppliedNonTextSignatureRef.current = null;
     lastSuccessfulSearchDataRef.current = undefined;
-    setAppliedSearchRequest((current) => (current === null ? current : null));
+    setActiveSearchRequest((current) => (current === null ? current : null));
   }, [canSearch]);
 
   // Treat result size as a view setting (limit), not part of the locked search scope.
   // Changing it resets pagination to the first page.
   useEffect(() => {
-    if (!appliedSearchRequest || isEditMode) {
+    if (!activeSearchRequest || isEditMode) {
       return;
     }
-    const appliedLimit = appliedSearchRequest.limit ?? WORKSET_SIZE_DEFAULT;
+    const appliedLimit = activeSearchRequest.limit ?? WORKSET_SIZE_DEFAULT;
     if (appliedLimit === searchLimit) {
       return;
     }
-    setAppliedSearchRequest({ ...appliedSearchRequest, limit: searchLimit, offset: 0 });
-  }, [appliedSearchRequest, isEditMode, searchLimit]);
+    setActiveSearchRequest({ ...activeSearchRequest, limit: searchLimit, offset: 0 });
+  }, [activeSearchRequest, isEditMode, searchLimit]);
 
   const searchQuery = useInfiniteQuery<
     ApiTextUnit[],
@@ -434,15 +434,15 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     SearchQueryKey,
     number
   >({
-    queryKey: ['workbench-search', appliedSearchRequest],
-    placeholderData: () => (appliedSearchRequest ? lastSuccessfulSearchDataRef.current : undefined),
+    queryKey: ['workbench-search', activeSearchRequest],
+    placeholderData: () => (activeSearchRequest ? lastSuccessfulSearchDataRef.current : undefined),
     queryFn: ({ pageParam }) => {
-      if (!appliedSearchRequest) {
+      if (!activeSearchRequest) {
         return Promise.resolve([]);
       }
-      return searchTextUnits({ ...appliedSearchRequest, offset: pageParam });
+      return searchTextUnits({ ...activeSearchRequest, offset: pageParam });
     },
-    enabled: Boolean(appliedSearchRequest),
+    enabled: Boolean(activeSearchRequest),
     initialPageParam: 0,
     // Workbench uses a snapshot workset. We don't do offset pagination client-side because it
     // becomes unstable under concurrent edits.
@@ -468,11 +468,11 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
 
   const onSubmitSearch = useCallback(() => {
     // Treat Enter as "search now" (flush debounce).
-    if (!canSearch || !draftSearchRequest || isEditMode) {
+    if (!canSearch || !pendingSearchRequest || isEditMode) {
       return;
     }
-    setAppliedSearchRequest(draftSearchRequest);
-  }, [canSearch, draftSearchRequest, isEditMode]);
+    setActiveSearchRequest(pendingSearchRequest);
+  }, [canSearch, isEditMode, pendingSearchRequest]);
 
   const onChangeSearchInput = useCallback((value: string) => {
     setSearchInputValue(value);
@@ -497,9 +497,9 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     : null;
 
   const searchErrorMessage =
-    searchQuery.isError && appliedSearchRequest ? searchQuery.error.message : null;
+    searchQuery.isError && activeSearchRequest ? searchQuery.error.message : null;
 
-  const isSearchLoading = Boolean(appliedSearchRequest) && searchQuery.isFetching;
+  const isSearchLoading = Boolean(activeSearchRequest) && searchQuery.isFetching;
 
   return {
     repositoryOptions,
@@ -535,7 +535,7 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
     worksetSize,
     onChangeWorksetSize,
     canSearch,
-    appliedSearchRequest,
+    activeSearchRequest,
     isSearchLoading,
     searchErrorMessage,
     rows,

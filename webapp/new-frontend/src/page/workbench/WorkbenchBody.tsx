@@ -36,7 +36,7 @@ type WorkbenchBodyProps = {
   searchErrorMessage: string | null;
   onRetrySearch: () => void;
   hasSearched: boolean;
-  appliedSearchRequest: TextUnitSearchRequest | null;
+  activeSearchRequest: TextUnitSearchRequest | null;
   repositories: ApiRepository[];
 };
 
@@ -64,7 +64,7 @@ export function WorkbenchBody({
   searchErrorMessage,
   onRetrySearch,
   hasSearched,
-  appliedSearchRequest,
+  activeSearchRequest,
   repositories,
 }: WorkbenchBodyProps) {
   const navigate = useNavigate();
@@ -121,7 +121,7 @@ export function WorkbenchBody({
   const getRepositoryScope = useCallback(
     (row: WorkbenchRow): { repoId: number; localeTags: string[] } | null => {
       const repository = repositories.find((repo) => repo.name === row.repositoryName);
-      const repoId = repository?.id ?? appliedSearchRequest?.repositoryIds?.[0];
+      const repoId = repository?.id ?? activeSearchRequest?.repositoryIds?.[0];
       if (!repoId) {
         return null;
       }
@@ -130,8 +130,8 @@ export function WorkbenchBody({
       const localeTags =
         repoLocales.length > 0
           ? repoLocales
-          : appliedSearchRequest?.localeTags?.length
-            ? appliedSearchRequest.localeTags
+          : activeSearchRequest?.localeTags?.length
+            ? activeSearchRequest.localeTags
             : [row.locale];
 
       if (!localeTags.length) {
@@ -140,7 +140,7 @@ export function WorkbenchBody({
 
       return { repoId, localeTags };
     },
-    [appliedSearchRequest, repositories],
+    [activeSearchRequest, repositories],
   );
 
   const openTextUnitLink = useCallback(

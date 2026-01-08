@@ -123,7 +123,7 @@ export function WorkbenchPage() {
   const edits = useWorkbenchEdits({
     apiRows: search.rows,
     canSearch: search.canSearch,
-    appliedSearchRequest: search.appliedSearchRequest,
+    activeSearchRequest: search.activeSearchRequest,
     setIsEditMode,
   });
   const { clearWorksetEdits } = edits;
@@ -140,7 +140,7 @@ export function WorkbenchPage() {
   }, [clearWorksetEdits, refetchSearch]);
 
   const headerDisabled = edits.editingRowId !== null;
-  const hasSearched = search.appliedSearchRequest !== null;
+  const hasSearched = search.activeSearchRequest !== null;
 
   return (
     <WorkbenchPageView
@@ -213,7 +213,7 @@ export function WorkbenchPage() {
         void search.refetchSearch();
       }}
       canSearch={search.canSearch}
-      appliedSearchRequest={search.appliedSearchRequest}
+      activeSearchRequest={search.activeSearchRequest}
       repositories={search.repositories}
     />
   );

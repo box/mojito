@@ -87,7 +87,7 @@ type Props = {
   onDismissHydrationModal?: () => void;
   onRetrySearch: () => void;
   canSearch: boolean;
-  appliedSearchRequest: TextUnitSearchRequest | null;
+  activeSearchRequest: TextUnitSearchRequest | null;
   repositories: ApiRepository[];
 };
 
@@ -184,7 +184,7 @@ export function WorkbenchPageView({
   onDismissHydrationModal,
   onRetrySearch,
   canSearch,
-  appliedSearchRequest,
+  activeSearchRequest,
   repositories,
 }: Props) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -264,7 +264,7 @@ export function WorkbenchPageView({
         searchErrorMessage={searchErrorMessage}
         onRetrySearch={onRetrySearch}
         hasSearched={hasSearched}
-        appliedSearchRequest={appliedSearchRequest}
+        activeSearchRequest={activeSearchRequest}
         repositories={repositories}
       />
       <HydrationModal data={hydrationModal} onClose={onDismissHydrationModal} />
@@ -290,7 +290,7 @@ export function WorkbenchPageView({
       <WorkbenchShareModal
         open={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        searchRequest={appliedSearchRequest}
+        searchRequest={activeSearchRequest}
         rows={rows}
         availableLocales={selectedLocaleTags}
       />

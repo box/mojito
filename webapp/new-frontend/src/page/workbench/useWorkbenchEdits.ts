@@ -39,7 +39,7 @@ type WorksetEditEntry = {
 type Params = {
   apiRows: WorkbenchRow[];
   canSearch: boolean;
-  appliedSearchRequest: TextUnitSearchRequest | null;
+  activeSearchRequest: TextUnitSearchRequest | null;
   setIsEditMode: (value: boolean) => void;
 };
 
@@ -86,7 +86,7 @@ type UseWorkbenchEditsResult = {
 export function useWorkbenchEdits({
   apiRows,
   canSearch,
-  appliedSearchRequest,
+  activeSearchRequest,
   setIsEditMode,
 }: Params): UseWorkbenchEditsResult {
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
@@ -520,7 +520,7 @@ export function useWorkbenchEdits({
   // Whenever the applied search changes (new workset), clear edit markers.
   useEffect(() => {
     clearWorksetEdits();
-  }, [appliedSearchRequest, clearWorksetEdits]);
+  }, [activeSearchRequest, clearWorksetEdits]);
 
   const diffEntry = diffRowId ? worksetEdits.get(diffRowId) : null;
   const diffRow = diffRowId ? apiRows.find((row) => row.id === diffRowId) : null;
