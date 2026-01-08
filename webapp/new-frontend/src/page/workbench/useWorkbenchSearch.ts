@@ -13,6 +13,7 @@ import {
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
+import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import { WORKSET_SIZE_DEFAULT } from './workbench-constants';
 import { clampWorksetSize, mapApiTextUnitToRow, serializeSearchRequest } from './workbench-helpers';
 import type {
@@ -167,12 +168,7 @@ export function useWorkbenchSearch({ isEditMode, initialSearchRequest }: Params)
       if (!allowedRepositoryIds.has(repo.id)) {
         return;
       }
-      (repo.repositoryLocales ?? []).forEach((repoLocale) => {
-        const tag = repoLocale.locale?.bcp47Tag;
-        if (tag) {
-          localeSet.add(tag);
-        }
-      });
+      getNonRootRepositoryLocaleTags(repo).forEach((tag) => localeSet.add(tag));
     });
 
     if (!localeSet.size) {

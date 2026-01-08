@@ -3,12 +3,13 @@ export type ApiLocale = {
 };
 
 export type ApiRepositoryLocale = {
-  locale: ApiLocale | null;
+  locale: ApiLocale;
   toBeFullyTranslated: boolean;
+  parentLocale: ApiLocale | null;
 };
 
 export type ApiRepositoryLocaleStatistic = {
-  locale: ApiLocale | null;
+  locale: ApiLocale;
   translatedCount?: number | null;
   includeInFileCount?: number | null;
   reviewNeededCount?: number | null;

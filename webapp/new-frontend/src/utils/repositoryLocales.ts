@@ -1,11 +1,9 @@
 import type { ApiRepository } from '../api/repositories';
 
-export function getRepositoryLocaleTags(repository: ApiRepository): string[] {
-  const sourceLocaleTag = repository.sourceLocale?.bcp47Tag;
-
+export function getNonRootRepositoryLocaleTags(repository: ApiRepository): string[] {
   const tags = (repository.repositoryLocales ?? [])
-    .map((repoLocale) => repoLocale.locale?.bcp47Tag)
-    .filter((tag): tag is string => Boolean(tag) && tag !== sourceLocaleTag);
+    .filter((repositoryLocale) => repositoryLocale.parentLocale != null)
+    .map((repoLocale) => repoLocale.locale.bcp47Tag);
 
   return Array.from(new Set(tags));
 }

@@ -9,7 +9,7 @@ import type {
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
-import { getRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import type { LocaleRow, RepositoryRow, RepositoryStatusFilter } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
@@ -255,17 +255,10 @@ export function RepositoriesPage() {
       if (!repository) {
         return;
       }
-      const allLocaleTags = getRepositoryLocaleTags(repository);
-
-      const localeTags =
-        localeTag && allLocaleTags.includes(localeTag) ? [localeTag] : allLocaleTags;
-      if (!localeTags.length) {
-        return;
-      }
 
       const searchRequest: TextUnitSearchRequest = {
         repositoryIds: [repositoryId],
-        localeTags,
+        localeTags: localeTag != null ? [localeTag] : getNonRootRepositoryLocaleTags(repository),
         searchAttribute: 'target',
         searchType: 'contains',
         searchText: '',

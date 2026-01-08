@@ -9,7 +9,7 @@ import { Modal } from '../../components/Modal';
 import { Pill } from '../../components/Pill';
 import { PillDropdown } from '../../components/PillDropdown';
 import { isRtlLocale } from '../../utils/localeDirection';
-import { getRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import type { WorkbenchDiffModalData, WorkbenchRow } from './workbench-types';
 
 type WorkbenchBodyProps = {
@@ -126,7 +126,7 @@ export function WorkbenchBody({
         return null;
       }
 
-      const repoLocales = repository ? getRepositoryLocaleTags(repository) : [];
+      const repoLocales = repository ? getNonRootRepositoryLocaleTags(repository) : [];
       const localeTags =
         repoLocales.length > 0
           ? repoLocales
