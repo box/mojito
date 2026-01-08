@@ -263,6 +263,7 @@ function SearchControl({
   onChangeType,
   variant = 'standalone',
 }: SearchControlProps) {
+  const showClear = value.length > 0 && !inputDisabled;
   const containerClassName = [
     'workbench-searchcontrol',
     variant === 'inline' ? 'workbench-searchcontrol--inline' : null,
@@ -297,6 +298,16 @@ function SearchControl({
             onChange={(event) => onChange(event.target.value)}
             disabled={inputDisabled}
           />
+          {showClear ? (
+            <button
+              type="button"
+              className="workbench-searchcontrol__clear"
+              onClick={() => onChange('')}
+              aria-label="Clear search text"
+            >
+              ×
+            </button>
+          ) : null}
         </form>
       </div>
     </div>

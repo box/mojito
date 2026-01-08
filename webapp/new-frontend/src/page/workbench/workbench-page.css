@@ -239,12 +239,13 @@
   align-items: stretch;
   flex: 1 1 auto;
   min-width: 0;
+  position: relative;
 }
 
 .workbench-searchcontrol__input {
   flex: 1 1 auto;
   border: none;
-  padding: 0 var(--space-3);
+  padding: 0 calc(var(--space-3) + 14px) 0 var(--space-3);
   height: 100%;
   min-height: 0;
   font: inherit;
@@ -254,6 +255,30 @@
 
 .workbench-searchcontrol__input:focus {
   outline: none;
+}
+
+.workbench-searchcontrol__clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.workbench-searchcontrol__clear:hover,
+.workbench-searchcontrol__clear:focus-visible {
+  color: var(--color-text);
+}
+
+.workbench-searchcontrol__clear:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  border-radius: var(--radius-2);
 }
 
 .workbench-chip-dropdown {
@@ -740,6 +765,37 @@
 .workbench-page__repo-name {
   font-size: 11px;
   color: var(--color-text-muted);
+}
+
+.workbench-page__meta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.workbench-link-button {
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  color: var(--color-text-subtle);
+  border-radius: var(--radius-2);
+  padding: 2px 4px;
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    color 0.12s ease;
+}
+
+.workbench-page__meta-link:hover .workbench-link-button,
+.workbench-page__meta-link:focus-within .workbench-link-button,
+.workbench-link-button:focus-visible {
+  opacity: 1;
+}
+
+.workbench-link-button:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  color: var(--color-text);
 }
 
 .workbench-page__text-block {
