@@ -5,7 +5,7 @@
   padding: 0 var(--space-2);
   height: 30px;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-text);
 }
 
@@ -27,7 +27,7 @@
   background: var(--color-surface-muted);
   color: var(--color-text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   padding: 0 var(--space-2);
   height: 26px;
   cursor: pointer;
@@ -50,7 +50,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-text);
 }
 
@@ -67,7 +67,7 @@
   background: transparent;
   color: var(--color-text-subtle);
   font: inherit;
-  font-size: 11px;
+  font-size: var(--font-size-2xs);
   padding: 0 var(--space-2);
   height: 20px;
   cursor: pointer;
@@ -83,6 +83,6 @@
 }
 
 .multi-select-chip__empty {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }

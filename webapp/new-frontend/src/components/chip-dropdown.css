@@ -16,7 +16,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   cursor: pointer;
   text-align: left;
   width: 100%;

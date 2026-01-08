@@ -9,9 +9,21 @@
   --color-text-subtle: #9ca3af;
   --color-border: #e5e7eb;
   --color-accent: #1f7ae0;
+  --color-danger: #d03a3a;
   --color-surface-selected: rgba(31, 122, 224, 0.08);
   --color-focus-outline: rgba(31, 122, 224, 0.2);
   --color-focus-border: rgba(31, 122, 224, 0.4);
+  --font-size-2xs: 11px;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --letter-spacing-tight: 0.04em;
+  --letter-spacing-wide: 0.06em;
   --radius-2: 8px;
   --radius-3: 12px;
   --radius-pill: 999px;
@@ -37,6 +49,7 @@
     --color-text-subtle: #cbd5e1;
     --color-border: #1f2937;
     --color-accent: #60a5fa;
+    --color-danger: #ef4444;
     --color-surface-selected: rgba(96, 165, 250, 0.12);
     --color-focus-outline: rgba(96, 165, 250, 0.25);
     --color-focus-border: rgba(96, 165, 250, 0.5);
@@ -62,7 +75,7 @@ body {
 
 /* Shared typography for in-app hint copy (empty states, prompts, inline hints). */
 .hint {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
 }
 
@@ -116,8 +129,8 @@ body {
   padding: 0 var(--space-3);
   color: var(--color-text-muted);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
 }
 
 .app-shell__nav-link:hover {

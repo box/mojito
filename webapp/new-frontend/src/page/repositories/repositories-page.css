@@ -40,7 +40,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 
 .repositories-page__state-action:focus {
@@ -70,9 +70,9 @@
   background: var(--color-surface);
   border-bottom: var(--border-width) solid var(--color-border);
   color: var(--color-text-subtle);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
 }
 
 .repositories-page__header--repo {
@@ -156,8 +156,8 @@
 }
 
 .repositories-page__cell {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
   color: var(--color-text);
 }
 
@@ -239,7 +239,7 @@
   border-radius: var(--radius-2);
   background: var(--color-surface);
   color: var(--color-text-subtle);
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: inherit;
   font-family: inherit;
 }
@@ -265,7 +265,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   line-height: 1;
 }
 

@@ -7,8 +7,8 @@
   border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
 }
 
 .pill-select {
@@ -25,8 +25,8 @@
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
   padding: 0 28px 0 var(--space-3);
   height: 24px;
   min-width: 110px;
@@ -77,8 +77,8 @@
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -134,7 +134,7 @@
   background: transparent;
   color: var(--color-text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   text-align: left;
   padding: var(--space-2) var(--space-2);
   cursor: pointer;
