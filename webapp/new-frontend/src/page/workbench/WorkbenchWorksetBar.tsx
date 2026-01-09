@@ -6,6 +6,7 @@ type WorkbenchWorksetBarProps = {
   disabled: boolean;
   isEditMode: boolean;
   isSearchLoading: boolean;
+  hasSearched: boolean;
   rowCount: number;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
@@ -19,6 +20,7 @@ export function WorkbenchWorksetBar({
   disabled,
   isEditMode,
   isSearchLoading,
+  hasSearched,
   rowCount,
   worksetSize,
   onChangeWorksetSize,
@@ -28,16 +30,20 @@ export function WorkbenchWorksetBar({
   onOpenShareModal,
 }: WorkbenchWorksetBarProps) {
   const countLabel = `${rowCount} results`;
+  const canRefresh = hasSearched && !disabled && !isSearchLoading;
+  const canShare = hasSearched && !disabled;
 
-  const parts: ReactNode[] = [
-    <ResultSizeDropdown
-      key="count"
-      disabled={disabled || isEditMode}
-      countLabel={countLabel}
-      worksetSize={worksetSize}
-      onChangeWorksetSize={onChangeWorksetSize}
-    />,
-  ];
+  const parts: ReactNode[] = hasSearched
+    ? [
+        <ResultSizeDropdown
+          key="count"
+          disabled={disabled || isEditMode}
+          countLabel={countLabel}
+          worksetSize={worksetSize}
+          onChangeWorksetSize={onChangeWorksetSize}
+        />,
+      ]
+    : [];
 
   if (editedCount > 0) {
     parts.push(
@@ -46,36 +52,39 @@ export function WorkbenchWorksetBar({
       </span>,
     );
   }
+  if (hasSearched) {
+    parts.push(
+      isEditMode ? (
+        <button
+          key="editsearch"
+          type="button"
+          className="workbench-worksetbar__button"
+          onClick={onBackToSearch}
+          disabled={disabled}
+        >
+          Back to search
+        </button>
+      ) : (
+        <button
+          key="refresh"
+          type="button"
+          className="workbench-worksetbar__button workbench-worksetbar__button--refresh"
+          onClick={() => {
+            if (canRefresh) {
+              onRefreshWorkset();
+            }
+          }}
+          disabled={!canRefresh}
+        >
+          Refresh
+        </button>
+      ),
+    );
+  }
 
-  parts.push(
-    isEditMode ? (
-      <button
-        key="editsearch"
-        type="button"
-        className="workbench-worksetbar__button"
-        onClick={onBackToSearch}
-        disabled={disabled}
-      >
-        Back to search
-      </button>
-    ) : (
-      <button
-        key="refresh"
-        type="button"
-        className="workbench-worksetbar__button workbench-worksetbar__button--refresh"
-        onClick={() => {
-          if (!isSearchLoading) {
-            onRefreshWorkset();
-          }
-        }}
-        disabled={disabled || isSearchLoading}
-      >
-        Refresh
-      </button>
-    ),
-  );
-
-  parts.push(<SearchShareButton key="share" onClick={onOpenShareModal} disabled={disabled} />);
+  if (hasSearched) {
+    parts.push(<SearchShareButton key="share" onClick={onOpenShareModal} disabled={!canShare} />);
+  }
 
   const content = parts.flatMap((part, index) =>
     index === 0

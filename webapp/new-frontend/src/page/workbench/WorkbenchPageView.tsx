@@ -226,20 +226,19 @@ export function WorkbenchPageView({
         onChangeCreatedBefore={onChangeCreatedBefore}
         onChangeCreatedAfter={onChangeCreatedAfter}
       />
-      {hasSearched ? (
-        <WorkbenchWorksetBar
-          disabled={headerDisabled}
-          isEditMode={isEditMode}
-          isSearchLoading={isSearchLoading}
-          rowCount={rowCount}
-          worksetSize={worksetSize}
-          onChangeWorksetSize={onChangeWorksetSize}
-          editedCount={editedCount}
-          onBackToSearch={onBackToSearch}
-          onRefreshWorkset={onRefreshWorkset}
-          onOpenShareModal={() => setIsShareModalOpen(true)}
-        />
-      ) : null}
+      <WorkbenchWorksetBar
+        disabled={headerDisabled}
+        isEditMode={isEditMode}
+        isSearchLoading={isSearchLoading}
+        hasSearched={hasSearched}
+        rowCount={rowCount}
+        worksetSize={worksetSize}
+        onChangeWorksetSize={onChangeWorksetSize}
+        editedCount={editedCount}
+        onBackToSearch={onBackToSearch}
+        onRefreshWorkset={onRefreshWorkset}
+        onOpenShareModal={() => setIsShareModalOpen(true)}
+      />
       <WorkbenchBody
         rows={rows}
         editingRowId={editingRowId}
