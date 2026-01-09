@@ -16,7 +16,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: '/repositories', label: 'Repositories', element: <RepositoriesPage /> },
   { to: '/workbench', label: 'Workbench', element: <WorkbenchPage /> },
-  { to: '/projects', label: 'Projects', element: <>Projects</> },
 ];
 
 const queryClient = new QueryClient();
