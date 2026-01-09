@@ -38,6 +38,10 @@ type WorkbenchBodyProps = {
   hasSearched: boolean;
   activeSearchRequest: TextUnitSearchRequest | null;
   repositories: ApiRepository[];
+  onAddToCollection: (tmTextUnitId: number, repositoryId: number | null) => void;
+  onRemoveFromCollection: (tmTextUnitId: number) => void;
+  activeCollectionIds: Set<number>;
+  activeCollectionName: string | null;
 };
 
 export function WorkbenchBody({
@@ -66,6 +70,10 @@ export function WorkbenchBody({
   hasSearched,
   activeSearchRequest,
   repositories,
+  onAddToCollection,
+  onRemoveFromCollection,
+  activeCollectionIds,
+  activeCollectionName,
 }: WorkbenchBodyProps) {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -121,7 +129,11 @@ export function WorkbenchBody({
   const getRepositoryScope = useCallback(
     (row: WorkbenchRow): { repoId: number; localeTags: string[] } | null => {
       const repository = repositories.find((repo) => repo.name === row.repositoryName);
-      const repoId = repository?.id ?? activeSearchRequest?.repositoryIds?.[0];
+      const repoId =
+        repository?.id ??
+        (activeSearchRequest?.repositoryIds?.length === 1
+          ? activeSearchRequest.repositoryIds[0]
+          : null);
       if (!repoId) {
         return null;
       }
@@ -323,6 +335,12 @@ export function WorkbenchBody({
                 const isStatusSaving = statusSavingRowIds.has(row.id);
                 const isEdited = editedRowIds.has(row.id);
                 const isStatusOpen = openStatusRowId === row.id;
+                const hasActiveCollection = Boolean(activeCollectionName);
+                const isInCollection = hasActiveCollection
+                  ? activeCollectionIds.has(row.tmTextUnitId)
+                  : false;
+                const collectionButtonLabel =
+                  hasActiveCollection && isInCollection ? 'In collection' : 'Add to collection';
 
                 return (
                   <div
@@ -350,6 +368,24 @@ export function WorkbenchBody({
                         >
                           ↗
                         </button>
+                        {hasActiveCollection ? (
+                          <button
+                            type="button"
+                            className={`workbench-collection__inline${isInCollection ? ' is-active' : ''}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (isInCollection) {
+                                onRemoveFromCollection(row.tmTextUnitId);
+                              } else {
+                                const scope = getRepositoryScope(row);
+                                onAddToCollection(row.tmTextUnitId, scope?.repoId ?? null);
+                              }
+                            }}
+                            title={`Add to ${activeCollectionName}`}
+                          >
+                            {collectionButtonLabel}
+                          </button>
+                        ) : null}
                       </div>
                       <div className="workbench-page__meta-link">
                         <span className="workbench-page__meta-asset">{row.assetPath ?? ''}</span>

@@ -1,18 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { TextUnitSearchRequest } from '../../api/text-units';
+import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { useWorkbenchCollections } from './useWorkbenchCollections';
 import { useWorkbenchEdits } from './useWorkbenchEdits';
 import { useWorkbenchSearch } from './useWorkbenchSearch';
+import { clampWorksetSize } from './workbench-helpers';
 import { loadWorkbenchShare } from './workbench-share';
+import type { WorkbenchCollection, WorkbenchShareOverrides } from './workbench-types';
 import { WorkbenchPageView } from './WorkbenchPageView';
 
 const statusOptions = ['Accepted', 'To review', 'To translate', 'Rejected'];
+const localePromptBody =
+  'Pick one or more locales to open these collection results.\n\nIf you are working across repositories with different locale sets, select multiple locales to see all text units.';
+const localePromptTitle = 'Choose a locale';
 
 type WorkbenchLocationState = { workbenchSearch?: TextUnitSearchRequest | null } & Record<
   string,
   unknown
->;
+> & { localePrompt?: boolean };
 
 function isWorkbenchLocationState(state: unknown): state is WorkbenchLocationState {
   return typeof state === 'object' && state !== null && 'workbenchSearch' in state;
@@ -20,6 +27,8 @@ function isWorkbenchLocationState(state: unknown): state is WorkbenchLocationSta
 
 export function WorkbenchPage() {
   const [isEditMode, setIsEditMode] = useState(false);
+  const [pendingCollectionOpenId, setPendingCollectionOpenId] = useState<string | null>(null);
+  const [shareOverrides, setShareOverrides] = useState<WorkbenchShareOverrides | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,14 +43,15 @@ export function WorkbenchPage() {
   const [hydrationModal, setHydrationModal] = useState<{ title: string; body: string } | null>(
     null,
   );
-  const stateSearchRequest =
-    (location.state as { workbenchSearch?: TextUnitSearchRequest | null } | null)
-      ?.workbenchSearch ?? null;
+  const locationState = (location.state as WorkbenchLocationState | null) ?? null;
+  const stateSearchRequest = locationState?.workbenchSearch ?? null;
+  const stateLocalePrompt = locationState?.localePrompt ?? false;
 
   const search = useWorkbenchSearch({
     isEditMode,
     initialSearchRequest: hydratedSearchRequest,
   });
+  const collections = useWorkbenchCollections();
 
   const clearShareIdFromUrl = useCallback(() => {
     const nextParams = new URLSearchParams(shareSearchParamsRef.current ?? undefined);
@@ -59,6 +69,9 @@ export function WorkbenchPage() {
     }
     const rest = { ...location.state };
     delete rest.workbenchSearch;
+    if ('localePrompt' in rest) {
+      delete (rest as { localePrompt?: boolean }).localePrompt;
+    }
     void navigate(location.pathname + location.search, { replace: true, state: rest });
   }, [location.pathname, location.search, location.state, navigate]);
 
@@ -75,10 +88,17 @@ export function WorkbenchPage() {
       return;
     }
     setShareIdToHydrate(null);
-    setHydrationModal(null);
+    setHydrationModal(
+      stateLocalePrompt
+        ? {
+            title: localePromptTitle,
+            body: localePromptBody,
+          }
+        : null,
+    );
     setHydratedSearchRequest(stateSearchRequest);
     clearWorkbenchSearchState();
-  }, [clearWorkbenchSearchState, stateSearchRequest]);
+  }, [clearWorkbenchSearchState, stateLocalePrompt, stateSearchRequest]);
 
   useEffect(() => {
     if (!shareIdToHydrate) {
@@ -94,8 +114,8 @@ export function WorkbenchPage() {
         const nextRequest = payload.searchRequest;
         if (payload.localeFocus === 'ASK_RECIPIENT') {
           setHydrationModal({
-            title: 'Choose a locale',
-            body: 'This link intentionally does not set a locale. Pick one in the dropdown to review the text units.',
+            title: localePromptTitle,
+            body: localePromptBody,
           });
         } else {
           setHydrationModal(null);
@@ -128,6 +148,152 @@ export function WorkbenchPage() {
   });
   const { clearWorksetEdits } = edits;
   const { refetchSearch } = search;
+
+  const activeCollectionIds = useMemo(() => {
+    const entries = collections.activeCollection?.entries ?? [];
+    return new Set(entries.map((entry) => entry.tmTextUnitId));
+  }, [collections.activeCollection]);
+
+  const activeCollectionCount = collections.activeCollection?.entries.length ?? 0;
+
+  const repositoryIdByName = useMemo(
+    () => new Map(search.repositories.map((repo) => [repo.name, repo.id])),
+    [search.repositories],
+  );
+
+  const buildCollectionSearchRequest = useCallback(
+    (collection: WorkbenchCollection): TextUnitSearchRequest | null => {
+      const repoMap = new Map(search.repositories.map((repo) => [repo.id, repo]));
+      const repoIds = new Set<number>();
+      const localeSet = new Set<string>();
+
+      collection.entries.forEach((entry) => {
+        if (!entry.repositoryId) {
+          return;
+        }
+        const repo = repoMap.get(entry.repositoryId);
+        if (!repo) {
+          return;
+        }
+        repoIds.add(repo.id);
+        getNonRootRepositoryLocaleTags(repo).forEach((tag) => localeSet.add(tag));
+      });
+
+      const repositoryIds = Array.from(repoIds);
+      const localeTags = Array.from(localeSet);
+      const textUnitIds = Array.from(
+        new Set(collection.entries.map((entry) => entry.tmTextUnitId)),
+      );
+      const worksetSize = clampWorksetSize(textUnitIds.length);
+
+      if (!repositoryIds.length || !localeTags.length || !textUnitIds.length) {
+        return null;
+      }
+
+      return {
+        repositoryIds,
+        localeTags: [],
+        searchAttribute: 'tmTextUnitIds',
+        searchType: 'exact',
+        searchText: textUnitIds.join(','),
+        limit: worksetSize,
+        offset: 0,
+      };
+    },
+    [search.repositories],
+  );
+
+  const handleAddToCollection = useCallback(
+    (tmTextUnitId: number, repositoryId: number | null) => {
+      collections.addToActiveCollection(tmTextUnitId, repositoryId);
+    },
+    [collections],
+  );
+
+  const handleAddAllToCollection = useCallback(() => {
+    const entries = search.rows
+      .map((row) => {
+        const repositoryId = repositoryIdByName.get(row.repositoryName) ?? null;
+        if (repositoryId === null) {
+          return null;
+        }
+        return { tmTextUnitId: row.tmTextUnitId, repositoryId };
+      })
+      .filter((entry): entry is { tmTextUnitId: number; repositoryId: number } => entry !== null);
+    if (!entries.length) {
+      return;
+    }
+    collections.addEntriesToActiveCollection(entries);
+  }, [collections, repositoryIdByName, search.rows]);
+
+  const handleRemoveFromCollection = useCallback(
+    (tmTextUnitId: number) => {
+      collections.removeFromActiveCollection(tmTextUnitId);
+    },
+    [collections],
+  );
+
+  const handleOpenCollectionSearch = useCallback(
+    (collectionId: string) => {
+      const collection = collections.collections.find((item) => item.id === collectionId);
+      if (!collection || collection.entries.length === 0) {
+        return;
+      }
+
+      const request = buildCollectionSearchRequest(collection);
+      if (!request) {
+        setPendingCollectionOpenId(collectionId);
+        return;
+      }
+
+      setPendingCollectionOpenId(null);
+      void navigate('/workbench', { state: { workbenchSearch: request, localePrompt: true } });
+    },
+    [buildCollectionSearchRequest, collections.collections, navigate],
+  );
+
+  const handleShareCollection = useCallback(
+    (collectionId: string): boolean => {
+      const collection = collections.collections.find((item) => item.id === collectionId);
+      if (!collection || collection.entries.length === 0) {
+        return false;
+      }
+      const request = buildCollectionSearchRequest(collection);
+      if (!request) {
+        return false;
+      }
+      const pinnedIds = Array.from(new Set(collection.entries.map((entry) => entry.tmTextUnitId)));
+      setShareOverrides({ searchRequest: request, pinnedIds, forceAskLocale: true });
+      return true;
+    },
+    [buildCollectionSearchRequest, collections.collections],
+  );
+
+  useEffect(() => {
+    if (!pendingCollectionOpenId) {
+      return;
+    }
+    const collection = collections.collections.find((item) => item.id === pendingCollectionOpenId);
+    if (!collection) {
+      setPendingCollectionOpenId(null);
+      return;
+    }
+    const request = buildCollectionSearchRequest(collection);
+    if (!request) {
+      if (!search.isRepositoriesLoading) {
+        setPendingCollectionOpenId(null);
+      }
+      return;
+    }
+    setPendingCollectionOpenId(null);
+    void navigate('/workbench', { state: { workbenchSearch: request, localePrompt: true } });
+  }, [
+    buildCollectionSearchRequest,
+    collections.collections,
+    navigate,
+    pendingCollectionOpenId,
+    search.isRepositoriesLoading,
+  ]);
 
   const handleBackToSearch = useCallback(() => {
     setIsEditMode(false);
@@ -215,6 +381,24 @@ export function WorkbenchPage() {
       canSearch={search.canSearch}
       activeSearchRequest={search.activeSearchRequest}
       repositories={search.repositories}
+      collections={collections.collections}
+      activeCollectionId={collections.activeCollectionId}
+      activeCollectionName={collections.activeCollection?.name ?? null}
+      activeCollectionCount={activeCollectionCount}
+      onCreateCollection={collections.createCollection}
+      onSelectCollection={collections.selectCollection}
+      onRenameCollection={collections.renameCollection}
+      onDeleteCollection={collections.deleteCollection}
+      onClearCollection={collections.clearActiveCollection}
+      onDeleteAllCollections={collections.deleteAllCollections}
+      onAddAllToCollection={handleAddAllToCollection}
+      onAddToCollection={handleAddToCollection}
+      onRemoveFromCollection={handleRemoveFromCollection}
+      activeCollectionIds={activeCollectionIds}
+      onOpenCollectionSearch={handleOpenCollectionSearch}
+      onShareCollection={handleShareCollection}
+      shareOverrides={shareOverrides}
+      onPrepareShareOverrides={(overrides) => setShareOverrides(overrides)}
     />
   );
 }

@@ -17,17 +17,21 @@ export function buildWorkbenchSharePayload({
   mode,
   searchRequest,
   rows,
+  pinnedIds,
   localeFocus,
 }: {
   mode: WorkbenchShareMode;
   searchRequest: TextUnitSearchRequest;
   rows: WorkbenchRow[];
+  pinnedIds?: number[];
   localeFocus: WorkbenchShareLocaleSelectionType;
 }): WorkbenchSharePayload {
   const normalizedSearchRequest: TextUnitSearchRequest =
     localeFocus === 'ASK_RECIPIENT' ? { ...searchRequest, localeTags: [] } : searchRequest;
 
-  const ids = Array.from(new Set(rows.map((row) => row.tmTextUnitId)));
+  const ids = pinnedIds
+    ? Array.from(new Set(pinnedIds))
+    : Array.from(new Set(rows.map((row) => row.tmTextUnitId)));
 
   const searchRequestWithIds: TextUnitSearchRequest =
     mode === 'search'

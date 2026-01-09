@@ -1,3 +1,5 @@
+import type { TextUnitSearchRequest } from '../../api/text-units';
+
 export type WorkbenchRow = {
   id: string;
   textUnitName: string;
@@ -42,4 +44,27 @@ export type WorkbenchDiffModalData = {
   savedVariantId: number | null;
   baselineCurrentVariantId: number | null;
   savedCurrentVariantId: number | null;
+};
+
+export type WorkbenchCollectionEntry = {
+  tmTextUnitId: number;
+  repositoryId: number | null;
+};
+
+export type WorkbenchCollection = {
+  id: string;
+  name: string;
+  entries: WorkbenchCollectionEntry[];
+  updatedAt: number;
+};
+
+export type WorkbenchShareOverrides = {
+  searchRequest: TextUnitSearchRequest | null;
+  pinnedIds?: number[];
+  forceAskLocale?: boolean;
+};
+
+export type WorkbenchCollectionsState = {
+  collections: WorkbenchCollection[];
+  activeCollectionId: string | null;
 };

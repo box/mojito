@@ -10,7 +10,7 @@ import {
   type WorkbenchShareLocaleSelectionType,
   type WorkbenchShareMode,
 } from './workbench-share';
-import type { WorkbenchRow } from './workbench-types';
+import type { WorkbenchRow, WorkbenchShareOverrides } from './workbench-types';
 
 type WorkbenchShareModalProps = {
   open: boolean;
@@ -18,6 +18,7 @@ type WorkbenchShareModalProps = {
   searchRequest: TextUnitSearchRequest | null;
   rows: WorkbenchRow[];
   availableLocales: string[];
+  overrides?: WorkbenchShareOverrides | null;
 };
 
 type ShareModeOption = {
@@ -41,16 +42,24 @@ const SHARE_MODE_OPTIONS: ShareModeOption[] = [
   },
 ];
 
+const LOCKED_COLLECTION_MODE: ShareModeOption = {
+  value: 'search-ids',
+  label: 'Collection',
+  description:
+    'Share the current collection ids. Recipients will pick a locale on open; filters may affect results.',
+};
+
 export function WorkbenchShareModal({
   open,
   onClose,
   searchRequest,
   rows,
   availableLocales,
+  overrides,
 }: WorkbenchShareModalProps) {
   const [mode, setMode] = useState<WorkbenchShareMode>('search-ids');
   const [selectedLocaleChoice, setSelectedLocaleChoice] = useState<'use-search' | 'ask'>(
-    'use-search',
+    overrides?.forceAskLocale ? 'ask' : 'use-search',
   );
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -64,27 +73,35 @@ export function WorkbenchShareModal({
   };
 
   const pinnedCount = useMemo(() => {
-    const ids = new Set(rows.map((row) => row.tmTextUnitId));
+    const ids = overrides?.pinnedIds
+      ? new Set(overrides.pinnedIds)
+      : new Set(rows.map((row) => row.tmTextUnitId));
     return ids.size;
-  }, [rows]);
+  }, [overrides?.pinnedIds, rows]);
+
+  const lockModeToIds = Boolean(overrides?.pinnedIds);
+  const lockLocaleAsk = Boolean(overrides?.forceAskLocale);
 
   useEffect(() => {
     if (!open) {
       return;
     }
-    setMode(pinnedCount > 0 ? 'search-ids' : 'search');
-    setSelectedLocaleChoice('use-search');
+    setMode(lockModeToIds || pinnedCount > 0 ? 'search-ids' : 'search');
+    setSelectedLocaleChoice(lockLocaleAsk ? 'ask' : 'use-search');
     resetShareLink();
-  }, [open, pinnedCount]);
+  }, [lockLocaleAsk, lockModeToIds, open, pinnedCount]);
 
   const shareContextSignature = useMemo(() => {
-    const requestSignature = searchRequest ? serializeSearchRequest(searchRequest) : 'null';
-    const pinnedSignature = rows
-      .map((row) => row.tmTextUnitId)
+    const effectiveRequest: TextUnitSearchRequest | null =
+      overrides?.searchRequest ?? searchRequest;
+    const requestSignature = effectiveRequest ? serializeSearchRequest(effectiveRequest) : 'null';
+    const pinnedSource: number[] = overrides?.pinnedIds ?? rows.map((row) => row.tmTextUnitId);
+    const pinnedSignature = pinnedSource
+      .slice()
       .sort((first, second) => first - second)
       .join(',');
     return `${requestSignature}|${pinnedSignature}`;
-  }, [rows, searchRequest]);
+  }, [overrides?.pinnedIds, overrides?.searchRequest, rows, searchRequest]);
 
   useEffect(() => {
     if (!open) {
@@ -95,11 +112,15 @@ export function WorkbenchShareModal({
 
   const hasSelectedLocales = availableLocales.length > 0;
   const canShare =
-    Boolean(searchRequest) && !isSaving && (mode !== 'search-ids' || pinnedCount > 0);
+    Boolean(searchRequest ?? overrides?.searchRequest) &&
+    !isSaving &&
+    (mode !== 'search-ids' || pinnedCount > 0);
   const pinnedCountLabel = `${pinnedCount} ${pinnedCount === 1 ? 'id' : 'ids'}`;
 
   const handleGenerate = async (): Promise<string | null> => {
-    if (!searchRequest) {
+    const effectiveRequest: TextUnitSearchRequest | null =
+      overrides?.searchRequest ?? searchRequest;
+    if (!effectiveRequest) {
       setError('Run a search before sharing.');
       return null;
     }
@@ -111,8 +132,9 @@ export function WorkbenchShareModal({
     try {
       const payload = buildWorkbenchSharePayload({
         mode,
-        searchRequest,
+        searchRequest: effectiveRequest,
         rows,
+        pinnedIds: overrides?.pinnedIds,
         localeFocus: resolveLocaleSelectionType(selectedLocaleChoice),
       });
       const shareId = await saveWorkbenchShare(payload);
@@ -158,67 +180,102 @@ export function WorkbenchShareModal({
         <div className="workbench-share__section">
           <div className="workbench-share__label workbench-share__label--muted">Type</div>
           <div className="workbench-share__options">
-            {SHARE_MODE_OPTIONS.map((option) => {
-              const description =
-                option.value === 'search-ids'
-                  ? `${option.description} (${pinnedCountLabel})`
-                  : option.description;
-              return (
-                <label key={option.value} className="workbench-share__option">
-                  <input
-                    type="radio"
-                    name="workbench-share-mode"
-                    value={option.value}
-                    checked={mode === option.value}
-                    disabled={option.value === 'search-ids' && pinnedCount === 0}
-                    onChange={() => {
-                      setMode(option.value);
-                      resetShareLink();
-                    }}
-                  />
-                  <div>
-                    <div className="workbench-share__option-title">{option.label}</div>
-                    <div className="workbench-share__option-description">{description}</div>
-                    {option.caution ? (
-                      <div className="workbench-share__option-caution">{option.caution}</div>
-                    ) : null}
+            {lockModeToIds ? (
+              <label className="workbench-share__option">
+                <input
+                  type="radio"
+                  name="workbench-share-mode"
+                  value={LOCKED_COLLECTION_MODE.value}
+                  checked
+                  disabled
+                  readOnly
+                />
+                <div>
+                  <div className="workbench-share__option-title">
+                    {LOCKED_COLLECTION_MODE.label}
                   </div>
-                </label>
-              );
-            })}
+                  <div className="workbench-share__option-description">
+                    {`${LOCKED_COLLECTION_MODE.description} (${pinnedCountLabel})`}
+                  </div>
+                </div>
+              </label>
+            ) : (
+              SHARE_MODE_OPTIONS.map((option) => {
+                const description =
+                  option.value === 'search-ids'
+                    ? `${option.description} (${pinnedCountLabel})`
+                    : option.description;
+                const isDisabled = option.value === 'search-ids' && pinnedCount === 0;
+                return (
+                  <label key={option.value} className="workbench-share__option">
+                    <input
+                      type="radio"
+                      name="workbench-share-mode"
+                      value={option.value}
+                      checked={mode === option.value}
+                      disabled={isDisabled}
+                      onChange={() => {
+                        if (isDisabled) {
+                          return;
+                        }
+                        setMode(option.value);
+                        resetShareLink();
+                      }}
+                    />
+                    <div>
+                      <div className="workbench-share__option-title">{option.label}</div>
+                      <div className="workbench-share__option-description">{description}</div>
+                      {option.caution ? (
+                        <div className="workbench-share__option-caution">{option.caution}</div>
+                      ) : null}
+                    </div>
+                  </label>
+                );
+              })
+            )}
           </div>
         </div>
 
         <div className="workbench-share__section">
           <div className="workbench-share__label workbench-share__label--muted">Locale</div>
           <div className="workbench-share__options">
-            <label className="workbench-share__option">
-              <input
-                type="radio"
-                name="workbench-share-locale"
-                value="use-search"
-                checked={selectedLocaleChoice === 'use-search'}
-                onChange={() => {
-                  setSelectedLocaleChoice('use-search');
-                  resetShareLink();
-                }}
-              />
-              <div>
-                <div className="workbench-share__option-title">Keep current selection</div>
-                <div className="workbench-share__option-description">
-                  {hasSelectedLocales
-                    ? 'Shares with the locales you have selected now.'
-                    : 'No locales selected yet; pick them before sharing.'}
+            {lockLocaleAsk ? null : (
+              <label className="workbench-share__option">
+                <input
+                  type="radio"
+                  name="workbench-share-locale"
+                  value="use-search"
+                  checked={selectedLocaleChoice === 'use-search'}
+                  disabled={lockLocaleAsk}
+                  onChange={() => {
+                    if (lockLocaleAsk) {
+                      return;
+                    }
+                    setSelectedLocaleChoice('use-search');
+                    resetShareLink();
+                  }}
+                />
+                <div>
+                  <div className="workbench-share__option-title">Keep current selection</div>
+                  <div className="workbench-share__option-description">
+                    {hasSelectedLocales
+                      ? 'Shares with the locales you have selected now.'
+                      : 'No locales selected yet; pick them before sharing.'}
+                  </div>
                 </div>
-              </div>
-            </label>
+              </label>
+            )}
             <label className="workbench-share__option">
               <input
                 type="radio"
                 name="workbench-share-locale"
                 value="ask"
                 checked={selectedLocaleChoice === 'ask'}
+                disabled={lockLocaleAsk}
                 onChange={() => {
+                  if (lockLocaleAsk) {
+                    return;
+                  }
                   setSelectedLocaleChoice('ask');
                   resetShareLink();
                 }}

@@ -11,8 +11,10 @@ import type {
   LocaleOption,
   RepositoryOption,
   StatusFilterValue,
+  WorkbenchCollection,
   WorkbenchDiffModalData,
   WorkbenchRow,
+  WorkbenchShareOverrides,
 } from './workbench-types';
 import { DiffModal, WorkbenchBody } from './WorkbenchBody';
 import { WorkbenchHeader } from './WorkbenchHeader';
@@ -89,6 +91,24 @@ type Props = {
   canSearch: boolean;
   activeSearchRequest: TextUnitSearchRequest | null;
   repositories: ApiRepository[];
+  collections: WorkbenchCollection[];
+  activeCollectionId: string | null;
+  activeCollectionName: string | null;
+  activeCollectionCount: number;
+  onCreateCollection: (name?: string) => string | null;
+  onSelectCollection: (id: string | null) => void;
+  onRenameCollection: (id: string, name: string) => void;
+  onDeleteCollection: (id: string) => void;
+  onClearCollection: () => void;
+  onDeleteAllCollections: () => void;
+  onAddAllToCollection: () => void;
+  onAddToCollection: (tmTextUnitId: number, repositoryId: number | null) => void;
+  onRemoveFromCollection: (tmTextUnitId: number) => void;
+  activeCollectionIds: Set<number>;
+  onOpenCollectionSearch: (id: string) => void;
+  onShareCollection: (id: string) => boolean;
+  shareOverrides: WorkbenchShareOverrides | null;
+  onPrepareShareOverrides: (overrides: WorkbenchShareOverrides | null) => void;
 };
 
 function HydrationModal({
@@ -186,6 +206,24 @@ export function WorkbenchPageView({
   canSearch,
   activeSearchRequest,
   repositories,
+  collections,
+  activeCollectionId,
+  activeCollectionName,
+  activeCollectionCount,
+  onCreateCollection,
+  onSelectCollection,
+  onRenameCollection,
+  onDeleteCollection,
+  onClearCollection,
+  onDeleteAllCollections,
+  onAddAllToCollection,
+  onAddToCollection,
+  onRemoveFromCollection,
+  activeCollectionIds,
+  onOpenCollectionSearch,
+  onShareCollection,
+  shareOverrides,
+  onPrepareShareOverrides,
 }: Props) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const editedCount = editedRowIds.size;
@@ -237,7 +275,29 @@ export function WorkbenchPageView({
         editedCount={editedCount}
         onBackToSearch={onBackToSearch}
         onRefreshWorkset={onRefreshWorkset}
-        onOpenShareModal={() => setIsShareModalOpen(true)}
+        collections={collections}
+        activeCollectionId={activeCollectionId}
+        activeCollectionName={activeCollectionName}
+        activeCollectionCount={activeCollectionCount}
+        onCreateCollection={onCreateCollection}
+        onSelectCollection={onSelectCollection}
+        onRenameCollection={onRenameCollection}
+        onDeleteCollection={onDeleteCollection}
+        onClearCollection={onClearCollection}
+        onDeleteAllCollections={onDeleteAllCollections}
+        onAddAllToCollection={onAddAllToCollection}
+        onOpenCollectionSearch={onOpenCollectionSearch}
+        onShareCollection={(id) => {
+          const ok = onShareCollection(id);
+          if (ok) {
+            setIsShareModalOpen(true);
+          }
+          return ok;
+        }}
+        onOpenShareModal={() => {
+          onPrepareShareOverrides(null);
+          setIsShareModalOpen(true);
+        }}
       />
       <WorkbenchBody
         rows={rows}
@@ -265,6 +325,10 @@ export function WorkbenchPageView({
         hasSearched={hasSearched}
         activeSearchRequest={activeSearchRequest}
         repositories={repositories}
+        onAddToCollection={onAddToCollection}
+        onRemoveFromCollection={onRemoveFromCollection}
+        activeCollectionIds={activeCollectionIds}
+        activeCollectionName={activeCollectionName}
       />
       <HydrationModal data={hydrationModal} onClose={onDismissHydrationModal} />
       <ConfirmModal
@@ -289,9 +353,10 @@ export function WorkbenchPageView({
       <WorkbenchShareModal
         open={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        searchRequest={activeSearchRequest}
+        searchRequest={shareOverrides?.searchRequest ?? activeSearchRequest}
         rows={rows}
         availableLocales={selectedLocaleTags}
+        overrides={shareOverrides ?? undefined}
       />
     </div>
   );
