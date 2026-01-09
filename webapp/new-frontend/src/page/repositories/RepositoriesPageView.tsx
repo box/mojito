@@ -1,7 +1,9 @@
+import '../../components/chip-dropdown.css';
+import '../workbench/workbench-page.css';
 import './repositories-page.css';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const ROW_HEIGHT_PX = 48; // keep in sync with --repositories-page-row-height in CSS
 
@@ -23,6 +25,13 @@ export type LocaleRow = {
 };
 
 export type RepositoryStatusFilter = 'all' | 'rejected' | 'needs-translation' | 'needs-review';
+
+const statusFilterOptions: Array<{ value: RepositoryStatusFilter; label: string }> = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'rejected', label: 'Rejected' },
+  { value: 'needs-translation', label: 'To translate' },
+  { value: 'needs-review', label: 'To review' },
+];
 
 type Props = {
   status: 'loading' | 'error' | 'ready';
@@ -77,6 +86,71 @@ type CellLinkProps = {
   title?: string;
   stopPropagation?: boolean;
 };
+
+type StatusFilterDropdownProps = {
+  value: RepositoryStatusFilter;
+  onChange: (value: RepositoryStatusFilter) => void;
+};
+
+function StatusFilterDropdown({ value, onChange }: StatusFilterDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [isOpen]);
+
+  const selectedLabel =
+    statusFilterOptions.find((option) => option.value === value)?.label ?? 'All statuses';
+
+  return (
+    <div className="chip-dropdown workbench-searchmode" ref={containerRef}>
+      <button
+        type="button"
+        className="chip-dropdown__button workbench-searchmode__button"
+        onClick={() => setIsOpen((previous) => !previous)}
+        aria-expanded={isOpen}
+        aria-label="Filter repositories by status"
+      >
+        <span className="chip-dropdown__summary">{selectedLabel}</span>
+        <span className="chip-dropdown__chevron" aria-hidden="true" />
+      </button>
+      {isOpen ? (
+        <div className="chip-dropdown__panel workbench-searchmode__panel" role="menu">
+          <div className="workbench-searchmode__section">
+            <div className="workbench-searchmode__label">Status</div>
+            <div className="workbench-searchmode__list">
+              {statusFilterOptions.map((option) => (
+                <button
+                  type="button"
+                  key={option.value}
+                  className={`workbench-searchmode__option${
+                    option.value === value ? ' is-active' : ''
+                  }`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  <span>{option.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function CellLink({
   children,
@@ -431,24 +505,7 @@ export function RepositoriesPageView({
             />
           </div>
           <div className="repositories-page__filters" role="group" aria-label="Filter repositories">
-            {[
-              { value: 'all', label: 'All' },
-              { value: 'rejected', label: 'Rejected' },
-              { value: 'needs-translation', label: 'To translate' },
-              { value: 'needs-review', label: 'To review' },
-            ].map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`repositories-page__filter-button${
-                  statusFilter === option.value ? ' is-active' : ''
-                }`}
-                onClick={() => onStatusFilterChange(option.value as RepositoryStatusFilter)}
-                aria-pressed={statusFilter === option.value}
-              >
-                {option.label}
-              </button>
-            ))}
+            <StatusFilterDropdown value={statusFilter} onChange={onStatusFilterChange} />
           </div>
         </div>
       </div>
