@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "check": "npm run lint && npm run format:check && npm run test"
+    "check": "npm run lint && npm run format:check && npm run test",
+    "tsc": "tsc -b"
   },
   "engines": {
     "node": "20.12.x",
