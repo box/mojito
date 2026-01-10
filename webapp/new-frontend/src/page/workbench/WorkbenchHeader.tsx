@@ -14,6 +14,7 @@ const searchAttributeOptions: SearchAttributeOption[] = [
   { value: 'source', label: 'Source' },
   { value: 'stringId', label: 'String ID' },
   { value: 'asset', label: 'Asset path' },
+  { value: 'location', label: 'Location', helper: 'Source usage' },
   { value: 'pluralFormOther', label: 'Plural (other)' },
   { value: 'tmTextUnitIds', label: 'TextUnit IDs' },
 ];
@@ -123,6 +124,8 @@ export function WorkbenchHeader({
         return 'Search string ID';
       case 'asset':
         return 'Search asset path';
+      case 'location':
+        return 'Search location (usage)';
       case 'pluralFormOther':
         return 'Search plural form (other)';
       case 'tmTextUnitIds':

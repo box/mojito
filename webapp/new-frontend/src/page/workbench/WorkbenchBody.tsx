@@ -404,7 +404,14 @@ export function WorkbenchBody({
                           </button>
                         ) : null}
                       </div>
-                      <span className="workbench-page__repo-name">{row.repositoryName}</span>
+                      <div className="workbench-page__meta-link workbench-page__meta-link--stack">
+                        <span className="workbench-page__repo-name">{row.repositoryName}</span>
+                        {row.locations.length > 0 ? (
+                          <span className="workbench-page__meta-location">
+                            {row.locations.join(', ')}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="workbench-page__cell workbench-page__cell--source">
                       <div className="workbench-page__text-block workbench-page__source-text">

@@ -54,11 +54,17 @@ export function serializeSearchRequest(request: TextUnitSearchRequest): string {
 
 export function mapApiTextUnitToRow(textUnit: ApiTextUnit): WorkbenchRow {
   const translation = textUnit.target ?? null;
+  const locations =
+    textUnit.assetTextUnitUsages
+      ?.split(',')
+      .map((value) => value.trim())
+      .filter(Boolean) ?? [];
   return {
     id: `${textUnit.tmTextUnitId}:${textUnit.targetLocale}`,
     textUnitName: textUnit.name,
     repositoryName: textUnit.repositoryName ?? '',
     assetPath: textUnit.assetPath ?? null,
+    locations,
     locale: textUnit.targetLocale,
     localeId: textUnit.localeId ?? null,
     source: textUnit.source ?? '',

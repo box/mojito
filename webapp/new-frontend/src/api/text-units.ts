@@ -3,6 +3,7 @@ export type SearchAttribute =
   | 'source'
   | 'target'
   | 'asset'
+  | 'location'
   | 'pluralFormOther'
   | 'tmTextUnitIds';
 
@@ -24,6 +25,7 @@ export type ApiTextUnit = {
   targetLocale: string;
   targetComment?: string | null;
   assetPath?: string | null;
+  assetTextUnitUsages?: string | null;
   repositoryName?: string | null;
   status?: ApiTextUnitStatus | null;
   includedInLocalizedFile?: boolean;
@@ -87,6 +89,7 @@ type TextUnitSearchBody = {
   source?: string;
   target?: string;
   assetPath?: string;
+  assetTextUnitUsages?: string;
   pluralFormOther?: string;
   pluralFormFiltered: boolean;
   pluralFormExcluded: boolean;
@@ -177,6 +180,9 @@ function buildSearchBody(request: TextUnitSearchRequest): TextUnitSearchBody {
         break;
       case 'asset':
         body.assetPath = searchText;
+        break;
+      case 'location':
+        body.assetTextUnitUsages = searchText;
         break;
       case 'pluralFormOther':
         body.pluralFormOther = searchText;

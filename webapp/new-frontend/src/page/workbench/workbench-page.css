@@ -934,6 +934,12 @@
   color: var(--color-text-muted);
 }
 
+.workbench-page__meta-location {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
 .workbench-page__meta-link {
   display: inline-flex;
   align-items: center;
@@ -958,6 +964,12 @@
 .workbench-page__meta-link:focus-within .workbench-link-button,
 .workbench-link-button:focus-visible {
   opacity: 1;
+}
+
+.workbench-page__meta-link--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
 }
 
 .workbench-link-button:focus-visible {

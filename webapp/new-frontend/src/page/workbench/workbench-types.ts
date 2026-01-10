@@ -5,6 +5,7 @@ export type WorkbenchRow = {
   textUnitName: string;
   repositoryName: string;
   assetPath: string | null;
+  locations: string[];
   locale: string;
   localeId: number | null;
   source: string;
