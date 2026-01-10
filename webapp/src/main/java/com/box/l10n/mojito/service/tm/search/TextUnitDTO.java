@@ -32,6 +32,7 @@ public class TextUnitDTO {
   private String repositoryName;
   private String assetPath;
   private Long assetTextUnitId;
+  private String assetTextUnitUsages;
   private ZonedDateTime tmTextUnitCreatedDate;
   private boolean doNotTranslate;
   private Long branchId;
@@ -226,6 +227,14 @@ public class TextUnitDTO {
 
   public void setAssetTextUnitId(Long assetTextUnitId) {
     this.assetTextUnitId = assetTextUnitId;
+  }
+
+  public String getAssetTextUnitUsages() {
+    return assetTextUnitUsages;
+  }
+
+  public void setAssetTextUnitUsages(String assetTextUnitUsages) {
+    this.assetTextUnitUsages = assetTextUnitUsages;
   }
 
   public ZonedDateTime getTmTextUnitCreatedDate() {

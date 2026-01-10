@@ -19,6 +19,7 @@ public class TextUnitSearcherParameters {
   String source;
   String target;
   String assetPath;
+  String assetTextUnitUsages;
   String pluralFormOther;
   SearchType searchType;
   List<Long> repositoryIds;
@@ -90,6 +91,14 @@ public class TextUnitSearcherParameters {
 
   public void setAssetPath(String assetPath) {
     this.assetPath = assetPath;
+  }
+
+  public String getAssetTextUnitUsages() {
+    return assetTextUnitUsages;
+  }
+
+  public void setAssetTextUnitUsages(String assetTextUnitUsages) {
+    this.assetTextUnitUsages = assetTextUnitUsages;
   }
 
   public List<Long> getRepositoryIds() {

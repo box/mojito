@@ -14,6 +14,7 @@ class TextUnitSearchBody {
   String source;
   String target;
   String assetPath;
+  String assetTextUnitUsages;
   String pluralFormOther;
   boolean pluralFormFiltered = true;
   boolean pluralFormExcluded = false;
@@ -82,6 +83,14 @@ class TextUnitSearchBody {
 
   public void setAssetPath(String assetPath) {
     this.assetPath = assetPath;
+  }
+
+  public String getAssetTextUnitUsages() {
+    return assetTextUnitUsages;
+  }
+
+  public void setAssetTextUnitUsages(String assetTextUnitUsages) {
+    this.assetTextUnitUsages = assetTextUnitUsages;
   }
 
   public String getPluralFormOther() {

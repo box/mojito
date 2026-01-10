@@ -1,15 +1,7 @@
 package com.box.l10n.mojito.service.tm.search;
 
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.nativecriteria.JpaQueryProvider;
-import com.box.l10n.mojito.nativecriteria.NativeColumnEqExp;
-import com.box.l10n.mojito.nativecriteria.NativeContainsExp;
-import com.box.l10n.mojito.nativecriteria.NativeDateGteExp;
-import com.box.l10n.mojito.nativecriteria.NativeDateLteExp;
-import com.box.l10n.mojito.nativecriteria.NativeEqExpFix;
-import com.box.l10n.mojito.nativecriteria.NativeILikeExp;
-import com.box.l10n.mojito.nativecriteria.NativeInExpFix;
-import com.box.l10n.mojito.nativecriteria.NativeNotILikeExp;
+import com.box.l10n.mojito.nativecriteria.*;
 import com.github.pnowy.nc.core.CriteriaResult;
 import com.github.pnowy.nc.core.NativeCriteria;
 import com.github.pnowy.nc.core.NativeExps;
@@ -117,7 +109,9 @@ public class TextUnitSearcher {
 
     try {
       logger.debug("Perform query");
-      List<TextUnitDTO> resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
+      List<TextUnitDTO> resultAsList =
+          c.criteriaResult(
+              new TextUnitDTONativeObjectMapper(searchParameters.getAssetTextUnitUsages() != null));
 
       if (logger.isDebugEnabled()) {
         logger.debug("Query done, info: {}", c.getQueryInfo());
@@ -179,6 +173,13 @@ public class TextUnitSearcher {
 
     c.addJoin(NativeExps.leftJoin("asset_text_unit", "atu", "atu.id", "map.asset_text_unit_id"));
 
+    if (searchParameters.getAssetTextUnitUsages() != null) {
+      // Requires GROUP_BY
+      c.addJoin(
+          NativeExps.leftJoin(
+              "asset_text_unit_usages", "atuu", "atu.id", "atuu.asset_text_unit_id"));
+    }
+
     // Handle plural forms with potential filter per locale
     c.addJoin(NativeExps.leftJoin("plural_form", "pf", "tu.plural_form_id", "pf.id"));
     NativeJunctionExp onClausePluralForm = NativeExps.conjunction();
@@ -191,36 +192,76 @@ public class TextUnitSearcher {
     logger.debug("Set projections");
 
     // TODO(P1) Might want to some of those projection as optional for perf reason
-    c.setProjection(
-        NativeExps.projection()
-            .addProjection("tu.id", "tmTextUnitId")
-            .addProjection("tuv.id", "tmTextUnitVariantId")
-            .
-            // TODO(PO) THIS NOT CONSISTANT !! chooose
-            addProjection("l.id", "localeId")
-            .addProjection("l.bcp47_tag", "targetLocale")
-            .addProjection("tu.name", "name")
-            .addProjection("tu.content", "source")
-            .addProjection("tu.comment", "comment")
-            .addProjection("tuv.content", "target")
-            .addProjection("tuv.comment", "targetComment")
-            .addProjection("tu.asset_id", "assetId")
-            .addProjection(
-                "a.last_successful_asset_extraction_id", "lastSuccessfulAssetExtractionId")
-            .addProjection("atu.asset_extraction_id", "assetExtractionId")
-            .addProjection("tuvc.id", "tmTextUnitCurrentVariantId")
-            .addProjection("tuv.status", "status")
-            .addProjection("tuv.included_in_localized_file", "includedInLocalizedFile")
-            .addProjection("tuv.created_date", "createdDate")
-            .addProjection("a.deleted", "assetDeleted")
-            .addProjection("pf.name", "pluralForm")
-            .addProjection("tu.plural_form_other", "pluralFormOther")
-            .addProjection("r.name", "repositoryName")
-            .addProjection("a.path", "assetPath")
-            .addProjection("atu.id", "assetTextUnitId")
-            .addProjection("tu.created_date", "tmTextUnitCreatedDate")
-            .addProjection("atu.do_not_translate", "doNotTranslate")
-            .addProjection("atu.branch_id", "branch_id"));
+    NativeProjection projection;
+
+    if (searchParameters.getAssetTextUnitUsages() == null) {
+      projection =
+          NativeExps.projection()
+              .addProjection("tu.id", "tmTextUnitId")
+              .addProjection("tuv.id", "tmTextUnitVariantId")
+              .addProjection("l.id", "localeId")
+              .addProjection("l.bcp47_tag", "targetLocale")
+              .addProjection("tu.name", "name")
+              .addProjection("tu.content", "source")
+              .addProjection("tu.comment", "comment")
+              .addProjection("tuv.content", "target")
+              .addProjection("tuv.comment", "targetComment")
+              .addProjection("tu.asset_id", "assetId")
+              .addProjection(
+                  "a.last_successful_asset_extraction_id", "lastSuccessfulAssetExtractionId")
+              .addProjection("atu.asset_extraction_id", "assetExtractionId")
+              .addProjection("tuvc.id", "tmTextUnitCurrentVariantId")
+              .addProjection("tuv.status", "status")
+              .addProjection("tuv.included_in_localized_file", "includedInLocalizedFile")
+              .addProjection("tuv.created_date", "createdDate")
+              .addProjection("a.deleted", "assetDeleted")
+              .addProjection("pf.name", "pluralForm")
+              .addProjection("tu.plural_form_other", "pluralFormOther")
+              .addProjection("r.name", "repositoryName")
+              .addProjection("a.path", "assetPath")
+              .addProjection("atu.id", "assetTextUnitId")
+              .addProjection("tu.created_date", "tmTextUnitCreatedDate")
+              .addProjection("atu.do_not_translate", "doNotTranslate")
+              .addProjection("atu.branch_id", "branch_id");
+    } else {
+
+      projection =
+          NativeExps.projection()
+              .addProjection(new NativeAnyValueExp("tu.id", "tmTextUnitId"))
+              .addProjection(new NativeAnyValueExp("tuv.id", "tmTextUnitVariantId"))
+              .addProjection(new NativeAnyValueExp("l.id", "localeId"))
+              .addProjection(new NativeAnyValueExp("l.bcp47_tag", "targetLocale"))
+              .addProjection(new NativeAnyValueExp("tu.name", "name"))
+              .addProjection(new NativeAnyValueExp("tu.content", "source"))
+              .addProjection(new NativeAnyValueExp("tu.comment", "comment"))
+              .addProjection(new NativeAnyValueExp("tuv.content", "target"))
+              .addProjection(new NativeAnyValueExp("tuv.comment", "targetComment"))
+              .addProjection(new NativeAnyValueExp("tu.asset_id", "assetId"))
+              .addProjection(
+                  new NativeAnyValueExp(
+                      "a.last_successful_asset_extraction_id", "lastSuccessfulAssetExtractionId"))
+              .addProjection(new NativeAnyValueExp("atu.asset_extraction_id", "assetExtractionId"))
+              .addProjection(new NativeAnyValueExp("tuvc.id", "tmTextUnitCurrentVariantId"))
+              .addProjection(new NativeAnyValueExp("tuv.status", "status"))
+              .addProjection(
+                  new NativeAnyValueExp(
+                      "tuv.included_in_localized_file", "includedInLocalizedFile"))
+              .addProjection(new NativeAnyValueExp("tuv.created_date", "createdDate"))
+              .addProjection(new NativeAnyValueExp("a.deleted", "assetDeleted"))
+              .addProjection(new NativeAnyValueExp("pf.name", "pluralForm"))
+              .addProjection(new NativeAnyValueExp("tu.plural_form_other", "pluralFormOther"))
+              .addProjection(new NativeAnyValueExp("r.name", "repositoryName"))
+              .addProjection(new NativeAnyValueExp("a.path", "assetPath"))
+              .addProjection("atu.id", "assetTextUnitId")
+              .addProjection(new NativeAnyValueExp("tu.created_date", "tmTextUnitCreatedDate"))
+              .addProjection(new NativeAnyValueExp("atu.do_not_translate", "doNotTranslate"))
+              .addProjection(new NativeAnyValueExp("atu.branch_id", "branch_id"))
+              .addProjection(new NativeGroupConcatExp("atuu.usages", "usages"));
+
+      projection.addGroupProjection("atu.id").addGroupProjection("l.id");
+    }
+
+    c.setProjection(projection);
 
     logger.debug("Add search filters");
     NativeJunctionExp conjunction = NativeExps.conjunction();
@@ -276,6 +317,14 @@ public class TextUnitSearcher {
               "tuv.content",
               "tuv.content_md5",
               searchParameters.getTarget()));
+    }
+
+    if (searchParameters.getAssetTextUnitUsages() != null) {
+      conjunction.add(
+          getSearchTypeNativeExp(
+              searchParameters.getSearchType(),
+              "atuu.usages",
+              searchParameters.getAssetTextUnitUsages()));
     }
 
     if (searchParameters.getAssetPath() != null) {

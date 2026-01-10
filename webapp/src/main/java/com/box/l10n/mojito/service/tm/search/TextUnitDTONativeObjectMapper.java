@@ -13,6 +13,12 @@ import com.github.pnowy.nc.core.mappers.NativeObjectMapper;
  */
 public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUnitDTO> {
 
+  boolean mapAssetTextUnitUsages;
+
+  public TextUnitDTONativeObjectMapper(boolean mapAssetTextUnitUsages) {
+    this.mapAssetTextUnitUsages = mapAssetTextUnitUsages;
+  }
+
   @Override
   public TextUnitDTO mapObject(CriteriaResult cr) {
 
@@ -56,6 +62,10 @@ public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUni
     t.setDoNotTranslate(Boolean.valueOf(doNotTranslate));
 
     t.setBranchId(cr.getLong(idx++));
+
+    if (mapAssetTextUnitUsages) {
+      t.setAssetTextUnitUsages(cr.getString(idx++));
+    }
 
     return t;
   }
