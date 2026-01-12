@@ -109,6 +109,14 @@ export function WorkbenchBody({
     !searchErrorMessage &&
     !saveErrorMessage;
 
+  const showSearchLoading =
+    isSearchLoading &&
+    !isRepositoryLoading &&
+    !repositoryErrorMessage &&
+    !searchErrorMessage &&
+    !saveErrorMessage &&
+    rows.length === 0;
+
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
   const [openStatusRowId, setOpenStatusRowId] = useState<string | null>(null);
   useEffect(() => {
@@ -279,6 +287,7 @@ export function WorkbenchBody({
         <div className="workbench-page__rows" ref={scrollRef}>
           {showNoResults ||
           showEmptyPrompt ||
+          showSearchLoading ||
           showRepositoryLoading ||
           (!hasRows && (repositoryErrorMessage || saveErrorMessage || searchErrorMessage)) ? (
             <div className="workbench-page__empty">
@@ -306,6 +315,13 @@ export function WorkbenchBody({
                       <span className="spinner" />
                     </span>
                     <span>Loading repositories…</span>
+                  </>
+                ) : showSearchLoading ? (
+                  <>
+                    <span className="workbench-page__empty-spinner" aria-hidden="true">
+                      <span className="spinner" />
+                    </span>
+                    <span>Searching…</span>
                   </>
                 ) : showNoResults ? (
                   'No results. Try a different search term, broaden your filters, or switch repositories/locales.'
