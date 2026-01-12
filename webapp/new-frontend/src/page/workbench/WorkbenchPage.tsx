@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { TextUnitSearchRequest } from '../../api/text-units';
+import { useUser } from '../../components/RequireUser';
+import { canEditLocale as canEditLocaleForUser } from '../../utils/permissions';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import { useWorkbenchCollections } from './useWorkbenchCollections';
 import { useWorkbenchEdits } from './useWorkbenchEdits';
@@ -43,13 +45,22 @@ export function WorkbenchPage() {
   const [hydrationModal, setHydrationModal] = useState<{ title: string; body: string } | null>(
     null,
   );
+  const currentUser = useUser();
   const locationState = (location.state as WorkbenchLocationState | null) ?? null;
   const stateSearchRequest = locationState?.workbenchSearch ?? null;
   const stateLocalePrompt = locationState?.localePrompt ?? false;
+  const allowedLocaleTags =
+    currentUser && !currentUser.canTranslateAllLocales ? (currentUser.userLocales ?? []) : null;
+  const canEditLocale = useCallback(
+    (locale: string) => canEditLocaleForUser(currentUser, locale),
+    [currentUser],
+  );
 
   const search = useWorkbenchSearch({
     isEditMode,
     initialSearchRequest: hydratedSearchRequest,
+    allowedLocaleTags,
+    canEditLocale,
   });
   const collections = useWorkbenchCollections();
 

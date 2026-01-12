@@ -429,7 +429,7 @@ export function WorkbenchBody({
                         className="workbench-page__translation-input"
                         value={translationValue}
                         onFocus={() => {
-                          if (!isEditing) {
+                          if (!isEditing && row.canEdit) {
                             onStartEditing(row.id, row.translation);
                           }
                         }}
@@ -438,7 +438,8 @@ export function WorkbenchBody({
                             ? (event) => onChangeEditingValue(event.target.value)
                             : undefined
                         }
-                        readOnly={!isEditing}
+                        readOnly={!isEditing || !row.canEdit}
+                        aria-disabled={row.canEdit ? undefined : 'true'}
                         ref={isEditing ? translationInputRef : undefined}
                         lang={translationLocale}
                         dir={translationDirection}
@@ -499,7 +500,7 @@ export function WorkbenchBody({
                             label: status,
                           }))}
                           onChange={(next) => onChangeStatus(row.id, next)}
-                          disabled={Boolean(editingRowId) || isStatusSaving}
+                          disabled={Boolean(editingRowId) || isStatusSaving || !row.canEdit}
                           aria-label="Translation status"
                           isOpen={isStatusOpen}
                           onOpenChange={(nextOpen) => {

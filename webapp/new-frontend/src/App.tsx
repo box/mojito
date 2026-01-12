@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
+import { RequireUser } from './components/RequireUser';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';
 
@@ -48,7 +49,13 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename="/n">
         <Routes>
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <RequireUser>
+                <AppLayout />
+              </RequireUser>
+            }
+          >
             <Route path="/" element={<Navigate to="/repositories" replace />} />
             {navItems.map(({ to, element }) => (
               <Route key={to} path={to} element={element} />

@@ -248,7 +248,11 @@ async function postJson<TResponse>(url: string, body: unknown): Promise<TRespons
 
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(text || `Request failed with status ${response.status}`);
+    const error: Error & { status?: number } = new Error(
+      text || `Request failed with status ${response.status}`,
+    );
+    error.status = response.status;
+    throw error;
   }
   return text ? (JSON.parse(text) as TResponse) : (undefined as TResponse);
 }

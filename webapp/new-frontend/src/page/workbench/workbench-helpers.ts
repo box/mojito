@@ -52,7 +52,10 @@ export function serializeSearchRequest(request: TextUnitSearchRequest): string {
   return JSON.stringify(stable);
 }
 
-export function mapApiTextUnitToRow(textUnit: ApiTextUnit): WorkbenchRow {
+export function mapApiTextUnitToRow(
+  textUnit: ApiTextUnit,
+  canEditLocale?: (locale: string) => boolean,
+): WorkbenchRow {
   const translation = textUnit.target ?? null;
   const locations =
     textUnit.assetTextUnitUsages
@@ -76,6 +79,7 @@ export function mapApiTextUnitToRow(textUnit: ApiTextUnit): WorkbenchRow {
     tmTextUnitId: textUnit.tmTextUnitId,
     tmTextUnitVariantId: textUnit.tmTextUnitVariantId ?? null,
     tmTextUnitCurrentVariantId: textUnit.tmTextUnitCurrentVariantId ?? null,
+    canEdit: canEditLocale ? Boolean(canEditLocale(textUnit.targetLocale)) : true,
   };
 }
 

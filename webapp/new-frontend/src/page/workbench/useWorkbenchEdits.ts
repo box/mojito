@@ -259,7 +259,11 @@ export function useWorkbenchEdits({
           queryClient.setQueryData(key, data);
         }
       }
-      setSaveErrorMessage(error.message);
+      const message =
+        (error as { status?: number }).status === 403
+          ? 'You cannot edit this locale.'
+          : error.message;
+      setSaveErrorMessage(message);
     },
   });
 
@@ -304,6 +308,11 @@ export function useWorkbenchEdits({
 
   const handleRequestStartEditing = useCallback(
     (rowId: string, translation: string | null) => {
+      const row = apiRows.find((candidate) => candidate.id === rowId);
+      if (row && !row.canEdit) {
+        setSaveErrorMessage('You cannot edit this locale.');
+        return;
+      }
       if (editingRowId && editingRowId !== rowId && hasUnsavedChanges) {
         setPendingEditingTarget({ rowId, translation });
         return;
@@ -311,7 +320,7 @@ export function useWorkbenchEdits({
 
       handleStartEditing(rowId, translation);
     },
-    [editingRowId, hasUnsavedChanges, handleStartEditing],
+    [apiRows, editingRowId, hasUnsavedChanges, handleStartEditing],
   );
 
   const confirmDiscardEditing = useCallback(() => {
@@ -353,6 +362,10 @@ export function useWorkbenchEdits({
     const row = apiRows.find((candidate) => candidate.id === editingRowId);
     if (!row) {
       setSaveErrorMessage('Unable to save: row is no longer available.');
+      return;
+    }
+    if (!row.canEdit) {
+      setSaveErrorMessage('You cannot edit this locale.');
       return;
     }
     if (typeof row.localeId !== 'number') {
@@ -425,6 +438,10 @@ export function useWorkbenchEdits({
     (rowId: string, status: string) => {
       const row = apiRows.find((candidate) => candidate.id === rowId);
       if (!row) {
+        return;
+      }
+      if (!row.canEdit) {
+        setSaveErrorMessage('You cannot edit this locale.');
         return;
       }
       if (typeof row.localeId !== 'number') {
