@@ -14,7 +14,7 @@ const searchAttributeOptions: SearchAttributeOption[] = [
   { value: 'source', label: 'Source' },
   { value: 'stringId', label: 'String ID' },
   { value: 'asset', label: 'Asset path' },
-  { value: 'location', label: 'Location', helper: 'Source usage' },
+  { value: 'location', label: 'Location' },
   { value: 'pluralFormOther', label: 'Plural (other)' },
   { value: 'tmTextUnitIds', label: 'TextUnit IDs' },
 ];
