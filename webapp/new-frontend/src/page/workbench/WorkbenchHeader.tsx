@@ -771,7 +771,7 @@ function SearchFilter({
             ) : null}
           </div>
           <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Result size</div>
+            <div className="workbench-searchmode__label">Result size limit</div>
             <div className="workbench-filterchip__pills">
               {worksetPresets.map((option) => (
                 <button

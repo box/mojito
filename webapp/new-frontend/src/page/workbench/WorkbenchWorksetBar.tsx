@@ -240,7 +240,7 @@ function ResultSizeDropdown({
       {isOpen ? (
         <div className="chip-dropdown__panel workbench-worksetbar__panel" role="menu">
           <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Result size</div>
+            <div className="workbench-searchmode__label">Result size limit</div>
             <div className="workbench-filterchip__pills workbench-worksetbar__pills">
               {resultSizePresets.map((option) => (
                 <button
