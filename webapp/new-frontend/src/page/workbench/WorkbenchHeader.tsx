@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { SearchAttribute, SearchType } from '../../api/text-units';
-import { MultiSelectChip } from '../../components/MultiSelectChip';
+import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
+import { MultiSelectChip, type MultiSelectChipProps } from '../../components/MultiSelectChip';
+import type { LocaleSelectionOption } from '../../utils/localeSelection';
+import { filterMyLocales } from '../../utils/localeSelection';
 import { resultSizePresets } from './workbench-constants';
 import { loadPreferredLocales, PREFERRED_LOCALES_KEY } from './workbench-preferences';
-import type { LocaleOption, RepositoryOption, StatusFilterValue } from './workbench-types';
+import type { RepositoryOption, StatusFilterValue } from './workbench-types';
 
 type SearchAttributeOption = { value: SearchAttribute; label: string; helper?: string };
 type SearchTypeOption = { value: SearchType; label: string; helper?: string };
 type StatusFilterOption = { value: StatusFilterValue; label: string };
+type RepositorySummaryFormatter = NonNullable<MultiSelectChipProps<number>['summaryFormatter']>;
 
 const searchAttributeOptions: SearchAttributeOption[] = [
   { value: 'target', label: 'Translation' },
@@ -46,7 +50,7 @@ type WorkbenchHeaderProps = {
   selectedRepositoryIds: number[];
   onChangeRepositorySelection: (next: number[]) => void;
   isRepositoryLoading: boolean;
-  localeOptions: LocaleOption[];
+  localeOptions: LocaleSelectionOption[];
   selectedLocaleTags: string[];
   onChangeLocaleSelection: (next: string[]) => void;
   userLocales: string[];
@@ -115,10 +119,6 @@ export function WorkbenchHeader({
     value: option.id,
     label: option.name,
   }));
-  const localeMultiOptions = localeOptions.map((option) => ({
-    value: option.tag,
-    label: option.label,
-  }));
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -131,14 +131,18 @@ export function WorkbenchHeader({
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const myLocaleSelections = useMemo(() => {
-    const available = new Set(localeOptions.map((option) => option.tag.toLowerCase()));
-    const candidates = isLimitedTranslator ? userLocales : preferredLocales;
-    if (!candidates.length) {
-      return [];
-    }
-    return candidates.filter((tag) => available.has(tag.toLowerCase()));
-  }, [isLimitedTranslator, localeOptions, preferredLocales, userLocales]);
+  const myLocaleSelections = useMemo(
+    () =>
+      filterMyLocales({
+        availableLocaleTags: localeOptions.map((option) => option.tag),
+        userLocales,
+        preferredLocales,
+        isLimitedTranslator,
+        // Header does not receive role; mimic previous behavior by using preferred locales when not limited.
+        isAdmin: !isLimitedTranslator,
+      }),
+    [isLimitedTranslator, localeOptions, preferredLocales, userLocales],
+  );
 
   const searchPlaceholder = (() => {
     switch (searchAttribute) {
@@ -164,36 +168,26 @@ export function WorkbenchHeader({
   const searchControlsDisabled = disabled || isEditMode;
   // Keep the header summary stable while repositories are loading to avoid flicker.
   const repositoriesEmptyLabel = isRepositoryLoading ? 'Repositories' : 'No repositories';
-  const localesEmptyLabel = isRepositoryLoading ? 'Locales' : 'No locales';
-  const isMyLocaleSelectionActive = useMemo(() => {
-    if (myLocaleSelections.length === 0) {
-      return false;
-    }
-    if (selectedLocaleTags.length !== myLocaleSelections.length) {
-      return false;
-    }
-    const selectedSet = new Set(selectedLocaleTags.map((tag) => tag.toLowerCase()));
-    return myLocaleSelections.every((tag) => selectedSet.has(tag.toLowerCase()));
-  }, [myLocaleSelections, selectedLocaleTags]);
-  const handleSelectMyLocales = useCallback(() => {
-    if (!myLocaleSelections.length) {
-      return;
-    }
-    onChangeLocaleSelection(myLocaleSelections);
-  }, [myLocaleSelections, onChangeLocaleSelection]);
   const shouldShowMyLocalesAction = isLimitedTranslator || preferredLocales.length > 0;
-  const localeCustomActions = shouldShowMyLocalesAction
-    ? [
-        {
-          label: 'My locales',
-          onClick: handleSelectMyLocales,
-          disabled: myLocaleSelections.length === 0 || isMyLocaleSelectionActive,
-          ariaLabel: isLimitedTranslator
-            ? 'Select your assigned locales'
-            : 'Select your preferred locales',
-        },
-      ]
-    : undefined;
+  const repositorySummaryFormatter: RepositorySummaryFormatter = ({ options, selectedValues }) => {
+    if (!options.length) {
+      return repositoriesEmptyLabel;
+    }
+    if (!selectedValues.length) {
+      return 'Repositories';
+    }
+    if (selectedValues.length === options.length) {
+      return 'All repositories';
+    }
+    if (selectedValues.length === 1) {
+      const selectedSet = new Set(selectedValues);
+      return options
+        .filter((option) => selectedSet.has(option.value))
+        .map((option) => option.label)
+        .join(', ');
+    }
+    return `${selectedValues.length} repositories`;
+  };
   return (
     <div className="workbench-page__header workbench-header">
       <div className="workbench-header__left">
@@ -206,55 +200,18 @@ export function WorkbenchHeader({
           disabled={searchControlsDisabled}
           placeholder="Repositories"
           emptyOptionsLabel={repositoriesEmptyLabel}
-          summaryFormatter={({ options, selectedValues }) => {
-            if (!options.length) {
-              return repositoriesEmptyLabel;
-            }
-            if (!selectedValues.length) {
-              return 'Repositories';
-            }
-            if (selectedValues.length === options.length) {
-              return 'All repositories';
-            }
-            if (selectedValues.length === 1) {
-              const selectedSet = new Set(selectedValues);
-              return options
-                .filter((option) => selectedSet.has(option.value))
-                .map((option) => option.label)
-                .join(', ');
-            }
-            return `${selectedValues.length} repositories`;
-          }}
+          summaryFormatter={repositorySummaryFormatter}
         />
-        <MultiSelectChip
+        <LocaleMultiSelect
           className="workbench-chip-dropdown workbench-chip-dropdown--locale"
-          label="Locales"
-          options={localeMultiOptions}
-          selectedValues={selectedLocaleTags}
+          options={localeOptions}
+          selectedTags={selectedLocaleTags}
           onChange={onChangeLocaleSelection}
           disabled={searchControlsDisabled}
-          placeholder="Locales"
-          emptyOptionsLabel={localesEmptyLabel}
-          customActions={localeCustomActions}
-          summaryFormatter={({ options, selectedValues }) => {
-            if (!options.length) {
-              return localesEmptyLabel;
-            }
-            if (!selectedValues.length) {
-              return 'Locales';
-            }
-            if (selectedValues.length === options.length) {
-              return 'All locales';
-            }
-            if (selectedValues.length === 1) {
-              const selectedSet = new Set(selectedValues);
-              return options
-                .filter((option) => selectedSet.has(option.value))
-                .map((option) => option.label)
-                .join(', ');
-            }
-            return `${selectedValues.length} locales`;
-          }}
+          myLocaleTags={shouldShowMyLocalesAction ? myLocaleSelections : []}
+          myLocalesAriaLabel={
+            isLimitedTranslator ? 'Select your assigned locales' : 'Select your preferred locales'
+          }
         />
       </div>
 

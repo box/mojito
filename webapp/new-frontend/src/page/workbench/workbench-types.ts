@@ -19,7 +19,6 @@ export type WorkbenchRow = {
 };
 
 export type RepositoryOption = { id: number; name: string };
-export type LocaleOption = { tag: string; label: string };
 
 export type StatusFilterValue =
   | 'ALL'

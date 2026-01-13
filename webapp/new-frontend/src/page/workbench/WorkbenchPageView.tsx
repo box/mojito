@@ -7,8 +7,8 @@ import type { ApiRepository } from '../../api/repositories';
 import type { SearchAttribute, SearchType, TextUnitSearchRequest } from '../../api/text-units';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Modal } from '../../components/Modal';
+import type { LocaleSelectionOption } from '../../utils/localeSelection';
 import type {
-  LocaleOption,
   RepositoryOption,
   StatusFilterValue,
   WorkbenchCollection,
@@ -67,7 +67,7 @@ type Props = {
   onChangeRepositorySelection: (next: number[]) => void;
   isRepositoryLoading: boolean;
   repositoryErrorMessage: string | null;
-  localeOptions: LocaleOption[];
+  localeOptions: LocaleSelectionOption[];
   selectedLocaleTags: string[];
   onChangeLocaleSelection: (next: string[]) => void;
   userLocales: string[];
