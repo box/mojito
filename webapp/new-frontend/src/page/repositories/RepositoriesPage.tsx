@@ -17,6 +17,10 @@ import {
   useLocaleSelection,
 } from '../../utils/localeSelection';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import {
+  useRepositorySelection,
+  useRepositorySelectionOptions,
+} from '../../utils/repositorySelection';
 import { WORKSET_SIZE_DEFAULT } from '../workbench/workbench-constants';
 import { clampWorksetSize } from '../workbench/workbench-helpers';
 import {
@@ -143,7 +147,6 @@ const buildLocalesForRepository = (
 export function RepositoriesPage() {
   const user = useUser();
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
-  const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState<RepositoryStatusFilter>('all');
   const [preferredLocales, setPreferredLocales] = useState<string[]>(() => loadPreferredLocales());
   const navigate = useNavigate();
@@ -161,7 +164,46 @@ export function RepositoriesPage() {
     : undefined;
 
   const repositories = useMemo(() => repositoryData ?? [], [repositoryData]);
-  const localeOptions: LocaleOption[] = useLocaleOptionsWithDisplayNames(repositories);
+  const repositoryOptions = useRepositorySelectionOptions(repositories);
+
+  const {
+    selectedIds: selectedRepositoryIds,
+    onChangeSelection: onChangeRepositorySelection,
+    hasTouched: hasTouchedRepositorySelection,
+    setSelection: setRepositorySelection,
+  } = useRepositorySelection({
+    options: repositoryOptions,
+  });
+
+  useEffect(() => {
+    if (hasTouchedRepositorySelection || selectedRepositoryIds.length > 0) {
+      return;
+    }
+    if (!repositoryOptions.length) {
+      return;
+    }
+    setRepositorySelection(
+      repositoryOptions.map((option) => option.id),
+      { markTouched: false },
+    );
+  }, [
+    hasTouchedRepositorySelection,
+    repositoryOptions,
+    selectedRepositoryIds.length,
+    setRepositorySelection,
+  ]);
+
+  const allowedRepositoryIdSet = useMemo(() => {
+    if (selectedRepositoryIds.length === 0) {
+      return hasTouchedRepositorySelection ? new Set<number>() : undefined;
+    }
+    return new Set(selectedRepositoryIds);
+  }, [hasTouchedRepositorySelection, selectedRepositoryIds]);
+
+  const localeOptions: LocaleOption[] = useLocaleOptionsWithDisplayNames(
+    repositories,
+    allowedRepositoryIdSet,
+  );
 
   const {
     selectedTags: selectedLocaleTags,
@@ -195,11 +237,9 @@ export function RepositoriesPage() {
     });
   }, [localeOptions, preferredLocales, user.canTranslateAllLocales, user.role, user.userLocales]);
 
-  const normalizedSearchValue = searchValue.trim().toLowerCase();
-
   const filteredRepositories = useMemo(() => {
     return repositories.filter((repository) => {
-      if (normalizedSearchValue && !repository.name.toLowerCase().includes(normalizedSearchValue)) {
+      if (allowedRepositoryIdSet && !allowedRepositoryIdSet.has(repository.id)) {
         return false;
       }
 
@@ -222,7 +262,7 @@ export function RepositoriesPage() {
 
       return true;
     });
-  }, [allowedLocaleTagSet, normalizedSearchValue, repositories, statusFilter]);
+  }, [allowedLocaleTagSet, allowedRepositoryIdSet, repositories, statusFilter]);
 
   const repositoriesWithSelection = useMemo(
     () =>
@@ -375,8 +415,9 @@ export function RepositoriesPage() {
       repositories={repositoriesWithSelection}
       locales={localesForSelectedRepository}
       hasSelection={selectedRepositoryId != null}
-      searchValue={searchValue}
-      onSearchChange={setSearchValue}
+      repositoryOptions={repositoryOptions}
+      selectedRepositoryIds={selectedRepositoryIds}
+      onChangeRepositorySelection={onChangeRepositorySelection}
       localeOptions={localeOptions}
       selectedLocaleTags={selectedLocaleTags}
       onChangeLocaleSelection={handleChangeLocaleSelection}
@@ -385,7 +426,7 @@ export function RepositoriesPage() {
       onStatusFilterChange={setStatusFilter}
       onSelectRepository={handleSelectRepository}
       onOpenWorkbench={handleOpenWorkbench}
-      selectedRepositoryId={selectedRepositoryId}
+      isRepositorySelectionEmpty={selectedRepositoryIds.length === 0}
     />
   );
 }

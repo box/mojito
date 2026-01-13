@@ -7,6 +7,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { LocaleOption } from '../../components/LocaleMultiSelect';
 import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
+import {
+  RepositoryMultiSelect,
+  type RepositoryMultiSelectOption,
+} from '../../components/RepositoryMultiSelect';
 
 const ROW_HEIGHT_PX = 48; // keep in sync with --repositories-page-row-height in CSS
 
@@ -43,9 +47,9 @@ type Props = {
   repositories: RepositoryRow[];
   locales: LocaleRow[];
   hasSelection: boolean;
-  selectedRepositoryId: number | null;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
+  repositoryOptions: RepositoryMultiSelectOption[];
+  selectedRepositoryIds: number[];
+  onChangeRepositorySelection: (next: number[]) => void;
   localeOptions: LocaleOption[];
   selectedLocaleTags: string[];
   onChangeLocaleSelection: (next: string[]) => void;
@@ -59,12 +63,14 @@ type Props = {
     localeTag?: string | null;
     count?: number | null;
   }) => void;
+  isRepositorySelectionEmpty: boolean;
 };
 
 const formatCount = (value: number) => (value === 0 ? '' : value);
 
 type RepositoryTableProps = {
   repositories: RepositoryRow[];
+  isRepositorySelectionEmpty: boolean;
   onSelectRepository: (id: number) => void;
   onOpenWorkbench: (params: {
     repositoryId: number;
@@ -229,9 +235,20 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
 
 function RepositoryTable({
   repositories,
+  isRepositorySelectionEmpty,
   onSelectRepository,
   onOpenWorkbench,
 }: RepositoryTableProps) {
+  if (isRepositorySelectionEmpty) {
+    return (
+      <div className="repositories-page__pane">
+        <div className="repositories-page__pane-placeholder hint">
+          Select repositories to show results.
+        </div>
+      </div>
+    );
+  }
+
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const selectedIndex = useMemo(
     () => repositories.findIndex((repo) => repo.selected),
@@ -504,8 +521,9 @@ export function RepositoriesPageView({
   repositories,
   locales,
   hasSelection,
-  searchValue,
-  onSearchChange,
+  repositoryOptions,
+  selectedRepositoryIds,
+  onChangeRepositorySelection,
   localeOptions,
   selectedLocaleTags,
   onChangeLocaleSelection,
@@ -514,6 +532,7 @@ export function RepositoriesPageView({
   onStatusFilterChange,
   onSelectRepository,
   onOpenWorkbench,
+  isRepositorySelectionEmpty,
 }: Props) {
   if (status === 'loading') {
     return <LoadingState />;
@@ -529,17 +548,14 @@ export function RepositoriesPageView({
     <div className="repositories-page">
       <div className="repositories-page__bar">
         <div className="repositories-page__controls">
-          <div className="repositories-page__search">
-            <input
-              type="search"
-              className="repositories-page__search-input"
-              placeholder="Search repositories by name"
-              aria-label="Search repositories by name"
-              value={searchValue}
-              onChange={(event) => onSearchChange(event.target.value)}
-            />
-          </div>
           <div className="repositories-page__filters" role="group" aria-label="Filter repositories">
+            <RepositoryMultiSelect
+              options={repositoryOptions}
+              selectedIds={selectedRepositoryIds}
+              onChange={onChangeRepositorySelection}
+              className="repositories-page__repository-filter"
+              buttonAriaLabel="Filter repositories by name"
+            />
             <LocaleMultiSelect
               options={localeOptions}
               selectedTags={selectedLocaleTags}
@@ -554,6 +570,7 @@ export function RepositoriesPageView({
       <div className="repositories-page__content repositories-page--split">
         <RepositoryTable
           repositories={repositories}
+          isRepositorySelectionEmpty={isRepositorySelectionEmpty}
           onSelectRepository={onSelectRepository}
           onOpenWorkbench={onOpenWorkbench}
         />
