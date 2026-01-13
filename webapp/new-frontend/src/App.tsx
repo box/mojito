@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
 import { RequireUser } from './components/RequireUser';
+import { UserMenu } from './components/UserMenu';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';
 
@@ -25,17 +26,20 @@ function AppLayout() {
   return (
     <div className="app-shell">
       <header className="app-shell__header">
-        <nav className="app-shell__nav">
-          {navItems.map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) => `app-shell__nav-link${isActive ? ' is-active' : ''}`}
-            >
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="app-shell__header-content">
+          <nav className="app-shell__nav">
+            {navItems.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) => `app-shell__nav-link${isActive ? ' is-active' : ''}`}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <UserMenu />
+        </div>
       </header>
       <main className="app-shell__main">
         <Outlet />

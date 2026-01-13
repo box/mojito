@@ -110,14 +110,23 @@ body {
   flex: 0 0 auto;
   height: var(--app-shell-header-height);
   display: flex;
+  align-items: center;
   border-bottom: var(--border-width) solid var(--color-border);
   background: var(--color-surface);
+}
+
+.app-shell__header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 var(--space-7);
+  gap: var(--space-4);
 }
 
 .app-shell__nav {
   display: flex;
   align-items: center;
-  padding: 0 var(--space-7);
   gap: var(--space-3);
 }
 
