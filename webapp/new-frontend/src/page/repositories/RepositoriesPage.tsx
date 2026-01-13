@@ -7,12 +7,23 @@ import type {
   ApiRepositoryLocaleStatistic,
 } from '../../api/repositories';
 import type { TextUnitSearchRequest } from '../../api/text-units';
+import { useUser } from '../../components/RequireUser';
 import { useRepositories } from '../../hooks/useRepositories';
-import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
+import type { LocaleSelectionOption as LocaleOption } from '../../utils/localeSelection';
+import {
+  filterMyLocales,
+  isLocaleTagAllowed,
+  useLocaleOptionsWithDisplayNames,
+  useLocaleSelection,
+} from '../../utils/localeSelection';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import { WORKSET_SIZE_DEFAULT } from '../workbench/workbench-constants';
 import { clampWorksetSize } from '../workbench/workbench-helpers';
-import { loadPreferredWorksetSize } from '../workbench/workbench-preferences';
+import {
+  loadPreferredLocales,
+  loadPreferredWorksetSize,
+  PREFERRED_LOCALES_KEY,
+} from '../workbench/workbench-preferences';
 import type { LocaleRow, RepositoryRow, RepositoryStatusFilter } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
@@ -38,8 +49,9 @@ const getFullyTranslatedLocaleTags = (repository: ApiRepository) => {
 const buildRepositoryRow = (
   repository: ApiRepository,
   selectedRepositoryId: number | null,
+  allowedLocaleTags?: Set<string>,
 ): RepositoryRow => {
-  const summary = getRepositorySummary(repository);
+  const summary = getRepositorySummary(repository, allowedLocaleTags);
 
   return {
     id: repository.id,
@@ -54,10 +66,13 @@ const buildRepositoryRow = (
 const buildRepositoriesWithSelection = (
   repositories: ApiRepository[],
   selectedRepositoryId: number | null,
+  allowedLocaleTags?: Set<string>,
 ): RepositoryRow[] =>
-  repositories.map((repository) => buildRepositoryRow(repository, selectedRepositoryId));
+  repositories.map((repository) =>
+    buildRepositoryRow(repository, selectedRepositoryId, allowedLocaleTags),
+  );
 
-const getRepositorySummary = (repository: ApiRepository) => {
+const getRepositorySummary = (repository: ApiRepository, allowedLocaleTags?: Set<string>) => {
   const fullyTranslatedTags = getFullyTranslatedLocaleTags(repository);
   const localeStats = repository.repositoryStatistic?.repositoryLocaleStatistics ?? [];
 
@@ -67,6 +82,9 @@ const getRepositorySummary = (repository: ApiRepository) => {
 
   localeStats.forEach((localeStat) => {
     const localeTag = getLocaleTag(localeStat.locale);
+    if (!isLocaleTagAllowed(localeTag, allowedLocaleTags)) {
+      return;
+    }
     rejected += getRejectedCount(localeStat);
     needsReview += localeStat.reviewNeededCount ?? 0;
 
@@ -81,6 +99,7 @@ const getRepositorySummary = (repository: ApiRepository) => {
 const buildLocaleRows = (
   repository: ApiRepository,
   resolveLocaleName: (tag: string) => string,
+  allowedLocaleTags?: Set<string>,
 ): LocaleRow[] => {
   const localeStats = repository.repositoryStatistic?.repositoryLocaleStatistics ?? [];
   const sourceLocaleTag = repository.sourceLocale?.bcp47Tag;
@@ -89,6 +108,9 @@ const buildLocaleRows = (
     .map((localeStat, index) => {
       const localeTag = getLocaleTag(localeStat.locale);
       if (!localeTag || localeTag === sourceLocaleTag) {
+        return null;
+      }
+      if (!isLocaleTagAllowed(localeTag, allowedLocaleTags)) {
         return null;
       }
 
@@ -109,20 +131,22 @@ const buildLocaleRows = (
 const buildLocalesForRepository = (
   repository: ApiRepository | null,
   resolveLocaleName: (tag: string) => string,
+  allowedLocaleTags?: Set<string>,
 ): LocaleRow[] => {
   if (!repository) {
     return [];
   }
 
-  return buildLocaleRows(repository, resolveLocaleName);
+  return buildLocaleRows(repository, resolveLocaleName, allowedLocaleTags);
 };
 
 export function RepositoriesPage() {
+  const user = useUser();
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState<RepositoryStatusFilter>('all');
+  const [preferredLocales, setPreferredLocales] = useState<string[]>(() => loadPreferredLocales());
   const navigate = useNavigate();
-  const resolveLocaleDisplayName = useLocaleDisplayNameResolver();
 
   const { data: repositoryData, isLoading, isError, error, refetch } = useRepositories();
   const handleRetryFetch = useCallback(() => {
@@ -137,6 +161,39 @@ export function RepositoriesPage() {
     : undefined;
 
   const repositories = useMemo(() => repositoryData ?? [], [repositoryData]);
+  const localeOptions: LocaleOption[] = useLocaleOptionsWithDisplayNames(repositories);
+
+  const {
+    selectedTags: selectedLocaleTags,
+    onChangeSelection: onChangeLocaleSelection,
+    allowedTagSet: allowedLocaleTagSet,
+  } = useLocaleSelection({
+    options: localeOptions,
+    autoSelectAll: true,
+  });
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== PREFERRED_LOCALES_KEY) {
+        return;
+      }
+      setPreferredLocales(loadPreferredLocales());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const myLocaleSelections = useMemo(() => {
+    const userLocales = user.userLocales ?? [];
+    const isLimitedTranslator = !user.canTranslateAllLocales && userLocales.length > 0;
+    return filterMyLocales({
+      availableLocaleTags: localeOptions.map((option) => option.tag),
+      userLocales,
+      preferredLocales,
+      isLimitedTranslator,
+      isAdmin: user.role === 'ROLE_ADMIN',
+    });
+  }, [localeOptions, preferredLocales, user.canTranslateAllLocales, user.role, user.userLocales]);
 
   const normalizedSearchValue = searchValue.trim().toLowerCase();
 
@@ -146,7 +203,12 @@ export function RepositoriesPage() {
         return false;
       }
 
-      const summary = getRepositorySummary(repository);
+      const summary = getRepositorySummary(repository, allowedLocaleTagSet);
+
+      // When locales are explicitly deselected, hide repositories with no matching locale data.
+      if (allowedLocaleTagSet && allowedLocaleTagSet.size === 0) {
+        return false;
+      }
 
       if (statusFilter === 'rejected') {
         return summary.rejected > 0;
@@ -160,11 +222,16 @@ export function RepositoriesPage() {
 
       return true;
     });
-  }, [normalizedSearchValue, repositories, statusFilter]);
+  }, [allowedLocaleTagSet, normalizedSearchValue, repositories, statusFilter]);
 
   const repositoriesWithSelection = useMemo(
-    () => buildRepositoriesWithSelection(filteredRepositories, selectedRepositoryId),
-    [filteredRepositories, selectedRepositoryId],
+    () =>
+      buildRepositoriesWithSelection(
+        filteredRepositories,
+        selectedRepositoryId,
+        allowedLocaleTagSet,
+      ),
+    [allowedLocaleTagSet, filteredRepositories, selectedRepositoryId],
   );
 
   const selectedRepository = useMemo(
@@ -237,12 +304,23 @@ export function RepositoriesPage() {
   }, [repositoriesWithSelection, selectedRepositoryId]);
 
   const localesForSelectedRepository = useMemo<LocaleRow[]>(() => {
-    return buildLocalesForRepository(selectedRepository ?? null, resolveLocaleDisplayName);
-  }, [resolveLocaleDisplayName, selectedRepository]);
+    return buildLocalesForRepository(
+      selectedRepository ?? null,
+      (tag) => localeOptions.find((option) => option.tag === tag)?.label ?? tag,
+      allowedLocaleTagSet,
+    );
+  }, [allowedLocaleTagSet, localeOptions, selectedRepository]);
 
   const handleSelectRepository = useCallback((id: number) => {
     setSelectedRepositoryId((previous) => (previous === id ? null : id));
   }, []);
+
+  const handleChangeLocaleSelection = useCallback(
+    (next: string[]) => {
+      onChangeLocaleSelection(next);
+    },
+    [onChangeLocaleSelection],
+  );
 
   const handleOpenWorkbench = useCallback(
     ({
@@ -260,9 +338,18 @@ export function RepositoriesPage() {
       if (!repository) {
         return;
       }
+      const repoLocaleTags = getNonRootRepositoryLocaleTags(repository);
+      const allowedLocaleTags = allowedLocaleTagSet
+        ? repoLocaleTags.filter((tag) => isLocaleTagAllowed(tag, allowedLocaleTagSet))
+        : repoLocaleTags;
+      const localeTags =
+        localeTag != null ? [localeTag] : allowedLocaleTags.length ? allowedLocaleTags : [];
+      if (localeTags.length === 0) {
+        return;
+      }
       const searchRequest: TextUnitSearchRequest = {
         repositoryIds: [repositoryId],
-        localeTags: localeTag != null ? [localeTag] : getNonRootRepositoryLocaleTags(repository),
+        localeTags,
         searchAttribute: 'target',
         searchType: 'contains',
         searchText: '',
@@ -277,7 +364,7 @@ export function RepositoriesPage() {
 
       void navigate('/workbench', { state: { workbenchSearch: searchRequest } });
     },
-    [navigate, repositories],
+    [allowedLocaleTagSet, navigate, repositories],
   );
 
   return (
@@ -290,6 +377,10 @@ export function RepositoriesPage() {
       hasSelection={selectedRepositoryId != null}
       searchValue={searchValue}
       onSearchChange={setSearchValue}
+      localeOptions={localeOptions}
+      selectedLocaleTags={selectedLocaleTags}
+      onChangeLocaleSelection={handleChangeLocaleSelection}
+      myLocaleSelections={myLocaleSelections}
       statusFilter={statusFilter}
       onStatusFilterChange={setStatusFilter}
       onSelectRepository={handleSelectRepository}

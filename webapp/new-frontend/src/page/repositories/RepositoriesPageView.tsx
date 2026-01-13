@@ -5,6 +5,9 @@ import './repositories-page.css';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { LocaleOption } from '../../components/LocaleMultiSelect';
+import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
+
 const ROW_HEIGHT_PX = 48; // keep in sync with --repositories-page-row-height in CSS
 
 export type RepositoryRow = {
@@ -43,6 +46,10 @@ type Props = {
   selectedRepositoryId: number | null;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  localeOptions: LocaleOption[];
+  selectedLocaleTags: string[];
+  onChangeLocaleSelection: (next: string[]) => void;
+  myLocaleSelections: string[];
   statusFilter: RepositoryStatusFilter;
   onStatusFilterChange: (value: RepositoryStatusFilter) => void;
   onSelectRepository: (id: number) => void;
@@ -499,6 +506,10 @@ export function RepositoriesPageView({
   hasSelection,
   searchValue,
   onSearchChange,
+  localeOptions,
+  selectedLocaleTags,
+  onChangeLocaleSelection,
+  myLocaleSelections,
   statusFilter,
   onStatusFilterChange,
   onSelectRepository,
@@ -529,6 +540,13 @@ export function RepositoriesPageView({
             />
           </div>
           <div className="repositories-page__filters" role="group" aria-label="Filter repositories">
+            <LocaleMultiSelect
+              options={localeOptions}
+              selectedTags={selectedLocaleTags}
+              onChange={onChangeLocaleSelection}
+              className="repositories-page__locale-filter"
+              myLocaleTags={myLocaleSelections}
+            />
             <StatusFilterDropdown value={statusFilter} onChange={onStatusFilterChange} />
           </div>
         </div>

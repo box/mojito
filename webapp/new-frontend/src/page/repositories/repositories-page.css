@@ -111,6 +111,14 @@
   flex-wrap: wrap;
 }
 
+.repositories-page__locale-filter {
+  min-width: 200px;
+}
+
+.repositories-page__locale-filter .chip-dropdown__button {
+  height: 32px;
+}
+
 .repositories-page__filter-button {
   border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
   border-radius: var(--radius-pill);
