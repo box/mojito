@@ -74,6 +74,83 @@ type SearchState = {
   refetchSearch: () => Promise<unknown>;
 };
 
+type SearchRequestInputs = {
+  repositoryIds: number[];
+  localeTags: string[];
+  searchAttribute: SearchAttribute;
+  searchType: SearchType;
+  searchText: string;
+  searchLimit: number;
+  statusFilter: StatusFilterValue;
+  includeUsed: boolean;
+  includeUnused: boolean;
+  includeTranslate: boolean;
+  includeDoNotTranslate: boolean;
+  createdBefore: string | null;
+  createdAfter: string | null;
+};
+
+function buildSearchRequestFromInputs({
+  repositoryIds,
+  localeTags,
+  searchAttribute,
+  searchType,
+  searchText,
+  searchLimit,
+  statusFilter,
+  includeUsed,
+  includeUnused,
+  includeTranslate,
+  includeDoNotTranslate,
+  createdBefore,
+  createdAfter,
+}: SearchRequestInputs): TextUnitSearchRequest | null {
+  if (!repositoryIds.length || !localeTags.length) {
+    return null;
+  }
+
+  const usedFilter = (() => {
+    if (!includeUsed && !includeUnused) {
+      return undefined;
+    }
+    if (includeUsed && !includeUnused) {
+      return 'USED' as const;
+    }
+    if (!includeUsed && includeUnused) {
+      return 'UNUSED' as const;
+    }
+    return undefined;
+  })();
+
+  const doNotTranslateFilter = (() => {
+    if (!includeTranslate && !includeDoNotTranslate) {
+      return undefined;
+    }
+    if (includeDoNotTranslate && !includeTranslate) {
+      return true;
+    }
+    if (includeTranslate && !includeDoNotTranslate) {
+      return false;
+    }
+    return undefined;
+  })();
+
+  return {
+    repositoryIds,
+    localeTags,
+    searchAttribute,
+    searchType,
+    searchText,
+    limit: searchLimit,
+    offset: 0,
+    statusFilter: statusFilter === 'ALL' ? undefined : statusFilter,
+    usedFilter,
+    doNotTranslateFilter,
+    tmTextUnitCreatedBefore: createdBefore ?? undefined,
+    tmTextUnitCreatedAfter: createdAfter ?? undefined,
+  };
+}
+
 export function useWorkbenchSearch({
   isEditMode,
   initialSearchRequest,
@@ -135,26 +212,49 @@ export function useWorkbenchSearch({
     setStatusFilter((initialSearchRequest.statusFilter as StatusFilterValue | undefined) ?? 'ALL');
 
     const usedFilter = initialSearchRequest.usedFilter;
-    setIncludeUsed(usedFilter !== 'UNUSED');
-    setIncludeUnused(usedFilter === 'UNUSED');
+    const initialIncludeUsed = usedFilter === 'UNUSED' ? false : true;
+    const initialIncludeUnused = usedFilter === 'USED' ? false : true;
+    setIncludeUsed(initialIncludeUsed);
+    setIncludeUnused(initialIncludeUnused);
 
     const dntFilter = initialSearchRequest.doNotTranslateFilter;
-    if (typeof dntFilter === 'boolean') {
-      setIncludeTranslate(!dntFilter);
-      setIncludeDoNotTranslate(dntFilter);
-    } else {
-      setIncludeTranslate(true);
-      setIncludeDoNotTranslate(true);
-    }
+    const initialIncludeTranslate = typeof dntFilter === 'boolean' ? !dntFilter : true;
+    const initialIncludeDoNotTranslate = typeof dntFilter === 'boolean' ? dntFilter : true;
+    setIncludeTranslate(initialIncludeTranslate);
+    setIncludeDoNotTranslate(initialIncludeDoNotTranslate);
 
     setCreatedBefore(initialSearchRequest.tmTextUnitCreatedBefore ?? null);
     setCreatedAfter(initialSearchRequest.tmTextUnitCreatedAfter ?? null);
-    const initialLimit =
-      initialSearchRequest.limit ?? loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT;
-    setWorksetSize(clampWorksetSize(initialLimit));
+    const initialLimit = clampWorksetSize(
+      initialSearchRequest.limit ?? loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT,
+    );
+    setWorksetSize(initialLimit);
 
     if (initialLocales.length > 0) {
-      setActiveSearchRequest({ ...initialSearchRequest, localeTags: initialLocales });
+      const normalizedRequest = buildSearchRequestFromInputs({
+        repositoryIds: initialSearchRequest.repositoryIds ?? [],
+        localeTags: initialLocales,
+        searchAttribute: initialSearchRequest.searchAttribute ?? 'target',
+        searchType: initialSearchRequest.searchType ?? 'contains',
+        searchText: initialSearchRequest.searchText ?? '',
+        searchLimit: initialLimit,
+        statusFilter: (initialSearchRequest.statusFilter as StatusFilterValue | undefined) ?? 'ALL',
+        includeUsed: initialIncludeUsed,
+        includeUnused: initialIncludeUnused,
+        includeTranslate: initialIncludeTranslate,
+        includeDoNotTranslate: initialIncludeDoNotTranslate,
+        createdBefore: initialSearchRequest.tmTextUnitCreatedBefore ?? null,
+        createdAfter: initialSearchRequest.tmTextUnitCreatedAfter ?? null,
+      });
+      if (normalizedRequest) {
+        setActiveSearchRequest(normalizedRequest);
+        lastAppliedNonTextSignatureRef.current = serializeSearchRequest({
+          ...normalizedRequest,
+          searchText: '',
+        });
+      } else {
+        setActiveSearchRequest(null);
+      }
     } else {
       setActiveSearchRequest(null);
     }
@@ -303,52 +403,22 @@ export function useWorkbenchSearch({
   const searchLimit = clampWorksetSize(worksetSize);
 
   const buildPendingSearchRequest = useCallback(
-    (searchText: string): TextUnitSearchRequest | null => {
-      if (!selectedRepositoryIds.length || !selectedLocaleTags.length) {
-        return null;
-      }
-
-      const usedFilter = (() => {
-        if (!includeUsed && !includeUnused) {
-          return undefined;
-        }
-        if (includeUsed && !includeUnused) {
-          return 'USED' as const;
-        }
-        if (!includeUsed && includeUnused) {
-          return 'UNUSED' as const;
-        }
-        return undefined;
-      })();
-
-      const doNotTranslateFilter = (() => {
-        if (!includeTranslate && !includeDoNotTranslate) {
-          return undefined;
-        }
-        if (includeDoNotTranslate && !includeTranslate) {
-          return true;
-        }
-        if (includeTranslate && !includeDoNotTranslate) {
-          return false;
-        }
-        return undefined;
-      })();
-
-      return {
+    (searchText: string): TextUnitSearchRequest | null =>
+      buildSearchRequestFromInputs({
         repositoryIds: selectedRepositoryIds,
         localeTags: selectedLocaleTags,
         searchAttribute,
         searchType,
         searchText,
-        limit: searchLimit,
-        offset: 0,
-        statusFilter: statusFilter === 'ALL' ? undefined : statusFilter,
-        usedFilter,
-        doNotTranslateFilter,
-        tmTextUnitCreatedBefore: createdBefore ?? undefined,
-        tmTextUnitCreatedAfter: createdAfter ?? undefined,
-      };
-    },
+        searchLimit,
+        statusFilter,
+        includeUsed,
+        includeUnused,
+        includeTranslate,
+        includeDoNotTranslate,
+        createdBefore,
+        createdAfter,
+      }),
     [
       createdAfter,
       createdBefore,
