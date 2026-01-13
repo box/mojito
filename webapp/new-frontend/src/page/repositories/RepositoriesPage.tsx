@@ -10,6 +10,9 @@ import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { WORKSET_SIZE_DEFAULT } from '../workbench/workbench-constants';
+import { clampWorksetSize } from '../workbench/workbench-helpers';
+import { loadPreferredWorksetSize } from '../workbench/workbench-preferences';
 import type { LocaleRow, RepositoryRow, RepositoryStatusFilter } from './RepositoriesPageView';
 import { RepositoriesPageView } from './RepositoriesPageView';
 
@@ -246,16 +249,17 @@ export function RepositoriesPage() {
       repositoryId,
       status,
       localeTag,
+      count,
     }: {
       repositoryId: number;
       status?: string | null;
       localeTag?: string | null;
+      count?: number | null;
     }) => {
       const repository = repositories.find((repo) => repo.id === repositoryId);
       if (!repository) {
         return;
       }
-
       const searchRequest: TextUnitSearchRequest = {
         repositoryIds: [repositoryId],
         localeTags: localeTag != null ? [localeTag] : getNonRootRepositoryLocaleTags(repository),
@@ -263,7 +267,13 @@ export function RepositoriesPage() {
         searchType: 'contains',
         searchText: '',
         statusFilter: status ?? undefined,
+        offset: 0,
       };
+
+      if (typeof count === 'number' && count > 0) {
+        const preferred = loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT;
+        searchRequest.limit = clampWorksetSize(Math.max(count, preferred));
+      }
 
       void navigate('/workbench', { state: { workbenchSearch: searchRequest } });
     },

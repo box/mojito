@@ -50,6 +50,7 @@ type Props = {
     repositoryId: number;
     status?: string | null;
     localeTag?: string | null;
+    count?: number | null;
   }) => void;
 };
 
@@ -58,7 +59,11 @@ const formatCount = (value: number) => (value === 0 ? '' : value);
 type RepositoryTableProps = {
   repositories: RepositoryRow[];
   onSelectRepository: (id: number) => void;
-  onOpenWorkbench: (params: { repositoryId: number; status?: string | null }) => void;
+  onOpenWorkbench: (params: {
+    repositoryId: number;
+    status?: string | null;
+    count?: number | null;
+  }) => void;
 };
 
 type LocaleTableProps = {
@@ -69,6 +74,7 @@ type LocaleTableProps = {
     repositoryId: number;
     status?: string | null;
     localeTag?: string | null;
+    count?: number | null;
   }) => void;
 };
 
@@ -305,7 +311,13 @@ function RepositoryTable({
                   <CellLink
                     muted={repo.rejected === 0}
                     stopPropagation
-                    onClick={() => onOpenWorkbench({ repositoryId: repo.id, status: 'REJECTED' })}
+                    onClick={() =>
+                      onOpenWorkbench({
+                        repositoryId: repo.id,
+                        status: 'REJECTED',
+                        count: repo.rejected,
+                      })
+                    }
                     ariaLabel={`Open rejected units for ${repo.name} in workbench`}
                   >
                     {formatCount(repo.rejected) || '-'}
@@ -323,7 +335,11 @@ function RepositoryTable({
                     muted={repo.needsTranslation === 0}
                     stopPropagation
                     onClick={() =>
-                      onOpenWorkbench({ repositoryId: repo.id, status: 'FOR_TRANSLATION' })
+                      onOpenWorkbench({
+                        repositoryId: repo.id,
+                        status: 'FOR_TRANSLATION',
+                        count: repo.needsTranslation,
+                      })
                     }
                     ariaLabel={`Open "to translate" units for ${repo.name} in workbench`}
                   >
@@ -342,7 +358,11 @@ function RepositoryTable({
                     muted={repo.needsReview === 0}
                     stopPropagation
                     onClick={() =>
-                      onOpenWorkbench({ repositoryId: repo.id, status: 'REVIEW_NEEDED' })
+                      onOpenWorkbench({
+                        repositoryId: repo.id,
+                        status: 'REVIEW_NEEDED',
+                        count: repo.needsReview,
+                      })
                     }
                     ariaLabel={`Open "to review" units for ${repo.name} in workbench`}
                   >
@@ -397,6 +417,7 @@ function LocaleTable({ locales, hasSelection, repositoryId, onOpenWorkbench }: L
                       repositoryId: repositoryId ?? -1,
                       status: null,
                       localeTag: locale.id,
+                      count: null,
                     })
                   }
                 >
@@ -411,6 +432,7 @@ function LocaleTable({ locales, hasSelection, repositoryId, onOpenWorkbench }: L
                       repositoryId: repositoryId ?? -1,
                       status: 'REJECTED',
                       localeTag: locale.id,
+                      count: locale.rejected,
                     })
                   }
                   ariaLabel={`Open rejected units for ${locale.name} in workbench`}
@@ -426,6 +448,7 @@ function LocaleTable({ locales, hasSelection, repositoryId, onOpenWorkbench }: L
                       repositoryId: repositoryId ?? -1,
                       status: 'FOR_TRANSLATION',
                       localeTag: locale.id,
+                      count: locale.needsTranslation,
                     })
                   }
                   ariaLabel={`Open "to translate" units for ${locale.name} in workbench`}
@@ -446,6 +469,7 @@ function LocaleTable({ locales, hasSelection, repositoryId, onOpenWorkbench }: L
                       repositoryId: repositoryId ?? -1,
                       status: 'REVIEW_NEEDED',
                       localeTag: locale.id,
+                      count: locale.needsReview,
                     })
                   }
                   ariaLabel={`Open "to review" units for ${locale.name} in workbench`}
