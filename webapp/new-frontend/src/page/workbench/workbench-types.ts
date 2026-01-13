@@ -18,8 +18,6 @@ export type WorkbenchRow = {
   canEdit: boolean;
 };
 
-export type RepositoryOption = { id: number; name: string };
-
 export type StatusFilterValue =
   | 'ALL'
   | 'FOR_TRANSLATION'

@@ -8,8 +8,8 @@ import type { SearchAttribute, SearchType, TextUnitSearchRequest } from '../../a
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Modal } from '../../components/Modal';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
+import type { RepositorySelectionOption } from '../../utils/repositorySelection';
 import type {
-  RepositoryOption,
   StatusFilterValue,
   WorkbenchCollection,
   WorkbenchDiffModalData,
@@ -62,7 +62,7 @@ type Props = {
   onChangeSearchType: (value: SearchType) => void;
   onBackToSearch: () => void;
   onRefreshWorkset: () => void;
-  repositoryOptions: RepositoryOption[];
+  repositoryOptions: RepositorySelectionOption[];
   selectedRepositoryIds: number[];
   onChangeRepositorySelection: (next: number[]) => void;
   isRepositoryLoading: boolean;

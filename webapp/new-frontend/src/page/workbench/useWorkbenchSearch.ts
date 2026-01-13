@@ -14,10 +14,15 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useRepositories } from '../../hooks/useRepositories';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
 import { useLocaleOptionsWithDisplayNames, useLocaleSelection } from '../../utils/localeSelection';
+import type { RepositorySelectionOption } from '../../utils/repositorySelection';
+import {
+  useRepositorySelection,
+  useRepositorySelectionOptions,
+} from '../../utils/repositorySelection';
 import { WORKSET_SIZE_DEFAULT } from './workbench-constants';
 import { clampWorksetSize, mapApiTextUnitToRow, serializeSearchRequest } from './workbench-helpers';
 import { loadPreferredWorksetSize } from './workbench-preferences';
-import type { RepositoryOption, StatusFilterValue, WorkbenchRow } from './workbench-types';
+import type { StatusFilterValue, WorkbenchRow } from './workbench-types';
 
 type SearchQueryKey = ['workbench-search', TextUnitSearchRequest | null];
 
@@ -28,7 +33,7 @@ type Params = {
 };
 
 type SearchState = {
-  repositoryOptions: RepositoryOption[];
+  repositoryOptions: RepositorySelectionOption[];
   repositories: ApiRepository[];
   localeOptions: LocaleSelectionOption[];
   isRepositoriesLoading: boolean;
@@ -157,7 +162,6 @@ export function useWorkbenchSearch({
   const [searchAttribute, setSearchAttribute] = useState<SearchAttribute>('target');
   const [searchType, setSearchType] = useState<SearchType>('contains');
   const [searchInputValue, setSearchInputValue] = useState('');
-  const [selectedRepositoryIds, setSelectedRepositoryIds] = useState<number[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('ALL');
   const [includeUsed, setIncludeUsed] = useState(true);
   const [includeUnused, setIncludeUnused] = useState(false);
@@ -171,7 +175,6 @@ export function useWorkbenchSearch({
   const hydratedSearchSignatureRef = useRef<string | null>(null);
   const lastHydratedRequestRef = useRef<TextUnitSearchRequest | null>(null);
   const [hasHydratedSearch, setHasHydratedSearch] = useState(false);
-  const [shouldRestoreReposFromHydration, setShouldRestoreReposFromHydration] = useState(false);
 
   const {
     data: repositories,
@@ -180,10 +183,18 @@ export function useWorkbenchSearch({
     error: repositoriesError,
   } = useRepositories();
 
-  const repositoryOptions: RepositoryOption[] = useMemo(
-    () => (repositories ?? []).map((repo) => ({ id: repo.id, name: repo.name })),
-    [repositories],
-  );
+  const repositoryOptions: RepositorySelectionOption[] =
+    useRepositorySelectionOptions(repositories);
+
+  const {
+    selectedIds: selectedRepositoryIds,
+    onChangeSelection: onChangeRepositorySelection,
+    setSelection: setRepositorySelection,
+  } = useRepositorySelection({
+    options: repositoryOptions,
+    initialSelected: initialSearchRequest?.repositoryIds ?? [],
+    allowStaleSelections: true,
+  });
 
   const allowedRepositoryIds = useMemo(
     () =>
@@ -223,7 +234,7 @@ export function useWorkbenchSearch({
       return;
     }
 
-    setSelectedRepositoryIds(initialSearchRequest.repositoryIds ?? []);
+    setRepositorySelection(initialSearchRequest.repositoryIds ?? [], { markTouched: false });
     const initialLocales = initialSearchRequest.localeTags ?? [];
     setLocaleSelection(initialLocales, { markTouched: false });
     setSearchAttribute(initialSearchRequest.searchAttribute ?? 'target');
@@ -281,61 +292,7 @@ export function useWorkbenchSearch({
     hydratedSearchSignatureRef.current = initialSearchSignature;
     lastHydratedRequestRef.current = initialSearchRequest;
     setHasHydratedSearch(true);
-    setShouldRestoreReposFromHydration(true);
-  }, [initialSearchRequest, initialSearchSignature, setLocaleSelection]);
-
-  const onChangeRepositorySelection = useCallback(
-    (nextSelected: number[]) => {
-      setShouldRestoreReposFromHydration(false);
-      const allowedIds = new Set(repositoryOptions.map((option) => option.id));
-      const uniqueNext = nextSelected.filter(
-        (value, index, array) => array.indexOf(value) === index,
-      );
-      const filtered = uniqueNext.filter((value) => allowedIds.has(value));
-      setSelectedRepositoryIds(filtered);
-    },
-    [repositoryOptions],
-  );
-
-  useEffect(() => {
-    if (!repositoryOptions.length) {
-      if (hasHydratedSearch) {
-        return;
-      }
-      setSelectedRepositoryIds((current) => (current.length ? [] : current));
-      return;
-    }
-
-    if (shouldRestoreReposFromHydration) {
-      const allowedIds = new Set(repositoryOptions.map((option) => option.id));
-      if (selectedRepositoryIds.length === 0) {
-        const fromHydration = (initialSearchRequest?.repositoryIds ?? []).filter((id) => {
-          return allowedIds.has(id);
-        });
-        if (fromHydration.length) {
-          setSelectedRepositoryIds(fromHydration);
-          setShouldRestoreReposFromHydration(false);
-          return;
-        }
-      }
-      setShouldRestoreReposFromHydration(false);
-    }
-
-    setSelectedRepositoryIds((current) => {
-      const allowedIds = new Set(repositoryOptions.map((option) => option.id));
-      const filtered = current.filter((id) => allowedIds.has(id));
-      const same =
-        filtered.length === current.length &&
-        filtered.every((value, index) => value === current[index]);
-      return same ? current : filtered;
-    });
-  }, [
-    hasHydratedSearch,
-    initialSearchRequest?.repositoryIds,
-    repositoryOptions,
-    selectedRepositoryIds.length,
-    shouldRestoreReposFromHydration,
-  ]);
+  }, [initialSearchRequest, initialSearchSignature, setLocaleSelection, setRepositorySelection]);
 
   useEffect(() => {
     if (hasHydratedSearch || localeOptions.length) {

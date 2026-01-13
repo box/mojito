@@ -2,17 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { SearchAttribute, SearchType } from '../../api/text-units';
 import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
-import { MultiSelectChip, type MultiSelectChipProps } from '../../components/MultiSelectChip';
+import {
+  RepositoryMultiSelect,
+  type RepositoryMultiSelectOption,
+} from '../../components/RepositoryMultiSelect';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
 import { filterMyLocales } from '../../utils/localeSelection';
 import { resultSizePresets } from './workbench-constants';
 import { loadPreferredLocales, PREFERRED_LOCALES_KEY } from './workbench-preferences';
-import type { RepositoryOption, StatusFilterValue } from './workbench-types';
+import type { StatusFilterValue } from './workbench-types';
 
 type SearchAttributeOption = { value: SearchAttribute; label: string; helper?: string };
 type SearchTypeOption = { value: SearchType; label: string; helper?: string };
 type StatusFilterOption = { value: StatusFilterValue; label: string };
-type RepositorySummaryFormatter = NonNullable<MultiSelectChipProps<number>['summaryFormatter']>;
 
 const searchAttributeOptions: SearchAttributeOption[] = [
   { value: 'target', label: 'Translation' },
@@ -46,7 +48,7 @@ type WorkbenchHeaderProps = {
   isEditMode: boolean;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
-  repositoryOptions: RepositoryOption[];
+  repositoryOptions: RepositoryMultiSelectOption[];
   selectedRepositoryIds: number[];
   onChangeRepositorySelection: (next: number[]) => void;
   isRepositoryLoading: boolean;
@@ -86,7 +88,6 @@ export function WorkbenchHeader({
   repositoryOptions,
   selectedRepositoryIds,
   onChangeRepositorySelection,
-  isRepositoryLoading,
   localeOptions,
   selectedLocaleTags,
   onChangeLocaleSelection,
@@ -115,10 +116,6 @@ export function WorkbenchHeader({
   onChangeCreatedAfter,
 }: WorkbenchHeaderProps) {
   const [preferredLocales, setPreferredLocales] = useState<string[]>(() => loadPreferredLocales());
-  const repositoryMultiOptions = repositoryOptions.map((option) => ({
-    value: option.id,
-    label: option.name,
-  }));
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -166,41 +163,17 @@ export function WorkbenchHeader({
   })();
 
   const searchControlsDisabled = disabled || isEditMode;
-  // Keep the header summary stable while repositories are loading to avoid flicker.
-  const repositoriesEmptyLabel = isRepositoryLoading ? 'Repositories' : 'No repositories';
   const shouldShowMyLocalesAction = isLimitedTranslator || preferredLocales.length > 0;
-  const repositorySummaryFormatter: RepositorySummaryFormatter = ({ options, selectedValues }) => {
-    if (!options.length) {
-      return repositoriesEmptyLabel;
-    }
-    if (!selectedValues.length) {
-      return 'Repositories';
-    }
-    if (selectedValues.length === options.length) {
-      return 'All repositories';
-    }
-    if (selectedValues.length === 1) {
-      const selectedSet = new Set(selectedValues);
-      return options
-        .filter((option) => selectedSet.has(option.value))
-        .map((option) => option.label)
-        .join(', ');
-    }
-    return `${selectedValues.length} repositories`;
-  };
   return (
     <div className="workbench-page__header workbench-header">
       <div className="workbench-header__left">
-        <MultiSelectChip
+        <RepositoryMultiSelect
           className="workbench-chip-dropdown"
-          label="Repositories"
-          options={repositoryMultiOptions}
-          selectedValues={selectedRepositoryIds}
+          options={repositoryOptions}
+          selectedIds={selectedRepositoryIds}
           onChange={onChangeRepositorySelection}
           disabled={searchControlsDisabled}
-          placeholder="Repositories"
-          emptyOptionsLabel={repositoriesEmptyLabel}
-          summaryFormatter={repositorySummaryFormatter}
+          buttonAriaLabel="Select repositories"
         />
         <LocaleMultiSelect
           className="workbench-chip-dropdown workbench-chip-dropdown--locale"
