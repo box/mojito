@@ -1,6 +1,7 @@
 import './user-menu.css';
 
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import type { ApiUserProfile } from '../api/users';
 import { useUser } from './RequireUser';
@@ -22,6 +23,7 @@ export function UserMenu() {
   const user = useUser();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!open) {
@@ -59,6 +61,12 @@ export function UserMenu() {
 
   const displayName = user.username || 'Account';
   const roleLabel = formatRole(user.role);
+  const isAdmin = user.role === 'ROLE_ADMIN';
+
+  const handleNavigate = (path: string) => {
+    setOpen(false);
+    void navigate(path);
+  };
 
   return (
     <div className="user-menu" ref={containerRef}>
@@ -80,6 +88,20 @@ export function UserMenu() {
             <div className="user-menu__line-name">{displayName}</div>
             <div className="user-menu__line-role">{roleLabel}</div>
           </div>
+          {isAdmin ? (
+            <div className="user-menu__actions" role="none">
+              <button
+                type="button"
+                className="user-menu__action"
+                role="menuitem"
+                onClick={() => handleNavigate('/settings/admin')}
+              >
+                Admin settings
+              </button>
+            </div>
+          ) : (
+            <div className="user-menu__hint">More account actions will land here soon.</div>
+          )}
         </div>
       ) : null}
     </div>

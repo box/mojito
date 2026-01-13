@@ -7,6 +7,7 @@ import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-r
 import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
+import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';
 
 type NavItem = {
@@ -64,6 +65,7 @@ export function App() {
             {navItems.map(({ to, element }) => (
               <Route key={to} path={to} element={element} />
             ))}
+            <Route path="/settings/admin" element={<AdminSettingsPage />} />
             <Route path="*" element={<Navigate to="/repositories" replace />} />
           </Route>
         </Routes>
