@@ -16,6 +16,7 @@ import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import { WORKSET_SIZE_DEFAULT } from './workbench-constants';
 import { clampWorksetSize, mapApiTextUnitToRow, serializeSearchRequest } from './workbench-helpers';
+import { loadPreferredWorksetSize } from './workbench-preferences';
 import type {
   LocaleOption,
   RepositoryOption,
@@ -92,7 +93,9 @@ export function useWorkbenchSearch({
   const [includeDoNotTranslate, setIncludeDoNotTranslate] = useState(true);
   const [createdBefore, setCreatedBefore] = useState<string | null>(null);
   const [createdAfter, setCreatedAfter] = useState<string | null>(null);
-  const [worksetSize, setWorksetSize] = useState<number>(WORKSET_SIZE_DEFAULT);
+  const [worksetSize, setWorksetSize] = useState<number>(
+    () => loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT,
+  );
   const hydratedSearchSignatureRef = useRef<string | null>(null);
   const lastHydratedRequestRef = useRef<TextUnitSearchRequest | null>(null);
   const [hasHydratedSearch, setHasHydratedSearch] = useState(false);
@@ -145,7 +148,9 @@ export function useWorkbenchSearch({
 
     setCreatedBefore(initialSearchRequest.tmTextUnitCreatedBefore ?? null);
     setCreatedAfter(initialSearchRequest.tmTextUnitCreatedAfter ?? null);
-    setWorksetSize(clampWorksetSize(initialSearchRequest.limit ?? WORKSET_SIZE_DEFAULT));
+    const initialLimit =
+      initialSearchRequest.limit ?? loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT;
+    setWorksetSize(clampWorksetSize(initialLimit));
 
     if (initialLocales.length > 0) {
       setActiveSearchRequest({ ...initialSearchRequest, localeTags: initialLocales });
@@ -491,9 +496,21 @@ export function useWorkbenchSearch({
     setSearchType(type);
   }, []);
 
-  const onChangeWorksetSize = useCallback((value: number) => {
-    setWorksetSize(clampWorksetSize(value));
-  }, []);
+  const onChangeWorksetSize = useCallback(
+    (value: number) => {
+      const next = clampWorksetSize(value);
+      if (next === worksetSize) {
+        return;
+      }
+      setWorksetSize(next);
+      if (activeSearchRequest) {
+        setActiveSearchRequest((previous) =>
+          previous ? { ...previous, limit: next, offset: previous.offset ?? 0 } : previous,
+        );
+      }
+    },
+    [activeSearchRequest, worksetSize],
+  );
 
   const repositoryErrorMessage = isRepositoriesError
     ? repositoriesError instanceof Error

@@ -48,6 +48,82 @@
   font-size: var(--font-size-md);
 }
 
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-field__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.settings-field__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.settings-input {
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+
+.settings-input:focus {
+  outline: 2px solid var(--color-focus-outline);
+  border-color: var(--color-focus-border);
+}
+
+.settings-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settings-button {
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.settings-button:hover,
+.settings-button:focus-visible {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.settings-button--ghost {
+  background: transparent;
+}
+
+.settings-hint {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+}
+
+.settings-hint.is-error {
+  color: var(--color-danger);
+}
+
+.settings-note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
 .settings-card__content {
   color: var(--color-text);
   font-size: var(--font-size-sm);

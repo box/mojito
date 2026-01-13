@@ -126,3 +126,8 @@
   color: var(--color-text-subtle);
   line-height: 1.4;
 }
+.user-menu__hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  line-height: 1.4;
+}
