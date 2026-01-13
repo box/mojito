@@ -239,16 +239,6 @@ function RepositoryTable({
   onSelectRepository,
   onOpenWorkbench,
 }: RepositoryTableProps) {
-  if (isRepositorySelectionEmpty) {
-    return (
-      <div className="repositories-page__pane">
-        <div className="repositories-page__pane-placeholder hint">
-          Select repositories to show results.
-        </div>
-      </div>
-    );
-  }
-
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const selectedIndex = useMemo(
     () => repositories.findIndex((repo) => repo.selected),
@@ -277,6 +267,16 @@ function RepositoryTable({
 
     virtualizer.scrollToIndex(selectedIndex, { align: 'auto' });
   }, [selectedIndex, virtualizer]);
+
+  if (isRepositorySelectionEmpty) {
+    return (
+      <div className="repositories-page__pane">
+        <div className="repositories-page__pane-placeholder hint">
+          Select repositories to show results.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="repositories-page__pane">
