@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SearchAttribute, SearchType } from '../../api/text-units';
 import { MultiSelectChip } from '../../components/MultiSelectChip';
 import { resultSizePresets } from './workbench-constants';
+import { loadPreferredLocales, PREFERRED_LOCALES_KEY } from './workbench-preferences';
 import type { LocaleOption, RepositoryOption, StatusFilterValue } from './workbench-types';
 
 type SearchAttributeOption = { value: SearchAttribute; label: string; helper?: string };
@@ -109,6 +110,7 @@ export function WorkbenchHeader({
   onChangeCreatedBefore,
   onChangeCreatedAfter,
 }: WorkbenchHeaderProps) {
+  const [preferredLocales, setPreferredLocales] = useState<string[]>(() => loadPreferredLocales());
   const repositoryMultiOptions = repositoryOptions.map((option) => ({
     value: option.id,
     label: option.name,
@@ -117,13 +119,26 @@ export function WorkbenchHeader({
     value: option.tag,
     label: option.label,
   }));
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== PREFERRED_LOCALES_KEY) {
+        return;
+      }
+      setPreferredLocales(loadPreferredLocales());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const myLocaleSelections = useMemo(() => {
-    if (!isLimitedTranslator) {
+    const available = new Set(localeOptions.map((option) => option.tag.toLowerCase()));
+    const candidates = isLimitedTranslator ? userLocales : preferredLocales;
+    if (!candidates.length) {
       return [];
     }
-    const available = new Set(localeOptions.map((option) => option.tag.toLowerCase()));
-    return userLocales.filter((tag) => available.has(tag.toLowerCase()));
-  }, [isLimitedTranslator, localeOptions, userLocales]);
+    return candidates.filter((tag) => available.has(tag.toLowerCase()));
+  }, [isLimitedTranslator, localeOptions, preferredLocales, userLocales]);
 
   const searchPlaceholder = (() => {
     switch (searchAttribute) {
@@ -151,9 +166,6 @@ export function WorkbenchHeader({
   const repositoriesEmptyLabel = isRepositoryLoading ? 'Repositories' : 'No repositories';
   const localesEmptyLabel = isRepositoryLoading ? 'Locales' : 'No locales';
   const isMyLocaleSelectionActive = useMemo(() => {
-    if (!isLimitedTranslator) {
-      return false;
-    }
     if (myLocaleSelections.length === 0) {
       return false;
     }
@@ -162,20 +174,23 @@ export function WorkbenchHeader({
     }
     const selectedSet = new Set(selectedLocaleTags.map((tag) => tag.toLowerCase()));
     return myLocaleSelections.every((tag) => selectedSet.has(tag.toLowerCase()));
-  }, [isLimitedTranslator, myLocaleSelections, selectedLocaleTags]);
+  }, [myLocaleSelections, selectedLocaleTags]);
   const handleSelectMyLocales = useCallback(() => {
     if (!myLocaleSelections.length) {
       return;
     }
     onChangeLocaleSelection(myLocaleSelections);
   }, [myLocaleSelections, onChangeLocaleSelection]);
-  const localeCustomActions = isLimitedTranslator
+  const shouldShowMyLocalesAction = isLimitedTranslator || preferredLocales.length > 0;
+  const localeCustomActions = shouldShowMyLocalesAction
     ? [
         {
           label: 'My locales',
           onClick: handleSelectMyLocales,
           disabled: myLocaleSelections.length === 0 || isMyLocaleSelectionActive,
-          ariaLabel: 'Select your assigned locales',
+          ariaLabel: isLimitedTranslator
+            ? 'Select your assigned locales'
+            : 'Select your preferred locales',
         },
       ]
     : undefined;
