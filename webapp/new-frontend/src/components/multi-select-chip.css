@@ -20,6 +20,11 @@
   gap: var(--space-2);
 }
 
+.multi-select-chip__actions--secondary {
+  margin-top: var(--space-1);
+  justify-content: center;
+}
+
 .multi-select-chip__action-button {
   flex: 1;
   border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
@@ -31,6 +36,25 @@
   padding: 0 var(--space-2);
   height: 26px;
   cursor: pointer;
+  white-space: nowrap;
+}
+
+.multi-select-chip__action-button--link {
+  flex: 0;
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  padding: 0;
+  min-height: auto;
+  height: auto;
+  font-size: var(--font-size-xs);
+  text-decoration: underline;
+}
+
+.multi-select-chip__action-button--link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .multi-select-chip__action-button:disabled {

@@ -8,6 +8,13 @@ export type MultiSelectOption<T extends string | number> = {
   label: string;
 };
 
+type CustomAction = {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  ariaLabel?: string;
+};
+
 type SummaryFormatter<T extends string | number> = (args: {
   label: string;
   options: Array<MultiSelectOption<T>>;
@@ -31,6 +38,7 @@ export type MultiSelectChipProps<T extends string | number> = {
   clearAllLabel?: string;
   onlyLabel?: string;
   summaryFormatter?: SummaryFormatter<T>;
+  customActions?: CustomAction[];
 };
 
 export function MultiSelectChip<T extends string | number>({
@@ -50,6 +58,7 @@ export function MultiSelectChip<T extends string | number>({
   clearAllLabel,
   onlyLabel,
   summaryFormatter,
+  customActions,
 }: MultiSelectChipProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -140,6 +149,7 @@ export function MultiSelectChip<T extends string | number>({
   const selectAllText = selectAllLabel ?? 'Select all';
   const clearAllText = clearAllLabel ?? 'Clear';
   const onlyText = onlyLabel ?? 'Only';
+  const resolvedCustomActions = customActions ?? [];
 
   return (
     <div
@@ -189,6 +199,22 @@ export function MultiSelectChip<T extends string | number>({
                   {clearAllText}
                 </button>
               </div>
+              {resolvedCustomActions.length ? (
+                <div className="multi-select-chip__actions multi-select-chip__actions--secondary">
+                  {resolvedCustomActions.map((action) => (
+                    <button
+                      type="button"
+                      key={action.label}
+                      className="multi-select-chip__action-button multi-select-chip__action-button--link"
+                      onClick={action.onClick}
+                      disabled={Boolean(action.disabled)}
+                      aria-label={action.ariaLabel ?? action.label}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="multi-select-chip__options">
                 {visibleOptions.length ? (
                   visibleOptions.map((option) => {

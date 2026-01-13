@@ -49,8 +49,8 @@ export function WorkbenchPage() {
   const locationState = (location.state as WorkbenchLocationState | null) ?? null;
   const stateSearchRequest = locationState?.workbenchSearch ?? null;
   const stateLocalePrompt = locationState?.localePrompt ?? false;
-  const allowedLocaleTags =
-    currentUser && !currentUser.canTranslateAllLocales ? (currentUser.userLocales ?? []) : null;
+  const userLocales = currentUser.userLocales ?? [];
+  const isLimitedTranslator = !currentUser.canTranslateAllLocales && userLocales.length > 0;
   const canEditLocale = useCallback(
     (locale: string) => canEditLocaleForUser(currentUser, locale),
     [currentUser],
@@ -59,7 +59,6 @@ export function WorkbenchPage() {
   const search = useWorkbenchSearch({
     isEditMode,
     initialSearchRequest: hydratedSearchRequest,
-    allowedLocaleTags,
     canEditLocale,
   });
   const collections = useWorkbenchCollections();
@@ -368,6 +367,8 @@ export function WorkbenchPage() {
       localeOptions={search.localeOptions}
       selectedLocaleTags={search.selectedLocaleTags}
       onChangeLocaleSelection={search.onChangeLocaleSelection}
+      userLocales={userLocales}
+      isLimitedTranslator={isLimitedTranslator}
       statusFilter={search.statusFilter}
       includeUsed={search.includeUsed}
       includeUnused={search.includeUnused}

@@ -69,6 +69,8 @@ type Props = {
   localeOptions: LocaleOption[];
   selectedLocaleTags: string[];
   onChangeLocaleSelection: (next: string[]) => void;
+  userLocales: string[];
+  isLimitedTranslator: boolean;
   statusFilter: StatusFilterValue;
   includeUsed: boolean;
   includeUnused: boolean;
@@ -184,6 +186,8 @@ export function WorkbenchPageView({
   localeOptions,
   selectedLocaleTags,
   onChangeLocaleSelection,
+  userLocales,
+  isLimitedTranslator,
   statusFilter,
   includeUsed,
   includeUnused,
@@ -242,6 +246,8 @@ export function WorkbenchPageView({
         localeOptions={localeOptions}
         selectedLocaleTags={selectedLocaleTags}
         onChangeLocaleSelection={onChangeLocaleSelection}
+        userLocales={userLocales}
+        isLimitedTranslator={isLimitedTranslator}
         searchAttribute={searchAttribute}
         searchType={searchType}
         onChangeSearchAttribute={onChangeSearchAttribute}

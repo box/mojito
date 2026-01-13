@@ -28,7 +28,6 @@ type SearchQueryKey = ['workbench-search', TextUnitSearchRequest | null];
 type Params = {
   isEditMode: boolean;
   initialSearchRequest?: TextUnitSearchRequest | null;
-  allowedLocaleTags?: string[] | null;
   canEditLocale?: (locale: string) => boolean;
 };
 
@@ -76,7 +75,6 @@ type SearchState = {
 export function useWorkbenchSearch({
   isEditMode,
   initialSearchRequest,
-  allowedLocaleTags,
   canEditLocale,
 }: Params): SearchState {
   const [activeSearchRequest, setActiveSearchRequest] = useState<TextUnitSearchRequest | null>(
@@ -109,25 +107,6 @@ export function useWorkbenchSearch({
   } = useRepositories();
   const resolveLocaleName = useLocaleDisplayNameResolver();
 
-  const allowedLocaleSet = useMemo(() => {
-    if (!allowedLocaleTags || allowedLocaleTags.length === 0) {
-      return null;
-    }
-    return new Set(allowedLocaleTags.map((tag) => tag.toLowerCase()));
-  }, [allowedLocaleTags]);
-  const filterAllowedLocales = useCallback(
-    (localeTags: string[] | undefined | null) => {
-      if (!localeTags) {
-        return [];
-      }
-      if (!allowedLocaleSet) {
-        return localeTags;
-      }
-      return localeTags.filter((tag) => allowedLocaleSet.has(tag.toLowerCase()));
-    },
-    [allowedLocaleSet],
-  );
-
   const initialSearchSignature = useMemo(
     () => (initialSearchRequest ? serializeSearchRequest(initialSearchRequest) : null),
     [initialSearchRequest],
@@ -144,7 +123,7 @@ export function useWorkbenchSearch({
     }
 
     setSelectedRepositoryIds(initialSearchRequest.repositoryIds ?? []);
-    const initialLocales = filterAllowedLocales(initialSearchRequest.localeTags);
+    const initialLocales = initialSearchRequest.localeTags ?? [];
     setSelectedLocaleTags(initialLocales);
     setSearchAttribute(initialSearchRequest.searchAttribute ?? 'target');
     setSearchType(initialSearchRequest.searchType ?? 'contains');
@@ -178,7 +157,7 @@ export function useWorkbenchSearch({
     setHasHydratedSearch(true);
     setShouldRestoreReposFromHydration(true);
     setShouldRestoreLocalesFromHydration(true);
-  }, [filterAllowedLocales, initialSearchRequest, initialSearchSignature]);
+  }, [initialSearchRequest, initialSearchSignature]);
 
   const repositoryOptions: RepositoryOption[] = useMemo(
     () => (repositories ?? []).map((repo) => ({ id: repo.id, name: repo.name })),
@@ -202,21 +181,10 @@ export function useWorkbenchSearch({
       return [];
     }
 
-    const filtered = Array.from(localeSet).filter((tag) => {
-      if (!allowedLocaleSet) {
-        return true;
-      }
-      return allowedLocaleSet.has(tag.toLowerCase());
-    });
-
-    if (!filtered.length) {
-      return [];
-    }
-
-    return filtered
+    return Array.from(localeSet)
       .sort((first, second) => first.localeCompare(second, undefined, { sensitivity: 'base' }))
       .map((tag) => ({ tag, label: resolveLocaleName(tag) }));
-  }, [repositories, resolveLocaleName, selectedRepositoryIds, repositoryOptions, allowedLocaleSet]);
+  }, [repositories, resolveLocaleName, selectedRepositoryIds, repositoryOptions]);
 
   const onChangeRepositorySelection = useCallback(
     (nextSelected: number[]) => {

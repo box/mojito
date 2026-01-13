@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { SearchAttribute, SearchType } from '../../api/text-units';
 import { MultiSelectChip } from '../../components/MultiSelectChip';
@@ -48,6 +48,8 @@ type WorkbenchHeaderProps = {
   localeOptions: LocaleOption[];
   selectedLocaleTags: string[];
   onChangeLocaleSelection: (next: string[]) => void;
+  userLocales: string[];
+  isLimitedTranslator: boolean;
   searchAttribute: SearchAttribute;
   searchType: SearchType;
   onChangeSearchAttribute: (value: SearchAttribute) => void;
@@ -83,6 +85,8 @@ export function WorkbenchHeader({
   localeOptions,
   selectedLocaleTags,
   onChangeLocaleSelection,
+  userLocales,
+  isLimitedTranslator,
   searchAttribute,
   searchType,
   onChangeSearchAttribute,
@@ -113,6 +117,13 @@ export function WorkbenchHeader({
     value: option.tag,
     label: option.label,
   }));
+  const myLocaleSelections = useMemo(() => {
+    if (!isLimitedTranslator) {
+      return [];
+    }
+    const available = new Set(localeOptions.map((option) => option.tag.toLowerCase()));
+    return userLocales.filter((tag) => available.has(tag.toLowerCase()));
+  }, [isLimitedTranslator, localeOptions, userLocales]);
 
   const searchPlaceholder = (() => {
     switch (searchAttribute) {
@@ -139,6 +150,35 @@ export function WorkbenchHeader({
   // Keep the header summary stable while repositories are loading to avoid flicker.
   const repositoriesEmptyLabel = isRepositoryLoading ? 'Repositories' : 'No repositories';
   const localesEmptyLabel = isRepositoryLoading ? 'Locales' : 'No locales';
+  const isMyLocaleSelectionActive = useMemo(() => {
+    if (!isLimitedTranslator) {
+      return false;
+    }
+    if (myLocaleSelections.length === 0) {
+      return false;
+    }
+    if (selectedLocaleTags.length !== myLocaleSelections.length) {
+      return false;
+    }
+    const selectedSet = new Set(selectedLocaleTags.map((tag) => tag.toLowerCase()));
+    return myLocaleSelections.every((tag) => selectedSet.has(tag.toLowerCase()));
+  }, [isLimitedTranslator, myLocaleSelections, selectedLocaleTags]);
+  const handleSelectMyLocales = useCallback(() => {
+    if (!myLocaleSelections.length) {
+      return;
+    }
+    onChangeLocaleSelection(myLocaleSelections);
+  }, [myLocaleSelections, onChangeLocaleSelection]);
+  const localeCustomActions = isLimitedTranslator
+    ? [
+        {
+          label: 'My locales',
+          onClick: handleSelectMyLocales,
+          disabled: myLocaleSelections.length === 0 || isMyLocaleSelectionActive,
+          ariaLabel: 'Select your assigned locales',
+        },
+      ]
+    : undefined;
   return (
     <div className="workbench-page__header workbench-header">
       <div className="workbench-header__left">
@@ -180,6 +220,7 @@ export function WorkbenchHeader({
           disabled={searchControlsDisabled}
           placeholder="Locales"
           emptyOptionsLabel={localesEmptyLabel}
+          customActions={localeCustomActions}
           summaryFormatter={({ options, selectedValues }) => {
             if (!options.length) {
               return localesEmptyLabel;
