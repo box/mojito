@@ -330,6 +330,7 @@ export function WorkbenchPage() {
       onShowDiff={edits.onShowDiff}
       onCloseDiff={edits.onCloseDiff}
       rows={search.rows}
+      hasMoreResults={search.hasMoreResults}
       editingRowId={edits.editingRowId}
       editingValue={edits.editingValue}
       onStartEditing={edits.onStartEditing}

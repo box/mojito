@@ -32,6 +32,7 @@ type Props = {
   onShowDiff: (rowId: string) => void;
   onCloseDiff: () => void;
   rows: WorkbenchRow[];
+  hasMoreResults: boolean;
   editingRowId: string | null;
   editingValue: string;
   onStartEditing: (rowId: string, translation: string | null) => void;
@@ -149,6 +150,7 @@ export function WorkbenchPageView({
   onShowDiff,
   onCloseDiff,
   rows,
+  hasMoreResults,
   editingRowId,
   editingValue,
   onStartEditing,
@@ -276,6 +278,7 @@ export function WorkbenchPageView({
         isSearchLoading={isSearchLoading}
         hasSearched={hasSearched}
         rowCount={rowCount}
+        hasMoreResults={hasMoreResults}
         worksetSize={worksetSize}
         onChangeWorksetSize={onChangeWorksetSize}
         editedCount={editedCount}

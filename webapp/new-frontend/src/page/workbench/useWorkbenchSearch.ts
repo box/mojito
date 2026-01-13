@@ -70,6 +70,7 @@ type SearchState = {
   isSearchLoading: boolean;
   searchErrorMessage: string | null;
   rows: WorkbenchRow[];
+  hasMoreResults: boolean;
   refetchSearch: () => Promise<unknown>;
 };
 
@@ -447,7 +448,8 @@ export function useWorkbenchSearch({
       if (!activeSearchRequest) {
         return Promise.resolve([]);
       }
-      return searchTextUnits({ ...activeSearchRequest, offset: pageParam });
+      const limit = clampWorksetSize(activeSearchRequest.limit ?? WORKSET_SIZE_DEFAULT);
+      return searchTextUnits({ ...activeSearchRequest, limit: limit + 1, offset: pageParam });
     },
     enabled: Boolean(activeSearchRequest),
     initialPageParam: 0,
@@ -468,13 +470,21 @@ export function useWorkbenchSearch({
     }
   }, [searchQuery.data, searchQuery.isFetching]);
 
-  const rows = useMemo(
-    () =>
-      (searchQuery.data?.pages.flat() ?? []).map((item) =>
-        mapApiTextUnitToRow(item, canEditLocale),
-      ),
-    [searchQuery.data, canEditLocale],
-  );
+  const rows = useMemo(() => {
+    const limit = clampWorksetSize(activeSearchRequest?.limit ?? searchLimit);
+    const flatResults = searchQuery.data?.pages.flat() ?? [];
+    const visibleResults = flatResults.slice(0, limit);
+    return visibleResults.map((item) => mapApiTextUnitToRow(item, canEditLocale));
+  }, [activeSearchRequest?.limit, canEditLocale, searchLimit, searchQuery.data]);
+
+  const hasMoreResults = useMemo(() => {
+    if (!activeSearchRequest) {
+      return false;
+    }
+    const limit = clampWorksetSize(activeSearchRequest.limit ?? searchLimit);
+    const flatResults = searchQuery.data?.pages.flat() ?? [];
+    return flatResults.length > limit;
+  }, [activeSearchRequest, searchLimit, searchQuery.data]);
 
   const onSubmitSearch = useCallback(() => {
     // Treat Enter as "search now" (flush debounce).
@@ -561,6 +571,7 @@ export function useWorkbenchSearch({
     isSearchLoading,
     searchErrorMessage,
     rows,
+    hasMoreResults,
     refetchSearch: () => searchQuery.refetch(),
   };
 }

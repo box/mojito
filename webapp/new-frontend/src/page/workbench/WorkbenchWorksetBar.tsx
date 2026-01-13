@@ -9,6 +9,7 @@ type WorkbenchWorksetBarProps = {
   isSearchLoading: boolean;
   hasSearched: boolean;
   rowCount: number;
+  hasMoreResults: boolean;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   editedCount: number;
@@ -36,6 +37,7 @@ export function WorkbenchWorksetBar({
   isSearchLoading,
   hasSearched,
   rowCount,
+  hasMoreResults,
   worksetSize,
   onChangeWorksetSize,
   editedCount,
@@ -56,7 +58,12 @@ export function WorkbenchWorksetBar({
   onOpenCollectionSearch,
   onShareCollection,
 }: WorkbenchWorksetBarProps) {
-  const countLabel = `${rowCount} results`;
+  const countLabel = hasMoreResults
+    ? `Showing first ${worksetSize} results (more available)`
+    : rowCount === 0
+      ? 'No results'
+      : `${rowCount} results`;
+  const resultDropdownDisabled = disabled || isEditMode;
   const canRefresh = hasSearched && !disabled && !isSearchLoading;
   const canShare = hasSearched && !disabled;
 
@@ -64,7 +71,7 @@ export function WorkbenchWorksetBar({
     ? [
         <ResultSizeDropdown
           key="count"
-          disabled={disabled || isEditMode}
+          disabled={resultDropdownDisabled}
           countLabel={countLabel}
           worksetSize={worksetSize}
           onChangeWorksetSize={onChangeWorksetSize}
@@ -172,7 +179,8 @@ function ResultSizeDropdown({
   const [draft, setDraft] = useState(String(worksetSize));
   const [showCustomInput, setShowCustomInput] = useState(false);
 
-  const isPreset = resultSizePresets.some((option) => option.value === worksetSize);
+  const presetOptions = resultSizePresets.filter((option) => option.value >= worksetSize);
+  const isPreset = presetOptions.some((option) => option.value === worksetSize);
   const isCustomActive = showCustomInput || !isPreset;
 
   const commitDraft = useCallback(() => {
@@ -242,7 +250,7 @@ function ResultSizeDropdown({
           <div className="workbench-searchmode__section">
             <div className="workbench-searchmode__label">Result size limit</div>
             <div className="workbench-filterchip__pills workbench-worksetbar__pills">
-              {resultSizePresets.map((option) => (
+              {presetOptions.map((option) => (
                 <button
                   type="button"
                   key={option.value}
