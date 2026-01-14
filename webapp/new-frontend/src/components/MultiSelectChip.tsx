@@ -141,7 +141,7 @@ export function MultiSelectChip<T extends string | number>({
       )
     : options;
 
-  const resolvedClassName = ['chip-dropdown', 'multi-select-chip', className]
+  const resolvedClassName = ['chip-dropdown', 'chip-dropdown--xs', 'multi-select-chip', className]
     .filter(Boolean)
     .join(' ');
   const resolvedButtonAriaLabel = buttonAriaLabel ?? label;

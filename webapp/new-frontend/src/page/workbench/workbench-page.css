@@ -416,14 +416,6 @@
   border-radius: var(--radius-2);
 }
 
-.workbench-chip-dropdown {
-  width: clamp(var(--chip-width-xs-min), var(--chip-width-xs-fluid), var(--chip-width-xs-max));
-}
-
-.workbench-chip-dropdown--locale {
-  width: clamp(var(--chip-width-xs-min), var(--chip-width-xs-fluid), var(--chip-width-xs-max));
-}
-
 .workbench-searchmode__button {
   width: 100%;
 }
