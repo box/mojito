@@ -12,35 +12,35 @@
   position: absolute;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(0.1875rem);
 }
 
 .modal__card {
   position: relative;
-  width: min(var(--modal-max-width, 520px), 92vw);
-  max-height: min(86vh, 900px);
+  width: min(var(--modal-max-width, 32.5rem), 92vw);
+  max-height: min(86vh, 56.25rem);
   overflow: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-3, 12px);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-3, 0.75rem);
   background: var(--color-surface);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 1.125rem 2.5rem rgba(15, 23, 42, 0.25);
   padding: var(--space-5);
 }
 
 .modal--sm {
-  --modal-max-width: 360px;
+  --modal-max-width: 22.5rem;
 }
 
 .modal--md {
-  --modal-max-width: 520px;
+  --modal-max-width: 32.5rem;
 }
 
 .modal--lg {
-  --modal-max-width: 760px;
+  --modal-max-width: 47.5rem;
 }
 
 .modal--xl {
-  --modal-max-width: 960px;
+  --modal-max-width: 60rem;
 }
 
 .modal__header {
@@ -70,10 +70,10 @@
 }
 
 .modal__button {
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-2);
   padding: 0 var(--space-3);
-  height: 32px;
+  height: 2rem;
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;

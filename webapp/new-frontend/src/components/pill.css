@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 var(--space-3);
-  min-height: 24px;
+  min-height: 1.5rem;
   border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -20,16 +20,16 @@
 .pill-select__select {
   appearance: none;
   -webkit-appearance: none;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
   font: inherit;
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
-  padding: 0 28px 0 var(--space-3);
-  height: 24px;
-  min-width: 110px;
+  padding: 0 1.75rem 0 var(--space-3);
+  height: 1.5rem;
+  min-width: 6.875rem;
   cursor: pointer;
 }
 
@@ -50,13 +50,13 @@
 
 .pill-select__chevron {
   position: absolute;
-  right: 10px;
+  right: 0.625rem;
   pointer-events: none;
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid var(--color-text-subtle);
+  border-left: 0.3125rem solid transparent;
+  border-right: 0.3125rem solid transparent;
+  border-top: 0.3125rem solid var(--color-text-subtle);
 }
 
 .pill-dropdown {
@@ -68,11 +68,11 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  height: 24px;
-  min-width: 110px;
-  padding: 0 28px 0 var(--space-3);
+  height: 1.5rem;
+  min-width: 6.875rem;
+  padding: 0 1.75rem 0 var(--space-3);
   position: relative;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -90,7 +90,7 @@
 .pill-dropdown__button:focus-visible {
   outline: 0;
   border-color: var(--color-focus-border);
-  box-shadow: 0 0 0 2px var(--color-focus-outline);
+  box-shadow: 0 0 0 0.125rem var(--color-focus-outline);
 }
 
 .pill-dropdown__button:disabled {
@@ -108,16 +108,16 @@
 
 .pill-dropdown__chevron {
   position: absolute;
-  right: 10px;
+  right: 0.625rem;
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid var(--color-text-subtle);
+  border-left: 0.3125rem solid transparent;
+  border-right: 0.3125rem solid transparent;
+  border-top: 0.3125rem solid var(--color-text-subtle);
 }
 
 .pill-dropdown__panel {
-  min-width: 180px;
+  min-width: 11.25rem;
   padding: var(--space-2);
   z-index: 30;
 }

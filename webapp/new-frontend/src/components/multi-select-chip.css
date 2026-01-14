@@ -1,9 +1,9 @@
 .multi-select-chip__search {
   width: 100%;
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
   border-radius: var(--radius-2);
   padding: 0 var(--space-2);
-  height: 30px;
+  height: 1.875rem;
   font: inherit;
   font-size: var(--font-size-xs);
   color: var(--color-text);
@@ -12,7 +12,7 @@
 .multi-select-chip__search:focus {
   outline: none;
   border-color: var(--color-focus-border);
-  box-shadow: 0 0 0 2px var(--color-focus-outline);
+  box-shadow: 0 0 0 0.125rem var(--color-focus-outline);
 }
 
 .multi-select-chip__actions {
@@ -27,14 +27,14 @@
 
 .multi-select-chip__action-button {
   flex: 1;
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
   border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text);
   font: inherit;
   font-size: var(--font-size-xs);
   padding: 0 var(--space-2);
-  height: 26px;
+  height: 1.625rem;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -63,7 +63,7 @@
 }
 
 .multi-select-chip__options {
-  max-height: min(60vh, 520px);
+  max-height: min(60vh, 32.5rem);
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -86,14 +86,14 @@
 
 .multi-select-chip__only {
   margin-left: auto;
-  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-text-subtle);
   font: inherit;
   font-size: var(--font-size-2xs);
   padding: 0 var(--space-2);
-  height: 20px;
+  height: 1.25rem;
   cursor: pointer;
   opacity: 0;
   pointer-events: none;

@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  --app-shell-header-height: 40px;
+  --app-shell-header-height: 2.5rem;
   --color-bg: #ffffff;
   --color-surface: #ffffff;
   --color-surface-muted: #f5f6f8;
@@ -13,29 +13,42 @@
   --color-surface-selected: rgba(31, 122, 224, 0.08);
   --color-focus-outline: rgba(31, 122, 224, 0.2);
   --color-focus-border: rgba(31, 122, 224, 0.4);
-  --font-size-2xs: 11px;
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-md: 14px;
-  --font-size-lg: 16px;
+  --font-size-2xs: 0.6875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-md: 0.875rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.125rem;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --letter-spacing-tight: 0.04em;
   --letter-spacing-wide: 0.06em;
-  --radius-2: 8px;
-  --radius-3: 12px;
+  --radius-2: 0.5rem;
+  --radius-3: 0.75rem;
   --radius-pill: 999px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 28px;
-  --space-7: 36px;
-  --space-8: 44px;
-  --border-width: 1px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.75rem;
+  --space-7: 2.25rem;
+  --space-8: 2.75rem;
+  --border-width: 0.0625rem;
+  --chip-width-xs-min: 5.5rem;
+  --chip-width-xs-fluid: 12vw;
+  --chip-width-xs-max: 9rem;
+  --chip-width-sm-min: 6.25rem;
+  --chip-width-sm-fluid: 14vw;
+  --chip-width-sm-max: 10.25rem;
+  --chip-width-md-min: 8.75rem;
+  --chip-width-md-fluid: 18vw;
+  --chip-width-md-max: 13.75rem;
+  --chip-width-lg-min: 11.25rem;
+  --chip-width-lg-fluid: 26vw;
+  --chip-width-lg-max: 17.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -81,17 +94,17 @@ body {
 
 /* Shared spinner (uses currentColor). Use size modifiers to override. */
 .spinner {
-  width: var(--spinner-size, 14px);
-  height: var(--spinner-size, 14px);
+  width: var(--spinner-size, 0.875rem);
+  height: var(--spinner-size, 0.875rem);
   border-radius: 999px;
-  border: var(--spinner-border, 2px) solid color-mix(in srgb, currentColor 35%, transparent);
+  border: var(--spinner-border, 0.125rem) solid color-mix(in srgb, currentColor 35%, transparent);
   border-top-color: currentColor;
   animation: spinner-spin 0.8s linear infinite;
 }
 
 .spinner--md {
-  --spinner-size: 18px;
-  --spinner-border: 2px;
+  --spinner-size: 1.125rem;
+  --spinner-border: 0.125rem;
 }
 
 @keyframes spinner-spin {

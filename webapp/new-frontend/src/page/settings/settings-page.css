@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  max-width: 960px;
+  max-width: 60rem;
   width: 100%;
   margin: 0 auto;
 }
@@ -27,7 +27,7 @@
 }
 
 .settings-card {
-  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   border-radius: var(--radius-2);
   background: var(--color-surface);
   padding: var(--space-3);
@@ -82,7 +82,7 @@
 .settings-input {
   width: 100%;
   padding: var(--space-2);
-  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 75%, transparent);
   border-radius: var(--radius-2);
   background: var(--color-surface);
   color: var(--color-text);
@@ -91,7 +91,7 @@
 }
 
 .settings-input:focus {
-  outline: 2px solid var(--color-focus-outline);
+  outline: 0.125rem solid var(--color-focus-outline);
   border-color: var(--color-focus-border);
 }
 
@@ -102,7 +102,7 @@
 }
 
 .settings-button {
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
   background: var(--color-surface);
   color: var(--color-text);
   border-radius: var(--radius-2);
@@ -178,7 +178,7 @@
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-2);
-  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 75%, transparent);
   background: color-mix(in srgb, var(--color-surface) 90%, var(--color-border) 10%);
 }
 
@@ -219,10 +219,10 @@
   top: calc(100% + var(--space-1));
   left: 0;
   right: 0;
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
   border-radius: var(--radius-2);
   background: var(--color-surface);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-shadow) 20%, transparent);
+  box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--color-shadow) 20%, transparent);
   display: flex;
   flex-direction: column;
   overflow: hidden;

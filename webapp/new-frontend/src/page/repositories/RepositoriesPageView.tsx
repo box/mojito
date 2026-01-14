@@ -1,4 +1,5 @@
 import '../../components/chip-dropdown.css';
+import '../../components/filters/filter-chip.css';
 import '../workbench/workbench-page.css';
 import './repositories-page.css';
 
@@ -132,10 +133,10 @@ function StatusFilterDropdown({ value, onChange }: StatusFilterDropdownProps) {
     statusFilterOptions.find((option) => option.value === value)?.label ?? 'All statuses';
 
   return (
-    <div className="chip-dropdown workbench-searchmode" ref={containerRef}>
+    <div className="chip-dropdown filter-chip repositories-page__status-filter" ref={containerRef}>
       <button
         type="button"
-        className="chip-dropdown__button workbench-searchmode__button"
+        className="chip-dropdown__button filter-chip__button"
         onClick={() => setIsOpen((previous) => !previous)}
         aria-expanded={isOpen}
         aria-label="Filter repositories by status"
@@ -144,17 +145,15 @@ function StatusFilterDropdown({ value, onChange }: StatusFilterDropdownProps) {
         <span className="chip-dropdown__chevron" aria-hidden="true" />
       </button>
       {isOpen ? (
-        <div className="chip-dropdown__panel workbench-searchmode__panel" role="menu">
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Status</div>
-            <div className="workbench-searchmode__list">
+        <div className="chip-dropdown__panel filter-chip__panel" role="menu">
+          <div className="filter-chip__section">
+            <div className="filter-chip__label">Status</div>
+            <div className="filter-chip__list">
               {statusFilterOptions.map((option) => (
                 <button
                   type="button"
                   key={option.value}
-                  className={`workbench-searchmode__option${
-                    option.value === value ? ' is-active' : ''
-                  }`}
+                  className={`filter-chip__option${option.value === value ? ' is-active' : ''}`}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);

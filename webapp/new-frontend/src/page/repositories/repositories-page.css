@@ -1,8 +1,8 @@
 .repositories-page {
-  --repositories-page-header-height: 58px;
-  --repositories-page-row-height: 48px;
+  --repositories-page-header-height: 3.625rem;
+  --repositories-page-row-height: 3rem;
   --repositories-page-grid-columns-locale: 2fr 1fr 1fr 1fr;
-  --repositories-page-grid-columns-repo: 32px 2fr 1fr 1fr 1fr;
+  --repositories-page-grid-columns-repo: 2rem 2fr 1fr 1fr 1fr;
   height: calc(100vh - var(--app-shell-header-height));
   display: flex;
   flex-direction: column;
@@ -26,7 +26,7 @@
 }
 
 .repositories-page__state-content {
-  max-width: 520px;
+  max-width: 32.5rem;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -36,7 +36,7 @@
 .repositories-page__state-action {
   margin-top: var(--space-4);
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-2);
   background: var(--color-surface);
   color: var(--color-text);
@@ -45,7 +45,7 @@
 }
 
 .repositories-page__state-action:focus {
-  outline: 2px solid var(--color-focus-outline);
+  outline: 0.125rem solid var(--color-focus-outline);
   border-color: var(--color-focus-border);
 }
 
@@ -78,32 +78,27 @@
 
 .repositories-page__repository-filter,
 .repositories-page__locale-filter {
-  width: clamp(100px, 10vw, 220px);
+  width: clamp(var(--chip-width-xs-min), var(--chip-width-xs-fluid), var(--chip-width-xs-max));
 }
 
 .repositories-page__repository-filter .chip-dropdown__button,
 .repositories-page__locale-filter .chip-dropdown__button {
-  height: 32px;
+  height: 2rem;
 }
 
-.repositories-page .workbench-searchmode {
-  width: clamp(140px, 18vw, 220px);
-}
-
-.repositories-page .workbench-searchmode .workbench-searchmode__button {
-  min-width: 140px;
-  max-width: 220px;
-  height: 32px;
+.repositories-page__status-filter {
+  width: clamp(var(--chip-width-xs-min), var(--chip-width-xs-fluid), var(--chip-width-xs-max));
+  min-width: 0;
 }
 
 .repositories-page__filter-button {
-  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 75%, transparent);
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--color-surface) 96%, transparent);
   color: var(--color-text);
   font: inherit;
   font-size: var(--font-size-xs);
-  height: 28px;
+  height: 1.75rem;
   padding: 0 var(--space-2);
   cursor: pointer;
 }
@@ -122,7 +117,7 @@
 
 .repositories-page--split {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) 1px minmax(0, 3fr);
+  grid-template-columns: minmax(0, 4fr) var(--border-width) minmax(0, 3fr);
   column-gap: var(--space-5);
 }
 
@@ -256,8 +251,8 @@
 }
 
 .repositories-page__cell-link:focus-visible {
-  outline: 2px solid var(--color-focus-outline);
-  outline-offset: 2px;
+  outline: 0.125rem solid var(--color-focus-outline);
+  outline-offset: 0.125rem;
 }
 
 .repositories-page__cell-link--name {
@@ -269,7 +264,7 @@
 }
 
 .repositories-page__repo-scroll-row-select {
-  --repositories-page-select-size: 10px;
+  --repositories-page-select-size: 0.625rem;
   width: var(--repositories-page-select-size);
   height: var(--repositories-page-select-size);
   display: inline-flex;
@@ -281,7 +276,7 @@
   -webkit-appearance: none;
   box-sizing: border-box;
   border-radius: 50%;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   background: var(--color-surface);
   cursor: pointer;
   opacity: 0;
@@ -309,11 +304,11 @@
 
 .repositories-page__divider-action {
   position: absolute;
-  top: 20px;
+  top: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
-  padding: 4px 8px;
-  border: 1px solid var(--color-border);
+  padding: 0.25rem 0.5rem;
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-2);
   background: var(--color-surface);
   color: var(--color-text);
@@ -323,6 +318,6 @@
 }
 
 .repositories-page__divider-action:focus {
-  outline: 2px solid var(--color-focus-outline);
+  outline: 0.125rem solid var(--color-focus-outline);
   border-color: var(--color-focus-border);
 }

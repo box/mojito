@@ -37,7 +37,7 @@
 }
 
 .user-menu__name {
-  max-width: 180px;
+  max-width: 11.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -46,9 +46,9 @@
 .user-menu__chevron {
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid var(--color-text-subtle);
+  border-left: 0.3125rem solid transparent;
+  border-right: 0.3125rem solid transparent;
+  border-top: 0.3125rem solid var(--color-text-subtle);
   transition: transform 120ms ease;
 }
 
@@ -60,12 +60,12 @@
   position: absolute;
   top: calc(100% + var(--space-2));
   right: 0;
-  min-width: 200px;
+  min-width: 12.5rem;
   padding: var(--space-3);
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
   border-radius: var(--radius-2);
   background: var(--color-surface);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 0.75rem 2.25rem rgba(15, 23, 42, 0.18);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -75,7 +75,7 @@
 .user-menu__line {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.125rem;
   min-width: 0;
 }
 
