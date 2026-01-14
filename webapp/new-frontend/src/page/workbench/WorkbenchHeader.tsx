@@ -7,6 +7,7 @@ import {
   RepositoryMultiSelect,
   type RepositoryMultiSelectOption,
 } from '../../components/RepositoryMultiSelect';
+import { SearchControl } from '../../components/SearchControl';
 import { getStandardDateQuickRanges } from '../../utils/dateQuickRanges';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
 import { filterMyLocales } from '../../utils/localeSelection';
@@ -193,12 +194,43 @@ export function WorkbenchHeader({
           value={searchInputValue}
           onChange={onChangeSearchInput}
           onSubmit={onSubmitSearch}
-          inputDisabled={searchControlsDisabled}
+          disabled={searchControlsDisabled}
           placeholder={searchPlaceholder}
-          searchAttribute={searchAttribute}
-          searchType={searchType}
-          onChangeAttribute={onChangeSearchAttribute}
-          onChangeType={onChangeSearchType}
+          inputAriaLabel="Search translations"
+          className="workbench-searchcontrol"
+          leading={
+            <MultiSectionFilterChip
+              align="left"
+              ariaLabel="Select search mode"
+              className="workbench-searchmode workbench-searchmode--inline"
+              classNames={{
+                button: 'workbench-searchmode__button',
+                panel: 'workbench-searchmode__panel',
+                section: 'workbench-searchmode__section',
+                label: 'workbench-searchmode__label',
+                list: 'workbench-searchmode__list',
+                option: 'workbench-searchmode__option',
+                helper: 'workbench-searchmode__helper',
+              }}
+              disabled={searchControlsDisabled}
+              sections={[
+                {
+                  kind: 'radio',
+                  label: 'Search attribute',
+                  options: searchAttributeOptions,
+                  value: searchAttribute,
+                  onChange: (value) => onChangeSearchAttribute(value as SearchAttribute),
+                },
+                {
+                  kind: 'radio',
+                  label: 'Match type',
+                  options: searchTypeOptions,
+                  value: searchType,
+                  onChange: (value) => onChangeSearchType(value as SearchType),
+                },
+              ]}
+            />
+          }
         />
       </div>
 
@@ -224,141 +256,6 @@ export function WorkbenchHeader({
         />
       </div>
     </div>
-  );
-}
-
-type SearchControlProps = {
-  value: string;
-  onChange: (next: string) => void;
-  onSubmit: () => void;
-  inputDisabled: boolean;
-  placeholder: string;
-  searchAttribute: SearchAttribute;
-  searchType: SearchType;
-  onChangeAttribute: (value: SearchAttribute) => void;
-  onChangeType: (value: SearchType) => void;
-  variant?: 'standalone' | 'inline';
-};
-
-function SearchControl({
-  value,
-  onChange,
-  onSubmit,
-  inputDisabled,
-  placeholder,
-  searchAttribute,
-  searchType,
-  onChangeAttribute,
-  onChangeType,
-  variant = 'standalone',
-}: SearchControlProps) {
-  const showClear = value.length > 0 && !inputDisabled;
-  const containerClassName = [
-    'workbench-searchcontrol',
-    variant === 'inline' ? 'workbench-searchcontrol--inline' : null,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  return (
-    <div className={containerClassName}>
-      <div className="workbench-searchcontrol__shell">
-        <SearchModeChip
-          disabled={inputDisabled}
-          searchAttribute={searchAttribute}
-          searchType={searchType}
-          onChangeAttribute={onChangeAttribute}
-          onChangeType={onChangeType}
-          variant="inline"
-        />
-        <form
-          className="workbench-searchcontrol__form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit();
-          }}
-        >
-          <input
-            id="workbench-search-input"
-            className="workbench-searchcontrol__input"
-            type="text"
-            value={value}
-            placeholder={placeholder}
-            onChange={(event) => onChange(event.target.value)}
-            disabled={inputDisabled}
-          />
-          {showClear ? (
-            <button
-              type="button"
-              className="workbench-searchcontrol__clear"
-              onClick={() => onChange('')}
-              aria-label="Clear search text"
-            >
-              ×
-            </button>
-          ) : null}
-        </form>
-      </div>
-    </div>
-  );
-}
-
-type SearchModeChipProps = {
-  disabled: boolean;
-  searchAttribute: SearchAttribute;
-  searchType: SearchType;
-  onChangeAttribute: (value: SearchAttribute) => void;
-  onChangeType: (value: SearchType) => void;
-  variant?: 'standalone' | 'inline';
-};
-
-function SearchModeChip({
-  disabled,
-  searchAttribute,
-  searchType,
-  onChangeAttribute,
-  onChangeType,
-  variant = 'standalone',
-}: SearchModeChipProps) {
-  const containerClassName = [
-    'workbench-searchmode',
-    variant === 'inline' ? 'workbench-searchmode--inline' : null,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  return (
-    <MultiSectionFilterChip
-      align="left"
-      ariaLabel="Select search mode"
-      className={containerClassName}
-      classNames={{
-        button: 'workbench-searchmode__button',
-        panel: 'workbench-searchmode__panel',
-        section: 'workbench-searchmode__section',
-        label: 'workbench-searchmode__label',
-        list: 'workbench-searchmode__list',
-        option: 'workbench-searchmode__option',
-        helper: 'workbench-searchmode__helper',
-      }}
-      disabled={disabled}
-      sections={[
-        {
-          kind: 'radio',
-          label: 'Search attribute',
-          options: searchAttributeOptions,
-          value: searchAttribute,
-          onChange: (value) => onChangeAttribute(value as SearchAttribute),
-        },
-        {
-          kind: 'radio',
-          label: 'Match type',
-          options: searchTypeOptions,
-          value: searchType,
-          onChange: (value) => onChangeType(value as SearchType),
-        },
-      ]}
-    />
   );
 }
 

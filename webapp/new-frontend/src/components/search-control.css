@@ -1,0 +1,109 @@
+.search-control {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  transition: border-color 0.2s ease;
+  height: 2rem;
+  box-sizing: border-box;
+  font-size: var(--font-size-sm);
+}
+
+.search-control:focus-within {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  box-shadow: 0 0 0 0.125rem color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+
+.search-control__shell {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+}
+
+.search-control__leading {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+.search-control__form {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+
+.search-control__input {
+  flex: 1 1 auto;
+  border: none;
+  padding: 0 calc(var(--space-3) + 0.875rem) 0 var(--space-3);
+  height: 100%;
+  min-height: 0;
+  font: inherit;
+  color: var(--color-text);
+  background: transparent;
+  -webkit-appearance: none;
+}
+
+.search-control__input:focus {
+  outline: none;
+}
+
+.search-control__input::-webkit-search-decoration,
+.search-control__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-control__clear {
+  position: absolute;
+  right: 0.375rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  padding: 0.125rem;
+  cursor: pointer;
+}
+
+.search-control__clear:hover,
+.search-control__clear:focus-visible {
+  color: var(--color-text);
+}
+
+.search-control__clear:focus-visible {
+  outline: 0.125rem solid var(--color-focus-outline);
+  border-radius: var(--radius-2);
+}
+
+.search-control--with-leading .search-control__leading {
+  border-right: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  height: 100%;
+  flex: 0 0 auto;
+}
+
+.search-control--with-leading .search-control__leading .chip-dropdown {
+  height: 100%;
+  align-items: stretch;
+}
+
+.search-control--with-leading .search-control__leading .chip-dropdown__button {
+  height: 100%;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2) 0 0 var(--radius-2);
+  padding: 0 var(--space-3);
+  background: transparent;
+  box-shadow: none;
+  min-height: unset;
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+}
