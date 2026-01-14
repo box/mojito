@@ -63,6 +63,7 @@
   left: 0;
   z-index: 20;
   min-width: 16.25rem;
+  max-width: min(28rem, calc(100vw - 2rem));
   padding: var(--space-3);
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 75%, transparent);
   border-radius: var(--radius-2);
