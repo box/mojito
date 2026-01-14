@@ -4,8 +4,9 @@ import '../workbench/workbench-page.css';
 import './repositories-page.css';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { MultiSectionFilterChip } from '../../components/filters/MultiSectionFilterChip';
 import type { LocaleOption } from '../../components/LocaleMultiSelect';
 import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
 import {
@@ -113,60 +114,34 @@ type StatusFilterDropdownProps = {
 };
 
 function StatusFilterDropdown({ value, onChange }: StatusFilterDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('pointerdown', handlePointerDown);
-    return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [isOpen]);
-
   const selectedLabel =
     statusFilterOptions.find((option) => option.value === value)?.label ?? 'All statuses';
 
   return (
-    <div className="chip-dropdown filter-chip repositories-page__status-filter" ref={containerRef}>
-      <button
-        type="button"
-        className="chip-dropdown__button filter-chip__button"
-        onClick={() => setIsOpen((previous) => !previous)}
-        aria-expanded={isOpen}
-        aria-label="Filter repositories by status"
-      >
-        <span className="chip-dropdown__summary">{selectedLabel}</span>
-        <span className="chip-dropdown__chevron" aria-hidden="true" />
-      </button>
-      {isOpen ? (
-        <div className="chip-dropdown__panel filter-chip__panel" role="menu">
-          <div className="filter-chip__section">
-            <div className="filter-chip__label">Status</div>
-            <div className="filter-chip__list">
-              {statusFilterOptions.map((option) => (
-                <button
-                  type="button"
-                  key={option.value}
-                  className={`filter-chip__option${option.value === value ? ' is-active' : ''}`}
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                  }}
-                >
-                  <span>{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    <MultiSectionFilterChip
+      align="left"
+      ariaLabel="Filter repositories by status"
+      className="filter-chip repositories-page__status-filter"
+      classNames={{
+        button: 'filter-chip__button',
+        panel: 'filter-chip__panel',
+        section: 'filter-chip__section',
+        label: 'filter-chip__label',
+        list: 'filter-chip__list',
+        option: 'filter-chip__option',
+      }}
+      closeOnSelection
+      summary={selectedLabel}
+      sections={[
+        {
+          kind: 'radio',
+          label: 'Status',
+          options: statusFilterOptions,
+          value,
+          onChange: (next) => onChange(next as RepositoryStatusFilter),
+        },
+      ]}
+    />
   );
 }
 

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { SearchAttribute, SearchType } from '../../api/text-units';
+import { MultiSectionFilterChip } from '../../components/filters/MultiSectionFilterChip';
 import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
 import {
   RepositoryMultiSelect,
@@ -8,7 +9,7 @@ import {
 } from '../../components/RepositoryMultiSelect';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
 import { filterMyLocales } from '../../utils/localeSelection';
-import { resultSizePresets } from './workbench-constants';
+import { resultSizePresets, WORKSET_SIZE_DEFAULT, WORKSET_SIZE_MIN } from './workbench-constants';
 import { loadPreferredLocales, PREFERRED_LOCALES_KEY } from './workbench-preferences';
 import type { StatusFilterValue } from './workbench-types';
 
@@ -318,36 +319,7 @@ function SearchModeChip({
   onChangeType,
   variant = 'standalone',
 }: SearchModeChipProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (disabled && isOpen) {
-      setIsOpen(false);
-    }
-  }, [disabled, isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('pointerdown', handlePointerDown);
-    return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [isOpen]);
-
-  const attributeLabel =
-    searchAttributeOptions.find((option) => option.value === searchAttribute)?.label ?? 'Attribute';
-  const typeLabel =
-    searchTypeOptions.find((option) => option.value === searchType)?.label ?? 'Match';
-  const summary = `${attributeLabel} · ${typeLabel}`;
-
   const containerClassName = [
-    'chip-dropdown',
     'workbench-searchmode',
     variant === 'inline' ? 'workbench-searchmode--inline' : null,
   ]
@@ -355,62 +327,37 @@ function SearchModeChip({
     .join(' ');
 
   return (
-    <div className={containerClassName} ref={containerRef}>
-      <button
-        type="button"
-        className="chip-dropdown__button workbench-searchmode__button"
-        onClick={() => setIsOpen((previous) => !previous)}
-        aria-expanded={isOpen}
-        disabled={disabled}
-      >
-        <span className="chip-dropdown__summary">{summary}</span>
-        <span className="chip-dropdown__chevron" aria-hidden="true" />
-      </button>
-      {isOpen ? (
-        <div className="chip-dropdown__panel workbench-searchmode__panel" role="menu">
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Search attribute</div>
-            <div className="workbench-searchmode__list">
-              {searchAttributeOptions.map((option) => (
-                <button
-                  type="button"
-                  key={option.value}
-                  className={`workbench-searchmode__option${
-                    option.value === searchAttribute ? ' is-active' : ''
-                  }`}
-                  onClick={() => onChangeAttribute(option.value)}
-                >
-                  <span>{option.label}</span>
-                  {option.helper ? (
-                    <span className="workbench-searchmode__helper">{option.helper}</span>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Match type</div>
-            <div className="workbench-searchmode__list">
-              {searchTypeOptions.map((option) => (
-                <button
-                  type="button"
-                  key={option.value}
-                  className={`workbench-searchmode__option${
-                    option.value === searchType ? ' is-active' : ''
-                  }`}
-                  onClick={() => onChangeType(option.value)}
-                >
-                  <span>{option.label}</span>
-                  {option.helper ? (
-                    <span className="workbench-searchmode__helper">{option.helper}</span>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    <MultiSectionFilterChip
+      align="left"
+      ariaLabel="Select search mode"
+      className={containerClassName}
+      classNames={{
+        button: 'workbench-searchmode__button',
+        panel: 'workbench-searchmode__panel',
+        section: 'workbench-searchmode__section',
+        label: 'workbench-searchmode__label',
+        list: 'workbench-searchmode__list',
+        option: 'workbench-searchmode__option',
+        helper: 'workbench-searchmode__helper',
+      }}
+      disabled={disabled}
+      sections={[
+        {
+          kind: 'radio',
+          label: 'Search attribute',
+          options: searchAttributeOptions,
+          value: searchAttribute,
+          onChange: (value) => onChangeAttribute(value as SearchAttribute),
+        },
+        {
+          kind: 'radio',
+          label: 'Match type',
+          options: searchTypeOptions,
+          value: searchType,
+          onChange: (value) => onChangeType(value as SearchType),
+        },
+      ]}
+    />
   );
 }
 
@@ -453,87 +400,59 @@ function SearchFilter({
   onChangeIncludeTranslate,
   onChangeIncludeDoNotTranslate,
 }: FilterChipProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const worksetInputRef = useRef<HTMLInputElement | null>(null);
-  const [worksetDraft, setWorksetDraft] = useState(String(worksetSize));
-  const [showWorksetCustomInput, setShowWorksetCustomInput] = useState(false);
-
   const worksetPresets = resultSizePresets;
-
-  const isWorksetPreset = worksetPresets.some((option) => option.value === worksetSize);
-  const isWorksetCustomActive = showWorksetCustomInput || !isWorksetPreset;
-  const commitWorksetDraft = useCallback(() => {
-    const trimmed = worksetDraft.trim();
-    if (!trimmed) {
-      setWorksetDraft(String(worksetSize));
-      return;
-    }
-    const next = parseInt(trimmed, 10);
-    if (Number.isNaN(next) || next < 1) {
-      setWorksetDraft(String(worksetSize));
-      return;
-    }
-    if (next === worksetSize) {
-      return;
-    }
-    onChangeWorksetSize(next);
-  }, [onChangeWorksetSize, worksetDraft, worksetSize]);
-
-  useEffect(() => {
-    if (disabled && isOpen) {
-      if (isWorksetCustomActive) {
-        commitWorksetDraft();
-      }
-      setIsOpen(false);
-    }
-  }, [commitWorksetDraft, disabled, isOpen, isWorksetCustomActive]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-    setWorksetDraft(String(worksetSize));
-    setShowWorksetCustomInput(false);
-  }, [isOpen, worksetSize]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        // If the panel is closed via an outside click, commit the draft first so users don't
-        // need to press Enter to apply the custom size.
-        if (isWorksetCustomActive) {
-          commitWorksetDraft();
-        }
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('pointerdown', handlePointerDown);
-    return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [commitWorksetDraft, isOpen, isWorksetCustomActive]);
-
   const statusLabel =
     statusFilterOptions.find((option) => option.value === statusFilter)?.label ?? 'All statuses';
-  const summaryParts: string[] = [statusLabel];
+  const defaultWorksetSize = WORKSET_SIZE_DEFAULT;
 
-  // Keep the chip label descriptive for the "high signal" filters (status, used, date),
-  // and show the result limit when it differs from the default.
+  type UsageFilterValue = 'any' | 'used' | 'unused';
+  type TranslateFilterValue = 'any' | 'translate' | 'do-not-translate';
+
+  const usageValue: UsageFilterValue =
+    includeUsed && includeUnused ? 'any' : includeUsed ? 'used' : 'unused';
+  const translateValue: TranslateFilterValue =
+    includeTranslate && includeDoNotTranslate
+      ? 'any'
+      : includeTranslate
+        ? 'translate'
+        : 'do-not-translate';
+
+  const handleUsageChange = (value: UsageFilterValue) => {
+    if (value === 'any') {
+      onChangeIncludeUsed(true);
+      onChangeIncludeUnused(true);
+    } else if (value === 'used') {
+      onChangeIncludeUsed(true);
+      onChangeIncludeUnused(false);
+    } else {
+      onChangeIncludeUsed(false);
+      onChangeIncludeUnused(true);
+    }
+  };
+
+  const handleTranslateChange = (value: TranslateFilterValue) => {
+    if (value === 'any') {
+      onChangeIncludeTranslate(true);
+      onChangeIncludeDoNotTranslate(true);
+    } else if (value === 'translate') {
+      onChangeIncludeTranslate(true);
+      onChangeIncludeDoNotTranslate(false);
+    } else {
+      onChangeIncludeTranslate(false);
+      onChangeIncludeDoNotTranslate(true);
+    }
+  };
+
   const hasDateFilter = Boolean(createdBefore) || Boolean(createdAfter);
-  if (hasDateFilter) {
-    // Date ranges are too long for the chip; we only hint that a date filter is active.
-    summaryParts.push('Date');
-  }
-
   const usageLabel =
     includeUsed && includeUnused ? 'Used: any' : !includeUsed && includeUnused ? 'Unused' : null;
+  const summaryParts: string[] = [statusLabel];
   if (usageLabel) {
     summaryParts.push(usageLabel);
   }
-
-  const defaultWorksetSize = 10;
+  if (hasDateFilter) {
+    summaryParts.push('Date');
+  }
   if (worksetSize !== defaultWorksetSize) {
     const presetLabel = worksetPresets.find((preset) => preset.value === worksetSize)?.label;
     const compactLabel =
@@ -543,237 +462,83 @@ function SearchFilter({
         : String(worksetSize));
     summaryParts.push(`Size ${compactLabel}`);
   }
-
-  // Translate filter is intentionally not surfaced in the summary (low signal for this UI).
   const summary = summaryParts.join(' · ');
 
-  const quickRanges: Array<{
-    label: string;
-    getRange: () => { after: string | null; before: string | null };
-  }> = [
-    { label: 'Last 5 min', getRange: () => ({ after: minutesAgoIso(5), before: null }) },
-    { label: 'Last 10 min', getRange: () => ({ after: minutesAgoIso(10), before: null }) },
-    { label: 'Last hour', getRange: () => ({ after: minutesAgoIso(60), before: null }) },
-    { label: 'Today', getRange: () => ({ after: startOfTodayIso(), before: null }) },
+  const quickRanges: Array<{ label: string; after: string | null; before: string | null }> = [
+    { label: 'Last 5 min', after: minutesAgoIso(5), before: null },
+    { label: 'Last 10 min', after: minutesAgoIso(10), before: null },
+    { label: 'Last hour', after: minutesAgoIso(60), before: null },
+    { label: 'Today', after: startOfTodayIso(), before: null },
     {
       label: 'Yesterday',
-      getRange: () => ({ after: startOfYesterdayIso(), before: startOfTodayIso() }),
+      after: startOfYesterdayIso(),
+      before: startOfTodayIso(),
     },
-    { label: 'This week', getRange: () => ({ after: startOfWeekIso(), before: null }) },
+    { label: 'This week', after: startOfWeekIso(), before: null },
   ];
 
   return (
-    <div className="chip-dropdown" ref={containerRef} data-align="right">
-      <button
-        type="button"
-        className="chip-dropdown__button workbench-filterchip__button"
-        onClick={() => setIsOpen((previous) => !previous)}
-        aria-expanded={isOpen}
-        disabled={disabled}
-      >
-        <span className="chip-dropdown__summary">{summary}</span>
-        <span className="chip-dropdown__chevron" aria-hidden="true" />
-      </button>
-      {isOpen ? (
-        <div className="chip-dropdown__panel workbench-filterchip__panel" role="menu">
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Status</div>
-            <div className="workbench-searchmode__list">
-              {statusFilterOptions.map((option) => (
-                <button
-                  type="button"
-                  key={option.value}
-                  className={`workbench-searchmode__option${
-                    option.value === statusFilter ? ' is-active' : ''
-                  }`}
-                  onClick={() => onChangeStatusFilter(option.value)}
-                >
-                  <span>{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Used</div>
-            <div className="workbench-searchmode__list">
-              <label className="workbench-filterchip__checkbox">
-                <input
-                  type="checkbox"
-                  checked={includeUsed}
-                  onChange={() => {
-                    if (includeUsed && !includeUnused) {
-                      return;
-                    }
-                    onChangeIncludeUsed(!includeUsed);
-                  }}
-                />
-                <span>Yes</span>
-              </label>
-              <label className="workbench-filterchip__checkbox">
-                <input
-                  type="checkbox"
-                  checked={includeUnused}
-                  onChange={() => {
-                    if (includeUnused && !includeUsed) {
-                      return;
-                    }
-                    onChangeIncludeUnused(!includeUnused);
-                  }}
-                />
-                <span>No</span>
-              </label>
-            </div>
-          </div>
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Translate</div>
-            <div className="workbench-searchmode__list">
-              <label className="workbench-filterchip__checkbox">
-                <input
-                  type="checkbox"
-                  checked={includeTranslate}
-                  onChange={() => {
-                    if (includeTranslate && !includeDoNotTranslate) {
-                      return;
-                    }
-                    onChangeIncludeTranslate(!includeTranslate);
-                  }}
-                />
-                <span>Yes</span>
-              </label>
-              <label className="workbench-filterchip__checkbox">
-                <input
-                  type="checkbox"
-                  checked={includeDoNotTranslate}
-                  onChange={() => {
-                    if (includeDoNotTranslate && !includeTranslate) {
-                      return;
-                    }
-                    onChangeIncludeDoNotTranslate(!includeDoNotTranslate);
-                  }}
-                />
-                <span>No</span>
-              </label>
-            </div>
-          </div>
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Created after</div>
-            <input
-              type="datetime-local"
-              value={createdAfter ? isoToLocalInput(createdAfter) : ''}
-              onChange={(event) =>
-                onChangeCreatedAfter(
-                  event.target.value ? localInputToIso(event.target.value) : null,
-                )
+    <MultiSectionFilterChip
+      align="right"
+      ariaLabel="Filter workbench results"
+      disabled={disabled}
+      summary={summary}
+      sections={[
+        {
+          kind: 'radio',
+          label: 'Status',
+          options: statusFilterOptions,
+          value: statusFilter,
+          onChange: (value) => onChangeStatusFilter(value as StatusFilterValue),
+        },
+        {
+          kind: 'radio',
+          label: 'Used',
+          options: [
+            { value: 'any', label: 'Any' },
+            { value: 'used', label: 'Yes' },
+            { value: 'unused', label: 'No' },
+          ],
+          value: usageValue,
+          onChange: (value) => handleUsageChange(value as UsageFilterValue),
+        },
+        {
+          kind: 'radio',
+          label: 'Translate',
+          options: [
+            { value: 'any', label: 'Any' },
+            { value: 'translate', label: 'Yes' },
+            { value: 'do-not-translate', label: 'No' },
+          ],
+          value: translateValue,
+          onChange: (value) => handleTranslateChange(value as TranslateFilterValue),
+        },
+        {
+          kind: 'date',
+          label: 'Created',
+          after: createdAfter ?? undefined,
+          before: createdBefore ?? undefined,
+          onChangeAfter: onChangeCreatedAfter,
+          onChangeBefore: onChangeCreatedBefore,
+          quickRanges,
+          onClear: hasDateFilter
+            ? () => {
+                onChangeCreatedBefore(null);
+                onChangeCreatedAfter(null);
               }
-              className="workbench-datefilter__input"
-              disabled={disabled}
-            />
-          </div>
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Created before</div>
-            <input
-              type="datetime-local"
-              value={createdBefore ? isoToLocalInput(createdBefore) : ''}
-              onChange={(event) =>
-                onChangeCreatedBefore(
-                  event.target.value ? localInputToIso(event.target.value) : null,
-                )
-              }
-              className="workbench-datefilter__input"
-              disabled={disabled}
-            />
-          </div>
-          <div className="workbench-datefilter__quick">
-            {quickRanges.map((range) => (
-              <button
-                type="button"
-                key={range.label}
-                className="workbench-datefilter__quick-chip"
-                onClick={() => {
-                  const { after, before } = range.getRange();
-                  onChangeCreatedAfter(after);
-                  onChangeCreatedBefore(before);
-                }}
-                disabled={disabled}
-              >
-                {range.label}
-              </button>
-            ))}
-            {hasDateFilter ? (
-              <button
-                type="button"
-                className="workbench-filterchip__clear-link"
-                onClick={() => {
-                  onChangeCreatedBefore(null);
-                  onChangeCreatedAfter(null);
-                }}
-                disabled={disabled}
-              >
-                Clear dates
-              </button>
-            ) : null}
-          </div>
-          <div className="workbench-searchmode__section">
-            <div className="workbench-searchmode__label">Result size limit</div>
-            <div className="workbench-filterchip__pills">
-              {worksetPresets.map((option) => (
-                <button
-                  type="button"
-                  key={option.value}
-                  className={`workbench-datefilter__quick-chip${
-                    option.value === worksetSize ? ' is-active' : ''
-                  }`}
-                  onClick={() => onChangeWorksetSize(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
-              {isWorksetCustomActive ? (
-                <div className="workbench-worksetcustom is-active">
-                  <span className="workbench-worksetcustom__label">Custom</span>
-                  <input
-                    ref={worksetInputRef}
-                    className="workbench-worksetcustom__input"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    value={worksetDraft}
-                    onChange={(event) => setWorksetDraft(event.target.value)}
-                    onBlur={() => {
-                      commitWorksetDraft();
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        commitWorksetDraft();
-                      }
-                      if (event.key === 'Escape') {
-                        setWorksetDraft(String(worksetSize));
-                        setShowWorksetCustomInput(false);
-                      }
-                    }}
-                  />
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="workbench-datefilter__quick-chip"
-                  onClick={() => {
-                    setShowWorksetCustomInput(true);
-                    setWorksetDraft(String(worksetSize));
-                    queueMicrotask(() => {
-                      worksetInputRef.current?.focus();
-                      worksetInputRef.current?.select();
-                    });
-                  }}
-                >
-                  Custom…
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+            : undefined,
+          clearLabel: 'Clear dates',
+        },
+        {
+          kind: 'size',
+          label: 'Result size limit',
+          options: worksetPresets,
+          value: worksetSize,
+          onChange: onChangeWorksetSize,
+          min: WORKSET_SIZE_MIN,
+        },
+      ]}
+    />
   );
 }
 
@@ -799,22 +564,4 @@ function startOfWeekIso() {
   now.setDate(now.getDate() - diff);
   now.setHours(0, 0, 0, 0);
   return now.toISOString();
-}
-
-function isoToLocalInput(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60 * 1000);
-  return local.toISOString().slice(0, 16);
-}
-
-function localInputToIso(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toISOString();
 }
