@@ -45,7 +45,6 @@ const statusFilterOptions: StatusFilterOption[] = [
 
 type WorkbenchHeaderProps = {
   disabled: boolean;
-  isEditMode: boolean;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   repositoryOptions: RepositoryMultiSelectOption[];
@@ -82,7 +81,6 @@ type WorkbenchHeaderProps = {
 
 export function WorkbenchHeader({
   disabled,
-  isEditMode,
   worksetSize,
   onChangeWorksetSize,
   repositoryOptions,
@@ -162,7 +160,7 @@ export function WorkbenchHeader({
     }
   })();
 
-  const searchControlsDisabled = disabled || isEditMode;
+  const searchControlsDisabled = disabled;
   const shouldShowMyLocalesAction = isLimitedTranslator || preferredLocales.length > 0;
   return (
     <div className="workbench-page__header workbench-header">

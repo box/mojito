@@ -23,7 +23,6 @@ import { WorkbenchWorksetBar } from './WorkbenchWorksetBar';
 
 type Props = {
   hasSearched: boolean;
-  isEditMode: boolean;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   editedRowIds: Set<string>;
@@ -60,7 +59,6 @@ type Props = {
   onSubmitSearch: () => void;
   onChangeSearchAttribute: (value: SearchAttribute) => void;
   onChangeSearchType: (value: SearchType) => void;
-  onBackToSearch: () => void;
   onRefreshWorkset: () => void;
   repositoryOptions: RepositorySelectionOption[];
   selectedRepositoryIds: number[];
@@ -141,7 +139,6 @@ function HydrationModal({
 
 export function WorkbenchPageView({
   hasSearched,
-  isEditMode,
   worksetSize,
   onChangeWorksetSize,
   editedRowIds,
@@ -178,7 +175,6 @@ export function WorkbenchPageView({
   onSubmitSearch,
   onChangeSearchAttribute,
   onChangeSearchType,
-  onBackToSearch,
   onRefreshWorkset,
   repositoryOptions,
   selectedRepositoryIds,
@@ -238,7 +234,6 @@ export function WorkbenchPageView({
     <div className="workbench-page">
       <WorkbenchHeader
         disabled={headerDisabled}
-        isEditMode={isEditMode}
         worksetSize={worksetSize}
         onChangeWorksetSize={onChangeWorksetSize}
         repositoryOptions={repositoryOptions}
@@ -274,7 +269,6 @@ export function WorkbenchPageView({
       />
       <WorkbenchWorksetBar
         disabled={headerDisabled}
-        isEditMode={isEditMode}
         isSearchLoading={isSearchLoading}
         hasSearched={hasSearched}
         rowCount={rowCount}
@@ -282,7 +276,6 @@ export function WorkbenchPageView({
         worksetSize={worksetSize}
         onChangeWorksetSize={onChangeWorksetSize}
         editedCount={editedCount}
-        onBackToSearch={onBackToSearch}
         onRefreshWorkset={onRefreshWorkset}
         collections={collections}
         activeCollectionId={activeCollectionId}

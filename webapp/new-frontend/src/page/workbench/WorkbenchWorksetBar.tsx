@@ -5,7 +5,6 @@ import type { WorkbenchCollection } from './workbench-types';
 
 type WorkbenchWorksetBarProps = {
   disabled: boolean;
-  isEditMode: boolean;
   isSearchLoading: boolean;
   hasSearched: boolean;
   rowCount: number;
@@ -13,7 +12,6 @@ type WorkbenchWorksetBarProps = {
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   editedCount: number;
-  onBackToSearch: () => void;
   onRefreshWorkset: () => void;
   onOpenShareModal: () => void;
   collections: WorkbenchCollection[];
@@ -33,7 +31,6 @@ type WorkbenchWorksetBarProps = {
 
 export function WorkbenchWorksetBar({
   disabled,
-  isEditMode,
   isSearchLoading,
   hasSearched,
   rowCount,
@@ -41,7 +38,6 @@ export function WorkbenchWorksetBar({
   worksetSize,
   onChangeWorksetSize,
   editedCount,
-  onBackToSearch,
   onRefreshWorkset,
   onOpenShareModal,
   collections,
@@ -63,7 +59,7 @@ export function WorkbenchWorksetBar({
     : rowCount === 0
       ? 'No results'
       : `${rowCount} results`;
-  const resultDropdownDisabled = disabled || isEditMode;
+  const resultDropdownDisabled = disabled;
   const canRefresh = hasSearched && !disabled && !isSearchLoading;
   const canShare = hasSearched && !disabled;
 
@@ -89,31 +85,19 @@ export function WorkbenchWorksetBar({
 
   if (hasSearched) {
     parts.push(
-      isEditMode ? (
-        <button
-          key="editsearch"
-          type="button"
-          className="workbench-worksetbar__button"
-          onClick={onBackToSearch}
-          disabled={disabled}
-        >
-          Back to search
-        </button>
-      ) : (
-        <button
-          key="refresh"
-          type="button"
-          className="workbench-worksetbar__button workbench-worksetbar__button--refresh"
-          onClick={() => {
-            if (canRefresh) {
-              onRefreshWorkset();
-            }
-          }}
-          disabled={!canRefresh}
-        >
-          Refresh
-        </button>
-      ),
+      <button
+        key="refresh"
+        type="button"
+        className="workbench-worksetbar__button workbench-worksetbar__button--refresh"
+        onClick={() => {
+          if (canRefresh) {
+            onRefreshWorkset();
+          }
+        }}
+        disabled={!canRefresh}
+      >
+        Refresh
+      </button>,
     );
   }
 

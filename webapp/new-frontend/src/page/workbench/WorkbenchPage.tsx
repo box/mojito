@@ -28,7 +28,6 @@ function isWorkbenchLocationState(state: unknown): state is WorkbenchLocationSta
 }
 
 export function WorkbenchPage() {
-  const [isEditMode, setIsEditMode] = useState(false);
   const [pendingCollectionOpenId, setPendingCollectionOpenId] = useState<string | null>(null);
   const [shareOverrides, setShareOverrides] = useState<WorkbenchShareOverrides | null>(null);
   const location = useLocation();
@@ -56,11 +55,7 @@ export function WorkbenchPage() {
     [currentUser],
   );
 
-  const search = useWorkbenchSearch({
-    isEditMode,
-    initialSearchRequest: hydratedSearchRequest,
-    canEditLocale,
-  });
+  const search = useWorkbenchSearch({ initialSearchRequest: hydratedSearchRequest, canEditLocale });
   const collections = useWorkbenchCollections();
 
   const clearShareIdFromUrl = useCallback(() => {
@@ -154,7 +149,6 @@ export function WorkbenchPage() {
     apiRows: search.rows,
     canSearch: search.canSearch,
     activeSearchRequest: search.activeSearchRequest,
-    setIsEditMode,
   });
   const { clearWorksetEdits } = edits;
   const { refetchSearch } = search;
@@ -305,11 +299,6 @@ export function WorkbenchPage() {
     search.isRepositoriesLoading,
   ]);
 
-  const handleBackToSearch = useCallback(() => {
-    setIsEditMode(false);
-    clearWorksetEdits();
-  }, [clearWorksetEdits]);
-
   const handleRefreshWorkset = useCallback(() => {
     clearWorksetEdits();
     void refetchSearch();
@@ -321,7 +310,6 @@ export function WorkbenchPage() {
   return (
     <WorkbenchPageView
       hasSearched={hasSearched}
-      isEditMode={isEditMode}
       worksetSize={search.worksetSize}
       onChangeWorksetSize={search.onChangeWorksetSize}
       editedRowIds={edits.editedRowIds}
@@ -358,7 +346,6 @@ export function WorkbenchPage() {
       onSubmitSearch={search.onSubmitSearch}
       onChangeSearchAttribute={search.onChangeSearchAttribute}
       onChangeSearchType={search.onChangeSearchType}
-      onBackToSearch={handleBackToSearch}
       onRefreshWorkset={handleRefreshWorkset}
       repositoryOptions={search.repositoryOptions}
       selectedRepositoryIds={search.selectedRepositoryIds}

@@ -27,7 +27,6 @@ import type { StatusFilterValue, WorkbenchRow } from './workbench-types';
 type SearchQueryKey = ['workbench-search', TextUnitSearchRequest | null];
 
 type Params = {
-  isEditMode: boolean;
   initialSearchRequest?: TextUnitSearchRequest | null;
   canEditLocale?: (locale: string) => boolean;
 };
@@ -151,11 +150,7 @@ function buildSearchRequestFromInputs({
   };
 }
 
-export function useWorkbenchSearch({
-  isEditMode,
-  initialSearchRequest,
-  canEditLocale,
-}: Params): SearchState {
+export function useWorkbenchSearch({ initialSearchRequest, canEditLocale }: Params): SearchState {
   const [activeSearchRequest, setActiveSearchRequest] = useState<TextUnitSearchRequest | null>(
     null,
   );
@@ -360,9 +355,9 @@ export function useWorkbenchSearch({
     undefined,
   );
 
-  // Auto-apply non-text changes immediately when not locked.
+  // Auto-apply non-text changes immediately.
   useEffect(() => {
-    if (isEditMode || !pendingSearchRequest || !canSearch) {
+    if (!pendingSearchRequest || !canSearch) {
       return;
     }
     if (nonTextDraftSignature === null) {
@@ -375,15 +370,15 @@ export function useWorkbenchSearch({
 
     lastAppliedNonTextSignatureRef.current = nonTextDraftSignature;
     setActiveSearchRequest(pendingSearchRequest);
-  }, [canSearch, isEditMode, nonTextDraftSignature, pendingSearchRequest]);
+  }, [canSearch, nonTextDraftSignature, pendingSearchRequest]);
 
-  // Auto-apply text changes with debounce when not locked.
+  // Auto-apply text changes with debounce.
   useEffect(() => {
-    if (isEditMode || !pendingSearchRequestDebounced || !canSearch) {
+    if (!pendingSearchRequestDebounced || !canSearch) {
       return;
     }
     setActiveSearchRequest(pendingSearchRequestDebounced);
-  }, [canSearch, isEditMode, pendingSearchRequestDebounced]);
+  }, [canSearch, pendingSearchRequestDebounced]);
 
   // Reset search state if the scope is cleared.
   useEffect(() => {
@@ -395,10 +390,9 @@ export function useWorkbenchSearch({
     setActiveSearchRequest((current) => (current === null ? current : null));
   }, [canSearch]);
 
-  // Treat result size as a view setting (limit), not part of the locked search scope.
-  // Changing it resets pagination to the first page.
+  // Treat result size as a view setting (limit); changing it resets pagination to the first page.
   useEffect(() => {
-    if (!activeSearchRequest || isEditMode) {
+    if (!activeSearchRequest) {
       return;
     }
     const appliedLimit = activeSearchRequest.limit ?? WORKSET_SIZE_DEFAULT;
@@ -406,7 +400,7 @@ export function useWorkbenchSearch({
       return;
     }
     setActiveSearchRequest({ ...activeSearchRequest, limit: searchLimit, offset: 0 });
-  }, [activeSearchRequest, isEditMode, searchLimit]);
+  }, [activeSearchRequest, searchLimit]);
 
   const searchQuery = useInfiniteQuery<
     ApiTextUnit[],
@@ -461,11 +455,11 @@ export function useWorkbenchSearch({
 
   const onSubmitSearch = useCallback(() => {
     // Treat Enter as "search now" (flush debounce).
-    if (!canSearch || !pendingSearchRequest || isEditMode) {
+    if (!canSearch || !pendingSearchRequest) {
       return;
     }
     setActiveSearchRequest(pendingSearchRequest);
-  }, [canSearch, isEditMode, pendingSearchRequest]);
+  }, [canSearch, pendingSearchRequest]);
 
   const onChangeSearchInput = useCallback((value: string) => {
     setSearchInputValue(value);

@@ -40,7 +40,6 @@ type Params = {
   apiRows: WorkbenchRow[];
   canSearch: boolean;
   activeSearchRequest: TextUnitSearchRequest | null;
-  setIsEditMode: (value: boolean) => void;
 };
 
 type UseWorkbenchEditsResult = {
@@ -87,7 +86,6 @@ export function useWorkbenchEdits({
   apiRows,
   canSearch,
   activeSearchRequest,
-  setIsEditMode,
 }: Params): UseWorkbenchEditsResult {
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
@@ -275,20 +273,16 @@ export function useWorkbenchEdits({
     rowRefs.current[rowId] = element;
   }, []);
 
-  const handleStartEditing = useCallback(
-    (rowId: string, translation: string | null) => {
-      saveAttemptRef.current += 1;
-      const nextValue = translation ?? '';
-      setIsEditMode(true);
-      setEditingRowId(rowId);
-      setEditingValue(nextValue);
-      setEditingInitialValue(nextValue);
-      setSaveErrorMessage(null);
-      setPendingValidationSave(null);
-      setPendingEditingTarget(null);
-    },
-    [setIsEditMode],
-  );
+  const handleStartEditing = useCallback((rowId: string, translation: string | null) => {
+    saveAttemptRef.current += 1;
+    const nextValue = translation ?? '';
+    setEditingRowId(rowId);
+    setEditingValue(nextValue);
+    setEditingInitialValue(nextValue);
+    setSaveErrorMessage(null);
+    setPendingValidationSave(null);
+    setPendingEditingTarget(null);
+  }, []);
 
   const handleCancelEditing = useCallback(() => {
     saveAttemptRef.current += 1;
@@ -458,8 +452,7 @@ export function useWorkbenchEdits({
 
       ensureBaselineEdit(row);
 
-      // Status changes are edits too; lock the current dataset to avoid auto-search/flicker.
-      setIsEditMode(true);
+      // Status changes are edits too; keep edits tracked alongside the current dataset.
       setSaveErrorMessage(null);
       setStatusSavingRowIds((previous) => {
         const next = new Set(previous);
@@ -488,7 +481,7 @@ export function useWorkbenchEdits({
           });
         });
     },
-    [apiRows, ensureBaselineEdit, saveTextUnitMutation, setIsEditMode],
+    [apiRows, ensureBaselineEdit, saveTextUnitMutation],
   );
 
   useEffect(() => {
@@ -525,14 +518,13 @@ export function useWorkbenchEdits({
     if (canSearch) {
       return;
     }
-    setIsEditMode(false);
     setEditingRowId(null);
     setEditingValue('');
     setEditingInitialValue('');
     setPendingEditingTarget(null);
     setPendingValidationSave(null);
     clearWorksetEdits();
-  }, [canSearch, clearWorksetEdits, setIsEditMode]);
+  }, [canSearch, clearWorksetEdits]);
 
   // Whenever the applied search changes (new workset), clear edit markers.
   useEffect(() => {
