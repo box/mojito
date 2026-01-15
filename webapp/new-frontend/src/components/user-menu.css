@@ -98,6 +98,14 @@
   gap: var(--space-1);
 }
 
+.user-menu__section-label {
+  font-size: var(--font-size-2xs);
+  letter-spacing: var(--letter-spacing-tight);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  margin-top: var(--space-2);
+}
+
 .user-menu__action {
   display: inline-flex;
   align-items: center;

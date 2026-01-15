@@ -68,6 +68,8 @@ export function UserMenu() {
     void navigate(path);
   };
 
+  const toolLinks = [{ label: 'Character helper', path: '/tools/char-code' }];
+
   return (
     <div className="user-menu" ref={containerRef}>
       <button
@@ -89,16 +91,33 @@ export function UserMenu() {
             <div className="user-menu__line-role">{roleLabel}</div>
           </div>
           {isAdmin ? (
-            <div className="user-menu__actions" role="none">
-              <button
-                type="button"
-                className="user-menu__action"
-                role="menuitem"
-                onClick={() => handleNavigate('/settings/admin')}
-              >
-                Admin settings
-              </button>
-            </div>
+            <>
+              <div className="user-menu__section-label">Tools</div>
+              <div className="user-menu__actions" role="none">
+                {toolLinks.map((item) => (
+                  <button
+                    key={item.path}
+                    type="button"
+                    className="user-menu__action"
+                    role="menuitem"
+                    onClick={() => handleNavigate(item.path)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <div className="user-menu__section-label">Admin</div>
+              <div className="user-menu__actions" role="none">
+                <button
+                  type="button"
+                  className="user-menu__action"
+                  role="menuitem"
+                  onClick={() => handleNavigate('/settings/admin')}
+                >
+                  Admin settings
+                </button>
+              </div>
+            </>
           ) : (
             <div className="user-menu__hint">More account actions will land here soon.</div>
           )}

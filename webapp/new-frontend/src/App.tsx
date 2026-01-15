@@ -8,6 +8,7 @@ import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
+import { CharCodeHelperPage } from './page/tools/CharCodeHelperPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';
 
 type NavItem = {
@@ -66,6 +67,7 @@ export function App() {
               <Route key={to} path={to} element={element} />
             ))}
             <Route path="/settings/admin" element={<AdminSettingsPage />} />
+            <Route path="/tools/char-code" element={<CharCodeHelperPage />} />
             <Route path="*" element={<Navigate to="/repositories" replace />} />
           </Route>
         </Routes>
