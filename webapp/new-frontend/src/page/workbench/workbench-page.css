@@ -1020,6 +1020,10 @@
   padding: 0 var(--space-2);
   height: 24px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
 }
 
 .workbench-page__translation-button--primary {
@@ -1027,6 +1031,7 @@
   border-color: var(--color-accent);
   color: #fff;
 }
+
 
 .workbench-page__translation-input {
   border: 1px solid transparent;

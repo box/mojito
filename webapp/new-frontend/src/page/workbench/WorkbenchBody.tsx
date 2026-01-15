@@ -1,4 +1,11 @@
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiRepository } from '../../api/repositories';
@@ -13,6 +20,7 @@ import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
 import { isRtlLocale } from '../../utils/localeDirection';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { isPrimaryActionShortcut } from '../../utils/keyboardShortcuts';
 import type { WorkbenchDiffModalData, WorkbenchRow } from './workbench-types';
 
 type WorkbenchBodyProps = {
@@ -355,6 +363,15 @@ export function WorkbenchBody({
                 : false;
               const collectionButtonLabel =
                 hasActiveCollection && isInCollection ? 'In collection' : 'Add to collection';
+              const handleTranslationKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+                if (!isEditing || !row.canEdit || isSaving) {
+                  return;
+                }
+                if (isPrimaryActionShortcut(event)) {
+                  event.preventDefault();
+                  onSaveEditing();
+                }
+              };
 
               return {
                 key: row.id,
@@ -451,6 +468,7 @@ export function WorkbenchBody({
                             ? (event) => onChangeEditingValue(event.target.value)
                             : undefined
                         }
+                        onKeyDown={isEditing ? handleTranslationKeyDown : undefined}
                         readOnly={!isEditing || !row.canEdit}
                         aria-disabled={row.canEdit ? undefined : 'true'}
                         ref={isEditing ? translationInputRef : undefined}
@@ -481,7 +499,7 @@ export function WorkbenchBody({
                                 }}
                                 disabled={isSaving}
                               >
-                                Accept
+                                <span>Accept</span>
                               </button>
                               <button
                                 type="button"
