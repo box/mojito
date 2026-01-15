@@ -11,8 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import type { ApiRepository } from '../../api/repositories';
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { AutoTextarea } from '../../components/AutoTextarea';
+import { LocalePill } from '../../components/LocalePill';
 import { Modal } from '../../components/Modal';
-import { Pill } from '../../components/Pill';
 import { PillDropdown } from '../../components/PillDropdown';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useMeasuredRowRefs } from '../../components/virtual/useMeasuredRowRefs';
@@ -518,7 +518,7 @@ export function WorkbenchBody({
                       ) : null}
                     </div>
                     <div className="workbench-page__cell workbench-page__cell--locale">
-                      <Pill>{row.locale}</Pill>
+                      <LocalePill bcp47Tag={row.locale} labelMode="tag" />
                     </div>
                     <div className="workbench-page__cell workbench-page__cell--status">
                       {row.translation === null ? (
