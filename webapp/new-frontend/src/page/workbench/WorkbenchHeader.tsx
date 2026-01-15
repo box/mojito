@@ -80,6 +80,10 @@ type WorkbenchHeaderProps = {
   createdAfter: string | null;
   onChangeCreatedBefore: (value: string | null) => void;
   onChangeCreatedAfter: (value: string | null) => void;
+  translationCreatedBefore: string | null;
+  translationCreatedAfter: string | null;
+  onChangeTranslationCreatedBefore: (value: string | null) => void;
+  onChangeTranslationCreatedAfter: (value: string | null) => void;
 };
 
 export function WorkbenchHeader({
@@ -115,6 +119,10 @@ export function WorkbenchHeader({
   createdAfter,
   onChangeCreatedBefore,
   onChangeCreatedAfter,
+  translationCreatedBefore,
+  translationCreatedAfter,
+  onChangeTranslationCreatedBefore,
+  onChangeTranslationCreatedAfter,
 }: WorkbenchHeaderProps) {
   const [preferredLocales, setPreferredLocales] = useState<string[]>(() => loadPreferredLocales());
 
@@ -244,8 +252,12 @@ export function WorkbenchHeader({
           includeDoNotTranslate={includeDoNotTranslate}
           createdBefore={createdBefore}
           createdAfter={createdAfter}
+          translationCreatedBefore={translationCreatedBefore}
+          translationCreatedAfter={translationCreatedAfter}
           onChangeCreatedBefore={onChangeCreatedBefore}
           onChangeCreatedAfter={onChangeCreatedAfter}
+          onChangeTranslationCreatedBefore={onChangeTranslationCreatedBefore}
+          onChangeTranslationCreatedAfter={onChangeTranslationCreatedAfter}
           worksetSize={worksetSize}
           onChangeWorksetSize={onChangeWorksetSize}
           onChangeStatusFilter={onChangeStatusFilter}
@@ -268,8 +280,12 @@ type FilterChipProps = {
   includeDoNotTranslate: boolean;
   createdBefore: string | null;
   createdAfter: string | null;
+  translationCreatedBefore: string | null;
+  translationCreatedAfter: string | null;
   onChangeCreatedBefore: (value: string | null) => void;
   onChangeCreatedAfter: (value: string | null) => void;
+  onChangeTranslationCreatedBefore: (value: string | null) => void;
+  onChangeTranslationCreatedAfter: (value: string | null) => void;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   onChangeStatusFilter: (value: StatusFilterValue) => void;
@@ -288,8 +304,12 @@ function SearchFilter({
   includeDoNotTranslate,
   createdBefore,
   createdAfter,
+  translationCreatedBefore,
+  translationCreatedAfter,
   onChangeCreatedBefore,
   onChangeCreatedAfter,
+  onChangeTranslationCreatedBefore,
+  onChangeTranslationCreatedAfter,
   worksetSize,
   onChangeWorksetSize,
   onChangeStatusFilter,
@@ -342,6 +362,8 @@ function SearchFilter({
   };
 
   const hasDateFilter = Boolean(createdBefore) || Boolean(createdAfter);
+  const hasTranslationDateFilter =
+    Boolean(translationCreatedBefore) || Boolean(translationCreatedAfter);
   const usageLabel =
     includeUsed && includeUnused ? 'Used: any' : !includeUsed && includeUnused ? 'Unused' : null;
   const summaryParts: string[] = [statusLabel];
@@ -349,7 +371,10 @@ function SearchFilter({
     summaryParts.push(usageLabel);
   }
   if (hasDateFilter) {
-    summaryParts.push('Date');
+    summaryParts.push('Text unit date');
+  }
+  if (hasTranslationDateFilter) {
+    summaryParts.push('Translation date');
   }
   if (worksetSize !== defaultWorksetSize) {
     const presetLabel = worksetPresets.find((preset) => preset.value === worksetSize)?.label;
@@ -402,7 +427,7 @@ function SearchFilter({
         },
         {
           kind: 'date',
-          label: 'Created',
+          label: 'Text unit created',
           after: createdAfter ?? undefined,
           before: createdBefore ?? undefined,
           onChangeAfter: onChangeCreatedAfter,
@@ -412,6 +437,22 @@ function SearchFilter({
             ? () => {
                 onChangeCreatedBefore(null);
                 onChangeCreatedAfter(null);
+              }
+            : undefined,
+          clearLabel: 'Clear dates',
+        },
+        {
+          kind: 'date',
+          label: 'Translation created',
+          after: translationCreatedAfter ?? undefined,
+          before: translationCreatedBefore ?? undefined,
+          onChangeAfter: onChangeTranslationCreatedAfter,
+          onChangeBefore: onChangeTranslationCreatedBefore,
+          quickRanges,
+          onClear: hasTranslationDateFilter
+            ? () => {
+                onChangeTranslationCreatedBefore(null);
+                onChangeTranslationCreatedAfter(null);
               }
             : undefined,
           clearLabel: 'Clear dates',

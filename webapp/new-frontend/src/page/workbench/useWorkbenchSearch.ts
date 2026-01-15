@@ -60,8 +60,12 @@ type SearchState = {
   onChangeIncludeDoNotTranslate: (value: boolean) => void;
   createdBefore: string | null;
   createdAfter: string | null;
+  translationCreatedBefore: string | null;
+  translationCreatedAfter: string | null;
   onChangeCreatedBefore: (value: string | null) => void;
   onChangeCreatedAfter: (value: string | null) => void;
+  onChangeTranslationCreatedBefore: (value: string | null) => void;
+  onChangeTranslationCreatedAfter: (value: string | null) => void;
   worksetSize: number;
   onChangeWorksetSize: (value: number) => void;
   canSearch: boolean;
@@ -87,6 +91,8 @@ type SearchRequestInputs = {
   includeDoNotTranslate: boolean;
   createdBefore: string | null;
   createdAfter: string | null;
+  translationCreatedBefore: string | null;
+  translationCreatedAfter: string | null;
 };
 
 function buildSearchRequestFromInputs({
@@ -103,6 +109,8 @@ function buildSearchRequestFromInputs({
   includeDoNotTranslate,
   createdBefore,
   createdAfter,
+  translationCreatedBefore,
+  translationCreatedAfter,
 }: SearchRequestInputs): TextUnitSearchRequest | null {
   if (!repositoryIds.length || !localeTags.length) {
     return null;
@@ -147,6 +155,8 @@ function buildSearchRequestFromInputs({
     doNotTranslateFilter,
     tmTextUnitCreatedBefore: createdBefore ?? undefined,
     tmTextUnitCreatedAfter: createdAfter ?? undefined,
+    tmTextUnitVariantCreatedBefore: translationCreatedBefore ?? undefined,
+    tmTextUnitVariantCreatedAfter: translationCreatedAfter ?? undefined,
   };
 }
 
@@ -164,6 +174,8 @@ export function useWorkbenchSearch({ initialSearchRequest, canEditLocale }: Para
   const [includeDoNotTranslate, setIncludeDoNotTranslate] = useState(true);
   const [createdBefore, setCreatedBefore] = useState<string | null>(null);
   const [createdAfter, setCreatedAfter] = useState<string | null>(null);
+  const [translationCreatedBefore, setTranslationCreatedBefore] = useState<string | null>(null);
+  const [translationCreatedAfter, setTranslationCreatedAfter] = useState<string | null>(null);
   const [worksetSize, setWorksetSize] = useState<number>(
     () => loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT,
   );
@@ -251,6 +263,8 @@ export function useWorkbenchSearch({ initialSearchRequest, canEditLocale }: Para
 
     setCreatedBefore(initialSearchRequest.tmTextUnitCreatedBefore ?? null);
     setCreatedAfter(initialSearchRequest.tmTextUnitCreatedAfter ?? null);
+    setTranslationCreatedBefore(initialSearchRequest.tmTextUnitVariantCreatedBefore ?? null);
+    setTranslationCreatedAfter(initialSearchRequest.tmTextUnitVariantCreatedAfter ?? null);
     const initialLimit = clampWorksetSize(
       initialSearchRequest.limit ?? loadPreferredWorksetSize() ?? WORKSET_SIZE_DEFAULT,
     );
@@ -271,6 +285,8 @@ export function useWorkbenchSearch({ initialSearchRequest, canEditLocale }: Para
         includeDoNotTranslate: initialIncludeDoNotTranslate,
         createdBefore: initialSearchRequest.tmTextUnitCreatedBefore ?? null,
         createdAfter: initialSearchRequest.tmTextUnitCreatedAfter ?? null,
+        translationCreatedBefore: initialSearchRequest.tmTextUnitVariantCreatedBefore ?? null,
+        translationCreatedAfter: initialSearchRequest.tmTextUnitVariantCreatedAfter ?? null,
       });
       if (normalizedRequest) {
         setActiveSearchRequest(normalizedRequest);
@@ -316,10 +332,14 @@ export function useWorkbenchSearch({ initialSearchRequest, canEditLocale }: Para
         includeDoNotTranslate,
         createdBefore,
         createdAfter,
+        translationCreatedBefore,
+        translationCreatedAfter,
       }),
     [
       createdAfter,
       createdBefore,
+      translationCreatedAfter,
+      translationCreatedBefore,
       includeDoNotTranslate,
       includeTranslate,
       includeUnused,
@@ -529,8 +549,12 @@ export function useWorkbenchSearch({ initialSearchRequest, canEditLocale }: Para
     onChangeIncludeDoNotTranslate: setIncludeDoNotTranslate,
     createdBefore,
     createdAfter,
+    translationCreatedBefore,
+    translationCreatedAfter,
     onChangeCreatedBefore: setCreatedBefore,
     onChangeCreatedAfter: setCreatedAfter,
+    onChangeTranslationCreatedBefore: setTranslationCreatedBefore,
+    onChangeTranslationCreatedAfter: setTranslationCreatedAfter,
     worksetSize,
     onChangeWorksetSize,
     canSearch,

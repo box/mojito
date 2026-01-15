@@ -45,6 +45,8 @@ export function serializeSearchRequest(request: TextUnitSearchRequest): string {
       typeof normalized.doNotTranslateFilter === 'boolean' ? normalized.doNotTranslateFilter : null,
     tmTextUnitCreatedBefore: normalized.tmTextUnitCreatedBefore ?? null,
     tmTextUnitCreatedAfter: normalized.tmTextUnitCreatedAfter ?? null,
+    tmTextUnitVariantCreatedBefore: normalized.tmTextUnitVariantCreatedBefore ?? null,
+    tmTextUnitVariantCreatedAfter: normalized.tmTextUnitVariantCreatedAfter ?? null,
     limit: normalized.limit ?? null,
     offset: normalized.offset ?? null,
   };

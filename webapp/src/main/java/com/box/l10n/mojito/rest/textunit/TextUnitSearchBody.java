@@ -25,6 +25,8 @@ class TextUnitSearchBody {
   Boolean doNotTranslateFilter;
   ZonedDateTime tmTextUnitCreatedBefore;
   ZonedDateTime tmTextUnitCreatedAfter;
+  ZonedDateTime tmTextUnitVariantCreatedBefore;
+  ZonedDateTime tmTextUnitVariantCreatedAfter;
   Long branchId;
   Integer limit = 10;
   Integer offset = 0;
@@ -171,6 +173,22 @@ class TextUnitSearchBody {
 
   public void setTmTextUnitCreatedAfter(ZonedDateTime tmTextUnitCreatedAfter) {
     this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+  }
+
+  public ZonedDateTime getTmTextUnitVariantCreatedBefore() {
+    return tmTextUnitVariantCreatedBefore;
+  }
+
+  public void setTmTextUnitVariantCreatedBefore(ZonedDateTime tmTextUnitVariantCreatedBefore) {
+    this.tmTextUnitVariantCreatedBefore = tmTextUnitVariantCreatedBefore;
+  }
+
+  public ZonedDateTime getTmTextUnitVariantCreatedAfter() {
+    return tmTextUnitVariantCreatedAfter;
+  }
+
+  public void setTmTextUnitVariantCreatedAfter(ZonedDateTime tmTextUnitVariantCreatedAfter) {
+    this.tmTextUnitVariantCreatedAfter = tmTextUnitVariantCreatedAfter;
   }
 
   public Long getBranchId() {

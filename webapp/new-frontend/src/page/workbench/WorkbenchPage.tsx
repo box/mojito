@@ -371,6 +371,10 @@ export function WorkbenchPage() {
       createdAfter={search.createdAfter}
       onChangeCreatedBefore={search.onChangeCreatedBefore}
       onChangeCreatedAfter={search.onChangeCreatedAfter}
+      translationCreatedBefore={search.translationCreatedBefore}
+      translationCreatedAfter={search.translationCreatedAfter}
+      onChangeTranslationCreatedBefore={search.onChangeTranslationCreatedBefore}
+      onChangeTranslationCreatedAfter={search.onChangeTranslationCreatedAfter}
       isSearchLoading={search.isSearchLoading}
       searchErrorMessage={search.searchErrorMessage}
       hydrationModal={hydrationModal}

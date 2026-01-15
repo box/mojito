@@ -84,6 +84,10 @@ type Props = {
   createdAfter: string | null;
   onChangeCreatedBefore: (value: string | null) => void;
   onChangeCreatedAfter: (value: string | null) => void;
+  translationCreatedBefore: string | null;
+  translationCreatedAfter: string | null;
+  onChangeTranslationCreatedBefore: (value: string | null) => void;
+  onChangeTranslationCreatedAfter: (value: string | null) => void;
   isSearchLoading: boolean;
   searchErrorMessage: string | null;
   hydrationModal?: { title: string; body: string } | null;
@@ -200,6 +204,10 @@ export function WorkbenchPageView({
   createdAfter,
   onChangeCreatedBefore,
   onChangeCreatedAfter,
+  translationCreatedBefore,
+  translationCreatedAfter,
+  onChangeTranslationCreatedBefore,
+  onChangeTranslationCreatedAfter,
   isSearchLoading,
   searchErrorMessage,
   hydrationModal,
@@ -266,6 +274,10 @@ export function WorkbenchPageView({
         createdAfter={createdAfter}
         onChangeCreatedBefore={onChangeCreatedBefore}
         onChangeCreatedAfter={onChangeCreatedAfter}
+        translationCreatedBefore={translationCreatedBefore}
+        translationCreatedAfter={translationCreatedAfter}
+        onChangeTranslationCreatedBefore={onChangeTranslationCreatedBefore}
+        onChangeTranslationCreatedAfter={onChangeTranslationCreatedAfter}
       />
       <WorkbenchWorksetBar
         disabled={headerDisabled}

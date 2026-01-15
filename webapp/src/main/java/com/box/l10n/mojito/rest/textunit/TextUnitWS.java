@@ -405,6 +405,10 @@ public class TextUnitWS {
         textUnitSearchBody.getTmTextUnitCreatedBefore());
     textUnitSearcherParameters.setTmTextUnitCreatedAfter(
         textUnitSearchBody.getTmTextUnitCreatedAfter());
+    textUnitSearcherParameters.setTmTextUnitVariantCreatedBefore(
+        textUnitSearchBody.getTmTextUnitVariantCreatedBefore());
+    textUnitSearcherParameters.setTmTextUnitVariantCreatedAfter(
+        textUnitSearchBody.getTmTextUnitVariantCreatedAfter());
     textUnitSearcherParameters.setBranchId(textUnitSearchBody.getBranchId());
     textUnitSearcherParameters.setLimit(textUnitSearchBody.getLimit());
     textUnitSearcherParameters.setOffset(textUnitSearchBody.getOffset());

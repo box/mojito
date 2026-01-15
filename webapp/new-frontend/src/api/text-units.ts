@@ -49,6 +49,8 @@ export type TextUnitSearchRequest = {
   doNotTranslateFilter?: boolean;
   tmTextUnitCreatedBefore?: string;
   tmTextUnitCreatedAfter?: string;
+  tmTextUnitVariantCreatedBefore?: string;
+  tmTextUnitVariantCreatedAfter?: string;
 };
 
 export type SaveTextUnitRequest = {
@@ -99,6 +101,8 @@ type TextUnitSearchBody = {
   doNotTranslateFilter?: boolean;
   tmTextUnitCreatedBefore?: string;
   tmTextUnitCreatedAfter?: string;
+  tmTextUnitVariantCreatedBefore?: string;
+  tmTextUnitVariantCreatedAfter?: string;
   limit: number;
   offset: number;
 };
@@ -167,6 +171,14 @@ function buildSearchBody(request: TextUnitSearchRequest): TextUnitSearchBody {
 
   if (request.tmTextUnitCreatedAfter) {
     body.tmTextUnitCreatedAfter = request.tmTextUnitCreatedAfter;
+  }
+
+  if (request.tmTextUnitVariantCreatedBefore) {
+    body.tmTextUnitVariantCreatedBefore = request.tmTextUnitVariantCreatedBefore;
+  }
+
+  if (request.tmTextUnitVariantCreatedAfter) {
+    body.tmTextUnitVariantCreatedAfter = request.tmTextUnitVariantCreatedAfter;
   }
 
   if (searchText) {
