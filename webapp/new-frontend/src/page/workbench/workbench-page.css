@@ -2,6 +2,7 @@
   --workbench-page-grid-columns: minmax(0, 1.9fr) minmax(0, 2.2fr) minmax(0, 2.2fr)
     minmax(0, 0.55fr) minmax(0, 0.6fr);
   --workbench-header-height: 3.625rem;
+  --workbench-row-height: 11.875rem;
   --workbench-row-border-color: color-mix(in srgb, var(--color-border) 55%, transparent);
   display: flex;
   flex-direction: column;

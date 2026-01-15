@@ -3,7 +3,6 @@ import '../../components/filters/filter-chip.css';
 import '../workbench/workbench-page.css';
 import './repositories-page.css';
 
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { MultiSectionFilterChip } from '../../components/filters/MultiSectionFilterChip';
@@ -13,8 +12,10 @@ import {
   RepositoryMultiSelect,
   type RepositoryMultiSelectOption,
 } from '../../components/RepositoryMultiSelect';
-
-const ROW_HEIGHT_PX = 48; // keep in sync with --repositories-page-row-height in CSS
+import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
+import { useMeasuredRowRefs } from '../../components/virtual/useMeasuredRowRefs';
+import { useVirtualRows } from '../../components/virtual/useVirtualRows';
+import { VirtualList } from '../../components/virtual/VirtualList';
 
 export type RepositoryRow = {
   id: number;
@@ -213,34 +214,45 @@ function RepositoryTable({
   onSelectRepository,
   onOpenWorkbench,
 }: RepositoryTableProps) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const selectedIndex = useMemo(
     () => repositories.findIndex((repo) => repo.selected),
     [repositories],
   );
+
+  const scrollElementRef = useRef<HTMLDivElement>(null);
 
   const getItemKey = useCallback(
     (index: number) => repositories[index]?.id ?? index,
     [repositories],
   );
 
-  const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>({
+  const estimateSize = useCallback(
+    () =>
+      getRowHeightPx({
+        element: scrollElementRef.current,
+        cssVariable: '--repositories-page-row-height',
+        defaultRem: 3,
+      }),
+    [],
+  );
+
+  const { items, totalSize, scrollToIndex, measureElement } = useVirtualRows<HTMLDivElement>({
     count: repositories.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => ROW_HEIGHT_PX,
+    estimateSize,
+    getScrollElement: () => scrollElementRef.current,
     overscan: 8,
     getItemKey,
   });
 
-  const items = virtualizer.getVirtualItems();
+  const { getRowRef } = useMeasuredRowRefs<number, HTMLDivElement>({ measureElement });
 
   useEffect(() => {
     if (selectedIndex < 0) {
       return;
     }
 
-    virtualizer.scrollToIndex(selectedIndex, { align: 'auto' });
-  }, [selectedIndex, virtualizer]);
+    scrollToIndex(selectedIndex, { align: 'auto' });
+  }, [scrollToIndex, selectedIndex]);
 
   if (isRepositorySelectionEmpty) {
     return (
@@ -268,29 +280,26 @@ function RepositoryTable({
         </div>
       </div>
 
-      <div className="repositories-page__repo-scroll" ref={scrollRef}>
-        <div
-          className="repositories-page__repo-scroll-inner"
-          style={{ height: `${virtualizer.getTotalSize()}px` }}
-        >
-          {items.map((virtualRow) => {
-            const repo = repositories[virtualRow.index];
-            if (!repo) {
-              return null;
-            }
+      <VirtualList
+        scrollRef={scrollElementRef}
+        items={items}
+        totalSize={totalSize}
+        outerClassName="repositories-page__repo-scroll"
+        innerClassName="repositories-page__repo-scroll-inner"
+        renderRow={(virtualRow) => {
+          const repo = repositories[virtualRow.index];
+          if (!repo) {
+            return null;
+          }
 
-            return (
-              <div
-                key={repo.id}
-                className={`repositories-page__repo-scroll-row${
-                  repo.selected ? ' repositories-page__repo-scroll-row--selected' : ''
-                }`}
-                style={{
-                  transform: `translateY(${virtualRow.start}px)`,
-                  height: `${virtualRow.size}px`,
-                }}
-                onClick={() => onSelectRepository(repo.id)}
-              >
+          return {
+            key: repo.id,
+            className: `repositories-page__repo-scroll-row${
+              repo.selected ? ' repositories-page__repo-scroll-row--selected' : ''
+            }`,
+            props: { onClick: () => onSelectRepository(repo.id), ref: getRowRef(repo.id) },
+            content: (
+              <>
                 <div
                   className={`repositories-page__repo-scroll-row-select${
                     repo.selected ? ' repositories-page__repo-scroll-row-select--active' : ''
@@ -325,7 +334,9 @@ function RepositoryTable({
                   className="repositories-page__cell repositories-page__cell--number"
                   title={
                     repo.needsTranslation
-                      ? `${formatCount(repo.needsTranslation)} units\n${formatCount(repo.needsTranslation * 20)} words`
+                      ? `${formatCount(repo.needsTranslation)} units\n${formatCount(
+                          repo.needsTranslation * 20,
+                        )} words`
                       : ''
                   }
                 >
@@ -367,11 +378,11 @@ function RepositoryTable({
                     {formatCount(repo.needsReview) || '-'}
                   </CellLink>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              </>
+            ),
+          };
+        }}
+      />
     </div>
   );
 }

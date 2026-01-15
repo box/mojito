@@ -1,4 +1,3 @@
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +7,10 @@ import { AutoTextarea } from '../../components/AutoTextarea';
 import { Modal } from '../../components/Modal';
 import { Pill } from '../../components/Pill';
 import { PillDropdown } from '../../components/PillDropdown';
+import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
+import { useMeasuredRowRefs } from '../../components/virtual/useMeasuredRowRefs';
+import { useVirtualRows } from '../../components/virtual/useVirtualRows';
+import { VirtualList } from '../../components/virtual/VirtualList';
 import { isRtlLocale } from '../../utils/localeDirection';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
 import type { WorkbenchDiffModalData, WorkbenchRow } from './workbench-types';
@@ -76,8 +79,6 @@ export function WorkbenchBody({
   activeCollectionName,
 }: WorkbenchBodyProps) {
   const navigate = useNavigate();
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const rowRefCallbacks = useRef(new Map<string, (element: HTMLDivElement | null) => void>());
   const registerRowRefRef = useRef(registerRowRef);
 
   // Keep latest callback without changing ref callback identities.
@@ -208,43 +209,37 @@ export function WorkbenchBody({
     [getRepositoryScope, navigate],
   );
 
-  const getScrollElement = useCallback(() => scrollRef.current, []);
-  const estimateSize = useCallback(() => 190, []);
+  const scrollElementRef = useRef<HTMLDivElement>(null);
+
+  const estimateSize = useCallback(
+    () =>
+      getRowHeightPx({
+        element: scrollElementRef.current,
+        cssVariable: '--workbench-row-height',
+        defaultRem: 11.875,
+      }),
+    [],
+  );
   const getItemKey = useCallback((index: number) => rows[index]?.id ?? index, [rows]);
 
-  const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>({
+  const {
+    items: virtualItems,
+    totalSize,
+    measureElement,
+  } = useVirtualRows<HTMLDivElement>({
     count: rows.length,
-    getScrollElement,
-    estimateSize,
-    overscan: 6,
     getItemKey,
+    estimateSize,
+    getScrollElement: () => scrollElementRef.current,
+    overscan: 6,
   });
 
-  const virtualizerRef = useRef(virtualizer);
-  // Keep latest instance available to stable ref callbacks.
-  virtualizerRef.current = virtualizer;
-
-  const items = virtualizer.getVirtualItems();
-
-  const getRowRefCallback = useCallback((rowId: string) => {
-    const existing = rowRefCallbacks.current.get(rowId);
-    if (existing) {
-      return existing;
-    }
-
-    // Important: keep the ref callback stable per rowId. React will call ref callbacks when they
-    // change; if we create a new function every render and also measure elements (which triggers
-    // virtualizer state updates), it can spiral into a render loop.
-    const callback = (element: HTMLDivElement | null) => {
+  const { getRowRef } = useMeasuredRowRefs<string, HTMLDivElement>({
+    measureElement,
+    onAssign: (rowId, element) => {
       registerRowRefRef.current(rowId, element);
-      if (element) {
-        virtualizerRef.current.measureElement(element);
-      }
-    };
-
-    rowRefCallbacks.current.set(rowId, callback);
-    return callback;
-  }, []);
+    },
+  });
 
   return (
     <div className="workbench-page__body">
@@ -284,12 +279,12 @@ export function WorkbenchBody({
             <span className="spinner spinner--md" />
           </div>
         ) : null}
-        <div className="workbench-page__rows" ref={scrollRef}>
-          {showNoResults ||
-          showEmptyPrompt ||
-          showSearchLoading ||
-          showRepositoryLoading ||
-          (!hasRows && (repositoryErrorMessage || saveErrorMessage || searchErrorMessage)) ? (
+        {showNoResults ||
+        showEmptyPrompt ||
+        showSearchLoading ||
+        showRepositoryLoading ||
+        (!hasRows && (repositoryErrorMessage || saveErrorMessage || searchErrorMessage)) ? (
+          <div className="workbench-page__rows">
             <div className="workbench-page__empty">
               <div className="workbench-page__empty-text hint">
                 {repositoryErrorMessage ? (
@@ -332,43 +327,45 @@ export function WorkbenchBody({
                 )}
               </div>
             </div>
-          ) : (
-            <div
-              className="workbench-page__rows-inner"
-              style={{ height: `${virtualizer.getTotalSize()}px` }}
-            >
-              {items.map((virtualRow) => {
-                const row = rows[virtualRow.index];
-                if (!row) {
-                  return null;
-                }
+          </div>
+        ) : (
+          <VirtualList
+            scrollRef={scrollElementRef}
+            items={virtualItems}
+            totalSize={totalSize}
+            outerClassName="workbench-page__rows"
+            innerClassName="workbench-page__rows-inner"
+            renderRow={(virtualRow) => {
+              const row = rows[virtualRow.index];
+              if (!row) {
+                return null;
+              }
 
-                const isEditing = editingRowId === row.id;
-                const translationValue = isEditing ? editingValue : (row.translation ?? '');
-                const translationDirection = isRtlLocale(row.locale) ? 'rtl' : 'ltr';
-                const translationLocale = row.locale;
-                const translationStyle = isEditing ? undefined : { resize: 'none' as const };
-                const isStatusSaving = statusSavingRowIds.has(row.id);
-                const isEdited = editedRowIds.has(row.id);
-                const isStatusOpen = openStatusRowId === row.id;
-                const hasActiveCollection = Boolean(activeCollectionName);
-                const isInCollection = hasActiveCollection
-                  ? activeCollectionIds.has(row.tmTextUnitId)
-                  : false;
-                const collectionButtonLabel =
-                  hasActiveCollection && isInCollection ? 'In collection' : 'Add to collection';
+              const isEditing = editingRowId === row.id;
+              const translationValue = isEditing ? editingValue : (row.translation ?? '');
+              const translationDirection = isRtlLocale(row.locale) ? 'rtl' : 'ltr';
+              const translationLocale = row.locale;
+              const translationStyle = isEditing ? undefined : { resize: 'none' as const };
+              const isStatusSaving = statusSavingRowIds.has(row.id);
+              const isEdited = editedRowIds.has(row.id);
+              const isStatusOpen = openStatusRowId === row.id;
+              const hasActiveCollection = Boolean(activeCollectionName);
+              const isInCollection = hasActiveCollection
+                ? activeCollectionIds.has(row.tmTextUnitId)
+                : false;
+              const collectionButtonLabel =
+                hasActiveCollection && isInCollection ? 'In collection' : 'Add to collection';
 
-                return (
-                  <div
-                    key={row.id}
-                    className="workbench-page__row"
-                    data-index={virtualRow.index}
-                    data-status-open={isStatusOpen ? 'true' : undefined}
-                    ref={getRowRefCallback(row.id)}
-                    style={{
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                  >
+              return {
+                key: row.id,
+                className: 'workbench-page__row',
+                props: {
+                  'data-index': virtualRow.index,
+                  'data-status-open': isStatusOpen ? 'true' : undefined,
+                  ref: getRowRef(row.id),
+                },
+                content: (
+                  <>
                     <div className="workbench-page__cell workbench-page__cell--meta">
                       <div className="workbench-page__meta-link">
                         <span className="workbench-page__meta-id">{row.textUnitName}</span>
@@ -530,12 +527,12 @@ export function WorkbenchBody({
                         />
                       )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  </>
+                ),
+              };
+            }}
+          />
+        )}
       </div>
     </div>
   );
