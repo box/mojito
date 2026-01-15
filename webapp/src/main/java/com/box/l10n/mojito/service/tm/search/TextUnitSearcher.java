@@ -575,6 +575,8 @@ public class TextUnitSearcher {
       nativeExp = new NativeContainsExp(columnName, value);
     } else if (SearchType.ILIKE.equals(searchType)) {
       nativeExp = new NativeILikeExp(columnName, value);
+    } else if (SearchType.REGEX.equals(searchType)) {
+      nativeExp = new NativeRegexExp(columnName, value);
     }
 
     return nativeExp;

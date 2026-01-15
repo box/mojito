@@ -7,7 +7,7 @@ export type SearchAttribute =
   | 'pluralFormOther'
   | 'tmTextUnitIds';
 
-export type SearchType = 'exact' | 'contains' | 'ilike';
+export type SearchType = 'exact' | 'contains' | 'ilike' | 'regex';
 
 // Backend-defined status values for a translation variant.
 // Note: untranslated rows can still appear in results, but will have `target: null` (and `status` may be null/undefined).

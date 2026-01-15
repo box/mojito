@@ -33,6 +33,11 @@ const searchTypeOptions: SearchTypeOption[] = [
   { value: 'exact', label: 'Exact match', helper: 'Full string' },
   { value: 'contains', label: 'Contains', helper: 'Case-sensitive' },
   { value: 'ilike', label: 'iLike', helper: 'Pattern (% = any, _ = 1 char)' },
+  {
+    value: 'regex',
+    label: 'Regex',
+    helper: '\\x{FFFF}, ^/$, .*, (?i)incensitive',
+  },
 ];
 
 const statusFilterOptions: StatusFilterOption[] = [

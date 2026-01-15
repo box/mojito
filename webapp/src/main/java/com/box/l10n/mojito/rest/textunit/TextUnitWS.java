@@ -382,6 +382,7 @@ public class TextUnitWS {
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
+    textUnitSearcherParameters.setSearchType(textUnitSearchBody.getSearchType());
     textUnitSearcherParameters.setRepositoryIds(textUnitSearchBody.getRepositoryIds());
     textUnitSearcherParameters.setRepositoryNames(textUnitSearchBody.getRepositoryNames());
     textUnitSearcherParameters.setTmTextUnitIds(textUnitSearchBody.getTmTextUnitIds());
@@ -395,7 +396,6 @@ public class TextUnitWS {
     textUnitSearcherParameters.setPluralFormOther(textUnitSearchBody.getPluralFormOther());
     textUnitSearcherParameters.setPluralFormsFiltered(textUnitSearchBody.isPluralFormFiltered());
     textUnitSearcherParameters.setPluralFormsExcluded(textUnitSearchBody.isPluralFormExcluded());
-    textUnitSearcherParameters.setSearchType(textUnitSearchBody.getSearchType());
     textUnitSearcherParameters.setLocaleTags(textUnitSearchBody.getLocaleTags());
     textUnitSearcherParameters.setUsedFilter(textUnitSearchBody.getUsedFilter());
     textUnitSearcherParameters.setStatusFilter(textUnitSearchBody.getStatusFilter());
