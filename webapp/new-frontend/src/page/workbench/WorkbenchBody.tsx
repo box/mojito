@@ -18,9 +18,9 @@ import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useMeasuredRowRefs } from '../../components/virtual/useMeasuredRowRefs';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
+import { isPrimaryActionShortcut } from '../../utils/keyboardShortcuts';
 import { isRtlLocale } from '../../utils/localeDirection';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
-import { isPrimaryActionShortcut } from '../../utils/keyboardShortcuts';
 import type { WorkbenchDiffModalData, WorkbenchRow } from './workbench-types';
 
 type WorkbenchBodyProps = {

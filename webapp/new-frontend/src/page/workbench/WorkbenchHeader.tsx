@@ -438,12 +438,10 @@ function SearchFilter({
           onChangeAfter: onChangeCreatedAfter,
           onChangeBefore: onChangeCreatedBefore,
           quickRanges,
-          onClear: hasDateFilter
-            ? () => {
-                onChangeCreatedBefore(null);
-                onChangeCreatedAfter(null);
-              }
-            : undefined,
+          onClear: () => {
+            onChangeCreatedBefore(null);
+            onChangeCreatedAfter(null);
+          },
           clearLabel: 'Clear dates',
         },
         {
@@ -454,12 +452,10 @@ function SearchFilter({
           onChangeAfter: onChangeTranslationCreatedAfter,
           onChangeBefore: onChangeTranslationCreatedBefore,
           quickRanges,
-          onClear: hasTranslationDateFilter
-            ? () => {
-                onChangeTranslationCreatedBefore(null);
-                onChangeTranslationCreatedAfter(null);
-              }
-            : undefined,
+          onClear: () => {
+            onChangeTranslationCreatedBefore(null);
+            onChangeTranslationCreatedAfter(null);
+          },
           clearLabel: 'Clear dates',
         },
         {

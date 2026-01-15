@@ -318,8 +318,9 @@ export function MultiSectionFilterChip({
               );
             }
             if (section.kind === 'date') {
-              const hasQuickRanges =
-                Boolean(section.quickRanges?.length) || Boolean(section.onClear);
+              const hasQuickRanges = Boolean(section.quickRanges?.length);
+              const showClearButton =
+                Boolean(section.onClear) && Boolean(section.after || section.before);
               const afterLabel = section.afterLabel ?? `${section.label} after`;
               const beforeLabel = section.beforeLabel ?? `${section.label} before`;
               return (
@@ -355,7 +356,7 @@ export function MultiSectionFilterChip({
                       />
                     ) : null}
                   </div>
-                  {hasQuickRanges ? (
+                  {hasQuickRanges || showClearButton ? (
                     <div className={mergedClassNames.quick}>
                       {section.quickRanges?.map((range) => (
                         <button
@@ -373,7 +374,7 @@ export function MultiSectionFilterChip({
                           {range.label}
                         </button>
                       ))}
-                      {section.onClear ? (
+                      {showClearButton ? (
                         <button
                           type="button"
                           className={mergedClassNames.clear}
