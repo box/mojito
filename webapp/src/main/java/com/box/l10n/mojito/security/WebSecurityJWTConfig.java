@@ -120,6 +120,8 @@ public class WebSecurityJWTConfig {
                 "/auth/callback",
                 "/repositories",
                 "/project-requests",
+                "/review-projects",
+                "/review-projects/**",
                 "/workbench",
                 "/branches",
                 "/screenshots",
