@@ -1,13 +1,13 @@
 import './settings-page.css';
 
-import type { KeyboardEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
+import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
 import { useUser } from '../../components/RequireUser';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
-import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { buildLocaleOptionsFromRepositories } from '../../utils/localeSelection';
 import { WORKSET_SIZE_DEFAULT } from '../workbench/workbench-constants';
 import { clampWorksetSize } from '../workbench/workbench-helpers';
 import {
@@ -32,50 +32,39 @@ export function AdminSettingsPage() {
   );
   const [preferredLocalesDraft, setPreferredLocalesDraft] =
     useState<string[]>(savedPreferredLocales);
-  const [preferredLocaleInput, setPreferredLocaleInput] = useState('');
-  const [isLocaleMenuOpen, setIsLocaleMenuOpen] = useState(false);
-  const [highlightedLocaleIndex, setHighlightedLocaleIndex] = useState(-1);
-  const [preferredLocaleError, setPreferredLocaleError] = useState<string | null>(null);
 
   const localeOptions = useMemo(() => {
-    const tags = new Set<string>();
-    repositories?.forEach((repo) => {
-      getNonRootRepositoryLocaleTags(repo).forEach((tag) => tags.add(tag));
-    });
-    preferredLocalesDraft.forEach((tag) => tags.add(tag));
-    return Array.from(tags)
-      .sort((first, second) => first.localeCompare(second, undefined, { sensitivity: 'base' }))
+    const repositoryOptions = buildLocaleOptionsFromRepositories(
+      repositories ?? [],
+      resolveLocaleName,
+    );
+    const seen = new Set(repositoryOptions.map((option) => option.tag.toLowerCase()));
+    const mergedSelections = [
+      ...savedPreferredLocales,
+      ...preferredLocalesDraft,
+      ...user.userLocales,
+    ];
+    const extraOptions = mergedSelections
+      .filter((tag) => {
+        const lower = tag.toLowerCase();
+        if (seen.has(lower)) {
+          return false;
+        }
+        seen.add(lower);
+        return true;
+      })
       .map((tag) => ({ tag, label: resolveLocaleName(tag) }));
-  }, [preferredLocalesDraft, repositories, resolveLocaleName]);
 
-  const localeLabelByTag = useMemo(
-    () => new Map(localeOptions.map((option) => [option.tag.toLowerCase(), option.label])),
-    [localeOptions],
-  );
-
-  const availableLocaleOptions = useMemo(() => {
-    const selected = new Set(preferredLocalesDraft.map((tag) => tag.toLowerCase()));
-    return localeOptions.filter((option) => !selected.has(option.tag.toLowerCase()));
-  }, [localeOptions, preferredLocalesDraft]);
-  const localeSuggestions = useMemo(() => {
-    const query = preferredLocaleInput.trim().toLowerCase();
-    const pool = availableLocaleOptions;
-    const filtered = query
-      ? pool.filter(
-          (option) =>
-            option.tag.toLowerCase().includes(query) || option.label.toLowerCase().includes(query),
-        )
-      : pool;
-    return filtered.slice(0, 8);
-  }, [availableLocaleOptions, preferredLocaleInput]);
-
-  useEffect(() => {
-    if (!isLocaleMenuOpen || !localeSuggestions.length) {
-      setHighlightedLocaleIndex(-1);
-      return;
-    }
-    setHighlightedLocaleIndex(0);
-  }, [isLocaleMenuOpen, localeSuggestions.length]);
+    return [...repositoryOptions, ...extraOptions].sort((first, second) =>
+      first.tag.localeCompare(second.tag, undefined, { sensitivity: 'base' }),
+    );
+  }, [
+    preferredLocalesDraft,
+    repositories,
+    resolveLocaleName,
+    savedPreferredLocales,
+    user.userLocales,
+  ]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -127,50 +116,6 @@ export function AdminSettingsPage() {
     );
   }, [preferredLocalesDraft, savedPreferredLocales]);
 
-  const handleLocaleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      setIsLocaleMenuOpen(false);
-      setHighlightedLocaleIndex(-1);
-      return;
-    }
-
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      const highlighted = localeSuggestions[highlightedLocaleIndex];
-      if (highlighted) {
-        addPreferredLocaleValue(highlighted.tag, { auto: true });
-        return;
-      }
-      addPreferredLocaleValue(preferredLocaleInput, { auto: false });
-      return;
-    }
-
-    if (!localeSuggestions.length) {
-      return;
-    }
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      setIsLocaleMenuOpen(true);
-      setHighlightedLocaleIndex((current) => {
-        const next = current + 1;
-        return next >= localeSuggestions.length ? 0 : next;
-      });
-      return;
-    }
-
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      setIsLocaleMenuOpen(true);
-      setHighlightedLocaleIndex((current) => {
-        if (current <= 0) {
-          return localeSuggestions.length - 1;
-        }
-        return current - 1;
-      });
-    }
-  };
-
   if (!isAdmin) {
     return <Navigate to="/repositories" replace />;
   }
@@ -190,53 +135,11 @@ export function AdminSettingsPage() {
     setWorksetDraft('');
   };
 
-  const addPreferredLocaleValue = (raw: string, { auto }: { auto: boolean }) => {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      if (!auto) {
-        setPreferredLocaleError('Enter a locale tag');
-      }
-      return;
-    }
-    const normalized =
-      availableLocaleOptions.find((option) => option.tag.toLowerCase() === trimmed.toLowerCase())
-        ?.tag ?? trimmed;
-    const alreadySelected = preferredLocalesDraft.some(
-      (tag) => tag.toLowerCase() === normalized.toLowerCase(),
-    );
-    if (alreadySelected) {
-      setPreferredLocaleInput('');
-      setPreferredLocaleError(auto ? null : 'Locale already added');
-      return;
-    }
-    setPreferredLocalesDraft([...preferredLocalesDraft, normalized]);
-    setPreferredLocaleInput('');
-    setPreferredLocaleError(null);
-  };
-
-  const handleRemovePreferredLocale = (tag: string) => {
-    setPreferredLocalesDraft((current) =>
-      current.filter((value) => value.toLowerCase() !== tag.toLowerCase()),
-    );
-    setPreferredLocaleError(null);
-  };
-
   const handleSavePreferredLocales = () => {
     savePreferredLocales(preferredLocalesDraft);
     const next = loadPreferredLocales();
     setSavedPreferredLocales(next);
     setPreferredLocalesDraft(next);
-    setPreferredLocaleError(null);
-  };
-
-  const handleClearPreferredLocales = () => {
-    if (!preferredLocalesDraft.length) {
-      return;
-    }
-    setPreferredLocalesDraft([]);
-    setPreferredLocaleError(null);
-    setPreferredLocaleInput('');
-    setIsLocaleMenuOpen(false);
   };
 
   return (
@@ -303,83 +206,22 @@ export function AdminSettingsPage() {
           <div className="settings-field__header">
             <div className="settings-field__label">Locales</div>
           </div>
-          {preferredLocalesDraft.length ? (
-            <div className="settings-chip-list" role="list">
-              {preferredLocalesDraft.map((tag) => {
-                const resolvedLabel = localeLabelByTag.get(tag.toLowerCase());
-                return (
-                  <div key={tag} className="settings-chip" role="listitem">
-                    <div className="settings-chip__text">
-                      <span className="settings-chip__tag">{tag}</span>
-                      {resolvedLabel && resolvedLabel !== tag ? (
-                        <span className="settings-chip__label">{resolvedLabel}</span>
-                      ) : null}
-                    </div>
-                    <button
-                      type="button"
-                      className="settings-chip__remove"
-                      onClick={() => handleRemovePreferredLocale(tag)}
-                      aria-label={`Remove ${tag}`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
+          <LocaleMultiSelect
+            label="Preferred locales"
+            options={localeOptions}
+            selectedTags={preferredLocalesDraft}
+            onChange={setPreferredLocalesDraft}
+            className="settings-locale-select"
+            buttonAriaLabel="Select preferred locales"
+            myLocaleTags={user.userLocales}
+          />
+          {preferredLocalesDraft.length === 0 ? (
             <p className="settings-hint">No preferred locales set.</p>
-          )}
-        </div>
-        <div className="settings-field">
-          <div className="settings-field__row settings-field__row--stacked">
-            <input
-              id="preferred-locale-input"
-              type="text"
-              className="settings-input"
-              value={preferredLocaleInput}
-              onChange={(event) => {
-                setPreferredLocaleInput(event.target.value);
-                setPreferredLocaleError(null);
-              }}
-              placeholder="Select or type a locale tag (e.g. fr-FR)"
-              onKeyDown={(event) => {
-                handleLocaleKeyDown(event);
-              }}
-              onFocus={() => setIsLocaleMenuOpen(true)}
-              onBlur={() => {
-                // Delay closing to allow click on a suggestion.
-                setTimeout(() => setIsLocaleMenuOpen(false), 100);
-              }}
-            />
-            {isLocaleMenuOpen && localeSuggestions.length ? (
-              <div className="settings-locale-suggestions">
-                {localeSuggestions.map((option, index) => (
-                  <button
-                    type="button"
-                    key={option.tag}
-                    className={`settings-locale-suggestion${
-                      index === highlightedLocaleIndex ? ' is-active' : ''
-                    }`}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => addPreferredLocaleValue(option.tag, { auto: true })}
-                    onMouseEnter={() => setHighlightedLocaleIndex(index)}
-                  >
-                    <span className="settings-locale-suggestion__tag">{option.tag}</span>
-                    <span className="settings-locale-suggestion__label">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-          {preferredLocaleError ? (
-            <div className="settings-hint is-error">{preferredLocaleError}</div>
-          ) : (
-            <div className="settings-hint">
-              Press Enter to add. Suggestions come from your repositories, hide already added
-              locales, and can be picked with the arrow keys.
-            </div>
-          )}
+          ) : null}
+          <p className="settings-hint">
+            Uses the same locale selector as workbench and repositories; includes repository locales
+            plus any saved choices.
+          </p>
         </div>
         <div className="settings-card__footer">
           <div className="settings-actions">
@@ -390,14 +232,6 @@ export function AdminSettingsPage() {
               disabled={!isPreferredLocalesDirty}
             >
               Save
-            </button>
-            <button
-              type="button"
-              className="settings-button settings-button--ghost"
-              onClick={handleClearPreferredLocales}
-              disabled={!preferredLocalesDraft.length}
-            >
-              Clear list
             </button>
           </div>
         </div>
