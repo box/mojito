@@ -114,6 +114,43 @@ body {
   }
 }
 
+.app-loading-state {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--color-bg);
+}
+
+.app-loading-state__card {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-3);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  color: var(--color-text);
+  box-shadow: 0 1rem 2.5rem -1.5rem color-mix(in srgb, var(--color-border) 80%, transparent);
+  animation: fade-in-quick 0.18s ease-out;
+}
+
+.app-loading-state__text {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+@keyframes fade-in-quick {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .app-shell {
   display: flex;
   flex-direction: column;
