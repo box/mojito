@@ -391,8 +391,8 @@ function LocaleTable({ locales, hasSelection, repositoryId, onOpenWorkbench }: L
   if (!hasSelection) {
     return (
       <div className="repositories-page__pane">
-        <div className="repositories-page__locale-placeholder">
-          <span className="hint">Select a repository to show locale info.</span>
+        <div className="repositories-page__locale-placeholder hint">
+          Select a repository to show locale info.
         </div>
       </div>
     );

@@ -736,10 +736,6 @@
   color: var(--color-text-muted);
 }
 
-.workbench-page__empty-text {
-  color: var(--color-text-muted);
-}
-
 .workbench-page__empty-action {
   margin-top: 12px;
 }
