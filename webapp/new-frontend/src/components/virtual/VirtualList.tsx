@@ -1,3 +1,5 @@
+import './virtual-list.css';
+
 import { type VirtualItem } from '@tanstack/react-virtual';
 import { type CSSProperties, type ReactNode, type Ref, type RefObject } from 'react';
 
@@ -14,29 +16,17 @@ type VirtualListProps = {
   items: VirtualItem[];
   totalSize: number;
   renderRow: (virtualItem: VirtualItem) => VirtualRowRenderResult | null;
-  outerClassName?: string;
-  innerClassName?: string;
-  innerStyle?: CSSProperties;
 };
 
-export function VirtualList({
-  scrollRef,
-  items,
-  totalSize,
-  renderRow,
-  outerClassName = '',
-  innerClassName = '',
-  innerStyle,
-}: VirtualListProps) {
+export function VirtualList({ scrollRef, items, totalSize, renderRow }: VirtualListProps) {
   return (
-    <div className={outerClassName} ref={scrollRef}>
+    <div className="virtual-scroll" ref={scrollRef}>
       <div
-        className={innerClassName}
+        className="virtual-scroll__inner"
         style={{
           height: totalSize,
           position: 'relative',
           width: '100%',
-          ...innerStyle,
         }}
       >
         {items.map((virtualItem) => {
@@ -46,15 +36,24 @@ export function VirtualList({
           }
 
           const { key, className, content } = result;
-          const style = result.style ?? {};
+          const style: CSSProperties = result.style ?? {};
+          const { transform: userTransform, willChange, ...restStyle } = style;
           const props = result.props ?? {};
+          const translateY = `translateY(${virtualItem.start}px)`;
+          const combinedTransform = userTransform ? `${userTransform} ${translateY}` : translateY;
           return (
             <div
               key={key ?? virtualItem.key ?? virtualItem.index}
+              data-index={virtualItem.index}
               className={className}
               style={{
-                transform: `translateY(${virtualItem.start}px)`,
-                ...style,
+                ...restStyle,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                willChange: willChange ?? 'transform',
+                transform: combinedTransform,
               }}
               {...props}
             >

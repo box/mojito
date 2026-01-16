@@ -284,8 +284,6 @@ function RepositoryTable({
         scrollRef={scrollElementRef}
         items={items}
         totalSize={totalSize}
-        outerClassName="repositories-page__repo-scroll"
-        innerClassName="repositories-page__repo-scroll-inner"
         renderRow={(virtualRow) => {
           const repo = repositories[virtualRow.index];
           if (!repo) {

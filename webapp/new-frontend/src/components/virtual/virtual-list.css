@@ -1,0 +1,12 @@
+.virtual-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable both-edges;
+}
+
+.virtual-scroll__inner {
+  position: relative;
+  width: 100%;
+}

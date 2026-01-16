@@ -187,24 +187,7 @@
   padding: 0 var(--space-4);
 }
 
-.repositories-page__repo-scroll {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-
-.repositories-page__repo-scroll-inner {
-  position: relative;
-  width: 100%;
-}
-
 .repositories-page__repo-scroll-row {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  will-change: transform;
   display: grid;
   grid-template-columns: var(--repositories-page-grid-columns-repo);
   align-items: center;

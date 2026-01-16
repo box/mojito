@@ -341,8 +341,6 @@ export function WorkbenchBody({
             scrollRef={scrollElementRef}
             items={virtualItems}
             totalSize={totalSize}
-            outerClassName="workbench-page__rows"
-            innerClassName="workbench-page__rows-inner"
             renderRow={(virtualRow) => {
               const row = rows[virtualRow.index];
               if (!row) {

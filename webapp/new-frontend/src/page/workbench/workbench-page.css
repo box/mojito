@@ -696,7 +696,7 @@
   white-space: nowrap;
 }
 
-.workbench-page__rows-frame[data-stale='true'] .workbench-page__rows-inner {
+.workbench-page__rows-frame[data-stale='true'] .virtual-scroll__inner {
   opacity: 0.55;
   filter: blur(0.6px);
   pointer-events: none;
@@ -723,11 +723,6 @@
   color: var(--color-text);
 }
 
-.workbench-page__rows-inner {
-  position: relative;
-  width: 100%;
-}
-
 .workbench-page__empty {
   margin: auto;
   padding: var(--space-8) var(--space-4);
@@ -749,11 +744,6 @@
 }
 
 .workbench-page__row {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  will-change: transform;
   display: grid;
   grid-template-columns: var(--workbench-page-grid-columns);
   gap: var(--space-3);
