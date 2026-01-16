@@ -7,6 +7,7 @@ import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-r
 import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
+import { ReviewProjectsPage } from './page/review-projects/ReviewProjectsPage';
 import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
 import { CharCodeHelperPage } from './page/tools/CharCodeHelperPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';
@@ -20,6 +21,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: '/repositories', label: 'Repositories', element: <RepositoriesPage /> },
   { to: '/workbench', label: 'Workbench', element: <WorkbenchPage /> },
+  { to: '/review-projects', label: 'Review Projects', element: <ReviewProjectsPage /> },
 ];
 
 const queryClient = new QueryClient();

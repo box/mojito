@@ -215,11 +215,8 @@ export function ReviewProjectsPage() {
   }, [ensureEmergencyProject]);
 
   const filteredProjects = useMemo(() => {
-    // When using override/mock data, just show it directly; filtering stays server-side.
-    if (overrideProjects) {
-      return projects;
-    }
-
+    const source = projects;
+    const usingOverride = overrideProjects != null;
     const {
       localeTags,
       statuses,
@@ -268,6 +265,10 @@ export function ReviewProjectsPage() {
     };
 
     const matchesLocales = (project: ApiReviewProjectSummary) => {
+      if (usingOverride) {
+        // Mock/override data may not share locales with repository options; avoid filtering it out.
+        return true;
+      }
       if (!localeTags || localeTags.length === 0) {
         return true;
       }
@@ -285,7 +286,7 @@ export function ReviewProjectsPage() {
       return types.includes(project.type);
     };
 
-    const filtered = projects.filter(
+    const filtered = source.filter(
       (project) =>
         matchesLocales(project) &&
         matchesStatus(project) &&
@@ -297,7 +298,7 @@ export function ReviewProjectsPage() {
 
     const limitValue = lmt && lmt > 0 ? lmt : undefined;
     return limitValue ? filtered.slice(0, limitValue) : filtered;
-  }, [overrideProjects, projects, searchParams]);
+  }, [projects, searchParams, overrideProjects]);
 
   const rows = useMemo<ReviewProjectRow[]>(() => {
     return filteredProjects.map((project) => ({

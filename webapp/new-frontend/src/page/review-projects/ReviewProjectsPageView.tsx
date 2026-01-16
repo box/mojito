@@ -138,26 +138,26 @@ function ContentSection({
 
   return (
     <div className="review-projects-page__rows-frame">
-      <VirtualList
-        scrollRef={rowsParentRef}
-        items={virtualItems}
-        totalSize={totalSize}
-        outerClassName="review-projects-page__rows"
-        innerClassName="review-projects-page__rows-inner"
-        renderRow={(virtualRow: VirtualItem) => {
-          const project = projects[virtualRow.index];
-          if (!project) {
-            return null;
-          }
-          return {
-            key: project.id,
-            props: {
-              ref: getRowRef(project.id),
-            },
-            content: <ReviewProjectRowView project={project} />,
-          };
-        }}
-      />
+      <div className="review-projects-page__rows-shell">
+        <VirtualList
+          scrollRef={rowsParentRef}
+          items={virtualItems}
+          totalSize={totalSize}
+          renderRow={(virtualRow: VirtualItem) => {
+            const project = projects[virtualRow.index];
+            if (!project) {
+              return null;
+            }
+            return {
+              key: project.id,
+              props: {
+                ref: getRowRef(project.id),
+              },
+              content: <ReviewProjectRowView project={project} />,
+            };
+          }}
+        />
+      </div>
     </div>
   );
 }
