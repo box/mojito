@@ -4,10 +4,11 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { ApiReviewProjectType } from '../../api/review-projects';
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useUser } from '../../components/RequireUser';
+import { useCreateReviewProject } from '../../hooks/useCreateReviewProject';
+import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import { canEditLocale as canEditLocaleForUser } from '../../utils/permissions';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
-import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
-import { useCreateReviewProject } from '../../hooks/useCreateReviewProject';
+import { ReviewProjectCreateModal } from './ReviewProjectCreateModal';
 import { useWorkbenchCollections } from './useWorkbenchCollections';
 import { useWorkbenchEdits } from './useWorkbenchEdits';
 import { useWorkbenchSearch } from './useWorkbenchSearch';
@@ -15,7 +16,6 @@ import { clampWorksetSize } from './workbench-helpers';
 import { loadWorkbenchShare } from './workbench-share';
 import type { WorkbenchCollection, WorkbenchShareOverrides } from './workbench-types';
 import { WorkbenchPageView } from './WorkbenchPageView';
-import { ReviewProjectCreateModal } from './ReviewProjectCreateModal';
 
 const statusOptions = ['Accepted', 'To review', 'To translate', 'Rejected'];
 const localePromptBody =
@@ -204,8 +204,9 @@ export function WorkbenchPage() {
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
       .map((tag) => ({ tag, label: resolveLocaleDisplayName(tag) }));
     const collectionSize = collection.entries.length;
-    const defaultName =
-      collection.name?.trim()?.length ? `Review · ${collection.name.trim()}` : 'Review project';
+    const defaultName = collection.name?.trim()?.length
+      ? `Review · ${collection.name.trim()}`
+      : 'Review project';
     const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
     return {
       collection,
@@ -215,7 +216,12 @@ export function WorkbenchPage() {
       defaultName,
       defaultDueDate,
     };
-  }, [collections.collections, createReviewCollectionId, resolveLocaleDisplayName, search.repositories]);
+  }, [
+    collections.collections,
+    createReviewCollectionId,
+    resolveLocaleDisplayName,
+    search.repositories,
+  ]);
 
   const buildCollectionSearchRequest = useCallback(
     (collection: WorkbenchCollection): TextUnitSearchRequest | null => {
@@ -399,7 +405,7 @@ export function WorkbenchPage() {
             setCreateReviewCollectionId(null);
             setCreateReviewError(null);
             const firstId = summaries[0]?.id;
-            navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
+            void navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
           },
           onError: (err) => {
             setCreateReviewError(err instanceof Error ? err.message : 'Failed to create project');

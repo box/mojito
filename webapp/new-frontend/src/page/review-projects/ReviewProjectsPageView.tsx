@@ -368,7 +368,10 @@ function ReviewProjectRowView({ project }: { project: ReviewProjectRow }) {
       <div className="review-projects-page__row-grid">
         <div className="review-projects-page__project">
           <div className="review-projects-page__id-row">
-            <Link to={`/review-projects/${project.id}`} className="review-projects-page__project-link">
+            <Link
+              to={`/review-projects/${project.id}`}
+              className="review-projects-page__project-link"
+            >
               <span className="review-projects-page__project-name">{project.name}</span>
             </Link>
           </div>

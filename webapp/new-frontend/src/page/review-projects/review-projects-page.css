@@ -111,7 +111,6 @@
   background: color-mix(in srgb, var(--color-surface-muted) 25%, var(--color-surface));
 }
 
-
 .review-projects-page__row-grid {
   display: grid;
   grid-template-columns: 2fr 1.2fr 1fr 1fr;

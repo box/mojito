@@ -7,7 +7,9 @@ const REVIEW_PROJECT_DETAIL_QUERY_KEY = ['review-project'];
 
 export function useReviewProjectDetail(projectId: number | undefined) {
   return useQuery<ApiReviewProjectDetail>({
-    queryKey: projectId ? [...REVIEW_PROJECT_DETAIL_QUERY_KEY, projectId] : REVIEW_PROJECT_DETAIL_QUERY_KEY,
+    queryKey: projectId
+      ? [...REVIEW_PROJECT_DETAIL_QUERY_KEY, projectId]
+      : REVIEW_PROJECT_DETAIL_QUERY_KEY,
     enabled: projectId != null,
     queryFn: () => {
       if (projectId == null) {

@@ -2,7 +2,11 @@ import './workbench-page.css';
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { REVIEW_PROJECT_TYPE_LABELS, REVIEW_PROJECT_TYPES, type ApiReviewProjectType } from '../../api/review-projects';
+import {
+  type ApiReviewProjectType,
+  REVIEW_PROJECT_TYPE_LABELS,
+  REVIEW_PROJECT_TYPES,
+} from '../../api/review-projects';
 import { Modal } from '../../components/Modal';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
 
@@ -69,7 +73,13 @@ export function ReviewProjectCreateModal({
   }
 
   return (
-    <Modal open={isOpen} onClose={onCancel} size="md" ariaLabel="Create review project" closeOnBackdrop>
+    <Modal
+      open={isOpen}
+      onClose={onCancel}
+      size="md"
+      ariaLabel="Create review project"
+      closeOnBackdrop
+    >
       <div className="modal__header">
         <div className="modal__title">Create review project</div>
       </div>
@@ -93,7 +103,10 @@ export function ReviewProjectCreateModal({
         </label>
         <label className="workbench-modal__field">
           <span className="workbench-modal__label">Type</span>
-          <select value={type} onChange={(event) => setType(event.target.value as ApiReviewProjectType)}>
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value as ApiReviewProjectType)}
+          >
             {REVIEW_PROJECT_TYPES.filter((t) => t !== 'UNKNOWN').map((option) => (
               <option key={option} value={option}>
                 {REVIEW_PROJECT_TYPE_LABELS[option]}
