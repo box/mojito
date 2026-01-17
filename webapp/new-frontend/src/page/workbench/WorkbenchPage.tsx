@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
+import type { ApiReviewProjectType } from '../../api/review-projects';
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useUser } from '../../components/RequireUser';
 import { canEditLocale as canEditLocaleForUser } from '../../utils/permissions';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
+import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
+import { useCreateReviewProject } from '../../hooks/useCreateReviewProject';
 import { useWorkbenchCollections } from './useWorkbenchCollections';
 import { useWorkbenchEdits } from './useWorkbenchEdits';
 import { useWorkbenchSearch } from './useWorkbenchSearch';
@@ -12,6 +15,7 @@ import { clampWorksetSize } from './workbench-helpers';
 import { loadWorkbenchShare } from './workbench-share';
 import type { WorkbenchCollection, WorkbenchShareOverrides } from './workbench-types';
 import { WorkbenchPageView } from './WorkbenchPageView';
+import { ReviewProjectCreateModal } from './ReviewProjectCreateModal';
 
 const statusOptions = ['Accepted', 'To review', 'To translate', 'Rejected'];
 const localePromptBody =
@@ -25,6 +29,12 @@ type WorkbenchLocationState = { workbenchSearch?: TextUnitSearchRequest | null }
 
 function isWorkbenchLocationState(state: unknown): state is WorkbenchLocationState {
   return typeof state === 'object' && state !== null && 'workbenchSearch' in state;
+}
+
+function toLocalInput(value: Date) {
+  const tzOffset = value.getTimezoneOffset() * 60000;
+  const local = new Date(value.getTime() - tzOffset);
+  return local.toISOString().slice(0, 16);
 }
 
 export function WorkbenchPage() {
@@ -44,12 +54,16 @@ export function WorkbenchPage() {
   const [hydrationModal, setHydrationModal] = useState<{ title: string; body: string } | null>(
     null,
   );
+  const [createReviewCollectionId, setCreateReviewCollectionId] = useState<string | null>(null);
+  const [createReviewError, setCreateReviewError] = useState<string | null>(null);
   const currentUser = useUser();
   const locationState = (location.state as WorkbenchLocationState | null) ?? null;
   const stateSearchRequest = locationState?.workbenchSearch ?? null;
   const stateLocalePrompt = locationState?.localePrompt ?? false;
   const userLocales = currentUser.userLocales ?? [];
   const isLimitedTranslator = !currentUser.canTranslateAllLocales && userLocales.length > 0;
+  const resolveLocaleDisplayName = useLocaleDisplayNameResolver();
+  const createReviewProject = useCreateReviewProject();
   const canEditLocale = useCallback(
     (locale: string) => canEditLocaleForUser(currentUser, locale),
     [currentUser],
@@ -165,6 +179,44 @@ export function WorkbenchPage() {
     [search.repositories],
   );
 
+  const createReviewDefaults = useMemo(() => {
+    if (!createReviewCollectionId) {
+      return null;
+    }
+    const collection = collections.collections.find((item) => item.id === createReviewCollectionId);
+    if (!collection) {
+      return null;
+    }
+    const repoMap = new Map(search.repositories.map((repo) => [repo.id, repo]));
+    const repoIds = new Set<number>();
+    const localeTags = new Set<string>();
+    collection.entries.forEach((entry) => {
+      if (!entry.repositoryId) {
+        return;
+      }
+      repoIds.add(entry.repositoryId);
+      const repo = repoMap.get(entry.repositoryId);
+      if (repo) {
+        getNonRootRepositoryLocaleTags(repo).forEach((tag) => localeTags.add(tag));
+      }
+    });
+    const localeOptions = Array.from(localeTags)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+      .map((tag) => ({ tag, label: resolveLocaleDisplayName(tag) }));
+    const collectionSize = collection.entries.length;
+    const defaultName =
+      collection.name?.trim()?.length ? `Review · ${collection.name.trim()}` : 'Review project';
+    const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    return {
+      collection,
+      repositoryIds: Array.from(repoIds),
+      localeOptions,
+      collectionSize,
+      defaultName,
+      defaultDueDate,
+    };
+  }, [collections.collections, createReviewCollectionId, resolveLocaleDisplayName, search.repositories]);
+
   const buildCollectionSearchRequest = useCallback(
     (collection: WorkbenchCollection): TextUnitSearchRequest | null => {
       const repoMap = new Map(search.repositories.map((repo) => [repo.id, repo]));
@@ -273,6 +325,11 @@ export function WorkbenchPage() {
     [buildCollectionSearchRequest, collections.collections],
   );
 
+  const handleCreateReviewProjectFromCollection = useCallback((collectionId: string) => {
+    setCreateReviewError(null);
+    setCreateReviewCollectionId(collectionId);
+  }, []);
+
   useEffect(() => {
     if (!pendingCollectionOpenId) {
       return;
@@ -304,105 +361,173 @@ export function WorkbenchPage() {
     void refetchSearch();
   }, [clearWorksetEdits, refetchSearch]);
 
+  const handleSubmitCreateReview = useCallback(
+    (form: {
+      name: string;
+      dueDate: string;
+      type: ApiReviewProjectType;
+      localeTags: string[];
+      maxTextUnits: number | null;
+      notes: string | null;
+    }) => {
+      if (!createReviewDefaults) {
+        return;
+      }
+      if (!createReviewDefaults.repositoryIds.length) {
+        setCreateReviewError('Collection items need repository ids to create a review project.');
+        return;
+      }
+      if (!form.localeTags.length) {
+        setCreateReviewError('Select at least one locale.');
+        return;
+      }
+      setCreateReviewError(null);
+      createReviewProject.mutate(
+        {
+          repositoryIds: createReviewDefaults.repositoryIds,
+          localeTags: form.localeTags,
+          maxTextUnits: form.maxTextUnits ?? createReviewDefaults.collectionSize,
+          maxWordCount: null,
+          notes: form.notes,
+          type: form.type,
+          dueDate: form.dueDate,
+          screenshotImageIds: null,
+          name: form.name,
+        },
+        {
+          onSuccess: (summaries) => {
+            setCreateReviewCollectionId(null);
+            setCreateReviewError(null);
+            const firstId = summaries[0]?.id;
+            navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
+          },
+          onError: (err) => {
+            setCreateReviewError(err instanceof Error ? err.message : 'Failed to create project');
+          },
+        },
+      );
+    },
+    [createReviewDefaults, createReviewProject, navigate],
+  );
+
   const headerDisabled = edits.editingRowId !== null;
   const hasSearched = search.activeSearchRequest !== null;
+  const createModalOpen = createReviewCollectionId != null && createReviewDefaults != null;
 
   return (
-    <WorkbenchPageView
-      hasSearched={hasSearched}
-      worksetSize={search.worksetSize}
-      onChangeWorksetSize={search.onChangeWorksetSize}
-      editedRowIds={edits.editedRowIds}
-      statusSavingRowIds={edits.statusSavingRowIds}
-      diffModal={edits.diffModal}
-      onShowDiff={edits.onShowDiff}
-      onCloseDiff={edits.onCloseDiff}
-      rows={search.rows}
-      hasMoreResults={search.hasMoreResults}
-      editingRowId={edits.editingRowId}
-      editingValue={edits.editingValue}
-      onStartEditing={edits.onStartEditing}
-      onCancelEditing={edits.onCancelEditing}
-      onSaveEditing={edits.onSaveEditing}
-      onChangeEditingValue={edits.onChangeEditingValue}
-      onChangeStatus={edits.onChangeStatus}
-      statusOptions={statusOptions}
-      headerDisabled={headerDisabled}
-      isSaving={edits.isSaving}
-      saveErrorMessage={edits.saveErrorMessage}
-      showValidationDialog={edits.pendingValidationSave !== null}
-      validationDialogBody={edits.pendingValidationSave?.body ?? ''}
-      onConfirmValidationSave={edits.confirmValidationSave}
-      onDismissValidationDialog={edits.dismissValidationSave}
-      showDiscardDialog={edits.pendingEditingTarget !== null}
-      onConfirmDiscardEditing={edits.confirmDiscardEditing}
-      onDismissDiscardEditing={edits.dismissDiscardEditing}
-      translationInputRef={edits.translationInputRef}
-      registerRowRef={edits.registerRowRef}
-      searchAttribute={search.searchAttribute}
-      searchType={search.searchType}
-      searchInputValue={search.searchInputValue}
-      onChangeSearchInput={search.onChangeSearchInput}
-      onSubmitSearch={search.onSubmitSearch}
-      onChangeSearchAttribute={search.onChangeSearchAttribute}
-      onChangeSearchType={search.onChangeSearchType}
-      onRefreshWorkset={handleRefreshWorkset}
-      repositoryOptions={search.repositoryOptions}
-      selectedRepositoryIds={search.selectedRepositoryIds}
-      onChangeRepositorySelection={search.onChangeRepositorySelection}
-      isRepositoryLoading={search.isRepositoriesLoading}
-      repositoryErrorMessage={search.repositoryErrorMessage}
-      localeOptions={search.localeOptions}
-      selectedLocaleTags={search.selectedLocaleTags}
-      onChangeLocaleSelection={search.onChangeLocaleSelection}
-      userLocales={userLocales}
-      isLimitedTranslator={isLimitedTranslator}
-      statusFilter={search.statusFilter}
-      includeUsed={search.includeUsed}
-      includeUnused={search.includeUnused}
-      includeTranslate={search.includeTranslate}
-      includeDoNotTranslate={search.includeDoNotTranslate}
-      onChangeStatusFilter={search.onChangeStatusFilter}
-      onChangeIncludeUsed={search.onChangeIncludeUsed}
-      onChangeIncludeUnused={search.onChangeIncludeUnused}
-      onChangeIncludeTranslate={search.onChangeIncludeTranslate}
-      onChangeIncludeDoNotTranslate={search.onChangeIncludeDoNotTranslate}
-      createdBefore={search.createdBefore}
-      createdAfter={search.createdAfter}
-      onChangeCreatedBefore={search.onChangeCreatedBefore}
-      onChangeCreatedAfter={search.onChangeCreatedAfter}
-      translationCreatedBefore={search.translationCreatedBefore}
-      translationCreatedAfter={search.translationCreatedAfter}
-      onChangeTranslationCreatedBefore={search.onChangeTranslationCreatedBefore}
-      onChangeTranslationCreatedAfter={search.onChangeTranslationCreatedAfter}
-      isSearchLoading={search.isSearchLoading}
-      searchErrorMessage={search.searchErrorMessage}
-      hydrationModal={hydrationModal}
-      onDismissHydrationModal={() => setHydrationModal(null)}
-      onRetrySearch={() => {
-        void search.refetchSearch();
-      }}
-      canSearch={search.canSearch}
-      activeSearchRequest={search.activeSearchRequest}
-      repositories={search.repositories}
-      collections={collections.collections}
-      activeCollectionId={collections.activeCollectionId}
-      activeCollectionName={collections.activeCollection?.name ?? null}
-      activeCollectionCount={activeCollectionCount}
-      onCreateCollection={collections.createCollection}
-      onSelectCollection={collections.selectCollection}
-      onRenameCollection={collections.renameCollection}
-      onDeleteCollection={collections.deleteCollection}
-      onClearCollection={collections.clearActiveCollection}
-      onDeleteAllCollections={collections.deleteAllCollections}
-      onAddAllToCollection={handleAddAllToCollection}
-      onAddToCollection={handleAddToCollection}
-      onRemoveFromCollection={handleRemoveFromCollection}
-      activeCollectionIds={activeCollectionIds}
-      onOpenCollectionSearch={handleOpenCollectionSearch}
-      onShareCollection={handleShareCollection}
-      shareOverrides={shareOverrides}
-      onPrepareShareOverrides={(overrides) => setShareOverrides(overrides)}
-    />
+    <>
+      <WorkbenchPageView
+        hasSearched={hasSearched}
+        worksetSize={search.worksetSize}
+        onChangeWorksetSize={search.onChangeWorksetSize}
+        editedRowIds={edits.editedRowIds}
+        statusSavingRowIds={edits.statusSavingRowIds}
+        diffModal={edits.diffModal}
+        onShowDiff={edits.onShowDiff}
+        onCloseDiff={edits.onCloseDiff}
+        rows={search.rows}
+        hasMoreResults={search.hasMoreResults}
+        editingRowId={edits.editingRowId}
+        editingValue={edits.editingValue}
+        onStartEditing={edits.onStartEditing}
+        onCancelEditing={edits.onCancelEditing}
+        onSaveEditing={edits.onSaveEditing}
+        onChangeEditingValue={edits.onChangeEditingValue}
+        onChangeStatus={edits.onChangeStatus}
+        statusOptions={statusOptions}
+        headerDisabled={headerDisabled}
+        isSaving={edits.isSaving}
+        saveErrorMessage={edits.saveErrorMessage}
+        showValidationDialog={edits.pendingValidationSave !== null}
+        validationDialogBody={edits.pendingValidationSave?.body ?? ''}
+        onConfirmValidationSave={edits.confirmValidationSave}
+        onDismissValidationDialog={edits.dismissValidationSave}
+        showDiscardDialog={edits.pendingEditingTarget !== null}
+        onConfirmDiscardEditing={edits.confirmDiscardEditing}
+        onDismissDiscardEditing={edits.dismissDiscardEditing}
+        translationInputRef={edits.translationInputRef}
+        registerRowRef={edits.registerRowRef}
+        searchAttribute={search.searchAttribute}
+        searchType={search.searchType}
+        searchInputValue={search.searchInputValue}
+        onChangeSearchInput={search.onChangeSearchInput}
+        onSubmitSearch={search.onSubmitSearch}
+        onChangeSearchAttribute={search.onChangeSearchAttribute}
+        onChangeSearchType={search.onChangeSearchType}
+        onRefreshWorkset={handleRefreshWorkset}
+        repositoryOptions={search.repositoryOptions}
+        selectedRepositoryIds={search.selectedRepositoryIds}
+        onChangeRepositorySelection={search.onChangeRepositorySelection}
+        isRepositoryLoading={search.isRepositoriesLoading}
+        repositoryErrorMessage={search.repositoryErrorMessage}
+        localeOptions={search.localeOptions}
+        selectedLocaleTags={search.selectedLocaleTags}
+        onChangeLocaleSelection={search.onChangeLocaleSelection}
+        userLocales={userLocales}
+        isLimitedTranslator={isLimitedTranslator}
+        statusFilter={search.statusFilter}
+        includeUsed={search.includeUsed}
+        includeUnused={search.includeUnused}
+        includeTranslate={search.includeTranslate}
+        includeDoNotTranslate={search.includeDoNotTranslate}
+        onChangeStatusFilter={search.onChangeStatusFilter}
+        onChangeIncludeUsed={search.onChangeIncludeUsed}
+        onChangeIncludeUnused={search.onChangeIncludeUnused}
+        onChangeIncludeTranslate={search.onChangeIncludeTranslate}
+        onChangeIncludeDoNotTranslate={search.onChangeIncludeDoNotTranslate}
+        createdBefore={search.createdBefore}
+        createdAfter={search.createdAfter}
+        onChangeCreatedBefore={search.onChangeCreatedBefore}
+        onChangeCreatedAfter={search.onChangeCreatedAfter}
+        translationCreatedBefore={search.translationCreatedBefore}
+        translationCreatedAfter={search.translationCreatedAfter}
+        onChangeTranslationCreatedBefore={search.onChangeTranslationCreatedBefore}
+        onChangeTranslationCreatedAfter={search.onChangeTranslationCreatedAfter}
+        isSearchLoading={search.isSearchLoading}
+        searchErrorMessage={search.searchErrorMessage}
+        hydrationModal={hydrationModal}
+        onDismissHydrationModal={() => setHydrationModal(null)}
+        onRetrySearch={() => {
+          void search.refetchSearch();
+        }}
+        canSearch={search.canSearch}
+        activeSearchRequest={search.activeSearchRequest}
+        repositories={search.repositories}
+        collections={collections.collections}
+        activeCollectionId={collections.activeCollectionId}
+        activeCollectionName={collections.activeCollection?.name ?? null}
+        activeCollectionCount={activeCollectionCount}
+        onCreateCollection={collections.createCollection}
+        onSelectCollection={collections.selectCollection}
+        onRenameCollection={collections.renameCollection}
+        onDeleteCollection={collections.deleteCollection}
+        onClearCollection={collections.clearActiveCollection}
+        onDeleteAllCollections={collections.deleteAllCollections}
+        onAddAllToCollection={handleAddAllToCollection}
+        onAddToCollection={handleAddToCollection}
+        onRemoveFromCollection={handleRemoveFromCollection}
+        activeCollectionIds={activeCollectionIds}
+        onOpenCollectionSearch={handleOpenCollectionSearch}
+        onShareCollection={handleShareCollection}
+        onCreateReviewProject={handleCreateReviewProjectFromCollection}
+        shareOverrides={shareOverrides}
+        onPrepareShareOverrides={(overrides) => setShareOverrides(overrides)}
+      />
+      {createModalOpen && createReviewDefaults ? (
+        <ReviewProjectCreateModal
+          isOpen
+          onCancel={() => {
+            setCreateReviewCollectionId(null);
+            setCreateReviewError(null);
+          }}
+          onCreate={handleSubmitCreateReview}
+          defaultName={createReviewDefaults.defaultName}
+          defaultDueDate={createReviewDefaults.defaultDueDate}
+          localeOptions={createReviewDefaults.localeOptions}
+          collectionSize={createReviewDefaults.collectionSize}
+          errorMessage={createReviewError}
+        />
+      ) : null}
+    </>
   );
 }

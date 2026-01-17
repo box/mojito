@@ -27,6 +27,7 @@ type WorkbenchWorksetBarProps = {
   onAddAllToCollection: () => void;
   onOpenCollectionSearch: (id: string) => void;
   onShareCollection: (id: string) => boolean;
+  onCreateReviewProject: (id: string) => void;
 };
 
 export function WorkbenchWorksetBar({
@@ -53,6 +54,7 @@ export function WorkbenchWorksetBar({
   onAddAllToCollection,
   onOpenCollectionSearch,
   onShareCollection,
+  onCreateReviewProject,
 }: WorkbenchWorksetBarProps) {
   const countLabel = hasMoreResults
     ? `Showing first ${worksetSize} results (more available)`
@@ -121,6 +123,7 @@ export function WorkbenchWorksetBar({
       onAddAllToCollection={onAddAllToCollection}
       onOpenCollectionSearch={onOpenCollectionSearch}
       onShareCollection={onShareCollection}
+      onCreateReviewProject={onCreateReviewProject}
     />,
   );
 
@@ -313,6 +316,7 @@ function CollectionDropdown({
   onAddAllToCollection,
   onOpenCollectionSearch,
   onShareCollection,
+  onCreateReviewProject,
 }: {
   disabled: boolean;
   isSearchLoading: boolean;
@@ -331,6 +335,7 @@ function CollectionDropdown({
   onAddAllToCollection: () => void;
   onOpenCollectionSearch: (id: string) => void;
   onShareCollection: (id: string) => boolean;
+  onCreateReviewProject: (id: string) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [nameDraft, setNameDraft] = useState(activeCollectionName ?? '');
@@ -576,6 +581,18 @@ function CollectionDropdown({
                             }
                           >
                             View
+                          </button>
+                          <button
+                            type="button"
+                            className="workbench-worksetbar__button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onCreateReviewProject(collection.id);
+                            }}
+                            disabled={disabled || !hasIds}
+                            title="Create review project from this collection"
+                          >
+                            Review
                           </button>
                           <button
                             type="button"

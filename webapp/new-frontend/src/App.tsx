@@ -7,6 +7,7 @@ import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-r
 import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
+import { ReviewProjectPage } from './page/review-project/ReviewProjectPage';
 import { ReviewProjectsPage } from './page/review-projects/ReviewProjectsPage';
 import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
 import { CharCodeHelperPage } from './page/tools/CharCodeHelperPage';
@@ -68,6 +69,7 @@ export function App() {
             {navItems.map(({ to, element }) => (
               <Route key={to} path={to} element={element} />
             ))}
+            <Route path="/review-projects/:projectId" element={<ReviewProjectPage />} />
             <Route path="/settings/admin" element={<AdminSettingsPage />} />
             <Route path="/tools/char-code" element={<CharCodeHelperPage />} />
             <Route path="*" element={<Navigate to="/repositories" replace />} />

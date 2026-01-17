@@ -20,6 +20,7 @@ export function RequireUser({ children }: { children: ReactNode }) {
     );
   }
 
+  // TODO(ja) error message is top left corner, we need to make it centered
   if (isError || !data) {
     return <div>Could not load user information.</div>;
   }

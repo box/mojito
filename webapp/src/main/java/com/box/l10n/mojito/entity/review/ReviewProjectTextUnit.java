@@ -27,13 +27,6 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT__VARIANT"))
   private TMTextUnitVariant tmTextUnitVariant;
 
-  // TODO(ja) be more explicit: initialTmTextUnitVariant + acceptedTmTextUnitVariant +
-  // currentTmTextUnitVariant (can be stale) + optional: editsTmTextUnitVariant (if the translator
-  // do multiple changes we can save it there).
-  // I'm wondering if we just update that table, OR if make this immutable content and then in the
-  // other table, review_project_accepted_variant, we track mutable content?
-  // please advise
-
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "tm_text_unit_id",
@@ -42,18 +35,6 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
 
   @Column(name = "position")
   private Integer position;
-
-  // TODO(ja) what's that?
-  @Column(name = "selection_reason", length = 64)
-  private String selectionReason;
-
-  // TODO(ja) why do we care, we should keep the initial variant, that will come from there
-  @Column(name = "initial_status", length = 32)
-  private String initialStatus;
-
-  // TODO(ja) same has will coment from the initial variant
-  @Column(name = "initial_variant_hash", length = 32)
-  private String initialVariantHash;
 
   public ReviewProject getReviewProject() {
     return reviewProject;
@@ -85,29 +66,5 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
 
   public void setPosition(Integer position) {
     this.position = position;
-  }
-
-  public String getSelectionReason() {
-    return selectionReason;
-  }
-
-  public void setSelectionReason(String selectionReason) {
-    this.selectionReason = selectionReason;
-  }
-
-  public String getInitialStatus() {
-    return initialStatus;
-  }
-
-  public void setInitialStatus(String initialStatus) {
-    this.initialStatus = initialStatus;
-  }
-
-  public String getInitialVariantHash() {
-    return initialVariantHash;
-  }
-
-  public void setInitialVariantHash(String initialVariantHash) {
-    this.initialVariantHash = initialVariantHash;
   }
 }

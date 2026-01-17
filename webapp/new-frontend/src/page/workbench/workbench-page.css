@@ -1234,3 +1234,54 @@
   color: var(--color-accent);
   font-weight: var(--font-weight-semibold);
 }
+
+/* Review project create modal */
+.workbench-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.workbench-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.workbench-modal__label {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.workbench-modal__checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.workbench-modal__checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.workbench-modal__hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.workbench-modal__actions {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.workbench-modal__error {
+  color: var(--color-danger);
+  margin-right: auto;
+  font-size: var(--font-size-sm);
+}

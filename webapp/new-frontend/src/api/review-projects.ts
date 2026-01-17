@@ -38,6 +38,44 @@ export type ApiReviewProjectLocaleSummary = {
   acceptedCount: number;
 };
 
+export type ApiReviewProjectTextUnit = {
+  reviewProjectTextUnitId: number;
+  tmTextUnitId: number;
+  tmTextUnitVariantId: number | null;
+  selectedTmTextUnitVariantId: number | null;
+  currentTmTextUnitVariantId: number | null;
+  name: string;
+  source: string;
+  target: string | null;
+  status: string | null;
+  repositoryId: number | null;
+  repositoryName: string | null;
+  assetPath: string | null;
+  includedInLocalizedFile: boolean;
+};
+
+export type ApiReviewProjectLocaleDetail = ApiReviewProjectLocaleSummary & {
+  textUnits: ApiReviewProjectTextUnit[];
+};
+
+export type ApiReviewProjectDetail = {
+  id: number;
+  name?: string | null;
+  createdDate?: string | null;
+  dueDate?: string | null;
+  closeReason?: string | null;
+  textUnitCount?: number | null;
+  wordCount?: number | null;
+  type: ApiReviewProjectType;
+  status: ApiReviewProjectStatus;
+  notes?: string | null;
+  requestId?: number | null;
+  requestUuid?: string | null;
+  repositories: ApiReviewProjectRepositorySummary[];
+  locales: ApiReviewProjectLocaleDetail[];
+  screenshotImageIds?: string[] | null;
+};
+
 export type ApiReviewProjectSummary = {
   id: number;
   name?: string | null;
@@ -70,6 +108,18 @@ export type ReviewProjectsSearchRequest = {
   searchMatchType?: 'CONTAINS' | 'EXACT' | 'ILIKE';
 };
 
+export type ReviewProjectCreateRequest = {
+  repositoryIds: number[];
+  localeTags: string[];
+  maxTextUnits?: number | null;
+  maxWordCount?: number | null;
+  notes?: string | null;
+  type?: ApiReviewProjectType | null;
+  dueDate: string; // ISO string
+  screenshotImageIds?: string[] | null;
+  name: string;
+};
+
 const jsonHeaders = {
   'Content-Type': 'application/json',
 };
@@ -94,6 +144,41 @@ export const searchReviewProjects = async (
 
 export const fetchReviewProjects = async (): Promise<ApiReviewProjectSummary[]> =>
   searchReviewProjects({});
+
+export const createReviewProject = async (
+  payload: ReviewProjectCreateRequest,
+): Promise<ApiReviewProjectSummary[]> => {
+  const response = await fetch('/api/review-projects', {
+    method: 'POST',
+    credentials: 'include',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => '');
+    throw new Error(message || 'Failed to create review project');
+  }
+
+  return (await response.json()) as ApiReviewProjectSummary[];
+};
+
+export const fetchReviewProjectDetail = async (
+  projectId: number,
+): Promise<ApiReviewProjectDetail> => {
+  const response = await fetch(`/api/review-projects/${projectId}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: jsonHeaders,
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => '');
+    throw new Error(message || 'Failed to load review project');
+  }
+
+  return (await response.json()) as ApiReviewProjectDetail;
+};
 
 export const generateSampleReviewProjects = async (): Promise<ApiReviewProjectSummary[]> => {
   const makeRequest = (method: 'POST' | 'GET') =>

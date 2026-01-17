@@ -62,9 +62,6 @@ CREATE TABLE review_project_text_unit (
     tm_text_unit_variant_id bigint(20) NOT NULL,
     tm_text_unit_id bigint(20) NOT NULL,
     position int DEFAULT NULL,
-    selection_reason varchar(64) DEFAULT NULL,
-    initial_status varchar(32) DEFAULT NULL,
-    initial_variant_hash char(32) DEFAULT NULL,
     created_date datetime DEFAULT NULL,
     PRIMARY KEY (id)
 );

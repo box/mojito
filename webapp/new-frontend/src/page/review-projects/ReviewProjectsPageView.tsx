@@ -3,6 +3,7 @@ import './review-projects-page.css';
 
 import { type VirtualItem } from '@tanstack/react-virtual';
 import { useCallback, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectStatus, ApiReviewProjectType } from '../../api/review-projects';
 import {
@@ -367,7 +368,9 @@ function ReviewProjectRowView({ project }: { project: ReviewProjectRow }) {
       <div className="review-projects-page__row-grid">
         <div className="review-projects-page__project">
           <div className="review-projects-page__id-row">
-            <span className="review-projects-page__project-name">{project.name}</span>
+            <Link to={`/review-projects/${project.id}`} className="review-projects-page__project-link">
+              <span className="review-projects-page__project-name">{project.name}</span>
+            </Link>
           </div>
         </div>
         <div className="review-projects-page__counts">

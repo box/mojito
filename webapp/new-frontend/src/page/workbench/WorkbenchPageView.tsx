@@ -112,6 +112,7 @@ type Props = {
   activeCollectionIds: Set<number>;
   onOpenCollectionSearch: (id: string) => void;
   onShareCollection: (id: string) => boolean;
+  onCreateReviewProject: (id: string) => void;
   shareOverrides: WorkbenchShareOverrides | null;
   onPrepareShareOverrides: (overrides: WorkbenchShareOverrides | null) => void;
 };
@@ -232,6 +233,7 @@ export function WorkbenchPageView({
   activeCollectionIds,
   onOpenCollectionSearch,
   onShareCollection,
+  onCreateReviewProject,
   shareOverrides,
   onPrepareShareOverrides,
 }: Props) {
@@ -308,6 +310,7 @@ export function WorkbenchPageView({
           }
           return ok;
         }}
+        onCreateReviewProject={onCreateReviewProject}
         onOpenShareModal={() => {
           onPrepareShareOverrides(null);
           setIsShareModalOpen(true);

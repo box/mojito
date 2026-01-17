@@ -631,10 +631,6 @@ public class ReviewProjectService {
       reviewProjectTextUnit.setTmTextUnit(
           tmTextUnit != null ? tmTextUnit : variant.getTmTextUnit());
       reviewProjectTextUnit.setPosition(position++);
-      reviewProjectTextUnit.setSelectionReason("REVIEW_NEEDED");
-      reviewProjectTextUnit.setInitialStatus(
-          variant.getStatus() != null ? variant.getStatus().name() : null);
-      reviewProjectTextUnit.setInitialVariantHash(variant.getContentMD5());
 
       reviewProjectTextUnitRepository.save(reviewProjectTextUnit);
       selectedCount++;
