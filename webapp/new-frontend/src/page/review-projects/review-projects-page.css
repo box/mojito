@@ -280,8 +280,6 @@
 .review-projects-page__type-pill.review-projects-page__type-pill--emergency {
   background: var(--color-danger);
   color: var(--color-surface);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 75%, var(--color-surface));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .review-projects-page__type-pill.review-projects-page__type-pill--default {
