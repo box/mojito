@@ -430,6 +430,7 @@ export function ReviewProjectsPageView({
 }: Props) {
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const getItemKey = useCallback((index: number) => projects[index]?.id ?? index, [projects]);
+  const hasResults = projects.length > 0;
 
   const estimateSize = useCallback(
     () =>
@@ -476,11 +477,13 @@ export function ReviewProjectsPageView({
   return (
     <div className="review-projects-page">
       <FilterControls filters={filters} />
-      <SummaryBar
-        resultCount={projects.length}
-        totalWords={totalWords}
-        totalStrings={totalStrings}
-      />
+      {hasResults ? (
+        <SummaryBar
+          resultCount={projects.length}
+          totalWords={totalWords}
+          totalStrings={totalStrings}
+        />
+      ) : null}
       {onLoadMock ? (
         <div className="review-projects-page__mock-controls">
           <button type="button" className="review-projects-page__mock-button" onClick={onLoadMock}>

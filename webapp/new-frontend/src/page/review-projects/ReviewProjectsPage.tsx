@@ -29,14 +29,20 @@ type SelectAllLocalesParams = {
   projects: ApiReviewProjectSummary[] | undefined;
   selectedLocaleTags: string[];
   setSelectedLocaleTags: (tags: string[]) => void;
+  userHasTouchedLocales: boolean;
 };
 
 function useSelectAllLocales({
   localeOptions,
   selectedLocaleTags,
   setSelectedLocaleTags,
+  userHasTouchedLocales,
 }: SelectAllLocalesParams) {
   useEffect(() => {
+    if (userHasTouchedLocales) {
+      return;
+    }
+
     if (selectedLocaleTags.length > 0) {
       return;
     }
@@ -54,7 +60,7 @@ function useSelectAllLocales({
     if (hasDifference) {
       setSelectedLocaleTags(next);
     }
-  }, [localeOptions, selectedLocaleTags, setSelectedLocaleTags]);
+  }, [localeOptions, selectedLocaleTags, setSelectedLocaleTags, userHasTouchedLocales]);
 }
 
 const typeOptions: FilterOption<ApiReviewProjectType | 'all'>[] = [
@@ -85,6 +91,7 @@ export function ReviewProjectsPage() {
   const { data: repositoryData } = useRepositories();
 
   const [selectedLocaleTags, setSelectedLocaleTags] = useState<string[]>([]);
+  const [hasTouchedLocales, setHasTouchedLocales] = useState(false);
   const [typeFilter, setTypeFilter] = useState<ApiReviewProjectType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<ApiReviewProjectStatus | 'all'>('OPEN');
   const [limit, setLimit] = useState<number>(1000);
@@ -231,6 +238,13 @@ export function ReviewProjectsPage() {
       searchMatchType: mt,
     } = searchParams;
 
+    // If the user intentionally cleared all locales, treat it as "no results"
+    // instead of falling back to "all locales".
+    const userClearedLocales = hasTouchedLocales && (!localeTags || localeTags.length === 0);
+    if (userClearedLocales) {
+      return [];
+    }
+
     const createdAfterDate = ca ? new Date(ca) : null;
     const createdBeforeDate = cb ? new Date(cb) : null;
     const dueAfterDate = da ? new Date(da) : null;
@@ -241,14 +255,17 @@ export function ReviewProjectsPage() {
       const field: 'id' | 'name' = sf === 'ID' ? 'id' : 'name';
       const value =
         field === 'id' ? String(project.id) : (project.name ?? `Review project #${project.id}`);
-      const query = q;
+      const valueLower = value.toLowerCase();
+      const queryLower = q.toLowerCase();
+
       if (mt === 'EXACT') {
-        return value === query;
+        // Match backend behavior: case-insensitive exact comparison on name;
+        // IDs are numeric but comparing as string keeps it stable.
+        return valueLower === queryLower;
       }
-      if (mt === 'ILIKE') {
-        return value.toLowerCase().includes(query.toLowerCase());
-      }
-      return value.includes(query);
+
+      // Backend treats CONTAINS and ILIKE identically (case-insensitive LIKE)
+      return valueLower.includes(queryLower);
     };
 
     const matchesDateRange = (
@@ -298,7 +315,7 @@ export function ReviewProjectsPage() {
 
     const limitValue = lmt && lmt > 0 ? lmt : undefined;
     return limitValue ? filtered.slice(0, limitValue) : filtered;
-  }, [projects, searchParams, overrideProjects]);
+  }, [projects, searchParams, overrideProjects, hasTouchedLocales]);
 
   const rows = useMemo<ReviewProjectRow[]>(() => {
     return filteredProjects.map((project) => ({
@@ -325,6 +342,7 @@ export function ReviewProjectsPage() {
     projects: data,
     selectedLocaleTags,
     setSelectedLocaleTags,
+    userHasTouchedLocales: hasTouchedLocales,
   });
 
   return (
@@ -337,7 +355,10 @@ export function ReviewProjectsPage() {
       filters={{
         localeOptions,
         selectedLocaleTags,
-        onLocaleChange: setSelectedLocaleTags,
+        onLocaleChange: (next) => {
+          setHasTouchedLocales(true);
+          setSelectedLocaleTags(next);
+        },
         myLocaleTags: myLocaleSelections,
         typeOptions,
         typeValue: typeFilter,
