@@ -71,7 +71,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             }}
           />
         </section>
-
         <section className="review-project-page__detail-pane">
           TODO: right pane with string details/editor
         </section>
