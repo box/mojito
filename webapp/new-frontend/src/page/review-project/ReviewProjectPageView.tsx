@@ -32,7 +32,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     () =>
       getRowHeightPx({
         cssVariable: '--review-project-row-height',
-        defaultRem: 7,
+        defaultRem: 6,
       }),
     [],
   );
@@ -42,7 +42,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     [textUnits],
   );
 
-  const { scrollRef, items, totalSize } = useVirtualRows<HTMLDivElement>({
+  const { scrollRef, items, totalSize, measureElement } = useVirtualRows<HTMLDivElement>({
     count: textUnits.length,
     estimateSize: estimateRowHeight,
     getItemKey,
@@ -66,6 +66,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               }
               return {
                 key: virtualItem.key,
+                props: { ref: measureElement },
                 content: <TextUnitRow textUnit={textUnit} />,
               };
             }}

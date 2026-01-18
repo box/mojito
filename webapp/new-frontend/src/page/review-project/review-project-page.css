@@ -163,7 +163,7 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  --review-project-row-height: 7rem;
+  --review-project-row-height: auto;
 }
 
 .review-project-page__search {
@@ -205,11 +205,8 @@
 }
 
 .review-project-row__string-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  overflow: visible;
+  white-space: normal;
   line-height: 1.35;
 }
 
