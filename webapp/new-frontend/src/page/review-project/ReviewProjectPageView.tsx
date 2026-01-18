@@ -2,6 +2,7 @@ import './review-project-page.css';
 import '../review-projects/review-projects-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
+import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -188,6 +189,10 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   }, []);
+
+  if (!project) {
+    return <div>No project data for id {projectId}</div>;
+  }
 
   return (
     <div className="review-project-page">
@@ -451,7 +456,7 @@ function ReviewProjectHeader({
   project: ApiReviewProjectDetail;
 }) {
   const { name, dueDate, textUnitCount, wordCount, status, type, locales: localesRaw } = project;
-  const locales = localesRaw ?? [];
+  const locales = useMemo(() => localesRaw ?? [], [localesRaw]);
 
   const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
     const accepted = locales.reduce((sum, locale) => sum + (locale.acceptedCount ?? 0), 0);
@@ -499,7 +504,12 @@ function ReviewProjectHeader({
           <CountsInline words={wordCount} strings={textUnitCount ?? selectedCount} />
           <span className="review-project-page__dot">•</span>
           <div className="review-project-page__progress-chip">
-            <span className="review-project-page__progress-label">{progressPercent}%</span>
+            <span
+              className="review-project-page__progress-label"
+              title={`${acceptedCount}/${selectedCount} accepted`}
+            >
+              {progressPercent}%
+            </span>
             <ProgressBar percent={progressPercent} />
           </div>
         </div>
