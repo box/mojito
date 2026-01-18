@@ -404,17 +404,17 @@ function DetailPane({
         </div>
       </div>
       <div className="review-project-detail__actions">
-        <div className="review-project-detail__action-card review-project-detail__action-card--full">
-          <div className="review-project-detail__action-title">Screenshots</div>
-          <div className="review-project-detail__action-body">
+        <div className="review-project-detail__actions-row">
+          <div className="review-project-detail__actions-label">Screenshots</div>
+          <div className="review-project-detail__actions-info">
             {screenshotCount > 0 ? `${screenshotCount} attached` : 'No screenshots attached'}
           </div>
           <button
             type="button"
-            className="review-project-detail__action-button"
+            className="review-project-detail__actions-button"
             disabled={screenshotCount === 0}
           >
-            Open viewer
+            Open
           </button>
         </div>
       </div>
