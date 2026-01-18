@@ -70,6 +70,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     });
   }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);
 
+  const selectedTextUnit = useMemo(
+    () => filtered.find((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId),
+    [filtered, selectedTextUnitId],
+  );
+
   useEffect(() => {
     if (filtered.length === 0) {
       setSelectedTextUnitId(null);
@@ -106,16 +111,51 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     [filtered],
   );
 
-  const { scrollRef, items, totalSize, measureElement } = useVirtualRows<HTMLDivElement>({
-    count: filtered.length,
-    estimateSize: estimateRowHeight,
-    getItemKey,
-  });
+  const { scrollRef, items, totalSize, measureElement, scrollToIndex } =
+    useVirtualRows<HTMLDivElement>({
+      count: filtered.length,
+      estimateSize: estimateRowHeight,
+      getItemKey,
+    });
 
-  const selectedTextUnit = useMemo(
-    () => filtered.find((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId),
-    [filtered, selectedTextUnitId],
+  const handleKeyNav = useCallback(
+    (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+        return;
+      }
+
+      if (!filtered.length) return;
+
+      const idx = selectedTextUnitId
+        ? filtered.findIndex((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId)
+        : -1;
+
+      if (event.key === 'ArrowDown' || event.key === 'j') {
+        event.preventDefault();
+        const nextIndex = Math.min(filtered.length - 1, idx + 1);
+        const nextId = filtered[nextIndex]?.reviewProjectTextUnitId ?? null;
+        if (nextId != null) {
+          setSelectedTextUnitId(nextId);
+          scrollToIndex(nextIndex, 'center');
+        }
+      } else if (event.key === 'ArrowUp' || event.key === 'k') {
+        event.preventDefault();
+        const prevIndex = Math.max(0, idx <= 0 ? 0 : idx - 1);
+        const prevId = filtered[prevIndex]?.reviewProjectTextUnitId ?? null;
+        if (prevId != null) {
+          setSelectedTextUnitId(prevId);
+          scrollToIndex(prevIndex, 'center');
+        }
+      }
+    },
+    [filtered, scrollToIndex, selectedTextUnitId],
   );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyNav);
+    return () => window.removeEventListener('keydown', handleKeyNav);
+  }, [handleKeyNav]);
 
   return (
     <div className="review-project-page">
@@ -287,40 +327,42 @@ function DetailPane({
           {showMeta ? 'Hide info' : 'More info'}
         </button>
       </div>
-      <div className="review-project-detail__field">
-        <div className="review-project-detail__label">Source</div>
-        <div className="review-project-detail__value">{textUnit.source || '—'}</div>
-      </div>
-      <div className="review-project-detail__field">
-        <div className="review-project-detail__label">Target</div>
-        <div className="review-project-detail__value review-project-detail__value--target">
-          {textUnit.target || '—'}
+      <div className="review-project-detail__grid">
+        <div className="review-project-detail__field">
+          <div className="review-project-detail__label">Source</div>
+          <div className="review-project-detail__value">{textUnit.source || '—'}</div>
         </div>
-      </div>
-      {hasStaleCurrent ? (
-        <div className="review-project-detail__notice">
-          Current translation changed since selection; saving will only record a suggestion.
+        <div className="review-project-detail__field">
+          <div className="review-project-detail__label">Original target</div>
+          <div className="review-project-detail__value review-project-detail__value--target">
+            {textUnit.target || '—'}
+          </div>
+          {hasStaleCurrent ? (
+            <div className="review-project-detail__notice">
+              Current translation changed since selection; saving will only record a suggestion.
+            </div>
+          ) : null}
         </div>
-      ) : null}
-      <div className="review-project-detail__field">
-        <div className="review-project-detail__label">Proposed translation</div>
-        <textarea
-          className="review-project-detail__input"
-          value={draftTarget}
-          onChange={(e) => onChangeDraftTarget(e.target.value)}
-          rows={4}
-          placeholder="Enter proposed translation"
-        />
-      </div>
-      <div className="review-project-detail__field">
-        <div className="review-project-detail__label">Notes / rationale</div>
-        <textarea
-          className="review-project-detail__input"
-          value={draftNote}
-          onChange={(e) => onChangeDraftNote(e.target.value)}
-          rows={3}
-          placeholder="Explain the choice (optional)"
-        />
+        <div className="review-project-detail__field">
+          <div className="review-project-detail__label">Proposed translation</div>
+          <textarea
+            className="review-project-detail__input"
+            value={draftTarget}
+            onChange={(e) => onChangeDraftTarget(e.target.value)}
+            rows={5}
+            placeholder="Enter proposed translation"
+          />
+        </div>
+        <div className="review-project-detail__field">
+          <div className="review-project-detail__label">Notes / rationale</div>
+          <textarea
+            className="review-project-detail__input"
+            value={draftNote}
+            onChange={(e) => onChangeDraftNote(e.target.value)}
+            rows={5}
+            placeholder="Explain the choice (optional)"
+          />
+        </div>
       </div>
       {showMeta ? (
         <div className="review-project-detail__meta">
