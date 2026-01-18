@@ -173,6 +173,39 @@
   font-size: var(--font-size-sm);
 }
 
+.review-project-page__controls {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+.review-project-page__search-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-page__control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.review-project-page__control-select {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+}
+
 .review-project-page__detail-pane {
   padding: var(--space-4);
   color: var(--color-text-muted);

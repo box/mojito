@@ -1,7 +1,7 @@
 import './review-project-page.css';
 import '../review-projects/review-projects-page.css';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { VirtualItem } from '@tanstack/react-virtual';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -28,6 +28,45 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const primaryLocale = project.locales?.[0];
   const textUnits = useMemo(() => primaryLocale?.textUnits ?? [], [primaryLocale]);
 
+  const [search, setSearch] = useState('');
+  const [onlyReviewed, setOnlyReviewed] = useState(false);
+  const [onlyEdited, setOnlyEdited] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const availableStatuses = useMemo(() => {
+    const statuses = new Set<string>();
+    textUnits.forEach((tu) => {
+      if (tu?.status) {
+        statuses.add(tu.status);
+      }
+    });
+    return Array.from(statuses.values()).sort();
+  }, [textUnits]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return textUnits.filter((tu) => {
+      if (!tu) return false;
+      if (onlyReviewed && tu.selectedTmTextUnitVariantId == null) {
+        return false;
+      }
+      if (
+        onlyEdited &&
+        !(tu.selectedTmTextUnitVariantId != null &&
+          tu.currentTmTextUnitVariantId != null &&
+          tu.selectedTmTextUnitVariantId !== tu.currentTmTextUnitVariantId)
+      ) {
+        return false;
+      }
+      if (statusFilter !== 'all' && tu.status !== statusFilter) {
+        return false;
+      }
+      if (!term) return true;
+      const haystacks = [tu.name, tu.source, tu.target].filter(Boolean).map((s) => s!.toLowerCase());
+      return haystacks.some((h) => h.includes(term));
+    });
+  }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);
+
   const estimateRowHeight = useCallback(
     () =>
       getRowHeightPx({
@@ -38,12 +77,12 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   );
 
   const getItemKey = useCallback(
-    (index: number) => textUnits[index]?.reviewProjectTextUnitId ?? index,
-    [textUnits],
+    (index: number) => filtered[index]?.reviewProjectTextUnitId ?? index,
+    [filtered],
   );
 
   const { scrollRef, items, totalSize, measureElement } = useVirtualRows<HTMLDivElement>({
-    count: textUnits.length,
+    count: filtered.length,
     estimateSize: estimateRowHeight,
     getItemKey,
   });
@@ -54,13 +93,49 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
       <div className="review-project-page__content">
         <section className="review-project-page__list-pane">
-          <div className="review-project-page__search">TODO: search bar for strings</div>
+          <div className="review-project-page__controls">
+            <input
+              className="review-project-page__search-input"
+              type="search"
+              placeholder="Search source/target/name"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <label className="review-project-page__control">
+              <input
+                type="checkbox"
+                checked={onlyReviewed}
+                onChange={(e) => setOnlyReviewed(e.target.checked)}
+              />
+              <span>Reviewed</span>
+            </label>
+            <label className="review-project-page__control">
+              <input
+                type="checkbox"
+                checked={onlyEdited}
+                onChange={(e) => setOnlyEdited(e.target.checked)}
+              />
+              <span>Edited</span>
+            </label>
+            <select
+              className="review-project-page__control-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All statuses</option>
+              {availableStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
           <VirtualList
             scrollRef={scrollRef}
             items={items}
             totalSize={totalSize}
             renderRow={(virtualItem: VirtualItem) => {
-              const textUnit = textUnits[virtualItem.index] as ApiReviewProjectTextUnit | undefined;
+              const textUnit = filtered[virtualItem.index] as ApiReviewProjectTextUnit | undefined;
               if (!textUnit) {
                 return null;
               }
