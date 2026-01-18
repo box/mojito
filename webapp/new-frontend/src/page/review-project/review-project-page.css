@@ -201,18 +201,7 @@
 }
 
 .review-project-row__string-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-2);
-  align-items: start;
   color: var(--color-text);
-}
-
-.review-project-row__string-label {
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-wide);
-  color: var(--color-text-subtle);
 }
 
 .review-project-row__string-text {
