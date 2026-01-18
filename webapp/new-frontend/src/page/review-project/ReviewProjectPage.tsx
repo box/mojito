@@ -11,12 +11,12 @@ export function ReviewProjectPage() {
   const projectDetailQuery = useReviewProjectDetail(projectId);
 
   if (!projectId) {
-      // TODO(ja) will this really happen? overkill?
+    // TODO(ja) will this really happen? overkill?
     return <div>Missing project id</div>;
   }
 
   if (projectDetailQuery.isLoading) {
-      // TODO(ja) we need this to be render with proper style - centered etc, it needs to be reusing shared style.
+    // TODO(ja) we need this to be render with proper style - centered etc, it needs to be reusing shared style.
     return <div>Loading project…</div>;
   }
 

@@ -350,16 +350,19 @@
   font-size: var(--font-size-xs);
   padding: 0.25rem 0.75rem;
   cursor: pointer;
-  transition: background-color 0.1s ease, border-color 0.1s ease;
+  transition:
+    background-color 0.1s ease,
+    border-color 0.1s ease;
 }
 
 .review-project-detail__pill--floating {
   position: absolute;
-  top: -0.35rem;
+  top: 0;
   right: 0;
-  transform: translateY(-100%);
+  transform: translateY(-60%);
   opacity: 0;
   pointer-events: none;
+  z-index: 2;
 }
 
 .review-project-detail__pill:hover {
@@ -368,6 +371,11 @@
 }
 
 .review-project-detail__value--restorable:hover .review-project-detail__pill--floating {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.review-project-detail__value--restorable:focus-within .review-project-detail__pill--floating {
   opacity: 1;
   pointer-events: auto;
 }
@@ -501,7 +509,7 @@
 .review-project-detail__input:focus-visible {
   outline: none;
   border-color: color-mix(in srgb, var(--color-border) 80%, transparent);
-    resize: vertical;
+  resize: vertical;
   /*background: color-mix(in srgb, var(--color-surface-muted) 40%, transparent);*/
 }
 

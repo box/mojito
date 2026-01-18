@@ -1,8 +1,8 @@
 import './review-project-page.css';
 import '../review-projects/review-projects-page.css';
 
+import type { VirtualItem } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VirtualItem } from '@tanstack/react-virtual';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
 import {
@@ -58,9 +58,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       }
       if (
         onlyEdited &&
-        !(tu.selectedTmTextUnitVariantId != null &&
+        !(
+          tu.selectedTmTextUnitVariantId != null &&
           tu.currentTmTextUnitVariantId != null &&
-          tu.selectedTmTextUnitVariantId !== tu.currentTmTextUnitVariantId)
+          tu.selectedTmTextUnitVariantId !== tu.currentTmTextUnitVariantId
+        )
       ) {
         return false;
       }
@@ -68,7 +70,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         return false;
       }
       if (!term) return true;
-      const haystacks = [tu.name, tu.source, tu.target].filter(Boolean).map((s) => s!.toLowerCase());
+      const haystacks = [tu.name, tu.source, tu.target]
+        .filter(Boolean)
+        .map((s) => s!.toLowerCase());
       return haystacks.some((h) => h.includes(term));
     });
   }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);
@@ -124,7 +128,13 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const handleKeyNav = useCallback(
     (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
         return;
       }
 
@@ -160,27 +170,24 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     return () => window.removeEventListener('keydown', handleKeyNav);
   }, [handleKeyNav]);
 
-  const startResize = useCallback(
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-      setIsResizing(true);
-      const onMove = (e: MouseEvent) => {
-        if (!layoutRef.current) return;
-        const rect = layoutRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const pct = Math.min(75, Math.max(20, (x / rect.width) * 100));
-        setListWidthPct(pct);
-      };
-      const onUp = () => {
-        setIsResizing(false);
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onUp);
-      };
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-    },
-    [],
-  );
+  const startResize = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setIsResizing(true);
+    const onMove = (e: MouseEvent) => {
+      if (!layoutRef.current) return;
+      const rect = layoutRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const pct = Math.min(75, Math.max(20, (x / rect.width) * 100));
+      setListWidthPct(pct);
+    };
+    const onUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, []);
 
   return (
     <div className="review-project-page">
@@ -313,7 +320,10 @@ function TextUnitRow({
         <div className="review-project-row__string-line" title={source}>
           <span className="review-project-row__string-text">{source || '—'}</span>
         </div>
-        <div className="review-project-row__string-line review-project-row__string-line--target" title={target ?? undefined}>
+        <div
+          className="review-project-row__string-line review-project-row__string-line--target"
+          title={target ?? undefined}
+        >
           <span className="review-project-row__string-text review-project-row__string-text--target">
             {target || '—'}
           </span>
@@ -349,7 +359,9 @@ function DetailPane({
         <div className="review-project-detail__title">
           {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
         </div>
-        {textUnit.status ? <span className="review-project-detail__status">{textUnit.status}</span> : null}
+        {textUnit.status ? (
+          <span className="review-project-detail__status">{textUnit.status}</span>
+        ) : null}
       </div>
       <div className="review-project-detail__grid">
         <div className="review-project-detail__field">
