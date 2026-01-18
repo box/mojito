@@ -1,7 +1,7 @@
 import './review-project-page.css';
 import '../review-projects/review-projects-page.css';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { VirtualItem } from '@tanstack/react-virtual';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -27,6 +27,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
   const primaryLocale = project.locale ?? project.locales?.[0];
   const textUnits = useMemo(() => primaryLocale?.textUnits ?? [], [primaryLocale]);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  const [listWidthPct, setListWidthPct] = useState(40);
+  const [isResizing, setIsResizing] = useState(false);
 
   const [search, setSearch] = useState('');
   const [onlyReviewed, setOnlyReviewed] = useState(false);
@@ -157,11 +160,39 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     return () => window.removeEventListener('keydown', handleKeyNav);
   }, [handleKeyNav]);
 
+  const startResize = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      setIsResizing(true);
+      const onMove = (e: MouseEvent) => {
+        if (!layoutRef.current) return;
+        const rect = layoutRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const pct = Math.min(75, Math.max(20, (x / rect.width) * 100));
+        setListWidthPct(pct);
+      };
+      const onUp = () => {
+        setIsResizing(false);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    },
+    [],
+  );
+
   return (
     <div className="review-project-page">
       <ReviewProjectHeader projectId={projectId} project={project} />
 
-      <div className="review-project-page__content">
+      <div
+        className="review-project-page__content"
+        ref={layoutRef}
+        style={{
+          gridTemplateColumns: `${listWidthPct}% 8px ${100 - listWidthPct}%`,
+        }}
+      >
         <section className="review-project-page__list-pane">
           <div className="review-project-page__controls">
             <input
@@ -229,6 +260,10 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             }}
           />
         </section>
+        <div
+          className={`review-project-page__resize-handle${isResizing ? ' is-resizing' : ''}`}
+          onMouseDown={startResize}
+        />
         <section className="review-project-page__detail-pane">
           {selectedTextUnit ? (
             <DetailPane
@@ -247,6 +282,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                   [selectedTextUnit.reviewProjectTextUnitId]: value,
                 }))
               }
+              screenshotCount={project.screenshotImageIds?.length ?? 0}
             />
           ) : (
             <div className="review-project-page__empty-detail">No text unit selected</div>
@@ -293,12 +329,14 @@ function DetailPane({
   draftNote,
   onChangeDraftTarget,
   onChangeDraftNote,
+  screenshotCount,
 }: {
   textUnit: ApiReviewProjectTextUnit;
   draftTarget: string;
   draftNote: string;
   onChangeDraftTarget: (value: string) => void;
   onChangeDraftNote: (value: string) => void;
+  screenshotCount: number;
 }) {
   const hasStaleCurrent =
     textUnit.currentTmTextUnitVariantId != null &&
@@ -348,6 +386,36 @@ function DetailPane({
             rows={5}
             placeholder="Explain the choice (optional)"
           />
+        </div>
+        <div className="review-project-detail__field review-project-detail__ai">
+          <div className="review-project-detail__label">AI assist</div>
+          <div className="review-project-detail__ai-box">
+            <div className="review-project-detail__ai-prompt">
+              Get a suggested translation and rationale based on source and current target.
+            </div>
+            <button type="button" className="review-project-detail__action-button">
+              Ask AI
+            </button>
+            <div className="review-project-detail__ai-hint">
+              (stub) Hook this up to your chat backend; pipe responses into the proposed translation
+              field with a one-click “Use suggestion”.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="review-project-detail__actions">
+        <div className="review-project-detail__action-card review-project-detail__action-card--full">
+          <div className="review-project-detail__action-title">Screenshots</div>
+          <div className="review-project-detail__action-body">
+            {screenshotCount > 0 ? `${screenshotCount} attached` : 'No screenshots attached'}
+          </div>
+          <button
+            type="button"
+            className="review-project-detail__action-button"
+            disabled={screenshotCount === 0}
+          >
+            Open viewer
+          </button>
         </div>
       </div>
     </div>
