@@ -220,6 +220,15 @@
   background: color-mix(in srgb, var(--color-surface) 97%, transparent);
 }
 
+.review-project-row.is-selected {
+  background: color-mix(in srgb, var(--color-surface-selected) 90%, transparent);
+}
+
+.review-project-row__inner {
+  display: grid;
+  gap: var(--space-2);
+}
+
 .review-project-row__name {
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
@@ -245,6 +254,110 @@
 
 .review-project-row__string-text--target {
   color: var(--color-text-muted);
+}
+
+.review-project-page__detail-pane {
+  padding: var(--space-4);
+  color: var(--color-text);
+  display: grid;
+  gap: var(--space-3);
+  border-left: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+.review-project-detail__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.review-project-detail__title {
+  font-weight: var(--font-weight-bold);
+  font-size: 1.05rem;
+}
+
+.review-project-detail__status {
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-muted) 65%, transparent);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+
+.review-project-detail__meta-toggle {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.review-project-detail__meta-toggle:hover {
+  background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
+}
+
+.review-project-detail__field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.review-project-detail__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  letter-spacing: var(--letter-spacing-tight);
+  text-transform: uppercase;
+}
+
+.review-project-detail__value {
+  background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  white-space: pre-wrap;
+}
+
+.review-project-detail__value--target {
+  color: var(--color-text);
+}
+
+.review-project-detail__input {
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  font: inherit;
+  resize: vertical;
+}
+
+.review-project-detail__meta {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.review-project-detail__meta-label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.review-project-detail__notice {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-2);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-page__empty-detail {
+  color: var(--color-text-muted);
+  padding: var(--space-3);
 }
 
 @media (max-width: 1100px) {

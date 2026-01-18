@@ -19,6 +19,7 @@ public class ReviewProjectDetailDTO {
   private String notes;
   private Long requestId;
   private String requestUuid;
+  private ReviewProjectLocaleDetailDTO locale;
   private List<ReviewProjectRepositorySummaryDTO> repositories;
   private List<ReviewProjectLocaleDetailDTO> locales;
   private List<String> screenshotImageIds;
@@ -117,6 +118,14 @@ public class ReviewProjectDetailDTO {
 
   public void setLocales(List<ReviewProjectLocaleDetailDTO> locales) {
     this.locales = locales;
+  }
+
+  public ReviewProjectLocaleDetailDTO getLocale() {
+    return locale;
+  }
+
+  public void setLocale(ReviewProjectLocaleDetailDTO locale) {
+    this.locale = locale;
   }
 
   public Long getRequestId() {

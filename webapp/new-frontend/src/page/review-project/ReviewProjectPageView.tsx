@@ -1,7 +1,7 @@
 import './review-project-page.css';
 import '../review-projects/review-projects-page.css';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { VirtualItem } from '@tanstack/react-virtual';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -25,13 +25,16 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     return <div>No project data for id {projectId}</div>;
   }
 
-  const primaryLocale = project.locales?.[0];
+  const primaryLocale = project.locale ?? project.locales?.[0];
   const textUnits = useMemo(() => primaryLocale?.textUnits ?? [], [primaryLocale]);
 
   const [search, setSearch] = useState('');
   const [onlyReviewed, setOnlyReviewed] = useState(false);
   const [onlyEdited, setOnlyEdited] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
+  const [draftTargets, setDraftTargets] = useState<Record<number, string>>({});
+  const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -67,6 +70,28 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     });
   }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);
 
+  useEffect(() => {
+    if (filtered.length === 0) {
+      setSelectedTextUnitId(null);
+      return;
+    }
+    if (
+      selectedTextUnitId == null ||
+      !filtered.some((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId)
+    ) {
+      setSelectedTextUnitId(filtered[0]?.reviewProjectTextUnitId ?? null);
+    }
+  }, [filtered, selectedTextUnitId]);
+
+  useEffect(() => {
+    if (!selectedTextUnit) return;
+    const id = selectedTextUnit.reviewProjectTextUnitId;
+    setDraftTargets((prev) =>
+      prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.target || '' },
+    );
+    setDraftNotes((prev) => (prev[id] !== undefined ? prev : { ...prev, [id]: '' }));
+  }, [selectedTextUnit]);
+
   const estimateRowHeight = useCallback(
     () =>
       getRowHeightPx({
@@ -86,6 +111,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     estimateSize: estimateRowHeight,
     getItemKey,
   });
+
+  const selectedTextUnit = useMemo(
+    () => filtered.find((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId),
+    [filtered, selectedTextUnitId],
+  );
 
   return (
     <div className="review-project-page">
@@ -141,27 +171,65 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               }
               return {
                 key: virtualItem.key,
-                props: { ref: measureElement },
-                content: <TextUnitRow textUnit={textUnit} />,
+                props: {
+                  ref: measureElement,
+                  onClick: () => setSelectedTextUnitId(textUnit.reviewProjectTextUnitId),
+                  className:
+                    textUnit.reviewProjectTextUnitId === selectedTextUnitId
+                      ? 'review-project-row is-selected'
+                      : 'review-project-row',
+                },
+                content: (
+                  <TextUnitRow
+                    textUnit={textUnit}
+                    isSelected={textUnit.reviewProjectTextUnitId === selectedTextUnitId}
+                  />
+                ),
               };
             }}
           />
         </section>
         <section className="review-project-page__detail-pane">
-          TODO: right pane with string details/editor
+          {selectedTextUnit ? (
+            <DetailPane
+              textUnit={selectedTextUnit}
+              draftTarget={draftTargets[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
+              draftNote={draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
+              onChangeDraftTarget={(value) =>
+                setDraftTargets((prev) => ({
+                  ...prev,
+                  [selectedTextUnit.reviewProjectTextUnitId]: value,
+                }))
+              }
+              onChangeDraftNote={(value) =>
+                setDraftNotes((prev) => ({
+                  ...prev,
+                  [selectedTextUnit.reviewProjectTextUnitId]: value,
+                }))
+              }
+            />
+          ) : (
+            <div className="review-project-page__empty-detail">No text unit selected</div>
+          )}
         </section>
       </div>
     </div>
   );
 }
 
-function TextUnitRow({ textUnit }: { textUnit: ApiReviewProjectTextUnit }) {
+function TextUnitRow({
+  textUnit,
+  isSelected,
+}: {
+  textUnit: ApiReviewProjectTextUnit;
+  isSelected: boolean;
+}) {
   if (!textUnit) {
     return null;
   }
   const { reviewProjectTextUnitId, name, source, target } = textUnit;
   return (
-    <div className="review-project-row">
+    <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
       <div className="review-project-row__name" title={name ?? undefined}>
         {name || `Text unit ${reviewProjectTextUnitId}`}
       </div>
@@ -175,6 +243,105 @@ function TextUnitRow({ textUnit }: { textUnit: ApiReviewProjectTextUnit }) {
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DetailPane({
+  textUnit,
+  draftTarget,
+  draftNote,
+  onChangeDraftTarget,
+  onChangeDraftNote,
+}: {
+  textUnit: ApiReviewProjectTextUnit;
+  draftTarget: string;
+  draftNote: string;
+  onChangeDraftTarget: (value: string) => void;
+  onChangeDraftNote: (value: string) => void;
+}) {
+  const [showMeta, setShowMeta] = useState(false);
+  const hasStaleCurrent =
+    textUnit.currentTmTextUnitVariantId != null &&
+    textUnit.tmTextUnitVariantId != null &&
+    textUnit.currentTmTextUnitVariantId !== textUnit.tmTextUnitVariantId;
+
+  useEffect(() => {
+    setShowMeta(false);
+  }, [textUnit.reviewProjectTextUnitId]);
+
+  return (
+    <div className="review-project-detail">
+      <div className="review-project-detail__header">
+        <div className="review-project-detail__title">
+          {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
+        </div>
+        {textUnit.status ? (
+          <span className="review-project-detail__status">{textUnit.status}</span>
+        ) : null}
+        <button
+          type="button"
+          className="review-project-detail__meta-toggle"
+          onClick={() => setShowMeta((v) => !v)}
+        >
+          {showMeta ? 'Hide info' : 'More info'}
+        </button>
+      </div>
+      <div className="review-project-detail__field">
+        <div className="review-project-detail__label">Source</div>
+        <div className="review-project-detail__value">{textUnit.source || '—'}</div>
+      </div>
+      <div className="review-project-detail__field">
+        <div className="review-project-detail__label">Target</div>
+        <div className="review-project-detail__value review-project-detail__value--target">
+          {textUnit.target || '—'}
+        </div>
+      </div>
+      {hasStaleCurrent ? (
+        <div className="review-project-detail__notice">
+          Current translation changed since selection; saving will only record a suggestion.
+        </div>
+      ) : null}
+      <div className="review-project-detail__field">
+        <div className="review-project-detail__label">Proposed translation</div>
+        <textarea
+          className="review-project-detail__input"
+          value={draftTarget}
+          onChange={(e) => onChangeDraftTarget(e.target.value)}
+          rows={4}
+          placeholder="Enter proposed translation"
+        />
+      </div>
+      <div className="review-project-detail__field">
+        <div className="review-project-detail__label">Notes / rationale</div>
+        <textarea
+          className="review-project-detail__input"
+          value={draftNote}
+          onChange={(e) => onChangeDraftNote(e.target.value)}
+          rows={3}
+          placeholder="Explain the choice (optional)"
+        />
+      </div>
+      {showMeta ? (
+        <div className="review-project-detail__meta">
+          <div>
+            <span className="review-project-detail__meta-label">TM Text Unit ID:</span>{' '}
+            {textUnit.tmTextUnitId ?? '—'}
+          </div>
+          <div>
+            <span className="review-project-detail__meta-label">Variant ID:</span>{' '}
+            {textUnit.tmTextUnitVariantId ?? '—'}
+          </div>
+          <div>
+            <span className="review-project-detail__meta-label">Repo:</span>{' '}
+            {textUnit.repositoryName ?? '—'}
+          </div>
+          <div>
+            <span className="review-project-detail__meta-label">Asset:</span>{' '}
+            {textUnit.assetPath ?? '—'}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

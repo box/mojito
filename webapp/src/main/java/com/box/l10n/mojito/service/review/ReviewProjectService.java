@@ -451,6 +451,7 @@ public class ReviewProjectService {
             textUnits.size(),
             acceptedCount,
             textUnits);
+    dto.setLocale(localeDetail);
     dto.setLocales(java.util.Collections.singletonList(localeDetail));
     return dto;
   }

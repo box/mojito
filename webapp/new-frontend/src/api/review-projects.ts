@@ -71,6 +71,7 @@ export type ApiReviewProjectDetail = {
   notes?: string | null;
   requestId?: number | null;
   requestUuid?: string | null;
+  locale?: ApiReviewProjectLocaleDetail | null;
   repositories: ApiReviewProjectRepositorySummary[];
   locales: ApiReviewProjectLocaleDetail[];
   screenshotImageIds?: string[] | null;
