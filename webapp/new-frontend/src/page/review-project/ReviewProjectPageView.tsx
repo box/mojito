@@ -358,8 +358,17 @@ function DetailPane({
         </div>
         <div className="review-project-detail__field">
           <div className="review-project-detail__label">Original target</div>
-          <div className="review-project-detail__value review-project-detail__value--target">
-            {textUnit.target || '—'}
+          <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
+            <span>{textUnit.target || '—'}</span>
+            {textUnit.target ? (
+              <button
+                type="button"
+                className="review-project-detail__pill review-project-detail__pill--floating"
+                onClick={() => onChangeDraftTarget(textUnit.target ?? '')}
+              >
+                Restore to proposed
+              </button>
+            ) : null}
           </div>
           {hasStaleCurrent ? (
             <div className="review-project-detail__notice">

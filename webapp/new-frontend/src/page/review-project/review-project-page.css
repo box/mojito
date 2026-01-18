@@ -337,15 +337,49 @@
   color: var(--color-text);
 }
 
+.review-project-detail__value--restorable {
+  display: inline-block;
+  position: relative;
+}
+
+.review-project-detail__pill {
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-muted) 40%, transparent);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+
+.review-project-detail__pill--floating {
+  position: absolute;
+  top: -0.35rem;
+  right: 0;
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.review-project-detail__pill:hover {
+  background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  border-color: color-mix(in srgb, var(--color-border) 85%, transparent);
+}
+
+.review-project-detail__value--restorable:hover .review-project-detail__pill--floating {
+  opacity: 1;
+  pointer-events: auto;
+}
 .review-project-detail__input {
   width: 100%;
   min-height: 3rem;
   padding: var(--space-2);
   border-radius: var(--radius-2);
   border: var(--border-width) solid transparent;
-  background: var(--color-surface);
+  background: transparent;
   font: inherit;
-  resize: vertical;
+  resize: none;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -454,18 +488,21 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);
 }
 
-.review-project-detail__input:focus,
-.review-project-detail__input:focus-visible {
-  outline: 0;
-  border-color: var(--color-border);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);
-}
+/*.review-project-detail__input:focus,*/
+/*.review-project-detail__input:focus-visible {*/
+/*  outline: 0;*/
+/*  border-color: var(--color-border);*/
+/*  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);*/
+/*  !*background: var(--color-surface);*!*/
+/*  resize: vertical;*/
+/*}*/
 
 .review-project-detail__input:focus,
 .review-project-detail__input:focus-visible {
   outline: none;
   border-color: color-mix(in srgb, var(--color-border) 80%, transparent);
-  background: color-mix(in srgb, var(--color-surface-muted) 40%, transparent);
+    resize: vertical;
+  /*background: color-mix(in srgb, var(--color-surface-muted) 40%, transparent);*/
 }
 
 .review-project-page__empty-detail {
