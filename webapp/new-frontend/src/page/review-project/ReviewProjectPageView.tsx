@@ -300,15 +300,10 @@ function DetailPane({
   onChangeDraftTarget: (value: string) => void;
   onChangeDraftNote: (value: string) => void;
 }) {
-  const [showMeta, setShowMeta] = useState(false);
   const hasStaleCurrent =
     textUnit.currentTmTextUnitVariantId != null &&
     textUnit.tmTextUnitVariantId != null &&
     textUnit.currentTmTextUnitVariantId !== textUnit.tmTextUnitVariantId;
-
-  useEffect(() => {
-    setShowMeta(false);
-  }, [textUnit.reviewProjectTextUnitId]);
 
   return (
     <div className="review-project-detail">
@@ -316,16 +311,7 @@ function DetailPane({
         <div className="review-project-detail__title">
           {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
         </div>
-        {textUnit.status ? (
-          <span className="review-project-detail__status">{textUnit.status}</span>
-        ) : null}
-        <button
-          type="button"
-          className="review-project-detail__meta-toggle"
-          onClick={() => setShowMeta((v) => !v)}
-        >
-          {showMeta ? 'Hide info' : 'More info'}
-        </button>
+        {textUnit.status ? <span className="review-project-detail__status">{textUnit.status}</span> : null}
       </div>
       <div className="review-project-detail__grid">
         <div className="review-project-detail__field">
@@ -364,26 +350,6 @@ function DetailPane({
           />
         </div>
       </div>
-      {showMeta ? (
-        <div className="review-project-detail__meta">
-          <div>
-            <span className="review-project-detail__meta-label">TM Text Unit ID:</span>{' '}
-            {textUnit.tmTextUnitId ?? '—'}
-          </div>
-          <div>
-            <span className="review-project-detail__meta-label">Variant ID:</span>{' '}
-            {textUnit.tmTextUnitVariantId ?? '—'}
-          </div>
-          <div>
-            <span className="review-project-detail__meta-label">Repo:</span>{' '}
-            {textUnit.repositoryName ?? '—'}
-          </div>
-          <div>
-            <span className="review-project-detail__meta-label">Asset:</span>{' '}
-            {textUnit.assetPath ?? '—'}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -285,21 +285,6 @@
   color: var(--color-text);
 }
 
-.review-project-detail__meta-toggle {
-  margin-left: auto;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-2);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-}
-
-.review-project-detail__meta-toggle:hover {
-  background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
-}
-
 .review-project-detail__field {
   display: grid;
   gap: var(--space-1);
