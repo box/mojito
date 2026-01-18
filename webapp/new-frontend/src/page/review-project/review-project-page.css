@@ -56,15 +56,6 @@
   justify-content: flex-end;
 }
 
-.review-project-page__id-chip {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--color-surface-muted) 75%, transparent);
-  color: var(--color-text);
-}
-
 .review-project-page__title {
   font-size: 1rem;
   font-weight: var(--font-weight-semibold);
