@@ -155,7 +155,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(420px, 2fr) minmax(320px, 1.2fr);
+  grid-template-columns: minmax(320px, 1fr) minmax(520px, 2.5fr);
   gap: var(--space-3);
 }
 

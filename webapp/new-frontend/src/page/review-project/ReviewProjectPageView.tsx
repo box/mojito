@@ -58,19 +58,7 @@ function ReviewProjectHeader({
   projectId: number;
   project: ApiReviewProjectDetail;
 }) {
-  const {
-    name,
-    createdDate,
-    dueDate,
-    textUnitCount,
-    wordCount,
-    status,
-    type,
-    repositories: repositoriesRaw,
-    locales: localesRaw,
-  } = project;
-
-  const repositories = repositoriesRaw ?? [];
+  const { name, dueDate, textUnitCount, wordCount, status, type, locales: localesRaw } = project;
   const locales = localesRaw ?? [];
 
   const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
@@ -84,7 +72,6 @@ function ReviewProjectHeader({
     <header className="review-project-page__header review-project-page__header--compact">
       <div className="review-project-page__one-line">
         <div className="review-project-page__group review-project-page__group--left">
-          <span className="review-project-page__id-chip">#{projectId}</span>
           <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
           <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
             {REVIEW_PROJECT_TYPE_LABELS[type]}
@@ -98,12 +85,6 @@ function ReviewProjectHeader({
 
         <div className="review-project-page__group review-project-page__group--meta">
           <span>Due {formatDate(dueDate)}</span>
-          <span className="review-project-page__dot">•</span>
-          <span>
-            {repositories.length > 0
-              ? repositories.map((r) => r.name).join(', ')
-              : 'No repositories'}
-          </span>
           <span className="review-project-page__dot">•</span>
           <div className="review-project-page__locale-row">
             {locales.length > 0 ? (
