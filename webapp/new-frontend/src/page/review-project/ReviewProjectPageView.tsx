@@ -92,16 +92,13 @@ function TextUnitRow({ textUnit }: { textUnit: ApiReviewProjectTextUnit }) {
           {name || `Text unit ${reviewProjectTextUnitId}`}
         </div>
         <div className="review-project-row__strings">
-          <div className="review-project-row__string review-project-row__string--source" title={source}>
-            <span className="review-project-row__string-label">SRC</span>
-            <span className="review-project-row__string-text">{source || '—'}</span>
-          </div>
-          <div
-            className="review-project-row__string review-project-row__string--target"
-            title={target ?? undefined}
-          >
-            <span className="review-project-row__string-label">TGT</span>
-            <span className="review-project-row__string-text">{target || '—'}</span>
+          <div className="review-project-row__string review-project-row__string--combined" title={source}>
+            <div className="review-project-row__string-text review-project-row__string-text--source">
+              {source || '—'}
+            </div>
+            <div className="review-project-row__string-text review-project-row__string-text--target" title={target ?? undefined}>
+              {target || '—'}
+            </div>
           </div>
         </div>
       </div>
