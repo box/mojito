@@ -1,16 +1,18 @@
 import './review-project-page.css';
 import '../review-projects/review-projects-page.css';
 
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { VirtualItem } from '@tanstack/react-virtual';
 
-import type { ApiReviewProjectDetail } from '../../api/review-projects';
+import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
 import {
   REVIEW_PROJECT_STATUS_LABELS,
   REVIEW_PROJECT_TYPE_LABELS,
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
+import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
+import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
 
 type Props = {
@@ -19,33 +21,89 @@ type Props = {
 };
 
 export function ReviewProjectPageView({ projectId, project }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   if (!project) {
     return <div>No project data for id {projectId}</div>;
   }
+
+  const primaryLocale = project.locales?.[0];
+  const textUnits = useMemo(() => primaryLocale?.textUnits ?? [], [primaryLocale]);
+
+  const estimateRowHeight = useCallback(
+    () =>
+      getRowHeightPx({
+        cssVariable: '--review-project-row-height',
+        defaultRem: 7,
+      }),
+    [],
+  );
+
+  const getItemKey = useCallback(
+    (index: number) => textUnits[index]?.reviewProjectTextUnitId ?? index,
+    [textUnits],
+  );
+
+  const { scrollRef, items, totalSize } = useVirtualRows<HTMLDivElement>({
+    count: textUnits.length,
+    estimateSize: estimateRowHeight,
+    getItemKey,
+  });
 
   return (
     <div className="review-project-page">
       <ReviewProjectHeader projectId={projectId} project={project} />
 
       <div className="review-project-page__content">
-        <section className="review-project-page__list-pane" ref={scrollRef}>
+        <section className="review-project-page__list-pane">
           <div className="review-project-page__search">TODO: search bar for strings</div>
           <VirtualList
             scrollRef={scrollRef}
-            items={[]}
-            totalSize={0}
-            renderRow={(virtualItem: VirtualItem) => ({
-              key: virtualItem.key,
-              content: <div>TODO: text unit row</div>,
-            })}
+            items={items}
+            totalSize={totalSize}
+            renderRow={(virtualItem: VirtualItem) => {
+              const textUnit = textUnits[virtualItem.index] as ApiReviewProjectTextUnit | undefined;
+              if (!textUnit) {
+                return null;
+              }
+              return {
+                key: virtualItem.key,
+                content: <TextUnitRow textUnit={textUnit} />,
+              };
+            }}
           />
         </section>
 
         <section className="review-project-page__detail-pane">
           TODO: right pane with string details/editor
         </section>
+      </div>
+    </div>
+  );
+}
+
+function TextUnitRow({ textUnit }: { textUnit: ApiReviewProjectTextUnit }) {
+  if (!textUnit) {
+    return null;
+  }
+  const { reviewProjectTextUnitId, name, source, target } = textUnit;
+  return (
+    <div className="review-project-row">
+      <div className="review-project-row__body">
+        <div className="review-project-row__name" title={name ?? undefined}>
+          {name || `Text unit ${reviewProjectTextUnitId}`}
+        </div>
+        <div className="review-project-row__strings">
+          <div className="review-project-row__string review-project-row__string--source" title={source}>
+            <span className="review-project-row__string-label">SRC</span>
+            <span className="review-project-row__string-text">{source || '—'}</span>
+          </div>
+          <div
+            className="review-project-row__string review-project-row__string--target"
+            title={target ?? undefined}
+          >
+            <span className="review-project-row__string-label">TGT</span>
+            <span className="review-project-row__string-text">{target || '—'}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
