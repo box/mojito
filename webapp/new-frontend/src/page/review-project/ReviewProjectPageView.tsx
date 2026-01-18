@@ -1,9 +1,16 @@
 import './review-project-page.css';
+import '../review-projects/review-projects-page.css';
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { VirtualItem } from '@tanstack/react-virtual';
 
 import type { ApiReviewProjectDetail } from '../../api/review-projects';
+import {
+  REVIEW_PROJECT_STATUS_LABELS,
+  REVIEW_PROJECT_TYPE_LABELS,
+} from '../../api/review-projects';
+import { LocalePill } from '../../components/LocalePill';
+import { Pill } from '../../components/Pill';
 import { VirtualList } from '../../components/virtual/VirtualList';
 
 type Props = {
@@ -20,12 +27,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
   return (
     <div className="review-project-page">
-      <header className="review-project-page__header">
-        <h1 className="review-project-page__title">{project.name ?? `Project ${projectId}`}</h1>
-        <p className="review-project-page__meta">
-          TODO: summary stats (word count, due date, progress, current edit status)
-        </p>
-      </header>
+      <ReviewProjectHeader projectId={projectId} project={project} />
 
       <div className="review-project-page__content">
         <section className="review-project-page__list-pane" ref={scrollRef}>
@@ -48,3 +50,125 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     </div>
   );
 }
+
+function ReviewProjectHeader({
+  projectId,
+  project,
+}: {
+  projectId: number;
+  project: ApiReviewProjectDetail;
+}) {
+  const {
+    name,
+    createdDate,
+    dueDate,
+    textUnitCount,
+    wordCount,
+    status,
+    type,
+    repositories: repositoriesRaw,
+    locales: localesRaw,
+  } = project;
+
+  const repositories = repositoriesRaw ?? [];
+  const locales = localesRaw ?? [];
+
+  const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
+    const accepted = locales.reduce((sum, locale) => sum + (locale.acceptedCount ?? 0), 0);
+    const selected = locales.reduce((sum, locale) => sum + (locale.selectedCount ?? 0), 0);
+    const percent = selected > 0 ? Math.round((accepted / selected) * 100) : 0;
+    return { acceptedCount: accepted, selectedCount: selected, progressPercent: percent };
+  }, [locales]);
+
+  return (
+    <header className="review-project-page__header review-project-page__header--compact">
+      <div className="review-project-page__one-line">
+        <span className="review-project-page__id-chip">#{projectId}</span>
+        <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
+        <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
+          {REVIEW_PROJECT_TYPE_LABELS[type]}
+        </Pill>
+        <Pill
+          className={`review-project-page__pill review-project-page__pill--status-${status.toLowerCase()}`}
+        >
+          {REVIEW_PROJECT_STATUS_LABELS[status]}
+        </Pill>
+        <span className="review-project-page__dot">•</span>
+        <span>Due {formatDate(dueDate)}</span>
+        <span>{repositories.length > 0 ? repositories.map((r) => r.name).join(', ') : 'No repositories'}</span>
+        <span className="review-project-page__dot">•</span>
+        {locales.length > 0 ? (
+          locales.map((locale) => (
+            <LocalePill
+              key={locale.id ?? locale.bcp47Tag}
+              bcp47Tag={locale.bcp47Tag}
+              displayName={locale.displayName}
+              labelMode="tag"
+              className="review-project-page__locale-pill"
+            />
+          ))
+        ) : (
+          <span className="review-project-page__muted">No locale</span>
+        )}
+        <span className="review-project-page__dot">•</span>
+        <CountsInline words={wordCount} strings={textUnitCount ?? selectedCount} />
+        <span className="review-project-page__dot">•</span>
+        <div className="review-project-page__progress-chip">
+          <span className="review-project-page__progress-label">{progressPercent}%</span>
+          <ProgressBar percent={progressPercent} />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function CountsInline({
+  words,
+  strings,
+}: {
+  words: number | null | undefined;
+  strings: number | null | undefined;
+}) {
+  return (
+    <span className="review-projects-page__count-line">
+      <span className="review-projects-page__count">{formatNumber(words)}</span>
+      <span className="review-projects-page__muted">&nbsp;words</span>
+      <span className="review-projects-page__count-sep">&nbsp;·&nbsp;</span>
+      <span className="review-projects-page__count">{formatNumber(strings)}</span>
+      <span className="review-projects-page__muted">&nbsp;strings</span>
+    </span>
+  );
+}
+
+function ProgressBar({ percent }: { percent: number }) {
+  return (
+    <div className="review-project-page__progress-bar review-project-page__progress-bar--compact">
+      <div
+        className="review-project-page__progress-fill"
+        style={{ width: `${Math.min(Math.max(percent, 0), 100)}%` }}
+      />
+    </div>
+  );
+}
+
+const formatNumber = (value: number | null | undefined) => {
+  if (value == null) {
+    return '—';
+  }
+  return value.toLocaleString();
+};
+
+const formatDate = (value: string | null | undefined) => {
+  if (!value) {
+    return '—';
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};

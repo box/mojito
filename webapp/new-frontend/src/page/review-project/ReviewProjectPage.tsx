@@ -11,10 +11,12 @@ export function ReviewProjectPage() {
   const projectDetailQuery = useReviewProjectDetail(projectId);
 
   if (!projectId) {
+      // TODO(ja) will this really happen? overkill?
     return <div>Missing project id</div>;
   }
 
   if (projectDetailQuery.isLoading) {
+      // TODO(ja) we need this to be render with proper style - centered etc, it needs to be reusing shared style.
     return <div>Loading project…</div>;
   }
 
@@ -23,6 +25,7 @@ export function ReviewProjectPage() {
       projectDetailQuery.error instanceof Error
         ? projectDetailQuery.error.message
         : 'Failed to load project';
+    // TODO(ja) same styling!
     return <div>{message}</div>;
   }
 

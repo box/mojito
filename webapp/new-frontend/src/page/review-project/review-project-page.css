@@ -1,0 +1,172 @@
+/* Layout */
+.review-project-page {
+  height: calc(100vh - var(--app-shell-header-height));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  width: 100%;
+}
+
+.review-project-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-3);
+  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  box-shadow: 0 0.5rem 1.25rem -1rem color-mix(in srgb, var(--color-border) 65%, transparent);
+}
+
+.review-project-page__header--compact {
+  padding: var(--space-2) var(--space-3);
+}
+
+.review-project-page__one-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.review-project-page__id-chip {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-muted) 75%, transparent);
+  color: var(--color-text);
+}
+
+.review-project-page__title {
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.review-project-page__pill-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.review-project-page__pill {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 0 var(--space-3);
+  min-height: 1.75rem;
+}
+
+.review-project-page__pill--status-open {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+
+.review-project-page__pill--status-closed {
+  background: color-mix(in srgb, var(--color-text-subtle) 18%, transparent);
+  color: var(--color-text);
+}
+
+.review-project-page__pill--type-EMERGENCY {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-surface);
+}
+
+.review-project-page__pill--type-NORMAL,
+.review-project-page__pill--type-BUG_FIXES,
+.review-project-page__pill--type-TERMINOLOGY,
+.review-project-page__pill--type-UNKNOWN {
+  background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  color: var(--color-text);
+}
+
+.review-project-page__dot {
+  color: var(--color-text-subtle);
+}
+
+.review-project-page__progress-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 120px;
+}
+
+.review-project-page__progress-label {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-page__locale-pill {
+  font-size: var(--font-size-xs);
+  padding: 0 var(--space-2);
+}
+
+.review-project-page__progress-bar {
+  width: 5.5rem;
+  height: 0.35rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface-muted) 80%, transparent);
+  overflow: hidden;
+}
+
+.review-project-page__progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+  transition: width 0.2s ease;
+}
+
+.review-project-page__content {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(420px, 2fr) minmax(320px, 1.2fr);
+  gap: var(--space-3);
+}
+
+.review-project-page__list-pane,
+.review-project-page__detail-pane {
+  border-radius: var(--radius-3);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  box-shadow: 0 1rem 2.25rem -1.5rem color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.review-project-page__list-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.review-project-page__search {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-page__detail-pane {
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 1100px) {
+  .review-project-page__header {
+    flex-direction: column;
+  }
+
+  .review-project-page__stats {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .review-project-page__content {
+    grid-template-columns: 1fr;
+  }
+}
