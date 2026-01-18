@@ -181,6 +181,45 @@ export const fetchReviewProjectDetail = async (
   return (await response.json()) as ApiReviewProjectDetail;
 };
 
+export const acceptReviewProjectTextUnit = async ({
+  projectId,
+  textUnitId,
+  target,
+  includedInLocalizedFile = true,
+  expectedCurrentTmTextUnitVariantId,
+  overrideChangedCurrent = false,
+}: {
+  projectId: number;
+  textUnitId: number;
+  target: string;
+  includedInLocalizedFile?: boolean;
+  expectedCurrentTmTextUnitVariantId?: number | null;
+  overrideChangedCurrent?: boolean;
+}): Promise<ApiReviewProjectTextUnit> => {
+  const response = await fetch(`/api/review-projects/${projectId}/text-units/${textUnitId}/accept`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: jsonHeaders,
+    body: JSON.stringify({
+      target,
+      includedInLocalizedFile,
+      expectedCurrentTmTextUnitVariantId,
+      overrideChangedCurrent,
+    }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => '');
+    const error = new Error(message || 'Failed to accept text unit');
+    // expose status for conflict handling
+    // @ts-expect-error attach status
+    (error as any).status = response.status;
+    throw error;
+  }
+
+  return (await response.json()) as ApiReviewProjectTextUnit;
+};
+
 export const generateSampleReviewProjects = async (): Promise<ApiReviewProjectSummary[]> => {
   const makeRequest = (method: 'POST' | 'GET') =>
     fetch('/api/review-projects/generate-sample?count=150', {

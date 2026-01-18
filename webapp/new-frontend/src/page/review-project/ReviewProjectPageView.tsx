@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
 import {
+  acceptReviewProjectTextUnit,
   REVIEW_PROJECT_STATUS_LABELS,
   REVIEW_PROJECT_TYPE_LABELS,
 } from '../../api/review-projects';
@@ -39,6 +40,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
   const [draftTargets, setDraftTargets] = useState<Record<number, string>>({});
   const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [acceptError, setAcceptError] = useState<string | null>(null);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -295,6 +298,38 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 }))
               }
               screenshotCount={project.screenshotImageIds?.length ?? 0}
+              onAccept={async () => {
+                setAcceptError(null);
+                setIsAccepting(true);
+                try {
+                  const updated = await acceptReviewProjectTextUnit({
+                    projectId,
+                    textUnitId: selectedTextUnit.reviewProjectTextUnitId,
+                    target: draftTargets[selectedTextUnit.reviewProjectTextUnitId] ?? '',
+                    expectedCurrentTmTextUnitVariantId:
+                      selectedTextUnit.currentTmTextUnitVariantId ?? undefined,
+                    overrideChangedCurrent: false,
+                  });
+
+                  setDraftTargets((prev) => ({
+                    ...prev,
+                    [updated.reviewProjectTextUnitId]: updated.target ?? '',
+                  }));
+                } catch (error) {
+                  const status = (error as any)?.status;
+                  setAcceptError(
+                    status === 409
+                      ? 'Current translation changed; cannot accept without override.'
+                      : error instanceof Error
+                        ? error.message
+                        : 'Failed to accept translation',
+                  );
+                } finally {
+                  setIsAccepting(false);
+                }
+              }}
+              acceptError={acceptError}
+              isAccepting={isAccepting}
             />
           ) : (
             <div className="review-project-page__empty-detail">No text unit selected</div>
@@ -345,6 +380,9 @@ function DetailPane({
   onChangeDraftTarget,
   onChangeDraftNote,
   screenshotCount,
+  onAccept,
+  acceptError,
+  isAccepting,
 }: {
   textUnit: ApiReviewProjectTextUnit;
   draftTarget: string;
@@ -352,6 +390,9 @@ function DetailPane({
   onChangeDraftTarget: (value: string) => void;
   onChangeDraftNote: (value: string) => void;
   screenshotCount: number;
+  onAccept: () => void;
+  acceptError: string | null;
+  isAccepting: boolean;
 }) {
   const hasStaleCurrent =
     textUnit.currentTmTextUnitVariantId != null &&
@@ -402,6 +443,25 @@ function DetailPane({
             rows={5}
             placeholder="Enter proposed translation"
           />
+          <div className="review-project-detail__actions-inline">
+            {textUnit.status ? (
+              <span className="review-project-detail__status-pill">
+                {textUnit.status.toLowerCase().replace(/_/g, ' ')}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className="review-project-detail__actions-button review-project-detail__actions-button--primary"
+              onClick={onAccept}
+              disabled={isAccepting}
+            >
+              {isAccepting ? 'Accepting…' : 'Accept'}
+            </button>
+            <button type="button" className="review-project-detail__actions-button" disabled>
+              Reject
+            </button>
+          </div>
+          {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
         </div>
         <div className="review-project-detail__field">
           <div className="review-project-detail__label">Reviewer notes</div>
@@ -412,21 +472,6 @@ function DetailPane({
             rows={5}
             placeholder="Add context for AI/translator: errors seen, tone, glossary, or rationale (optional)"
           />
-        </div>
-        <div className="review-project-detail__field review-project-detail__ai">
-          <div className="review-project-detail__label">AI assist</div>
-          <div className="review-project-detail__ai-box">
-            <div className="review-project-detail__ai-prompt">
-              Get a suggested translation and rationale based on source and current target.
-            </div>
-            <button type="button" className="review-project-detail__action-button">
-              Ask AI
-            </button>
-            <div className="review-project-detail__ai-hint">
-              (stub) Hook this up to your chat backend; pipe responses into the proposed translation
-              field with a one-click “Use suggestion”.
-            </div>
-          </div>
         </div>
       </div>
       <div className="review-project-detail__actions">
