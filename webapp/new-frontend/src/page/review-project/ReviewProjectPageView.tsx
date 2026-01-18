@@ -87,19 +87,19 @@ function TextUnitRow({ textUnit }: { textUnit: ApiReviewProjectTextUnit }) {
   const { reviewProjectTextUnitId, name, source, target } = textUnit;
   return (
     <div className="review-project-row">
-      <div className="review-project-row__body">
-        <div className="review-project-row__name" title={name ?? undefined}>
-          {name || `Text unit ${reviewProjectTextUnitId}`}
+      <div className="review-project-row__name" title={name ?? undefined}>
+        {name || `Text unit ${reviewProjectTextUnitId}`}
+      </div>
+      <div className="review-project-row__strings">
+        <div className="review-project-row__string-line" title={source}>
+          <span className="review-project-row__string-label">SRC</span>
+          <span className="review-project-row__string-text">{source || '—'}</span>
         </div>
-        <div className="review-project-row__strings">
-          <div className="review-project-row__string review-project-row__string--combined" title={source}>
-            <div className="review-project-row__string-text review-project-row__string-text--source">
-              {source || '—'}
-            </div>
-            <div className="review-project-row__string-text review-project-row__string-text--target" title={target ?? undefined}>
-              {target || '—'}
-            </div>
-          </div>
+        <div className="review-project-row__string-line" title={target ?? undefined}>
+          <span className="review-project-row__string-label">TGT</span>
+          <span className="review-project-row__string-text review-project-row__string-text--target">
+            {target || '—'}
+          </span>
         </div>
       </div>
     </div>
