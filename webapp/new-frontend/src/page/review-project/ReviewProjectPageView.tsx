@@ -83,39 +83,52 @@ function ReviewProjectHeader({
   return (
     <header className="review-project-page__header review-project-page__header--compact">
       <div className="review-project-page__one-line">
-        <span className="review-project-page__id-chip">#{projectId}</span>
-        <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
-        <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
-          {REVIEW_PROJECT_TYPE_LABELS[type]}
-        </Pill>
-        <Pill
-          className={`review-project-page__pill review-project-page__pill--status-${status.toLowerCase()}`}
-        >
-          {REVIEW_PROJECT_STATUS_LABELS[status]}
-        </Pill>
-        <span className="review-project-page__dot">•</span>
-        <span>Due {formatDate(dueDate)}</span>
-        <span>{repositories.length > 0 ? repositories.map((r) => r.name).join(', ') : 'No repositories'}</span>
-        <span className="review-project-page__dot">•</span>
-        {locales.length > 0 ? (
-          locales.map((locale) => (
-            <LocalePill
-              key={locale.id ?? locale.bcp47Tag}
-              bcp47Tag={locale.bcp47Tag}
-              displayName={locale.displayName}
-              labelMode="tag"
-              className="review-project-page__locale-pill"
-            />
-          ))
-        ) : (
-          <span className="review-project-page__muted">No locale</span>
-        )}
-        <span className="review-project-page__dot">•</span>
-        <CountsInline words={wordCount} strings={textUnitCount ?? selectedCount} />
-        <span className="review-project-page__dot">•</span>
-        <div className="review-project-page__progress-chip">
-          <span className="review-project-page__progress-label">{progressPercent}%</span>
-          <ProgressBar percent={progressPercent} />
+        <div className="review-project-page__group review-project-page__group--left">
+          <span className="review-project-page__id-chip">#{projectId}</span>
+          <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
+          <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
+            {REVIEW_PROJECT_TYPE_LABELS[type]}
+          </Pill>
+          <Pill
+            className={`review-project-page__pill review-project-page__pill--status-${status.toLowerCase()}`}
+          >
+            {REVIEW_PROJECT_STATUS_LABELS[status]}
+          </Pill>
+        </div>
+
+        <div className="review-project-page__group review-project-page__group--meta">
+          <span>Due {formatDate(dueDate)}</span>
+          <span className="review-project-page__dot">•</span>
+          <span>
+            {repositories.length > 0
+              ? repositories.map((r) => r.name).join(', ')
+              : 'No repositories'}
+          </span>
+          <span className="review-project-page__dot">•</span>
+          <div className="review-project-page__locale-row">
+            {locales.length > 0 ? (
+              locales.map((locale) => (
+                <LocalePill
+                  key={locale.id ?? locale.bcp47Tag}
+                  bcp47Tag={locale.bcp47Tag}
+                  displayName={locale.displayName}
+                  labelMode="tag"
+                  className="review-project-page__locale-pill"
+                />
+              ))
+            ) : (
+              <span className="review-project-page__muted">No locale</span>
+            )}
+          </div>
+        </div>
+
+        <div className="review-project-page__group review-project-page__group--stats">
+          <CountsInline words={wordCount} strings={textUnitCount ?? selectedCount} />
+          <span className="review-project-page__dot">•</span>
+          <div className="review-project-page__progress-chip">
+            <span className="review-project-page__progress-label">{progressPercent}%</span>
+            <ProgressBar percent={progressPercent} />
+          </div>
         </div>
       </div>
     </header>

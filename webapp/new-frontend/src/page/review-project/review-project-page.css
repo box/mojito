@@ -13,11 +13,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  border-radius: var(--radius-3);
-  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
-  box-shadow: 0 0.5rem 1.25rem -1rem color-mix(in srgb, var(--color-border) 65%, transparent);
+  padding: var(--space-2) var(--space-2);
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .review-project-page__header--compact {
@@ -30,6 +30,30 @@
   gap: var(--space-2);
   flex-wrap: wrap;
   width: 100%;
+}
+
+.review-project-page__group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.review-project-page__group--left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.review-project-page__group--meta {
+  flex: 1.2;
+  min-width: 320px;
+}
+
+.review-project-page__group--stats {
+  flex: 0 0 auto;
+  min-width: 260px;
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .review-project-page__id-chip {
@@ -106,6 +130,12 @@
   padding: 0 var(--space-2);
 }
 
+.review-project-page__locale-row {
+  display: inline-flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
 .review-project-page__progress-bar {
   width: 5.5rem;
   height: 0.35rem;
@@ -131,10 +161,10 @@
 
 .review-project-page__list-pane,
 .review-project-page__detail-pane {
-  border-radius: var(--radius-3);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: 0;
+  border: none;
   background: var(--color-surface);
-  box-shadow: 0 1rem 2.25rem -1.5rem color-mix(in srgb, var(--color-border) 70%, transparent);
+  box-shadow: none;
 }
 
 .review-project-page__list-pane {
