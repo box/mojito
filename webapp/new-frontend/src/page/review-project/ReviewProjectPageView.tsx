@@ -399,13 +399,13 @@ function DetailPane({
           />
         </div>
         <div className="review-project-detail__field">
-          <div className="review-project-detail__label">Notes / rationale</div>
+          <div className="review-project-detail__label">Reviewer notes</div>
           <textarea
             className="review-project-detail__input"
             value={draftNote}
             onChange={(e) => onChangeDraftNote(e.target.value)}
             rows={5}
-            placeholder="Explain the choice (optional)"
+            placeholder="Add context for AI/translator: errors seen, tone, glossary, or rationale (optional)"
           />
         </div>
         <div className="review-project-detail__field review-project-detail__ai">
