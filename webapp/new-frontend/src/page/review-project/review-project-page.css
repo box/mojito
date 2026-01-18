@@ -266,13 +266,13 @@
 .review-project-page__resize-handle {
   cursor: col-resize;
   width: 100%;
-  background: color-mix(in srgb, var(--color-border) 40%, transparent);
+  background: var(--color-surface);
   position: relative;
 }
 
 .review-project-page__resize-handle:hover,
 .review-project-page__resize-handle.is-resizing {
-  background: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .review-project-page__resize-handle::before {
