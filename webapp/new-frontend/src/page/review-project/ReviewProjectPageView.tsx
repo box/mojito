@@ -112,7 +112,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         ? prev
         : {
             ...prev,
-            [id]: selectedTextUnit.currentTarget || selectedTextUnit.target || '',
+            [id]:
+              selectedTextUnit.reviewTarget ||
+              selectedTextUnit.currentTarget ||
+              selectedTextUnit.target ||
+              '',
           },
     );
     setDraftNotes((prev) =>
@@ -120,23 +124,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     );
     setAcceptError(null);
   }, [selectedTextUnit]);
-
-  // If a live current translation appears and the draft is still identical to the original,
-  // re-prefill the draft with the live value (avoid clobbering user edits).
-  useEffect(() => {
-    if (!selectedTextUnit) return;
-    const id = selectedTextUnit.reviewProjectTextUnitId;
-    const draft = draftTargets[id];
-    const original = selectedTextUnit.target ?? '';
-    const current = selectedTextUnit.currentTarget ?? null;
-    const liveDiffers = current != null && current !== original;
-    if (liveDiffers && (draft === undefined || draft === original)) {
-      setDraftTargets((prev) => ({
-        ...prev,
-        [id]: current,
-      }));
-    }
-  }, [draftTargets, selectedTextUnit]);
 
   const estimateRowHeight = useCallback(
     () =>
@@ -269,7 +256,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           setDraftTargets((prev) => ({
             ...prev,
             [updated.reviewProjectTextUnitId]:
-              updated.currentTarget ?? updated.target ?? draftTargetValue,
+              updated.reviewTarget ?? draftTargetValue,
           }));
           setDraftNotes((prev) => ({
             ...prev,
@@ -534,22 +521,38 @@ function DetailPane({
   isUpdatingStatus: boolean;
 }) {
   const displayedTarget = textUnit.target;
-  const resolvedStatuses = new Set([
-    'ACCEPTED_AS_IS',
-    'ACCEPTED_WITH_CHANGE',
-    'REJECTED',
-    'SKIPPED',
-  ]);
+  const proposedValue = textUnit.reviewTarget ?? draftTarget;
   const hasExternalChange =
-    textUnit.currentTarget != null &&
-    textUnit.currentTarget !== textUnit.target &&
-    !resolvedStatuses.has(textUnit.reviewStatus ?? '');
+    textUnit.currentTarget != null && textUnit.currentTarget !== proposedValue;
 
   return (
     <div className="review-project-detail">
       <div className="review-project-detail__header">
         <div className="review-project-detail__title">
-          {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
+          <span className="review-project-detail__title-text">
+            {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
+          </span>
+          <Link
+            className="pill review-project-detail__pill-link review-project-detail__pill-link--title"
+            to={{
+              pathname: '/workbench',
+              search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
+                localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
+              }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
+              state: {
+                workbenchSearch: {
+                  searchAttribute: 'tmTextUnitIds',
+                  searchType: 'exact',
+                  searchText: String(textUnit.tmTextUnitId),
+                  localeTags: localeTag ? [localeTag] : undefined,
+                  repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
+                },
+              },
+            }}
+            title="Open this string in Workbench"
+          >
+            Open in Workbench
+          </Link>
         </div>
       </div>
       <div className="review-project-detail__grid">
@@ -558,30 +561,7 @@ function DetailPane({
           <div className="review-project-detail__value">{textUnit.source || '—'}</div>
         </div>
         <div className="review-project-detail__field">
-          <div className="review-project-detail__label review-project-detail__label--with-link">
-            <span>Original target</span>
-            <Link
-              className="pill review-project-detail__pill-link"
-              to={{
-                pathname: '/workbench',
-                search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
-                  localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
-                }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
-                state: {
-                  workbenchSearch: {
-                    searchAttribute: 'tmTextUnitIds',
-                    searchType: 'exact',
-                    searchText: String(textUnit.tmTextUnitId),
-                    localeTags: localeTag ? [localeTag] : undefined,
-                    repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
-                  },
-                },
-              }}
-              title="Open this string in Workbench"
-            >
-              Open in Workbench
-            </Link>
-          </div>
+          <div className="review-project-detail__label">Original target</div>
           <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
             <span>{displayedTarget || '—'}</span>
             {hasExternalChange ? (

@@ -297,6 +297,29 @@
 .review-project-detail__title {
   font-weight: var(--font-weight-bold);
   font-size: 1.05rem;
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  position: relative;
+}
+
+.review-project-detail__title:hover .pill.review-project-detail__pill-link--title,
+.pill.review-project-detail__pill-link--title:focus-visible {
+  display: inline-flex;
+}
+
+.pill.review-project-detail__pill-link--title {
+  display: none;
+  text-decoration: none;
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-0_5);
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 0 var(--space-2);
+  min-height: 1.25rem;
+  font-size: var(--font-size-2xs);
+  line-height: 1;
 }
 
 .review-project-detail__field {
@@ -311,37 +334,13 @@
 }
 
 .review-project-detail__label {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-2xs);
   color: var(--color-text-muted);
   letter-spacing: var(--letter-spacing-tight);
   text-transform: uppercase;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.review-project-detail__label--with-link {
-  justify-content: space-between;
-  position: relative;
-  padding-right: 5rem;
-}
-
-.pill.review-project-detail__pill-link {
-  display: none;
-  text-decoration: none;
-  color: var(--color-link);
-  font-weight: var(--font-weight-semibold);
-  gap: var(--space-0_5);
-  text-transform: none;
-  letter-spacing: normal;
-  padding: 0 var(--space-1_5);
-  min-height: 1.125rem;
-  font-size: var(--font-size-2xs);
-  line-height: 1;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .review-project-detail__muted {
@@ -373,9 +372,7 @@
 }
 
 .review-project-detail__external {
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-  border-top: 1px dashed color-mix(in srgb, var(--color-border) 60%, transparent);
+  margin-top: var(--space-1);
   display: grid;
   gap: var(--space-1);
 }
@@ -403,7 +400,19 @@
   z-index: 2;
 }
 
-.review-project-detail__pill--warning {
+.pill.review-project-detail__pill--warning {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--color-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-danger) 50%, transparent);
+  cursor: default;
+  font-size: var(--font-size-2xs);
+  min-height: 1.125rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.pill.review-project-detail__pill--warning:hover,
+.pill.review-project-detail__pill--warning:focus-visible {
   background: var(--color-danger);
   border-color: var(--color-danger);
   color: var(--color-surface);
