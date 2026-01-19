@@ -324,20 +324,29 @@
   justify-content: space-between;
 }
 
-.review-project-detail__pill--link {
+.pill.review-project-detail__pill-link {
   display: none;
   text-decoration: none;
   color: var(--color-link);
   font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-xs);
-  padding: 0.2rem 0.65rem;
   gap: var(--space-1);
   text-transform: none;
   letter-spacing: normal;
 }
 
-.review-project-detail__field:hover .review-project-detail__pill--link,
-.review-project-detail__pill--link:focus-visible {
+.pill.review-project-detail__pill-link {
+  padding: 0 var(--space-3);
+  min-height: 1.5rem;
+}
+
+.review-project-detail__muted {
+  color: var(--color-text-subtle);
+  font-weight: normal;
+  text-transform: none;
+}
+
+.review-project-detail__field:hover .pill.review-project-detail__pill-link,
+.pill.review-project-detail__pill-link:focus-visible {
   display: inline-flex;
 }
 
@@ -390,9 +399,10 @@
 }
 
 .review-project-detail__pill--warning {
-  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-border));
-  color: var(--color-danger-strong, var(--color-danger));
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--color-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-danger) 50%, transparent);
 }
 
 .review-project-detail__pill:hover {

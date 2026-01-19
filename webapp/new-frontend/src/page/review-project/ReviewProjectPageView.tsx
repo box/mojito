@@ -46,7 +46,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
   const [isAccepting, setIsAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
-  const [needsOverride, setNeedsOverride] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const availableStatuses = useMemo(() => {
@@ -120,7 +119,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.reviewNotes || '' },
     );
     setAcceptError(null);
-    setNeedsOverride(false);
   }, [selectedTextUnit]);
 
   // If a live current translation appears and the draft is still identical to the original,
@@ -284,20 +282,16 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 : tu,
             ),
           );
-          setNeedsOverride(false);
           setAcceptError(null);
         } catch (error) {
           const status = (error as { status?: number }).status;
           setAcceptError(
             status === 409
-              ? 'Current translation changed; click "Override anyway" to proceed.'
+              ? 'Current translation changed; refresh to review the latest version before accepting.'
               : error instanceof Error
                 ? error.message
                 : 'Failed to accept translation',
           );
-          if (status === 409) {
-            setNeedsOverride(true);
-          }
         } finally {
           setIsAccepting(false);
         }
@@ -328,7 +322,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           ...prev,
           [updated.reviewProjectTextUnitId]: updated.reviewNotes ?? prev[updated.reviewProjectTextUnitId] ?? '',
         }));
-        setNeedsOverride(false);
       } catch (error) {
         setAcceptError(error instanceof Error ? error.message : 'Failed to update review status');
       } finally {
@@ -446,14 +439,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               screenshotCount={project.screenshotImageIds?.length ?? 0}
               onAccept={handleAccept}
               onReviewStatus={handleReviewStatus}
-              onRestoreOriginal={() => {
-                setDraftTargets((prev) => ({
-                  ...prev,
-                  [selectedTextUnit.reviewProjectTextUnitId]: selectedTextUnit.target ?? '',
-                }));
-                setAcceptError(null);
-                setNeedsOverride(false);
-              }}
               onSaveNote={() => {
                 void (async () => {
                   const note = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
@@ -476,7 +461,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               acceptError={acceptError}
               isAccepting={isAccepting}
               isUpdatingStatus={isUpdatingStatus}
-              needsOverride={needsOverride}
             />
           ) : (
             <div className="review-project-page__empty-detail">No text unit selected</div>
@@ -497,7 +481,7 @@ function TextUnitRow({
   if (!textUnit) {
     return null;
   }
-  const { reviewProjectTextUnitId, name, source, target, currentTarget } = textUnit;
+  const { reviewProjectTextUnitId, name, source, target } = textUnit;
   return (
     <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
       <div className="review-project-row__name" title={name ?? undefined}>
@@ -509,10 +493,10 @@ function TextUnitRow({
         </div>
         <div
           className="review-project-row__string-line review-project-row__string-line--target"
-          title={(currentTarget ?? target) ?? undefined}
+          title={target ?? undefined}
         >
           <span className="review-project-row__string-text review-project-row__string-text--target">
-            {currentTarget || target || '—'}
+            {target || '—'}
           </span>
         </div>
       </div>
@@ -534,7 +518,6 @@ function DetailPane({
   acceptError,
   isAccepting,
   isUpdatingStatus,
-  needsOverride,
 }: {
   textUnit: ApiReviewProjectTextUnit;
   draftTarget: string;
@@ -549,13 +532,18 @@ function DetailPane({
   acceptError: string | null;
   isAccepting: boolean;
   isUpdatingStatus: boolean;
-  needsOverride: boolean;
 }) {
   const displayedTarget = textUnit.target;
+  const resolvedStatuses = new Set([
+    'ACCEPTED_AS_IS',
+    'ACCEPTED_WITH_CHANGE',
+    'REJECTED',
+    'SKIPPED',
+  ]);
   const hasExternalChange =
     textUnit.currentTarget != null &&
     textUnit.currentTarget !== textUnit.target &&
-    textUnit.currentTarget !== draftTarget;
+    !resolvedStatuses.has(textUnit.reviewStatus ?? '');
 
   return (
     <div className="review-project-detail">
@@ -598,7 +586,11 @@ function DetailPane({
             <span>{displayedTarget || '—'}</span>
             {hasExternalChange ? (
               <div className="review-project-detail__external">
-                <div className="review-project-detail__label">External update</div>
+                <div className="review-project-detail__label">
+                  <Pill className="review-project-detail__pill review-project-detail__pill--warning">
+                    External update
+                  </Pill>
+                </div>
                 <div className="review-project-detail__value review-project-detail__value--target">
                   <span>{textUnit.currentTarget || '—'}</span>
                 </div>
@@ -629,18 +621,9 @@ function DetailPane({
               type="button"
               className="review-project-detail__actions-button review-project-detail__actions-button--primary"
               onClick={() => onAccept(false)}
-              disabled={isAccepting || needsOverride}
+              disabled={isAccepting}
             >
               {isAccepting ? 'Accepting…' : 'Accept'}
-            </button>
-            <button
-              type="button"
-              className="review-project-detail__actions-button"
-              onClick={() => onAccept(true)}
-              disabled={isAccepting || !needsOverride}
-              title={needsOverride ? 'Override current translation and accept' : 'Override not needed'}
-            >
-              Override anyway
             </button>
             <button
               type="button"
