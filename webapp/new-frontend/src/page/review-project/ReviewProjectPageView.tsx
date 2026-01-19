@@ -112,11 +112,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         ? prev
         : {
             ...prev,
-            [id]:
-              selectedTextUnit.reviewTarget ||
-              selectedTextUnit.currentTarget ||
-              selectedTextUnit.target ||
-              '',
+            [id]: selectedTextUnit.reviewTarget ?? selectedTextUnit.target ?? '',
           },
     );
     setDraftNotes((prev) =>
