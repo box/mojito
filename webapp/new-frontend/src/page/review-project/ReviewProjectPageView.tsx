@@ -4,12 +4,14 @@ import '../review-projects/review-projects-page.css';
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
 import {
   acceptReviewProjectTextUnit,
   REVIEW_PROJECT_STATUS_LABELS,
   REVIEW_PROJECT_TYPE_LABELS,
+  updateReviewProjectTextUnitReview,
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
@@ -23,12 +25,14 @@ type Props = {
 };
 
 export function ReviewProjectPageView({ projectId, project }: Props) {
-  if (!project) {
-    return <div>No project data for id {projectId}</div>;
-  }
+  const primaryLocale = project?.locale ?? project?.locales?.[0];
+  const [textUnits, setTextUnits] = useState<ApiReviewProjectTextUnit[]>(
+    () => primaryLocale?.textUnits ?? [],
+  );
 
-  const primaryLocale = project.locale ?? project.locales?.[0];
-  const textUnits = useMemo(() => primaryLocale?.textUnits ?? [], [primaryLocale]);
+  useEffect(() => {
+    setTextUnits(primaryLocale?.textUnits ?? []);
+  }, [primaryLocale]);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [listWidthPct, setListWidthPct] = useState(40);
   const [isResizing, setIsResizing] = useState(false);
@@ -42,6 +46,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
   const [isAccepting, setIsAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
+  const [needsOverride, setNeedsOverride] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -74,7 +80,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         return false;
       }
       if (!term) return true;
-      const haystacks = [tu.name, tu.source, tu.target]
+      const haystacks = [tu.name, tu.source, tu.currentTarget, tu.target]
         .filter(Boolean)
         .map((s) => s!.toLowerCase());
       return haystacks.some((h) => h.includes(term));
@@ -103,9 +109,15 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     if (!selectedTextUnit) return;
     const id = selectedTextUnit.reviewProjectTextUnitId;
     setDraftTargets((prev) =>
-      prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.target || '' },
+      prev[id] !== undefined
+        ? prev
+        : { ...prev, [id]: selectedTextUnit.currentTarget || selectedTextUnit.target || '' },
     );
-    setDraftNotes((prev) => (prev[id] !== undefined ? prev : { ...prev, [id]: '' }));
+    setDraftNotes((prev) =>
+      prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.reviewNotes || '' },
+    );
+    setAcceptError(null);
+    setNeedsOverride(false);
   }, [selectedTextUnit]);
 
   const estimateRowHeight = useCallback(
@@ -174,6 +186,26 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     return () => window.removeEventListener('keydown', handleKeyNav);
   }, [handleKeyNav]);
 
+  useEffect(() => {
+    if (!selectedTextUnit) return;
+    if (selectedTextUnit.reviewStatus && selectedTextUnit.reviewStatus !== 'PENDING') {
+      return;
+    }
+    void updateReviewProjectTextUnitReview({
+      projectId,
+      textUnitId: selectedTextUnit.reviewProjectTextUnitId,
+      reviewStatus: 'VIEWED',
+      reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
+      reviewNotes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
+    }).then((updated) => {
+      setTextUnits((prev) =>
+        prev.map((tu) =>
+          tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId ? { ...tu, ...updated } : tu,
+        ),
+      );
+    });
+  }, [draftNotes, draftTargets, projectId, selectedTextUnit, setTextUnits]);
+
   const startResize = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
     setIsResizing(true);
@@ -193,13 +225,106 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     window.addEventListener('mouseup', onUp);
   }, []);
 
+  const handleAccept = useCallback(
+    (override: boolean) => {
+      if (!selectedTextUnit) return;
+      const draftTargetValue =
+        draftTargets[selectedTextUnit.reviewProjectTextUnitId] ??
+        selectedTextUnit.currentTarget ??
+        selectedTextUnit.target ??
+        '';
+      const reviewNotesValue = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
+
+      setAcceptError(null);
+      setIsAccepting(true);
+      void (async () => {
+        try {
+          const updated = await acceptReviewProjectTextUnit({
+            projectId,
+            textUnitId: selectedTextUnit.reviewProjectTextUnitId,
+            target: draftTargetValue,
+            expectedCurrentTmTextUnitVariantId: selectedTextUnit.currentTmTextUnitVariantId ?? undefined,
+            overrideChangedCurrent: override,
+            reviewNotes: reviewNotesValue,
+          });
+
+          setDraftTargets((prev) => ({
+            ...prev,
+            [updated.reviewProjectTextUnitId]:
+              updated.currentTarget ?? updated.target ?? draftTargetValue,
+          }));
+          setDraftNotes((prev) => ({
+            ...prev,
+            [updated.reviewProjectTextUnitId]: updated.reviewNotes ?? reviewNotesValue,
+          }));
+          setTextUnits((prev) =>
+            prev.map((tu) =>
+              tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId
+                ? { ...tu, ...updated }
+                : tu,
+            ),
+          );
+          setNeedsOverride(false);
+          setAcceptError(null);
+        } catch (error) {
+          const status = (error as { status?: number }).status;
+          setAcceptError(
+            status === 409
+              ? 'Current translation changed; click "Override anyway" to proceed.'
+              : error instanceof Error
+                ? error.message
+                : 'Failed to accept translation',
+          );
+          if (status === 409) {
+            setNeedsOverride(true);
+          }
+        } finally {
+          setIsAccepting(false);
+        }
+      })();
+    },
+    [draftNotes, draftTargets, projectId, selectedTextUnit],
+  );
+
+  const handleReviewStatus = useCallback(
+    async (reviewStatus: ApiReviewProjectTextUnit['reviewStatus']) => {
+      if (!selectedTextUnit || !reviewStatus) return;
+      setIsUpdatingStatus(true);
+      setAcceptError(null);
+      try {
+        const updated = await updateReviewProjectTextUnitReview({
+          projectId,
+          textUnitId: selectedTextUnit.reviewProjectTextUnitId,
+          reviewStatus,
+          reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
+          reviewNotes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
+        });
+        setTextUnits((prev) =>
+          prev.map((tu) =>
+            tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId ? { ...tu, ...updated } : tu,
+          ),
+        );
+        setDraftNotes((prev) => ({
+          ...prev,
+          [updated.reviewProjectTextUnitId]: updated.reviewNotes ?? prev[updated.reviewProjectTextUnitId] ?? '',
+        }));
+        setNeedsOverride(false);
+      } catch (error) {
+        setAcceptError(error instanceof Error ? error.message : 'Failed to update review status');
+      } finally {
+        setIsUpdatingStatus(false);
+      }
+    },
+    [draftNotes, draftTargets, projectId, selectedTextUnit],
+  );
+
   if (!project) {
     return <div>No project data for id {projectId}</div>;
   }
 
   return (
     <div className="review-project-page">
-      <ReviewProjectHeader projectId={projectId} project={project} />
+      <ReviewProjectHeader projectId={projectId} project={project} textUnits={textUnits} />
 
       <div
         className="review-project-page__content"
@@ -285,6 +410,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               textUnit={selectedTextUnit}
               draftTarget={draftTargets[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
               draftNote={draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
+              localeTag={primaryLocale?.bcp47Tag ?? primaryLocale?.displayName ?? ''}
               onChangeDraftTarget={(value) =>
                 setDraftTargets((prev) => ({
                   ...prev,
@@ -298,38 +424,39 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 }))
               }
               screenshotCount={project.screenshotImageIds?.length ?? 0}
-              onAccept={async () => {
+              onAccept={handleAccept}
+              onReviewStatus={handleReviewStatus}
+              onRestoreOriginal={() => {
+                setDraftTargets((prev) => ({
+                  ...prev,
+                  [selectedTextUnit.reviewProjectTextUnitId]: selectedTextUnit.target ?? '',
+                }));
                 setAcceptError(null);
-                setIsAccepting(true);
-                try {
-                  const updated = await acceptReviewProjectTextUnit({
+                setNeedsOverride(false);
+              }}
+              onSaveNote={() => {
+                void (async () => {
+                  const note = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
+                  const updated = await updateReviewProjectTextUnitReview({
                     projectId,
                     textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-                    target: draftTargets[selectedTextUnit.reviewProjectTextUnitId] ?? '',
-                    expectedCurrentTmTextUnitVariantId:
-                      selectedTextUnit.currentTmTextUnitVariantId ?? undefined,
-                    overrideChangedCurrent: false,
+                    reviewStatus: selectedTextUnit.reviewStatus ?? 'VIEWED',
+                    reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
+                    reviewNotes: note,
                   });
-
-                  setDraftTargets((prev) => ({
-                    ...prev,
-                    [updated.reviewProjectTextUnitId]: updated.target ?? '',
-                  }));
-                } catch (error) {
-                  const status = (error as any)?.status;
-                  setAcceptError(
-                    status === 409
-                      ? 'Current translation changed; cannot accept without override.'
-                      : error instanceof Error
-                        ? error.message
-                        : 'Failed to accept translation',
+                  setTextUnits((prev) =>
+                    prev.map((tu) =>
+                      tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId
+                        ? { ...tu, ...updated }
+                        : tu,
+                    ),
                   );
-                } finally {
-                  setIsAccepting(false);
-                }
+                })();
               }}
               acceptError={acceptError}
               isAccepting={isAccepting}
+              isUpdatingStatus={isUpdatingStatus}
+              needsOverride={needsOverride}
             />
           ) : (
             <div className="review-project-page__empty-detail">No text unit selected</div>
@@ -350,7 +477,7 @@ function TextUnitRow({
   if (!textUnit) {
     return null;
   }
-  const { reviewProjectTextUnitId, name, source, target } = textUnit;
+  const { reviewProjectTextUnitId, name, source, target, currentTarget } = textUnit;
   return (
     <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
       <div className="review-project-row__name" title={name ?? undefined}>
@@ -362,10 +489,10 @@ function TextUnitRow({
         </div>
         <div
           className="review-project-row__string-line review-project-row__string-line--target"
-          title={target ?? undefined}
+          title={(currentTarget ?? target) ?? undefined}
         >
           <span className="review-project-row__string-text review-project-row__string-text--target">
-            {target || '—'}
+            {currentTarget || target || '—'}
           </span>
         </div>
       </div>
@@ -377,22 +504,34 @@ function DetailPane({
   textUnit,
   draftTarget,
   draftNote,
+  localeTag,
   onChangeDraftTarget,
   onChangeDraftNote,
+  onSaveNote,
+  onReviewStatus,
   screenshotCount,
   onAccept,
+  onRestoreOriginal,
   acceptError,
   isAccepting,
+  isUpdatingStatus,
+  needsOverride,
 }: {
   textUnit: ApiReviewProjectTextUnit;
   draftTarget: string;
   draftNote: string;
+  localeTag: string;
   onChangeDraftTarget: (value: string) => void;
   onChangeDraftNote: (value: string) => void;
+  onSaveNote: () => void;
+  onReviewStatus: (status: ApiReviewProjectTextUnit['reviewStatus']) => Promise<void> | void;
   screenshotCount: number;
-  onAccept: () => void;
+  onAccept: (override: boolean) => void;
+  onRestoreOriginal: () => void;
   acceptError: string | null;
   isAccepting: boolean;
+  isUpdatingStatus: boolean;
+  needsOverride: boolean;
 }) {
   const hasStaleCurrent =
     textUnit.currentTmTextUnitVariantId != null &&
@@ -405,9 +544,6 @@ function DetailPane({
         <div className="review-project-detail__title">
           {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
         </div>
-        {textUnit.status ? (
-          <span className="review-project-detail__status">{textUnit.status}</span>
-        ) : null}
       </div>
       <div className="review-project-detail__grid">
         <div className="review-project-detail__field">
@@ -415,14 +551,37 @@ function DetailPane({
           <div className="review-project-detail__value">{textUnit.source || '—'}</div>
         </div>
         <div className="review-project-detail__field">
-          <div className="review-project-detail__label">Original target</div>
+          <div className="review-project-detail__label review-project-detail__label--with-link">
+            <span>Original target</span>
+            <Link
+              className="review-project-detail__link review-project-detail__link--inline"
+              to={{
+                pathname: '/workbench',
+                search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
+                  localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
+                }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
+                state: {
+                  workbenchSearch: {
+                    searchAttribute: 'tmTextUnitIds',
+                    searchType: 'exact',
+                    searchText: String(textUnit.tmTextUnitId),
+                    localeTags: localeTag ? [localeTag] : undefined,
+                    repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
+                  },
+                },
+              }}
+              title="Open this string in Workbench"
+            >
+              Open in Workbench
+            </Link>
+          </div>
           <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
             <span>{textUnit.target || '—'}</span>
             {textUnit.target ? (
               <button
                 type="button"
                 className="review-project-detail__pill review-project-detail__pill--floating"
-                onClick={() => onChangeDraftTarget(textUnit.target ?? '')}
+                onClick={onRestoreOriginal}
               >
                 Restore to proposed
               </button>
@@ -444,7 +603,11 @@ function DetailPane({
             placeholder="Enter proposed translation"
           />
           <div className="review-project-detail__actions-inline">
-            {textUnit.status ? (
+            {textUnit.reviewStatus ? (
+              <span className="review-project-detail__status-pill">
+                {textUnit.reviewStatus.toLowerCase().replace(/_/g, ' ')}
+              </span>
+            ) : textUnit.status ? (
               <span className="review-project-detail__status-pill">
                 {textUnit.status.toLowerCase().replace(/_/g, ' ')}
               </span>
@@ -452,13 +615,39 @@ function DetailPane({
             <button
               type="button"
               className="review-project-detail__actions-button review-project-detail__actions-button--primary"
-              onClick={onAccept}
-              disabled={isAccepting}
+              onClick={() => onAccept(false)}
+              disabled={isAccepting || needsOverride}
             >
               {isAccepting ? 'Accepting…' : 'Accept'}
             </button>
-            <button type="button" className="review-project-detail__actions-button" disabled>
+            <button
+              type="button"
+              className="review-project-detail__actions-button"
+              onClick={() => onAccept(true)}
+              disabled={isAccepting || !needsOverride}
+              title={needsOverride ? 'Override current translation and accept' : 'Override not needed'}
+            >
+              Override anyway
+            </button>
+            <button
+              type="button"
+              className="review-project-detail__actions-button"
+              onClick={() => {
+                void onReviewStatus('REJECTED');
+              }}
+              disabled={isAccepting || isUpdatingStatus}
+            >
               Reject
+            </button>
+            <button
+              type="button"
+              className="review-project-detail__actions-button"
+              onClick={() => {
+                void onReviewStatus('SKIPPED');
+              }}
+              disabled={isAccepting || isUpdatingStatus}
+            >
+              Skip
             </button>
           </div>
           {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
@@ -472,6 +661,17 @@ function DetailPane({
             rows={5}
             placeholder="Add context for AI/translator: errors seen, tone, glossary, or rationale (optional)"
           />
+          <div className="review-project-detail__note-actions">
+            <button
+              type="button"
+              className="review-project-detail__actions-button"
+              onClick={() => {
+                void onSaveNote();
+              }}
+            >
+              Save note
+            </button>
+          </div>
         </div>
       </div>
       <div className="review-project-detail__actions">
@@ -496,19 +696,26 @@ function DetailPane({
 function ReviewProjectHeader({
   projectId,
   project,
+  textUnits: textUnitsProp,
 }: {
   projectId: number;
   project: ApiReviewProjectDetail;
+  textUnits: ApiReviewProjectTextUnit[];
 }) {
   const { name, dueDate, textUnitCount, wordCount, status, type, locales: localesRaw } = project;
+  const textUnits = useMemo(() => textUnitsProp ?? [], [textUnitsProp]);
   const locales = useMemo(() => localesRaw ?? [], [localesRaw]);
 
   const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
-    const accepted = locales.reduce((sum, locale) => sum + (locale.acceptedCount ?? 0), 0);
-    const selected = locales.reduce((sum, locale) => sum + (locale.selectedCount ?? 0), 0);
+    const selected = textUnits?.length ?? 0;
+    const accepted =
+      textUnits?.filter(
+        (tu) =>
+          tu.reviewStatus === 'ACCEPTED_AS_IS' || tu.reviewStatus === 'ACCEPTED_WITH_CHANGE',
+      ).length ?? 0;
     const percent = selected > 0 ? Math.round((accepted / selected) * 100) : 0;
     return { acceptedCount: accepted, selectedCount: selected, progressPercent: percent };
-  }, [locales]);
+  }, [textUnits]);
 
   return (
     <header className="review-project-page__header review-project-page__header--compact">

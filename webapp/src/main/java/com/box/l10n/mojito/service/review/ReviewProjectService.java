@@ -8,6 +8,7 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.review.ReviewProject;
 import com.box.l10n.mojito.entity.review.ReviewProjectAcceptedVariant;
+import com.box.l10n.mojito.entity.review.ReviewDecisionStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
 import com.box.l10n.mojito.entity.review.ReviewProjectScreenshot;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
@@ -23,6 +24,7 @@ import com.box.l10n.mojito.rest.review.ReviewProjectSearchRequest;
 import com.box.l10n.mojito.rest.review.ReviewProjectSummaryDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectTextUnitDTO;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -463,7 +465,8 @@ public class ReviewProjectService {
       String target,
       Boolean includedInLocalizedFile,
       Long expectedCurrentTmTextUnitVariantId,
-      boolean overrideChangedCurrent)
+      boolean overrideChangedCurrent,
+      String reviewNotes)
       throws EntityWithIdNotFoundException {
 
     ReviewProject project =
@@ -502,6 +505,10 @@ public class ReviewProjectService {
     TMTextUnitCurrentVariant currentVariant =
         tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
             project.getLocale().getId(), tmTextUnit.getId());
+    String currentContent =
+        currentVariant != null && currentVariant.getTmTextUnitVariant() != null
+            ? currentVariant.getTmTextUnitVariant().getContent()
+            : null;
     Long currentVariantId =
         currentVariant != null && currentVariant.getTmTextUnitVariant() != null
             ? currentVariant.getTmTextUnitVariant().getId()
@@ -528,6 +535,8 @@ public class ReviewProjectService {
             includeInLocalizedFile);
 
     TMTextUnitVariant newVariant = updatedCurrentVariant.getTmTextUnitVariant();
+    boolean changed =
+        currentContent == null || !NormalizationUtils.normalize(currentContent).equals(normalizedTarget);
 
     ReviewProjectAcceptedVariant acceptedVariant =
         reviewProjectAcceptedVariantRepository
@@ -548,7 +557,57 @@ public class ReviewProjectService {
     acceptedVariant.setAcceptedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectAcceptedVariantRepository.save(acceptedVariant);
 
+    textUnit.setReviewStatus(
+        changed ? ReviewDecisionStatus.ACCEPTED_WITH_CHANGE : ReviewDecisionStatus.ACCEPTED_AS_IS);
+    textUnit.setReviewTarget(changed ? normalizedTarget : null);
+    textUnit.setReviewNotes(reviewNotes);
+    textUnit.setReviewedAt(ZonedDateTime.now());
+    textUnit.setReviewedBy(
+        auditorAware.getCurrentAuditor().map(User::getUsername).orElse(null));
+    reviewProjectTextUnitRepository.save(textUnit);
+
     return toTextUnitDTO(textUnit, newVariant);
+  }
+
+  @Transactional
+  public ReviewProjectTextUnitDTO updateReviewStatus(
+      Long projectId,
+      Long reviewProjectTextUnitId,
+      ReviewDecisionStatus reviewStatus,
+      String reviewTarget,
+      String reviewNotes)
+      throws EntityWithIdNotFoundException {
+
+    if (reviewStatus == null) {
+      throw new IllegalArgumentException("reviewStatus is required");
+    }
+
+    ReviewProject project =
+        reviewProjectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
+
+    ReviewProjectTextUnit textUnit =
+        reviewProjectTextUnitRepository
+            .findById(reviewProjectTextUnitId)
+            .orElseThrow(
+                () ->
+                    new EntityWithIdNotFoundException(
+                        "reviewProjectTextUnit", reviewProjectTextUnitId));
+
+    if (!textUnit.getReviewProject().getId().equals(project.getId())) {
+      throw new IllegalArgumentException("Review project text unit does not belong to project");
+    }
+
+    textUnit.setReviewStatus(reviewStatus);
+    textUnit.setReviewTarget(reviewTarget);
+    textUnit.setReviewNotes(reviewNotes);
+    textUnit.setReviewedAt(ZonedDateTime.now());
+    textUnit.setReviewedBy(
+        auditorAware.getCurrentAuditor().map(User::getUsername).orElse(null));
+    reviewProjectTextUnitRepository.save(textUnit);
+
+    return toTextUnitDTO(textUnit, null);
   }
 
   private void saveScreenshotsForRequest(
@@ -632,6 +691,7 @@ public class ReviewProjectService {
       reviewProjectTextUnit.setTmTextUnit(
           tmTextUnit != null ? tmTextUnit : variant.getTmTextUnit());
       reviewProjectTextUnit.setPosition(position++);
+      reviewProjectTextUnit.setBaselineStatus(variant.getStatus());
 
       reviewProjectTextUnitRepository.save(reviewProjectTextUnit);
       selectedCount++;
@@ -758,9 +818,24 @@ public class ReviewProjectService {
     dto.setCurrentTmTextUnitVariantId(variantId);
     dto.setSelectedTmTextUnitVariantId(
         selectedVariantRef != null ? selectedVariantRef.getId() : null);
+    TMTextUnitVariant.Status baselineStatus =
+        textUnit.getBaselineStatus() != null
+            ? textUnit.getBaselineStatus()
+            : selectedVariantRef != null ? selectedVariantRef.getStatus() : null;
+    dto.setBaselineStatus(baselineStatus);
+    dto.setReviewStatus(
+        textUnit.getReviewStatus() != null
+            ? textUnit.getReviewStatus()
+            : ReviewDecisionStatus.PENDING);
+    dto.setReviewTarget(textUnit.getReviewTarget());
+    dto.setReviewNotes(textUnit.getReviewNotes());
+    dto.setReviewedAt(textUnit.getReviewedAt());
+    dto.setReviewedBy(textUnit.getReviewedBy());
 
+    // Expose original selected translation as target (baseline) and current/accepted content separately.
+    dto.setTarget(selectedVariantRef != null ? selectedVariantRef.getContent() : null);
     if (resolvedVariant != null) {
-      dto.setTarget(resolvedVariant.getContent());
+      dto.setCurrentTarget(resolvedVariant.getContent());
       dto.setStatus(resolvedVariant.getStatus());
       dto.setIncludedInLocalizedFile(resolvedVariant.isIncludedInLocalizedFile());
     }

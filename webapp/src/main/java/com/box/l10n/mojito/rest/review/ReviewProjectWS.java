@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.review;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
+import com.box.l10n.mojito.rest.review.ReviewProjectTextUnitReviewRequest;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,10 +75,25 @@ public class ReviewProjectWS {
               request.getTarget(),
               request.getIncludedInLocalizedFile(),
               request.getExpectedCurrentTmTextUnitVariantId(),
-              Boolean.TRUE.equals(request.getOverrideChangedCurrent()));
+              Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
+              request.getReviewNotes());
       return ResponseEntity.ok(dto);
     } catch (ReviewProjectCurrentVariantConflictException conflict) {
       return ResponseEntity.status(HttpStatus.CONFLICT).body(conflict.getCurrentTextUnit());
     }
+  }
+
+  @PostMapping("/{projectId}/text-units/{textUnitId}/review")
+  public ReviewProjectTextUnitDTO updateReviewStatus(
+      @PathVariable Long projectId,
+      @PathVariable Long textUnitId,
+      @RequestBody ReviewProjectTextUnitReviewRequest request)
+      throws EntityWithIdNotFoundException {
+    return reviewProjectService.updateReviewStatus(
+        projectId,
+        textUnitId,
+        request.getReviewStatus(),
+        request.getReviewTarget(),
+        request.getReviewNotes());
   }
 }

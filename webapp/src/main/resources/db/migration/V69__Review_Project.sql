@@ -63,6 +63,12 @@ CREATE TABLE review_project_text_unit (
     tm_text_unit_id bigint(20) NOT NULL,
     position int DEFAULT NULL,
     created_date datetime DEFAULT NULL,
+    baseline_status varchar(32) DEFAULT NULL,
+    review_status varchar(32) NOT NULL DEFAULT 'PENDING',
+    review_target varchar(4000),
+    review_notes varchar(4000),
+    reviewed_at datetime DEFAULT NULL,
+    reviewed_by varchar(255) DEFAULT NULL,
     PRIMARY KEY (id)
 );
 

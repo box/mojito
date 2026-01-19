@@ -5,11 +5,14 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "review_project_text_unit")
@@ -35,6 +38,26 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
 
   @Column(name = "position")
   private Integer position;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "baseline_status")
+  private TMTextUnitVariant.Status baselineStatus;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "review_status")
+  private ReviewDecisionStatus reviewStatus = ReviewDecisionStatus.PENDING;
+
+  @Column(name = "review_target", length = 4000)
+  private String reviewTarget;
+
+  @Column(name = "review_notes", length = 4000)
+  private String reviewNotes;
+
+  @Column(name = "reviewed_at")
+  private ZonedDateTime reviewedAt;
+
+  @Column(name = "reviewed_by")
+  private String reviewedBy;
 
   public ReviewProject getReviewProject() {
     return reviewProject;
@@ -66,5 +89,53 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
 
   public void setPosition(Integer position) {
     this.position = position;
+  }
+
+  public TMTextUnitVariant.Status getBaselineStatus() {
+    return baselineStatus;
+  }
+
+  public void setBaselineStatus(TMTextUnitVariant.Status baselineStatus) {
+    this.baselineStatus = baselineStatus;
+  }
+
+  public ReviewDecisionStatus getReviewStatus() {
+    return reviewStatus;
+  }
+
+  public void setReviewStatus(ReviewDecisionStatus reviewStatus) {
+    this.reviewStatus = reviewStatus;
+  }
+
+  public String getReviewTarget() {
+    return reviewTarget;
+  }
+
+  public void setReviewTarget(String reviewTarget) {
+    this.reviewTarget = reviewTarget;
+  }
+
+  public String getReviewNotes() {
+    return reviewNotes;
+  }
+
+  public void setReviewNotes(String reviewNotes) {
+    this.reviewNotes = reviewNotes;
+  }
+
+  public ZonedDateTime getReviewedAt() {
+    return reviewedAt;
+  }
+
+  public void setReviewedAt(ZonedDateTime reviewedAt) {
+    this.reviewedAt = reviewedAt;
+  }
+
+  public String getReviewedBy() {
+    return reviewedBy;
+  }
+
+  public void setReviewedBy(String reviewedBy) {
+    this.reviewedBy = reviewedBy;
   }
 }

@@ -315,6 +315,28 @@
   color: var(--color-text-muted);
   letter-spacing: var(--letter-spacing-tight);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.review-project-detail__label--with-link .review-project-detail__link--inline {
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--color-link);
+  text-transform: none;
+  letter-spacing: normal;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.review-project-detail__link--inline:hover {
+  text-decoration: underline;
+}
+
+.review-project-detail__label--with-link {
+  justify-content: space-between;
 }
 
 .review-project-detail__value {
