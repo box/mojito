@@ -112,14 +112,38 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     setDraftTargets((prev) =>
       prev[id] !== undefined
         ? prev
-        : { ...prev, [id]: selectedTextUnit.currentTarget || selectedTextUnit.target || '' },
+        : {
+            ...prev,
+            [id]: selectedTextUnit.currentTarget || selectedTextUnit.target || '',
+          },
     );
     setDraftNotes((prev) =>
       prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.reviewNotes || '' },
     );
+    setShowLiveTarget((prev) => ({
+      ...prev,
+      [id]: !!selectedTextUnit.currentTarget && selectedTextUnit.currentTarget !== selectedTextUnit.target,
+    }));
     setAcceptError(null);
     setNeedsOverride(false);
   }, [selectedTextUnit]);
+
+  // If a live current translation appears and the draft is still identical to the original,
+  // re-prefill the draft with the live value (avoid clobbering user edits).
+  useEffect(() => {
+    if (!selectedTextUnit) return;
+    const id = selectedTextUnit.reviewProjectTextUnitId;
+    const draft = draftTargets[id];
+    const original = selectedTextUnit.target ?? '';
+    const current = selectedTextUnit.currentTarget ?? null;
+    const liveDiffers = current != null && current !== original;
+    if (liveDiffers && (draft === undefined || draft === original)) {
+      setDraftTargets((prev) => ({
+        ...prev,
+        [id]: current,
+      }));
+    }
+  }, [draftTargets, selectedTextUnit]);
 
   const estimateRowHeight = useCallback(
     () =>
@@ -551,7 +575,7 @@ function DetailPane({
     textUnit.currentTmTextUnitVariantId !== textUnit.tmTextUnitVariantId;
   const liveDiffers =
     hasStaleCurrent || (textUnit.currentTarget && textUnit.currentTarget !== textUnit.target);
-  const canShowToggle = liveDiffers && !!textUnit.currentTarget;
+  const canShowToggle = !!textUnit.currentTarget && liveDiffers;
   const displayedTarget =
     canShowToggle && showLiveTarget ? textUnit.currentTarget : textUnit.target;
 
