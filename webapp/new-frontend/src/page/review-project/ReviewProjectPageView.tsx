@@ -573,7 +573,7 @@ function DetailPane({
           <div className="review-project-detail__label review-project-detail__label--with-link">
             <span>Original target</span>
             <Link
-              className="review-project-detail__pill review-project-detail__pill--link"
+              className="pill review-project-detail__pill-link"
               to={{
                 pathname: '/workbench',
                 search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
