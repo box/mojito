@@ -47,6 +47,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [isAccepting, setIsAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
   const [needsOverride, setNeedsOverride] = useState(false);
+  const [showLiveTarget, setShowLiveTarget] = useState<Record<number, boolean>>({});
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const availableStatuses = useMemo(() => {
@@ -411,6 +412,13 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               draftTarget={draftTargets[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
               draftNote={draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
               localeTag={primaryLocale?.bcp47Tag ?? primaryLocale?.displayName ?? ''}
+              showLiveTarget={showLiveTarget[selectedTextUnit.reviewProjectTextUnitId] ?? false}
+              onToggleLiveTarget={(next) =>
+                setShowLiveTarget((prev) => ({
+                  ...prev,
+                  [selectedTextUnit.reviewProjectTextUnitId]: next,
+                }))
+              }
               onChangeDraftTarget={(value) =>
                 setDraftTargets((prev) => ({
                   ...prev,
@@ -505,6 +513,8 @@ function DetailPane({
   draftTarget,
   draftNote,
   localeTag,
+  showLiveTarget,
+  onToggleLiveTarget,
   onChangeDraftTarget,
   onChangeDraftNote,
   onSaveNote,
@@ -521,6 +531,8 @@ function DetailPane({
   draftTarget: string;
   draftNote: string;
   localeTag: string;
+  showLiveTarget: boolean;
+  onToggleLiveTarget: (next: boolean) => void;
   onChangeDraftTarget: (value: string) => void;
   onChangeDraftNote: (value: string) => void;
   onSaveNote: () => void;
@@ -537,6 +549,11 @@ function DetailPane({
     textUnit.currentTmTextUnitVariantId != null &&
     textUnit.tmTextUnitVariantId != null &&
     textUnit.currentTmTextUnitVariantId !== textUnit.tmTextUnitVariantId;
+  const liveDiffers =
+    hasStaleCurrent || (textUnit.currentTarget && textUnit.currentTarget !== textUnit.target);
+  const canShowToggle = liveDiffers && !!textUnit.currentTarget;
+  const displayedTarget =
+    canShowToggle && showLiveTarget ? textUnit.currentTarget : textUnit.target;
 
   return (
     <div className="review-project-detail">
@@ -552,7 +569,21 @@ function DetailPane({
         </div>
         <div className="review-project-detail__field">
           <div className="review-project-detail__label review-project-detail__label--with-link">
-            <span>Original target</span>
+            <span>{showLiveTarget ? 'Current translation' : 'Original target'}</span>
+            {liveDiffers ? (
+              <span className="review-project-detail__pill review-project-detail__pill--warning">
+                Updated
+              </span>
+            ) : null}
+            {canShowToggle ? (
+              <button
+                type="button"
+                className="review-project-detail__link review-project-detail__link--inline"
+                onClick={() => onToggleLiveTarget(!showLiveTarget)}
+              >
+                {showLiveTarget ? 'Show original' : 'Show current'}
+              </button>
+            ) : null}
             <Link
               className="review-project-detail__link review-project-detail__link--inline"
               to={{
@@ -576,7 +607,7 @@ function DetailPane({
             </Link>
           </div>
           <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
-            <span>{textUnit.target || '—'}</span>
+            <span>{displayedTarget || '—'}</span>
             {textUnit.target ? (
               <button
                 type="button"
