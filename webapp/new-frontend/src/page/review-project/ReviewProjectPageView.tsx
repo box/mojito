@@ -531,7 +531,6 @@ function DetailPane({
   onReviewStatus,
   screenshotCount,
   onAccept,
-  onRestoreOriginal,
   acceptError,
   isAccepting,
   isUpdatingStatus,
@@ -547,7 +546,6 @@ function DetailPane({
   onReviewStatus: (status: ApiReviewProjectTextUnit['reviewStatus']) => Promise<void> | void;
   screenshotCount: number;
   onAccept: (override: boolean) => void;
-  onRestoreOriginal: () => void;
   acceptError: string | null;
   isAccepting: boolean;
   isUpdatingStatus: boolean;
@@ -575,7 +573,7 @@ function DetailPane({
           <div className="review-project-detail__label review-project-detail__label--with-link">
             <span>Original target</span>
             <Link
-              className="review-project-detail__link review-project-detail__link--inline"
+              className="review-project-detail__pill review-project-detail__pill--link"
               to={{
                 pathname: '/workbench',
                 search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
@@ -598,23 +596,9 @@ function DetailPane({
           </div>
           <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
             <span>{displayedTarget || '—'}</span>
-            {textUnit.target ? (
-              <button
-                type="button"
-                className="review-project-detail__pill review-project-detail__pill--floating"
-                onClick={onRestoreOriginal}
-              >
-                Restore to proposed
-              </button>
-            ) : null}
             {hasExternalChange ? (
               <div className="review-project-detail__external">
-                <div className="review-project-detail__label">
-                  <span>External change</span>
-                  <span className="review-project-detail__pill review-project-detail__pill--warning">
-                    External update
-                  </span>
-                </div>
+                <div className="review-project-detail__label">External update</div>
                 <div className="review-project-detail__value review-project-detail__value--target">
                   <span>{textUnit.currentTarget || '—'}</span>
                 </div>

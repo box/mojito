@@ -320,28 +320,25 @@
   gap: 0.5rem;
 }
 
-.review-project-detail__label--with-link .review-project-detail__link--inline {
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--color-link);
-  text-transform: none;
-  letter-spacing: normal;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.05rem 0.35rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
-  background: color-mix(in srgb, var(--color-surface-muted) 30%, transparent);
-}
-
-.review-project-detail__link--inline:hover {
-  text-decoration: none;
-  border-color: var(--color-border-strong, var(--color-link));
-}
-
 .review-project-detail__label--with-link {
   justify-content: space-between;
+}
+
+.review-project-detail__pill--link {
+  display: none;
+  text-decoration: none;
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  padding: 0.2rem 0.65rem;
+  gap: var(--space-1);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.review-project-detail__field:hover .review-project-detail__pill--link,
+.review-project-detail__pill--link:focus-visible {
+  display: inline-flex;
 }
 
 .review-project-detail__value {
@@ -393,9 +390,9 @@
 }
 
 .review-project-detail__pill--warning {
-  background: color-mix(in srgb, var(--color-warn) 25%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-warn) 50%, var(--color-border));
-  color: var(--color-warn-strong, #a15c00);
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-border));
+  color: var(--color-danger-strong, var(--color-danger));
 }
 
 .review-project-detail__pill:hover {
