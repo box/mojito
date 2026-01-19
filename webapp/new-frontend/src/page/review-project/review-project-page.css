@@ -322,6 +322,8 @@
 
 .review-project-detail__label--with-link {
   justify-content: space-between;
+  position: relative;
+  padding-right: 5rem;
 }
 
 .pill.review-project-detail__pill-link {
@@ -329,14 +331,17 @@
   text-decoration: none;
   color: var(--color-link);
   font-weight: var(--font-weight-semibold);
-  gap: var(--space-1);
+  gap: var(--space-0_5);
   text-transform: none;
   letter-spacing: normal;
-}
-
-.pill.review-project-detail__pill-link {
-  padding: 0 var(--space-3);
-  min-height: 1.5rem;
+  padding: 0 var(--space-1_5);
+  min-height: 1.125rem;
+  font-size: var(--font-size-2xs);
+  line-height: 1;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .review-project-detail__muted {
