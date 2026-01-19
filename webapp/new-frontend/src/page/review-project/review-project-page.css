@@ -361,6 +361,14 @@
   position: relative;
 }
 
+.review-project-detail__external {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px dashed color-mix(in srgb, var(--color-border) 60%, transparent);
+  display: grid;
+  gap: var(--space-1);
+}
+
 .review-project-detail__pill {
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   border-radius: var(--radius-pill);
