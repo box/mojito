@@ -44,6 +44,9 @@ export function WorkbenchPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const shareId = searchParams.get('shareId');
+  const deepLinkTmId = searchParams.get('tmTextUnitId');
+  const deepLinkLocale = searchParams.get('locale');
+  const deepLinkRepo = searchParams.get('repo');
   const [shareIdToHydrate, setShareIdToHydrate] = useState<string | null>(shareId);
   const shareSearchParamsRef = useRef<URLSearchParams | null>(
     shareId ? new URLSearchParams(searchParams) : null,
@@ -101,6 +104,18 @@ export function WorkbenchPage() {
     setShareIdToHydrate(shareId);
     shareSearchParamsRef.current = new URLSearchParams(searchParams);
   }, [shareId, searchParams]);
+
+  // Support direct link via query params (works with cmd/shift click).
+  useEffect(() => {
+    if (!deepLinkTmId) return;
+    setHydratedSearchRequest({
+      searchAttribute: 'tmTextUnitIds',
+      searchType: 'exact',
+      searchText: deepLinkTmId,
+      localeTags: deepLinkLocale ? [deepLinkLocale] : undefined,
+      repositoryIds: deepLinkRepo ? [Number(deepLinkRepo)] : undefined,
+    });
+  }, [deepLinkLocale, deepLinkRepo, deepLinkTmId]);
 
   useEffect(() => {
     if (!stateSearchRequest) {
