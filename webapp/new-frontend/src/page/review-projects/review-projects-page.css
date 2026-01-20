@@ -259,6 +259,20 @@
   gap: var(--space-2);
 }
 
+.review-create__upload-thumb {
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: cover;
+  border-radius: var(--radius-2);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface-muted);
+  flex-shrink: 0;
+}
+
+.review-create__upload-thumb.placeholder {
+  display: inline-block;
+}
+
 .review-create__upload-name {
   overflow: hidden;
   text-overflow: ellipsis;

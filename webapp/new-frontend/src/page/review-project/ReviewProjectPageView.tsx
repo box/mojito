@@ -50,6 +50,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [acceptError, setAcceptError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -492,11 +493,10 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                     <div className="review-project-screenshot-modal__key" title={key}>
                       {key}
                     </div>
-                    <a
-                      href={displaySrc}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
                       className="review-project-screenshot-modal__thumb-link"
+                      onClick={() => setLightboxIndex(screenshotImages.indexOf(key))}
                     >
                       <img
                         src={displaySrc}
@@ -504,23 +504,94 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                         className="review-project-screenshot-modal__image"
                         loading="lazy"
                       />
-                    </a>
+                    </button>
                   </div>
                 );
               })}
             </div>
           )}
-          <div className="review-project-screenshot-modal__footer">
-            <button
-              type="button"
-              className="review-project-detail__actions-button"
-              onClick={() => setIsScreenshotModalOpen(false)}
-            >
-              Close
-            </button>
+         <div className="review-project-screenshot-modal__footer">
+           <button
+             type="button"
+             className="review-project-detail__actions-button"
+             onClick={() => setIsScreenshotModalOpen(false)}
+           >
+             Close
+           </button>
+         </div>
+       </div>
+     </Modal>
+      {lightboxIndex !== null && screenshotImages[lightboxIndex] ? (
+        <div
+          className="review-project-screenshot-lightbox"
+          role="dialog"
+          aria-label="Screenshot viewer"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <div
+            className="review-project-screenshot-lightbox__inner"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="review-project-screenshot-lightbox__bar">
+              <div className="review-project-screenshot-lightbox__meta">
+                {lightboxIndex + 1} / {screenshotImages.length}
+              </div>
+              <button
+                type="button"
+                className="review-project-screenshot-lightbox__close"
+                onClick={() => setLightboxIndex(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="review-project-screenshot-lightbox__image-wrap">
+              <img
+                src={
+                  /^https?:\/\//i.test(screenshotImages[lightboxIndex])
+                    ? screenshotImages[lightboxIndex]
+                    : `/api/images/${encodeURIComponent(screenshotImages[lightboxIndex])}`
+                }
+                alt=""
+                className="review-project-screenshot-lightbox__image"
+              />
+            </div>
+            <div className="review-project-screenshot-lightbox__actions">
+              <button
+                type="button"
+                className="review-project-detail__actions-button"
+                onClick={() =>
+                  setLightboxIndex(
+                    (lightboxIndex - 1 + screenshotImages.length) % screenshotImages.length,
+                  )
+                }
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                className="review-project-detail__actions-button"
+                onClick={() =>
+                  setLightboxIndex((lightboxIndex + 1) % screenshotImages.length)
+                }
+              >
+                Next
+              </button>
+              <a
+                className="review-project-detail__actions-button"
+                href={
+                  /^https?:\/\//i.test(screenshotImages[lightboxIndex])
+                    ? screenshotImages[lightboxIndex]
+                    : `/api/images/${encodeURIComponent(screenshotImages[lightboxIndex])}`
+                }
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open original
+              </a>
+            </div>
           </div>
         </div>
-      </Modal>
+      ) : null}
     </div>
   );
 }

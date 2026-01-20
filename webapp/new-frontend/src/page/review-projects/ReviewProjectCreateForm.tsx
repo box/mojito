@@ -66,7 +66,13 @@ export function ReviewProjectCreateForm({
   const [screenshotKeys, setScreenshotKeys] = useState<string[]>([]);
   const [screenshotDraft, setScreenshotDraft] = useState('');
   const [uploadQueue, setUploadQueue] = useState<
-    Array<{ key: string; name: string; status: 'uploading' | 'done' | 'error'; error?: string }>
+    Array<{
+      key: string;
+      name: string;
+      status: 'uploading' | 'done' | 'error';
+      preview?: string | null;
+      error?: string;
+    }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -146,6 +152,7 @@ export function ReviewProjectCreateForm({
       key: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: file.name,
       status: 'uploading' as const,
+      preview: URL.createObjectURL(file),
     }));
     setUploadQueue((prev) => [...queueEntries, ...prev]);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -346,6 +353,16 @@ export function ReviewProjectCreateForm({
             <div className="review-create__upload-list" aria-label="Upload status">
               {uploadQueue.map((item) => (
                 <div key={item.key} className="review-create__upload-row">
+                  {item.preview ? (
+                    <img
+                      src={item.preview}
+                      alt=""
+                      className="review-create__upload-thumb"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="review-create__upload-thumb placeholder" />
+                  )}
                   <span className="review-create__upload-name">{item.name}</span>
                   <span className={`review-create__upload-status status-${item.status}`}>
                     {item.status === 'uploading'
