@@ -122,6 +122,7 @@ export type ReviewProjectCreateRequest = {
   maxTextUnits?: number | null;
   maxWordCount?: number | null;
   notes?: string | null;
+  tmTextUnitIds?: number[] | null;
   type?: ApiReviewProjectType | null;
   dueDate: string; // ISO string
   screenshotImageIds?: string[] | null;

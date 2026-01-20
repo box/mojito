@@ -15,6 +15,8 @@ public class ReviewProjectCreateRequest {
 
   private String notes;
 
+  private java.util.List<Long> tmTextUnitIds;
+
   private ReviewProjectType type = ReviewProjectType.NORMAL;
 
   private java.time.ZonedDateTime dueDate;
@@ -61,6 +63,14 @@ public class ReviewProjectCreateRequest {
 
   public void setNotes(String notes) {
     this.notes = notes;
+  }
+
+  public java.util.List<Long> getTmTextUnitIds() {
+    return tmTextUnitIds;
+  }
+
+  public void setTmTextUnitIds(java.util.List<Long> tmTextUnitIds) {
+    this.tmTextUnitIds = tmTextUnitIds;
   }
 
   public ReviewProjectType getType() {

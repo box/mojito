@@ -193,7 +193,8 @@ public class ReviewProjectService {
       ReviewProject saved = reviewProjectRepository.save(reviewProject);
 
       List<TextUnitDTO> candidates =
-          searchReviewCandidates(repositoryIds, localeTag, request.getMaxTextUnits());
+          searchReviewCandidates(
+              repositoryIds, localeTag, request.getMaxTextUnits(), request.getTmTextUnitIds());
 
       SelectionStats selectionStats =
           populateProjectWithTextUnits(saved, candidates, request.getMaxWordCount());
@@ -631,17 +632,26 @@ public class ReviewProjectService {
   }
 
   private List<TextUnitDTO> searchReviewCandidates(
-      List<Long> repositoryIds, String localeTag, Integer configuredMaxCount) {
+      List<Long> repositoryIds,
+      String localeTag,
+      Integer configuredMaxCount,
+      List<Long> tmTextUnitIds) {
     TextUnitSearcherParameters params = new TextUnitSearcherParameters();
     params.setRepositoryIds(repositoryIds);
     params.setLocaleTags(Collections.singletonList(localeTag));
-    params.setStatusFilter(StatusFilter.REVIEW_NEEDED);
+    if (tmTextUnitIds != null && !tmTextUnitIds.isEmpty()) {
+      params.setTmTextUnitIds(tmTextUnitIds);
+    } else {
+      params.setStatusFilter(StatusFilter.REVIEW_NEEDED);
+    }
     params.setPluralFormsFiltered(false);
     params.setOffset(0);
     params.setLimit(
         configuredMaxCount != null && configuredMaxCount > 0
             ? configuredMaxCount
-            : DEFAULT_MAX_TEXT_UNITS);
+            : tmTextUnitIds != null && !tmTextUnitIds.isEmpty()
+                ? tmTextUnitIds.size()
+                : DEFAULT_MAX_TEXT_UNITS);
 
     return textUnitSearcher.search(params);
   }

@@ -219,6 +219,7 @@ export function WorkbenchPage() {
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
       .map((tag) => ({ tag, label: resolveLocaleDisplayName(tag) }));
     const collectionSize = collection.entries.length;
+    const tmTextUnitIds = collection.entries.map((entry) => entry.tmTextUnitId);
     const defaultName = collection.name?.trim()?.length
       ? `Review · ${collection.name.trim()}`
       : 'Review project';
@@ -228,6 +229,7 @@ export function WorkbenchPage() {
       repositoryIds: Array.from(repoIds),
       localeOptions,
       collectionSize,
+      tmTextUnitIds,
       defaultName,
       defaultDueDate,
     };
@@ -390,7 +392,11 @@ export function WorkbenchPage() {
       localeTags: string[];
       maxTextUnits: number | null;
       notes: string | null;
+      tmTextUnitIds: number[];
     }) => {
+      if (createReviewProject.isPending) {
+        return;
+      }
       if (!createReviewDefaults) {
         return;
       }
@@ -412,6 +418,7 @@ export function WorkbenchPage() {
           notes: form.notes,
           type: form.type,
           dueDate: form.dueDate,
+          tmTextUnitIds: form.tmTextUnitIds ?? createReviewDefaults.tmTextUnitIds,
           screenshotImageIds: null,
           name: form.name,
         },
@@ -542,10 +549,14 @@ export function WorkbenchPage() {
             setCreateReviewError(null);
           }}
           onCreate={handleSubmitCreateReview}
+          isSubmitting={createReviewProject.isPending}
           defaultName={createReviewDefaults.defaultName}
           defaultDueDate={createReviewDefaults.defaultDueDate}
           localeOptions={createReviewDefaults.localeOptions}
           collectionSize={createReviewDefaults.collectionSize}
+          tmTextUnitIds={createReviewDefaults.tmTextUnitIds}
+          collectionName={createReviewDefaults.collection.name}
+          myLocaleTags={userLocales}
           errorMessage={createReviewError}
         />
       ) : null}
