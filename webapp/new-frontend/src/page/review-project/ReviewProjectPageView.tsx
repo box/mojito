@@ -802,24 +802,6 @@ function DetailPane({
                 ›
               </button>
             </div>
-            <div className="review-project-detail__thumbs" aria-label="Screenshot thumbnails">
-              {screenshotImages.map((key, idx) => {
-                const isActive = idx === currentScreenshotIdx;
-                return (
-                  <button
-                    key={`${key}-${idx}`}
-                    type="button"
-                    className={`review-project-detail__thumb${isActive ? ' is-active' : ''}`}
-                    onClick={() => {
-                      onChangeScreenshotIdx(idx);
-                    }}
-                    title="Click to zoom"
-                  >
-                    {renderThumbMedia(key)}
-                  </button>
-                );
-              })}
-            </div>
           </>
         ) : null}
       </div>
