@@ -75,6 +75,7 @@ type Props = {
   onLoadMock?: () => void;
   projects: ReviewProjectRow[];
   filters: FiltersProps;
+  requestFilter?: { requestId: number | null; requestUuid: string | null; onClear: () => void };
 };
 
 function CountsInline({ words, strings }: { words: number | null; strings: number | null }) {
@@ -316,6 +317,9 @@ function FilterControls({ filters }: { filters: FiltersProps }) {
           },
         ]}
       />
+      <Link to="/review-projects/new" className="review-projects-page__create-button">
+        New Project
+      </Link>
     </div>
   );
 }
@@ -432,6 +436,7 @@ export function ReviewProjectsPageView({
   errorOnRetry,
   projects,
   filters,
+  requestFilter,
 }: Props) {
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const getItemKey = useCallback((index: number) => projects[index]?.id ?? index, [projects]);
@@ -481,6 +486,23 @@ export function ReviewProjectsPageView({
 
   return (
     <div className="review-projects-page">
+      {requestFilter && (requestFilter.requestId !== null || requestFilter.requestUuid) ? (
+        <div className="review-projects-page__notice">
+          <span className="review-projects-page__notice-text">
+            Showing projects from request{' '}
+            {requestFilter.requestId !== null
+              ? `#${requestFilter.requestId}`
+              : requestFilter.requestUuid ?? 'unknown'}
+          </span>
+          <button
+            type="button"
+            className="review-projects-page__notice-clear"
+            onClick={requestFilter.onClear}
+          >
+            Clear
+          </button>
+        </div>
+      ) : null}
       <FilterControls filters={filters} />
       {hasResults ? (
         <SummaryBar

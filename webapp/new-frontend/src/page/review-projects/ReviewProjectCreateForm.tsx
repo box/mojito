@@ -7,6 +7,7 @@ import {
   REVIEW_PROJECT_TYPE_LABELS,
   REVIEW_PROJECT_TYPES,
 } from '../../api/review-projects';
+import { LocaleMultiSelect } from '../../components/LocaleMultiSelect';
 import type { LocaleSelectionOption } from '../../utils/localeSelection';
 
 export type ReviewProjectCreateFormValues = {
@@ -58,6 +59,9 @@ export function ReviewProjectCreateForm({
   const [name, setName] = useState(defaultName);
   const [dueDate, setDueDate] = useState(defaultDueDate);
   const [type, setType] = useState<ApiReviewProjectType>('NORMAL');
+  const [selectedLocaleTags, setSelectedLocaleTags] = useState<string[]>(
+    localeOptions.map((opt) => opt.tag),
+  );
   const [notes, setNotes] = useState('');
   const [screenshotKeys, setScreenshotKeys] = useState<string[]>([]);
   const [screenshotDraft, setScreenshotDraft] = useState('');
@@ -65,15 +69,22 @@ export function ReviewProjectCreateForm({
 
   useEffect(() => setName(defaultName), [defaultName]);
   useEffect(() => setDueDate(defaultDueDate), [defaultDueDate]);
-
-  const localeTags = useMemo(
-    () => localeOptions.map((opt) => opt.tag),
-    [localeOptions],
-  );
+  useEffect(() => {
+    setSelectedLocaleTags((current) => {
+      const allowed = new Set(localeOptions.map((opt) => opt.tag));
+      const next = current.filter((tag) => allowed.has(tag));
+      if (next.length > 0) {
+        return next;
+      }
+      const all = Array.from(allowed);
+      return all.length ? all : [];
+    });
+  }, [localeOptions]);
 
   const canSubmit = useMemo(
-    () => Boolean(name.trim()) && Boolean(dueDate) && tmTextUnitIds.length > 0,
-    [dueDate, name, tmTextUnitIds.length],
+    () =>
+      Boolean(name.trim()) && Boolean(dueDate) && tmTextUnitIds.length > 0 && selectedLocaleTags.length > 0,
+    [dueDate, name, selectedLocaleTags.length, tmTextUnitIds.length],
   );
 
   const addScreenshotKeys = (raw: string[]) => {
@@ -150,6 +161,18 @@ export function ReviewProjectCreateForm({
           </div>
         ) : null}
 
+        <div className="review-create__field">
+          <span className="review-create__label">Locales</span>
+          <LocaleMultiSelect
+            options={localeOptions.map((opt) => ({ tag: opt.tag, label: opt.label }))}
+            selectedTags={selectedLocaleTags}
+            onChange={setSelectedLocaleTags}
+            className="review-create__locale-select"
+            align="left"
+            disabled={isSubmitting}
+          />
+        </div>
+
         <div className="review-create__two-up">
           <label className="review-create__field">
             <span className="review-create__label">Type</span>
@@ -194,7 +217,9 @@ export function ReviewProjectCreateForm({
         <div className="review-create__field">
           <div className="review-create__label-row">
             <span className="review-create__label">Screenshots (optional)</span>
-            <span className="review-create__hint">Paste image keys or drop files.</span>
+            <span className="review-create__hint">
+              Paste screenshot URLs or existing screenshot keys. (Upload not yet supported.)
+            </span>
           </div>
           <div
             className="review-create__dropzone"
@@ -276,20 +301,20 @@ export function ReviewProjectCreateForm({
         <button
           type="button"
           className="review-create__cta"
-          onClick={() => {
-            if (!canSubmit || isSubmitting) return;
-            const dueIso = new Date(dueDate).toISOString();
-            const maxTextUnits = tmTextUnitIds.length || collectionSize || null;
-            onSubmit({
-              name: name.trim(),
-              dueDate: dueIso,
-              type,
-              localeTags: localeTags.length ? localeTags : ['en'],
-              maxTextUnits,
-              notes: notes.trim() || null,
-              tmTextUnitIds,
-              screenshotImageIds: screenshotKeys,
-            });
+            onClick={() => {
+              if (!canSubmit || isSubmitting) return;
+              const dueIso = new Date(dueDate).toISOString();
+              const maxTextUnits = tmTextUnitIds.length || collectionSize || null;
+              onSubmit({
+                name: name.trim(),
+                dueDate: dueIso,
+                type,
+                localeTags: selectedLocaleTags,
+                maxTextUnits,
+                notes: notes.trim() || null,
+                tmTextUnitIds,
+                screenshotImageIds: screenshotKeys,
+              });
           }}
           disabled={!canSubmit || isSubmitting}
         >

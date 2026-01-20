@@ -45,6 +45,29 @@
   gap: clamp(0.5rem, 2vw, 1.625rem);
   padding: var(--space-3) var(--space-6);
   flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.review-projects-page__create-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-2);
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.review-projects-page__create-button:hover {
+  filter: brightness(1.05);
+}
+
+.review-projects-page__create-button:active {
+  transform: translateY(1px);
 }
 
 .review-projects-page__rows-frame {
@@ -73,6 +96,28 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.review-projects-page__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 var(--space-6) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-3);
+  background: color-mix(in srgb, var(--color-surface-selected) 65%, var(--color-surface));
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.review-projects-page__notice-clear {
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
 }
 
 .review-projects-page__rows-inner {
@@ -124,6 +169,15 @@
   padding: var(--space-2) var(--space-3);
   background: color-mix(in srgb, var(--color-surface) 96%, transparent);
   font-size: var(--font-size-sm);
+}
+
+.review-create__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  background-size: 0.85rem;
+  padding-right: var(--space-7);
 }
 
 .review-create__textarea {

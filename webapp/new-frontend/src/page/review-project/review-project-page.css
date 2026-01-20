@@ -590,3 +590,95 @@
   color: var(--color-text-muted);
   padding: var(--space-3);
 }
+
+.review-project-screenshot-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.review-project-screenshot-modal__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.review-project-screenshot-modal__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.review-project-screenshot-modal__count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-screenshot-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+.review-project-screenshot-modal__item {
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2);
+  padding: var(--space-2);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.review-project-screenshot-modal__key {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  word-break: break-all;
+}
+
+.review-project-screenshot-modal__thumb-link {
+  display: block;
+  border-radius: var(--radius-2);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+}
+
+.review-project-screenshot-modal__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background: var(--color-surface-muted);
+}
+
+.review-project-screenshot-modal__copy {
+  align-self: flex-start;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.review-project-screenshot-modal__copy:hover {
+  background: color-mix(in srgb, var(--color-surface-muted) 60%, transparent);
+}
+
+.review-project-screenshot-modal__empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-screenshot-modal__missing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.review-project-screenshot-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+}

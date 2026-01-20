@@ -175,10 +175,13 @@ export function ReviewProjectCreatePage() {
           name: values.name,
           },
           {
-            onSuccess: (summaries) => {
-              const firstId = summaries[0]?.id;
-              void navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
-            },
+          onSuccess: (summaries) => {
+            const requestId = summaries[0]?.requestId ?? null;
+            const requestUuid = summaries[0]?.requestUuid ?? null;
+            void navigate('/review-projects', {
+              state: { requestId, requestUuid },
+            });
+          },
             onError: (err: unknown) => {
               const message =
                 err instanceof Error

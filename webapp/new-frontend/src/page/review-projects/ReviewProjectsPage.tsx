@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import type {
   ApiReviewProjectStatus,
@@ -29,6 +30,20 @@ type SelectAllLocalesParams = {
   setSelectedLocaleTags: (tags: string[]) => void;
   userHasTouchedLocales: boolean;
 };
+
+type ReviewProjectsNavState = {
+  requestId?: number | null;
+  requestUuid?: string | null;
+};
+
+function isReviewProjectsNavState(value: unknown): value is ReviewProjectsNavState {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (('requestId' in value && typeof (value as { requestId?: unknown }).requestId === 'number') ||
+      ('requestUuid' in value && typeof (value as { requestUuid?: unknown }).requestUuid === 'string'))
+  );
+}
 
 function useSelectAllLocales({
   localeOptions,
@@ -87,6 +102,8 @@ const limitOptions: FilterOption<number>[] = [
 export function ReviewProjectsPage() {
   const user = useUser();
   const { data: repositoryData } = useRepositories();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [selectedLocaleTags, setSelectedLocaleTags] = useState<string[]>([]);
   const [hasTouchedLocales, setHasTouchedLocales] = useState(false);
@@ -100,6 +117,8 @@ export function ReviewProjectsPage() {
   const [createdBefore, setCreatedBefore] = useState<string | null>(null);
   const [dueAfter, setDueAfter] = useState<string | null>(null);
   const [dueBefore, setDueBefore] = useState<string | null>(null);
+  const [requestIdFilter, setRequestIdFilter] = useState<number | null>(null);
+  const [requestUuidFilter, setRequestUuidFilter] = useState<string | null>(null);
 
   const searchParams = useMemo<ReviewProjectsSearchRequest>(() => {
     const searchFieldValue: ReviewProjectsSearchRequest['searchField'] =
@@ -134,6 +153,16 @@ export function ReviewProjectsPage() {
     typeFilter,
   ]);
 
+  useEffect(() => {
+    const state = isReviewProjectsNavState(location.state) ? location.state : null;
+    if (!state) {
+      return;
+    }
+    setRequestIdFilter(state.requestId ?? null);
+    setRequestUuidFilter(state.requestUuid ?? null);
+    void navigate(location.pathname, { replace: true });
+  }, [location.pathname, location.state, navigate]);
+
   const { data, isLoading, isError, error, refetch } = useReviewProjects(searchParams);
 
   const projects = useMemo(() => data ?? [], [data]);
@@ -163,7 +192,12 @@ export function ReviewProjectsPage() {
       : undefined;
 
   const filteredProjects = useMemo(() => {
-    const source = projects;
+    let source = projects;
+    if (requestIdFilter !== null) {
+      source = source.filter((project) => project.requestId === requestIdFilter);
+    } else if (requestUuidFilter) {
+      source = source.filter((project) => project.requestUuid === requestUuidFilter);
+    }
     const {
       localeTags,
       statuses,
@@ -251,7 +285,7 @@ export function ReviewProjectsPage() {
 
     const limitValue = lmt && lmt > 0 ? lmt : undefined;
     return limitValue ? filtered.slice(0, limitValue) : filtered;
-  }, [projects, searchParams, hasTouchedLocales]);
+  }, [projects, searchParams, hasTouchedLocales, requestIdFilter, requestUuidFilter]);
 
   const rows = useMemo<ReviewProjectRow[]>(() => {
     return filteredProjects.map((project) => ({
@@ -268,6 +302,21 @@ export function ReviewProjectsPage() {
       closeReason: project.closeReason ?? null,
     }));
   }, [filteredProjects]);
+
+  const requestFilter = useMemo(
+    () =>
+      requestIdFilter === null && !requestUuidFilter
+        ? null
+        : {
+            requestId: requestIdFilter,
+            requestUuid: requestUuidFilter,
+            onClear: () => {
+              setRequestIdFilter(null);
+              setRequestUuidFilter(null);
+            },
+          },
+    [requestIdFilter, requestUuidFilter],
+  );
 
   const handleRetry = useCallback(() => {
     void refetch();
@@ -319,6 +368,7 @@ export function ReviewProjectsPage() {
         searchType,
         onSearchTypeChange: setSearchType,
       }}
+      requestFilter={requestFilter ?? undefined}
     />
   );
 }

@@ -14,6 +14,7 @@ import {
   updateReviewProjectTextUnitReview,
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
+import { Modal } from '../../components/Modal';
 import { Pill } from '../../components/Pill';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
@@ -33,6 +34,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   useEffect(() => {
     setTextUnits(primaryLocale?.textUnits ?? []);
   }, [primaryLocale]);
+
   const layoutRef = useRef<HTMLDivElement>(null);
   const [listWidthPct, setListWidthPct] = useState(40);
   const [isResizing, setIsResizing] = useState(false);
@@ -47,6 +49,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [isAccepting, setIsAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
+  const [screenshotSources, setScreenshotSources] = useState<Record<string, string | null>>({});
+  const [isLoadingScreenshots, setIsLoadingScreenshots] = useState(false);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -85,6 +90,76 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       return haystacks.some((h) => h.includes(term));
     });
   }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);
+
+  const screenshotImages = useMemo(
+    () => project?.screenshotImageIds ?? [],
+    [project?.screenshotImageIds],
+  );
+  const projectLocaleTag =
+    project?.locale?.bcp47Tag ?? project?.locale?.displayName ?? project?.locales?.[0]?.bcp47Tag;
+  const projectRepositoryIds = (project?.repositories ?? [])
+    .map((repo) => repo.id)
+    .filter((id): id is number => typeof id === 'number');
+
+  useEffect(() => {
+    if (!isScreenshotModalOpen) {
+      return;
+    }
+    const keysToFetch = screenshotImages.filter((key) => !(key in screenshotSources));
+    if (!keysToFetch.length) {
+      return;
+    }
+    setIsLoadingScreenshots(true);
+    const controller = new AbortController();
+
+    const fetchForKey = async (key: string): Promise<[string, string | null]> => {
+      const params = new URLSearchParams();
+      if (projectRepositoryIds.length) {
+        projectRepositoryIds.forEach((id) => params.append('repositoryIds[]', String(id)));
+      }
+      if (projectLocaleTag) {
+        params.append('bcp47Tags[]', projectLocaleTag);
+      }
+      params.append('screenshotName', key);
+      params.append('limit', '1');
+      params.append('offset', '0');
+      const response = await fetch(`/api/screenshots?${params.toString()}`, {
+        credentials: 'include',
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        return [key, null];
+      }
+      const items = (await response.json()) as Array<{ src?: string | null }>;
+      const src = items?.[0]?.src ?? null;
+      return [key, src];
+    };
+
+    void (async () => {
+      try {
+        const results = await Promise.all(keysToFetch.map((key) => fetchForKey(key)));
+        setScreenshotSources((prev) => {
+          const next = { ...prev };
+          results.forEach(([key, src]) => {
+            next[key] = src;
+          });
+          return next;
+        });
+      } finally {
+        setIsLoadingScreenshots(false);
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, [
+    isScreenshotModalOpen,
+    projectLocaleTag,
+    projectRepositoryIds,
+    screenshotImages,
+    screenshotSources,
+  ]);
 
   const selectedTextUnit = useMemo(
     () => filtered.find((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId),
@@ -419,7 +494,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                   [selectedTextUnit.reviewProjectTextUnitId]: value,
                 }))
               }
-              screenshotCount={project.screenshotImageIds?.length ?? 0}
+              screenshotCount={screenshotImages.length}
+              onOpenScreenshots={() => setIsScreenshotModalOpen(true)}
               onAccept={handleAccept}
               onReviewStatus={handleReviewStatus}
               onSaveNote={() => {
@@ -450,6 +526,86 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           )}
         </section>
       </div>
+      <Modal
+        open={isScreenshotModalOpen}
+        onClose={() => setIsScreenshotModalOpen(false)}
+        closeOnBackdrop
+        size="lg"
+        ariaLabel="Project screenshots"
+      >
+        <div className="review-project-screenshot-modal">
+          <div className="review-project-screenshot-modal__header">
+            <div className="review-project-screenshot-modal__title">Screenshots</div>
+            <div className="review-project-screenshot-modal__count">
+              {screenshotImages.length} attached
+            </div>
+          </div>
+          {screenshotImages.length === 0 ? (
+            <div className="review-project-screenshot-modal__empty">No screenshots attached.</div>
+          ) : (
+            <div className="review-project-screenshot-modal__grid">
+              {screenshotImages.map((key) => {
+                const isUrl =
+                  /^https?:\/\//i.test(key) ||
+                  key.startsWith('//') ||
+                  key.startsWith('data:') ||
+                  key.startsWith('blob:');
+                const resolvedUrl = key.startsWith('//') ? `https:${key}` : key;
+                const fetchedSrc = screenshotSources[key];
+                const displaySrc = fetchedSrc || (isUrl ? resolvedUrl : null);
+                return (
+                  <div key={key} className="review-project-screenshot-modal__item">
+                    <div className="review-project-screenshot-modal__key" title={key}>
+                      {key}
+                    </div>
+                    {displaySrc ? (
+                      <a
+                        href={displaySrc}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="review-project-screenshot-modal__thumb-link"
+                      >
+                        <img
+                          src={displaySrc}
+                          alt="Screenshot"
+                          className="review-project-screenshot-modal__image"
+                          loading="lazy"
+                        />
+                      </a>
+                    ) : isLoadingScreenshots ? (
+                      <div className="review-project-screenshot-modal__empty">Loading…</div>
+                    ) : (
+                      <div className="review-project-screenshot-modal__missing">
+                        Image not found for this key
+                        <button
+                          type="button"
+                          className="review-project-screenshot-modal__copy"
+                          onClick={() => {
+                            if (navigator?.clipboard?.writeText) {
+                              void navigator.clipboard.writeText(key);
+                            }
+                          }}
+                        >
+                          Copy key
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div className="review-project-screenshot-modal__footer">
+            <button
+              type="button"
+              className="review-project-detail__actions-button"
+              onClick={() => setIsScreenshotModalOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -497,6 +653,7 @@ function DetailPane({
   onSaveNote,
   onReviewStatus,
   screenshotCount,
+  onOpenScreenshots,
   onAccept,
   acceptError,
   isAccepting,
@@ -511,6 +668,7 @@ function DetailPane({
   onSaveNote: () => void;
   onReviewStatus: (status: ApiReviewProjectTextUnit['reviewStatus']) => Promise<void> | void;
   screenshotCount: number;
+  onOpenScreenshots: () => void;
   onAccept: (override: boolean) => void;
   acceptError: string | null;
   isAccepting: boolean;
@@ -656,6 +814,11 @@ function DetailPane({
             type="button"
             className="review-project-detail__actions-button"
             disabled={screenshotCount === 0}
+            onClick={() => {
+              if (screenshotCount > 0) {
+                onOpenScreenshots();
+              }
+            }}
           >
             Open
           </button>
