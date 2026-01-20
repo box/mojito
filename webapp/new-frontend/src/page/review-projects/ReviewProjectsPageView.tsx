@@ -195,7 +195,13 @@ const formatPercent = (accepted: number, total: number) => {
   return `${value}%`;
 };
 
-function FilterControls({ filters }: { filters: FiltersProps }) {
+function FilterControls({
+  filters,
+  canCreate,
+}: {
+  filters: FiltersProps;
+  canCreate: boolean;
+}) {
   const dateQuickRanges = getStandardDateQuickRanges();
 
   return (
@@ -317,9 +323,11 @@ function FilterControls({ filters }: { filters: FiltersProps }) {
           },
         ]}
       />
-      <Link to="/review-projects/new" className="review-projects-page__create-button">
-        New Project
-      </Link>
+      {canCreate ? (
+        <Link to="/review-projects/new" className="review-projects-page__create-button">
+          New Project
+        </Link>
+      ) : null}
     </div>
   );
 }
@@ -437,6 +445,7 @@ export function ReviewProjectsPageView({
   projects,
   filters,
   requestFilter,
+  canCreate = true,
 }: Props) {
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const getItemKey = useCallback((index: number) => projects[index]?.id ?? index, [projects]);
@@ -503,7 +512,8 @@ export function ReviewProjectsPageView({
           </button>
         </div>
       ) : null}
-      <FilterControls filters={filters} />
+      {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+      <FilterControls filters={filters} canCreate={canCreate} />
       {hasResults ? (
         <SummaryBar
           resultCount={projects.length}

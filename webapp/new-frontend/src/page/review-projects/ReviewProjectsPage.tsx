@@ -369,6 +369,7 @@ export function ReviewProjectsPage() {
         onSearchTypeChange: setSearchType,
       }}
       requestFilter={requestFilter ?? undefined}
+      canCreate={user.role === 'ROLE_ADMIN'}
     />
   );
 }
