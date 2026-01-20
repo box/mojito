@@ -590,18 +590,3 @@
   color: var(--color-text-muted);
   padding: var(--space-3);
 }
-
-@media (max-width: 1100px) {
-  .review-project-page__header {
-    flex-direction: column;
-  }
-
-  .review-project-page__stats {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .review-project-page__content {
-    grid-template-columns: 1fr;
-  }
-}

@@ -430,7 +430,6 @@ export function ReviewProjectsPageView({
   status,
   errorMessage,
   errorOnRetry,
-  onLoadMock,
   projects,
   filters,
 }: Props) {
@@ -489,13 +488,6 @@ export function ReviewProjectsPageView({
           totalWords={totalWords}
           totalStrings={totalStrings}
         />
-      ) : null}
-      {onLoadMock ? (
-        <div className="review-projects-page__mock-controls">
-          <button type="button" className="review-projects-page__mock-button" onClick={onLoadMock}>
-            Generate mock review projects
-          </button>
-        </div>
       ) : null}
       <ContentSection
         projects={projects}

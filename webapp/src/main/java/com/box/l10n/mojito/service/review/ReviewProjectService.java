@@ -231,61 +231,6 @@ public class ReviewProjectService {
     return searchProjects(searchRequest);
   }
 
-  @Transactional
-  public List<ReviewProjectSummaryDTO> generateSampleProjects(int desiredCount) {
-    int count = Math.min(Math.max(desiredCount, 1), 200);
-    List<Repository> repositories = repositoryRepository.findAll();
-    if (repositories.isEmpty()) {
-      throw new IllegalStateException("No repositories available to generate sample data");
-    }
-
-    List<Repository> selectedRepositories =
-        repositories.subList(0, Math.min(3, repositories.size()));
-
-    Locale defaultLocale = localeService.getDefaultLocale();
-    if (defaultLocale == null) {
-      throw new IllegalStateException("Default locale is not configured");
-    }
-
-    Locale sampleLocale =
-        selectedRepositories.stream()
-            .flatMap(repo -> repo.getRepositoryLocales().stream())
-            .map(RepositoryLocale::getLocale)
-            .findFirst()
-            .orElse(defaultLocale);
-
-    ReviewProjectType[] types = ReviewProjectType.values();
-    ZonedDateTime now = ZonedDateTime.now();
-    List<ReviewProjectSummaryDTO> created = new ArrayList<>();
-
-    for (int i = 0; i < count; i++) {
-      ReviewProject project = new ReviewProject();
-      project.setName("Sample Review Project " + (now.toEpochSecond() % 100000) + "-" + (i + 1));
-      project.setType(types[i % types.length]);
-      boolean closed = i % 5 == 0;
-      project.setStatus(closed ? ReviewProjectStatus.CLOSED : ReviewProjectStatus.OPEN);
-      if (closed) {
-        project.setCloseReason("Closed automatically for sample data");
-      }
-      project.setDueDate(
-          closed ? now.minusDays((i % 30) + 1) : now.plusDays((i % 20) + 2)); // mix past/future
-      int strings = 60 + ((i % 60) * 5);
-      project.setTextUnitCount(strings);
-      project.setWordCount(strings * 8);
-      project.setLocale(sampleLocale);
-
-      ReviewProject saved = reviewProjectRepository.save(project);
-      created.add(toSummaryDTO(saved, strings, saved.getWordCount(), 0));
-    }
-
-    return created;
-  }
-
-  @Transactional
-  public List<ReviewProjectSummaryDTO> generateSampleProjects() {
-    return generateSampleProjects(50);
-  }
-
   @Transactional(readOnly = true)
   public List<ReviewProjectSummaryDTO> searchProjects(ReviewProjectSearchRequest request) {
     ReviewProjectSearchRequest.SearchField searchField =

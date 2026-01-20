@@ -43,18 +43,6 @@ public class ReviewProjectWS {
     return reviewProjectService.createReviewProject(request);
   }
 
-  @PostMapping("/generate-sample")
-  public List<ReviewProjectSummaryDTO> generateSampleProjects(
-      @RequestParam(value = "count", required = false) Integer count) {
-    return reviewProjectService.generateSampleProjects(count == null ? 50 : count);
-  }
-
-  @GetMapping("/generate-sample")
-  public List<ReviewProjectSummaryDTO> generateSampleProjectsGet(
-      @RequestParam(value = "count", required = false) Integer count) {
-    return reviewProjectService.generateSampleProjects(count == null ? 50 : count);
-  }
-
   @GetMapping("/{projectId}")
   public ReviewProjectDetailDTO getProject(@PathVariable Long projectId)
       throws EntityWithIdNotFoundException {

@@ -229,27 +229,6 @@ export const acceptReviewProjectTextUnit = async ({
   return (await response.json()) as ApiReviewProjectTextUnit;
 };
 
-export const generateSampleReviewProjects = async (): Promise<ApiReviewProjectSummary[]> => {
-  const makeRequest = (method: 'POST' | 'GET') =>
-    fetch('/api/review-projects/generate-sample?count=150', {
-      method,
-      credentials: 'include',
-    });
-
-  let response = await makeRequest('POST');
-  // Some environments block POST here; retry with GET to avoid a hard failure.
-  if (response.status === 405) {
-    response = await makeRequest('GET');
-  }
-
-  if (!response.ok) {
-    const message = await response.text().catch(() => '');
-    throw new Error(message || 'Failed to generate sample review projects');
-  }
-
-  return (await response.json()) as ApiReviewProjectSummary[];
-};
-
 export const updateReviewProjectTextUnitReview = async ({
   projectId,
   textUnitId,

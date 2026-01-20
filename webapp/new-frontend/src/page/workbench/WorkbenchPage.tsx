@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import type { ApiReviewProjectType } from '../../api/review-projects';
 import type { TextUnitSearchRequest } from '../../api/text-units';
 import { useUser } from '../../components/RequireUser';
-import { useCreateReviewProject } from '../../hooks/useCreateReviewProject';
-import { useLocaleDisplayNameResolver } from '../../utils/localeDisplayNames';
 import { canEditLocale as canEditLocaleForUser } from '../../utils/permissions';
 import { getNonRootRepositoryLocaleTags } from '../../utils/repositoryLocales';
-import { ReviewProjectCreateModal } from './ReviewProjectCreateModal';
 import { useWorkbenchCollections } from './useWorkbenchCollections';
 import { useWorkbenchEdits } from './useWorkbenchEdits';
 import { useWorkbenchSearch } from './useWorkbenchSearch';
@@ -57,16 +53,12 @@ export function WorkbenchPage() {
   const [hydrationModal, setHydrationModal] = useState<{ title: string; body: string } | null>(
     null,
   );
-  const [createReviewCollectionId, setCreateReviewCollectionId] = useState<string | null>(null);
-  const [createReviewError, setCreateReviewError] = useState<string | null>(null);
   const currentUser = useUser();
   const locationState = (location.state as WorkbenchLocationState | null) ?? null;
   const stateSearchRequest = locationState?.workbenchSearch ?? null;
   const stateLocalePrompt = locationState?.localePrompt ?? false;
   const userLocales = currentUser.userLocales ?? [];
   const isLimitedTranslator = !currentUser.canTranslateAllLocales && userLocales.length > 0;
-  const resolveLocaleDisplayName = useLocaleDisplayNameResolver();
-  const createReviewProject = useCreateReviewProject();
   const canEditLocale = useCallback(
     (locale: string) => canEditLocaleForUser(currentUser, locale),
     [currentUser],
@@ -194,52 +186,6 @@ export function WorkbenchPage() {
     [search.repositories],
   );
 
-  const createReviewDefaults = useMemo(() => {
-    if (!createReviewCollectionId) {
-      return null;
-    }
-    const collection = collections.collections.find((item) => item.id === createReviewCollectionId);
-    if (!collection) {
-      return null;
-    }
-    const repoMap = new Map(search.repositories.map((repo) => [repo.id, repo]));
-    const repoIds = new Set<number>();
-    const localeTags = new Set<string>();
-    collection.entries.forEach((entry) => {
-      if (!entry.repositoryId) {
-        return;
-      }
-      repoIds.add(entry.repositoryId);
-      const repo = repoMap.get(entry.repositoryId);
-      if (repo) {
-        getNonRootRepositoryLocaleTags(repo).forEach((tag) => localeTags.add(tag));
-      }
-    });
-    const localeOptions = Array.from(localeTags)
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-      .map((tag) => ({ tag, label: resolveLocaleDisplayName(tag) }));
-    const collectionSize = collection.entries.length;
-    const tmTextUnitIds = collection.entries.map((entry) => entry.tmTextUnitId);
-    const defaultName = collection.name?.trim()?.length
-      ? `Review · ${collection.name.trim()}`
-      : 'Review project';
-    const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
-    return {
-      collection,
-      repositoryIds: Array.from(repoIds),
-      localeOptions,
-      collectionSize,
-      tmTextUnitIds,
-      defaultName,
-      defaultDueDate,
-    };
-  }, [
-    collections.collections,
-    createReviewCollectionId,
-    resolveLocaleDisplayName,
-    search.repositories,
-  ]);
-
   const buildCollectionSearchRequest = useCallback(
     (collection: WorkbenchCollection): TextUnitSearchRequest | null => {
       const repoMap = new Map(search.repositories.map((repo) => [repo.id, repo]));
@@ -349,9 +295,30 @@ export function WorkbenchPage() {
   );
 
   const handleCreateReviewProjectFromCollection = useCallback((collectionId: string) => {
-    setCreateReviewError(null);
-    setCreateReviewCollectionId(collectionId);
-  }, []);
+    const collection = collections.collections.find((item) => item.id === collectionId);
+    if (!collection || collection.entries.length === 0) {
+      return;
+    }
+    const repoIds = Array.from(
+      new Set(collection.entries.map((entry) => entry.repositoryId).filter((id): id is number => id != null)),
+    );
+    const tmIds = Array.from(new Set(collection.entries.map((entry) => entry.tmTextUnitId)));
+    if (!repoIds.length || !tmIds.length) {
+      return;
+    }
+    const defaultName =
+      collection.name?.trim()?.length ? `Review · ${collection.name.trim()}` : 'Review project';
+    const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    void navigate('/review-projects/new', {
+      state: {
+        repositoryIds: repoIds,
+        tmTextUnitIds: tmIds,
+        collectionName: collection.name,
+        defaultName,
+        defaultDueDate,
+      },
+    });
+  }, [collections.collections, navigate]);
 
   useEffect(() => {
     if (!pendingCollectionOpenId) {
@@ -384,64 +351,8 @@ export function WorkbenchPage() {
     void refetchSearch();
   }, [clearWorksetEdits, refetchSearch]);
 
-  const handleSubmitCreateReview = useCallback(
-    (form: {
-      name: string;
-      dueDate: string;
-      type: ApiReviewProjectType;
-      localeTags: string[];
-      maxTextUnits: number | null;
-      notes: string | null;
-      tmTextUnitIds: number[];
-    }) => {
-      if (createReviewProject.isPending) {
-        return;
-      }
-      if (!createReviewDefaults) {
-        return;
-      }
-      if (!createReviewDefaults.repositoryIds.length) {
-        setCreateReviewError('Collection items need repository ids to create a review project.');
-        return;
-      }
-      if (!form.localeTags.length) {
-        setCreateReviewError('Select at least one locale.');
-        return;
-      }
-      setCreateReviewError(null);
-      createReviewProject.mutate(
-        {
-          repositoryIds: createReviewDefaults.repositoryIds,
-          localeTags: form.localeTags,
-          maxTextUnits: form.maxTextUnits ?? createReviewDefaults.collectionSize,
-          maxWordCount: null,
-          notes: form.notes,
-          type: form.type,
-          dueDate: form.dueDate,
-          tmTextUnitIds: form.tmTextUnitIds ?? createReviewDefaults.tmTextUnitIds,
-          screenshotImageIds: null,
-          name: form.name,
-        },
-        {
-          onSuccess: (summaries) => {
-            setCreateReviewCollectionId(null);
-            setCreateReviewError(null);
-            const firstId = summaries[0]?.id;
-            void navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
-          },
-          onError: (err) => {
-            setCreateReviewError(err instanceof Error ? err.message : 'Failed to create project');
-          },
-        },
-      );
-    },
-    [createReviewDefaults, createReviewProject, navigate],
-  );
-
   const headerDisabled = edits.editingRowId !== null;
   const hasSearched = search.activeSearchRequest !== null;
-  const createModalOpen = createReviewCollectionId != null && createReviewDefaults != null;
-
   return (
     <>
       <WorkbenchPageView
@@ -541,25 +452,6 @@ export function WorkbenchPage() {
         shareOverrides={shareOverrides}
         onPrepareShareOverrides={(overrides) => setShareOverrides(overrides)}
       />
-      {createModalOpen && createReviewDefaults ? (
-        <ReviewProjectCreateModal
-          isOpen
-          onCancel={() => {
-            setCreateReviewCollectionId(null);
-            setCreateReviewError(null);
-          }}
-          onCreate={handleSubmitCreateReview}
-          isSubmitting={createReviewProject.isPending}
-          defaultName={createReviewDefaults.defaultName}
-          defaultDueDate={createReviewDefaults.defaultDueDate}
-          localeOptions={createReviewDefaults.localeOptions}
-          collectionSize={createReviewDefaults.collectionSize}
-          tmTextUnitIds={createReviewDefaults.tmTextUnitIds}
-          collectionName={createReviewDefaults.collection.name}
-          myLocaleTags={userLocales}
-          errorMessage={createReviewError}
-        />
-      ) : null}
     </>
   );
 }

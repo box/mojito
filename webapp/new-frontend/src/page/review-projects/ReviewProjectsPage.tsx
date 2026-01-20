@@ -12,14 +12,12 @@ import {
   REVIEW_PROJECT_TYPE_LABELS,
   REVIEW_PROJECT_TYPES,
 } from '../../api/review-projects';
-import { generateSampleReviewProjects } from '../../api/review-projects';
 import { useUser } from '../../components/RequireUser';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useReviewProjects } from '../../hooks/useReviewProjects';
 import { useLocaleOptionsWithDisplayNames } from '../../utils/localeSelection';
 import { filterMyLocales } from '../../utils/localeSelection';
 import { loadPreferredLocales } from '../workbench/workbench-preferences';
-import { mockReviewProjects } from './mockReviewProjects';
 import { type ReviewProjectRow, ReviewProjectsPageView } from './ReviewProjectsPageView';
 
 type FilterOption<T extends string | number> = { value: T; label: string };
@@ -102,9 +100,6 @@ export function ReviewProjectsPage() {
   const [createdBefore, setCreatedBefore] = useState<string | null>(null);
   const [dueAfter, setDueAfter] = useState<string | null>(null);
   const [dueBefore, setDueBefore] = useState<string | null>(null);
-  const [overrideProjects, setOverrideProjects] = useState<ApiReviewProjectSummary[] | null>(null);
-  const [generateError, setGenerateError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const searchParams = useMemo<ReviewProjectsSearchRequest>(() => {
     const searchFieldValue: ReviewProjectsSearchRequest['searchField'] =
@@ -141,7 +136,7 @@ export function ReviewProjectsPage() {
 
   const { data, isLoading, isError, error, refetch } = useReviewProjects(searchParams);
 
-  const projects = useMemo(() => overrideProjects ?? data ?? [], [data, overrideProjects]);
+  const projects = useMemo(() => data ?? [], [data]);
   const repositories = useMemo(() => repositoryData ?? [], [repositoryData]);
   const localeOptions = useLocaleOptionsWithDisplayNames(repositories);
   const preferredLocales = useMemo(() => loadPreferredLocales(), []);
@@ -158,72 +153,17 @@ export function ReviewProjectsPage() {
   );
 
   const status: 'loading' | 'error' | 'ready' =
-    overrideProjects != null || isGenerating
-      ? 'ready'
-      : isLoading
-        ? 'loading'
-        : isError
-          ? 'error'
-          : 'ready';
+    isLoading ? 'loading' : isError ? 'error' : 'ready';
 
   const errorMessage =
-    overrideProjects != null
-      ? undefined
-      : (generateError ??
-        (isError
-          ? error instanceof Error
-            ? error.message
-            : 'Failed to load review projects.'
-          : undefined));
-
-  const ensureEmergencyProject = useCallback(
-    (projects: ApiReviewProjectSummary[]): ApiReviewProjectSummary[] => {
-      if (projects.some((project) => project.type === 'EMERGENCY')) {
-        return projects;
-      }
-
-      const sampleEmergency =
-        mockReviewProjects.find((project) => project.type === 'EMERGENCY') ??
-        ({
-          id: Number.MAX_SAFE_INTEGER,
-          name: 'Emergency review project',
-          createdDate: new Date().toISOString(),
-          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
-          textUnitCount: 50,
-          wordCount: 10000,
-          type: 'EMERGENCY' as const,
-          status: 'OPEN' as const,
-          acceptedCount: 0,
-          repositories: [],
-          locales: [],
-        } satisfies ApiReviewProjectSummary);
-
-      return [sampleEmergency, ...projects];
-    },
-    [],
-  );
-
-  const handleUseMock = useCallback(() => {
-    setGenerateError(null);
-    setIsGenerating(true);
-    generateSampleReviewProjects()
-      .then((generated) => {
-        const baseProjects = generated.length > 0 ? generated : mockReviewProjects;
-        setOverrideProjects(ensureEmergencyProject(baseProjects));
-      })
-      .catch((e) => {
-        const message = e instanceof Error ? e.message : 'Failed to generate sample projects';
-        setGenerateError(message);
-        setOverrideProjects(ensureEmergencyProject(mockReviewProjects));
-      })
-      .finally(() => {
-        setIsGenerating(false);
-      });
-  }, [ensureEmergencyProject]);
+    isError
+      ? error instanceof Error
+        ? error.message
+        : 'Failed to load review projects.'
+      : undefined;
 
   const filteredProjects = useMemo(() => {
     const source = projects;
-    const usingOverride = overrideProjects != null;
     const {
       localeTags,
       statuses,
@@ -282,10 +222,6 @@ export function ReviewProjectsPage() {
     };
 
     const matchesLocales = (project: ApiReviewProjectSummary) => {
-      if (usingOverride) {
-        // Mock/override data may not share locales with repository options; avoid filtering it out.
-        return true;
-      }
       if (!localeTags || localeTags.length === 0) {
         return true;
       }
@@ -315,7 +251,7 @@ export function ReviewProjectsPage() {
 
     const limitValue = lmt && lmt > 0 ? lmt : undefined;
     return limitValue ? filtered.slice(0, limitValue) : filtered;
-  }, [projects, searchParams, overrideProjects, hasTouchedLocales]);
+  }, [projects, searchParams, hasTouchedLocales]);
 
   const rows = useMemo<ReviewProjectRow[]>(() => {
     return filteredProjects.map((project) => ({
@@ -350,7 +286,6 @@ export function ReviewProjectsPage() {
       status={status}
       errorMessage={errorMessage}
       errorOnRetry={handleRetry}
-      onLoadMock={handleUseMock}
       projects={rows}
       filters={{
         localeOptions,
