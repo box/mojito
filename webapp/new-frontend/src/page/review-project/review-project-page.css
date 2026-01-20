@@ -721,14 +721,18 @@
 }
 
 .modal--screenshot .modal__card {
-  width: 90vw;
-  height: 90vh;
-  max-width: 90vw;
-  max-height: 90vh;
-  min-height: 90vh;
+  width: 90vw !important;
+  height: 90vh !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  min-height: 90vh !important;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+.modal--screenshot {
+  padding: var(--space-3);
 }
 
 .review-project-screenshot-modal {
@@ -741,6 +745,7 @@
 .review-project-screenshot-modal__grid {
   flex: 1;
   overflow: auto;
+  min-height: 0;
 }
 
 .review-project-screenshot-lightbox {
@@ -758,9 +763,10 @@
 .review-project-screenshot-lightbox__inner {
   background: var(--color-surface);
   border-radius: var(--radius-3);
-  max-width: min(1100px, 92vw);
-  width: 100%;
-  max-height: 92vh;
+  width: 90vw;
+  height: 90vh;
+  max-width: 90vw;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.25);
@@ -789,6 +795,7 @@
 
 .review-project-screenshot-lightbox__image-wrap {
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 3rem 1fr 3rem;
   column-gap: var(--space-3);
