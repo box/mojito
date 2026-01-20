@@ -34,9 +34,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.exceptions.OkapiIOException;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -494,5 +498,37 @@ public class DropService {
   public void completeDrop(Drop drop) {
     drop.setPartiallyImported(Boolean.FALSE);
     dropRepository.save(drop);
+  }
+
+  /**
+   * Cannot use an EntityGraph with pagination as it triggers the following warning: HHH90003004:
+   * firstResult/maxResults specified with collection fetch; applying in memory
+   *
+   * @param spec
+   * @param pageable
+   */
+  public Page<Drop> findAll(Specification<Drop> spec, Pageable pageable) {
+    final Page<Drop> drops = dropRepository.findAll(spec, pageable);
+    drops.forEach(
+        drop -> {
+          Hibernate.initialize(drop.getCreatedByUser());
+          if (drop.getRepository() != null) {
+            Hibernate.initialize(drop.getRepository());
+            Hibernate.initialize(drop.getRepository().getCreatedByUser());
+          }
+          if (drop.getImportPollableTask() != null) {
+            Hibernate.initialize(drop.getImportPollableTask());
+            Hibernate.initialize(drop.getImportPollableTask().getSubTasks());
+          }
+          if (drop.getExportPollableTask() != null) {
+            Hibernate.initialize(drop.getExportPollableTask());
+            Hibernate.initialize(drop.getExportPollableTask().getSubTasks());
+          }
+          Hibernate.initialize(drop.getTranslationKits());
+          if (drop.getTranslationKits() != null) {
+            drop.getTranslationKits().forEach(tk -> Hibernate.initialize(tk.getLocale()));
+          }
+        });
+    return drops;
   }
 }
