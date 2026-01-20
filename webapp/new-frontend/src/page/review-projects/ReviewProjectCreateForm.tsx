@@ -65,6 +65,9 @@ export function ReviewProjectCreateForm({
   const [notes, setNotes] = useState('');
   const [screenshotKeys, setScreenshotKeys] = useState<string[]>([]);
   const [screenshotDraft, setScreenshotDraft] = useState('');
+  const [uploadQueue, setUploadQueue] = useState<
+    Array<{ key: string; name: string; status: 'uploading' | 'done' | 'error'; error?: string }>
+  >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => setName(defaultName), [defaultName]);
@@ -83,8 +86,12 @@ export function ReviewProjectCreateForm({
 
   const canSubmit = useMemo(
     () =>
-      Boolean(name.trim()) && Boolean(dueDate) && tmTextUnitIds.length > 0 && selectedLocaleTags.length > 0,
-    [dueDate, name, selectedLocaleTags.length, tmTextUnitIds.length],
+      Boolean(name.trim()) &&
+      Boolean(dueDate) &&
+      tmTextUnitIds.length > 0 &&
+      selectedLocaleTags.length > 0 &&
+      uploadQueue.every((item) => item.status !== 'uploading'),
+    [dueDate, name, selectedLocaleTags.length, tmTextUnitIds.length, uploadQueue],
   );
 
   const addScreenshotKeys = (raw: string[]) => {
@@ -112,13 +119,58 @@ export function ReviewProjectCreateForm({
     setScreenshotDraft('');
   };
 
-  const handleFiles = (files: FileList | null) => {
+  const uploadImage = async (file: File): Promise<string> => {
+    const ext = file.name.includes('.') ? file.name.split('.').pop() ?? '' : '';
+    const suffix = ext ? `.${ext.toLowerCase()}` : '';
+    const key =
+      (typeof crypto !== 'undefined' && 'randomUUID' in crypto && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2)) + suffix;
+    const buffer = await file.arrayBuffer();
+    const response = await fetch(`/api/images/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: buffer,
+    });
+    if (!response.ok) {
+      const msg = await response.text().catch(() => '');
+      throw new Error(msg || 'Upload failed');
+    }
+    return key;
+  };
+
+  const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const names = Array.from(files)
-      .map((file) => file.name)
-      .filter(Boolean);
-    addScreenshotKeys(names);
+    const fileArr = Array.from(files);
+    const queueEntries = fileArr.map((file) => ({
+      key: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      name: file.name,
+      status: 'uploading' as const,
+    }));
+    setUploadQueue((prev) => [...queueEntries, ...prev]);
     if (fileInputRef.current) fileInputRef.current.value = '';
+    await Promise.all(
+      queueEntries.map(async (entry, index) => {
+        const file = fileArr[index];
+        try {
+          const uploadedKey = await uploadImage(file);
+          setUploadQueue((prev) =>
+            prev.map((item) =>
+              item.key === entry.key ? { ...item, status: 'done' } : item,
+            ),
+          );
+          addScreenshotKeys([uploadedKey]);
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : 'Upload failed. Please try again.';
+          setUploadQueue((prev) =>
+            prev.map((item) =>
+              item.key === entry.key ? { ...item, status: 'error', error: message } : item,
+            ),
+          );
+        }
+      }),
+    );
   };
 
   return (
@@ -218,7 +270,7 @@ export function ReviewProjectCreateForm({
           <div className="review-create__label-row">
             <span className="review-create__label">Screenshots (optional)</span>
             <span className="review-create__hint">
-              Paste screenshot URLs or existing screenshot keys. (Upload not yet supported.)
+              Drop images to upload or paste screenshot URLs/keys.
             </span>
           </div>
           <div
@@ -229,7 +281,7 @@ export function ReviewProjectCreateForm({
             onDrop={(event) => {
               event.preventDefault();
               if (isSubmitting) return;
-              handleFiles(event.dataTransfer.files);
+              void handleFiles(event.dataTransfer.files);
             }}
           >
             <input
@@ -237,7 +289,9 @@ export function ReviewProjectCreateForm({
               type="file"
               multiple
               className="review-create__file-input"
-              onChange={(event) => handleFiles(event.target.files)}
+              onChange={(event) => {
+                void handleFiles(event.target.files);
+              }}
               disabled={isSubmitting}
             />
             <div className="review-create__dropzone-main">
@@ -285,6 +339,22 @@ export function ReviewProjectCreateForm({
                     ×
                   </button>
                 </span>
+              ))}
+            </div>
+          ) : null}
+          {uploadQueue.length ? (
+            <div className="review-create__upload-list" aria-label="Upload status">
+              {uploadQueue.map((item) => (
+                <div key={item.key} className="review-create__upload-row">
+                  <span className="review-create__upload-name">{item.name}</span>
+                  <span className={`review-create__upload-status status-${item.status}`}>
+                    {item.status === 'uploading'
+                      ? 'Uploading…'
+                      : item.status === 'done'
+                        ? 'Ready'
+                        : item.error || 'Failed'}
+                  </span>
+                </div>
               ))}
             </div>
           ) : null}

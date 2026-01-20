@@ -243,6 +243,45 @@
   flex-wrap: wrap;
 }
 
+.review-create__upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.review-create__upload-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.review-create__upload-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.review-create__upload-status {
+  font-weight: var(--font-weight-semibold);
+}
+
+.review-create__upload-status.status-uploading {
+  color: var(--color-text-muted);
+}
+
+.review-create__upload-status.status-done {
+  color: var(--color-accent);
+}
+
+.review-create__upload-status.status-error {
+  color: var(--color-danger);
+}
+
 .review-create__chip {
   display: inline-flex;
   align-items: center;
