@@ -429,6 +429,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 }))
               }
               screenshotCount={screenshotImages.length}
+              screenshotImages={screenshotImages}
+              onOpenScreenshotAt={(index) => setLightboxIndex(index)}
               onOpenScreenshots={() => setIsScreenshotModalOpen(true)}
               onAccept={handleAccept}
               onReviewStatus={handleReviewStatus}
@@ -465,6 +467,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         onClose={() => setIsScreenshotModalOpen(false)}
         closeOnBackdrop
         size="lg"
+        className="modal--screenshot"
         ariaLabel="Project screenshots"
       >
         <div className="review-project-screenshot-modal">
@@ -545,6 +548,18 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               </button>
             </div>
             <div className="review-project-screenshot-lightbox__image-wrap">
+              <button
+                type="button"
+                className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--prev"
+                onClick={() =>
+                  setLightboxIndex(
+                    (lightboxIndex - 1 + screenshotImages.length) % screenshotImages.length,
+                  )
+                }
+                aria-label="Previous screenshot"
+              >
+                ‹
+              </button>
               <img
                 src={
                   /^https?:\/\//i.test(screenshotImages[lightboxIndex])
@@ -553,41 +568,24 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 }
                 alt=""
                 className="review-project-screenshot-lightbox__image"
+                onDoubleClick={() => {
+                  const src =
+                    /^https?:\/\//i.test(screenshotImages[lightboxIndex])
+                      ? screenshotImages[lightboxIndex]
+                      : `/api/images/${encodeURIComponent(screenshotImages[lightboxIndex])}`;
+                  window.open(src, '_blank', 'noopener,noreferrer');
+                }}
               />
-            </div>
-            <div className="review-project-screenshot-lightbox__actions">
               <button
                 type="button"
-                className="review-project-detail__actions-button"
-                onClick={() =>
-                  setLightboxIndex(
-                    (lightboxIndex - 1 + screenshotImages.length) % screenshotImages.length,
-                  )
-                }
-              >
-                Prev
-              </button>
-              <button
-                type="button"
-                className="review-project-detail__actions-button"
+                className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--next"
                 onClick={() =>
                   setLightboxIndex((lightboxIndex + 1) % screenshotImages.length)
                 }
+                aria-label="Next screenshot"
               >
-                Next
+                ›
               </button>
-              <a
-                className="review-project-detail__actions-button"
-                href={
-                  /^https?:\/\//i.test(screenshotImages[lightboxIndex])
-                    ? screenshotImages[lightboxIndex]
-                    : `/api/images/${encodeURIComponent(screenshotImages[lightboxIndex])}`
-                }
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open original
-              </a>
             </div>
           </div>
         </div>
@@ -639,7 +637,9 @@ function DetailPane({
   onSaveNote,
   onReviewStatus,
   screenshotCount,
+  screenshotImages,
   onOpenScreenshots,
+  onOpenScreenshotAt,
   onAccept,
   acceptError,
   isAccepting,
@@ -654,7 +654,9 @@ function DetailPane({
   onSaveNote: () => void;
   onReviewStatus: (status: ApiReviewProjectTextUnit['reviewStatus']) => Promise<void> | void;
   screenshotCount: number;
+  screenshotImages: string[];
   onOpenScreenshots: () => void;
+  onOpenScreenshotAt: (index: number) => void;
   onAccept: (override: boolean) => void;
   acceptError: string | null;
   isAccepting: boolean;
@@ -790,25 +792,41 @@ function DetailPane({
           </div>
         </div>
       </div>
-      <div className="review-project-detail__actions">
-        <div className="review-project-detail__actions-row">
+      <div className="review-project-detail__actions review-project-detail__actions--column">
+        <div className="review-project-detail__shots-header">
           <div className="review-project-detail__actions-label">Screenshots</div>
-          <div className="review-project-detail__actions-info">
-            {screenshotCount > 0 ? `${screenshotCount} attached` : 'No screenshots attached'}
+          <div className="review-project-detail__shots-count">
+            {screenshotCount > 0 ? `${screenshotCount} attached` : 'None'}
           </div>
-          <button
-            type="button"
-            className="review-project-detail__actions-button"
-            disabled={screenshotCount === 0}
-            onClick={() => {
-              if (screenshotCount > 0) {
-                onOpenScreenshots();
-              }
-            }}
-          >
-            Open
-          </button>
+          {screenshotCount > 0 ? (
+            <button type="button" className="review-project-detail__actions-button" onClick={onOpenScreenshots}>
+              View all
+            </button>
+          ) : null}
         </div>
+        {screenshotImages.length ? (
+          <div className="review-project-detail__thumbs" aria-label="Screenshot thumbnails">
+            {screenshotImages.map((key, idx) => {
+              const isUrl =
+                /^https?:\/\//i.test(key) ||
+                key.startsWith('//') ||
+                key.startsWith('data:') ||
+                key.startsWith('blob:');
+              const resolvedUrl = isUrl ? key : `/api/images/${encodeURIComponent(key)}`;
+              return (
+                <button
+                  key={`${key}-${idx}`}
+                  type="button"
+                  className="review-project-detail__thumb"
+                  onClick={() => onOpenScreenshotAt(idx)}
+                  title="Click to zoom"
+                >
+                  <img src={resolvedUrl} alt="" loading="lazy" />
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </div>
   );
