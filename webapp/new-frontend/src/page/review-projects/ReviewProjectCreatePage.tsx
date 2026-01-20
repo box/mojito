@@ -6,7 +6,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useCreateReviewProject } from '../../hooks/useCreateReviewProject';
 import { useRepositories } from '../../hooks/useRepositories';
 import { useLocaleOptionsWithDisplayNames } from '../../utils/localeSelection';
-import type { ReviewProjectCreateFormValues } from './ReviewProjectCreateForm';
+import { useWorkbenchCollections } from '../workbench/useWorkbenchCollections';
+import type { CollectionOption, ReviewProjectCreateFormValues } from './ReviewProjectCreateForm';
 import { ReviewProjectCreateForm } from './ReviewProjectCreateForm';
 
 function toLocalInput(value: Date) {
@@ -15,12 +16,43 @@ function toLocalInput(value: Date) {
   return local.toISOString().slice(0, 16);
 }
 
+type ReviewProjectNavState = {
+  repositoryIds?: number[];
+  tmTextUnitIds?: number[];
+  collectionName?: string | null;
+  collectionId?: string | null;
+  defaultName?: string;
+  defaultDueDate?: string;
+};
+
+function isReviewProjectNavState(value: unknown): value is ReviewProjectNavState {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<ReviewProjectNavState>;
+  const isNumberArray = (input: unknown): input is number[] =>
+    Array.isArray(input) && input.every((item) => typeof item === 'number');
+  const isOptionalString = (input: unknown): input is string | null | undefined =>
+    input === undefined || input === null || typeof input === 'string';
+
+  return (
+    (candidate.repositoryIds === undefined || isNumberArray(candidate.repositoryIds)) &&
+    (candidate.tmTextUnitIds === undefined || isNumberArray(candidate.tmTextUnitIds)) &&
+    isOptionalString(candidate.collectionName) &&
+    isOptionalString(candidate.collectionId) &&
+    (candidate.defaultName === undefined || typeof candidate.defaultName === 'string') &&
+    (candidate.defaultDueDate === undefined || typeof candidate.defaultDueDate === 'string')
+  );
+}
+
 export function ReviewProjectCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: repositories = [] } = useRepositories();
+  const { collections, activeCollection } = useWorkbenchCollections();
   const [repositoryIds, setRepositoryIds] = useState<number[]>([]);
   const [tmIds, setTmIds] = useState<number[]>([]);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [prefillName, setPrefillName] = useState('Review project');
   const [prefillDueDate, setPrefillDueDate] = useState<string | null>(null);
@@ -38,17 +70,21 @@ export function ReviewProjectCreatePage() {
     repositories,
     repositoryIds.length ? new Set(repositoryIds) : undefined,
   );
+  const collectionOptions = useMemo<CollectionOption[]>(
+    () =>
+      [...collections]
+        .filter((collection) => collection.entries.length > 0)
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .map((collection) => ({
+          id: collection.id,
+          name: collection.name || 'Untitled collection',
+          size: collection.entries.length,
+        })),
+    [collections],
+  );
 
   useEffect(() => {
-    const state = location.state as
-      | {
-          repositoryIds?: number[];
-          tmTextUnitIds?: number[];
-          collectionName?: string | null;
-          defaultName?: string;
-          defaultDueDate?: string;
-        }
-      | null;
+    const state = isReviewProjectNavState(location.state) ? location.state : null;
     if (!state) {
       return;
     }
@@ -61,6 +97,9 @@ export function ReviewProjectCreatePage() {
     }
     if (state.collectionName) {
       setPrefillCollectionName(state.collectionName);
+    }
+    if (state.collectionId) {
+      setSelectedCollectionId(state.collectionId);
     }
     if (state.defaultName) {
       setPrefillName(state.defaultName);
@@ -75,6 +114,44 @@ export function ReviewProjectCreatePage() {
       setRepositoryIds(repositories.map((repo) => repo.id));
     }
   }, [repositories, repositoryIds.length]);
+
+  useEffect(() => {
+    if (selectedCollectionId === null) {
+      return;
+    }
+    const collection = collections.find((item) => item.id === selectedCollectionId);
+    if (!collection) {
+      return;
+    }
+    if (collection.entries.length === 0) {
+      setTmIds([]);
+      setPrefillCollectionName(collection.name);
+      return;
+    }
+    const nextTmIds = Array.from(new Set(collection.entries.map((entry) => entry.tmTextUnitId)));
+    const nextRepoIds = Array.from(
+      new Set(
+        collection.entries
+          .map((entry) => entry.repositoryId)
+          .filter((id): id is number => typeof id === 'number'),
+      ),
+    );
+    setTmIds(nextTmIds);
+    if (nextRepoIds.length) {
+      setRepositoryIds(nextRepoIds);
+    }
+    setPrefillCollectionName(collection.name);
+  }, [collections, selectedCollectionId]);
+
+  useEffect(() => {
+    if (selectedCollectionId || tmIds.length || !activeCollection) {
+      return;
+    }
+    if (activeCollection.entries.length === 0) {
+      return;
+    }
+    setSelectedCollectionId(activeCollection.id);
+  }, [activeCollection, selectedCollectionId, tmIds.length]);
 
   const handleSubmit = useCallback(
     (values: ReviewProjectCreateFormValues) => {
@@ -96,18 +173,24 @@ export function ReviewProjectCreatePage() {
           tmTextUnitIds: tmIds,
           screenshotImageIds: values.screenshotImageIds,
           name: values.name,
-        },
-        {
-          onSuccess: (summaries) => {
-            const firstId = summaries[0]?.id;
-            void navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
           },
-          onError: (err) => {
-            setErrorMessage(err instanceof Error ? err.message : 'Failed to create project');
+          {
+            onSuccess: (summaries) => {
+              const firstId = summaries[0]?.id;
+              void navigate(firstId ? `/review-projects/${firstId}` : '/review-projects');
+            },
+            onError: (err: unknown) => {
+              const message =
+                err instanceof Error
+                  ? err.message
+                  : typeof err === 'string'
+                    ? err
+                    : '';
+              setErrorMessage(message.trim() || 'Failed to create project');
+            },
           },
-        },
-      );
-    },
+        );
+      },
     [createReviewProject, navigate, repositoryIds, tmIds],
   );
 
@@ -124,12 +207,17 @@ export function ReviewProjectCreatePage() {
           defaultName={prefillName || 'Review project'}
           defaultDueDate={prefillDueDate ?? defaultDueDate}
           localeOptions={localeOptions}
-          collectionSize={collectionSize || 1}
+          collectionSize={collectionSize}
           tmTextUnitIds={tmIds}
           collectionName={prefillCollectionName ?? null}
-          collectionOptions={undefined}
-          selectedCollectionId={null}
-          onChangeCollection={undefined}
+          collectionOptions={collectionOptions.length ? collectionOptions : undefined}
+          selectedCollectionId={selectedCollectionId}
+          onChangeCollection={(id) => {
+            setSelectedCollectionId(id);
+            if (!id) {
+              setPrefillCollectionName(null);
+            }
+          }}
           isSubmitting={createReviewProject.isPending}
           errorMessage={errorMessage}
           submitLabel="Create"

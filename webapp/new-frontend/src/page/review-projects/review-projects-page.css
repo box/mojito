@@ -132,8 +132,8 @@
 }
 
 .review-create__two-up {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
 }
 

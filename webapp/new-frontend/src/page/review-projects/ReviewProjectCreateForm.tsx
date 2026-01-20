@@ -14,10 +14,10 @@ export type ReviewProjectCreateFormValues = {
   dueDate: string;
   type: ApiReviewProjectType;
   localeTags: string[];
-  maxTextUnits: number | null;
   notes: string | null;
   tmTextUnitIds: number[];
   screenshotImageIds: string[];
+  maxTextUnits?: number | null;
 };
 
 export type CollectionOption = { id: string; name: string; size: number };
@@ -59,29 +59,21 @@ export function ReviewProjectCreateForm({
   const [dueDate, setDueDate] = useState(defaultDueDate);
   const [type, setType] = useState<ApiReviewProjectType>('NORMAL');
   const [notes, setNotes] = useState('');
-  const [selectedLocales, setSelectedLocales] = useState<string[]>(
-    localeOptions.map((opt) => opt.tag),
-  );
   const [screenshotKeys, setScreenshotKeys] = useState<string[]>([]);
   const [screenshotDraft, setScreenshotDraft] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => setName(defaultName), [defaultName]);
   useEffect(() => setDueDate(defaultDueDate), [defaultDueDate]);
-  useEffect(() => setSelectedLocales(localeOptions.map((opt) => opt.tag)), [localeOptions]);
-  useEffect(() => {
-    if (localeOptions.length === 0 && selectedLocales.length === 0 && tmTextUnitIds.length > 0) {
-      setSelectedLocales(['en']);
-    }
-  }, [localeOptions.length, selectedLocales.length, tmTextUnitIds.length]);
+
+  const localeTags = useMemo(
+    () => localeOptions.map((opt) => opt.tag),
+    [localeOptions],
+  );
 
   const canSubmit = useMemo(
-    () =>
-      Boolean(name.trim()) &&
-      Boolean(dueDate) &&
-      selectedLocales.length > 0 &&
-      tmTextUnitIds.length > 0,
-    [dueDate, name, selectedLocales.length, tmTextUnitIds.length],
+    () => Boolean(name.trim()) && Boolean(dueDate) && tmTextUnitIds.length > 0,
+    [dueDate, name, tmTextUnitIds.length],
   );
 
   const addScreenshotKeys = (raw: string[]) => {
@@ -287,12 +279,13 @@ export function ReviewProjectCreateForm({
           onClick={() => {
             if (!canSubmit || isSubmitting) return;
             const dueIso = new Date(dueDate).toISOString();
+            const maxTextUnits = tmTextUnitIds.length || collectionSize || null;
             onSubmit({
               name: name.trim(),
               dueDate: dueIso,
               type,
-              localeTags: selectedLocales,
-              maxTextUnits: collectionSize,
+              localeTags: localeTags.length ? localeTags : ['en'],
+              maxTextUnits,
               notes: notes.trim() || null,
               tmTextUnitIds,
               screenshotImageIds: screenshotKeys,

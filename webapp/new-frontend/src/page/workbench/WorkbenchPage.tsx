@@ -311,6 +311,7 @@ export function WorkbenchPage() {
     const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
     void navigate('/review-projects/new', {
       state: {
+        collectionId: collection.id,
         repositoryIds: repoIds,
         tmTextUnitIds: tmIds,
         collectionName: collection.name,
