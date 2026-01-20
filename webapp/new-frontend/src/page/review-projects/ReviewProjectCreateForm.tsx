@@ -209,7 +209,7 @@ export function ReviewProjectCreateForm({
             onChange={(event) => setNotes(event.target.value)}
             rows={4}
             maxLength={400}
-            placeholder="Call out priorities, owners, or scope."
+            placeholder="Describe the feature, glossary guidance, etc"
             disabled={isSubmitting}
           />
         </label>
