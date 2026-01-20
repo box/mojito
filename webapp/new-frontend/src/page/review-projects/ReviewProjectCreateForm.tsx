@@ -70,6 +70,7 @@ export function ReviewProjectCreateForm({
       key: string;
       name: string;
       status: 'uploading' | 'done' | 'error';
+      kind: 'image' | 'video';
       preview?: string | null;
       error?: string;
     }>
@@ -145,20 +146,38 @@ export function ReviewProjectCreateForm({
     return key;
   };
 
+  const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'm4v', 'ogv', 'ogg', 'mkv'];
+
+  const isVideoFile = (file: File) => {
+    if (file.type.startsWith('video/')) return true;
+    const lower = file.name.toLowerCase();
+    return VIDEO_EXTENSIONS.some((ext) => lower.endsWith(`.${ext}`));
+  };
+
+  const isSupportedFile = (file: File) =>
+    file.type.startsWith('image/') ||
+    file.type.startsWith('video/') ||
+    /\.(png|jpe?g|gif|webp|bmp|svg|mp4|mov|webm|m4v|ogv|ogg|mkv)$/i.test(file.name);
+
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const fileArr = Array.from(files);
     const queueEntries = fileArr.map((file) => ({
       key: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: file.name,
-      status: 'uploading' as const,
+      status: isSupportedFile(file) ? ('uploading' as const) : ('error' as const),
+      kind: isVideoFile(file) ? 'video' : 'image',
       preview: URL.createObjectURL(file),
+      error: isSupportedFile(file) ? undefined : 'Unsupported file type',
     }));
     setUploadQueue((prev) => [...queueEntries, ...prev]);
     if (fileInputRef.current) fileInputRef.current.value = '';
     await Promise.all(
       queueEntries.map(async (entry, index) => {
         const file = fileArr[index];
+        if (!isSupportedFile(file)) {
+          return;
+        }
         try {
           const uploadedKey = await uploadImage(file);
           setUploadQueue((prev) =>
@@ -277,7 +296,7 @@ export function ReviewProjectCreateForm({
           <div className="review-create__label-row">
             <span className="review-create__label">Screenshots (optional)</span>
             <span className="review-create__hint">
-              Drop images to upload or paste screenshot URLs/keys.
+              Drop images/videos to upload or paste screenshot URLs/keys.
             </span>
           </div>
           <div
@@ -296,6 +315,7 @@ export function ReviewProjectCreateForm({
               type="file"
               multiple
               className="review-create__file-input"
+              accept="image/*,video/*"
               onChange={(event) => {
                 void handleFiles(event.target.files);
               }}
@@ -354,12 +374,23 @@ export function ReviewProjectCreateForm({
               {uploadQueue.map((item) => (
                 <div key={item.key} className="review-create__upload-row">
                   {item.preview ? (
-                    <img
-                      src={item.preview}
-                      alt=""
-                      className="review-create__upload-thumb"
-                      loading="lazy"
-                    />
+                    item.kind === 'video' ? (
+                      <video
+                        src={item.preview}
+                        className="review-create__upload-thumb review-create__upload-thumb--video"
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      <img
+                        src={item.preview}
+                        alt=""
+                        className="review-create__upload-thumb"
+                        loading="lazy"
+                      />
+                    )
                   ) : (
                     <span className="review-create__upload-thumb placeholder" />
                   )}

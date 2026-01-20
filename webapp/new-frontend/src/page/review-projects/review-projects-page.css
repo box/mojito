@@ -269,6 +269,11 @@
   flex-shrink: 0;
 }
 
+.review-create__upload-thumb--video {
+  object-fit: contain;
+  background: #000;
+}
+
 .review-create__upload-thumb.placeholder {
   display: inline-block;
 }

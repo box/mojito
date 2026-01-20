@@ -14,8 +14,8 @@ import {
   updateReviewProjectTextUnitReview,
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
-import { Modal } from '../../components/Modal';
 import { Pill } from '../../components/Pill';
+import { Modal } from '../../components/Modal';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
@@ -50,7 +50,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [acceptError, setAcceptError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [selectedScreenshotIdx, setSelectedScreenshotIdx] = useState<number>(0);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -94,6 +94,14 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     () => project?.screenshotImageIds ?? [],
     [project?.screenshotImageIds],
   );
+
+  useEffect(() => {
+    if (!screenshotImages.length) {
+      setSelectedScreenshotIdx(0);
+      return;
+    }
+    setSelectedScreenshotIdx((idx) => Math.min(idx, screenshotImages.length - 1));
+  }, [screenshotImages]);
 
   const selectedTextUnit = useMemo(
     () => filtered.find((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId),
@@ -430,8 +438,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               }
               screenshotCount={screenshotImages.length}
               screenshotImages={screenshotImages}
-              onOpenScreenshotAt={(index) => setLightboxIndex(index)}
-              onOpenScreenshots={() => setIsScreenshotModalOpen(true)}
+              currentScreenshotIdx={selectedScreenshotIdx}
+              onChangeScreenshotIdx={setSelectedScreenshotIdx}
+              onOpenGallery={() => setIsScreenshotModalOpen(true)}
               onAccept={handleAccept}
               onReviewStatus={handleReviewStatus}
               onSaveNote={() => {
@@ -462,133 +471,86 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           )}
         </section>
       </div>
-      <Modal
-        open={isScreenshotModalOpen}
-        onClose={() => setIsScreenshotModalOpen(false)}
-        closeOnBackdrop
-        size="lg"
-        className="modal--screenshot"
-        ariaLabel="Project screenshots"
-      >
-        <div className="review-project-screenshot-modal">
-          <div className="review-project-screenshot-modal__header">
-            <div className="review-project-screenshot-modal__title">Screenshots</div>
-            <div className="review-project-screenshot-modal__count">
-              {screenshotImages.length} attached
-            </div>
-          </div>
-          {screenshotImages.length === 0 ? (
-            <div className="review-project-screenshot-modal__empty">No screenshots attached.</div>
-          ) : (
-            <div className="review-project-screenshot-modal__grid">
-              {screenshotImages.map((key) => {
-                const isUrl =
-                  /^https?:\/\//i.test(key) ||
-                  key.startsWith('//') ||
-                  key.startsWith('data:') ||
-                  key.startsWith('blob:');
-                const resolvedUrl = key.startsWith('//') ? `https:${key}` : key;
-                const displaySrc = isUrl
-                  ? resolvedUrl
-                  : `/api/images/${encodeURIComponent(key)}`;
-                return (
-                  <div key={key} className="review-project-screenshot-modal__item">
-                    <div className="review-project-screenshot-modal__key" title={key}>
-                      {key}
-                    </div>
-                    <button
-                      type="button"
-                      className="review-project-screenshot-modal__thumb-link"
-                      onClick={() => setLightboxIndex(screenshotImages.indexOf(key))}
-                    >
-                      <img
-                        src={displaySrc}
-                        alt="Screenshot"
-                        className="review-project-screenshot-modal__image"
-                        loading="lazy"
-                      />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-         <div className="review-project-screenshot-modal__footer">
-           <button
-             type="button"
-             className="review-project-detail__actions-button"
-             onClick={() => setIsScreenshotModalOpen(false)}
-           >
-             Close
-           </button>
-         </div>
-       </div>
-     </Modal>
-      {lightboxIndex !== null && screenshotImages[lightboxIndex] ? (
-        <div
-          className="review-project-screenshot-lightbox"
-          role="dialog"
-          aria-label="Screenshot viewer"
-          onClick={() => setLightboxIndex(null)}
+      {isScreenshotModalOpen ? (
+        <Modal
+          open
+          onClose={() => setIsScreenshotModalOpen(false)}
+          closeOnBackdrop
+          size="lg"
+          className="modal--screenshot"
+          ariaLabel="Screenshot gallery"
         >
-          <div
-            className="review-project-screenshot-lightbox__inner"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="review-project-screenshot-lightbox__bar">
-              <div className="review-project-screenshot-lightbox__meta">
-                {lightboxIndex + 1} / {screenshotImages.length}
+          <div className="review-project-screenshot-modal">
+            <div className="review-project-screenshot-modal__header">
+              <div className="review-project-screenshot-modal__title">Screenshots</div>
+              <div className="review-project-screenshot-modal__count">
+                {screenshotImages.length} attached
               </div>
-              <button
-                type="button"
-                className="review-project-screenshot-lightbox__close"
-                onClick={() => setLightboxIndex(null)}
-              >
-                ×
-              </button>
             </div>
-            <div className="review-project-screenshot-lightbox__image-wrap">
+            {screenshotImages.length ? (
+              <div className="review-project-screenshot-modal__gallery">
+                <button
+                  type="button"
+                  className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--prev"
+                  onClick={() =>
+                    setSelectedScreenshotIdx(
+                      (selectedScreenshotIdx - 1 + screenshotImages.length) %
+                        screenshotImages.length,
+                    )
+                  }
+                  aria-label="Previous screenshot"
+                >
+                  ‹
+                </button>
+                <div className="review-project-detail__gallery-main review-project-detail__gallery-main--modal">
+                  {renderMedia(
+                    screenshotImages[selectedScreenshotIdx],
+                    'review-project-screenshot-modal__image--main',
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--next"
+                  onClick={() =>
+                    setSelectedScreenshotIdx((selectedScreenshotIdx + 1) % screenshotImages.length)
+                  }
+                  aria-label="Next screenshot"
+                >
+                  ›
+                </button>
+              </div>
+            ) : (
+              <div className="review-project-screenshot-modal__empty">No screenshots attached.</div>
+            )}
+            {screenshotImages.length ? (
+              <div className="review-project-detail__thumbs review-project-detail__thumbs--modal">
+                {screenshotImages.map((key, idx) => {
+                  const isActive = idx === selectedScreenshotIdx;
+                  return (
+                    <button
+                      key={`${key}-${idx}`}
+                      type="button"
+                      className={`review-project-detail__thumb${isActive ? ' is-active' : ''}`}
+                      onClick={() => setSelectedScreenshotIdx(idx)}
+                      title="Click to preview"
+                    >
+                      {renderThumbMedia(key)}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+            <div className="review-project-screenshot-modal__footer">
               <button
                 type="button"
-                className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--prev"
-                onClick={() =>
-                  setLightboxIndex(
-                    (lightboxIndex - 1 + screenshotImages.length) % screenshotImages.length,
-                  )
-                }
-                aria-label="Previous screenshot"
+                className="review-project-detail__actions-button"
+                onClick={() => setIsScreenshotModalOpen(false)}
               >
-                ‹
-              </button>
-              <img
-                src={
-                  /^https?:\/\//i.test(screenshotImages[lightboxIndex])
-                    ? screenshotImages[lightboxIndex]
-                    : `/api/images/${encodeURIComponent(screenshotImages[lightboxIndex])}`
-                }
-                alt=""
-                className="review-project-screenshot-lightbox__image"
-                onDoubleClick={() => {
-                  const src =
-                    /^https?:\/\//i.test(screenshotImages[lightboxIndex])
-                      ? screenshotImages[lightboxIndex]
-                      : `/api/images/${encodeURIComponent(screenshotImages[lightboxIndex])}`;
-                  window.open(src, '_blank', 'noopener,noreferrer');
-                }}
-              />
-              <button
-                type="button"
-                className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--next"
-                onClick={() =>
-                  setLightboxIndex((lightboxIndex + 1) % screenshotImages.length)
-                }
-                aria-label="Next screenshot"
-              >
-                ›
+                Close
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       ) : null}
     </div>
   );
@@ -638,8 +600,9 @@ function DetailPane({
   onReviewStatus,
   screenshotCount,
   screenshotImages,
-  onOpenScreenshots,
-  onOpenScreenshotAt,
+  currentScreenshotIdx,
+  onChangeScreenshotIdx,
+  onOpenGallery,
   onAccept,
   acceptError,
   isAccepting,
@@ -655,8 +618,9 @@ function DetailPane({
   onReviewStatus: (status: ApiReviewProjectTextUnit['reviewStatus']) => Promise<void> | void;
   screenshotCount: number;
   screenshotImages: string[];
-  onOpenScreenshots: () => void;
-  onOpenScreenshotAt: (index: number) => void;
+  currentScreenshotIdx: number;
+  onChangeScreenshotIdx: (index: number) => void;
+  onOpenGallery: () => void;
   onAccept: (override: boolean) => void;
   acceptError: string | null;
   isAccepting: boolean;
@@ -798,34 +762,65 @@ function DetailPane({
           <div className="review-project-detail__shots-count">
             {screenshotCount > 0 ? `${screenshotCount} attached` : 'None'}
           </div>
-          {screenshotCount > 0 ? (
-            <button type="button" className="review-project-detail__actions-button" onClick={onOpenScreenshots}>
-              View all
-            </button>
-          ) : null}
         </div>
         {screenshotImages.length ? (
-          <div className="review-project-detail__thumbs" aria-label="Screenshot thumbnails">
-            {screenshotImages.map((key, idx) => {
-              const isUrl =
-                /^https?:\/\//i.test(key) ||
-                key.startsWith('//') ||
-                key.startsWith('data:') ||
-                key.startsWith('blob:');
-              const resolvedUrl = isUrl ? key : `/api/images/${encodeURIComponent(key)}`;
-              return (
-                <button
-                  key={`${key}-${idx}`}
-                  type="button"
-                  className="review-project-detail__thumb"
-                  onClick={() => onOpenScreenshotAt(idx)}
-                  title="Click to zoom"
-                >
-                  <img src={resolvedUrl} alt="" loading="lazy" />
-                </button>
-              );
-            })}
-          </div>
+          <>
+            <div className="review-project-detail__gallery">
+              <button
+                type="button"
+                className="review-project-detail__gallery-nav"
+                onClick={() =>
+                  onChangeScreenshotIdx(
+                    (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
+                  )
+                }
+                aria-label="Previous screenshot"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="review-project-detail__gallery-main"
+                onClick={() => onOpenGallery()}
+                title="Click to open fullscreen"
+              >
+                {renderMedia(screenshotImages[currentScreenshotIdx], 'review-project-detail__gallery-image', {
+                  controls: false,
+                  muted: true,
+                  loop: true,
+                  preload: 'metadata',
+                })}
+              </button>
+              <button
+                type="button"
+                className="review-project-detail__gallery-nav"
+                onClick={() =>
+                  onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)
+                }
+                aria-label="Next screenshot"
+              >
+                ›
+              </button>
+            </div>
+            <div className="review-project-detail__thumbs" aria-label="Screenshot thumbnails">
+              {screenshotImages.map((key, idx) => {
+                const isActive = idx === currentScreenshotIdx;
+                return (
+                  <button
+                    key={`${key}-${idx}`}
+                    type="button"
+                    className={`review-project-detail__thumb${isActive ? ' is-active' : ''}`}
+                    onClick={() => {
+                      onChangeScreenshotIdx(idx);
+                    }}
+                    title="Click to zoom"
+                  >
+                    {renderThumbMedia(key)}
+                  </button>
+                );
+              })}
+            </div>
+          </>
         ) : null}
       </div>
     </div>
@@ -959,3 +954,51 @@ const formatDate = (value: string | null | undefined) => {
     day: 'numeric',
   });
 };
+
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm', '.ogv', '.ogg', '.m4v', '.mkv'];
+
+const resolveMediaUrl = (key: string) => {
+  const isExternal =
+    /^https?:\/\//i.test(key) || key.startsWith('//') || key.startsWith('data:') || key.startsWith('blob:');
+  return isExternal ? key : `/api/images/${encodeURIComponent(key)}`;
+};
+
+const isVideoKey = (key: string) => {
+  const lower = key.split('?')[0].toLowerCase();
+  return key.startsWith('data:video') || key.startsWith('blob:') || VIDEO_EXTENSIONS.some((ext) => lower.endsWith(ext));
+};
+
+type MediaRenderOptions = {
+  controls?: boolean;
+  muted?: boolean;
+  loop?: boolean;
+  preload?: 'none' | 'metadata' | 'auto';
+};
+
+const renderMedia = (key: string, className?: string, options: MediaRenderOptions = {}) => {
+  const url = resolveMediaUrl(key);
+  const baseClass = className ? `${className} review-project-media` : 'review-project-media';
+  if (isVideoKey(key)) {
+    return (
+      <video
+        key={url}
+        className={`${baseClass} review-project-media--video`}
+        src={url}
+        controls={options.controls ?? true}
+        muted={options.muted ?? false}
+        loop={options.loop ?? false}
+        playsInline
+        preload={options.preload ?? 'metadata'}
+      />
+    );
+  }
+  return <img key={url} className={baseClass} src={url} alt="" loading="lazy" />;
+};
+
+const renderThumbMedia = (key: string) =>
+  renderMedia(key, 'review-project-detail__thumb-media', {
+    controls: false,
+    muted: true,
+    loop: true,
+    preload: 'metadata',
+  });
