@@ -36,7 +36,8 @@ import org.springframework.data.annotation.CreatedBy;
       @NamedAttributeNode(value = "repository", subgraph = "Drop.legacy.repository"),
       @NamedAttributeNode(value = "importPollableTask", subgraph = "Drop.legacy.subTask"),
       @NamedAttributeNode(value = "exportPollableTask", subgraph = "Drop.legacy.subTask"),
-      @NamedAttributeNode(value = "translationKits", subgraph = "Drop.legacy.translationKits")
+      @NamedAttributeNode(value = "translationKits", subgraph = "Drop.legacy.translationKits"),
+      @NamedAttributeNode(value = "createdByUser")
     },
     subgraphs = {
       @NamedSubgraph(
