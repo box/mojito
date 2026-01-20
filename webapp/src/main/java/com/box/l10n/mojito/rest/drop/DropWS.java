@@ -77,7 +77,7 @@ public class DropWS {
       throws Exception {
 
     Page<Drop> findAll =
-        dropRepository.findAll(
+        dropService.findAll(
             where(ifParamNotNull(repositoryIdEquals(repositoryId)))
                 .and(ifParamNotNull(isImported(importedFilter)))
                 .and(ifParamNotNull(isCanceled(canceledFilter))),
