@@ -343,12 +343,10 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       <div
         className="review-project-page__content"
         ref={layoutRef}
-        style={{
-          gridTemplateColumns: `${listWidthPct}% 8px ${100 - listWidthPct}%`,
-        }}
+        style={{ ['--review-list-width' as string]: `${listWidthPct}%` }}
       >
         <section className="review-project-page__list-pane">
-          <div className="review-project-page__controls">
+          <div className="review-project-page__controls review-project-page__controls--compact">
             {/*  that search area does not work well with resizing ,  we need it more compact, probably one line
              with a single small filter button. we first need to clarify the states though */}
             <input
@@ -358,22 +356,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <label className="review-project-page__control">
-              <input
-                type="checkbox"
-                checked={onlyReviewed}
-                onChange={(e) => setOnlyReviewed(e.target.checked)}
-              />
-              <span>Reviewed</span>
-            </label>
-            <label className="review-project-page__control">
-              <input
-                type="checkbox"
-                checked={onlyEdited}
-                onChange={(e) => setOnlyEdited(e.target.checked)}
-              />
-              <span>Edited</span>
-            </label>
             <select
               className="review-project-page__control-select"
               value={statusFilter}
