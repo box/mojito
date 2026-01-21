@@ -105,7 +105,7 @@ public class ReviewProjectService {
   }
 
   @Transactional
-  public List<ReviewProjectSummaryView> createReviewProject(CreateReviewProjectCommand request) {
+  public CreateReviewProjectResult createReviewProjectRequest(CreateReviewProjectCommand request) {
     if (CollectionUtils.isEmpty(request.localeTags())) {
       throw new IllegalArgumentException("At least one locale must be provided");
     }
@@ -141,6 +141,7 @@ public class ReviewProjectService {
         request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
     List<ReviewProjectSummaryView> summaries = new ArrayList<>();
+    List<Long> projectIds = new ArrayList<>();
 
     for (String localeTag : request.localeTags()) {
       Locale locale = localeService.findByBcp47Tag(localeTag);
@@ -172,6 +173,7 @@ public class ReviewProjectService {
       reviewProjectRepository.save(saved);
 
       summaries.add(toSummaryView(saved, selectedCount, selectionStats.wordCount(), 0L));
+      projectIds.add(saved.getId());
     }
 
     if (summaries.isEmpty()) {
@@ -182,7 +184,13 @@ public class ReviewProjectService {
           "No text units requiring review were found for the provided selection");
     }
 
-    return summaries;
+    return new CreateReviewProjectResult(
+        reviewProjectRequest.getId(),
+        reviewProjectRequest.getRequestUuid(),
+        reviewProjectRequest.getName(),
+        request.localeTags(),
+        request.dueDate(),
+        projectIds);
   }
 
   @Transactional(readOnly = true)

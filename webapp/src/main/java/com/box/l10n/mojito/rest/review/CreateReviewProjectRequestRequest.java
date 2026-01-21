@@ -4,7 +4,7 @@ import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public record ReviewProjectCreateRequest(
+public record CreateReviewProjectRequestRequest(
     List<String> localeTags,
     String notes,
     List<Long> tmTextUnitIds,

@@ -4,12 +4,13 @@ import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.CreateReviewProjectCommand;
+import com.box.l10n.mojito.service.review.CreateReviewProjectResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
-import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleSummaryView;
 import com.box.l10n.mojito.service.review.ReviewProjectRepositorySummaryView;
+import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.ReviewProjectSummaryView;
 import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
 import java.time.ZonedDateTime;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/review-projects")
+@RequestMapping("/api")
 public class ReviewProjectWS {
 
   private final ReviewProjectService reviewProjectService;
@@ -34,44 +35,47 @@ public class ReviewProjectWS {
     this.reviewProjectService = reviewProjectService;
   }
 
-  @GetMapping
-  public List<ReviewProjectCreateResponse.Summary> getOpenProjects() {
+  @GetMapping("/review-projects")
+  public List<ReviewProjectSummaryResponse> getOpenProjects() {
     return reviewProjectService.getOpenProjects().stream().map(this::toSummaryResponse).toList();
   }
 
-  @PostMapping("/search")
-  public List<ReviewProjectCreateResponse.Summary> search(
-      @RequestBody ReviewProjectSearchRequest request) {
+  @PostMapping("/review-projects/search")
+  public List<ReviewProjectSummaryResponse> search(@RequestBody ReviewProjectSearchRequest request) {
     return reviewProjectService.searchProjects(request).stream().map(this::toSummaryResponse).toList();
   }
 
-  @PostMapping
+  @PostMapping("/review-project-requests")
   @ResponseStatus(HttpStatus.CREATED)
-  public ReviewProjectCreateResponse createReviewProject(
-      @RequestBody ReviewProjectCreateRequest request) {
-    return new ReviewProjectCreateResponse(
-        reviewProjectService
-            .createReviewProject(
-                new CreateReviewProjectCommand(
-                    request.localeTags(),
-                    request.notes(),
-                    request.tmTextUnitIds(),
-                    request.type(),
-                    request.dueDate(),
-                    request.screenshotImageIds(),
-                    request.name()))
-            .stream()
-            .map(this::toSummaryResponse)
-            .toList());
+  public CreateReviewProjectRequestResponse createReviewProjectRequest(
+      @RequestBody CreateReviewProjectRequestRequest request) {
+    CreateReviewProjectResult result =
+        reviewProjectService.createReviewProjectRequest(
+            new CreateReviewProjectCommand(
+                request.localeTags(),
+                request.notes(),
+                request.tmTextUnitIds(),
+                request.type(),
+                request.dueDate(),
+                request.screenshotImageIds(),
+                request.name()));
+
+    return new CreateReviewProjectRequestResponse(
+        result.requestId(),
+        result.requestUuid(),
+        result.requestName(),
+        result.localeTags(),
+        result.dueDate(),
+        result.projectIds());
   }
 
-  @GetMapping("/{projectId}")
+  @GetMapping("/review-projects/{projectId}")
   public ReviewProjectDetailResponse getProject(@PathVariable Long projectId)
       throws EntityWithIdNotFoundException {
     return toDetailResponse(reviewProjectService.getProjectDetail(projectId));
   }
 
-  @PostMapping("/{projectId}/text-units/{textUnitId}/accept")
+  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")
   public ResponseEntity<ReviewProjectDetailResponse.TextUnit> acceptTextUnit(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
@@ -94,7 +98,7 @@ public class ReviewProjectWS {
     }
   }
 
-  @PostMapping("/{projectId}/text-units/{textUnitId}/review")
+  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/review")
   public ReviewProjectDetailResponse.TextUnit updateReviewStatus(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
@@ -104,26 +108,34 @@ public class ReviewProjectWS {
         reviewProjectService.updateReviewStatus(projectId, textUnitId, request.getNotes()));
   }
 
-  /** Response contract for create review project. */
-  public record ReviewProjectCreateResponse(List<ReviewProjectCreateResponse.Summary> projects) {
-    public record Summary(
-        Long id,
-        ZonedDateTime createdDate,
-        ZonedDateTime dueDate,
-        String closeReason,
-        Integer textUnitCount,
-        Integer wordCount,
-        ReviewProjectType type,
-        ReviewProjectStatus status,
-        Long requestId,
-        String requestUuid,
-        String requestName,
-        int totalSelected,
-        long acceptedCount,
-        String name,
-        List<Repository> repositories,
-        List<LocaleSummary> locales,
-        List<String> screenshotImageIds) {}
+  /** Response contract for create review project request (minimal payload). */
+  public record CreateReviewProjectRequestResponse(
+      Long requestId,
+      String requestUuid,
+      String requestName,
+      List<String> localeTags,
+      ZonedDateTime dueDate,
+      List<Long> projectIds) {}
+
+  /** Summary response used by list/search endpoints. */
+  public record ReviewProjectSummaryResponse(
+      Long id,
+      ZonedDateTime createdDate,
+      ZonedDateTime dueDate,
+      String closeReason,
+      Integer textUnitCount,
+      Integer wordCount,
+      ReviewProjectType type,
+      ReviewProjectStatus status,
+      Long requestId,
+      String requestUuid,
+      String requestName,
+      int totalSelected,
+      long acceptedCount,
+      String name,
+      List<Repository> repositories,
+      List<LocaleSummary> locales,
+      List<String> screenshotImageIds) {
 
     public record Repository(Long id, String name) {}
 
@@ -148,7 +160,7 @@ public class ReviewProjectWS {
       String requestUuid,
       String requestName,
       LocaleDetail locale,
-      List<ReviewProjectCreateResponse.Repository> repositories,
+      List<ReviewProjectSummaryResponse.Repository> repositories,
       List<LocaleDetail> locales,
       List<String> screenshotImageIds) {
 
@@ -183,8 +195,8 @@ public class ReviewProjectWS {
   }
 
   // Mapping helpers
-  private ReviewProjectCreateResponse.Summary toSummaryResponse(ReviewProjectSummaryView view) {
-    return new ReviewProjectCreateResponse.Summary(
+  private ReviewProjectSummaryResponse toSummaryResponse(ReviewProjectSummaryView view) {
+    return new ReviewProjectSummaryResponse(
         view.id(),
         view.createdDate(),
         view.dueDate(),
@@ -200,12 +212,12 @@ public class ReviewProjectWS {
         view.acceptedCount(),
         view.name(),
         view.repositories().stream()
-            .map(r -> new ReviewProjectCreateResponse.Repository(r.id(), r.name()))
+            .map(r -> new ReviewProjectSummaryResponse.Repository(r.id(), r.name()))
             .toList(),
         view.locales().stream()
             .map(
                 l ->
-                    new ReviewProjectCreateResponse.LocaleSummary(
+                    new ReviewProjectSummaryResponse.LocaleSummary(
                         l.id(), l.bcp47Tag(), l.displayName(), l.selectedCount(), l.acceptedCount()))
             .toList(),
         view.screenshotImageIds());
@@ -231,7 +243,7 @@ public class ReviewProjectWS {
         view.requestName(),
         localeDetail,
         view.repositories().stream()
-            .map(r -> new ReviewProjectCreateResponse.Repository(r.id(), r.name()))
+            .map(r -> new ReviewProjectSummaryResponse.Repository(r.id(), r.name()))
             .toList(),
         view.locales().stream().map(this::toLocaleDetail).toList(),
         view.screenshotImageIds());
