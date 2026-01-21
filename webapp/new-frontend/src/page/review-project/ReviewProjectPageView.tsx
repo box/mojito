@@ -40,6 +40,12 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [listWidthPct, setListWidthPct] = useState(40);
   const [isResizing, setIsResizing] = useState(false);
 
+  useEffect(() => {
+    if (layoutRef.current) {
+      layoutRef.current.style.setProperty('--review-list-width', `${listWidthPct}%`);
+    }
+  }, [listWidthPct]);
+
   const [search, setSearch] = useState('');
   const [onlyReviewed, setOnlyReviewed] = useState(false);
   const [onlyEdited, setOnlyEdited] = useState(false);
@@ -340,12 +346,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     <div className="review-project-page">
       <ReviewProjectHeader projectId={projectId} project={project} textUnits={textUnits} />
 
-        {/*TODO(ja) why is the style here, move to CSS*/}
-      <div
-        className="review-project-page__content"
-        ref={layoutRef}
-        style={{ ['--review-list-width' as string]: `${listWidthPct}%` }}
-      >
+      <div className="review-project-page__content" ref={layoutRef}>
         <section className="review-project-page__list-pane">
           <div className="review-project-page__controls review-project-page__controls--compact">
             {/*  that search area does not work well with resizing ,  we need it more compact, probably one line
@@ -370,7 +371,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               ))}
             </select>
           </div>
-          {/* TODO(ja)  this looks great so far, but the font is too large we need to condensate the left bar we may even go to 9px, but use the app.css texxt size variable please */}
           <VirtualList
             scrollRef={scrollRef}
             items={items}
@@ -671,6 +671,18 @@ function DetailPane({
     () => getDisplayStatus(textUnit.status) ?? textUnit.status ?? '—',
     [textUnit.status],
   );
+  const reviewStatusLabel = useMemo(
+    () => getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—',
+    [textUnit.reviewStatus, textUnit.status],
+  );
+  const reviewStatusClass = useMemo(() => {
+    const status = (textUnit.reviewStatus ?? textUnit.status ?? '').toUpperCase();
+    if (status.startsWith('ACCEPTED')) return 'accepted';
+    if (status === 'REJECTED') return 'rejected';
+    if (status === 'SKIPPED') return 'needs-translation';
+    if (status === 'VIEWED') return 'needs-review';
+    return 'unknown';
+  }, [textUnit.reviewStatus, textUnit.status]);
 
   return (
     <div className="review-project-detail">
@@ -764,6 +776,13 @@ function DetailPane({
           </div>
 
           <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Status</div>
+            <Pill className={`review-project-detail__status-chip review-project-detail__status-chip--${reviewStatusClass}`}>
+              {reviewStatusLabel}
+            </Pill>
+          </div>
+
+          <div className="review-project-detail__field">
             <div className="review-project-detail__label">Translation</div>
             <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
               <span>{displayedTarget || '—'}</span>
@@ -771,6 +790,7 @@ function DetailPane({
           </div>
 
           <div className="review-project-detail__field">
+            {/*  for consistency with the workbench, it should Text Unit ID */}
             <div className="review-project-detail__label">String</div>
             <div className="review-project-detail__value review-project-detail__value--meta">
               <span className="review-project-detail__title-text">

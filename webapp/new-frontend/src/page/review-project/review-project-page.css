@@ -143,6 +143,7 @@
 }
 
 .review-project-page__content {
+  --review-list-width: 40%;
   flex: 1;
   min-height: 0;
   display: grid;
@@ -469,6 +470,28 @@
 
 .review-project-detail__status-pill--right {
   margin-left: auto;
+}
+
+.review-project-detail__status-chip {
+  min-height: 1.25rem;
+  padding: 0 var(--space-2);
+}
+
+.review-project-detail__status-chip--accepted {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  color: var(--color-text);
+}
+
+.review-project-detail__status-chip--rejected {
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: var(--color-text);
+}
+
+.review-project-detail__status-chip--needs-translation,
+.review-project-detail__status-chip--needs-review,
+.review-project-detail__status-chip--unknown {
+  background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  color: var(--color-text);
 }
 
 .review-project-detail__input {
