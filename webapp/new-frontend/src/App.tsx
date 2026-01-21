@@ -10,7 +10,7 @@ import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 import { ReviewProjectPage } from './page/review-project/ReviewProjectPage';
 import { ReviewProjectPageV2Route } from './page/review-project/ReviewProjectPageV2Route';
 import { ReviewProjectCreatePage } from './page/review-projects/ReviewProjectCreatePage';
-import { ReviewProjectsPage } from './page/review-projects/ReviewProjectsPage';
+import { ReviewProjectsPage, ReviewProjectsPageV2 } from './page/review-projects/ReviewProjectsPage';
 import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
 import { CharCodeHelperPage } from './page/tools/CharCodeHelperPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';
@@ -25,7 +25,7 @@ const navItems: NavItem[] = [
   { to: '/repositories', label: 'Repositories', element: <RepositoriesPage /> },
   { to: '/workbench', label: 'Workbench', element: <WorkbenchPage /> },
   { to: '/review-projects', label: 'Review Projects', element: <ReviewProjectsPage /> },
-  { to: '/review-projects-v2', label: 'Review Projects V2', element: <ReviewProjectsPage /> },
+  { to: '/review-projects-v2', label: 'Review Projects V2', element: <ReviewProjectsPageV2 /> },
 ];
 
 const queryClient = new QueryClient();
