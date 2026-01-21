@@ -5,13 +5,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.entity.review.ReviewProject;
-import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
-import com.box.l10n.mojito.entity.review.ReviewProjectRequestScreenshot;
-import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
-import com.box.l10n.mojito.entity.review.ReviewProjectTextUnit;
-import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
-import com.box.l10n.mojito.entity.review.ReviewProjectType;
+import com.box.l10n.mojito.entity.review.*;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
@@ -133,7 +127,7 @@ public class ReviewProjectService {
 
     ReviewProjectType type = request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
-    List<SearchReviewProjectsView> summaries = new ArrayList<>();
+    List<com.box.l10n.mojito.service.review.SearchReviewProjectsView> summaries = new ArrayList<>();
     List<Long> projectIds = new ArrayList<>();
 
     for (String localeTag : request.localeTags()) {
@@ -186,8 +180,26 @@ public class ReviewProjectService {
         projectIds);
   }
 
+
+  public record SearchReviewProjectsView(List<ReviewProject> reviewProject) {
+      public record ReviewProject(
+              Long id,
+              ZonedDateTime createdDate,
+              ZonedDateTime lastModifiedDate,
+              ZonedDateTime dueDate,
+              String closeReason,
+              Integer textUnitCount,
+              Integer wordCount,
+              ReviewProjectType type,
+              ReviewProjectStatus status,
+              ReviewProjectRequest reviewProjectRequest) {}
+
+      public record ReviewProjectRequest(Long id, String name) {
+      }
+  }
+
   @Transactional(readOnly = true)
-  public List<SearchReviewProjectsView> searchReviewProjects(SearchReviewProjectsCriteria request) {
+  public SearchReviewProjectsView searchReviewProjects(SearchReviewProjectsCriteria request) {
     SearchReviewProjectsCriteria.SearchField searchField =
         request != null && request.getSearchField() != null
             ? request.getSearchField()
@@ -617,7 +629,7 @@ public class ReviewProjectService {
                 project.getReviewProjectRequest().getId())));
   }
 
-  private SearchReviewProjectsView toSummaryView(
+  private com.box.l10n.mojito.service.review.SearchReviewProjectsView toSummaryView(
       ReviewProject project, int totalSelected, int wordCount, long acceptedCount) {
     ReviewProjectLocaleSummaryView localeSummary =
         new ReviewProjectLocaleSummaryView(
@@ -636,7 +648,7 @@ public class ReviewProjectService {
             : null;
     String requestName = resolveRequestName(project);
 
-    return new SearchReviewProjectsView(
+    return new com.box.l10n.mojito.service.review.SearchReviewProjectsView(
         project.getId(),
         project.getCreatedDate(),
         project.getDueDate(),
