@@ -6,6 +6,7 @@ CREATE TABLE review_project_request (
     last_modified_date datetime DEFAULT NULL,
     request_uuid char(36) NOT NULL,
     name varchar(255) DEFAULT NULL,
+    notes longtext,
     payload_json longtext,
     PRIMARY KEY (id)
 );
@@ -23,10 +24,8 @@ CREATE TABLE review_project (
     review_project_request_id bigint(20) DEFAULT NULL,
     type varchar(32) NOT NULL,
     status varchar(32) NOT NULL,
-    name varchar(255) NOT NULL,
     due_date datetime NOT NULL,
     close_reason varchar(512) DEFAULT NULL,
-    notes longtext,
     text_unit_count int NOT NULL DEFAULT 0,
     word_count int NOT NULL DEFAULT 0,
     PRIMARY KEY (id)

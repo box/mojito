@@ -164,6 +164,7 @@ public class ReviewProjectService {
     ReviewProjectRequest reviewProjectRequest = new ReviewProjectRequest();
     reviewProjectRequest.setRequestUuid(UUID.randomUUID().toString());
     reviewProjectRequest.setName(request.getName());
+    reviewProjectRequest.setNotes(request.getNotes());
     reviewProjectRequest = reviewProjectRequestRepository.save(reviewProjectRequest);
 
     if (!CollectionUtils.isEmpty(request.getScreenshotImageIds())) {
@@ -184,7 +185,6 @@ public class ReviewProjectService {
       ReviewProject reviewProject = new ReviewProject();
       reviewProject.setType(type);
       reviewProject.setStatus(ReviewProjectStatus.OPEN);
-      reviewProject.setNotes(request.getNotes());
       reviewProject.setDueDate(request.getDueDate());
       reviewProject.setLocale(locale);
       reviewProject.setReviewProjectRequest(reviewProjectRequest);
@@ -386,7 +386,7 @@ public class ReviewProjectService {
     dto.setCloseReason(project.getCloseReason());
     dto.setTextUnitCount(project.getTextUnitCount());
     dto.setWordCount(project.getWordCount());
-    dto.setNotes(project.getNotes());
+    dto.setNotes(resolveRequestNotes(project));
     if (project.getReviewProjectRequest() != null) {
       dto.setRequestId(project.getReviewProjectRequest().getId());
       dto.setRequestUuid(project.getReviewProjectRequest().getRequestUuid());
@@ -724,6 +724,12 @@ public class ReviewProjectService {
   private String resolveRequestName(ReviewProject project) {
     return project.getReviewProjectRequest() != null
         ? project.getReviewProjectRequest().getName()
+        : null;
+  }
+
+  private String resolveRequestNotes(ReviewProject project) {
+    return project.getReviewProjectRequest() != null
+        ? project.getReviewProjectRequest().getNotes()
         : null;
   }
 

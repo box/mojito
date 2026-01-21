@@ -43,10 +43,6 @@ public class ReviewProject extends AuditableEntity {
   @Column(name = "word_count", nullable = false)
   private Integer wordCount = 0;
 
-  // TODO(ja) that seems to be a project request field at this point
-  @Column(name = "notes", length = Integer.MAX_VALUE)
-  private String notes;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "review_project_request_id",
@@ -121,14 +117,6 @@ public class ReviewProject extends AuditableEntity {
 
   public void setWordCount(Integer wordCount) {
     this.wordCount = wordCount;
-  }
-
-  public String getNotes() {
-    return notes;
-  }
-
-  public void setNotes(String notes) {
-    this.notes = notes;
   }
 
   public User getCreatedByUser() {

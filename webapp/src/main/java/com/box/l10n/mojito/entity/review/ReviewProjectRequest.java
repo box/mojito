@@ -15,6 +15,9 @@ public class ReviewProjectRequest extends AuditableEntity {
   @Column(name = "name", length = 255)
   private String name;
 
+  @Column(name = "notes", length = Integer.MAX_VALUE)
+  private String notes;
+
   @Column(name = "payload_json", columnDefinition = "longtext")
   private String payloadJson;
 
@@ -32,6 +35,14 @@ public class ReviewProjectRequest extends AuditableEntity {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getNotes() {
+    return notes;
+  }
+
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 
   public String getPayloadJson() {
