@@ -18,7 +18,7 @@ public class ReviewProjectTextUnitDTO {
   private TMTextUnitVariant.Status baselineStatus;
   private String reviewStatus;
   private String reviewTarget;
-  private String reviewNotes;
+  private String notes;
   private ZonedDateTime reviewedAt;
   private String reviewedBy;
   private Long repositoryId;
@@ -130,12 +130,12 @@ public class ReviewProjectTextUnitDTO {
     this.reviewTarget = reviewTarget;
   }
 
-  public String getReviewNotes() {
-    return reviewNotes;
+  public String getNotes() {
+    return notes;
   }
 
-  public void setReviewNotes(String reviewNotes) {
-    this.reviewNotes = reviewNotes;
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 
   public ZonedDateTime getReviewedAt() {

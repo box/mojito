@@ -61,10 +61,10 @@ public class ReviewProjectWS {
               projectId,
               textUnitId,
               request.getTarget(),
-              request.getIncludedInLocalizedFile(),
-              request.getExpectedCurrentTmTextUnitVariantId(),
-              Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
-              request.getReviewNotes());
+          request.getIncludedInLocalizedFile(),
+          request.getExpectedCurrentTmTextUnitVariantId(),
+          Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
+          request.getNotes());
       return ResponseEntity.ok(dto);
     } catch (ReviewProjectCurrentVariantConflictException conflict) {
       return ResponseEntity.status(HttpStatus.CONFLICT).body(conflict.getCurrentTextUnit());
@@ -82,6 +82,6 @@ public class ReviewProjectWS {
         textUnitId,
         request.getReviewStatus(),
         request.getReviewTarget(),
-        request.getReviewNotes());
+        request.getNotes());
   }
 }

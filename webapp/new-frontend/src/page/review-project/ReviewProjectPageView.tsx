@@ -140,7 +140,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           },
     );
     setDraftNotes((prev) =>
-      prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.reviewNotes || '' },
+      prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.notes || '' },
     );
     setAcceptError(null);
   }, [selectedTextUnit]);
@@ -213,22 +213,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
   useEffect(() => {
     if (!selectedTextUnit) return;
-    if (selectedTextUnit.reviewStatus && selectedTextUnit.reviewStatus !== 'PENDING') {
-      return;
-    }
-    void updateReviewProjectTextUnitReview({
-      projectId,
-      textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-      reviewStatus: 'VIEWED',
-      reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
-      reviewNotes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
-    }).then((updated) => {
-      setTextUnits((prev) =>
-        prev.map((tu) =>
-          tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId ? { ...tu, ...updated } : tu,
-        ),
-      );
-    });
+    // No auto-status change anymore; pending until explicit accept/reject.
   }, [draftNotes, draftTargets, projectId, selectedTextUnit, setTextUnits]);
 
   const startResize = useCallback((event: React.MouseEvent) => {
@@ -258,7 +243,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         selectedTextUnit.currentTarget ??
         selectedTextUnit.target ??
         '';
-      const reviewNotesValue = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
+      const notesValue = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
 
       setAcceptError(null);
       setIsAccepting(true);
@@ -270,7 +255,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             target: draftTargetValue,
             expectedCurrentTmTextUnitVariantId: selectedTextUnit.currentTmTextUnitVariantId ?? undefined,
             overrideChangedCurrent: override,
-            reviewNotes: reviewNotesValue,
+            notes: notesValue,
           });
 
           setDraftTargets((prev) => ({
@@ -280,7 +265,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           }));
           setDraftNotes((prev) => ({
             ...prev,
-            [updated.reviewProjectTextUnitId]: updated.reviewNotes ?? reviewNotesValue,
+            [updated.reviewProjectTextUnitId]: updated.notes ?? notesValue,
           }));
           setTextUnits((prev) =>
             prev.map((tu) =>
@@ -318,7 +303,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           textUnitId: selectedTextUnit.reviewProjectTextUnitId,
           reviewStatus,
           reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
-          reviewNotes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
+          notes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
         });
         setTextUnits((prev) =>
           prev.map((tu) =>
@@ -327,7 +312,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         );
         setDraftNotes((prev) => ({
           ...prev,
-          [updated.reviewProjectTextUnitId]: updated.reviewNotes ?? prev[updated.reviewProjectTextUnitId] ?? '',
+          [updated.reviewProjectTextUnitId]: updated.notes ?? prev[updated.reviewProjectTextUnitId] ?? '',
         }));
       } catch (error) {
         setAcceptError(error instanceof Error ? error.message : 'Failed to update review status');
@@ -436,9 +421,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                   const updated = await updateReviewProjectTextUnitReview({
                     projectId,
                     textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-                    reviewStatus: selectedTextUnit.reviewStatus ?? 'VIEWED',
+                    reviewStatus: selectedTextUnit.reviewStatus ?? 'PENDING',
                     reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
-                    reviewNotes: note,
+                    notes: note,
                   });
                   setTextUnits((prev) =>
                     prev.map((tu) =>
@@ -615,15 +600,13 @@ function DetailPane({
 }) {
   const displayedTarget = textUnit.target;
   const proposedValue = textUnit.reviewTarget ?? draftTarget;
-  type StatusOption = 'accepted' | 'needs_translation' | 'needs_review' | 'rejected';
+  type StatusOption = 'accepted' | 'pending';
   const initialStatusValue = useMemo<StatusOption>(() => {
-    const status = textUnit.reviewStatus ?? textUnit.status;
+    const status = textUnit.reviewStatus;
     const upper = status?.toUpperCase();
-    if (upper === 'REJECTED') return 'rejected';
-    if (upper === 'VIEWED') return 'needs_review';
-    if (upper === 'SKIPPED') return 'needs_translation';
-    return 'accepted';
-  }, [textUnit.reviewStatus, textUnit.status]);
+    if (upper && upper.startsWith('ACCEPTED')) return 'accepted';
+    return 'pending';
+  }, [textUnit.reviewStatus]);
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>(initialStatusValue);
 
   useEffect(() => {
@@ -639,24 +622,12 @@ function DetailPane({
       onAccept(false);
       return;
     }
-    if (selectedStatus === 'rejected') {
-      void onReviewStatus('REJECTED');
-      return;
-    }
-    if (selectedStatus === 'needs_review') {
-      void onReviewStatus('VIEWED');
-      return;
-    }
-    if (selectedStatus === 'needs_translation') {
-      void onReviewStatus('SKIPPED');
-    }
+    void onReviewStatus('PENDING');
   };
 
   const statusDisplay: Record<StatusOption, string> = {
-    accepted: 'Accepted',
-    needs_review: 'To review',
-    needs_translation: 'To translate',
-    rejected: 'Rejected',
+    accepted: 'Accept',
+    pending: 'Keep pending',
   };
   const isBusy = isAccepting || isUpdatingStatus;
   const statusOptions = useMemo(
@@ -672,17 +643,16 @@ function DetailPane({
     [textUnit.status],
   );
   const reviewStatusLabel = useMemo(
-    () => getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—',
-    [textUnit.reviewStatus, textUnit.status],
+    () => getDisplayStatus(textUnit.reviewStatus) ?? 'Pending',
+    [textUnit.reviewStatus],
   );
   const reviewStatusClass = useMemo(() => {
-    const status = (textUnit.reviewStatus ?? textUnit.status ?? '').toUpperCase();
+    const status = (textUnit.reviewStatus ?? '').toUpperCase();
     if (status.startsWith('ACCEPTED')) return 'accepted';
     if (status === 'REJECTED') return 'rejected';
-    if (status === 'SKIPPED') return 'needs-translation';
-    if (status === 'VIEWED') return 'needs-review';
+    if (status === 'PENDING' || !status) return 'needs-review';
     return 'unknown';
-  }, [textUnit.reviewStatus, textUnit.status]);
+  }, [textUnit.reviewStatus]);
 
   return (
     <div className="review-project-detail">
@@ -1028,8 +998,7 @@ const getDisplayStatus = (status: string | null | undefined) => {
     return 'Accepted';
   }
   if (upper === 'REJECTED') return 'Rejected';
-  if (upper === 'VIEWED') return 'To review';
-  if (upper === 'SKIPPED') return 'To translate';
+  if (upper === 'PENDING') return 'Pending';
   const cleaned = status.toLowerCase().replace(/_/g, ' ');
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };

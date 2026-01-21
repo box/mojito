@@ -4,7 +4,7 @@ public class ReviewProjectTextUnitReviewRequest {
 
   private String reviewStatus;
   private String reviewTarget;
-  private String reviewNotes;
+  private String notes;
 
   public String getReviewStatus() {
     return reviewStatus;
@@ -22,11 +22,11 @@ public class ReviewProjectTextUnitReviewRequest {
     this.reviewTarget = reviewTarget;
   }
 
-  public String getReviewNotes() {
-    return reviewNotes;
+  public String getNotes() {
+    return notes;
   }
 
-  public void setReviewNotes(String reviewNotes) {
-    this.reviewNotes = reviewNotes;
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 }

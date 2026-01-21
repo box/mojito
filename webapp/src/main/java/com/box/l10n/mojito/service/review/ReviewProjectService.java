@@ -361,7 +361,7 @@ public class ReviewProjectService {
               int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
               long acceptedCount =
                   reviewProjectTextUnitDecisionRepository
-                      .countByDecidedVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(
+                      .countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(
                           project.getId());
               return toSummaryDTO(project, totalSelected, wordCount, acceptedCount);
             })
@@ -396,7 +396,7 @@ public class ReviewProjectService {
     List<ReviewProjectTextUnitDTO> textUnits = toTextUnitDTOs(project);
     long acceptedCount =
         reviewProjectTextUnitDecisionRepository
-            .countByDecidedVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(projectId);
+            .countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(projectId);
     ReviewProjectLocaleDetailDTO localeDetail =
         new ReviewProjectLocaleDetailDTO(
             project.getId(),
@@ -418,7 +418,7 @@ public class ReviewProjectService {
       Boolean includedInLocalizedFile,
       Long expectedCurrentTmTextUnitVariantId,
       boolean overrideChangedCurrent,
-      String reviewNotes)
+      String notes)
       throws EntityWithIdNotFoundException {
 
     ReviewProject project =
@@ -502,10 +502,10 @@ public class ReviewProjectService {
                   return entity;
                 });
 
-    variantDecision.setDecidedVariant(newVariant);
-    variantDecision.setReviewNotes(reviewNotes);
-    variantDecision.setDecidedAt(ZonedDateTime.now());
-    variantDecision.setDecidedBy(auditorAware.getCurrentAuditor().orElse(null));
+    variantDecision.setVariant(newVariant);
+    variantDecision.setNotes(notes);
+    variantDecision.setRecordedAt(ZonedDateTime.now());
+    variantDecision.setRecordedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
     return toTextUnitDTO(textUnit, newVariant, variantDecision);
@@ -517,7 +517,7 @@ public class ReviewProjectService {
       Long reviewProjectTextUnitId,
       String reviewStatus,
       String reviewTarget,
-      String reviewNotes)
+      String notes)
       throws EntityWithIdNotFoundException {
 
     // reviewStatus currently unused (status is derived from decided variant), keep signature for API compatibility
@@ -549,9 +549,9 @@ public class ReviewProjectService {
                   return entity;
                 });
 
-    decision.setReviewNotes(reviewNotes);
-    decision.setDecidedAt(ZonedDateTime.now());
-    decision.setDecidedBy(auditorAware.getCurrentAuditor().orElse(null));
+    decision.setNotes(notes);
+    decision.setRecordedAt(ZonedDateTime.now());
+    decision.setRecordedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectTextUnitDecisionRepository.save(decision);
 
     return toTextUnitDTO(textUnit, null, decision);
@@ -745,7 +745,7 @@ public class ReviewProjectService {
     TMTextUnitVariant resolvedVariant =
         variantOverride != null
             ? variantOverride
-            : (decision != null ? decision.getDecidedVariant() : null);
+            : (decision != null ? decision.getVariant() : null);
 
     TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
     if (tmTextUnit == null && selectedVariantRef != null) {
@@ -794,24 +794,24 @@ public class ReviewProjectService {
         selectedVariantRef != null ? selectedVariantRef.getStatus() : null;
     dto.setBaselineStatus(baselineStatus);
 
-    if (decision != null && decision.getDecidedVariant() != null) {
+    if (decision != null && decision.getVariant() != null) {
       boolean changed =
-          decision.getDecidedVariant().getContent() != null
+          decision.getVariant().getContent() != null
               && selectedVariantRef != null
               && selectedVariantRef.getContent() != null
               && !NormalizationUtils.normalize(selectedVariantRef.getContent())
-                  .equals(NormalizationUtils.normalize(decision.getDecidedVariant().getContent()));
+                  .equals(NormalizationUtils.normalize(decision.getVariant().getContent()));
       dto.setReviewStatus(changed ? "ACCEPTED_WITH_CHANGE" : "ACCEPTED_AS_IS");
     } else {
       dto.setReviewStatus("PENDING");
     }
 
     dto.setReviewTarget(null);
-    dto.setReviewNotes(decision != null ? decision.getReviewNotes() : null);
-    dto.setReviewedAt(decision != null ? decision.getDecidedAt() : null);
+    dto.setNotes(decision != null ? decision.getNotes() : null);
+    dto.setReviewedAt(decision != null ? decision.getRecordedAt() : null);
     dto.setReviewedBy(
-        decision != null && decision.getDecidedBy() != null
-            ? decision.getDecidedBy().getUsername()
+        decision != null && decision.getRecordedBy() != null
+            ? decision.getRecordedBy().getUsername()
             : null);
 
     // Expose original selected translation as target (baseline) and current/accepted content separately.

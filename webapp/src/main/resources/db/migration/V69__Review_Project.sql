@@ -75,10 +75,10 @@ ALTER TABLE review_project_text_unit
 CREATE TABLE review_project_text_unit_decision (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     review_project_text_unit_id bigint(20) NOT NULL,
-    review_notes varchar(4000),
-    decided_variant_id bigint(20) NOT NULL,
-    decided_at datetime DEFAULT NULL,
-    decided_by_user_id bigint(20) DEFAULT NULL,
+    notes varchar(4000),
+    variant_id bigint(20) NOT NULL,
+    recorded_at datetime DEFAULT NULL,
+    recorded_by_user_id bigint(20) DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -86,10 +86,10 @@ ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__TEXT_UNIT FOREIGN KEY (review_project_text_unit_id) REFERENCES review_project_text_unit (id);
 
 ALTER TABLE review_project_text_unit_decision
-    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__DECIDED_VARIANT FOREIGN KEY (decided_variant_id) REFERENCES tm_text_unit_variant (id);
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT FOREIGN KEY (variant_id) REFERENCES tm_text_unit_variant (id);
 
 ALTER TABLE review_project_text_unit_decision
-    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER FOREIGN KEY (decided_by_user_id) REFERENCES user (id);
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER FOREIGN KEY (recorded_by_user_id) REFERENCES user (id);
 
 ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT UK__REVIEW_PROJECT_TEXT_UNIT_DECISION__TEXT_UNIT UNIQUE (review_project_text_unit_id);

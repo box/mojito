@@ -6,7 +6,7 @@ public class ReviewProjectTextUnitAcceptRequest {
   private Boolean includedInLocalizedFile;
   private Long expectedCurrentTmTextUnitVariantId;
   private Boolean overrideChangedCurrent;
-  private String reviewNotes;
+  private String notes;
 
   public String getTarget() {
     return target;
@@ -40,11 +40,11 @@ public class ReviewProjectTextUnitAcceptRequest {
     this.overrideChangedCurrent = overrideChangedCurrent;
   }
 
-  public String getReviewNotes() {
-    return reviewNotes;
+  public String getNotes() {
+    return notes;
   }
 
-  public void setReviewNotes(String reviewNotes) {
-    this.reviewNotes = reviewNotes;
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 }

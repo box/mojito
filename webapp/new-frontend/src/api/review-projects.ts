@@ -49,9 +49,9 @@ export type ApiReviewProjectTextUnit = {
   target: string | null;
   currentTarget: string | null;
   baselineStatus?: string | null;
-  reviewStatus?: 'PENDING' | 'VIEWED' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | 'SKIPPED' | null;
+  reviewStatus?: 'PENDING' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | null;
   reviewTarget?: string | null;
-  reviewNotes?: string | null;
+  notes?: string | null;
   reviewedAt?: string | null;
   reviewedBy?: string | null;
   status: string | null;
@@ -198,7 +198,7 @@ export const acceptReviewProjectTextUnit = async ({
   includedInLocalizedFile = true,
   expectedCurrentTmTextUnitVariantId,
   overrideChangedCurrent = false,
-  reviewNotes,
+  notes,
 }: {
   projectId: number;
   textUnitId: number;
@@ -206,7 +206,7 @@ export const acceptReviewProjectTextUnit = async ({
   includedInLocalizedFile?: boolean;
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
-  reviewNotes?: string | null;
+  notes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
   const response = await fetch(`/api/review-projects/${projectId}/text-units/${textUnitId}/accept`, {
     method: 'POST',
@@ -217,7 +217,7 @@ export const acceptReviewProjectTextUnit = async ({
       includedInLocalizedFile,
       expectedCurrentTmTextUnitVariantId,
       overrideChangedCurrent,
-      reviewNotes,
+      notes,
     }),
   });
 
@@ -236,19 +236,19 @@ export const updateReviewProjectTextUnitReview = async ({
   textUnitId,
   reviewStatus,
   reviewTarget,
-  reviewNotes,
+  notes,
 }: {
   projectId: number;
   textUnitId: number;
   reviewStatus: ApiReviewProjectTextUnit['reviewStatus'];
   reviewTarget?: string | null;
-  reviewNotes?: string | null;
+  notes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
   const response = await fetch(`/api/review-projects/${projectId}/text-units/${textUnitId}/review`, {
     method: 'POST',
     credentials: 'include',
     headers: jsonHeaders,
-    body: JSON.stringify({ reviewStatus, reviewTarget, reviewNotes }),
+    body: JSON.stringify({ reviewStatus, reviewTarget, notes }),
   });
 
   if (!response.ok) {

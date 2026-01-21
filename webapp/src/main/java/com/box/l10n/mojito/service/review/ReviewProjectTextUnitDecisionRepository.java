@@ -11,7 +11,7 @@ public interface ReviewProjectTextUnitDecisionRepository
 
   long countByReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
 
-  long countByDecidedVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
+  long countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
 
   java.util.List<ReviewProjectTextUnitDecision> findByReviewProjectTextUnit_ReviewProject_Id(
       Long reviewProjectId);

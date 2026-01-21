@@ -26,23 +26,23 @@ public class ReviewProjectTextUnitDecision extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
-      name = "decided_variant_id",
+      name = "variant_id",
       foreignKey =
           @ForeignKey(
-              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__DECIDED_VARIANT"))
-  private TMTextUnitVariant decidedVariant;
+              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT"))
+  private TMTextUnitVariant variant;
 
-  @Column(name = "review_notes", length = 4000)
-  private String reviewNotes;
+  @Column(name = "notes", length = 4000)
+  private String notes;
 
-  @Column(name = "decided_at")
-  private ZonedDateTime decidedAt;
+  @Column(name = "recorded_at")
+  private ZonedDateTime recordedAt;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
-      name = "decided_by_user_id",
+      name = "recorded_by_user_id",
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER"))
-  private User decidedBy;
+  private User recordedBy;
 
   public ReviewProjectTextUnit getReviewProjectTextUnit() {
     return reviewProjectTextUnit;
@@ -52,35 +52,35 @@ public class ReviewProjectTextUnitDecision extends BaseEntity {
     this.reviewProjectTextUnit = reviewProjectTextUnit;
   }
 
-  public TMTextUnitVariant getDecidedVariant() {
-    return decidedVariant;
+  public TMTextUnitVariant getVariant() {
+    return variant;
   }
 
-  public void setDecidedVariant(TMTextUnitVariant decidedVariant) {
-    this.decidedVariant = decidedVariant;
+  public void setVariant(TMTextUnitVariant variant) {
+    this.variant = variant;
   }
 
-  public String getReviewNotes() {
-    return reviewNotes;
+  public String getNotes() {
+    return notes;
   }
 
-  public void setReviewNotes(String reviewNotes) {
-    this.reviewNotes = reviewNotes;
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 
-  public ZonedDateTime getDecidedAt() {
-    return decidedAt;
+  public ZonedDateTime getRecordedAt() {
+    return recordedAt;
   }
 
-  public void setDecidedAt(ZonedDateTime decidedAt) {
-    this.decidedAt = decidedAt;
+  public void setRecordedAt(ZonedDateTime recordedAt) {
+    this.recordedAt = recordedAt;
   }
 
-  public User getDecidedBy() {
-    return decidedBy;
+  public User getRecordedBy() {
+    return recordedBy;
   }
 
-  public void setDecidedBy(User decidedBy) {
-    this.decidedBy = decidedBy;
+  public void setRecordedBy(User recordedBy) {
+    this.recordedBy = recordedBy;
   }
 }
