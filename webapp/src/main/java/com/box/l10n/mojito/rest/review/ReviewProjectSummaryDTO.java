@@ -17,6 +17,7 @@ public class ReviewProjectSummaryDTO {
   private ReviewProjectStatus status;
   private Long requestId;
   private String requestUuid;
+  private String requestName;
   private int totalSelected;
   private long acceptedCount;
   private String name;
@@ -142,6 +143,14 @@ public class ReviewProjectSummaryDTO {
 
   public void setRequestUuid(String requestUuid) {
     this.requestUuid = requestUuid;
+  }
+
+  public String getRequestName() {
+    return requestName;
+  }
+
+  public void setRequestName(String requestName) {
+    this.requestName = requestName;
   }
 
   public List<String> getScreenshotImageIds() {

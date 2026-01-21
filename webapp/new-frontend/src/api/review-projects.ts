@@ -78,6 +78,7 @@ export type ApiReviewProjectDetail = {
   notes?: string | null;
   requestId?: number | null;
   requestUuid?: string | null;
+  requestName?: string | null;
   locale?: ApiReviewProjectLocaleDetail | null;
   repositories: ApiReviewProjectRepositorySummary[];
   locales: ApiReviewProjectLocaleDetail[];
@@ -87,6 +88,7 @@ export type ApiReviewProjectDetail = {
 export type ApiReviewProjectSummary = {
   id: number;
   name?: string | null;
+  requestName?: string | null;
   createdDate?: string | null;
   dueDate?: string | null;
   closeReason?: string | null;

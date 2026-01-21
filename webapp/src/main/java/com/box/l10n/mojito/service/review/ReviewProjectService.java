@@ -186,7 +186,6 @@ public class ReviewProjectService {
       reviewProject.setStatus(ReviewProjectStatus.OPEN);
       reviewProject.setNotes(request.getNotes());
       reviewProject.setDueDate(request.getDueDate());
-      reviewProject.setName(request.getName().trim());
       reviewProject.setLocale(locale);
       reviewProject.setReviewProjectRequest(reviewProjectRequest);
 
@@ -291,6 +290,9 @@ public class ReviewProjectService {
     CriteriaQuery<ReviewProject> cq = cb.createQuery(ReviewProject.class);
     Root<ReviewProject> root = cq.from(ReviewProject.class);
     root.fetch("locale", JoinType.LEFT);
+    root.fetch("reviewProjectRequest", JoinType.LEFT);
+    Join<ReviewProject, ReviewProjectRequest> requestJoin =
+        root.join("reviewProjectRequest", JoinType.LEFT);
 
     List<Predicate> predicates = new ArrayList<>();
 
@@ -325,7 +327,7 @@ public class ReviewProjectService {
       if (searchField == ReviewProjectSearchRequest.SearchField.ID) {
         predicates.add(cb.equal(root.get("id"), searchId));
       } else {
-        Expression<String> nameExpression = cb.lower(root.get("name"));
+        Expression<String> nameExpression = cb.lower(requestJoin.get("name"));
         String lowered = searchQuery.toLowerCase();
         Predicate searchPredicate;
         if (searchMatchType == ReviewProjectSearchRequest.SearchMatchType.EXACT) {
@@ -378,7 +380,8 @@ public class ReviewProjectService {
     dto.setType(project.getType());
     dto.setStatus(project.getStatus());
     dto.setCreatedDate(project.getCreatedDate());
-    dto.setName(project.getName());
+    dto.setName(resolveRequestName(project));
+    dto.setRequestName(resolveRequestName(project));
     dto.setDueDate(project.getDueDate());
     dto.setCloseReason(project.getCloseReason());
     dto.setTextUnitCount(project.getTextUnitCount());
@@ -693,7 +696,8 @@ public class ReviewProjectService {
     dto.setTextUnitCount(totalSelected);
     dto.setWordCount(wordCount);
     dto.setType(project.getType());
-    dto.setName(project.getName());
+    dto.setName(resolveRequestName(project));
+    dto.setRequestName(resolveRequestName(project));
     dto.setStatus(project.getStatus());
     dto.setTotalSelected(totalSelected);
     dto.setAcceptedCount(acceptedCount);
@@ -715,6 +719,12 @@ public class ReviewProjectService {
     dto.setScreenshotImageIds(resolveScreenshotImageKeys(project));
 
     return dto;
+  }
+
+  private String resolveRequestName(ReviewProject project) {
+    return project.getReviewProjectRequest() != null
+        ? project.getReviewProjectRequest().getName()
+        : null;
   }
 
   private List<ReviewProjectTextUnitDTO> toTextUnitDTOs(ReviewProject reviewProject) {

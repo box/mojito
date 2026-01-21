@@ -31,12 +31,6 @@ public class ReviewProject extends AuditableEntity {
   @Column(name = "status", nullable = false)
   private ReviewProjectStatus status = ReviewProjectStatus.OPEN;
 
-//  TODO(ja) I guess it should have a name but we could also just get the one from the project request?
-    // like this it is duplicated on all instances, which is not dramatic
-    // we could add the locale in the name, to make it more use full i guess
-  @Column(name = "name", length = 255, nullable = false)
-  private String name;
-
   @Column(name = "due_date")
   private ZonedDateTime dueDate;
 
@@ -151,14 +145,6 @@ public class ReviewProject extends AuditableEntity {
 
   public void setLastModifiedByUser(User lastModifiedByUser) {
     this.lastModifiedByUser = lastModifiedByUser;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public Locale getLocale() {

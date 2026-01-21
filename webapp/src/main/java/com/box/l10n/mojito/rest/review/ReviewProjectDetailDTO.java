@@ -19,6 +19,7 @@ public class ReviewProjectDetailDTO {
   private String notes;
   private Long requestId;
   private String requestUuid;
+  private String requestName;
   private ReviewProjectLocaleDetailDTO locale;
   private List<ReviewProjectRepositorySummaryDTO> repositories;
   private List<ReviewProjectLocaleDetailDTO> locales;
@@ -142,6 +143,14 @@ public class ReviewProjectDetailDTO {
 
   public void setRequestUuid(String requestUuid) {
     this.requestUuid = requestUuid;
+  }
+
+  public String getRequestName() {
+    return requestName;
+  }
+
+  public void setRequestName(String requestName) {
+    this.requestName = requestName;
   }
 
   public List<String> getScreenshotImageIds() {
