@@ -77,6 +77,7 @@ type Props = {
   filters: FiltersProps;
   requestFilter?: { requestId: number | null; requestUuid: string | null; onClear: () => void };
   canCreate?: boolean;
+  detailPathPrefix?: string;
 };
 
 function CountsInline({ words, strings }: { words: number | null; strings: number | null }) {
@@ -122,12 +123,14 @@ function ContentSection({
   virtualItems,
   totalSize,
   getRowRef,
+  detailPathPrefix,
 }: {
   projects: ReviewProjectRow[];
   rowsParentRef: React.RefObject<HTMLDivElement>;
   virtualItems: VirtualItem[];
   totalSize: number;
   getRowRef: (rowId: number) => (element: HTMLDivElement | null) => void;
+  detailPathPrefix: string;
 }) {
   if (projects.length === 0) {
     return (
@@ -156,7 +159,9 @@ function ContentSection({
               props: {
                 ref: getRowRef(project.id),
               },
-              content: <ReviewProjectRowView project={project} />,
+              content: (
+                <ReviewProjectRowView project={project} detailPathPrefix={detailPathPrefix} />
+              ),
             };
           }}
         />
@@ -365,7 +370,13 @@ function EmptyState() {
   );
 }
 
-function ReviewProjectRowView({ project }: { project: ReviewProjectRow }) {
+function ReviewProjectRowView({
+  project,
+  detailPathPrefix,
+}: {
+  project: ReviewProjectRow;
+  detailPathPrefix: string;
+}) {
   const textUnitCount = project.textUnitCount ?? 0;
   const percent = formatPercent(project.acceptedCount, textUnitCount);
   const percentValue =
@@ -382,7 +393,7 @@ function ReviewProjectRowView({ project }: { project: ReviewProjectRow }) {
         <div className="review-projects-page__project">
           <div className="review-projects-page__id-row">
             <Link
-              to={`/review-projects/${project.id}`}
+              to={`${detailPathPrefix}/${project.id}`}
               className="review-projects-page__project-link"
             >
               <span className="review-projects-page__project-name">{project.name}</span>
@@ -447,6 +458,7 @@ export function ReviewProjectsPageView({
   filters,
   requestFilter,
   canCreate = true,
+  detailPathPrefix = '/review-projects',
 }: Props) {
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const getItemKey = useCallback((index: number) => projects[index]?.id ?? index, [projects]);
@@ -528,6 +540,7 @@ export function ReviewProjectsPageView({
         virtualItems={virtualItems}
         totalSize={totalSize}
         getRowRef={getRowRef}
+        detailPathPrefix={detailPathPrefix}
       />
     </div>
   );

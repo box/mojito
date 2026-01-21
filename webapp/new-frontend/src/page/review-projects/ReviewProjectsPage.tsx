@@ -99,7 +99,11 @@ const limitOptions: FilterOption<number>[] = [
   { value: 10000, label: '10k' },
 ];
 
-export function ReviewProjectsPage() {
+type ReviewProjectsPageProps = {
+  detailPathPrefix?: string;
+};
+
+export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: ReviewProjectsPageProps = {}) {
   const user = useUser();
   const { data: repositoryData } = useRepositories();
   const location = useLocation();
@@ -370,6 +374,11 @@ export function ReviewProjectsPage() {
       }}
       requestFilter={requestFilter ?? undefined}
       canCreate={user.role === 'ROLE_ADMIN'}
+      detailPathPrefix={detailPathPrefix}
     />
   );
+}
+
+export function ReviewProjectsPageV2() {
+  return <ReviewProjectsPage detailPathPrefix="/review-projects-v2" />;
 }
