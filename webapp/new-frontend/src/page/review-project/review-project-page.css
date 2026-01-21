@@ -546,7 +546,7 @@
   background: var(--color-accent);
   border: 1px solid var(--color-accent);
   overflow: visible;
-  height: 2.25rem;
+  height: 2rem;
 }
 
 .review-project-detail__split:hover {
@@ -560,6 +560,9 @@
   border: none;
   border-radius: 0;
   height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: none;
   transition: color 0.12s ease;
   padding-top: 0;
@@ -583,9 +586,9 @@
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border: none;
-  padding-left: var(--space-3);
-  padding-right: var(--space-3);
-  min-width: 9rem;
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+  min-width: 8rem;
   justify-content: center;
 }
 
@@ -596,7 +599,7 @@
   border-bottom-right-radius: var(--radius-2);
   padding-left: var(--space-2);
   padding-right: var(--space-2);
-  min-width: 2.5rem;
+  min-width: 2.25rem;
   border: none;
   display: inline-flex;
   align-items: center;
