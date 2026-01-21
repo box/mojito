@@ -682,17 +682,13 @@ function DetailPane({
               placeholder="Enter proposed translation"
             />
             <div className="review-project-detail__status-row">
-              <div className="review-project-detail__status-current">
-                <span className="review-project-detail__status-label">Current</span>
-                <span className="review-project-detail__status-pill">
-                  {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—'}
-                </span>
-              </div>
-
               <div className="review-project-detail__status-action">
-                {statusMenuLabel ? (
-                  <span className="review-project-detail__status-label">{statusMenuLabel}</span>
-                ) : null}
+                <div className="review-project-detail__status-pill">
+                  {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—'}
+                </div>
+                <span className="review-project-detail__status-arrow" aria-hidden="true">
+                  →
+                </span>
                 <div className="review-project-detail__split-wrap">
                   <div className="review-project-detail__split" ref={statusMenuRef}>
                     <button
