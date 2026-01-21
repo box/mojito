@@ -8,6 +8,7 @@ import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
+import com.box.l10n.mojito.service.review.ReviewProjectSearchCriteria;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.ReviewProjectSummaryView;
 import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
@@ -34,8 +35,12 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/search")
-  public List<SearchReviewProjectsResponse> searchReviewProjects(@RequestBody SearchReviewProjectsRequest request) {
-    return reviewProjectService.searchProjects(request).stream().map(this::toSearchReviewProjectsResponse).toList();
+  public SearchReviewProjectsResponse searchReviewProjects(@RequestBody SearchReviewProjectsRequest request) {
+    List<SearchReviewProjectsResponse.Project> projects =
+        reviewProjectService.searchReviewProjects(toCriteria(request)).stream()
+            .map(this::toSearchReviewProjectsResponse)
+            .toList();
+    return new SearchReviewProjectsResponse(projects);
   }
 
   @PostMapping("/review-project-requests")
@@ -111,24 +116,26 @@ public class ReviewProjectWS {
       List<Long> projectIds) {}
 
   /** Summary response used by list/search endpoints. */
-  public record SearchReviewProjectsResponse(
-      Long id,
-      ZonedDateTime createdDate,
-      ZonedDateTime dueDate,
-      String closeReason,
-      Integer textUnitCount,
-      Integer wordCount,
-      ReviewProjectType type,
-      ReviewProjectStatus status,
-      Long requestId,
-      String requestUuid,
-      String requestName,
-      int totalSelected,
-      long acceptedCount,
-      String name,
-      List<Repository> repositories,
-      List<LocaleSummary> locales,
-      List<String> screenshotImageIds) {
+  public record SearchReviewProjectsResponse(List<Project> reviewProjects) {
+
+    public record Project(
+        Long id,
+        ZonedDateTime createdDate,
+        ZonedDateTime dueDate,
+        String closeReason,
+        Integer textUnitCount,
+        Integer wordCount,
+        ReviewProjectType type,
+        ReviewProjectStatus status,
+        Long requestId,
+        String requestUuid,
+        String requestName,
+        int totalSelected,
+        long acceptedCount,
+        String name,
+        List<Repository> repositories,
+        List<LocaleSummary> locales,
+        List<String> screenshotImageIds) {}
 
     public record Repository(Long id, String name) {}
 
@@ -188,8 +195,8 @@ public class ReviewProjectWS {
   }
 
   // Mapping helpers
-  private SearchReviewProjectsResponse toSearchReviewProjectsResponse(ReviewProjectSummaryView view) {
-    return new SearchReviewProjectsResponse(
+  private SearchReviewProjectsResponse.Project toSearchReviewProjectsResponse(ReviewProjectSummaryView view) {
+    return new SearchReviewProjectsResponse.Project(
         view.id(),
         view.createdDate(),
         view.dueDate(),
@@ -214,6 +221,30 @@ public class ReviewProjectWS {
                         l.id(), l.bcp47Tag(), l.displayName(), l.selectedCount(), l.acceptedCount()))
             .toList(),
         view.screenshotImageIds());
+  }
+
+  private ReviewProjectSearchCriteria toCriteria(SearchReviewProjectsRequest request) {
+    if (request == null) {
+      return null;
+    }
+    ReviewProjectSearchCriteria criteria = new ReviewProjectSearchCriteria();
+    criteria.setStatuses(request.statuses());
+    criteria.setTypes(request.types());
+    criteria.setLocaleTags(request.localeTags());
+    criteria.setCreatedAfter(request.createdAfter());
+    criteria.setCreatedBefore(request.createdBefore());
+    criteria.setDueAfter(request.dueAfter());
+    criteria.setDueBefore(request.dueBefore());
+    criteria.setLimit(request.limit());
+    criteria.setSearchQuery(request.searchQuery());
+    if (request.searchField() != null) {
+      criteria.setSearchField(ReviewProjectSearchCriteria.SearchField.valueOf(request.searchField().name()));
+    }
+    if (request.searchMatchType() != null) {
+      criteria.setSearchMatchType(
+          ReviewProjectSearchCriteria.SearchMatchType.valueOf(request.searchMatchType().name()));
+    }
+    return criteria;
   }
 
   private ReviewProjectDetailResponse toDetailResponse(ReviewProjectDetailView view) {

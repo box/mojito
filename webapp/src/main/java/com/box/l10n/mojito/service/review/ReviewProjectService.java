@@ -14,7 +14,6 @@ import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
-import com.box.l10n.mojito.rest.review.SearchReviewProjectsRequest;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -189,24 +188,16 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public List<ReviewProjectSummaryView> getOpenProjects() {
-    SearchReviewProjectsRequest searchRequest = new SearchReviewProjectsRequest();
-    searchRequest.setStatuses(Collections.singletonList(ReviewProjectStatus.OPEN));
-    searchRequest.setLimit(MAX_SEARCH_LIMIT);
-    return searchProjects(searchRequest);
-  }
-
-  @Transactional(readOnly = true)
-  public List<ReviewProjectSummaryView> searchProjects(SearchReviewProjectsRequest request) {
-    SearchReviewProjectsRequest.SearchField searchField =
+  public List<ReviewProjectSummaryView> searchReviewProjects(ReviewProjectSearchCriteria request) {
+    ReviewProjectSearchCriteria.SearchField searchField =
         request != null && request.getSearchField() != null
             ? request.getSearchField()
-            : SearchReviewProjectsRequest.SearchField.NAME;
+            : ReviewProjectSearchCriteria.SearchField.NAME;
 
-    SearchReviewProjectsRequest.SearchMatchType searchMatchType =
+    ReviewProjectSearchCriteria.SearchMatchType searchMatchType =
         request != null && request.getSearchMatchType() != null
             ? request.getSearchMatchType()
-            : SearchReviewProjectsRequest.SearchMatchType.CONTAINS;
+            : ReviewProjectSearchCriteria.SearchMatchType.CONTAINS;
 
     List<ReviewProjectStatus> statuses =
         request != null && !CollectionUtils.isEmpty(request.getStatuses())
@@ -244,7 +235,7 @@ public class ReviewProjectService {
             : null;
 
     Long searchId = null;
-    if (searchField == SearchReviewProjectsRequest.SearchField.ID && searchQuery != null) {
+    if (searchField == ReviewProjectSearchCriteria.SearchField.ID && searchQuery != null) {
       try {
         searchId = Long.parseLong(searchQuery.replace("#", ""));
       } catch (NumberFormatException nfe) {
@@ -290,17 +281,17 @@ public class ReviewProjectService {
     }
 
     if (searchQuery != null) {
-      if (searchField == SearchReviewProjectsRequest.SearchField.ID) {
+      if (searchField == ReviewProjectSearchCriteria.SearchField.ID) {
         predicates.add(cb.equal(root.get("id"), searchId));
       } else {
         Expression<String> nameExpression = cb.lower(requestJoin.get("name"));
         String lowered = searchQuery.toLowerCase();
         Predicate searchPredicate;
-        if (searchMatchType == SearchReviewProjectsRequest.SearchMatchType.EXACT) {
+        if (searchMatchType == ReviewProjectSearchCriteria.SearchMatchType.EXACT) {
           searchPredicate = cb.equal(nameExpression, lowered);
         } else {
           String pattern =
-              searchMatchType == SearchReviewProjectsRequest.SearchMatchType.ILIKE
+              searchMatchType == ReviewProjectSearchCriteria.SearchMatchType.ILIKE
                   ? "%" + lowered.replace("*", "%") + "%"
                   : "%" + lowered + "%";
           searchPredicate = cb.like(nameExpression, pattern);

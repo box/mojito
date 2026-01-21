@@ -84,6 +84,10 @@ export type ApiReviewProjectDetail = {
   screenshotImageIds?: string[] | null;
 };
 
+export type SearchReviewProjectsResponse = {
+  reviewProjects: ApiReviewProjectSummary[];
+};
+
 export type ApiReviewProjectSummary = {
   id: number;
   name?: string | null;
@@ -142,7 +146,7 @@ const jsonHeaders = {
 
 export const searchReviewProjects = async (
   params: ReviewProjectsSearchRequest,
-): Promise<ApiReviewProjectSummary[]> => {
+): Promise<SearchReviewProjectsResponse> => {
   const response = await fetch('/api/review-projects/search', {
     method: 'POST',
     credentials: 'include',
@@ -155,11 +159,13 @@ export const searchReviewProjects = async (
     throw new Error(message || 'Failed to load review projects');
   }
 
-  return (await response.json()) as ApiReviewProjectSummary[];
+  return (await response.json()) as SearchReviewProjectsResponse;
 };
 
-export const fetchReviewProjects = async (): Promise<ApiReviewProjectSummary[]> =>
-  searchReviewProjects({});
+export const fetchReviewProjects = async (): Promise<ApiReviewProjectSummary[]> => {
+  const res = await searchReviewProjects({});
+  return res.reviewProjects ?? [];
+};
 
 export const createReviewProjectRequest = async (
   payload: ReviewProjectCreateRequest,

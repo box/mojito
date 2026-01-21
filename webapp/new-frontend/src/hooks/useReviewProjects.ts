@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
-import type { ApiReviewProjectSummary, ReviewProjectsSearchRequest } from '../api/review-projects';
+import type {
+  ApiReviewProjectSummary,
+  ReviewProjectsSearchRequest,
+  SearchReviewProjectsResponse,
+} from '../api/review-projects';
 import { searchReviewProjects } from '../api/review-projects';
 
 const REVIEW_PROJECTS_QUERY_KEY = ['review-projects'];
@@ -15,7 +19,10 @@ export const useReviewProjects = (
 ) => {
   return useQuery<ApiReviewProjectSummary[]>({
     queryKey: [REVIEW_PROJECTS_QUERY_KEY, params],
-    queryFn: () => searchReviewProjects(params),
+    queryFn: async () => {
+      const result = await searchReviewProjects(params);
+      return result.reviewProjects ?? [];
+    },
     staleTime: 30_000,
     ...options,
   });
