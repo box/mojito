@@ -105,7 +105,8 @@ public class ReviewProjectService {
   }
 
   @Transactional
-  public CreateReviewProjectResult createReviewProjectRequest(CreateReviewProjectCommand request) {
+  public CreateReviewProjectRequestResult createReviewProjectRequest(
+      CreateReviewProjectRequestCommand request) {
     if (CollectionUtils.isEmpty(request.localeTags())) {
       throw new IllegalArgumentException("At least one locale must be provided");
     }
@@ -137,8 +138,7 @@ public class ReviewProjectService {
       saveScreenshotsForRequest(reviewProjectRequest, request.screenshotImageIds());
     }
 
-    ReviewProjectType type =
-        request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
+    ReviewProjectType type = request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
     List<ReviewProjectSummaryView> summaries = new ArrayList<>();
     List<Long> projectIds = new ArrayList<>();
@@ -184,7 +184,7 @@ public class ReviewProjectService {
           "No text units requiring review were found for the provided selection");
     }
 
-    return new CreateReviewProjectResult(
+    return new CreateReviewProjectRequestResult(
         reviewProjectRequest.getId(),
         reviewProjectRequest.getRequestUuid(),
         reviewProjectRequest.getName(),

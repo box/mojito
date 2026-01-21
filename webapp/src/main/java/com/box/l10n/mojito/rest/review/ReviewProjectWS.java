@@ -3,8 +3,8 @@ package com.box.l10n.mojito.rest.review;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
-import com.box.l10n.mojito.service.review.CreateReviewProjectCommand;
-import com.box.l10n.mojito.service.review.CreateReviewProjectResult;
+import com.box.l10n.mojito.service.review.CreateReviewProjectRequestCommand;
+import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
@@ -49,9 +49,9 @@ public class ReviewProjectWS {
   @ResponseStatus(HttpStatus.CREATED)
   public CreateReviewProjectRequestResponse createReviewProjectRequest(
       @RequestBody CreateReviewProjectRequestRequest request) {
-    CreateReviewProjectResult result =
+    CreateReviewProjectRequestResult result =
         reviewProjectService.createReviewProjectRequest(
-            new CreateReviewProjectCommand(
+            new CreateReviewProjectRequestCommand(
                 request.localeTags(),
                 request.notes(),
                 request.tmTextUnitIds(),
