@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.review;
 
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import java.util.List;
+import java.time.ZonedDateTime;
 
 public class ReviewProjectCreateRequest {
 
@@ -9,13 +10,13 @@ public class ReviewProjectCreateRequest {
 
   private String notes;
 
-  private java.util.List<Long> tmTextUnitIds;
+  private List<Long> tmTextUnitIds;
 
   private ReviewProjectType type = ReviewProjectType.NORMAL;
 
-  private java.time.ZonedDateTime dueDate;
+  private ZonedDateTime dueDate;
 
-  private java.util.List<String> screenshotImageIds;
+  private List<String> screenshotImageIds;
 
   private String name;
 
@@ -51,11 +52,11 @@ public class ReviewProjectCreateRequest {
     this.type = type;
   }
 
-  public java.time.ZonedDateTime getDueDate() {
+  public ZonedDateTime getDueDate() {
     return dueDate;
   }
 
-  public void setDueDate(java.time.ZonedDateTime dueDate) {
+  public void setDueDate(ZonedDateTime dueDate) {
     this.dueDate = dueDate;
   }
 

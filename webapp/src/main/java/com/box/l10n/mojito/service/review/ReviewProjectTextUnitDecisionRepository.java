@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.review;
 
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -13,7 +14,7 @@ public interface ReviewProjectTextUnitDecisionRepository
 
   long countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
 
-  java.util.List<ReviewProjectTextUnitDecision> findByReviewProjectTextUnit_ReviewProject_Id(
+  List<ReviewProjectTextUnitDecision> findByReviewProjectTextUnit_ReviewProject_Id(
       Long reviewProjectId);
 
   Optional<ReviewProjectTextUnitDecision> findByReviewProjectTextUnitId(
