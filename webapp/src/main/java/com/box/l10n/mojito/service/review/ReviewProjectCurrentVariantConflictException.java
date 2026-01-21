@@ -1,7 +1,5 @@
 package com.box.l10n.mojito.service.review;
 
-import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
-
 public class ReviewProjectCurrentVariantConflictException extends RuntimeException {
 
   private final Long expectedVariantId;

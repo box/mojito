@@ -115,8 +115,7 @@ public class ReviewProjectService {
 
     if (!CollectionUtils.isEmpty(request.screenshotImageIds())) {
       boolean anyBlank =
-          request.screenshotImageIds().stream()
-              .anyMatch(id -> id == null || id.trim().isEmpty());
+          request.screenshotImageIds().stream().anyMatch(id -> id == null || id.trim().isEmpty());
       if (anyBlank) {
         throw new IllegalArgumentException("Screenshot image IDs must not be blank");
       }
@@ -134,7 +133,7 @@ public class ReviewProjectService {
 
     ReviewProjectType type = request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
-    List<ReviewProjectSummaryView> summaries = new ArrayList<>();
+    List<SearchReviewProjectsView> summaries = new ArrayList<>();
     List<Long> projectIds = new ArrayList<>();
 
     for (String localeTag : request.localeTags()) {
@@ -188,16 +187,16 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public List<ReviewProjectSummaryView> searchReviewProjects(ReviewProjectSearchCriteria request) {
-    ReviewProjectSearchCriteria.SearchField searchField =
+  public List<SearchReviewProjectsView> searchReviewProjects(SearchReviewProjectsCriteria request) {
+    SearchReviewProjectsCriteria.SearchField searchField =
         request != null && request.getSearchField() != null
             ? request.getSearchField()
-            : ReviewProjectSearchCriteria.SearchField.NAME;
+            : SearchReviewProjectsCriteria.SearchField.NAME;
 
-    ReviewProjectSearchCriteria.SearchMatchType searchMatchType =
+    SearchReviewProjectsCriteria.SearchMatchType searchMatchType =
         request != null && request.getSearchMatchType() != null
             ? request.getSearchMatchType()
-            : ReviewProjectSearchCriteria.SearchMatchType.CONTAINS;
+            : SearchReviewProjectsCriteria.SearchMatchType.CONTAINS;
 
     List<ReviewProjectStatus> statuses =
         request != null && !CollectionUtils.isEmpty(request.getStatuses())
@@ -235,7 +234,7 @@ public class ReviewProjectService {
             : null;
 
     Long searchId = null;
-    if (searchField == ReviewProjectSearchCriteria.SearchField.ID && searchQuery != null) {
+    if (searchField == SearchReviewProjectsCriteria.SearchField.ID && searchQuery != null) {
       try {
         searchId = Long.parseLong(searchQuery.replace("#", ""));
       } catch (NumberFormatException nfe) {
@@ -281,17 +280,17 @@ public class ReviewProjectService {
     }
 
     if (searchQuery != null) {
-      if (searchField == ReviewProjectSearchCriteria.SearchField.ID) {
+      if (searchField == SearchReviewProjectsCriteria.SearchField.ID) {
         predicates.add(cb.equal(root.get("id"), searchId));
       } else {
         Expression<String> nameExpression = cb.lower(requestJoin.get("name"));
         String lowered = searchQuery.toLowerCase();
         Predicate searchPredicate;
-        if (searchMatchType == ReviewProjectSearchCriteria.SearchMatchType.EXACT) {
+        if (searchMatchType == SearchReviewProjectsCriteria.SearchMatchType.EXACT) {
           searchPredicate = cb.equal(nameExpression, lowered);
         } else {
           String pattern =
-              searchMatchType == ReviewProjectSearchCriteria.SearchMatchType.ILIKE
+              searchMatchType == SearchReviewProjectsCriteria.SearchMatchType.ILIKE
                   ? "%" + lowered.replace("*", "%") + "%"
                   : "%" + lowered + "%";
           searchPredicate = cb.like(nameExpression, pattern);
@@ -618,7 +617,7 @@ public class ReviewProjectService {
                 project.getReviewProjectRequest().getId())));
   }
 
-  private ReviewProjectSummaryView toSummaryView(
+  private SearchReviewProjectsView toSummaryView(
       ReviewProject project, int totalSelected, int wordCount, long acceptedCount) {
     ReviewProjectLocaleSummaryView localeSummary =
         new ReviewProjectLocaleSummaryView(
@@ -628,14 +627,16 @@ public class ReviewProjectService {
             totalSelected,
             acceptedCount);
     Long requestId =
-        project.getReviewProjectRequest() != null ? project.getReviewProjectRequest().getId() : null;
+        project.getReviewProjectRequest() != null
+            ? project.getReviewProjectRequest().getId()
+            : null;
     String requestUuid =
         project.getReviewProjectRequest() != null
             ? project.getReviewProjectRequest().getRequestUuid()
             : null;
     String requestName = resolveRequestName(project);
 
-    return new ReviewProjectSummaryView(
+    return new SearchReviewProjectsView(
         project.getId(),
         project.getCreatedDate(),
         project.getDueDate(),
@@ -680,8 +681,7 @@ public class ReviewProjectService {
         .findByReviewProjectIdOrderByIdAsc(reviewProject.getId())
         .stream()
         .map(
-            textUnit ->
-                toTextUnitView(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
+            textUnit -> toTextUnitView(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
         .collect(Collectors.toList());
   }
 
@@ -775,7 +775,9 @@ public class ReviewProjectService {
         reviewedBy,
         repository != null ? repository.getId() : null,
         repository != null ? repository.getName() : null,
-        tmTextUnit != null && tmTextUnit.getAsset() != null ? tmTextUnit.getAsset().getPath() : null,
+        tmTextUnit != null && tmTextUnit.getAsset() != null
+            ? tmTextUnit.getAsset().getPath()
+            : null,
         resolvedVariant != null && resolvedVariant.isIncludedInLocalizedFile());
   }
 

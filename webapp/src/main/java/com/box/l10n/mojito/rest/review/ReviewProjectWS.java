@@ -8,10 +8,10 @@ import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
-import com.box.l10n.mojito.service.review.ReviewProjectSearchCriteria;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
-import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
 import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
+import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
+import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -35,7 +35,8 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/search")
-  public SearchReviewProjectsResponse searchReviewProjects(@RequestBody SearchReviewProjectsRequest request) {
+  public SearchReviewProjectsResponse searchReviewProjects(
+      @RequestBody SearchReviewProjectsRequest request) {
     List<SearchReviewProjectsResponse.Project> projects =
         reviewProjectService.searchReviewProjects(toCriteria(request)).stream()
             .map(this::toSearchReviewProjectsResponse)
@@ -68,13 +69,13 @@ public class ReviewProjectWS {
   }
 
   @GetMapping("/review-projects/{projectId}")
-  public ReviewProjectDetailResponse getProject(@PathVariable Long projectId)
+  public GetReviewProjectResponse getReviewProject(@PathVariable Long projectId)
       throws EntityWithIdNotFoundException {
     return toDetailResponse(reviewProjectService.getProjectDetail(projectId));
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")
-  public ResponseEntity<ReviewProjectDetailResponse.TextUnit> acceptTextUnit(
+  public ResponseEntity<GetReviewProjectResponse.TextUnit> acceptTextUnit(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitAcceptRequest request)
@@ -97,7 +98,7 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/review")
-  public ReviewProjectDetailResponse.TextUnit updateReviewStatus(
+  public GetReviewProjectResponse.TextUnit updateReviewStatus(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitReviewRequest request)
@@ -145,7 +146,7 @@ public class ReviewProjectWS {
 
   /** Response contract for project detail. */
   /** Response contract for project detail. */
-  public record ReviewProjectDetailResponse(
+  public record GetReviewProjectResponse(
       Long id,
       ReviewProjectType type,
       ReviewProjectStatus status,
@@ -219,7 +220,11 @@ public class ReviewProjectWS {
             .map(
                 l ->
                     new SearchReviewProjectsResponse.LocaleSummary(
-                        l.id(), l.bcp47Tag(), l.displayName(), l.selectedCount(), l.acceptedCount()))
+                        l.id(),
+                        l.bcp47Tag(),
+                        l.displayName(),
+                        l.selectedCount(),
+                        l.acceptedCount()))
             .toList(),
         view.screenshotImageIds());
   }
@@ -239,20 +244,20 @@ public class ReviewProjectWS {
     criteria.setLimit(request.limit());
     criteria.setSearchQuery(request.searchQuery());
     if (request.searchField() != null) {
-      criteria.setSearchField(ReviewProjectSearchCriteria.SearchField.valueOf(request.searchField().name()));
+      criteria.setSearchField(
+          SearchReviewProjectsCriteria.SearchField.valueOf(request.searchField().name()));
     }
     if (request.searchMatchType() != null) {
       criteria.setSearchMatchType(
-          ReviewProjectSearchCriteria.SearchMatchType.valueOf(request.searchMatchType().name()));
+          SearchReviewProjectsCriteria.SearchMatchType.valueOf(request.searchMatchType().name()));
     }
     return criteria;
   }
 
-  private ReviewProjectDetailResponse toDetailResponse(ReviewProjectDetailView view) {
-    ReviewProjectDetailResponse.LocaleDetail localeDetail =
-        toLocaleDetail(view.locale());
+  private GetReviewProjectResponse toDetailResponse(ReviewProjectDetailView view) {
+    GetReviewProjectResponse.LocaleDetail localeDetail = toLocaleDetail(view.locale());
 
-    return new ReviewProjectDetailResponse(
+    return new GetReviewProjectResponse(
         view.id(),
         view.type(),
         view.status(),
@@ -274,9 +279,9 @@ public class ReviewProjectWS {
         view.screenshotImageIds());
   }
 
-  private ReviewProjectDetailResponse.LocaleDetail toLocaleDetail(
+  private GetReviewProjectResponse.LocaleDetail toLocaleDetail(
       ReviewProjectLocaleDetailView localeView) {
-    return new ReviewProjectDetailResponse.LocaleDetail(
+    return new GetReviewProjectResponse.LocaleDetail(
         localeView.id(),
         localeView.bcp47Tag(),
         localeView.displayName(),
@@ -285,8 +290,8 @@ public class ReviewProjectWS {
         localeView.textUnits().stream().map(this::toTextUnitResponse).toList());
   }
 
-  private ReviewProjectDetailResponse.TextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
-    return new ReviewProjectDetailResponse.TextUnit(
+  private GetReviewProjectResponse.TextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
+    return new GetReviewProjectResponse.TextUnit(
         view.reviewProjectTextUnitId(),
         view.tmTextUnitId(),
         view.tmTextUnitVariantId(),
