@@ -112,7 +112,4 @@ ALTER TABLE review_project_screenshot
 
 CREATE INDEX IDX__REVIEW_PROJECT_SCREENSHOT__REQUEST ON review_project_screenshot (review_project_request_id);
 
-CREATE INDEX IDX__REVIEW_PROJECT__LOCALE ON review_project (locale_id);
-CREATE INDEX IDX__REVIEW_PROJECT__REQUEST ON review_project (review_project_request_id);
-CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT__PROJECT ON review_project_text_unit (review_project_id);
-CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT__VARIANT ON review_project_text_unit (tm_text_unit_variant_id);
+CREATE INDEX IDX__REVIEW_PROJECT__STATUS ON review_project (status);
