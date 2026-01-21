@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Service-layer search parameters for review projects (kept independent from REST request types).
  */
-public class ReviewProjectSearchCriteria {
+public class SearchReviewProjectsCriteria {
 
   public enum SearchField {
     NAME,

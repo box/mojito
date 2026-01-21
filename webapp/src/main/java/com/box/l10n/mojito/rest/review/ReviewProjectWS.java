@@ -10,7 +10,7 @@ import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectSearchCriteria;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
-import com.box.l10n.mojito.service.review.ReviewProjectSummaryView;
+import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
 import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -195,7 +195,8 @@ public class ReviewProjectWS {
   }
 
   // Mapping helpers
-  private SearchReviewProjectsResponse.Project toSearchReviewProjectsResponse(ReviewProjectSummaryView view) {
+  private SearchReviewProjectsResponse.Project toSearchReviewProjectsResponse(
+      SearchReviewProjectsView view) {
     return new SearchReviewProjectsResponse.Project(
         view.id(),
         view.createdDate(),
@@ -223,11 +224,11 @@ public class ReviewProjectWS {
         view.screenshotImageIds());
   }
 
-  private ReviewProjectSearchCriteria toCriteria(SearchReviewProjectsRequest request) {
+  private SearchReviewProjectsCriteria toCriteria(SearchReviewProjectsRequest request) {
     if (request == null) {
       return null;
     }
-    ReviewProjectSearchCriteria criteria = new ReviewProjectSearchCriteria();
+    SearchReviewProjectsCriteria criteria = new SearchReviewProjectsCriteria();
     criteria.setStatuses(request.statuses());
     criteria.setTypes(request.types());
     criteria.setLocaleTags(request.localeTags());

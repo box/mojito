@@ -5,7 +5,7 @@ import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public record ReviewProjectSummaryView(
+public record SearchReviewProjectsView(
     Long id,
     ZonedDateTime createdDate,
     ZonedDateTime dueDate,
