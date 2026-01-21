@@ -681,32 +681,7 @@ function DetailPane({
   return (
     <div className="review-project-detail">
       <div className="review-project-detail__header">
-        <div className="review-project-detail__title">
-          <span className="review-project-detail__title-text">
-            {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
-          </span>
-          <Link
-            className="pill review-project-detail__pill-link review-project-detail__pill-link--title"
-            to={{
-              pathname: '/workbench',
-              search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
-                localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
-              }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
-              state: {
-                workbenchSearch: {
-                  searchAttribute: 'tmTextUnitIds',
-                  searchType: 'exact',
-                  searchText: String(textUnit.tmTextUnitId),
-                  localeTags: localeTag ? [localeTag] : undefined,
-                  repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
-                },
-              },
-            }}
-            title="Open this string in Workbench"
-          >
-            Open in Workbench
-          </Link>
-        </div>
+        <div className="review-project-detail__title" />
       </div>
       <div className="review-project-detail__layout">
         <div className="review-project-detail__main">
@@ -816,6 +791,35 @@ function DetailPane({
         </div>
 
         <div className="review-project-detail__side">
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">String</div>
+            <div className="review-project-detail__value review-project-detail__value--meta">
+              <span className="review-project-detail__title-text">
+                {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
+              </span>
+            </div>
+            <Link
+              className="pill review-project-detail__pill-link review-project-detail__pill-link--title"
+              to={{
+                pathname: '/workbench',
+                search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
+                  localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
+                }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
+                state: {
+                  workbenchSearch: {
+                    searchAttribute: 'tmTextUnitIds',
+                    searchType: 'exact',
+                    searchText: String(textUnit.tmTextUnitId),
+                    localeTags: localeTag ? [localeTag] : undefined,
+                    repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
+                  },
+                },
+              }}
+              title="Open this string in Workbench"
+            >
+              Open in Workbench
+            </Link>
+          </div>
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Source</div>
             <div className="review-project-detail__value">{textUnit.source || '—'}</div>
