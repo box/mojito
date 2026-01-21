@@ -15,22 +15,24 @@ import java.time.ZonedDateTime;
 // TODO(ja) do we need both vs mutating review_project_text_unit?
 
 @Entity
-@Table(name = "review_project_accepted_variant")
-public class ReviewProjectAcceptedVariant extends BaseEntity {
+@Table(name = "review_project_text_unit_decision")
+public class ReviewProjectTextUnitDecision extends BaseEntity {
 
   // TODO(ja) de-normalizing here? is it needed? i mean we have the relation via
   // review_project_text_unit_id
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "review_project_id",
-      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_ACCEPTED_VARIANT__PROJECT"))
+      foreignKey =
+          @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__PROJECT"))
   private ReviewProject reviewProject;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "review_project_text_unit_id",
       foreignKey =
-          @ForeignKey(name = "FK__REVIEW_PROJECT_ACCEPTED_VARIANT__REVIEW_PROJECT_TEXT_UNIT"))
+          @ForeignKey(
+              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEW_PROJECT_TEXT_UNIT"))
   private ReviewProjectTextUnit reviewProjectTextUnit;
 
   // TODO(ja) I guess that is a duplicate of the other table info. anyway i also had the question
@@ -38,26 +40,28 @@ public class ReviewProjectAcceptedVariant extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "tm_text_unit_variant_id",
-      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_ACCEPTED_VARIANT__VARIANT"))
+      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT"))
   private TMTextUnitVariant tmTextUnitVariant;
 
   // TODO(ja) i proposed better names for that I think
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
-      name = "accepted_variant_id",
-      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_ACCEPTED_VARIANT__ACCEPTED_VARIANT"))
-  private TMTextUnitVariant acceptedVariant;
+      name = "decided_variant_id",
+      foreignKey =
+          @ForeignKey(
+              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__DECIDED_VARIANT"))
+  private TMTextUnitVariant decidedVariant;
 
   // TODO(ja) yes, might be missing in the other table
-  @Column(name = "accepted_at")
-  private ZonedDateTime acceptedAt;
+  @Column(name = "decided_at")
+  private ZonedDateTime decidedAt;
 
   // TODO(ja) yes, might be missing in the other table
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
-      name = "accepted_by_user_id",
-      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_ACCEPTED_VARIANT__USER"))
-  private User acceptedBy;
+      name = "decided_by_user_id",
+      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER"))
+  private User decidedBy;
 
   public ReviewProject getReviewProject() {
     return reviewProject;
@@ -83,27 +87,27 @@ public class ReviewProjectAcceptedVariant extends BaseEntity {
     this.tmTextUnitVariant = tmTextUnitVariant;
   }
 
-  public TMTextUnitVariant getAcceptedVariant() {
-    return acceptedVariant;
+  public TMTextUnitVariant getDecidedVariant() {
+    return decidedVariant;
   }
 
-  public void setAcceptedVariant(TMTextUnitVariant acceptedVariant) {
-    this.acceptedVariant = acceptedVariant;
+  public void setDecidedVariant(TMTextUnitVariant decidedVariant) {
+    this.decidedVariant = decidedVariant;
   }
 
-  public ZonedDateTime getAcceptedAt() {
-    return acceptedAt;
+  public ZonedDateTime getDecidedAt() {
+    return decidedAt;
   }
 
-  public void setAcceptedAt(ZonedDateTime acceptedAt) {
-    this.acceptedAt = acceptedAt;
+  public void setDecidedAt(ZonedDateTime decidedAt) {
+    this.decidedAt = decidedAt;
   }
 
-  public User getAcceptedBy() {
-    return acceptedBy;
+  public User getDecidedBy() {
+    return decidedBy;
   }
 
-  public void setAcceptedBy(User acceptedBy) {
-    this.acceptedBy = acceptedBy;
+  public void setDecidedBy(User decidedBy) {
+    this.decidedBy = decidedBy;
   }
 }

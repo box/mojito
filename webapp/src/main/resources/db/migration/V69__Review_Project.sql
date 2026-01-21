@@ -79,37 +79,37 @@ ALTER TABLE review_project_text_unit
 ALTER TABLE review_project_text_unit
     ADD CONSTRAINT UK__REVIEW_PROJECT_TEXT_UNIT__PROJECT_VARIANT UNIQUE (review_project_id, tm_text_unit_variant_id);
 
-CREATE TABLE review_project_accepted_variant (
+CREATE TABLE review_project_text_unit_decision (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     review_project_id bigint(20) NOT NULL,
     review_project_text_unit_id bigint(20) NOT NULL,
     tm_text_unit_variant_id bigint(20) NOT NULL,
-    accepted_variant_id bigint(20) NOT NULL,
-    accepted_at datetime DEFAULT NULL,
-    accepted_by_user_id bigint(20) DEFAULT NULL,
+    decided_variant_id bigint(20) NOT NULL,
+    decided_at datetime DEFAULT NULL,
+    decided_by_user_id bigint(20) DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT FK__REVIEW_PROJECT_ACCEPTED_VARIANT__PROJECT FOREIGN KEY (review_project_id) REFERENCES review_project (id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__PROJECT FOREIGN KEY (review_project_id) REFERENCES review_project (id);
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT FK__REVIEW_PROJECT_ACCEPTED_VARIANT__TEXT_UNIT FOREIGN KEY (review_project_text_unit_id) REFERENCES review_project_text_unit (id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__TEXT_UNIT FOREIGN KEY (review_project_text_unit_id) REFERENCES review_project_text_unit (id);
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT FK__REVIEW_PROJECT_ACCEPTED_VARIANT__VARIANT FOREIGN KEY (tm_text_unit_variant_id) REFERENCES tm_text_unit_variant (id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT FOREIGN KEY (tm_text_unit_variant_id) REFERENCES tm_text_unit_variant (id);
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT FK__REVIEW_PROJECT_ACCEPTED_VARIANT__ACCEPTED_VARIANT FOREIGN KEY (accepted_variant_id) REFERENCES tm_text_unit_variant (id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__DECIDED_VARIANT FOREIGN KEY (decided_variant_id) REFERENCES tm_text_unit_variant (id);
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT FK__REVIEW_PROJECT_ACCEPTED_VARIANT__USER FOREIGN KEY (accepted_by_user_id) REFERENCES user (id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER FOREIGN KEY (decided_by_user_id) REFERENCES user (id);
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT UK__REVIEW_PROJECT_ACCEPTED_VARIANT__PROJECT_VARIANT UNIQUE (review_project_id, tm_text_unit_variant_id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT UK__REVIEW_PROJECT_TEXT_UNIT_DECISION__PROJECT_VARIANT UNIQUE (review_project_id, tm_text_unit_variant_id);
 
-ALTER TABLE review_project_accepted_variant
-    ADD CONSTRAINT UK__REVIEW_PROJECT_ACCEPTED_VARIANT__TEXT_UNIT UNIQUE (review_project_text_unit_id);
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT UK__REVIEW_PROJECT_TEXT_UNIT_DECISION__TEXT_UNIT UNIQUE (review_project_text_unit_id);
 
 CREATE TABLE review_project_screenshot (
     id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -129,5 +129,5 @@ CREATE INDEX IDX__REVIEW_PROJECT__LOCALE ON review_project (locale_id);
 CREATE INDEX IDX__REVIEW_PROJECT__REQUEST ON review_project (review_project_request_id);
 CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT__PROJECT ON review_project_text_unit (review_project_id);
 CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT__VARIANT ON review_project_text_unit (tm_text_unit_variant_id);
-CREATE INDEX IDX__REVIEW_PROJECT_ACCEPTED_VARIANT__PROJECT ON review_project_accepted_variant (review_project_id);
-CREATE INDEX IDX__REVIEW_PROJECT_ACCEPTED_VARIANT__VARIANT ON review_project_accepted_variant (tm_text_unit_variant_id);
+CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT_DECISION__PROJECT ON review_project_text_unit_decision (review_project_id);
+CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT ON review_project_text_unit_decision (tm_text_unit_variant_id);

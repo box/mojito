@@ -7,7 +7,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.review.ReviewProject;
-import com.box.l10n.mojito.entity.review.ReviewProjectAcceptedVariant;
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
 import com.box.l10n.mojito.entity.review.ReviewDecisionStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequestScreenshot;
@@ -74,7 +74,7 @@ public class ReviewProjectService {
 
   private final ReviewProjectRepository reviewProjectRepository;
   private final ReviewProjectTextUnitRepository reviewProjectTextUnitRepository;
-  private final ReviewProjectAcceptedVariantRepository reviewProjectAcceptedVariantRepository;
+  private final ReviewProjectTextUnitDecisionRepository reviewProjectTextUnitDecisionRepository;
   private final ReviewProjectRequestRepository reviewProjectRequestRepository;
   private final ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository;
   private final RepositoryRepository repositoryRepository;
@@ -91,7 +91,7 @@ public class ReviewProjectService {
   public ReviewProjectService(
       ReviewProjectRepository reviewProjectRepository,
       ReviewProjectTextUnitRepository reviewProjectTextUnitRepository,
-      ReviewProjectAcceptedVariantRepository reviewProjectAcceptedVariantRepository,
+      ReviewProjectTextUnitDecisionRepository reviewProjectTextUnitDecisionRepository,
       ReviewProjectRequestRepository reviewProjectRequestRepository,
       ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository,
       RepositoryRepository repositoryRepository,
@@ -104,7 +104,7 @@ public class ReviewProjectService {
       AuditorAwareImpl auditorAware) {
     this.reviewProjectRepository = reviewProjectRepository;
     this.reviewProjectTextUnitRepository = reviewProjectTextUnitRepository;
-    this.reviewProjectAcceptedVariantRepository = reviewProjectAcceptedVariantRepository;
+    this.reviewProjectTextUnitDecisionRepository = reviewProjectTextUnitDecisionRepository;
     this.reviewProjectRequestRepository = reviewProjectRequestRepository;
     this.reviewProjectScreenshotRepository = reviewProjectScreenshotRepository;
     this.repositoryRepository = repositoryRepository;
@@ -361,7 +361,8 @@ public class ReviewProjectService {
               int totalSelected = resolveTotalSelected(project);
               int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
               long acceptedCount =
-                  reviewProjectAcceptedVariantRepository.countByReviewProjectId(project.getId());
+                  reviewProjectTextUnitDecisionRepository.countByReviewProjectId(
+                      project.getId());
               return toSummaryDTO(project, totalSelected, wordCount, acceptedCount);
             })
         .collect(Collectors.toList());
@@ -393,7 +394,7 @@ public class ReviewProjectService {
     }
     dto.setScreenshotImageIds(resolveScreenshotImageKeys(project));
     List<ReviewProjectTextUnitDTO> textUnits = toTextUnitDTOs(project);
-    long acceptedCount = reviewProjectAcceptedVariantRepository.countByReviewProjectId(projectId);
+    long acceptedCount = reviewProjectTextUnitDecisionRepository.countByReviewProjectId(projectId);
     ReviewProjectLocaleDetailDTO localeDetail =
         new ReviewProjectLocaleDetailDTO(
             project.getId(),
@@ -487,23 +488,23 @@ public class ReviewProjectService {
     boolean changed =
         currentContent == null || !NormalizationUtils.normalize(currentContent).equals(normalizedTarget);
 
-    ReviewProjectAcceptedVariant acceptedVariant =
-        reviewProjectAcceptedVariantRepository
+    ReviewProjectTextUnitDecision variantDecision =
+        reviewProjectTextUnitDecisionRepository
             .findByReviewProjectTextUnitId(textUnit.getId())
             .orElseGet(
                 () -> {
-                  ReviewProjectAcceptedVariant entity = new ReviewProjectAcceptedVariant();
+                  ReviewProjectTextUnitDecision entity = new ReviewProjectTextUnitDecision();
                   entity.setReviewProject(project);
                   entity.setReviewProjectTextUnit(textUnit);
                   return entity;
                 });
 
-    acceptedVariant.setTmTextUnitVariant(
+    variantDecision.setTmTextUnitVariant(
         textUnit.getTmTextUnitVariant() != null ? textUnit.getTmTextUnitVariant() : newVariant);
-    acceptedVariant.setAcceptedVariant(newVariant);
-    acceptedVariant.setAcceptedAt(ZonedDateTime.now());
-    acceptedVariant.setAcceptedBy(auditorAware.getCurrentAuditor().orElse(null));
-    reviewProjectAcceptedVariantRepository.save(acceptedVariant);
+    variantDecision.setDecidedVariant(newVariant);
+    variantDecision.setDecidedAt(ZonedDateTime.now());
+    variantDecision.setDecidedBy(auditorAware.getCurrentAuditor().orElse(null));
+    reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
     textUnit.setReviewStatus(
         changed ? ReviewDecisionStatus.ACCEPTED_WITH_CHANGE : ReviewDecisionStatus.ACCEPTED_AS_IS);
