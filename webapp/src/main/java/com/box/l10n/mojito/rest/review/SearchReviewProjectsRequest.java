@@ -5,7 +5,7 @@ import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public class ReviewProjectSearchRequest {
+public class SearchReviewProjectsRequest {
 
   public enum SearchField {
     NAME,

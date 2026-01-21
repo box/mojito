@@ -8,8 +8,6 @@ import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
-import com.box.l10n.mojito.service.review.ReviewProjectLocaleSummaryView;
-import com.box.l10n.mojito.service.review.ReviewProjectRepositorySummaryView;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.ReviewProjectSummaryView;
 import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
@@ -36,8 +34,8 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/search")
-  public List<ReviewProjectSummaryResponse> search(@RequestBody ReviewProjectSearchRequest request) {
-    return reviewProjectService.searchProjects(request).stream().map(this::toSummaryResponse).toList();
+  public List<SearchReviewProjectsResponse> searchReviewProjects(@RequestBody SearchReviewProjectsRequest request) {
+    return reviewProjectService.searchProjects(request).stream().map(this::toSearchReviewProjectsResponse).toList();
   }
 
   @PostMapping("/review-project-requests")
@@ -113,7 +111,7 @@ public class ReviewProjectWS {
       List<Long> projectIds) {}
 
   /** Summary response used by list/search endpoints. */
-  public record ReviewProjectSummaryResponse(
+  public record SearchReviewProjectsResponse(
       Long id,
       ZonedDateTime createdDate,
       ZonedDateTime dueDate,
@@ -155,7 +153,7 @@ public class ReviewProjectWS {
       String requestUuid,
       String requestName,
       LocaleDetail locale,
-      List<ReviewProjectSummaryResponse.Repository> repositories,
+      List<SearchReviewProjectsResponse.Repository> repositories,
       List<LocaleDetail> locales,
       List<String> screenshotImageIds) {
 
@@ -190,8 +188,8 @@ public class ReviewProjectWS {
   }
 
   // Mapping helpers
-  private ReviewProjectSummaryResponse toSummaryResponse(ReviewProjectSummaryView view) {
-    return new ReviewProjectSummaryResponse(
+  private SearchReviewProjectsResponse toSearchReviewProjectsResponse(ReviewProjectSummaryView view) {
+    return new SearchReviewProjectsResponse(
         view.id(),
         view.createdDate(),
         view.dueDate(),
@@ -207,12 +205,12 @@ public class ReviewProjectWS {
         view.acceptedCount(),
         view.name(),
         view.repositories().stream()
-            .map(r -> new ReviewProjectSummaryResponse.Repository(r.id(), r.name()))
+            .map(r -> new SearchReviewProjectsResponse.Repository(r.id(), r.name()))
             .toList(),
         view.locales().stream()
             .map(
                 l ->
-                    new ReviewProjectSummaryResponse.LocaleSummary(
+                    new SearchReviewProjectsResponse.LocaleSummary(
                         l.id(), l.bcp47Tag(), l.displayName(), l.selectedCount(), l.acceptedCount()))
             .toList(),
         view.screenshotImageIds());
@@ -238,7 +236,7 @@ public class ReviewProjectWS {
         view.requestName(),
         localeDetail,
         view.repositories().stream()
-            .map(r -> new ReviewProjectSummaryResponse.Repository(r.id(), r.name()))
+            .map(r -> new SearchReviewProjectsResponse.Repository(r.id(), r.name()))
             .toList(),
         view.locales().stream().map(this::toLocaleDetail).toList(),
         view.screenshotImageIds());
