@@ -792,6 +792,30 @@ function DetailPane({
 
         <div className="review-project-detail__side">
           <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Source</div>
+            <div className="review-project-detail__value">{textUnit.source || '—'}</div>
+          </div>
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Original target</div>
+            <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
+              <span>{displayedTarget || '—'}</span>
+              {hasExternalChange ? (
+                <div className="review-project-detail__external">
+                  <div className="review-project-detail__label">
+                    <Pill className="review-project-detail__pill review-project-detail__pill--warning">
+                      External update
+                    </Pill>
+                  </div>
+                  <div className="review-project-detail__value review-project-detail__value--target">
+                    <span>{textUnit.currentTarget || '—'}</span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="review-project-detail__field">
             <div className="review-project-detail__label">String</div>
             <div className="review-project-detail__value review-project-detail__value--meta">
               <span className="review-project-detail__title-text">
@@ -819,29 +843,6 @@ function DetailPane({
             >
               Open in Workbench
             </Link>
-          </div>
-          <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Source</div>
-            <div className="review-project-detail__value">{textUnit.source || '—'}</div>
-          </div>
-
-          <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Original target</div>
-            <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
-              <span>{displayedTarget || '—'}</span>
-              {hasExternalChange ? (
-                <div className="review-project-detail__external">
-                  <div className="review-project-detail__label">
-                    <Pill className="review-project-detail__pill review-project-detail__pill--warning">
-                      External update
-                    </Pill>
-                  </div>
-                  <div className="review-project-detail__value review-project-detail__value--target">
-                    <span>{textUnit.currentTarget || '—'}</span>
-                  </div>
-                </div>
-              ) : null}
-            </div>
           </div>
 
           <div className="review-project-detail__meta review-project-detail__field">
