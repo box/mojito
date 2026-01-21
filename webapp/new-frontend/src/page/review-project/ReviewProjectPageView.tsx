@@ -646,8 +646,6 @@ function DetailPane({
     needs_translation: 'To translate',
     rejected: 'Rejected',
   };
-  const statusMenuLabel: string | null = null;
-  const primaryLabel = 'Save';
   const isBusy = isAccepting || isUpdatingStatus;
   const statusOptions = useMemo(
     () =>
@@ -656,6 +654,10 @@ function DetailPane({
         label: statusDisplay[key],
       })),
     [],
+  );
+  const initialStatusLabel = useMemo(
+    () => getDisplayStatus(textUnit.status) ?? textUnit.status ?? '—',
+    [textUnit.status],
   );
 
   return (
@@ -674,44 +676,38 @@ function DetailPane({
               rows={5}
               placeholder="Enter proposed translation"
             />
-              <div className="review-project-detail__status-row">
-              <div className="review-project-detail__status-action">
-                <div className="pill-dropdown pill-dropdown--static review-project-detail__pill-dropdown-static">
-                  <button
-                    type="button"
-                    className="pill-dropdown__button"
-                    aria-label="Current status"
-                    disabled
-                  >
-                    <span className="pill-dropdown__label">
-                      {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—'}
-                    </span>
-                  </button>
-                </div>
-                <span className="review-project-detail__status-arrow" aria-hidden="true">
-                  →
-                </span>
-                  <PillDropdown
-                    value={selectedStatus}
-                    options={statusOptions}
-                    onChange={(next) => handleStatusSelect(next as StatusOption)}
-                    disabled={isBusy}
-                  />
-                <div className="review-project-detail__split-wrap">
+            <div className="review-project-detail__status-row">
+              <div className="pill-dropdown pill-dropdown--static review-project-detail__pill-dropdown-static">
                 <button
                   type="button"
-                  className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
-                  onClick={applySelectedStatus}
-                  disabled={isBusy}
+                  className="pill-dropdown__button"
+                  aria-label="Current status"
+                  aria-disabled="true"
+                  tabIndex={-1}
                 >
-                  Save
+                  <span className="pill-dropdown__label">{initialStatusLabel}</span>
                 </button>
-                  <span className="review-project-detail__split-spinner">
-                    {isBusy ? <span className="spinner spinner--inline" aria-hidden="true" /> : null}
-                  </span>
-                </div>
-
               </div>
+              <span className="review-project-detail__status-arrow" aria-hidden="true">
+                →
+              </span>
+              <PillDropdown
+                value={selectedStatus}
+                options={statusOptions}
+                onChange={(next) => handleStatusSelect(next as StatusOption)}
+                disabled={isBusy}
+              />
+              <button
+                type="button"
+                className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
+                onClick={applySelectedStatus}
+                disabled={isBusy}
+              >
+                Save
+              </button>
+              <span className="review-project-detail__status-spinner">
+                {isBusy ? <span className="spinner spinner--inline" aria-hidden="true" /> : null}
+              </span>
             </div>
             {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
           </div>
