@@ -115,8 +115,6 @@ ALTER TABLE review_project_accepted_variant
 CREATE TABLE review_project_screenshot (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     review_project_request_id bigint(20) DEFAULT NULL,
-    review_project_id bigint(20) DEFAULT NULL,
-    locale_id bigint(20) DEFAULT NULL,
     image_key varchar(255) NOT NULL,
     created_date datetime DEFAULT NULL,
     last_modified_date datetime DEFAULT NULL,
@@ -126,15 +124,7 @@ CREATE TABLE review_project_screenshot (
 ALTER TABLE review_project_screenshot
     ADD CONSTRAINT FK__REVIEW_PROJECT_SCREENSHOT__REQUEST FOREIGN KEY (review_project_request_id) REFERENCES review_project_request (id);
 
-ALTER TABLE review_project_screenshot
-    ADD CONSTRAINT FK__REVIEW_PROJECT_SCREENSHOT__PROJECT FOREIGN KEY (review_project_id) REFERENCES review_project (id);
-
-ALTER TABLE review_project_screenshot
-    ADD CONSTRAINT FK__REVIEW_PROJECT_SCREENSHOT__LOCALE FOREIGN KEY (locale_id) REFERENCES locale (id);
-
 CREATE INDEX IDX__REVIEW_PROJECT_SCREENSHOT__REQUEST ON review_project_screenshot (review_project_request_id);
-CREATE INDEX IDX__REVIEW_PROJECT_SCREENSHOT__PROJECT ON review_project_screenshot (review_project_id);
-CREATE INDEX IDX__REVIEW_PROJECT_SCREENSHOT__LOCALE ON review_project_screenshot (locale_id);
 
 CREATE INDEX IDX__REVIEW_PROJECT__LOCALE ON review_project (locale_id);
 CREATE INDEX IDX__REVIEW_PROJECT__REQUEST ON review_project (review_project_request_id);

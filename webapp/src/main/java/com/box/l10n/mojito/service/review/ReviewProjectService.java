@@ -10,7 +10,7 @@ import com.box.l10n.mojito.entity.review.ReviewProject;
 import com.box.l10n.mojito.entity.review.ReviewProjectAcceptedVariant;
 import com.box.l10n.mojito.entity.review.ReviewDecisionStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
-import com.box.l10n.mojito.entity.review.ReviewProjectScreenshot;
+import com.box.l10n.mojito.entity.review.ReviewProjectRequestScreenshot;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnit;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
@@ -76,7 +76,7 @@ public class ReviewProjectService {
   private final ReviewProjectTextUnitRepository reviewProjectTextUnitRepository;
   private final ReviewProjectAcceptedVariantRepository reviewProjectAcceptedVariantRepository;
   private final ReviewProjectRequestRepository reviewProjectRequestRepository;
-  private final ReviewProjectScreenshotRepository reviewProjectScreenshotRepository;
+  private final ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository;
   private final RepositoryRepository repositoryRepository;
   private final LocaleService localeService;
   private final TextUnitSearcher textUnitSearcher;
@@ -93,7 +93,7 @@ public class ReviewProjectService {
       ReviewProjectTextUnitRepository reviewProjectTextUnitRepository,
       ReviewProjectAcceptedVariantRepository reviewProjectAcceptedVariantRepository,
       ReviewProjectRequestRepository reviewProjectRequestRepository,
-      ReviewProjectScreenshotRepository reviewProjectScreenshotRepository,
+      ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository,
       RepositoryRepository repositoryRepository,
       LocaleService localeService,
       TextUnitSearcher textUnitSearcher,
@@ -572,7 +572,7 @@ public class ReviewProjectService {
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
     for (String imageKey : dedupedKeys) {
-      ReviewProjectScreenshot screenshot = new ReviewProjectScreenshot();
+      ReviewProjectRequestScreenshot screenshot = new ReviewProjectRequestScreenshot();
       screenshot.setReviewProjectRequest(reviewProjectRequest);
       screenshot.setImageKey(imageKey);
       reviewProjectScreenshotRepository.save(screenshot);
@@ -669,21 +669,14 @@ public class ReviewProjectService {
   }
 
   private List<String> resolveScreenshotImageKeys(ReviewProject project) {
-    LinkedHashSet<String> imageKeys = new LinkedHashSet<>();
-
-    if (project.getReviewProjectRequest() != null
-        && project.getReviewProjectRequest().getId() != null) {
-      imageKeys.addAll(
-          reviewProjectScreenshotRepository.findImageKeysByReviewProjectRequestId(
-              project.getReviewProjectRequest().getId()));
+    if (project.getReviewProjectRequest() == null
+        || project.getReviewProjectRequest().getId() == null) {
+      return Collections.emptyList();
     }
-
-    if (project.getId() != null) {
-      imageKeys.addAll(
-          reviewProjectScreenshotRepository.findImageKeysByReviewProjectId(project.getId()));
-    }
-
-    return new ArrayList<>(imageKeys);
+    return new ArrayList<>(
+        new LinkedHashSet<>(
+            reviewProjectScreenshotRepository.findImageKeysByReviewProjectRequestId(
+                project.getReviewProjectRequest().getId())));
   }
 
   private ReviewProjectSummaryDTO toSummaryDTO(
