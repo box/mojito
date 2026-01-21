@@ -708,180 +708,202 @@ function DetailPane({
           </Link>
         </div>
       </div>
-      <div className="review-project-detail__grid">
-        <div className="review-project-detail__field">
-          <div className="review-project-detail__label">Source</div>
-          <div className="review-project-detail__value">{textUnit.source || '—'}</div>
-        </div>
-        <div className="review-project-detail__field">
-          <div className="review-project-detail__label">Original target</div>
-          <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
-            <span>{displayedTarget || '—'}</span>
-            {hasExternalChange ? (
-              <div className="review-project-detail__external">
-                <div className="review-project-detail__label">
-                  <Pill className="review-project-detail__pill review-project-detail__pill--warning">
-                    External update
-                  </Pill>
-                </div>
-                <div className="review-project-detail__value review-project-detail__value--target">
-                  <span>{textUnit.currentTarget || '—'}</span>
-                </div>
+      <div className="review-project-detail__layout">
+        <div className="review-project-detail__main">
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Proposed translation</div>
+            <textarea
+              className="review-project-detail__input"
+              value={draftTarget}
+              onChange={(e) => onChangeDraftTarget(e.target.value)}
+              rows={5}
+              placeholder="Enter proposed translation"
+            />
+            <div className="review-project-detail__actions-inline">
+              {textUnit.reviewStatus ? (
+                <span className="review-project-detail__status-pill">
+                  {textUnit.reviewStatus.toLowerCase().replace(/_/g, ' ')}
+                </span>
+              ) : textUnit.status ? (
+                <span className="review-project-detail__status-pill">
+                  {textUnit.status.toLowerCase().replace(/_/g, ' ')}
+                </span>
+              ) : null}
+              <div className="review-project-detail__split" ref={statusMenuRef}>
+                <button
+                  type="button"
+                  className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__split-main"
+                  onClick={applySelectedStatus}
+                  disabled={isBusy}
+                >
+                  {isAccepting && selectedStatus === 'accepted'
+                    ? 'Accepting…'
+                    : statusLabel[selectedStatus]}
+                </button>
+                <button
+                  type="button"
+                  className="review-project-detail__actions-button review-project-detail__split-caret"
+                  aria-haspopup="menu"
+                  aria-expanded={isStatusMenuOpen}
+                  onClick={() => setIsStatusMenuOpen((open) => !open)}
+                  disabled={isBusy}
+                  title="Set different status"
+                >
+                  ▾
+                </button>
+                {isStatusMenuOpen ? (
+                  <div className="review-project-detail__status-menu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleStatusSelect('accepted')}
+                      className={selectedStatus === 'accepted' ? 'is-active' : undefined}
+                    >
+                      Accepted
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleStatusSelect('needs_review')}
+                      className={selectedStatus === 'needs_review' ? 'is-active' : undefined}
+                    >
+                      Needs review
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleStatusSelect('needs_translation')}
+                      className={selectedStatus === 'needs_translation' ? 'is-active' : undefined}
+                    >
+                      Needs translation
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleStatusSelect('rejected')}
+                      className={selectedStatus === 'rejected' ? 'is-active' : undefined}
+                    >
+                      Rejected
+                    </button>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
+            </div>
+            {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
+          </div>
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Reviewer notes</div>
+            <textarea
+              className="review-project-detail__input"
+              value={draftNote}
+              onChange={(e) => onChangeDraftNote(e.target.value)}
+              rows={4}
+              placeholder="Add context for AI/translator: errors seen, tone, glossary, or rationale (optional)"
+            />
+            <div className="review-project-detail__note-actions">
+              <button
+                type="button"
+                className="review-project-detail__actions-button"
+                onClick={() => {
+                  void onSaveNote();
+                }}
+              >
+                Save note
+              </button>
+            </div>
           </div>
         </div>
-        <div className="review-project-detail__field">
-          <div className="review-project-detail__label">Proposed translation</div>
-          <textarea
-            className="review-project-detail__input"
-            value={draftTarget}
-            onChange={(e) => onChangeDraftTarget(e.target.value)}
-            rows={5}
-            placeholder="Enter proposed translation"
-          />
-          <div className="review-project-detail__actions-inline">
-            {textUnit.reviewStatus ? (
-              <span className="review-project-detail__status-pill">
-                {textUnit.reviewStatus.toLowerCase().replace(/_/g, ' ')}
-              </span>
-            ) : textUnit.status ? (
-              <span className="review-project-detail__status-pill">
-                {textUnit.status.toLowerCase().replace(/_/g, ' ')}
-              </span>
-            ) : null}
-            <div className="review-project-detail__split" ref={statusMenuRef}>
-              <button
-                type="button"
-                className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__split-main"
-                onClick={applySelectedStatus}
-                disabled={isBusy}
-              >
-                {isAccepting && selectedStatus === 'accepted'
-                  ? 'Accepting…'
-                  : statusLabel[selectedStatus]}
-              </button>
-              <button
-                type="button"
-                className="review-project-detail__actions-button review-project-detail__split-caret"
-                aria-haspopup="menu"
-                aria-expanded={isStatusMenuOpen}
-                onClick={() => setIsStatusMenuOpen((open) => !open)}
-                disabled={isBusy}
-                title="Set different status"
-              >
-                ▾
-              </button>
-              {isStatusMenuOpen ? (
-                <div className="review-project-detail__status-menu" role="menu">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => handleStatusSelect('accepted')}
-                    className={selectedStatus === 'accepted' ? 'is-active' : undefined}
-                  >
-                    Accepted
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => handleStatusSelect('needs_review')}
-                    className={selectedStatus === 'needs_review' ? 'is-active' : undefined}
-                  >
-                    Needs review
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => handleStatusSelect('needs_translation')}
-                    className={selectedStatus === 'needs_translation' ? 'is-active' : undefined}
-                  >
-                    Needs translation
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => handleStatusSelect('rejected')}
-                    className={selectedStatus === 'rejected' ? 'is-active' : undefined}
-                  >
-                    Rejected
-                  </button>
+
+        <div className="review-project-detail__side">
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Source</div>
+            <div className="review-project-detail__value">{textUnit.source || '—'}</div>
+          </div>
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Original target</div>
+            <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
+              <span>{displayedTarget || '—'}</span>
+              {hasExternalChange ? (
+                <div className="review-project-detail__external">
+                  <div className="review-project-detail__label">
+                    <Pill className="review-project-detail__pill review-project-detail__pill--warning">
+                      External update
+                    </Pill>
+                  </div>
+                  <div className="review-project-detail__value review-project-detail__value--target">
+                    <span>{textUnit.currentTarget || '—'}</span>
+                  </div>
                 </div>
               ) : null}
             </div>
           </div>
-          {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
-        </div>
-        <div className="review-project-detail__field">
-          <div className="review-project-detail__label">Reviewer notes</div>
-          <textarea
-            className="review-project-detail__input"
-            value={draftNote}
-            onChange={(e) => onChangeDraftNote(e.target.value)}
-            rows={5}
-            placeholder="Add context for AI/translator: errors seen, tone, glossary, or rationale (optional)"
-          />
-          <div className="review-project-detail__note-actions">
-            <button
-              type="button"
-              className="review-project-detail__actions-button"
-              onClick={() => {
-                void onSaveNote();
-              }}
-            >
-              Save note
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="review-project-detail__actions review-project-detail__actions--column">
-        <div className="review-project-detail__shots-header">
-          <div className="review-project-detail__actions-label">Screenshots</div>
-          <div className="review-project-detail__shots-count">
-            {screenshotCount > 0 ? `${screenshotCount} attached` : 'None'}
-          </div>
-        </div>
-        {screenshotImages.length ? (
-          <>
-            <div className="review-project-detail__gallery">
-              <button
-                type="button"
-                className="review-project-detail__gallery-nav"
-                onClick={() =>
-                  onChangeScreenshotIdx(
-                    (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
-                  )
-                }
-                aria-label="Previous screenshot"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="review-project-detail__gallery-main"
-                onClick={() => onOpenGallery()}
-                title="Click to open fullscreen"
-              >
-                {renderMedia(screenshotImages[currentScreenshotIdx], 'review-project-detail__gallery-image', {
-                  controls: false,
-                  muted: true,
-                  loop: true,
-                  preload: 'metadata',
-                })}
-              </button>
-              <button
-                type="button"
-                className="review-project-detail__gallery-nav"
-                onClick={() =>
-                  onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)
-                }
-                aria-label="Next screenshot"
-              >
-                ›
-              </button>
+
+          <div className="review-project-detail__meta review-project-detail__field">
+            <div className="review-project-detail__label">IDs</div>
+            <div className="review-project-detail__value review-project-detail__value--meta">
+              TM text unit ID {textUnit.tmTextUnitId}
             </div>
-          </>
-        ) : null}
+            {textUnit.repositoryName ? (
+              <div className="review-project-detail__value review-project-detail__value--meta">
+                Repo: {textUnit.repositoryName}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__shots-header">
+              <div className="review-project-detail__actions-label">Screenshots</div>
+              <div className="review-project-detail__shots-count">
+                {screenshotCount > 0 ? `${screenshotCount} attached` : 'None'}
+              </div>
+            </div>
+            {screenshotImages.length ? (
+              <div className="review-project-detail__gallery review-project-detail__gallery--compact">
+                <button
+                  type="button"
+                  className="review-project-detail__gallery-nav"
+                  onClick={() =>
+                    onChangeScreenshotIdx(
+                      (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
+                    )
+                  }
+                  aria-label="Previous screenshot"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="review-project-detail__gallery-main review-project-detail__gallery-main--compact"
+                  onClick={() => onOpenGallery()}
+                  title="Click to open fullscreen"
+                >
+                  {renderMedia(
+                    screenshotImages[currentScreenshotIdx],
+                    'review-project-detail__gallery-image',
+                    {
+                      controls: false,
+                      muted: true,
+                      loop: true,
+                      preload: 'metadata',
+                    },
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="review-project-detail__gallery-nav"
+                  onClick={() =>
+                    onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)
+                  }
+                  aria-label="Next screenshot"
+                >
+                  ›
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );
