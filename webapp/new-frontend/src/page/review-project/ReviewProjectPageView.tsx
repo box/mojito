@@ -614,8 +614,6 @@ function DetailPane({
 }) {
   const displayedTarget = textUnit.target;
   const proposedValue = textUnit.reviewTarget ?? draftTarget;
-  const hasExternalChange =
-    textUnit.currentTarget != null && textUnit.currentTarget !== proposedValue;
   type StatusOption = 'accepted' | 'needs_translation' | 'needs_review' | 'rejected';
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>('accepted');
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
@@ -790,18 +788,6 @@ function DetailPane({
             <div className="review-project-detail__label">Translation</div>
             <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
               <span>{displayedTarget || '—'}</span>
-                  {hasExternalChange ? (
-                    <div className="review-project-detail__external">
-                      <div className="review-project-detail__label">
-                        <Pill className="review-project-detail__pill review-project-detail__pill--warning">
-                          New target since project creation
-                        </Pill>
-                      </div>
-                      <div className="review-project-detail__value review-project-detail__value--target">
-                        <span>{textUnit.currentTarget || '—'}</span>
-                      </div>
-                </div>
-              ) : null}
             </div>
           </div>
 
