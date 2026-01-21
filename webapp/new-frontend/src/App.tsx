@@ -8,7 +8,7 @@ import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
 import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 import { ReviewProjectPage } from './page/review-project/ReviewProjectPage';
-import { ReviewProjectPageV2Route } from './page/review-project/ReviewProjectPageV2Route';
+import { ReviewProjectPageV2 } from './page/review-project/ReviewProjectPageV2';
 import { ReviewProjectCreatePage } from './page/review-projects/ReviewProjectCreatePage';
 import { ReviewProjectsPage, ReviewProjectsPageV2 } from './page/review-projects/ReviewProjectsPage';
 import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
@@ -74,7 +74,7 @@ export function App() {
             ))}
             <Route path="/review-projects/new" element={<ReviewProjectCreatePage />} />
             <Route path="/review-projects/:projectId" element={<ReviewProjectPage />} />
-            <Route path="/review-projects-v2/:projectId" element={<ReviewProjectPageV2Route />} />
+            <Route path="/review-projects-v2/:projectId" element={<ReviewProjectPageV2 />} />
             <Route path="/settings/admin" element={<AdminSettingsPage />} />
             <Route path="/tools/char-code" element={<CharCodeHelperPage />} />
             <Route path="*" element={<Navigate to="/repositories" replace />} />

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useReviewProjectDetail } from '../../hooks/useReviewProjectDetail';
 import { ReviewProjectPageViewV2 } from './ReviewProjectPageViewV2';
 
-export function ReviewProjectPageV2Route() {
+export function ReviewProjectPageV2() {
   const { projectId: projectIdParam } = useParams<{ projectId: string }>();
   const projectId = projectIdParam ? Number(projectIdParam) : undefined;
   const projectDetailQuery = useReviewProjectDetail(projectId);
