@@ -15,6 +15,7 @@ import {
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
+import { PillDropdown } from '../../components/PillDropdown';
 import { Modal } from '../../components/Modal';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
@@ -662,6 +663,14 @@ function DetailPane({
   const statusMenuLabel: string | null = null;
   const primaryLabel = 'Save';
   const isBusy = isAccepting || isUpdatingStatus;
+  const statusOptions = useMemo(
+    () =>
+      (Object.keys(statusDisplay) as StatusOption[]).map((key) => ({
+        value: key,
+        label: statusDisplay[key],
+      })),
+    [],
+  );
 
   return (
     <div className="review-project-detail">
@@ -687,69 +696,28 @@ function DetailPane({
                 <span className="review-project-detail__status-arrow" aria-hidden="true">
                   →
                 </span>
-                <div className="review-project-detail__split-wrap">
-                  <div className="review-project-detail__split" ref={statusMenuRef}>
-                    <button
-                      type="button"
-                      className="review-project-detail__actions-button review-project-detail__split-caret"
-                      aria-haspopup="menu"
-                      aria-expanded={isStatusMenuOpen}
-                      onClick={() => setIsStatusMenuOpen((open) => !open)}
+                  <PillDropdown
+                      value={selectedStatus}
+                      options={statusOptions}
+                      onChange={(next) => handleStatusSelect(next as StatusOption)}
                       disabled={isBusy}
-                      title="Choose status"
+                      isOpen={isStatusMenuOpen}
+                      onOpenChange={setIsStatusMenuOpen}
+                  />
+                <div className="review-project-detail__split-wrap">
+                    <button
+                        type="button"
+                        className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
+                        onClick={applySelectedStatus}
+                        disabled={isBusy}
                     >
-                      {statusDisplay[selectedStatus]}
-                      <span className="review-project-detail__caret">▾</span>
+                        {isBusy ? 'Saving…' : 'Save'}
                     </button>
-                    {isStatusMenuOpen ? (
-                      <div className="review-project-detail__status-menu" role="menu">
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => handleStatusSelect('accepted')}
-                          className={selectedStatus === 'accepted' ? 'is-active' : undefined}
-                        >
-                          {statusDisplay.accepted}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => handleStatusSelect('needs_review')}
-                          className={selectedStatus === 'needs_review' ? 'is-active' : undefined}
-                        >
-                          {statusDisplay.needs_review}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => handleStatusSelect('needs_translation')}
-                          className={selectedStatus === 'needs_translation' ? 'is-active' : undefined}
-                        >
-                          {statusDisplay.needs_translation}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => handleStatusSelect('rejected')}
-                          className={selectedStatus === 'rejected' ? 'is-active' : undefined}
-                        >
-                          {statusDisplay.rejected}
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
                   <span className="review-project-detail__split-spinner">
                     {isBusy ? <span className="spinner spinner--inline" aria-hidden="true" /> : null}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
-                  onClick={applySelectedStatus}
-                  disabled={isBusy}
-                >
-                  {isBusy ? 'Saving…' : 'Save'}
-                </button>
+
               </div>
             </div>
             {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
