@@ -5,8 +5,6 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.security.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
@@ -34,10 +32,6 @@ public class ReviewProjectTextUnitDecision extends BaseEntity {
               name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__DECIDED_VARIANT"))
   private TMTextUnitVariant decidedVariant;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "decision_status")
-  private ReviewDecisionStatus decisionStatus = ReviewDecisionStatus.PENDING;
-
   @Column(name = "review_notes", length = 4000)
   private String reviewNotes;
 
@@ -64,14 +58,6 @@ public class ReviewProjectTextUnitDecision extends BaseEntity {
 
   public void setDecidedVariant(TMTextUnitVariant decidedVariant) {
     this.decidedVariant = decidedVariant;
-  }
-
-  public ReviewDecisionStatus getDecisionStatus() {
-    return decisionStatus;
-  }
-
-  public void setDecisionStatus(ReviewDecisionStatus decisionStatus) {
-    this.decisionStatus = decisionStatus;
   }
 
   public String getReviewNotes() {

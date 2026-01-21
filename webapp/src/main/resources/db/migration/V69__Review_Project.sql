@@ -75,7 +75,6 @@ ALTER TABLE review_project_text_unit
 CREATE TABLE review_project_text_unit_decision (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     review_project_text_unit_id bigint(20) NOT NULL,
-    decision_status varchar(32) NOT NULL DEFAULT 'PENDING',
     review_notes varchar(4000),
     decided_variant_id bigint(20) NOT NULL,
     decided_at datetime DEFAULT NULL,

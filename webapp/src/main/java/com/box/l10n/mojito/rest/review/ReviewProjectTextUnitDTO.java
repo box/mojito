@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.rest.review;
 
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.entity.review.ReviewDecisionStatus;
 import java.time.ZonedDateTime;
 
 public class ReviewProjectTextUnitDTO {
@@ -17,7 +16,7 @@ public class ReviewProjectTextUnitDTO {
   private String currentTarget;
   private TMTextUnitVariant.Status status;
   private TMTextUnitVariant.Status baselineStatus;
-  private ReviewDecisionStatus reviewStatus;
+  private String reviewStatus;
   private String reviewTarget;
   private String reviewNotes;
   private ZonedDateTime reviewedAt;
@@ -115,11 +114,11 @@ public class ReviewProjectTextUnitDTO {
     this.baselineStatus = baselineStatus;
   }
 
-  public ReviewDecisionStatus getReviewStatus() {
+  public String getReviewStatus() {
     return reviewStatus;
   }
 
-  public void setReviewStatus(ReviewDecisionStatus reviewStatus) {
+  public void setReviewStatus(String reviewStatus) {
     this.reviewStatus = reviewStatus;
   }
 

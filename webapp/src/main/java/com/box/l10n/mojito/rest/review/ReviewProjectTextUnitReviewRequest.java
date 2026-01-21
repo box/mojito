@@ -1,18 +1,16 @@
 package com.box.l10n.mojito.rest.review;
 
-import com.box.l10n.mojito.entity.review.ReviewDecisionStatus;
-
 public class ReviewProjectTextUnitReviewRequest {
 
-  private ReviewDecisionStatus reviewStatus;
+  private String reviewStatus;
   private String reviewTarget;
   private String reviewNotes;
 
-  public ReviewDecisionStatus getReviewStatus() {
+  public String getReviewStatus() {
     return reviewStatus;
   }
 
-  public void setReviewStatus(ReviewDecisionStatus reviewStatus) {
+  public void setReviewStatus(String reviewStatus) {
     this.reviewStatus = reviewStatus;
   }
 
