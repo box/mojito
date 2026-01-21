@@ -56,7 +56,6 @@ CREATE TABLE review_project_text_unit (
     review_project_id bigint(20) NOT NULL,
     tm_text_unit_variant_id bigint(20) NOT NULL,
     tm_text_unit_id bigint(20) NOT NULL,
-    position int DEFAULT NULL,
     created_date datetime DEFAULT NULL,
     PRIMARY KEY (id)
 );

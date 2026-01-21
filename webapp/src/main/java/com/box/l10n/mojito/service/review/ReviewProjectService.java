@@ -618,7 +618,6 @@ public class ReviewProjectService {
       return new SelectionStats(0, 0);
     }
 
-    int position = 0;
     int accumulatedWords = 0;
     int selectedCount = 0;
     List<Long> tmTextUnitIds =
@@ -655,7 +654,6 @@ public class ReviewProjectService {
       reviewProjectTextUnit.setTmTextUnitVariant(variant);
       reviewProjectTextUnit.setTmTextUnit(
           tmTextUnit != null ? tmTextUnit : variant.getTmTextUnit());
-      reviewProjectTextUnit.setPosition(position++);
 
       reviewProjectTextUnitRepository.save(reviewProjectTextUnit);
       selectedCount++;
@@ -742,7 +740,7 @@ public class ReviewProjectService {
                     decision -> decision.getReviewProjectTextUnit().getId(), decision -> decision));
 
     return reviewProjectTextUnitRepository
-        .findByReviewProjectIdOrderByPositionAsc(reviewProject.getId())
+        .findByReviewProjectIdOrderByIdAsc(reviewProject.getId())
         .stream()
         .map(textUnit -> toTextUnitDTO(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
         .collect(Collectors.toList());

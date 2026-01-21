@@ -3,7 +3,6 @@ package com.box.l10n.mojito.entity.review;
 import com.box.l10n.mojito.entity.SettableAuditableEntity;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -33,9 +32,6 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT__TM_TEXT_UNIT"))
   private TMTextUnit tmTextUnit;
 
-  @Column(name = "position")
-  private Integer position;
-
   public ReviewProject getReviewProject() {
     return reviewProject;
   }
@@ -60,11 +56,4 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
     this.tmTextUnit = tmTextUnit;
   }
 
-  public Integer getPosition() {
-    return position;
-  }
-
-  public void setPosition(Integer position) {
-    this.position = position;
-  }
 }

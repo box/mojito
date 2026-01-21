@@ -10,7 +10,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface ReviewProjectTextUnitRepository
     extends JpaRepository<ReviewProjectTextUnit, Long> {
 
-  List<ReviewProjectTextUnit> findByReviewProjectIdOrderByPositionAsc(Long reviewProjectId);
+  List<ReviewProjectTextUnit> findByReviewProjectIdOrderByIdAsc(Long reviewProjectId);
 
   Optional<ReviewProjectTextUnit> findByReviewProjectIdAndTmTextUnitVariantId(
       Long reviewProjectId, Long tmTextUnitVariantId);
