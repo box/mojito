@@ -616,7 +616,19 @@ function DetailPane({
   const displayedTarget = textUnit.target;
   const proposedValue = textUnit.reviewTarget ?? draftTarget;
   type StatusOption = 'accepted' | 'needs_translation' | 'needs_review' | 'rejected';
-  const [selectedStatus, setSelectedStatus] = useState<StatusOption>('accepted');
+  const initialStatusValue = useMemo<StatusOption>(() => {
+    const status = textUnit.reviewStatus ?? textUnit.status;
+    const upper = status?.toUpperCase();
+    if (upper === 'REJECTED') return 'rejected';
+    if (upper === 'VIEWED') return 'needs_review';
+    if (upper === 'SKIPPED') return 'needs_translation';
+    return 'accepted';
+  }, [textUnit.reviewStatus, textUnit.status]);
+  const [selectedStatus, setSelectedStatus] = useState<StatusOption>(initialStatusValue);
+
+  useEffect(() => {
+    setSelectedStatus(initialStatusValue);
+  }, [initialStatusValue]);
 
   const handleStatusSelect = (key: StatusOption) => {
     setSelectedStatus(key);
@@ -697,6 +709,16 @@ function DetailPane({
                 onChange={(next) => handleStatusSelect(next as StatusOption)}
                 disabled={isBusy}
               />
+              <button
+                type="button"
+                className="review-project-detail__actions-button"
+                onClick={() => {
+                  setSelectedStatus(initialStatusValue);
+                }}
+                disabled={isBusy}
+              >
+                Reset
+              </button>
               <button
                 type="button"
                 className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
