@@ -6,6 +6,12 @@ import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.CreateReviewProjectCommand;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
+import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
+import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
+import com.box.l10n.mojito.service.review.ReviewProjectLocaleSummaryView;
+import com.box.l10n.mojito.service.review.ReviewProjectRepositorySummaryView;
+import com.box.l10n.mojito.service.review.ReviewProjectSummaryView;
+import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -29,13 +35,14 @@ public class ReviewProjectWS {
   }
 
   @GetMapping
-  public List<ReviewProjectSummaryResponse> getOpenProjects() {
-    return reviewProjectService.getOpenProjects();
+  public List<ReviewProjectCreateResponse.Summary> getOpenProjects() {
+    return reviewProjectService.getOpenProjects().stream().map(this::toSummaryResponse).toList();
   }
 
   @PostMapping("/search")
-  public List<ReviewProjectSummaryResponse> search(@RequestBody ReviewProjectSearchRequest request) {
-    return reviewProjectService.searchProjects(request);
+  public List<ReviewProjectCreateResponse.Summary> search(
+      @RequestBody ReviewProjectSearchRequest request) {
+    return reviewProjectService.searchProjects(request).stream().map(this::toSummaryResponse).toList();
   }
 
   @PostMapping
@@ -43,31 +50,35 @@ public class ReviewProjectWS {
   public ReviewProjectCreateResponse createReviewProject(
       @RequestBody ReviewProjectCreateRequest request) {
     return new ReviewProjectCreateResponse(
-        reviewProjectService.createReviewProject(
-            new CreateReviewProjectCommand(
-                request.localeTags(),
-                request.notes(),
-                request.tmTextUnitIds(),
-                request.type(),
-                request.dueDate(),
-                request.screenshotImageIds(),
-                request.name())));
+        reviewProjectService
+            .createReviewProject(
+                new CreateReviewProjectCommand(
+                    request.localeTags(),
+                    request.notes(),
+                    request.tmTextUnitIds(),
+                    request.type(),
+                    request.dueDate(),
+                    request.screenshotImageIds(),
+                    request.name()))
+            .stream()
+            .map(this::toSummaryResponse)
+            .toList());
   }
 
   @GetMapping("/{projectId}")
   public ReviewProjectDetailResponse getProject(@PathVariable Long projectId)
       throws EntityWithIdNotFoundException {
-    return reviewProjectService.getProjectDetail(projectId);
+    return toDetailResponse(reviewProjectService.getProjectDetail(projectId));
   }
 
   @PostMapping("/{projectId}/text-units/{textUnitId}/accept")
-  public ResponseEntity<ReviewProjectTextUnitResponse> acceptTextUnit(
+  public ResponseEntity<ReviewProjectDetailResponse.TextUnit> acceptTextUnit(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitAcceptRequest request)
       throws EntityWithIdNotFoundException {
     try {
-      ReviewProjectTextUnitResponse dto =
+      ReviewProjectTextUnitView view =
           reviewProjectService.acceptTextUnit(
               projectId,
               textUnitId,
@@ -76,489 +87,187 @@ public class ReviewProjectWS {
               request.getExpectedCurrentTmTextUnitVariantId(),
               Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
               request.getNotes());
-      return ResponseEntity.ok(dto);
+      return ResponseEntity.ok(toTextUnitResponse(view));
     } catch (ReviewProjectCurrentVariantConflictException conflict) {
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(conflict.getCurrentTextUnit());
+      return ResponseEntity.status(HttpStatus.CONFLICT)
+          .body(toTextUnitResponse(conflict.getCurrentTextUnit()));
     }
   }
 
   @PostMapping("/{projectId}/text-units/{textUnitId}/review")
-  public ReviewProjectTextUnitResponse updateReviewStatus(
+  public ReviewProjectDetailResponse.TextUnit updateReviewStatus(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitReviewRequest request)
       throws EntityWithIdNotFoundException {
-    return reviewProjectService.updateReviewStatus(projectId, textUnitId, request.getNotes());
+    return toTextUnitResponse(
+        reviewProjectService.updateReviewStatus(projectId, textUnitId, request.getNotes()));
   }
 
   /** Response contract for create review project. */
-  public record ReviewProjectCreateResponse(List<ReviewProjectSummaryResponse> projects) {}
+  public record ReviewProjectCreateResponse(List<ReviewProjectCreateResponse.Summary> projects) {
+    public record Summary(
+        Long id,
+        ZonedDateTime createdDate,
+        ZonedDateTime dueDate,
+        String closeReason,
+        Integer textUnitCount,
+        Integer wordCount,
+        ReviewProjectType type,
+        ReviewProjectStatus status,
+        Long requestId,
+        String requestUuid,
+        String requestName,
+        int totalSelected,
+        long acceptedCount,
+        String name,
+        List<Repository> repositories,
+        List<LocaleSummary> locales,
+        List<String> screenshotImageIds) {}
 
-  /** Response contract for project summary. */
-  public record ReviewProjectSummaryResponse(
+    public record Repository(Long id, String name) {}
+
+    public record LocaleSummary(
+        Long id, String bcp47Tag, String displayName, int selectedCount, long acceptedCount) {}
+  }
+
+  /** Response contract for project detail. */
+  /** Response contract for project detail. */
+  public record ReviewProjectDetailResponse(
       Long id,
+      ReviewProjectType type,
+      ReviewProjectStatus status,
       ZonedDateTime createdDate,
       ZonedDateTime dueDate,
       String closeReason,
       Integer textUnitCount,
       Integer wordCount,
-      ReviewProjectType type,
-      ReviewProjectStatus status,
+      String name,
+      String notes,
       Long requestId,
       String requestUuid,
       String requestName,
-      int totalSelected,
-      long acceptedCount,
-      String name,
-      List<ReviewProjectRepositorySummaryResponse> repositories,
-      List<ReviewProjectLocaleSummaryResponse> locales,
-      List<String> screenshotImageIds) {}
+      LocaleDetail locale,
+      List<ReviewProjectCreateResponse.Repository> repositories,
+      List<LocaleDetail> locales,
+      List<String> screenshotImageIds) {
 
-  /** Response contract for project detail. */
-  public static class ReviewProjectDetailResponse {
-    private Long id;
-    private ReviewProjectType type;
-    private ReviewProjectStatus status;
-    private ZonedDateTime createdDate;
-    private ZonedDateTime dueDate;
-    private String closeReason;
-    private Integer textUnitCount;
-    private Integer wordCount;
-    private String name;
-    private String notes;
-    private Long requestId;
-    private String requestUuid;
-    private String requestName;
-    private ReviewProjectLocaleDetailResponse locale;
-    private List<ReviewProjectRepositorySummaryResponse> repositories;
-    private List<ReviewProjectLocaleDetailResponse> locales;
-    private List<String> screenshotImageIds;
-
-    public Long getId() {
-      return id;
-    }
-
-    public void setId(Long id) {
-      this.id = id;
-    }
-
-    public ReviewProjectType getType() {
-      return type;
-    }
-
-    public void setType(ReviewProjectType type) {
-      this.type = type;
-    }
-
-    public ReviewProjectStatus getStatus() {
-      return status;
-    }
-
-    public void setStatus(ReviewProjectStatus status) {
-      this.status = status;
-    }
-
-    public ZonedDateTime getCreatedDate() {
-      return createdDate;
-    }
-
-    public void setCreatedDate(ZonedDateTime createdDate) {
-      this.createdDate = createdDate;
-    }
-
-    public ZonedDateTime getDueDate() {
-      return dueDate;
-    }
-
-    public void setDueDate(ZonedDateTime dueDate) {
-      this.dueDate = dueDate;
-    }
-
-    public String getCloseReason() {
-      return closeReason;
-    }
-
-    public void setCloseReason(String closeReason) {
-      this.closeReason = closeReason;
-    }
-
-    public Integer getTextUnitCount() {
-      return textUnitCount;
-    }
-
-    public void setTextUnitCount(Integer textUnitCount) {
-      this.textUnitCount = textUnitCount;
-    }
-
-    public Integer getWordCount() {
-      return wordCount;
-    }
-
-    public void setWordCount(Integer wordCount) {
-      this.wordCount = wordCount;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    public String getNotes() {
-      return notes;
-    }
-
-    public void setNotes(String notes) {
-      this.notes = notes;
-    }
-
-    public Long getRequestId() {
-      return requestId;
-    }
-
-    public void setRequestId(Long requestId) {
-      this.requestId = requestId;
-    }
-
-    public String getRequestUuid() {
-      return requestUuid;
-    }
-
-    public void setRequestUuid(String requestUuid) {
-      this.requestUuid = requestUuid;
-    }
-
-    public String getRequestName() {
-      return requestName;
-    }
-
-    public void setRequestName(String requestName) {
-      this.requestName = requestName;
-    }
-
-    public ReviewProjectLocaleDetailResponse getLocale() {
-      return locale;
-    }
-
-    public void setLocale(ReviewProjectLocaleDetailResponse locale) {
-      this.locale = locale;
-    }
-
-    public List<ReviewProjectRepositorySummaryResponse> getRepositories() {
-      return repositories;
-    }
-
-    public void setRepositories(List<ReviewProjectRepositorySummaryResponse> repositories) {
-      this.repositories = repositories;
-    }
-
-    public List<ReviewProjectLocaleDetailResponse> getLocales() {
-      return locales;
-    }
-
-    public void setLocales(List<ReviewProjectLocaleDetailResponse> locales) {
-      this.locales = locales;
-    }
-
-    public List<String> getScreenshotImageIds() {
-      return screenshotImageIds;
-    }
-
-    public void setScreenshotImageIds(List<String> screenshotImageIds) {
-      this.screenshotImageIds = screenshotImageIds;
-    }
-  }
-
-  /** Locale summary response. */
-  public static class ReviewProjectLocaleSummaryResponse {
-    private Long id;
-    private String bcp47Tag;
-    private String displayName;
-    private int selectedCount;
-    private long acceptedCount;
-
-    public ReviewProjectLocaleSummaryResponse() {}
-
-    public ReviewProjectLocaleSummaryResponse(
-        Long id, String bcp47Tag, String displayName, int selectedCount, long acceptedCount) {
-      this.id = id;
-      this.bcp47Tag = bcp47Tag;
-      this.displayName = displayName;
-      this.selectedCount = selectedCount;
-      this.acceptedCount = acceptedCount;
-    }
-
-    public Long getId() {
-      return id;
-    }
-
-    public void setId(Long id) {
-      this.id = id;
-    }
-
-    public String getBcp47Tag() {
-      return bcp47Tag;
-    }
-
-    public void setBcp47Tag(String bcp47Tag) {
-      this.bcp47Tag = bcp47Tag;
-    }
-
-    public String getDisplayName() {
-      return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-      this.displayName = displayName;
-    }
-
-    public int getSelectedCount() {
-      return selectedCount;
-    }
-
-    public void setSelectedCount(int selectedCount) {
-      this.selectedCount = selectedCount;
-    }
-
-    public long getAcceptedCount() {
-      return acceptedCount;
-    }
-
-    public void setAcceptedCount(long acceptedCount) {
-      this.acceptedCount = acceptedCount;
-    }
-  }
-
-  /** Locale detail response. */
-  public static class ReviewProjectLocaleDetailResponse extends ReviewProjectLocaleSummaryResponse {
-
-    private List<ReviewProjectTextUnitResponse> textUnits;
-
-    public ReviewProjectLocaleDetailResponse() {}
-
-    public ReviewProjectLocaleDetailResponse(
+    public record LocaleDetail(
         Long id,
         String bcp47Tag,
         String displayName,
         int selectedCount,
         long acceptedCount,
-        List<ReviewProjectTextUnitResponse> textUnits) {
-      super(id, bcp47Tag, displayName, selectedCount, acceptedCount);
-      this.textUnits = textUnits;
-    }
+        List<TextUnit> textUnits) {}
 
-    public List<ReviewProjectTextUnitResponse> getTextUnits() {
-      return textUnits;
-    }
-
-    public void setTextUnits(List<ReviewProjectTextUnitResponse> textUnits) {
-      this.textUnits = textUnits;
-    }
+    public record TextUnit(
+        Long reviewProjectTextUnitId,
+        Long tmTextUnitId,
+        Long tmTextUnitVariantId,
+        Long selectedTmTextUnitVariantId,
+        Long currentTmTextUnitVariantId,
+        String name,
+        String source,
+        String target,
+        String currentTarget,
+        String status,
+        String baselineStatus,
+        String reviewStatus,
+        String notes,
+        ZonedDateTime reviewedAt,
+        String reviewedBy,
+        Long repositoryId,
+        String repositoryName,
+        String assetPath,
+        boolean includedInLocalizedFile) {}
   }
 
-  /** Repository summary response. */
-  public static class ReviewProjectRepositorySummaryResponse {
-    private Long id;
-    private String name;
-
-    public ReviewProjectRepositorySummaryResponse() {}
-
-    public ReviewProjectRepositorySummaryResponse(Long id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-    public Long getId() {
-      return id;
-    }
-
-    public void setId(Long id) {
-      this.id = id;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
+  // Mapping helpers
+  private ReviewProjectCreateResponse.Summary toSummaryResponse(ReviewProjectSummaryView view) {
+    return new ReviewProjectCreateResponse.Summary(
+        view.id(),
+        view.createdDate(),
+        view.dueDate(),
+        view.closeReason(),
+        view.textUnitCount(),
+        view.wordCount(),
+        view.type(),
+        view.status(),
+        view.requestId(),
+        view.requestUuid(),
+        view.requestName(),
+        view.totalSelected(),
+        view.acceptedCount(),
+        view.name(),
+        view.repositories().stream()
+            .map(r -> new ReviewProjectCreateResponse.Repository(r.id(), r.name()))
+            .toList(),
+        view.locales().stream()
+            .map(
+                l ->
+                    new ReviewProjectCreateResponse.LocaleSummary(
+                        l.id(), l.bcp47Tag(), l.displayName(), l.selectedCount(), l.acceptedCount()))
+            .toList(),
+        view.screenshotImageIds());
   }
 
-  /** Text unit response. */
-  public static class ReviewProjectTextUnitResponse {
-    private Long reviewProjectTextUnitId;
-    private Long tmTextUnitId;
-    private Long tmTextUnitVariantId;
-    private Long selectedTmTextUnitVariantId;
-    private Long currentTmTextUnitVariantId;
-    private String name;
-    private String source;
-    private String target;
-    private String currentTarget;
-    private String status;
-    private String baselineStatus;
-    private String reviewStatus;
-    private String notes;
-    private ZonedDateTime reviewedAt;
-    private String reviewedBy;
-    private Long repositoryId;
-    private String repositoryName;
-    private String assetPath;
-    private boolean includedInLocalizedFile;
+  private ReviewProjectDetailResponse toDetailResponse(ReviewProjectDetailView view) {
+    ReviewProjectDetailResponse.LocaleDetail localeDetail =
+        toLocaleDetail(view.locale());
 
-    public Long getReviewProjectTextUnitId() {
-      return reviewProjectTextUnitId;
-    }
+    return new ReviewProjectDetailResponse(
+        view.id(),
+        view.type(),
+        view.status(),
+        view.createdDate(),
+        view.dueDate(),
+        view.closeReason(),
+        view.textUnitCount(),
+        view.wordCount(),
+        view.name(),
+        view.notes(),
+        view.requestId(),
+        view.requestUuid(),
+        view.requestName(),
+        localeDetail,
+        view.repositories().stream()
+            .map(r -> new ReviewProjectCreateResponse.Repository(r.id(), r.name()))
+            .toList(),
+        view.locales().stream().map(this::toLocaleDetail).toList(),
+        view.screenshotImageIds());
+  }
 
-    public void setReviewProjectTextUnitId(Long reviewProjectTextUnitId) {
-      this.reviewProjectTextUnitId = reviewProjectTextUnitId;
-    }
+  private ReviewProjectDetailResponse.LocaleDetail toLocaleDetail(
+      ReviewProjectLocaleDetailView localeView) {
+    return new ReviewProjectDetailResponse.LocaleDetail(
+        localeView.id(),
+        localeView.bcp47Tag(),
+        localeView.displayName(),
+        localeView.selectedCount(),
+        localeView.acceptedCount(),
+        localeView.textUnits().stream().map(this::toTextUnitResponse).toList());
+  }
 
-    public Long getTmTextUnitId() {
-      return tmTextUnitId;
-    }
-
-    public void setTmTextUnitId(Long tmTextUnitId) {
-      this.tmTextUnitId = tmTextUnitId;
-    }
-
-    public Long getTmTextUnitVariantId() {
-      return tmTextUnitVariantId;
-    }
-
-    public void setTmTextUnitVariantId(Long tmTextUnitVariantId) {
-      this.tmTextUnitVariantId = tmTextUnitVariantId;
-    }
-
-    public Long getSelectedTmTextUnitVariantId() {
-      return selectedTmTextUnitVariantId;
-    }
-
-    public void setSelectedTmTextUnitVariantId(Long selectedTmTextUnitVariantId) {
-      this.selectedTmTextUnitVariantId = selectedTmTextUnitVariantId;
-    }
-
-    public Long getCurrentTmTextUnitVariantId() {
-      return currentTmTextUnitVariantId;
-    }
-
-    public void setCurrentTmTextUnitVariantId(Long currentTmTextUnitVariantId) {
-      this.currentTmTextUnitVariantId = currentTmTextUnitVariantId;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    public String getSource() {
-      return source;
-    }
-
-    public void setSource(String source) {
-      this.source = source;
-    }
-
-    public String getTarget() {
-      return target;
-    }
-
-    public void setTarget(String target) {
-      this.target = target;
-    }
-
-    public String getCurrentTarget() {
-      return currentTarget;
-    }
-
-    public void setCurrentTarget(String currentTarget) {
-      this.currentTarget = currentTarget;
-    }
-
-    public String getStatus() {
-      return status;
-    }
-
-    public void setStatus(String status) {
-      this.status = status;
-    }
-
-    public String getBaselineStatus() {
-      return baselineStatus;
-    }
-
-    public void setBaselineStatus(String baselineStatus) {
-      this.baselineStatus = baselineStatus;
-    }
-
-    public String getReviewStatus() {
-      return reviewStatus;
-    }
-
-    public void setReviewStatus(String reviewStatus) {
-      this.reviewStatus = reviewStatus;
-    }
-
-    public String getNotes() {
-      return notes;
-    }
-
-    public void setNotes(String notes) {
-      this.notes = notes;
-    }
-
-    public ZonedDateTime getReviewedAt() {
-      return reviewedAt;
-    }
-
-    public void setReviewedAt(ZonedDateTime reviewedAt) {
-      this.reviewedAt = reviewedAt;
-    }
-
-    public String getReviewedBy() {
-      return reviewedBy;
-    }
-
-    public void setReviewedBy(String reviewedBy) {
-      this.reviewedBy = reviewedBy;
-    }
-
-    public Long getRepositoryId() {
-      return repositoryId;
-    }
-
-    public void setRepositoryId(Long repositoryId) {
-      this.repositoryId = repositoryId;
-    }
-
-    public String getRepositoryName() {
-      return repositoryName;
-    }
-
-    public void setRepositoryName(String repositoryName) {
-      this.repositoryName = repositoryName;
-    }
-
-    public String getAssetPath() {
-      return assetPath;
-    }
-
-    public void setAssetPath(String assetPath) {
-      this.assetPath = assetPath;
-    }
-
-    public boolean isIncludedInLocalizedFile() {
-      return includedInLocalizedFile;
-    }
-
-    public void setIncludedInLocalizedFile(boolean includedInLocalizedFile) {
-      this.includedInLocalizedFile = includedInLocalizedFile;
-    }
+  private ReviewProjectDetailResponse.TextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
+    return new ReviewProjectDetailResponse.TextUnit(
+        view.reviewProjectTextUnitId(),
+        view.tmTextUnitId(),
+        view.tmTextUnitVariantId(),
+        view.selectedTmTextUnitVariantId(),
+        view.currentTmTextUnitVariantId(),
+        view.name(),
+        view.source(),
+        view.target(),
+        view.currentTarget(),
+        view.status(),
+        view.baselineStatus(),
+        view.reviewStatus(),
+        view.notes(),
+        view.reviewedAt(),
+        view.reviewedBy(),
+        view.repositoryId(),
+        view.repositoryName(),
+        view.assetPath(),
+        view.includedInLocalizedFile());
   }
 }
