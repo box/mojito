@@ -597,6 +597,14 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.pill-dropdown--static .pill-dropdown__button:disabled {
+  opacity: 1;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  border-color: color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+}
+
 .review-project-detail__split-spinner {
   display: inline-flex;
   width: 1rem;
@@ -836,6 +844,12 @@
 
 /* Ensure primary CTA stays accented, overriding base button styles above */
 .review-project-detail__actions-button.review-project-detail__actions-button--primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
+.review-project-detail__actions-button.review-project-detail__actions-button--primary:hover:not(:disabled) {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: #fff;

@@ -677,7 +677,12 @@ function DetailPane({
               <div className="review-project-detail__status-row">
               <div className="review-project-detail__status-action">
                 <div className="pill-dropdown pill-dropdown--static review-project-detail__pill-dropdown-static">
-                  <button type="button" className="pill-dropdown__button" disabled>
+                  <button
+                    type="button"
+                    className="pill-dropdown__button"
+                    aria-label="Current status"
+                    disabled
+                  >
                     <span className="pill-dropdown__label">
                       {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—'}
                     </span>
