@@ -22,7 +22,6 @@ import com.box.l10n.mojito.rest.review.ReviewProjectRepositorySummaryDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectSearchRequest;
 import com.box.l10n.mojito.rest.review.ReviewProjectSummaryDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectTextUnitDTO;
-import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -83,7 +82,6 @@ public class ReviewProjectService {
   private final TMTextUnitVariantRepository tmTextUnitVariantRepository;
   private final TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
   private final TMService tmService;
-  private final AuditorAwareImpl auditorAware;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -99,8 +97,7 @@ public class ReviewProjectService {
       TMTextUnitRepository tmTextUnitRepository,
       TMTextUnitVariantRepository tmTextUnitVariantRepository,
       TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository,
-      TMService tmService,
-      AuditorAwareImpl auditorAware) {
+      TMService tmService) {
     this.reviewProjectRepository = reviewProjectRepository;
     this.reviewProjectTextUnitRepository = reviewProjectTextUnitRepository;
     this.reviewProjectTextUnitDecisionRepository = reviewProjectTextUnitDecisionRepository;
@@ -113,7 +110,6 @@ public class ReviewProjectService {
     this.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
     this.tmService = tmService;
-    this.auditorAware = auditorAware;
   }
 
   @Transactional
@@ -504,8 +500,6 @@ public class ReviewProjectService {
 
     variantDecision.setVariant(newVariant);
     variantDecision.setNotes(notes);
-    variantDecision.setRecordedAt(ZonedDateTime.now());
-    variantDecision.setRecordedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
     return toTextUnitDTO(textUnit, newVariant, variantDecision);
@@ -550,8 +544,6 @@ public class ReviewProjectService {
                 });
 
     decision.setNotes(notes);
-    decision.setRecordedAt(ZonedDateTime.now());
-    decision.setRecordedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectTextUnitDecisionRepository.save(decision);
 
     return toTextUnitDTO(textUnit, null, decision);
@@ -808,11 +800,18 @@ public class ReviewProjectService {
 
     dto.setReviewTarget(null);
     dto.setNotes(decision != null ? decision.getNotes() : null);
-    dto.setReviewedAt(decision != null ? decision.getRecordedAt() : null);
-    dto.setReviewedBy(
-        decision != null && decision.getRecordedBy() != null
-            ? decision.getRecordedBy().getUsername()
-            : null);
+    if (decision != null) {
+      ZonedDateTime decidedAt =
+          decision.getLastModifiedDate() != null
+              ? decision.getLastModifiedDate()
+              : decision.getCreatedDate();
+      dto.setReviewedAt(decidedAt);
+      User decidedBy =
+          decision.getLastModifiedByUser() != null
+              ? decision.getLastModifiedByUser()
+              : decision.getCreatedByUser();
+      dto.setReviewedBy(decidedBy != null ? decidedBy.getUsername() : null);
+    }
 
     // Expose original selected translation as target (baseline) and current/accepted content separately.
     dto.setTarget(selectedVariantRef != null ? selectedVariantRef.getContent() : null);

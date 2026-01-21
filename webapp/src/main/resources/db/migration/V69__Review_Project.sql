@@ -77,8 +77,10 @@ CREATE TABLE review_project_text_unit_decision (
     review_project_text_unit_id bigint(20) NOT NULL,
     notes varchar(4000),
     variant_id bigint(20) NOT NULL,
-    recorded_at datetime DEFAULT NULL,
-    recorded_by_user_id bigint(20) DEFAULT NULL,
+    created_date datetime DEFAULT NULL,
+    last_modified_date datetime DEFAULT NULL,
+    created_by_user_id bigint(20) DEFAULT NULL,
+    last_modified_by_user_id bigint(20) DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -89,7 +91,10 @@ ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT FOREIGN KEY (variant_id) REFERENCES tm_text_unit_variant (id);
 
 ALTER TABLE review_project_text_unit_decision
-    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER FOREIGN KEY (recorded_by_user_id) REFERENCES user (id);
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__CREATED_BY_USER FOREIGN KEY (created_by_user_id) REFERENCES user (id);
+
+ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__LAST_MODIFIED_BY_USER FOREIGN KEY (last_modified_by_user_id) REFERENCES user (id);
 
 ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT UK__REVIEW_PROJECT_TEXT_UNIT_DECISION__TEXT_UNIT UNIQUE (review_project_text_unit_id);

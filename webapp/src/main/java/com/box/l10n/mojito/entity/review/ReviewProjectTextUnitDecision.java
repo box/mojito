@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.entity.review;
 
+import com.box.l10n.mojito.entity.AuditableEntity;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.security.user.User;
@@ -10,11 +11,12 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.ZonedDateTime;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 
 @Entity
 @Table(name = "review_project_text_unit_decision")
-public class ReviewProjectTextUnitDecision extends BaseEntity {
+public class ReviewProjectTextUnitDecision extends AuditableEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
@@ -35,14 +37,23 @@ public class ReviewProjectTextUnitDecision extends BaseEntity {
   @Column(name = "notes", length = 4000)
   private String notes;
 
-  @Column(name = "recorded_at")
-  private ZonedDateTime recordedAt;
-
+  @CreatedBy
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
-      name = "recorded_by_user_id",
-      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__USER"))
-  private User recordedBy;
+      name = BaseEntity.CreatedByUserColumnName,
+      foreignKey =
+          @ForeignKey(
+              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__CREATED_BY_USER"))
+  private User createdByUser;
+
+  @LastModifiedBy
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "last_modified_by_user_id",
+      foreignKey =
+          @ForeignKey(
+              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__LAST_MODIFIED_BY_USER"))
+  private User lastModifiedByUser;
 
   public ReviewProjectTextUnit getReviewProjectTextUnit() {
     return reviewProjectTextUnit;
@@ -68,19 +79,19 @@ public class ReviewProjectTextUnitDecision extends BaseEntity {
     this.notes = notes;
   }
 
-  public ZonedDateTime getRecordedAt() {
-    return recordedAt;
+  public User getCreatedByUser() {
+    return createdByUser;
   }
 
-  public void setRecordedAt(ZonedDateTime recordedAt) {
-    this.recordedAt = recordedAt;
+  public void setCreatedByUser(User createdByUser) {
+    this.createdByUser = createdByUser;
   }
 
-  public User getRecordedBy() {
-    return recordedBy;
+  public User getLastModifiedByUser() {
+    return lastModifiedByUser;
   }
 
-  public void setRecordedBy(User recordedBy) {
-    this.recordedBy = recordedBy;
+  public void setLastModifiedByUser(User lastModifiedByUser) {
+    this.lastModifiedByUser = lastModifiedByUser;
   }
 }
