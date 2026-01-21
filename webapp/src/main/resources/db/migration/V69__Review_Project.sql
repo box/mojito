@@ -19,7 +19,6 @@ CREATE TABLE review_project (
     created_date datetime DEFAULT NULL,
     last_modified_date datetime DEFAULT NULL,
     created_by_user_id bigint(20) DEFAULT NULL,
-    last_modified_by_user_id bigint(20) DEFAULT NULL,
     locale_id bigint(20) NOT NULL,
     review_project_request_id bigint(20) DEFAULT NULL,
     type varchar(32) NOT NULL,
@@ -33,9 +32,6 @@ CREATE TABLE review_project (
 
 ALTER TABLE review_project
     ADD CONSTRAINT FK__REVIEW_PROJECT__CREATED_BY FOREIGN KEY (created_by_user_id) REFERENCES user (id);
-
-ALTER TABLE review_project
-    ADD CONSTRAINT FK__REVIEW_PROJECT__LAST_MODIFIED_BY FOREIGN KEY (last_modified_by_user_id) REFERENCES user (id);
 
 ALTER TABLE review_project
     ADD CONSTRAINT FK__REVIEW_PROJECT__LOCALE FOREIGN KEY (locale_id) REFERENCES locale (id);

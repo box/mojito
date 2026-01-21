@@ -17,7 +17,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.LastModifiedBy;
 
 @Entity
 @Table(name = "review_project")
@@ -60,16 +59,6 @@ public class ReviewProject extends AuditableEntity {
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT__CREATED_BY"))
   @JsonIgnore
   private User createdByUser;
-
-  // TODO(ja) why do we have save that? can't we just infer from the changes, plus i would think that a project is chnaged only by one person
-//    so it would be more like "assigned". if change by multiple user we can see by tracking the change at the text unit level accepted by user, no?
-  @LastModifiedBy
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "last_modified_by_user_id",
-      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT__LAST_MODIFIED_BY"))
-  @JsonIgnore
-  private User lastModifiedByUser;
 
   public ReviewProjectType getType() {
     return type;
@@ -125,14 +114,6 @@ public class ReviewProject extends AuditableEntity {
 
   public void setCreatedByUser(User createdByUser) {
     this.createdByUser = createdByUser;
-  }
-
-  public User getLastModifiedByUser() {
-    return lastModifiedByUser;
-  }
-
-  public void setLastModifiedByUser(User lastModifiedByUser) {
-    this.lastModifiedByUser = lastModifiedByUser;
   }
 
   public Locale getLocale() {
