@@ -71,6 +71,8 @@ public class ReviewProjectService {
   private static final int DEFAULT_MAX_TEXT_UNITS = 1000;
   private static final int DEFAULT_SEARCH_LIMIT = 500;
   private static final int MAX_SEARCH_LIMIT = 10_000;
+  private static final Set<ReviewDecisionStatus> ACCEPTED_STATUSES =
+      Set.of(ReviewDecisionStatus.ACCEPTED_AS_IS, ReviewDecisionStatus.ACCEPTED_WITH_CHANGE);
 
   private final ReviewProjectRepository reviewProjectRepository;
   private final ReviewProjectTextUnitRepository reviewProjectTextUnitRepository;
@@ -361,8 +363,9 @@ public class ReviewProjectService {
               int totalSelected = resolveTotalSelected(project);
               int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
               long acceptedCount =
-                  reviewProjectTextUnitDecisionRepository.countByReviewProjectId(
-                      project.getId());
+                  reviewProjectTextUnitDecisionRepository
+                      .countByDecisionStatusInAndReviewProjectTextUnit_ReviewProject_Id(
+                          ACCEPTED_STATUSES, project.getId());
               return toSummaryDTO(project, totalSelected, wordCount, acceptedCount);
             })
         .collect(Collectors.toList());
@@ -394,7 +397,10 @@ public class ReviewProjectService {
     }
     dto.setScreenshotImageIds(resolveScreenshotImageKeys(project));
     List<ReviewProjectTextUnitDTO> textUnits = toTextUnitDTOs(project);
-    long acceptedCount = reviewProjectTextUnitDecisionRepository.countByReviewProjectId(projectId);
+    long acceptedCount =
+        reviewProjectTextUnitDecisionRepository
+            .countByDecisionStatusInAndReviewProjectTextUnit_ReviewProject_Id(
+                ACCEPTED_STATUSES, projectId);
     ReviewProjectLocaleDetailDTO localeDetail =
         new ReviewProjectLocaleDetailDTO(
             project.getId(),
@@ -469,10 +475,12 @@ public class ReviewProjectService {
         && !expectedCurrentTmTextUnitVariantId.equals(currentVariantId)) {
       TMTextUnitVariant conflictVariant =
           currentVariant != null ? currentVariant.getTmTextUnitVariant() : null;
+      ReviewProjectTextUnitDecision decision =
+          reviewProjectTextUnitDecisionRepository.findByReviewProjectTextUnitId(textUnit.getId()).orElse(null);
       throw new ReviewProjectCurrentVariantConflictException(
           expectedCurrentTmTextUnitVariantId,
           currentVariantId,
-          toTextUnitDTO(textUnit, conflictVariant));
+          toTextUnitDTO(textUnit, conflictVariant, decision));
     }
 
     TMTextUnitCurrentVariant updatedCurrentVariant =
@@ -494,28 +502,19 @@ public class ReviewProjectService {
             .orElseGet(
                 () -> {
                   ReviewProjectTextUnitDecision entity = new ReviewProjectTextUnitDecision();
-                  entity.setReviewProject(project);
                   entity.setReviewProjectTextUnit(textUnit);
                   return entity;
                 });
 
-    variantDecision.setTmTextUnitVariant(
-        textUnit.getTmTextUnitVariant() != null ? textUnit.getTmTextUnitVariant() : newVariant);
     variantDecision.setDecidedVariant(newVariant);
+    variantDecision.setDecisionStatus(
+        changed ? ReviewDecisionStatus.ACCEPTED_WITH_CHANGE : ReviewDecisionStatus.ACCEPTED_AS_IS);
+    variantDecision.setReviewNotes(reviewNotes);
     variantDecision.setDecidedAt(ZonedDateTime.now());
     variantDecision.setDecidedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
-    textUnit.setReviewStatus(
-        changed ? ReviewDecisionStatus.ACCEPTED_WITH_CHANGE : ReviewDecisionStatus.ACCEPTED_AS_IS);
-    textUnit.setReviewTarget(changed ? normalizedTarget : null);
-    textUnit.setReviewNotes(reviewNotes);
-    textUnit.setReviewedAt(ZonedDateTime.now());
-    textUnit.setReviewedBy(
-        auditorAware.getCurrentAuditor().map(User::getUsername).orElse(null));
-    reviewProjectTextUnitRepository.save(textUnit);
-
-    return toTextUnitDTO(textUnit, newVariant);
+    return toTextUnitDTO(textUnit, newVariant, variantDecision);
   }
 
   @Transactional
@@ -548,15 +547,23 @@ public class ReviewProjectService {
       throw new IllegalArgumentException("Review project text unit does not belong to project");
     }
 
-    textUnit.setReviewStatus(reviewStatus);
-    textUnit.setReviewTarget(reviewTarget);
-    textUnit.setReviewNotes(reviewNotes);
-    textUnit.setReviewedAt(ZonedDateTime.now());
-    textUnit.setReviewedBy(
-        auditorAware.getCurrentAuditor().map(User::getUsername).orElse(null));
-    reviewProjectTextUnitRepository.save(textUnit);
+    ReviewProjectTextUnitDecision decision =
+        reviewProjectTextUnitDecisionRepository
+            .findByReviewProjectTextUnitId(reviewProjectTextUnitId)
+            .orElseGet(
+                () -> {
+                  ReviewProjectTextUnitDecision entity = new ReviewProjectTextUnitDecision();
+                  entity.setReviewProjectTextUnit(textUnit);
+                  return entity;
+                });
 
-    return toTextUnitDTO(textUnit, null);
+    decision.setDecisionStatus(reviewStatus);
+    decision.setReviewNotes(reviewNotes);
+    decision.setDecidedAt(ZonedDateTime.now());
+    decision.setDecidedBy(auditorAware.getCurrentAuditor().orElse(null));
+    reviewProjectTextUnitDecisionRepository.save(decision);
+
+    return toTextUnitDTO(textUnit, null, decision);
   }
 
   private void saveScreenshotsForRequest(
@@ -649,7 +656,6 @@ public class ReviewProjectService {
       reviewProjectTextUnit.setTmTextUnit(
           tmTextUnit != null ? tmTextUnit : variant.getTmTextUnit());
       reviewProjectTextUnit.setPosition(position++);
-      reviewProjectTextUnit.setBaselineStatus(variant.getStatus());
 
       reviewProjectTextUnitRepository.save(reviewProjectTextUnit);
       selectedCount++;
@@ -727,17 +733,28 @@ public class ReviewProjectService {
   }
 
   private List<ReviewProjectTextUnitDTO> toTextUnitDTOs(ReviewProject reviewProject) {
+    Map<Long, ReviewProjectTextUnitDecision> decisionsByTextUnitId =
+        reviewProjectTextUnitDecisionRepository
+            .findByReviewProjectTextUnit_ReviewProject_Id(reviewProject.getId())
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    decision -> decision.getReviewProjectTextUnit().getId(), decision -> decision));
+
     return reviewProjectTextUnitRepository
         .findByReviewProjectIdOrderByPositionAsc(reviewProject.getId())
         .stream()
-        .map(textUnit -> toTextUnitDTO(textUnit, null))
+        .map(textUnit -> toTextUnitDTO(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
         .collect(Collectors.toList());
   }
 
   private ReviewProjectTextUnitDTO toTextUnitDTO(
-      ReviewProjectTextUnit textUnit, TMTextUnitVariant variantOverride) {
+      ReviewProjectTextUnit textUnit,
+      TMTextUnitVariant variantOverride,
+      ReviewProjectTextUnitDecision decision) {
     TMTextUnitVariant selectedVariantRef = textUnit.getTmTextUnitVariant();
-    TMTextUnitVariant resolvedVariant = variantOverride;
+    TMTextUnitVariant resolvedVariant =
+        variantOverride != null ? variantOverride : (decision != null ? decision.getDecidedVariant() : null);
 
     TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
     if (tmTextUnit == null && selectedVariantRef != null) {
@@ -783,18 +800,19 @@ public class ReviewProjectService {
     dto.setSelectedTmTextUnitVariantId(
         selectedVariantRef != null ? selectedVariantRef.getId() : null);
     TMTextUnitVariant.Status baselineStatus =
-        textUnit.getBaselineStatus() != null
-            ? textUnit.getBaselineStatus()
-            : selectedVariantRef != null ? selectedVariantRef.getStatus() : null;
+        selectedVariantRef != null ? selectedVariantRef.getStatus() : null;
     dto.setBaselineStatus(baselineStatus);
     dto.setReviewStatus(
-        textUnit.getReviewStatus() != null
-            ? textUnit.getReviewStatus()
+        decision != null && decision.getDecisionStatus() != null
+            ? decision.getDecisionStatus()
             : ReviewDecisionStatus.PENDING);
-    dto.setReviewTarget(textUnit.getReviewTarget());
-    dto.setReviewNotes(textUnit.getReviewNotes());
-    dto.setReviewedAt(textUnit.getReviewedAt());
-    dto.setReviewedBy(textUnit.getReviewedBy());
+    dto.setReviewTarget(null);
+    dto.setReviewNotes(decision != null ? decision.getReviewNotes() : null);
+    dto.setReviewedAt(decision != null ? decision.getDecidedAt() : null);
+    dto.setReviewedBy(
+        decision != null && decision.getDecidedBy() != null
+            ? decision.getDecidedBy().getUsername()
+            : null);
 
     // Expose original selected translation as target (baseline) and current/accepted content separately.
     dto.setTarget(selectedVariantRef != null ? selectedVariantRef.getContent() : null);

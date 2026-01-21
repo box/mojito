@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.service.review;
 
+import com.box.l10n.mojito.entity.review.ReviewDecisionStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -9,12 +11,13 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface ReviewProjectTextUnitDecisionRepository
     extends JpaRepository<ReviewProjectTextUnitDecision, Long> {
 
-  long countByReviewProjectId(Long reviewProjectId);
+  long countByReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
 
-  java.util.List<ReviewProjectTextUnitDecision> findByReviewProjectId(Long reviewProjectId);
+  java.util.List<ReviewProjectTextUnitDecision> findByReviewProjectTextUnit_ReviewProject_Id(
+      Long reviewProjectId);
 
-  Optional<ReviewProjectTextUnitDecision> findByReviewProjectIdAndTmTextUnitVariantId(
-      Long reviewProjectId, Long tmTextUnitVariantId);
+  long countByDecisionStatusInAndReviewProjectTextUnit_ReviewProject_Id(
+      Set<ReviewDecisionStatus> statuses, Long reviewProjectId);
 
   Optional<ReviewProjectTextUnitDecision> findByReviewProjectTextUnitId(
       Long reviewProjectTextUnitId);
