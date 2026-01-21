@@ -799,19 +799,19 @@ function DetailPane({
           </div>
 
           <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Original target</div>
+            <div className="review-project-detail__label">Translation</div>
             <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
               <span>{displayedTarget || '—'}</span>
-              {hasExternalChange ? (
-                <div className="review-project-detail__external">
-                  <div className="review-project-detail__label">
-                    <Pill className="review-project-detail__pill review-project-detail__pill--warning">
-                      External update
-                    </Pill>
-                  </div>
-                  <div className="review-project-detail__value review-project-detail__value--target">
-                    <span>{textUnit.currentTarget || '—'}</span>
-                  </div>
+                  {hasExternalChange ? (
+                    <div className="review-project-detail__external">
+                      <div className="review-project-detail__label">
+                        <Pill className="review-project-detail__pill review-project-detail__pill--warning">
+                          New target since project creation
+                        </Pill>
+                      </div>
+                      <div className="review-project-detail__value review-project-detail__value--target">
+                        <span>{textUnit.currentTarget || '—'}</span>
+                      </div>
                 </div>
               ) : null}
             </div>
