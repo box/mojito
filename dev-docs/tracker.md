@@ -21,4 +21,3 @@ Backlog
 - FRONTEND-02c — Locale data & accessibility: map selected repo to localeDetails or call `onLoadLocales(repoId)`, handle loading/error/empty states, add scope/aria labels and focusable selected row, and keep CSS state classes minimal.
 - REVIEW-01 — Expose APIs/UX to upload review project screenshots post-creation at request/project/locale scope and merge them in detail responses.
 - REVIEW-02 — Update review UI/client to send `expectedCurrentTmTextUnitVariantId`, handle 409 conflict responses (refresh or override), and show a confirmation prompt when TM changed.
-- REVIEW-03 — Persist creation criteria into `review_project_request.payload_json` (and define retention/redaction) so batches can be reconstructed without digging through logs.

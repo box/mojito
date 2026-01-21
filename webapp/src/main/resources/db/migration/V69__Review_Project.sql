@@ -7,7 +7,6 @@ CREATE TABLE review_project_request (
     request_uuid char(36) NOT NULL,
     name varchar(255) DEFAULT NULL,
     notes longtext,
-    payload_json longtext,
     PRIMARY KEY (id)
 );
 
