@@ -670,12 +670,14 @@ function DetailPane({
     }
   };
 
-  const statusLabel: Record<StatusOption, string> = {
-    accepted: 'Accept',
-    needs_review: 'Needs review',
-    needs_translation: 'Needs translation',
-    rejected: 'Reject',
+  const statusDisplay: Record<StatusOption, string> = {
+    accepted: 'Accepted',
+    needs_review: 'To review',
+    needs_translation: 'To translate',
+    rejected: 'Rejected',
   };
+  const statusMenuLabel = 'With status';
+  const primaryLabel = 'Accept';
   const isBusy = isAccepting || isUpdatingStatus;
 
   return (
@@ -695,74 +697,74 @@ function DetailPane({
               placeholder="Enter proposed translation"
             />
             <div className="review-project-detail__actions-inline">
-              {textUnit.reviewStatus ? (
-                <span className="review-project-detail__status-pill">
-                  {textUnit.reviewStatus.toLowerCase().replace(/_/g, ' ')}
+              <div className="review-project-detail__split-wrap">
+                <div className="review-project-detail__split" ref={statusMenuRef}>
+                  <button
+                    type="button"
+                    className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__split-main"
+                    onClick={applySelectedStatus}
+                    disabled={isBusy}
+                  >
+                    <span className="review-project-detail__primary-label">{primaryLabel}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="review-project-detail__actions-button review-project-detail__split-caret"
+                    aria-haspopup="menu"
+                    aria-expanded={isStatusMenuOpen}
+                    onClick={() => setIsStatusMenuOpen((open) => !open)}
+                    disabled={isBusy}
+                    title="Set different status"
+                  >
+                    ▾
+                  </button>
+                  {isStatusMenuOpen ? (
+                    <div className="review-project-detail__status-menu" role="menu">
+                      <div className="review-project-detail__status-menu-label">{statusMenuLabel}</div>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleStatusSelect('accepted')}
+                        className={selectedStatus === 'accepted' ? 'is-active' : undefined}
+                      >
+                        {statusDisplay.accepted}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleStatusSelect('needs_review')}
+                        className={selectedStatus === 'needs_review' ? 'is-active' : undefined}
+                      >
+                        {statusDisplay.needs_review}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleStatusSelect('needs_translation')}
+                        className={selectedStatus === 'needs_translation' ? 'is-active' : undefined}
+                      >
+                        {statusDisplay.needs_translation}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleStatusSelect('rejected')}
+                        className={selectedStatus === 'rejected' ? 'is-active' : undefined}
+                      >
+                        {statusDisplay.rejected}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+                <span className="review-project-detail__split-spinner">
+                  {isBusy ? <span className="spinner spinner--inline" aria-hidden="true" /> : null}
                 </span>
-              ) : textUnit.status ? (
-                <span className="review-project-detail__status-pill">
-                  {textUnit.status.toLowerCase().replace(/_/g, ' ')}
+              </div>
+              {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ? (
+                <span className="review-project-detail__status-pill review-project-detail__status-pill--right">
+                  {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status)}
                 </span>
               ) : null}
-              <div className="review-project-detail__split" ref={statusMenuRef}>
-                <button
-                  type="button"
-                  className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__split-main"
-                  onClick={applySelectedStatus}
-                  disabled={isBusy}
-                >
-                  {isAccepting && selectedStatus === 'accepted'
-                    ? 'Accepting…'
-                    : statusLabel[selectedStatus]}
-                </button>
-                <button
-                  type="button"
-                  className="review-project-detail__actions-button review-project-detail__split-caret"
-                  aria-haspopup="menu"
-                  aria-expanded={isStatusMenuOpen}
-                  onClick={() => setIsStatusMenuOpen((open) => !open)}
-                  disabled={isBusy}
-                  title="Set different status"
-                >
-                  ▾
-                </button>
-                {isStatusMenuOpen ? (
-                  <div className="review-project-detail__status-menu" role="menu">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => handleStatusSelect('accepted')}
-                      className={selectedStatus === 'accepted' ? 'is-active' : undefined}
-                    >
-                      Accepted
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => handleStatusSelect('needs_review')}
-                      className={selectedStatus === 'needs_review' ? 'is-active' : undefined}
-                    >
-                      Needs review
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => handleStatusSelect('needs_translation')}
-                      className={selectedStatus === 'needs_translation' ? 'is-active' : undefined}
-                    >
-                      Needs translation
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => handleStatusSelect('rejected')}
-                      className={selectedStatus === 'rejected' ? 'is-active' : undefined}
-                    >
-                      Rejected
-                    </button>
-                  </div>
-                ) : null}
-              </div>
             </div>
             {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
           </div>
@@ -1040,6 +1042,19 @@ const formatDate = (value: string | null | undefined) => {
     month: 'short',
     day: 'numeric',
   });
+};
+
+const getDisplayStatus = (status: string | null | undefined) => {
+  if (!status) return null;
+  const upper = status.toUpperCase();
+  if (upper === 'ACCEPTED_AS_IS' || upper === 'ACCEPTED_WITH_CHANGE' || upper === 'ACCEPTED') {
+    return 'Accepted';
+  }
+  if (upper === 'REJECTED') return 'Rejected';
+  if (upper === 'VIEWED') return 'To review';
+  if (upper === 'SKIPPED') return 'To translate';
+  const cleaned = status.toLowerCase().replace(/_/g, ' ');
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm', '.ogv', '.ogg', '.m4v', '.mkv'];

@@ -185,12 +185,12 @@
 
 .review-project-page__controls--compact {
   grid-template-columns: 1fr auto;
-  gap: var(--space-1-5, 0.375rem);
+  gap: var(--space-1);
 }
 
 .review-project-page__search-input {
   width: 100%;
-  padding: var(--space-1-5, 0.375rem) var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-2);
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   font-size: var(--font-size-sm);
@@ -205,7 +205,7 @@
 }
 
 .review-project-page__control-select {
-  padding: var(--space-1-5, 0.375rem) var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-2);
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   background: var(--color-surface);
@@ -467,6 +467,10 @@
   margin-left: var(--space-2);
 }
 
+.review-project-detail__status-pill--right {
+  margin-left: auto;
+}
+
 .review-project-detail__input {
   width: 100%;
   min-height: 3rem;
@@ -533,9 +537,22 @@
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin-top: var(--space-2);
   flex-wrap: wrap;
+}
+
+.review-project-detail__split-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.review-project-detail__split-spinner {
+  display: inline-flex;
+  width: 1rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .review-project-detail__split {
@@ -546,7 +563,7 @@
   background: var(--color-accent);
   border: 1px solid var(--color-accent);
   overflow: visible;
-  height: 2rem;
+  height: 1.8rem;
 }
 
 .review-project-detail__split:hover {
@@ -562,13 +579,25 @@
   height: 100%;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-shadow: none;
   transition: color 0.12s ease;
   padding-top: 0;
   padding-bottom: 0;
-  line-height: 1;
-  font-size: var(--font-size-sm);
+  line-height: 1.2;
+  font-size: var(--font-size-xs);
+}
+
+.review-project-detail__primary-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.review-project-detail__primary-spinner {
+  display: inline-flex;
+  width: 1rem;
+  justify-content: center;
+  margin-left: var(--space-1);
 }
 
 .review-project-detail__split .review-project-detail__actions-button:hover:not(:disabled) {
@@ -586,10 +615,9 @@
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border: none;
-  padding-left: var(--space-2);
-  padding-right: var(--space-2);
-  min-width: 8rem;
-  justify-content: center;
+  padding-left: var(--space-1);
+  padding-right: var(--space-1);
+  justify-content: flex-start;
 }
 
 .review-project-detail__split-caret {
@@ -597,20 +625,20 @@
   border-bottom-left-radius: 0;
   border-top-right-radius: var(--radius-2);
   border-bottom-right-radius: var(--radius-2);
-  padding-left: var(--space-2);
-  padding-right: var(--space-2);
-  min-width: 2.25rem;
+  padding-left: var(--space-1);
+  padding-right: var(--space-1);
+  min-width: 1.8rem;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-left: 1px solid color-mix(in srgb, #fff 18%, transparent);
+  border-left: 1px solid color-mix(in srgb, #fff 22%, transparent);
 }
 
 .review-project-detail__status-menu {
   position: absolute;
   top: calc(100% + 0.4rem);
-  right: 0;
+  left: 0;
   background: var(--color-surface);
   border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
   border-radius: var(--radius-3);
@@ -620,6 +648,13 @@
   min-width: 10rem;
   z-index: 10;
   overflow: hidden;
+}
+
+.review-project-detail__status-menu-label {
+  padding: var(--space-1-5, 0.375rem) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
 }
 
 .review-project-detail__status-menu button {
@@ -920,13 +955,13 @@
   border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .review-project-detail__gallery--compact {

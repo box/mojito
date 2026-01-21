@@ -31,6 +31,9 @@ public class ReviewProject extends AuditableEntity {
   @Column(name = "status", nullable = false)
   private ReviewProjectStatus status = ReviewProjectStatus.OPEN;
 
+//  TODO(ja) I guess it should have a name but we could also just get the one from the project request?
+    // like this it is duplicated on all instances, which is not dramatic
+    // we could add the locale in the name, to make it more use full i guess
   @Column(name = "name", length = 255, nullable = false)
   private String name;
 
@@ -46,6 +49,7 @@ public class ReviewProject extends AuditableEntity {
   @Column(name = "word_count", nullable = false)
   private Integer wordCount = 0;
 
+  // TODO(ja) that seems to be a project request field at this point
   @Column(name = "notes", length = Integer.MAX_VALUE)
   private String notes;
 
@@ -67,6 +71,8 @@ public class ReviewProject extends AuditableEntity {
   @JsonIgnore
   private User createdByUser;
 
+  // TODO(ja) why do we have save that? can't we just infer from the changes, plus i would think that a project is chnaged only by one person
+//    so it would be more like "assigned". if change by multiple user we can see by tracking the change at the text unit level accepted by user, no?
   @LastModifiedBy
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
