@@ -515,6 +515,96 @@
   margin-top: var(--space-2);
 }
 
+.review-project-detail__split {
+  display: inline-flex;
+  position: relative;
+  align-items: stretch;
+  border-radius: var(--radius-2);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  overflow: visible;
+}
+
+.review-project-detail__split .review-project-detail__actions-button {
+  background: transparent;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  min-height: 2.5rem;
+  box-shadow: none;
+  transition: background 0.12s ease, color 0.12s ease;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.review-project-detail__split .review-project-detail__actions-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 85%, #000 10%);
+}
+
+.review-project-detail__split .review-project-detail__actions-button:disabled {
+  background: color-mix(in srgb, var(--color-accent) 70%, #000 15%);
+  color: #fff;
+}
+
+.review-project-detail__split-main {
+  border-top-left-radius: var(--radius-2);
+  border-bottom-left-radius: var(--radius-2);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: none;
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+}
+
+.review-project-detail__split-caret {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: var(--radius-2);
+  border-bottom-right-radius: var(--radius-2);
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+  min-width: 2.25rem;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid color-mix(in srgb, #fff 18%, transparent);
+}
+
+.review-project-detail__status-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-3);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.review-project-detail__status-menu button {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+}
+
+.review-project-detail__status-menu button.is-active {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-text);
+}
+
+.review-project-detail__status-menu button:hover {
+  background: color-mix(in srgb, var(--color-surface-muted) 60%, transparent);
+}
+
 .review-project-detail__actions-button--primary {
   background: var(--color-accent);
   border-color: var(--color-accent);

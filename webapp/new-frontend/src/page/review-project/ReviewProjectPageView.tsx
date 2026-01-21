@@ -339,6 +339,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     <div className="review-project-page">
       <ReviewProjectHeader projectId={projectId} project={project} textUnits={textUnits} />
 
+        {/*TODO(ja) why is the style here, move to CSS*/}
       <div
         className="review-project-page__content"
         ref={layoutRef}
@@ -348,6 +349,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       >
         <section className="review-project-page__list-pane">
           <div className="review-project-page__controls">
+            {/*  that search area does not work well with resizing ,  we need it more compact, probably one line
+             with a single small filter button. we first need to clarify the states though */}
             <input
               className="review-project-page__search-input"
               type="search"
@@ -384,6 +387,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               ))}
             </select>
           </div>
+          {/* TODO(ja)  this looks great so far, but the font is too large we need to condensate the left bar we may even go to 9px, but use the app.css texxt size variable please */}
           <VirtualList
             scrollRef={scrollRef}
             items={items}
@@ -630,6 +634,67 @@ function DetailPane({
   const proposedValue = textUnit.reviewTarget ?? draftTarget;
   const hasExternalChange =
     textUnit.currentTarget != null && textUnit.currentTarget !== proposedValue;
+  type StatusOption = 'accepted' | 'needs_translation' | 'needs_review' | 'rejected';
+  const [selectedStatus, setSelectedStatus] = useState<StatusOption>('accepted');
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const statusMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isStatusMenuOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!statusMenuRef.current?.contains(event.target as Node)) {
+        setIsStatusMenuOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [isStatusMenuOpen]);
+
+  useEffect(() => {
+    const current = textUnit.reviewStatus;
+    const mapped: StatusOption =
+      current === 'REJECTED'
+        ? 'rejected'
+        : current === 'SKIPPED'
+          ? 'needs_translation'
+          : current === 'VIEWED'
+            ? 'needs_review'
+            : current === 'ACCEPTED_AS_IS' || current === 'ACCEPTED_WITH_CHANGE'
+              ? 'accepted'
+              : 'accepted';
+    setSelectedStatus(mapped);
+  }, [textUnit.reviewStatus]);
+
+  const handleStatusSelect = (key: StatusOption) => {
+    setSelectedStatus(key);
+    setIsStatusMenuOpen(false);
+  };
+
+  const applySelectedStatus = () => {
+    if (selectedStatus === 'accepted') {
+      onAccept(false);
+      return;
+    }
+    if (selectedStatus === 'rejected') {
+      void onReviewStatus('REJECTED');
+      return;
+    }
+    if (selectedStatus === 'needs_review') {
+      void onReviewStatus('VIEWED');
+      return;
+    }
+    if (selectedStatus === 'needs_translation') {
+      void onReviewStatus('SKIPPED');
+    }
+  };
+
+  const statusLabel: Record<StatusOption, string> = {
+    accepted: 'Accept',
+    needs_review: 'Needs review',
+    needs_translation: 'Needs translation',
+    rejected: 'Reject',
+  };
+  const isBusy = isAccepting || isUpdatingStatus;
 
   return (
     <div className="review-project-detail">
@@ -703,34 +768,65 @@ function DetailPane({
                 {textUnit.status.toLowerCase().replace(/_/g, ' ')}
               </span>
             ) : null}
-            <button
-              type="button"
-              className="review-project-detail__actions-button review-project-detail__actions-button--primary"
-              onClick={() => onAccept(false)}
-              disabled={isAccepting}
-            >
-              {isAccepting ? 'Accepting…' : 'Accept'}
-            </button>
-            <button
-              type="button"
-              className="review-project-detail__actions-button"
-              onClick={() => {
-                void onReviewStatus('REJECTED');
-              }}
-              disabled={isAccepting || isUpdatingStatus}
-            >
-              Reject
-            </button>
-            <button
-              type="button"
-              className="review-project-detail__actions-button"
-              onClick={() => {
-                void onReviewStatus('SKIPPED');
-              }}
-              disabled={isAccepting || isUpdatingStatus}
-            >
-              Skip
-            </button>
+            <div className="review-project-detail__split" ref={statusMenuRef}>
+              <button
+                type="button"
+                className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__split-main"
+                onClick={applySelectedStatus}
+                disabled={isBusy}
+              >
+                {isAccepting && selectedStatus === 'accepted'
+                  ? 'Accepting…'
+                  : statusLabel[selectedStatus]}
+              </button>
+              <button
+                type="button"
+                className="review-project-detail__actions-button review-project-detail__split-caret"
+                aria-haspopup="menu"
+                aria-expanded={isStatusMenuOpen}
+                onClick={() => setIsStatusMenuOpen((open) => !open)}
+                disabled={isBusy}
+                title="Set different status"
+              >
+                ▾
+              </button>
+              {isStatusMenuOpen ? (
+                <div className="review-project-detail__status-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleStatusSelect('accepted')}
+                    className={selectedStatus === 'accepted' ? 'is-active' : undefined}
+                  >
+                    Accepted
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleStatusSelect('needs_review')}
+                    className={selectedStatus === 'needs_review' ? 'is-active' : undefined}
+                  >
+                    Needs review
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleStatusSelect('needs_translation')}
+                    className={selectedStatus === 'needs_translation' ? 'is-active' : undefined}
+                  >
+                    Needs translation
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleStatusSelect('rejected')}
+                    className={selectedStatus === 'rejected' ? 'is-active' : undefined}
+                  >
+                    Rejected
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
           {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
         </div>
