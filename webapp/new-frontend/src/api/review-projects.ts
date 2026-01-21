@@ -127,6 +127,10 @@ export type ReviewProjectCreateRequest = {
   name: string;
 };
 
+export type ReviewProjectCreateResponse = {
+  projects: ApiReviewProjectSummary[];
+};
+
 const jsonHeaders = {
   'Content-Type': 'application/json',
 };
@@ -154,7 +158,7 @@ export const fetchReviewProjects = async (): Promise<ApiReviewProjectSummary[]> 
 
 export const createReviewProject = async (
   payload: ReviewProjectCreateRequest,
-): Promise<ApiReviewProjectSummary[]> => {
+): Promise<ReviewProjectCreateResponse> => {
   const response = await fetch('/api/review-projects', {
     method: 'POST',
     credentials: 'include',
@@ -167,7 +171,7 @@ export const createReviewProject = async (
     throw new Error(message || 'Failed to create review project');
   }
 
-  return (await response.json()) as ApiReviewProjectSummary[];
+  return (await response.json()) as ReviewProjectCreateResponse;
 };
 
 export const fetchReviewProjectDetail = async (

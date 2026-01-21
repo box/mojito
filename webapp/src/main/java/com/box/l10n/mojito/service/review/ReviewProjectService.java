@@ -14,13 +14,12 @@ import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
-import com.box.l10n.mojito.rest.review.ReviewProjectCreateRequest;
-import com.box.l10n.mojito.rest.review.ReviewProjectDetailDTO;
-import com.box.l10n.mojito.rest.review.ReviewProjectLocaleDetailDTO;
-import com.box.l10n.mojito.rest.review.ReviewProjectLocaleSummaryDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectSearchRequest;
-import com.box.l10n.mojito.rest.review.ReviewProjectSummaryDTO;
-import com.box.l10n.mojito.rest.review.ReviewProjectTextUnitDTO;
+import com.box.l10n.mojito.rest.review.ReviewProjectWS.ReviewProjectDetailResponse;
+import com.box.l10n.mojito.rest.review.ReviewProjectWS.ReviewProjectLocaleDetailResponse;
+import com.box.l10n.mojito.rest.review.ReviewProjectWS.ReviewProjectLocaleSummaryResponse;
+import com.box.l10n.mojito.rest.review.ReviewProjectWS.ReviewProjectSummaryResponse;
+import com.box.l10n.mojito.rest.review.ReviewProjectWS.ReviewProjectTextUnitResponse;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -106,7 +105,8 @@ public class ReviewProjectService {
   }
 
   @Transactional
-  public List<ReviewProjectSummaryDTO> createReviewProject(ReviewProjectCreateRequest request) {
+  public List<ReviewProjectSummaryResponse> createReviewProject(
+      CreateReviewProjectCommand request) {
     if (CollectionUtils.isEmpty(request.localeTags())) {
       throw new IllegalArgumentException("At least one locale must be provided");
     }
@@ -141,7 +141,7 @@ public class ReviewProjectService {
     ReviewProjectType type =
         request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
-    List<ReviewProjectSummaryDTO> summaries = new ArrayList<>();
+    List<ReviewProjectSummaryResponse> summaries = new ArrayList<>();
 
     for (String localeTag : request.localeTags()) {
       Locale locale = localeService.findByBcp47Tag(localeTag);
@@ -172,7 +172,7 @@ public class ReviewProjectService {
       saved.setWordCount(selectionStats.wordCount());
       reviewProjectRepository.save(saved);
 
-      summaries.add(toSummaryDTO(saved, selectedCount, selectionStats.wordCount(), 0L));
+      summaries.add(toSummaryResponse(saved, selectedCount, selectionStats.wordCount(), 0L));
     }
 
     if (summaries.isEmpty()) {
@@ -187,7 +187,7 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public List<ReviewProjectSummaryDTO> getOpenProjects() {
+  public List<ReviewProjectSummaryResponse> getOpenProjects() {
     ReviewProjectSearchRequest searchRequest = new ReviewProjectSearchRequest();
     searchRequest.setStatuses(Collections.singletonList(ReviewProjectStatus.OPEN));
     searchRequest.setLimit(MAX_SEARCH_LIMIT);
@@ -195,7 +195,7 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public List<ReviewProjectSummaryDTO> searchProjects(ReviewProjectSearchRequest request) {
+  public List<ReviewProjectSummaryResponse> searchProjects(ReviewProjectSearchRequest request) {
     ReviewProjectSearchRequest.SearchField searchField =
         request != null && request.getSearchField() != null
             ? request.getSearchField()
@@ -328,20 +328,20 @@ public class ReviewProjectService {
                   reviewProjectTextUnitDecisionRepository
                       .countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(
                           project.getId());
-              return toSummaryDTO(project, totalSelected, wordCount, acceptedCount);
+              return toSummaryResponse(project, totalSelected, wordCount, acceptedCount);
             })
         .collect(Collectors.toList());
   }
 
   @Transactional(readOnly = true)
-  public ReviewProjectDetailDTO getProjectDetail(Long projectId)
+  public ReviewProjectDetailResponse getProjectDetail(Long projectId)
       throws EntityWithIdNotFoundException {
     ReviewProject project =
         reviewProjectRepository
             .findById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
 
-    ReviewProjectDetailDTO dto = new ReviewProjectDetailDTO();
+    ReviewProjectDetailResponse dto = new ReviewProjectDetailResponse();
     dto.setId(project.getId());
     dto.setType(project.getType());
     dto.setStatus(project.getStatus());
@@ -358,12 +358,12 @@ public class ReviewProjectService {
       dto.setRequestUuid(project.getReviewProjectRequest().getRequestUuid());
     }
     dto.setScreenshotImageIds(resolveScreenshotImageKeys(project));
-    List<ReviewProjectTextUnitDTO> textUnits = toTextUnitDTOs(project);
+    List<ReviewProjectTextUnitResponse> textUnits = toTextUnitResponses(project);
     long acceptedCount =
         reviewProjectTextUnitDecisionRepository
             .countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(projectId);
-    ReviewProjectLocaleDetailDTO localeDetail =
-        new ReviewProjectLocaleDetailDTO(
+    ReviewProjectLocaleDetailResponse localeDetail =
+        new ReviewProjectLocaleDetailResponse(
             project.getId(),
             project.getLocale().getBcp47Tag(),
             project.getLocale().getBcp47Tag(),
@@ -376,7 +376,7 @@ public class ReviewProjectService {
   }
 
   @Transactional
-  public ReviewProjectTextUnitDTO acceptTextUnit(
+  public ReviewProjectTextUnitResponse acceptTextUnit(
       Long projectId,
       Long reviewProjectTextUnitId,
       String target,
@@ -443,7 +443,7 @@ public class ReviewProjectService {
       throw new ReviewProjectCurrentVariantConflictException(
           expectedCurrentTmTextUnitVariantId,
           currentVariantId,
-          toTextUnitDTO(textUnit, conflictVariant, decision));
+          toTextUnitResponse(textUnit, conflictVariant, decision));
     }
 
     TMTextUnitCurrentVariant updatedCurrentVariant =
@@ -474,11 +474,11 @@ public class ReviewProjectService {
     variantDecision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
-    return toTextUnitDTO(textUnit, newVariant, variantDecision);
+    return toTextUnitResponse(textUnit, newVariant, variantDecision);
   }
 
   @Transactional
-  public ReviewProjectTextUnitDTO updateReviewStatus(
+  public ReviewProjectTextUnitResponse updateReviewStatus(
       Long projectId, Long reviewProjectTextUnitId, String notes)
       throws EntityWithIdNotFoundException {
 
@@ -512,7 +512,7 @@ public class ReviewProjectService {
     decision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(decision);
 
-    return toTextUnitDTO(textUnit, null, decision);
+    return toTextUnitResponse(textUnit, null, decision);
   }
 
   private void saveScreenshotsForRequest(
@@ -623,10 +623,10 @@ public class ReviewProjectService {
                 project.getReviewProjectRequest().getId())));
   }
 
-  private ReviewProjectSummaryDTO toSummaryDTO(
+  private ReviewProjectSummaryResponse toSummaryResponse(
       ReviewProject project, int totalSelected, int wordCount, long acceptedCount) {
-    ReviewProjectLocaleSummaryDTO localeSummary =
-        new ReviewProjectLocaleSummaryDTO(
+    ReviewProjectLocaleSummaryResponse localeSummary =
+        new ReviewProjectLocaleSummaryResponse(
             project.getId(),
             project.getLocale().getBcp47Tag(),
             project.getLocale().getBcp47Tag(),
@@ -640,7 +640,7 @@ public class ReviewProjectService {
             : null;
     String requestName = resolveRequestName(project);
 
-    return new ReviewProjectSummaryDTO(
+    return new ReviewProjectSummaryResponse(
         project.getId(),
         project.getCreatedDate(),
         project.getDueDate(),
@@ -672,7 +672,7 @@ public class ReviewProjectService {
         : null;
   }
 
-  private List<ReviewProjectTextUnitDTO> toTextUnitDTOs(ReviewProject reviewProject) {
+  private List<ReviewProjectTextUnitResponse> toTextUnitResponses(ReviewProject reviewProject) {
     Map<Long, ReviewProjectTextUnitDecision> decisionsByTextUnitId =
         reviewProjectTextUnitDecisionRepository
             .findByReviewProjectTextUnit_ReviewProject_Id(reviewProject.getId())
@@ -684,11 +684,13 @@ public class ReviewProjectService {
     return reviewProjectTextUnitRepository
         .findByReviewProjectIdOrderByIdAsc(reviewProject.getId())
         .stream()
-        .map(textUnit -> toTextUnitDTO(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
+        .map(
+            textUnit ->
+                toTextUnitResponse(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
         .collect(Collectors.toList());
   }
 
-  private ReviewProjectTextUnitDTO toTextUnitDTO(
+  private ReviewProjectTextUnitResponse toTextUnitResponse(
       ReviewProjectTextUnit textUnit,
       TMTextUnitVariant variantOverride,
       ReviewProjectTextUnitDecision decision) {
@@ -722,7 +724,7 @@ public class ReviewProjectService {
               .orElse(selectedVariantRef);
     }
 
-    ReviewProjectTextUnitDTO dto = new ReviewProjectTextUnitDTO();
+    ReviewProjectTextUnitResponse dto = new ReviewProjectTextUnitResponse();
     dto.setReviewProjectTextUnitId(textUnit.getId());
     if (tmTextUnit != null) {
       dto.setTmTextUnitId(tmTextUnit.getId());
@@ -743,7 +745,7 @@ public class ReviewProjectService {
         selectedVariantRef != null ? selectedVariantRef.getId() : null);
     TMTextUnitVariant.Status baselineStatus =
         selectedVariantRef != null ? selectedVariantRef.getStatus() : null;
-    dto.setBaselineStatus(baselineStatus);
+    dto.setBaselineStatus(baselineStatus != null ? baselineStatus.name() : null);
 
     if (decision != null && decision.getVariant() != null) {
       boolean changed =
@@ -776,7 +778,7 @@ public class ReviewProjectService {
     dto.setTarget(selectedVariantRef != null ? selectedVariantRef.getContent() : null);
     if (resolvedVariant != null) {
       dto.setCurrentTarget(resolvedVariant.getContent());
-      dto.setStatus(resolvedVariant.getStatus());
+      dto.setStatus(resolvedVariant.getStatus() != null ? resolvedVariant.getStatus().name() : null);
       dto.setIncludedInLocalizedFile(resolvedVariant.isIncludedInLocalizedFile());
     }
 

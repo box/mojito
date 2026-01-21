@@ -145,27 +145,24 @@ export function ReviewProjectCreatePage() {
           tmTextUnitIds: tmIds,
           screenshotImageIds: values.screenshotImageIds,
           name: values.name,
-          },
-          {
-          onSuccess: (summaries) => {
-            const requestId = summaries[0]?.requestId ?? null;
-            const requestUuid = summaries[0]?.requestUuid ?? null;
+        },
+        {
+          onSuccess: (response) => {
+            const first = response.projects?.[0];
+            const requestId = first?.requestId ?? null;
+            const requestUuid = first?.requestUuid ?? null;
             void navigate('/review-projects', {
               state: { requestId, requestUuid },
             });
           },
-            onError: (err: unknown) => {
-              const message =
-                err instanceof Error
-                  ? err.message
-                  : typeof err === 'string'
-                    ? err
-                    : '';
-              setErrorMessage(message.trim() || 'Failed to create project');
-            },
+          onError: (err: unknown) => {
+            const message =
+              err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+            setErrorMessage(message.trim() || 'Failed to create project');
           },
-        );
-      },
+        },
+      );
+    },
     [createReviewProject, navigate, tmIds],
   );
 
