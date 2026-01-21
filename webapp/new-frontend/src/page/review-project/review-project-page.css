@@ -546,6 +546,12 @@
   background: var(--color-accent);
   border: 1px solid var(--color-accent);
   overflow: visible;
+  height: 2.25rem;
+}
+
+.review-project-detail__split:hover {
+  background: color-mix(in srgb, var(--color-accent) 90%, #000 10%);
+  border-color: color-mix(in srgb, var(--color-accent) 90%, #000 10%);
 }
 
 .review-project-detail__split .review-project-detail__actions-button {
@@ -553,19 +559,21 @@
   color: #fff;
   border: none;
   border-radius: 0;
-  min-height: 2.5rem;
+  height: 100%;
   box-shadow: none;
-  transition: background 0.12s ease, color 0.12s ease;
-  padding-top: var(--space-2);
-  padding-bottom: var(--space-2);
+  transition: color 0.12s ease;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 1;
+  font-size: var(--font-size-sm);
 }
 
 .review-project-detail__split .review-project-detail__actions-button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent) 85%, #000 10%);
+  background: transparent;
 }
 
 .review-project-detail__split .review-project-detail__actions-button:disabled {
-  background: color-mix(in srgb, var(--color-accent) 70%, #000 15%);
+  background: transparent;
   color: #fff;
 }
 
@@ -577,6 +585,8 @@
   border: none;
   padding-left: var(--space-3);
   padding-right: var(--space-3);
+  min-width: 9rem;
+  justify-content: center;
 }
 
 .review-project-detail__split-caret {
@@ -586,7 +596,7 @@
   border-bottom-right-radius: var(--radius-2);
   padding-left: var(--space-2);
   padding-right: var(--space-2);
-  min-width: 2.25rem;
+  min-width: 2.5rem;
   border: none;
   display: inline-flex;
   align-items: center;
