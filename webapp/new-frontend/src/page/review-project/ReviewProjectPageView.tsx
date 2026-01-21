@@ -3,7 +3,7 @@ import '../review-projects/review-projects-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -617,23 +617,9 @@ function DetailPane({
   const proposedValue = textUnit.reviewTarget ?? draftTarget;
   type StatusOption = 'accepted' | 'needs_translation' | 'needs_review' | 'rejected';
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>('accepted');
-  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
-  const statusMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isStatusMenuOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!statusMenuRef.current?.contains(event.target as Node)) {
-        setIsStatusMenuOpen(false);
-      }
-    };
-    window.addEventListener('pointerdown', handlePointerDown);
-    return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [isStatusMenuOpen]);
 
   const handleStatusSelect = (key: StatusOption) => {
     setSelectedStatus(key);
-    setIsStatusMenuOpen(false);
   };
 
   const applySelectedStatus = () => {
@@ -688,31 +674,33 @@ function DetailPane({
               rows={5}
               placeholder="Enter proposed translation"
             />
-            <div className="review-project-detail__status-row">
+              <div className="review-project-detail__status-row">
               <div className="review-project-detail__status-action">
-                <div className="review-project-detail__status-pill">
-                  {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—'}
+                <div className="pill-dropdown pill-dropdown--static review-project-detail__pill-dropdown-static">
+                  <button type="button" className="pill-dropdown__button" disabled>
+                    <span className="pill-dropdown__label">
+                      {getDisplayStatus(textUnit.reviewStatus ?? textUnit.status) ?? '—'}
+                    </span>
+                  </button>
                 </div>
                 <span className="review-project-detail__status-arrow" aria-hidden="true">
                   →
                 </span>
                   <PillDropdown
-                      value={selectedStatus}
-                      options={statusOptions}
-                      onChange={(next) => handleStatusSelect(next as StatusOption)}
-                      disabled={isBusy}
-                      isOpen={isStatusMenuOpen}
-                      onOpenChange={setIsStatusMenuOpen}
+                    value={selectedStatus}
+                    options={statusOptions}
+                    onChange={(next) => handleStatusSelect(next as StatusOption)}
+                    disabled={isBusy}
                   />
                 <div className="review-project-detail__split-wrap">
-                    <button
-                        type="button"
-                        className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
-                        onClick={applySelectedStatus}
-                        disabled={isBusy}
-                    >
-                        {isBusy ? 'Saving…' : 'Save'}
-                    </button>
+                <button
+                  type="button"
+                  className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
+                  onClick={applySelectedStatus}
+                  disabled={isBusy}
+                >
+                  Save
+                </button>
                   <span className="review-project-detail__split-spinner">
                     {isBusy ? <span className="spinner spinner--inline" aria-hidden="true" /> : null}
                   </span>

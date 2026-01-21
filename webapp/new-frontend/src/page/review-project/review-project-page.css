@@ -581,6 +581,22 @@
   gap: var(--space-1);
 }
 
+.pill-dropdown--static .pill-dropdown__chevron {
+  display: none;
+}
+
+.pill-dropdown--static .pill-dropdown__button {
+  min-height: 1.8rem;
+  padding: 0 var(--space-2);
+  cursor: default;
+  opacity: 1;
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
 .review-project-detail__split-spinner {
   display: inline-flex;
   width: 1rem;
