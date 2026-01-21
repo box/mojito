@@ -666,7 +666,7 @@ function DetailPane({
       <div className="review-project-detail__layout">
         <div className="review-project-detail__main">
           <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Proposed translation</div>
+            <div className="review-project-detail__label">Review</div>
             <textarea
               className="review-project-detail__input"
               value={draftTarget}
