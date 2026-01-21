@@ -502,7 +502,6 @@ public class ReviewProjectService {
         textUnit.getTmTextUnitVariant() != null ? textUnit.getTmTextUnitVariant() : newVariant);
     acceptedVariant.setAcceptedVariant(newVariant);
     acceptedVariant.setAcceptedAt(ZonedDateTime.now());
-    acceptedVariant.setCurrent(Boolean.TRUE);
     acceptedVariant.setAcceptedBy(auditorAware.getCurrentAuditor().orElse(null));
     reviewProjectAcceptedVariantRepository.save(acceptedVariant);
 

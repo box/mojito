@@ -87,7 +87,6 @@ CREATE TABLE review_project_accepted_variant (
     accepted_variant_id bigint(20) NOT NULL,
     accepted_at datetime DEFAULT NULL,
     accepted_by_user_id bigint(20) DEFAULT NULL,
-    is_current bit(1) DEFAULT NULL,
     PRIMARY KEY (id)
 );
 

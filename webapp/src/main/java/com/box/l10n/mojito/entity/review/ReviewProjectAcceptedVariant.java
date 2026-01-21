@@ -59,11 +59,6 @@ public class ReviewProjectAcceptedVariant extends BaseEntity {
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_ACCEPTED_VARIANT__USER"))
   private User acceptedBy;
 
-  // TODO(ja) better just store the current and compare the values --- and be carefule of stale
-  // data.
-  @Column(name = "is_current")
-  private Boolean current;
-
   public ReviewProject getReviewProject() {
     return reviewProject;
   }
@@ -110,13 +105,5 @@ public class ReviewProjectAcceptedVariant extends BaseEntity {
 
   public void setAcceptedBy(User acceptedBy) {
     this.acceptedBy = acceptedBy;
-  }
-
-  public Boolean getCurrent() {
-    return current;
-  }
-
-  public void setCurrent(Boolean current) {
-    this.current = current;
   }
 }
