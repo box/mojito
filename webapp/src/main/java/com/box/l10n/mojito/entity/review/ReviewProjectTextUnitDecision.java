@@ -22,16 +22,13 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
   @JoinColumn(
       name = "review_project_text_unit_id",
       foreignKey =
-          @ForeignKey(
-              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEW_PROJECT_TEXT_UNIT"))
+          @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEW_PROJECT_TEXT_UNIT"))
   private ReviewProjectTextUnit reviewProjectTextUnit;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "variant_id",
-      foreignKey =
-          @ForeignKey(
-              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT"))
+      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT"))
   private TMTextUnitVariant variant;
 
   @Column(name = "notes", length = 4000)
@@ -41,9 +38,7 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = BaseEntity.CreatedByUserColumnName,
-      foreignKey =
-          @ForeignKey(
-              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__CREATED_BY_USER"))
+      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__CREATED_BY_USER"))
   private User createdByUser;
 
   @LastModifiedBy
@@ -51,8 +46,7 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
   @JoinColumn(
       name = "last_modified_by_user_id",
       foreignKey =
-          @ForeignKey(
-              name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__LAST_MODIFIED_BY_USER"))
+          @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__LAST_MODIFIED_BY_USER"))
   private User lastModifiedByUser;
 
   public ReviewProjectTextUnit getReviewProjectTextUnit() {

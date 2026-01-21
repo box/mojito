@@ -3,7 +3,6 @@ package com.box.l10n.mojito.rest.review;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
-import com.box.l10n.mojito.rest.review.ReviewProjectTextUnitReviewRequest;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,10 +59,10 @@ public class ReviewProjectWS {
               projectId,
               textUnitId,
               request.getTarget(),
-          request.getIncludedInLocalizedFile(),
-          request.getExpectedCurrentTmTextUnitVariantId(),
-          Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
-          request.getNotes());
+              request.getIncludedInLocalizedFile(),
+              request.getExpectedCurrentTmTextUnitVariantId(),
+              Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
+              request.getNotes());
       return ResponseEntity.ok(dto);
     } catch (ReviewProjectCurrentVariantConflictException conflict) {
       return ResponseEntity.status(HttpStatus.CONFLICT).body(conflict.getCurrentTextUnit());
@@ -77,7 +75,6 @@ public class ReviewProjectWS {
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitReviewRequest request)
       throws EntityWithIdNotFoundException {
-    return reviewProjectService.updateReviewStatus(
-        projectId, textUnitId, request.getNotes());
+    return reviewProjectService.updateReviewStatus(projectId, textUnitId, request.getNotes());
   }
 }

@@ -12,9 +12,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import org.springframework.data.annotation.CreatedBy;
@@ -22,9 +22,7 @@ import org.springframework.data.annotation.CreatedBy;
 @Entity
 @Table(
     name = "review_project",
-    indexes = {
-      @Index(name = "IDX__REVIEW_PROJECT__STATUS", columnList = "status")
-    })
+    indexes = {@Index(name = "IDX__REVIEW_PROJECT__STATUS", columnList = "status")})
 public class ReviewProject extends AuditableEntity {
 
   @Convert(converter = ReviewProjectTypeConverter.class)

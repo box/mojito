@@ -5,8 +5,6 @@ import java.util.List;
 
 public class ReviewProjectCreateRequest {
 
-  private List<Long> repositoryIds;
-
   private List<String> localeTags;
 
   private String notes;
@@ -20,14 +18,6 @@ public class ReviewProjectCreateRequest {
   private java.util.List<String> screenshotImageIds;
 
   private String name;
-
-  public List<Long> getRepositoryIds() {
-    return repositoryIds;
-  }
-
-  public void setRepositoryIds(List<Long> repositoryIds) {
-    this.repositoryIds = repositoryIds;
-  }
 
   public List<String> getLocaleTags() {
     return localeTags;
@@ -45,11 +35,11 @@ public class ReviewProjectCreateRequest {
     this.notes = notes;
   }
 
-  public java.util.List<Long> getTmTextUnitIds() {
+  public List<Long> getTmTextUnitIds() {
     return tmTextUnitIds;
   }
 
-  public void setTmTextUnitIds(java.util.List<Long> tmTextUnitIds) {
+  public void setTmTextUnitIds(List<Long> tmTextUnitIds) {
     this.tmTextUnitIds = tmTextUnitIds;
   }
 
@@ -69,11 +59,11 @@ public class ReviewProjectCreateRequest {
     this.dueDate = dueDate;
   }
 
-  public java.util.List<String> getScreenshotImageIds() {
+  public List<String> getScreenshotImageIds() {
     return screenshotImageIds;
   }
 
-  public void setScreenshotImageIds(java.util.List<String> screenshotImageIds) {
+  public void setScreenshotImageIds(List<String> screenshotImageIds) {
     this.screenshotImageIds = screenshotImageIds;
   }
 

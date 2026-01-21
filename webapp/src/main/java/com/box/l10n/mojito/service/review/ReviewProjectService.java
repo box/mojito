@@ -2,30 +2,27 @@ package com.box.l10n.mojito.service.review;
 
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.review.ReviewProject;
-import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequestScreenshot;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnit;
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.rest.review.ReviewProjectCreateRequest;
 import com.box.l10n.mojito.rest.review.ReviewProjectDetailDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectLocaleDetailDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectLocaleSummaryDTO;
-import com.box.l10n.mojito.rest.review.ReviewProjectRepositorySummaryDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectSearchRequest;
 import com.box.l10n.mojito.rest.review.ReviewProjectSummaryDTO;
 import com.box.l10n.mojito.rest.review.ReviewProjectTextUnitDTO;
-import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -74,7 +71,6 @@ public class ReviewProjectService {
   private final ReviewProjectTextUnitDecisionRepository reviewProjectTextUnitDecisionRepository;
   private final ReviewProjectRequestRepository reviewProjectRequestRepository;
   private final ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository;
-  private final RepositoryRepository repositoryRepository;
   private final LocaleService localeService;
   private final TextUnitSearcher textUnitSearcher;
   private final TMTextUnitRepository tmTextUnitRepository;
@@ -90,7 +86,6 @@ public class ReviewProjectService {
       ReviewProjectTextUnitDecisionRepository reviewProjectTextUnitDecisionRepository,
       ReviewProjectRequestRepository reviewProjectRequestRepository,
       ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository,
-      RepositoryRepository repositoryRepository,
       LocaleService localeService,
       TextUnitSearcher textUnitSearcher,
       TMTextUnitRepository tmTextUnitRepository,
@@ -102,7 +97,6 @@ public class ReviewProjectService {
     this.reviewProjectTextUnitDecisionRepository = reviewProjectTextUnitDecisionRepository;
     this.reviewProjectRequestRepository = reviewProjectRequestRepository;
     this.reviewProjectScreenshotRepository = reviewProjectScreenshotRepository;
-    this.repositoryRepository = repositoryRepository;
     this.localeService = localeService;
     this.textUnitSearcher = textUnitSearcher;
     this.tmTextUnitRepository = tmTextUnitRepository;
@@ -113,17 +107,8 @@ public class ReviewProjectService {
 
   @Transactional
   public List<ReviewProjectSummaryDTO> createReviewProject(ReviewProjectCreateRequest request) {
-    if (CollectionUtils.isEmpty(request.getRepositoryIds())) {
-      throw new IllegalArgumentException("At least one repository must be provided");
-    }
-
     if (CollectionUtils.isEmpty(request.getLocaleTags())) {
       throw new IllegalArgumentException("At least one locale must be provided");
-    }
-
-    List<Repository> repositories = repositoryRepository.findAllById(request.getRepositoryIds());
-    if (repositories.size() != request.getRepositoryIds().size()) {
-      throw new IllegalArgumentException("One or more repositories could not be found");
     }
 
     if (request.getDueDate() == null) {
@@ -142,9 +127,6 @@ public class ReviewProjectService {
         throw new IllegalArgumentException("Screenshot image IDs must not be blank");
       }
     }
-
-    List<Long> repositoryIds =
-        repositories.stream().map(Repository::getId).distinct().collect(Collectors.toList());
 
     ReviewProjectRequest reviewProjectRequest = new ReviewProjectRequest();
     reviewProjectRequest.setRequestUuid(UUID.randomUUID().toString());
@@ -176,8 +158,7 @@ public class ReviewProjectService {
 
       ReviewProject saved = reviewProjectRepository.save(reviewProject);
 
-      List<TextUnitDTO> candidates =
-          searchReviewCandidates(repositoryIds, localeTag, request.getTmTextUnitIds());
+      List<TextUnitDTO> candidates = searchReviewCandidates(localeTag, request.getTmTextUnitIds());
 
       SelectionStats selectionStats = populateProjectWithTextUnits(saved, candidates);
 
@@ -456,7 +437,9 @@ public class ReviewProjectService {
       TMTextUnitVariant conflictVariant =
           currentVariant != null ? currentVariant.getTmTextUnitVariant() : null;
       ReviewProjectTextUnitDecision decision =
-          reviewProjectTextUnitDecisionRepository.findByReviewProjectTextUnitId(textUnit.getId()).orElse(null);
+          reviewProjectTextUnitDecisionRepository
+              .findByReviewProjectTextUnitId(textUnit.getId())
+              .orElse(null);
       throw new ReviewProjectCurrentVariantConflictException(
           expectedCurrentTmTextUnitVariantId,
           currentVariantId,
@@ -474,7 +457,8 @@ public class ReviewProjectService {
 
     TMTextUnitVariant newVariant = updatedCurrentVariant.getTmTextUnitVariant();
     boolean changed =
-        currentContent == null || !NormalizationUtils.normalize(currentContent).equals(normalizedTarget);
+        currentContent == null
+            || !NormalizationUtils.normalize(currentContent).equals(normalizedTarget);
 
     ReviewProjectTextUnitDecision variantDecision =
         reviewProjectTextUnitDecisionRepository
@@ -551,12 +535,8 @@ public class ReviewProjectService {
     }
   }
 
-  private List<TextUnitDTO> searchReviewCandidates(
-      List<Long> repositoryIds,
-      String localeTag,
-      List<Long> tmTextUnitIds) {
+  private List<TextUnitDTO> searchReviewCandidates(String localeTag, List<Long> tmTextUnitIds) {
     TextUnitSearcherParameters params = new TextUnitSearcherParameters();
-    params.setRepositoryIds(repositoryIds);
     params.setLocaleTags(Collections.singletonList(localeTag));
     if (tmTextUnitIds != null && !tmTextUnitIds.isEmpty()) {
       params.setTmTextUnitIds(tmTextUnitIds);
@@ -789,7 +769,8 @@ public class ReviewProjectService {
       dto.setReviewedBy(decidedBy != null ? decidedBy.getUsername() : null);
     }
 
-    // Expose original selected translation as target (baseline) and current/accepted content separately.
+    // Expose original selected translation as target (baseline) and current/accepted content
+    // separately.
     dto.setTarget(selectedVariantRef != null ? selectedVariantRef.getContent() : null);
     if (resolvedVariant != null) {
       dto.setCurrentTarget(resolvedVariant.getContent());

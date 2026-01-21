@@ -55,5 +55,4 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
   public void setTmTextUnit(TMTextUnit tmTextUnit) {
     this.tmTextUnit = tmTextUnit;
   }
-
 }

@@ -118,7 +118,6 @@ export type ReviewProjectsSearchRequest = {
 };
 
 export type ReviewProjectCreateRequest = {
-  repositoryIds: number[];
   localeTags: string[];
   notes?: string | null;
   tmTextUnitIds?: number[] | null;

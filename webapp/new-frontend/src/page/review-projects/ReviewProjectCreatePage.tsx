@@ -17,7 +17,6 @@ function toLocalInput(value: Date) {
 }
 
 type ReviewProjectNavState = {
-  repositoryIds?: number[];
   tmTextUnitIds?: number[];
   collectionName?: string | null;
   collectionId?: string | null;
@@ -36,7 +35,6 @@ function isReviewProjectNavState(value: unknown): value is ReviewProjectNavState
     input === undefined || input === null || typeof input === 'string';
 
   return (
-    (candidate.repositoryIds === undefined || isNumberArray(candidate.repositoryIds)) &&
     (candidate.tmTextUnitIds === undefined || isNumberArray(candidate.tmTextUnitIds)) &&
     isOptionalString(candidate.collectionName) &&
     isOptionalString(candidate.collectionId) &&
@@ -50,7 +48,6 @@ export function ReviewProjectCreatePage() {
   const location = useLocation();
   const { data: repositories = [] } = useRepositories();
   const { collections, activeCollection } = useWorkbenchCollections();
-  const [repositoryIds, setRepositoryIds] = useState<number[]>([]);
   const [tmIds, setTmIds] = useState<number[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -66,10 +63,7 @@ export function ReviewProjectCreatePage() {
   );
 
   const collectionSize = tmIds.length || 0;
-  const localeOptions = useLocaleOptionsWithDisplayNames(
-    repositories,
-    repositoryIds.length ? new Set(repositoryIds) : undefined,
-  );
+  const localeOptions = useLocaleOptionsWithDisplayNames(repositories, undefined);
   const collectionOptions = useMemo<CollectionOption[]>(
     () =>
       [...collections]
@@ -87,9 +81,6 @@ export function ReviewProjectCreatePage() {
     const state = isReviewProjectNavState(location.state) ? location.state : null;
     if (!state) {
       return;
-    }
-    if (state.repositoryIds?.length) {
-      setRepositoryIds(state.repositoryIds);
     }
     if (state.tmTextUnitIds?.length) {
       const unique = Array.from(new Set(state.tmTextUnitIds));
@@ -110,12 +101,6 @@ export function ReviewProjectCreatePage() {
   }, [location.state]);
 
   useEffect(() => {
-    if (!repositoryIds.length && repositories.length) {
-      setRepositoryIds(repositories.map((repo) => repo.id));
-    }
-  }, [repositories, repositoryIds.length]);
-
-  useEffect(() => {
     if (selectedCollectionId === null) {
       return;
     }
@@ -129,17 +114,7 @@ export function ReviewProjectCreatePage() {
       return;
     }
     const nextTmIds = Array.from(new Set(collection.entries.map((entry) => entry.tmTextUnitId)));
-    const nextRepoIds = Array.from(
-      new Set(
-        collection.entries
-          .map((entry) => entry.repositoryId)
-          .filter((id): id is number => typeof id === 'number'),
-      ),
-    );
     setTmIds(nextTmIds);
-    if (nextRepoIds.length) {
-      setRepositoryIds(nextRepoIds);
-    }
     setPrefillCollectionName(collection.name);
   }, [collections, selectedCollectionId]);
 
@@ -163,7 +138,6 @@ export function ReviewProjectCreatePage() {
       setErrorMessage(null);
       createReviewProject.mutate(
         {
-          repositoryIds,
           localeTags: values.localeTags,
           notes: values.notes,
           type: values.type,
@@ -192,7 +166,7 @@ export function ReviewProjectCreatePage() {
           },
         );
       },
-    [createReviewProject, navigate, repositoryIds, tmIds],
+    [createReviewProject, navigate, tmIds],
   );
 
   return (
