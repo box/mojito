@@ -184,7 +184,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         const nextId = filtered[nextIndex]?.reviewProjectTextUnitId ?? null;
         if (nextId != null) {
           setSelectedTextUnitId(nextId);
-          scrollToIndex(nextIndex, 'center');
+          scrollToIndex(nextIndex, { align: 'center' });
         }
       } else if (event.key === 'ArrowUp' || event.key === 'k') {
         event.preventDefault();
@@ -192,7 +192,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         const prevId = filtered[prevIndex]?.reviewProjectTextUnitId ?? null;
         if (prevId != null) {
           setSelectedTextUnitId(prevId);
-          scrollToIndex(prevIndex, 'center');
+          scrollToIndex(prevIndex, { align: 'center' });
         }
       }
     },
@@ -823,14 +823,14 @@ function DetailPane({
                 search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
                   localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
                 }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
-                state: {
-                  workbenchSearch: {
-                    searchAttribute: 'tmTextUnitIds',
-                    searchType: 'exact',
-                    searchText: String(textUnit.tmTextUnitId),
-                    localeTags: localeTag ? [localeTag] : undefined,
-                    repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
-                  },
+              }}
+              state={{
+                workbenchSearch: {
+                  searchAttribute: 'tmTextUnitIds',
+                  searchType: 'exact',
+                  searchText: String(textUnit.tmTextUnitId),
+                  localeTags: localeTag ? [localeTag] : undefined,
+                  repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
                 },
               }}
               title="Open this string in Workbench"

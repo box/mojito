@@ -76,6 +76,7 @@ type Props = {
   projects: ReviewProjectRow[];
   filters: FiltersProps;
   requestFilter?: { requestId: number | null; requestUuid: string | null; onClear: () => void };
+  canCreate?: boolean;
 };
 
 function CountsInline({ words, strings }: { words: number | null; strings: number | null }) {

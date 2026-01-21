@@ -561,8 +561,9 @@
   display: inline-flex;
   gap: var(--space-2);
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .review-project-detail__status-label {

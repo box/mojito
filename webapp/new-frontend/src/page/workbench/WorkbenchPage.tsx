@@ -104,8 +104,8 @@ export function WorkbenchPage() {
       searchAttribute: 'tmTextUnitIds',
       searchType: 'exact',
       searchText: deepLinkTmId,
-      localeTags: deepLinkLocale ? [deepLinkLocale] : undefined,
-      repositoryIds: deepLinkRepo ? [Number(deepLinkRepo)] : undefined,
+      localeTags: deepLinkLocale ? [deepLinkLocale] : [],
+      repositoryIds: deepLinkRepo ? [Number(deepLinkRepo)] : [],
     });
   }, [deepLinkLocale, deepLinkRepo, deepLinkTmId]);
 

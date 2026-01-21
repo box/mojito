@@ -166,7 +166,7 @@ export function ReviewProjectCreateForm({
       key: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: file.name,
       status: isSupportedFile(file) ? ('uploading' as const) : ('error' as const),
-      kind: isVideoFile(file) ? 'video' : 'image',
+      kind: (isVideoFile(file) ? 'video' : 'image') as 'image' | 'video',
       preview: URL.createObjectURL(file),
       error: isSupportedFile(file) ? undefined : 'Unsupported file type',
     }));
