@@ -352,9 +352,10 @@
 
 .review-project-detail__label {
   font-size: var(--font-size-2xs);
-  color: var(--color-text-muted);
-  letter-spacing: var(--letter-spacing-tight);
-  text-transform: uppercase;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-subtle);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -722,6 +723,11 @@
 .review-project-detail__shots-count {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+.review-project-detail__shots-count--muted {
+  margin-bottom: var(--space-1);
+  display: block;
 }
 
 .review-project-detail__actions-button {

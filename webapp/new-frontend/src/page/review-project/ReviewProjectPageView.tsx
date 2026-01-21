@@ -863,7 +863,11 @@ function DetailPane({
             <div className="review-project-detail__shots-header">
               <div className="review-project-detail__actions-label">Screenshots</div>
               <div className="review-project-detail__shots-count">
-                {screenshotCount > 0 ? `${screenshotCount} attached` : 'None'}
+                {screenshotCount === 0
+                  ? 'No attachments'
+                  : screenshotCount === 1
+                    ? '1 attachment'
+                    : `${screenshotCount} attachments`}
               </div>
             </div>
             {screenshotImages.length ? (
