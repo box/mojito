@@ -107,21 +107,21 @@ public class ReviewProjectService {
 
   @Transactional
   public List<ReviewProjectSummaryDTO> createReviewProject(ReviewProjectCreateRequest request) {
-    if (CollectionUtils.isEmpty(request.getLocaleTags())) {
+    if (CollectionUtils.isEmpty(request.localeTags())) {
       throw new IllegalArgumentException("At least one locale must be provided");
     }
 
-    if (request.getDueDate() == null) {
+    if (request.dueDate() == null) {
       throw new IllegalArgumentException("Due date must be provided");
     }
 
-    if (request.getName() == null || request.getName().trim().isEmpty()) {
+    if (request.name() == null || request.name().trim().isEmpty()) {
       throw new IllegalArgumentException("Name must be provided");
     }
 
-    if (!CollectionUtils.isEmpty(request.getScreenshotImageIds())) {
+    if (!CollectionUtils.isEmpty(request.screenshotImageIds())) {
       boolean anyBlank =
-          request.getScreenshotImageIds().stream()
+          request.screenshotImageIds().stream()
               .anyMatch(id -> id == null || id.trim().isEmpty());
       if (anyBlank) {
         throw new IllegalArgumentException("Screenshot image IDs must not be blank");
@@ -130,20 +130,20 @@ public class ReviewProjectService {
 
     ReviewProjectRequest reviewProjectRequest = new ReviewProjectRequest();
     reviewProjectRequest.setRequestUuid(UUID.randomUUID().toString());
-    reviewProjectRequest.setName(request.getName());
-    reviewProjectRequest.setNotes(request.getNotes());
+    reviewProjectRequest.setName(request.name());
+    reviewProjectRequest.setNotes(request.notes());
     reviewProjectRequest = reviewProjectRequestRepository.save(reviewProjectRequest);
 
-    if (!CollectionUtils.isEmpty(request.getScreenshotImageIds())) {
-      saveScreenshotsForRequest(reviewProjectRequest, request.getScreenshotImageIds());
+    if (!CollectionUtils.isEmpty(request.screenshotImageIds())) {
+      saveScreenshotsForRequest(reviewProjectRequest, request.screenshotImageIds());
     }
 
     ReviewProjectType type =
-        request.getType() != null ? request.getType() : ReviewProjectType.UNKNOWN;
+        request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
     List<ReviewProjectSummaryDTO> summaries = new ArrayList<>();
 
-    for (String localeTag : request.getLocaleTags()) {
+    for (String localeTag : request.localeTags()) {
       Locale locale = localeService.findByBcp47Tag(localeTag);
       if (locale == null) {
         throw new IllegalArgumentException("Unknown locale: " + localeTag);
@@ -152,13 +152,13 @@ public class ReviewProjectService {
       ReviewProject reviewProject = new ReviewProject();
       reviewProject.setType(type);
       reviewProject.setStatus(ReviewProjectStatus.OPEN);
-      reviewProject.setDueDate(request.getDueDate());
+      reviewProject.setDueDate(request.dueDate());
       reviewProject.setLocale(locale);
       reviewProject.setReviewProjectRequest(reviewProjectRequest);
 
       ReviewProject saved = reviewProjectRepository.save(reviewProject);
 
-      List<TextUnitDTO> candidates = searchReviewCandidates(localeTag, request.getTmTextUnitIds());
+      List<TextUnitDTO> candidates = searchReviewCandidates(localeTag, request.tmTextUnitIds());
 
       SelectionStats selectionStats = populateProjectWithTextUnits(saved, candidates);
 
@@ -625,22 +625,6 @@ public class ReviewProjectService {
 
   private ReviewProjectSummaryDTO toSummaryDTO(
       ReviewProject project, int totalSelected, int wordCount, long acceptedCount) {
-    ReviewProjectSummaryDTO dto = new ReviewProjectSummaryDTO();
-    dto.setId(project.getId());
-    dto.setCreatedDate(project.getCreatedDate());
-    dto.setDueDate(project.getDueDate());
-    dto.setCloseReason(project.getCloseReason());
-    dto.setTextUnitCount(totalSelected);
-    dto.setWordCount(wordCount);
-    dto.setType(project.getType());
-    dto.setName(resolveRequestName(project));
-    dto.setRequestName(resolveRequestName(project));
-    dto.setStatus(project.getStatus());
-    dto.setTotalSelected(totalSelected);
-    dto.setAcceptedCount(acceptedCount);
-
-    dto.setRepositories(Collections.emptyList());
-
     ReviewProjectLocaleSummaryDTO localeSummary =
         new ReviewProjectLocaleSummaryDTO(
             project.getId(),
@@ -648,14 +632,32 @@ public class ReviewProjectService {
             project.getLocale().getBcp47Tag(),
             totalSelected,
             acceptedCount);
-    dto.setLocales(java.util.Collections.singletonList(localeSummary));
-    if (project.getReviewProjectRequest() != null) {
-      dto.setRequestId(project.getReviewProjectRequest().getId());
-      dto.setRequestUuid(project.getReviewProjectRequest().getRequestUuid());
-    }
-    dto.setScreenshotImageIds(resolveScreenshotImageKeys(project));
+    Long requestId =
+        project.getReviewProjectRequest() != null ? project.getReviewProjectRequest().getId() : null;
+    String requestUuid =
+        project.getReviewProjectRequest() != null
+            ? project.getReviewProjectRequest().getRequestUuid()
+            : null;
+    String requestName = resolveRequestName(project);
 
-    return dto;
+    return new ReviewProjectSummaryDTO(
+        project.getId(),
+        project.getCreatedDate(),
+        project.getDueDate(),
+        project.getCloseReason(),
+        totalSelected,
+        wordCount,
+        project.getType(),
+        project.getStatus(),
+        requestId,
+        requestUuid,
+        requestName,
+        totalSelected,
+        acceptedCount,
+        requestName,
+        Collections.emptyList(),
+        Collections.singletonList(localeSummary),
+        resolveScreenshotImageKeys(project));
   }
 
   private String resolveRequestName(ReviewProject project) {
