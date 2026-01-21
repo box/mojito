@@ -47,7 +47,6 @@ import jakarta.persistence.criteria.Root;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -127,14 +126,6 @@ public class ReviewProjectService {
       throw new IllegalArgumentException("One or more repositories could not be found");
     }
 
-    if (request.getMaxTextUnits() != null && request.getMaxTextUnits() <= 0) {
-      throw new IllegalArgumentException("Max text units must be greater than zero");
-    }
-
-    if (request.getMaxWordCount() != null && request.getMaxWordCount() <= 0) {
-      throw new IllegalArgumentException("Max word count must be greater than zero");
-    }
-
     if (request.getDueDate() == null) {
       throw new IllegalArgumentException("Due date must be provided");
     }
@@ -152,7 +143,6 @@ public class ReviewProjectService {
       }
     }
 
-    Set<Repository> repositorySet = new HashSet<>(repositories);
     List<Long> repositoryIds =
         repositories.stream().map(Repository::getId).distinct().collect(Collectors.toList());
 
@@ -187,11 +177,9 @@ public class ReviewProjectService {
       ReviewProject saved = reviewProjectRepository.save(reviewProject);
 
       List<TextUnitDTO> candidates =
-          searchReviewCandidates(
-              repositoryIds, localeTag, request.getMaxTextUnits(), request.getTmTextUnitIds());
+          searchReviewCandidates(repositoryIds, localeTag, request.getTmTextUnitIds());
 
-      SelectionStats selectionStats =
-          populateProjectWithTextUnits(saved, candidates, request.getMaxWordCount());
+      SelectionStats selectionStats = populateProjectWithTextUnits(saved, candidates);
 
       int selectedCount = selectionStats.textUnitCount();
       if (selectedCount == 0) {
@@ -507,14 +495,8 @@ public class ReviewProjectService {
 
   @Transactional
   public ReviewProjectTextUnitDTO updateReviewStatus(
-      Long projectId,
-      Long reviewProjectTextUnitId,
-      String reviewStatus,
-      String reviewTarget,
-      String notes)
+      Long projectId, Long reviewProjectTextUnitId, String notes)
       throws EntityWithIdNotFoundException {
-
-    // reviewStatus currently unused (status is derived from decided variant), keep signature for API compatibility
 
     ReviewProject project =
         reviewProjectRepository
@@ -572,7 +554,6 @@ public class ReviewProjectService {
   private List<TextUnitDTO> searchReviewCandidates(
       List<Long> repositoryIds,
       String localeTag,
-      Integer configuredMaxCount,
       List<Long> tmTextUnitIds) {
     TextUnitSearcherParameters params = new TextUnitSearcherParameters();
     params.setRepositoryIds(repositoryIds);
@@ -584,18 +565,17 @@ public class ReviewProjectService {
     }
     params.setPluralFormsFiltered(false);
     params.setOffset(0);
-    params.setLimit(
-        configuredMaxCount != null && configuredMaxCount > 0
-            ? configuredMaxCount
-            : tmTextUnitIds != null && !tmTextUnitIds.isEmpty()
-                ? tmTextUnitIds.size()
-                : DEFAULT_MAX_TEXT_UNITS);
+    int limit =
+        tmTextUnitIds != null && !tmTextUnitIds.isEmpty()
+            ? tmTextUnitIds.size()
+            : DEFAULT_MAX_TEXT_UNITS;
+    params.setLimit(limit);
 
     return textUnitSearcher.search(params);
   }
 
   private SelectionStats populateProjectWithTextUnits(
-      ReviewProject reviewProject, List<TextUnitDTO> candidates, Integer maxWordCount) {
+      ReviewProject reviewProject, List<TextUnitDTO> candidates) {
 
     if (candidates.isEmpty()) {
       return new SelectionStats(0, 0);
@@ -627,9 +607,6 @@ public class ReviewProjectService {
 
       Integer wordCount = tmTextUnit != null ? tmTextUnit.getWordCount() : null;
       int value = wordCount != null ? wordCount : 0;
-      if (maxWordCount != null && maxWordCount > 0 && accumulatedWords + value > maxWordCount) {
-        break;
-      }
       accumulatedWords += value;
 
       ReviewProjectTextUnit reviewProjectTextUnit = new ReviewProjectTextUnit();
@@ -798,7 +775,6 @@ public class ReviewProjectService {
       dto.setReviewStatus("PENDING");
     }
 
-    dto.setReviewTarget(null);
     dto.setNotes(decision != null ? decision.getNotes() : null);
     if (decision != null) {
       ZonedDateTime decidedAt =

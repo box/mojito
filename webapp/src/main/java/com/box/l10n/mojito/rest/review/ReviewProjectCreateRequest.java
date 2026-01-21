@@ -9,10 +9,6 @@ public class ReviewProjectCreateRequest {
 
   private List<String> localeTags;
 
-  private Integer maxTextUnits;
-
-  private Integer maxWordCount;
-
   private String notes;
 
   private java.util.List<Long> tmTextUnitIds;
@@ -39,22 +35,6 @@ public class ReviewProjectCreateRequest {
 
   public void setLocaleTags(List<String> localeTags) {
     this.localeTags = localeTags;
-  }
-
-  public Integer getMaxTextUnits() {
-    return maxTextUnits;
-  }
-
-  public void setMaxTextUnits(Integer maxTextUnits) {
-    this.maxTextUnits = maxTextUnits;
-  }
-
-  public Integer getMaxWordCount() {
-    return maxWordCount;
-  }
-
-  public void setMaxWordCount(Integer maxWordCount) {
-    this.maxWordCount = maxWordCount;
   }
 
   public String getNotes() {

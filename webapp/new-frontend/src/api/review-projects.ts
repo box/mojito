@@ -50,7 +50,6 @@ export type ApiReviewProjectTextUnit = {
   currentTarget: string | null;
   baselineStatus?: string | null;
   reviewStatus?: 'PENDING' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | null;
-  reviewTarget?: string | null;
   notes?: string | null;
   reviewedAt?: string | null;
   reviewedBy?: string | null;
@@ -121,8 +120,6 @@ export type ReviewProjectsSearchRequest = {
 export type ReviewProjectCreateRequest = {
   repositoryIds: number[];
   localeTags: string[];
-  maxTextUnits?: number | null;
-  maxWordCount?: number | null;
   notes?: string | null;
   tmTextUnitIds?: number[] | null;
   type?: ApiReviewProjectType | null;
@@ -234,21 +231,17 @@ export const acceptReviewProjectTextUnit = async ({
 export const updateReviewProjectTextUnitReview = async ({
   projectId,
   textUnitId,
-  reviewStatus,
-  reviewTarget,
   notes,
 }: {
   projectId: number;
   textUnitId: number;
-  reviewStatus: ApiReviewProjectTextUnit['reviewStatus'];
-  reviewTarget?: string | null;
   notes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
   const response = await fetch(`/api/review-projects/${projectId}/text-units/${textUnitId}/review`, {
     method: 'POST',
     credentials: 'include',
     headers: jsonHeaders,
-    body: JSON.stringify({ reviewStatus, reviewTarget, notes }),
+    body: JSON.stringify({ notes }),
   });
 
   if (!response.ok) {

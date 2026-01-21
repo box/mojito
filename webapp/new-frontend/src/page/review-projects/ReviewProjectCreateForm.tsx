@@ -18,7 +18,6 @@ export type ReviewProjectCreateFormValues = {
   notes: string | null;
   tmTextUnitIds: number[];
   screenshotImageIds: string[];
-  maxTextUnits?: number | null;
 };
 
 export type CollectionOption = { id: string; name: string; size: number };
@@ -422,13 +421,11 @@ export function ReviewProjectCreateForm({
             onClick={() => {
               if (!canSubmit || isSubmitting) return;
               const dueIso = new Date(dueDate).toISOString();
-              const maxTextUnits = tmTextUnitIds.length || collectionSize || null;
               onSubmit({
                 name: name.trim(),
                 dueDate: dueIso,
                 type,
                 localeTags: selectedLocaleTags,
-                maxTextUnits,
                 notes: notes.trim() || null,
                 tmTextUnitIds,
                 screenshotImageIds: screenshotKeys,

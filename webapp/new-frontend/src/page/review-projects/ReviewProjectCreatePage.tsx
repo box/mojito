@@ -165,8 +165,6 @@ export function ReviewProjectCreatePage() {
         {
           repositoryIds,
           localeTags: values.localeTags,
-          maxTextUnits: values.maxTextUnits ?? tmIds.length,
-          maxWordCount: null,
           notes: values.notes,
           type: values.type,
           dueDate: values.dueDate,

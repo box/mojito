@@ -78,10 +78,6 @@ public class ReviewProjectWS {
       @RequestBody ReviewProjectTextUnitReviewRequest request)
       throws EntityWithIdNotFoundException {
     return reviewProjectService.updateReviewStatus(
-        projectId,
-        textUnitId,
-        request.getReviewStatus(),
-        request.getReviewTarget(),
-        request.getNotes());
+        projectId, textUnitId, request.getNotes());
   }
 }

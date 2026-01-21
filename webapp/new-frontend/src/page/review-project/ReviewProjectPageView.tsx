@@ -136,7 +136,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         ? prev
         : {
             ...prev,
-            [id]: selectedTextUnit.reviewTarget ?? selectedTextUnit.target ?? '',
+            [id]: selectedTextUnit.currentTarget ?? selectedTextUnit.target ?? '',
           },
     );
     setDraftNotes((prev) =>
@@ -260,8 +260,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
           setDraftTargets((prev) => ({
             ...prev,
-            [updated.reviewProjectTextUnitId]:
-              updated.reviewTarget ?? draftTargetValue,
+            [updated.reviewProjectTextUnitId]: draftTargetValue,
           }));
           setDraftNotes((prev) => ({
             ...prev,
@@ -293,16 +292,14 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   );
 
   const handleReviewStatus = useCallback(
-    async (reviewStatus: ApiReviewProjectTextUnit['reviewStatus']) => {
-      if (!selectedTextUnit || !reviewStatus) return;
+    async () => {
+      if (!selectedTextUnit) return;
       setIsUpdatingStatus(true);
       setAcceptError(null);
       try {
         const updated = await updateReviewProjectTextUnitReview({
           projectId,
           textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-          reviewStatus,
-          reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
           notes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
         });
         setTextUnits((prev) =>
@@ -320,7 +317,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         setIsUpdatingStatus(false);
       }
     },
-    [draftNotes, draftTargets, projectId, selectedTextUnit],
+    [draftNotes, projectId, selectedTextUnit],
   );
 
   if (!project) {
@@ -421,8 +418,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                   const updated = await updateReviewProjectTextUnitReview({
                     projectId,
                     textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-                    reviewStatus: selectedTextUnit.reviewStatus ?? 'PENDING',
-                    reviewTarget: draftTargets[selectedTextUnit.reviewProjectTextUnitId],
                     notes: note,
                   });
                   setTextUnits((prev) =>
@@ -587,7 +582,7 @@ function DetailPane({
   onChangeDraftTarget: (value: string) => void;
   onChangeDraftNote: (value: string) => void;
   onSaveNote: () => void;
-  onReviewStatus: (status: ApiReviewProjectTextUnit['reviewStatus']) => Promise<void> | void;
+  onReviewStatus: () => Promise<void> | void;
   screenshotCount: number;
   screenshotImages: string[];
   currentScreenshotIdx: number;
@@ -599,7 +594,7 @@ function DetailPane({
   isUpdatingStatus: boolean;
 }) {
   const displayedTarget = textUnit.target;
-  const proposedValue = textUnit.reviewTarget ?? draftTarget;
+  const proposedValue = draftTarget;
   type StatusOption = 'accepted' | 'pending';
   const initialStatusValue = useMemo<StatusOption>(() => {
     const status = textUnit.reviewStatus;
@@ -622,7 +617,7 @@ function DetailPane({
       onAccept(false);
       return;
     }
-    void onReviewStatus('PENDING');
+    void onReviewStatus();
   };
 
   const statusDisplay: Record<StatusOption, string> = {
