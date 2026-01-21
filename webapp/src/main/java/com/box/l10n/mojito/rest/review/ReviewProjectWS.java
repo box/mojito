@@ -35,11 +35,6 @@ public class ReviewProjectWS {
     this.reviewProjectService = reviewProjectService;
   }
 
-  @GetMapping("/review-projects")
-  public List<ReviewProjectSummaryResponse> getOpenProjects() {
-    return reviewProjectService.getOpenProjects().stream().map(this::toSummaryResponse).toList();
-  }
-
   @PostMapping("/review-projects/search")
   public List<ReviewProjectSummaryResponse> search(@RequestBody ReviewProjectSearchRequest request) {
     return reviewProjectService.searchProjects(request).stream().map(this::toSummaryResponse).toList();

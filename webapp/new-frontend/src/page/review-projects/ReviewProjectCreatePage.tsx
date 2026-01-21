@@ -148,9 +148,8 @@ export function ReviewProjectCreatePage() {
         },
         {
           onSuccess: (response) => {
-            const first = response.projects?.[0];
-            const requestId = first?.requestId ?? null;
-            const requestUuid = first?.requestUuid ?? null;
+            const requestId = response.requestId ?? null;
+            const requestUuid = response.requestUuid ?? null;
             void navigate('/review-projects', {
               state: { requestId, requestUuid },
             });

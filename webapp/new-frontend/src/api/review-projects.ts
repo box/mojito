@@ -128,7 +128,12 @@ export type ReviewProjectCreateRequest = {
 };
 
 export type ReviewProjectCreateResponse = {
-  projects: ApiReviewProjectSummary[];
+  requestId: number;
+  requestUuid: string;
+  requestName?: string | null;
+  localeTags: string[];
+  dueDate: string;
+  projectIds: number[];
 };
 
 const jsonHeaders = {
@@ -156,10 +161,10 @@ export const searchReviewProjects = async (
 export const fetchReviewProjects = async (): Promise<ApiReviewProjectSummary[]> =>
   searchReviewProjects({});
 
-export const createReviewProject = async (
+export const createReviewProjectRequest = async (
   payload: ReviewProjectCreateRequest,
 ): Promise<ReviewProjectCreateResponse> => {
-  const response = await fetch('/api/review-projects', {
+  const response = await fetch('/api/review-project-requests', {
     method: 'POST',
     credentials: 'include',
     headers: jsonHeaders,
