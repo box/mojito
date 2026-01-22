@@ -29,7 +29,9 @@ public record ReviewProjectDetail(
   public record TmTextUnit(
       Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
 
-  public record Asset(Long assetPath) {}
+  public record Asset(String assetPath, Repository repository) {
+    public record Repository(Long id, String name) {}
+  }
 
   public record TmTextUnitVariant(
       Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}

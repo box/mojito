@@ -120,7 +120,6 @@ public class ReviewProjectService {
     }
 
     List<Long> projectIds = new ArrayList<>();
-    List<TextUnitDTO> candidates = searchReviewCandidates(request.tmTextUnitIds());
 
     for (String localeTag : request.localeTags()) {
       Locale locale = localeService.findByBcp47Tag(localeTag);
@@ -140,6 +139,9 @@ public class ReviewProjectService {
 
       int wordCount = 0;
       int textUnitCount = 0;
+
+      List<TextUnitDTO> candidates = searchReviewCandidates(request.tmTextUnitIds(), locale);
+
       for (TextUnitDTO textUnitDTO : candidates) {
         ReviewProjectTextUnit reviewProjectTextUnit = new ReviewProjectTextUnit();
         reviewProjectTextUnit.setReviewProject(reviewProject);
@@ -250,9 +252,7 @@ public class ReviewProjectService {
               new SearchReviewProjectsView.Locale(locale.getId(), locale.getBcp47Tag()),
               new SearchReviewProjectsView.ReviewProjectRequest(
                   project.getReviewProjectRequest().getId(),
-                  project
-                      .getReviewProjectRequest()
-                      .getName())));
+                  project.getReviewProjectRequest().getName())));
     }
 
     return new SearchReviewProjectsView(reviewProjects);
@@ -437,15 +437,15 @@ public class ReviewProjectService {
     return toDetailTextUnit(textUnit, decision);
   }
 
-  private List<TextUnitDTO> searchReviewCandidates(List<Long> tmTextUnitIds) {
+  private List<TextUnitDTO> searchReviewCandidates(List<Long> tmTextUnitIds, Locale locale) {
     if (tmTextUnitIds == null || tmTextUnitIds.isEmpty()) {
       throw new IllegalArgumentException("tmTextUnitIds must be provided");
     }
 
     TextUnitSearcherParameters params = new TextUnitSearcherParameters();
     params.setTmTextUnitIds(tmTextUnitIds);
+    params.setLocaleId(locale.getId());
     params.setPluralFormsFiltered(false);
-    params.setOffset(0);
     params.setLimit(tmTextUnitIds.size());
 
     return textUnitSearcher.search(params);
@@ -491,8 +491,11 @@ public class ReviewProjectService {
             view.name(),
             view.source(),
             view.notes(),
-            new ReviewProjectDetail.Asset(null),
-            null);
+            new ReviewProjectDetail.Asset(
+                view.assetPath(),
+                new ReviewProjectDetail.Asset.Repository(
+                    view.repositoryId(), view.repositoryName())),
+            0L); // TODO(ja) wouat?
 
     ReviewProjectDetail.TmTextUnitVariant tmTextUnitVariant =
         new ReviewProjectDetail.TmTextUnitVariant(
@@ -503,7 +506,9 @@ public class ReviewProjectService {
             view.notes());
 
     return new ReviewProjectDetail.ReviewProjectTextUnit(
-        view.reviewProjectTextUnitId(), tmTextUnit, tmTextUnitVariant);
+        view.reviewProjectTextUnitId(),
+        tmTextUnit,
+        tmTextUnitVariant);
   }
 
   private ReviewProjectTextUnitView toTextUnitView(

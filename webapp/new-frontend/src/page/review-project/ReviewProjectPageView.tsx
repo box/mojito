@@ -20,6 +20,7 @@ import { Modal } from '../../components/Modal';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
+import {useRepositories} from "../../hooks/useRepositories";
 
 type Props = {
   projectId: number;
@@ -779,8 +780,8 @@ function DetailPane({
                   searchAttribute: 'tmTextUnitIds',
                   searchType: 'exact',
                   searchText: String(textUnit.tmTextUnitId),
-                  localeTags: localeTag ? [localeTag] : undefined,
-                  repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : undefined,
+                  localeTags: [localeTag],
+                  repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : [],
                 },
               }}
               title="Open this string in Workbench"

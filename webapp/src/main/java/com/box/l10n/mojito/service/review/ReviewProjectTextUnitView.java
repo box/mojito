@@ -6,8 +6,6 @@ public record ReviewProjectTextUnitView(
     Long reviewProjectTextUnitId,
     Long tmTextUnitId,
     Long tmTextUnitVariantId,
-    Long selectedTmTextUnitVariantId,
-    Long currentTmTextUnitVariantId,
     String name,
     String source,
     String target,

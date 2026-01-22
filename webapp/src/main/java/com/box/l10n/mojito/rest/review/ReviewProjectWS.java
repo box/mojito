@@ -155,7 +155,9 @@ public class ReviewProjectWS {
     public record TmTextUnit(
         Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
 
-    public record Asset(Long assetPath) {}
+    public record Asset(String assetPath, Repository repository) {
+      public record Repository(Long id, String name) {}
+    }
 
     public record TmTextUnitVariant(
         Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
@@ -231,9 +233,11 @@ public class ReviewProjectWS {
             view.tmTextUnit().name(),
             view.tmTextUnit().content(),
             view.tmTextUnit().comment(),
-            view.tmTextUnit().asset() != null
-                ? new GetReviewProjectResponse.Asset(view.tmTextUnit().asset().assetPath())
-                : new GetReviewProjectResponse.Asset(null),
+            new GetReviewProjectResponse.Asset(
+                view.tmTextUnit().asset().assetPath(),
+                new GetReviewProjectResponse.Asset.Repository(
+                    view.tmTextUnit().asset().repository().id(),
+                    view.tmTextUnit().asset().repository().name())),
             view.tmTextUnit().wordCount()),
         new GetReviewProjectResponse.TmTextUnitVariant(
             view.tmTextUnitVariant().id(),
