@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.review;
 
 import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.Locale_;
 import com.box.l10n.mojito.entity.review.*;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
@@ -15,6 +16,17 @@ import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.entity.review.ReviewProject;
+import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
+import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
+import com.box.l10n.mojito.entity.review.ReviewProjectType;
+import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
+import com.box.l10n.mojito.entity.review.ReviewProject_;
+import com.box.l10n.mojito.entity.review.ReviewProject_;
+import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -33,9 +45,6 @@ import org.springframework.util.StringUtils;
 public class ReviewProjectService {
 
   private static final Logger logger = LoggerFactory.getLogger(ReviewProjectService.class);
-
-  private static final int DEFAULT_SEARCH_LIMIT = 500;
-  private static final int MAX_SEARCH_LIMIT = 10_000;
 
   private final ReviewProjectRepository reviewProjectRepository;
   private final ReviewProjectTextUnitRepository reviewProjectTextUnitRepository;
@@ -155,7 +164,6 @@ public class ReviewProjectService {
 
       saved.setWordCount(wordCount);
       saved.setTextUnitCount(textUnitCount);
-      reviewProjectRepository.save(saved);
 
       projectIds.add(saved.getId());
     }
@@ -170,138 +178,85 @@ public class ReviewProjectService {
 
   @Transactional(readOnly = true)
   public SearchReviewProjectsView searchReviewProjects(SearchReviewProjectsCriteria request) {
-    SearchReviewProjectsCriteria.SearchField searchField =
-        request != null && request.getSearchField() != null
-            ? request.getSearchField()
-            : SearchReviewProjectsCriteria.SearchField.NAME;
 
-    SearchReviewProjectsCriteria.SearchMatchType searchMatchType =
-        request != null && request.getSearchMatchType() != null
-            ? request.getSearchMatchType()
-            : SearchReviewProjectsCriteria.SearchMatchType.CONTAINS;
-
-    List<ReviewProjectStatus> statuses =
-        request != null && !CollectionUtils.isEmpty(request.getStatuses())
-            ? request.getStatuses()
-            : List.of(ReviewProjectStatus.OPEN, ReviewProjectStatus.CLOSED);
-
-    List<ReviewProjectType> types =
-        request != null && !CollectionUtils.isEmpty(request.getTypes())
-            ? request.getTypes()
-            : Collections.emptyList();
-
-    List<String> localeTags =
-        request != null && !CollectionUtils.isEmpty(request.getLocaleTags())
-            ? request.getLocaleTags().stream()
-                .filter(StringUtils::hasText)
-                .map(String::trim)
-                .map(String::toLowerCase)
-                .distinct()
-                .toList()
-            : Collections.emptyList();
-
-    ZonedDateTime createdAfter = request != null ? request.getCreatedAfter() : null;
-    ZonedDateTime createdBefore = request != null ? request.getCreatedBefore() : null;
-    ZonedDateTime dueAfter = request != null ? request.getDueAfter() : null;
-    ZonedDateTime dueBefore = request != null ? request.getDueBefore() : null;
-
-    Integer limit =
-        request != null && request.getLimit() != null && request.getLimit() > 0
-            ? Math.min(request.getLimit(), MAX_SEARCH_LIMIT)
-            : DEFAULT_SEARCH_LIMIT;
-
-    String searchQuery =
-        request != null && StringUtils.hasText(request.getSearchQuery())
-            ? request.getSearchQuery().trim()
-            : null;
-
-    Long searchId = null;
-    if (searchField == SearchReviewProjectsCriteria.SearchField.ID && searchQuery != null) {
-      try {
-        searchId = Long.parseLong(searchQuery.replace("#", ""));
-      } catch (NumberFormatException nfe) {
-        return new SearchReviewProjectsView(List.of());
-      }
+    if (request == null) {
+      throw new IllegalArgumentException("request must not be null");
     }
 
     CriteriaBuilder cb = entityManager.getCriteriaBuilder();
     CriteriaQuery<ReviewProject> cq = cb.createQuery(ReviewProject.class);
     Root<ReviewProject> root = cq.from(ReviewProject.class);
-    root.fetch("locale", JoinType.LEFT);
-    root.fetch("reviewProjectRequest", JoinType.LEFT);
+    Join<ReviewProject, Locale> localeJoin = root.join(ReviewProject_.locale, JoinType.LEFT);
     Join<ReviewProject, ReviewProjectRequest> requestJoin =
-        root.join("reviewProjectRequest", JoinType.LEFT);
+        root.join(ReviewProject_.reviewProjectRequest, JoinType.LEFT);
 
     List<Predicate> predicates = new ArrayList<>();
 
-    if (!statuses.isEmpty()) {
-      predicates.add(root.get("status").in(statuses));
+    if (request.statuses() != null) {
+      predicates.add(root.get("status").in(request.statuses()));
     }
 
-    if (!types.isEmpty()) {
-      predicates.add(root.get("type").in(types));
+    if (request.types() != null) {
+      predicates.add(root.get("type").in(request.types()));
     }
 
-    if (!localeTags.isEmpty()) {
-      Join<ReviewProject, Locale> localeJoin = root.join("locale", JoinType.INNER);
-      Expression<String> localeTagExpression = cb.lower(localeJoin.get("bcp47Tag"));
-      predicates.add(localeTagExpression.in(localeTags));
+    if (request.localeTags() != null && !request.localeTags().isEmpty()) {
+      Expression<String> localeTagExpression = cb.lower(localeJoin.get(Locale_.bcp47Tag));
+      predicates.add(localeTagExpression.in(request.localeTags()));
     }
 
-    if (createdAfter != null) {
-      predicates.add(cb.greaterThanOrEqualTo(root.get("createdDate"), createdAfter));
+    if (request.createdAfter() != null) {
+      predicates.add(
+          cb.greaterThanOrEqualTo(root.get(ReviewProject_.createdDate), request.createdAfter()));
     }
-    if (createdBefore != null) {
-      predicates.add(cb.lessThanOrEqualTo(root.get("createdDate"), createdBefore));
+    if (request.createdBefore() != null) {
+      predicates.add(
+          cb.lessThanOrEqualTo(root.get(ReviewProject_.createdDate), request.createdBefore()));
     }
-    if (dueAfter != null) {
-      predicates.add(cb.greaterThanOrEqualTo(root.get("dueDate"), dueAfter));
+    if (request.dueAfter() != null) {
+      predicates.add(cb.greaterThanOrEqualTo(root.get(ReviewProject_.dueDate), request.dueAfter()));
     }
-    if (dueBefore != null) {
-      predicates.add(cb.lessThanOrEqualTo(root.get("dueDate"), dueBefore));
-    }
-
-    if (searchQuery != null) {
-      if (searchField == SearchReviewProjectsCriteria.SearchField.ID) {
-        predicates.add(cb.equal(root.get("id"), searchId));
-      } else {
-        Expression<String> nameExpression = cb.lower(requestJoin.get("name"));
-        String lowered = searchQuery.toLowerCase();
-        Predicate searchPredicate;
-        if (searchMatchType == SearchReviewProjectsCriteria.SearchMatchType.EXACT) {
-          searchPredicate = cb.equal(nameExpression, lowered);
-        } else {
-          String pattern =
-              searchMatchType == SearchReviewProjectsCriteria.SearchMatchType.ILIKE
-                  ? "%" + lowered.replace("*", "%") + "%"
-                  : "%" + lowered + "%";
-          searchPredicate = cb.like(nameExpression, pattern);
-        }
-        predicates.add(searchPredicate);
-      }
+    if (request.dueBefore() != null) {
+      predicates.add(cb.lessThanOrEqualTo(root.get(ReviewProject_.dueDate), request.dueBefore()));
     }
 
-    cq.select(root)
-        .where(predicates.toArray(new Predicate[0]))
+    if (request.searchQuery() != null) {
+      String pattern =
+          "%" + request.searchQuery().toLowerCase().replace("%", "\\%").replace("_", "\\_") + "%";
+      Predicate searchPredicate =
+          cb.like(
+              cb.function("lower", String.class, requestJoin.get(ReviewProjectRequest_.name)),
+              pattern,
+              '\\');
+      predicates.add(searchPredicate);
+    }
+
+    Predicate[] predicateArray = predicates.toArray(Predicate[]::new);
+
+    cq.where(predicateArray)
+        .select(root)
         .distinct(true)
-        .orderBy(cb.desc(root.get("createdDate")), cb.desc(root.get("id")));
+        .orderBy(cb.desc(root.get(ReviewProject_.id)));
 
     TypedQuery<ReviewProject> query = entityManager.createQuery(cq);
-    if (limit != null && limit > 0) {
-      query.setMaxResults(limit);
-    }
+    query.setMaxResults(request.limit());
 
     List<ReviewProject> projects = query.getResultList();
 
-    List<SearchReviewProjectsView.ReviewProject> summaries =
-        projects.stream()
-            .map(
-                project -> {
-                  int totalSelected = 0; // to remove
-                  int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
-                  return toSummaryView(project, totalSelected, wordCount);
-                })
-            .toList();
+    for (ReviewProject project : projects) {
+        new SearchReviewProjectsView.ReviewProject(
+                project.getId(),
+                project.getCreatedDate(),
+                project.getLastModifiedDate(),
+                project.getDueDate(),
+                project.getCloseReason(),
+                project.getTextUnitCount(),
+                project.getWordCount(),
+                project.getType(),
+                project.getStatus(),
+                new SearchReviewProjectsView.Locale(project.getLocale().getId(), project.getLocale().getBcp47Tag()), // this will do a request to the DB for every single row?
+                new SearchReviewProjectsView.ReviewProjectRequest(project.getReviewProjectRequest().getId(), project.getReviewProjectRequest().getName())); // is this bad how many extra query since we don't have fetch. does it cache if it is the same id?
+    }
 
     return new SearchReviewProjectsView(summaries);
   }
@@ -510,46 +465,7 @@ public class ReviewProjectService {
                 project.getReviewProjectRequest().getId())));
   }
 
-  private SearchReviewProjectsView.ReviewProject toSummaryView(
-      ReviewProject project, int totalSelected, int wordCount) {
-    Locale locale =
-        java.util.Objects.requireNonNull(
-            project.getLocale(), "ReviewProject must have a locale (DB invariant)");
-    String bcp47Tag =
-        java.util.Objects.requireNonNull(
-            locale.getBcp47Tag(), "ReviewProject locale must have bcp47Tag");
 
-    Long requestId =
-        project.getReviewProjectRequest() != null
-            ? project.getReviewProjectRequest().getId()
-            : null;
-    String requestName = resolveRequestName(project);
-
-    return new SearchReviewProjectsView.ReviewProject(
-        project.getId(),
-        project.getCreatedDate(),
-        project.getLastModifiedDate(),
-        project.getDueDate(),
-        project.getCloseReason(),
-        totalSelected,
-        wordCount,
-        project.getType(),
-        project.getStatus(),
-        new SearchReviewProjectsView.Locale(locale.getId(), bcp47Tag),
-        new SearchReviewProjectsView.ReviewProjectRequest(requestId, requestName));
-  }
-
-  private String resolveRequestName(ReviewProject project) {
-    return project.getReviewProjectRequest() != null
-        ? project.getReviewProjectRequest().getName()
-        : null;
-  }
-
-  private String resolveRequestNotes(ReviewProject project) {
-    return project.getReviewProjectRequest() != null
-        ? project.getReviewProjectRequest().getNotes()
-        : null;
-  }
 
   private List<ReviewProjectTextUnitView> toTextUnitViews(ReviewProject reviewProject) {
     Map<Long, ReviewProjectTextUnitDecision> decisionsByTextUnitId =

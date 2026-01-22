@@ -188,25 +188,16 @@ public class ReviewProjectWS {
     if (request == null) {
       return null;
     }
-    SearchReviewProjectsCriteria criteria = new SearchReviewProjectsCriteria();
-    criteria.setStatuses(request.statuses());
-    criteria.setTypes(request.types());
-    criteria.setLocaleTags(request.localeTags());
-    criteria.setCreatedAfter(request.createdAfter());
-    criteria.setCreatedBefore(request.createdBefore());
-    criteria.setDueAfter(request.dueAfter());
-    criteria.setDueBefore(request.dueBefore());
-    criteria.setLimit(request.limit());
-    criteria.setSearchQuery(request.searchQuery());
-    if (request.searchField() != null) {
-      criteria.setSearchField(
-          SearchReviewProjectsCriteria.SearchField.valueOf(request.searchField().name()));
-    }
-    if (request.searchMatchType() != null) {
-      criteria.setSearchMatchType(
-          SearchReviewProjectsCriteria.SearchMatchType.valueOf(request.searchMatchType().name()));
-    }
-    return criteria;
+    return new SearchReviewProjectsCriteria(
+        request.statuses(),
+        request.types(),
+        request.localeTags(),
+        request.createdAfter(),
+        request.createdBefore(),
+        request.dueAfter(),
+        request.dueBefore(),
+        request.limit(),
+        request.searchQuery());
   }
 
   private GetReviewProjectResponse toDetailResponse(ReviewProjectDetail detail) {
