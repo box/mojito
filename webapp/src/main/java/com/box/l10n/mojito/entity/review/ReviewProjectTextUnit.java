@@ -8,10 +8,31 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "review_project_text_unit")
+@NamedEntityGraph(
+    name = "ReviewProjectTextUnit.detail",
+    attributeNodes = {
+      @NamedAttributeNode(
+          value = "tmTextUnit", subgraph = "ReviewProjectTextUnit.detail.tmTextUnit"),
+      @NamedAttributeNode("tmTextUnitVariant")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "ReviewProjectTextUnit.detail.tmTextUnit",
+          attributeNodes = {
+            @NamedAttributeNode(
+                value = "asset", subgraph = "ReviewProjectTextUnit.detail.tmTextUnit.asset")
+          }),
+      @NamedSubgraph(
+          name = "ReviewProjectTextUnit.detail.tmTextUnit.asset",
+          attributeNodes = {@NamedAttributeNode("repository")})
+    })
 public class ReviewProjectTextUnit extends SettableAuditableEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

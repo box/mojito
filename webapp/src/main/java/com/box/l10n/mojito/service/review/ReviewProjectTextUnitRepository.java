@@ -12,12 +12,6 @@ public interface ReviewProjectTextUnitRepository
     extends JpaRepository<ReviewProjectTextUnit, Long> {
 
   @EntityGraph(
-      attributePaths = {
-        "tmTextUnit",
-        "tmTextUnit.asset",
-        "tmTextUnitVariant",
-        "reviewProject",
-        "reviewProject.locale"
-      })
+      value = "ReviewProjectTextUnit.detail", type = EntityGraph.EntityGraphType.FETCH)
   List<ReviewProjectTextUnit> findByReviewProjectIdOrderByIdAsc(Long reviewProjectId);
 }
