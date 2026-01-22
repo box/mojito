@@ -49,7 +49,7 @@ ALTER TABLE review_project_repository
 CREATE TABLE review_project_text_unit (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     review_project_id bigint(20) NOT NULL,
-    tm_text_unit_variant_id bigint(20) NOT NULL,
+    tm_text_unit_variant_id bigint(20) DEFAULT NULL,
     tm_text_unit_id bigint(20) NOT NULL,
     created_date datetime DEFAULT NULL,
     PRIMARY KEY (id)
