@@ -73,7 +73,7 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")
-  public ResponseEntity<GetReviewProjectResponse.TextUnit> acceptTextUnit(
+  public ResponseEntity<GetReviewProjectResponse.TmTextUnit> acceptTextUnit(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitAcceptRequest request)
@@ -96,7 +96,7 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/review")
-  public GetReviewProjectResponse.TextUnit updateReviewStatus(
+  public GetReviewProjectResponse.TmTextUnit updateReviewStatus(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitReviewRequest request)
@@ -133,8 +133,6 @@ public class ReviewProjectWS {
     }
   }
 
-  /** Response contract for project detail. */
-  /** Response contract for project detail. */
   public record GetReviewProjectResponse(
       Long id,
       ReviewProjectType type,
@@ -144,45 +142,27 @@ public class ReviewProjectWS {
       String closeReason,
       Integer textUnitCount,
       Integer wordCount,
-      String name,
-      String notes,
-      Long requestId,
-      String requestName,
-      LocaleDetail locale,
-      List<Repository> repositories,
-      List<LocaleDetail> locales,
-      List<String> screenshotImageIds) {
+      ReviewProjectRequest reviewProjectRequest,
+      Locale locale,
+      List<TmTextUnit> textUnits) {
 
-    public record Repository(Long id, String name) {}
+      public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {
+      }
 
-    public record LocaleDetail(
+      public record Locale(Long id, String bcp47Tag) {}
+
+
+    public record TmTextUnit(
         Long id,
-        String bcp47Tag,
-        String displayName,
-        int selectedCount,
-        long acceptedCount,
-        List<TextUnit> textUnits) {}
+        Long name,
+        String content,
+        String comment,
+        Asset asset,
+        Long wordCount) {
+        }
 
-    public record TextUnit(
-        Long reviewProjectTextUnitId,
-        Long tmTextUnitId,
-        Long tmTextUnitVariantId,
-        Long selectedTmTextUnitVariantId,
-        Long currentTmTextUnitVariantId,
-        String name,
-        String source,
-        String target,
-        String currentTarget,
-        String status,
-        String baselineStatus,
-        String reviewStatus,
-        String notes,
-        ZonedDateTime reviewedAt,
-        String reviewedBy,
-        Long repositoryId,
-        String repositoryName,
-        String assetPath,
-        boolean includedInLocalizedFile) {}
+        public record Asset(Long assetPath) {}
+    }
   }
 
   // Mapping helpers
@@ -267,8 +247,8 @@ public class ReviewProjectWS {
         localeView.textUnits().stream().map(this::toTextUnitResponse).toList());
   }
 
-  private GetReviewProjectResponse.TextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
-    return new GetReviewProjectResponse.TextUnit(
+  private GetReviewProjectResponse.TmTextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
+    return new GetReviewProjectResponse.TmTextUnit(
         view.reviewProjectTextUnitId(),
         view.tmTextUnitId(),
         view.tmTextUnitVariantId(),
