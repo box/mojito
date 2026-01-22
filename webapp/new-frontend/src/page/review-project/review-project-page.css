@@ -303,6 +303,8 @@
   display: grid;
   gap: var(--space-3);
   font-size: var(--font-size-lg);
+  min-height: 0;
+  overflow: auto;
 }
 
 .review-project-page__resize-handle {
@@ -399,6 +401,15 @@
 .review-project-detail__side {
   display: grid;
   gap: var(--space-3);
+}
+
+.review-project-detail__hero {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-3);
+  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+  background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
 }
 
 .review-project-detail__field {
@@ -577,6 +588,12 @@
   resize: vertical;
 }
 
+.review-project-detail__input--rejected {
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger) 18%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+}
+
 .review-project-detail__meta {
   display: grid;
   gap: var(--space-1);
@@ -595,6 +612,12 @@
   background: color-mix(in srgb, var(--color-danger) 12%, transparent);
   color: var(--color-danger);
   font-size: var(--font-size-sm);
+}
+
+.review-project-detail__notice--rejected {
+  border: var(--border-width) solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: color-mix(in srgb, var(--color-danger) 90%, black);
 }
 
 .review-project-detail__actions {
@@ -853,6 +876,11 @@
 .review-project-detail__shots-count--muted {
   margin-bottom: var(--space-1);
   display: block;
+}
+
+.review-project-detail__shots-empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .review-project-detail__actions-button {
@@ -1119,6 +1147,26 @@
 
 .review-project-detail__gallery-main--compact .review-project-detail__gallery-image {
   max-height: 6.5rem;
+}
+
+.review-project-detail__gallery--hero {
+  grid-template-columns: 2.5rem 1fr 2.5rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.review-project-detail__gallery--hero .review-project-detail__gallery-nav {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.05rem;
+}
+
+.review-project-detail__gallery-main--hero {
+  height: 18rem;
+  min-height: 18rem;
+}
+
+.review-project-detail__gallery-main--hero .review-project-detail__gallery-image {
+  max-height: 18rem;
 }
 
 .review-project-screenshot-modal__gallery {

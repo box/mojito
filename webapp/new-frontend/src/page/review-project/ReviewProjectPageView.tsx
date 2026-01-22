@@ -650,6 +650,7 @@ function DetailPane({
 }) {
   const displayedTarget = textUnit.target;
   const proposedValue = draftTarget;
+  const wasRejected = textUnit.includedInLocalizedFile === false;
   type StatusOption = 'accepted' | 'pending';
   const initialStatusValue = useMemo<StatusOption>(() => {
     const status = textUnit.reviewStatus;
@@ -709,12 +710,72 @@ function DetailPane({
       <div className="review-project-detail__header">
         <div className="review-project-detail__title" />
       </div>
+      <div className="review-project-detail__hero">
+        <div className="review-project-detail__shots-header">
+          <div className="review-project-detail__actions-label">Screenshots</div>
+          <div className="review-project-detail__shots-count">
+            {screenshotCount === 0
+              ? 'No attachments'
+              : screenshotCount === 1
+                ? '1 attachment'
+                : `${screenshotCount} attachments`}
+          </div>
+        </div>
+        {screenshotImages.length ? (
+          <div className="review-project-detail__gallery review-project-detail__gallery--hero">
+            <button
+              type="button"
+              className="review-project-detail__gallery-nav"
+              onClick={() =>
+                onChangeScreenshotIdx(
+                  (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
+                )
+              }
+              aria-label="Previous screenshot"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="review-project-detail__gallery-main review-project-detail__gallery-main--hero"
+              onClick={() => onOpenGallery()}
+              title="Click to open fullscreen"
+            >
+              {renderMedia(
+                screenshotImages[currentScreenshotIdx],
+                'review-project-detail__gallery-image',
+                {
+                  controls: false,
+                  muted: true,
+                  loop: true,
+                  preload: 'metadata',
+                },
+              )}
+            </button>
+            <button
+              type="button"
+              className="review-project-detail__gallery-nav"
+              onClick={() => onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)}
+              aria-label="Next screenshot"
+            >
+              ›
+            </button>
+          </div>
+        ) : (
+          <div className="review-project-detail__shots-empty">No screenshots attached.</div>
+        )}
+      </div>
       <div className="review-project-detail__layout">
         <div className="review-project-detail__main">
+          {wasRejected ? (
+            <div className="review-project-detail__notice review-project-detail__notice--rejected">
+              Previously rejected. This string was not included in the localized file.
+            </div>
+          ) : null}
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Review</div>
             <textarea
-              className="review-project-detail__input"
+              className={`review-project-detail__input${wasRejected ? ' review-project-detail__input--rejected' : ''}`}
               value={draftTarget}
               onChange={(e) => onChangeDraftTarget(e.target.value)}
               rows={5}
@@ -852,62 +913,6 @@ function DetailPane({
             {textUnit.repositoryName ? (
               <div className="review-project-detail__value review-project-detail__value--meta">
                 Repo: {textUnit.repositoryName}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="review-project-detail__field">
-            <div className="review-project-detail__shots-header">
-              <div className="review-project-detail__actions-label">Screenshots</div>
-              <div className="review-project-detail__shots-count">
-                {screenshotCount === 0
-                  ? 'No attachments'
-                  : screenshotCount === 1
-                    ? '1 attachment'
-                    : `${screenshotCount} attachments`}
-              </div>
-            </div>
-            {screenshotImages.length ? (
-              <div className="review-project-detail__gallery review-project-detail__gallery--compact">
-                <button
-                  type="button"
-                  className="review-project-detail__gallery-nav"
-                  onClick={() =>
-                    onChangeScreenshotIdx(
-                      (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
-                    )
-                  }
-                  aria-label="Previous screenshot"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  className="review-project-detail__gallery-main review-project-detail__gallery-main--compact"
-                  onClick={() => onOpenGallery()}
-                  title="Click to open fullscreen"
-                >
-                  {renderMedia(
-                    screenshotImages[currentScreenshotIdx],
-                    'review-project-detail__gallery-image',
-                    {
-                      controls: false,
-                      muted: true,
-                      loop: true,
-                      preload: 'metadata',
-                    },
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="review-project-detail__gallery-nav"
-                  onClick={() =>
-                    onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)
-                  }
-                  aria-label="Next screenshot"
-                >
-                  ›
-                </button>
               </div>
             ) : null}
           </div>
