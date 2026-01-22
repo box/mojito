@@ -161,15 +161,16 @@
 
 .review-project-page__content {
   --review-list-width: 40%;
+  --review-resize-handle-size: 16px;
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: var(--review-list-width, 40%) 8px calc(100% - var(--review-list-width, 40%) - 8px);
+  grid-template-columns: var(--review-list-width, 40%) var(--review-resize-handle-size) calc(100% - var(--review-list-width, 40%) - var(--review-resize-handle-size));
   gap: 0;
 }
 
 .review-project-page__content--collapsed {
-  grid-template-columns: 0 8px calc(100% - 8px);
+  grid-template-columns: 0 var(--review-resize-handle-size) calc(100% - var(--review-resize-handle-size));
 }
 
 .review-project-page__list-pane,
@@ -305,22 +306,46 @@
   width: 100%;
   background: var(--color-surface);
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
 }
 
 .review-project-page__resize-handle:hover,
 .review-project-page__resize-handle.is-resizing {
-  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
 }
 
-.review-project-page__resize-handle::before {
-  content: '⋮⋮';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: color-mix(in srgb, var(--color-text-muted) 80%, transparent);
-  font-size: var(--font-size-sm);
-  pointer-events: none;
+.review-project-page__collapse-toggle {
+  width: 18px;
+  height: 30px;
+  border-radius: 999px;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-text-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.review-project-page__resize-handle:hover .review-project-page__collapse-toggle,
+.review-project-page__resize-handle.is-resizing .review-project-page__collapse-toggle {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.review-project-page__collapse-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .review-project-detail__header {

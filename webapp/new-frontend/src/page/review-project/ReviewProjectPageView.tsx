@@ -248,7 +248,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       const rect = layoutRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const pct = Math.min(75, Math.max(0, (x / rect.width) * 100));
-      if (pct <= 12) {
+      if (pct <= 8) {
         if (listWidthPct > 0) {
           setLastListWidthPct(listWidthPct);
         }
@@ -373,8 +373,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           }`}
         >
           <div className="review-project-page__controls review-project-page__controls--compact">
-            {/*  that search area does not work well with resizing ,  we need it more compact, probably one line
-             with a single small filter button. we first need to clarify the states though */}
             <input
               className="review-project-page__search-input"
               type="search"
@@ -427,12 +425,22 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         <div
           className={`review-project-page__resize-handle${isResizing ? ' is-resizing' : ''}`}
           onMouseDown={startResize}
-          onDoubleClick={toggleList}
           role="separator"
           aria-label={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
           aria-orientation="vertical"
           aria-expanded={!isListCollapsed}
-        />
+        >
+          <button
+            type="button"
+            className="review-project-page__collapse-toggle"
+            onClick={toggleList}
+            onMouseDown={(event) => event.stopPropagation()}
+            aria-label={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
+            title={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
+          >
+            {isListCollapsed ? '>' : '<'}
+          </button>
+        </div>
         <section className="review-project-page__detail-pane">
           {selectedTextUnit ? (
             <DetailPane
