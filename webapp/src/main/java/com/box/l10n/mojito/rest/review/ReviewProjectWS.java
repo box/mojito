@@ -7,7 +7,6 @@ import com.box.l10n.mojito.service.review.CreateReviewProjectRequestCommand;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
-import com.box.l10n.mojito.service.review.ReviewProjectLocaleDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
@@ -128,8 +127,9 @@ public class ReviewProjectWS {
         ReviewProjectStatus status,
         Locale locale,
         ReviewProjectRequest reviewProjectRequest) {
-        public record Locale(Long id) {}
-        public record ReviewProjectRequest(Long id, String name) {}
+      public record Locale(Long id) {}
+
+      public record ReviewProjectRequest(Long id, String name) {}
     }
   }
 
@@ -236,8 +236,7 @@ public class ReviewProjectWS {
             view.requestId(), view.requestName(), view.screenshotImageIds());
 
     GetReviewProjectResponse.Locale locale =
-        new GetReviewProjectResponse.Locale(
-            view.locale().id(), view.locale().bcp47Tag());
+        new GetReviewProjectResponse.Locale(view.locale().id(), view.locale().bcp47Tag());
 
     return new GetReviewProjectResponse(
         view.id(),

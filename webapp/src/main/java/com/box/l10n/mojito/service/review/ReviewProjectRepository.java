@@ -11,10 +11,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface ReviewProjectRepository extends JpaRepository<ReviewProject, Long> {
 
-  @EntityGraph(attributePaths = {"locale"})
-  List<ReviewProject> findByStatusOrderByCreatedDateDesc(ReviewProjectStatus status);
-
   @Override
-  @EntityGraph(attributePaths = {"locale"})
+  @EntityGraph(value = "ReviewProject.detail", type = EntityGraph.EntityGraphType.FETCH)
   Optional<ReviewProject> findById(Long id);
 }

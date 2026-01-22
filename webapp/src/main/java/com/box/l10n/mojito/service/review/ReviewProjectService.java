@@ -175,7 +175,6 @@ public class ReviewProjectService {
         projectIds);
   }
 
-
   @Transactional(readOnly = true)
   public SearchReviewProjectsView searchReviewProjects(SearchReviewProjectsCriteria request) {
     SearchReviewProjectsCriteria.SearchField searchField =
