@@ -195,7 +195,9 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
   const filteredProjects = useMemo(() => {
     let source = projects ?? [];
     if (requestIdFilter !== null) {
-      source = source.filter((project) => project.requestId === requestIdFilter);
+      source = source.filter(
+        (project) => project.reviewProjectRequest?.id === requestIdFilter,
+      );
     }
     const {
       localeTags,
@@ -229,7 +231,7 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       const value =
         field === 'id'
           ? String(project.id)
-          : project.requestName ?? `Review project #${project.id}`;
+          : project.reviewProjectRequest?.name ?? `Review project #${project.id}`;
       const valueLower = value.toLowerCase();
       const queryLower = q.toLowerCase();
 
@@ -260,8 +262,10 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       if (!localeTags || localeTags.length === 0) {
         return true;
       }
-      // locales no longer returned; treat as unfiltered
-      return true;
+      const localeId = project.locale?.id ?? null;
+      if (localeId === null) return true;
+      // best effort: allow locale id matching stringified ids
+      return localeTags.some((tag) => String(localeId) === tag);
     };
 
     const matchesStatus = (project: ApiReviewProjectSummary) => {
@@ -291,7 +295,7 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
   const rows = useMemo<ReviewProjectRow[]>(() => {
     return filteredProjects.map((project) => ({
       id: project.id,
-      name: project.requestName ?? `Review project #${project.id}`,
+      name: project.reviewProjectRequest?.name ?? `Review project #${project.id}`,
       type: project.type,
       status: project.status,
       locales: [],

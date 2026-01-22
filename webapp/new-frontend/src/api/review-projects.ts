@@ -89,17 +89,16 @@ export type SearchReviewProjectsResponse = {
 
 export type ApiReviewProjectSummary = {
   id: number;
-  requestName?: string | null;
   createdDate?: string | null;
   lastModifiedDate?: string | null;
   dueDate?: string | null;
   closeReason?: string | null;
-  localeId?: number | null;
-  requestId?: number | null;
   textUnitCount?: number | null;
   wordCount?: number | null;
   type: ApiReviewProjectType;
   status: ApiReviewProjectStatus;
+  locale?: { id: number | null } | null;
+  reviewProjectRequest?: { id: number | null; name?: string | null } | null;
 };
 
 export type ReviewProjectsSearchRequest = {

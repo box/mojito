@@ -75,7 +75,7 @@ type Props = {
   onLoadMock?: () => void;
   projects: ReviewProjectRow[];
   filters: FiltersProps;
-  requestFilter?: { requestId: number | null; requestUuid: string | null; onClear: () => void };
+  requestFilter?: { requestId: number | null; onClear: () => void };
   canCreate?: boolean;
   detailPathPrefix?: string;
 };
@@ -508,13 +508,10 @@ export function ReviewProjectsPageView({
 
   return (
     <div className="review-projects-page">
-      {requestFilter && (requestFilter.requestId !== null || requestFilter.requestUuid) ? (
+      {requestFilter && requestFilter.requestId !== null ? (
         <div className="review-projects-page__notice">
           <span className="review-projects-page__notice-text">
-            Showing projects from request{' '}
-            {requestFilter.requestId !== null
-              ? `#${requestFilter.requestId}`
-              : requestFilter.requestUuid ?? 'unknown'}
+            Showing projects from request #{requestFilter.requestId}
           </span>
           <button
             type="button"

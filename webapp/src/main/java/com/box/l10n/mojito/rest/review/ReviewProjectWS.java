@@ -198,9 +198,13 @@ public class ReviewProjectWS {
         view.wordCount(),
         view.type(),
         view.status(),
-        view.localeId(),
-        view.reviewProjectRequest() != null ? view.reviewProjectRequest().id() : null,
-        view.reviewProjectRequest() != null ? view.reviewProjectRequest().name() : null);
+        view.localeId() != null
+            ? new SearchReviewProjectsResponse.ReviewProject.Locale(view.localeId())
+            : null,
+        view.reviewProjectRequest() != null
+            ? new SearchReviewProjectsResponse.ReviewProject.ReviewProjectRequest(
+                view.reviewProjectRequest().id(), view.reviewProjectRequest().name())
+            : null);
   }
 
   private SearchReviewProjectsCriteria toCriteria(SearchReviewProjectsRequest request) {
