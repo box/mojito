@@ -495,9 +495,7 @@
 }
 
 .review-project-detail__hero--collapsed {
-  height: 2.25rem;
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
+  display: none;
 }
 
 .review-project-detail__field {
@@ -1281,15 +1279,14 @@
 }
 
 .review-project-detail__hero-resize-handle {
-  position: absolute;
-  left: var(--space-1);
-  right: var(--space-1);
-  bottom: var(--space-1);
+  width: 100%;
   height: 10px;
+  margin: 0 0 var(--space-2);
   cursor: row-resize;
   background: transparent;
   transition: background 0.2s ease;
   border-radius: var(--radius-pill);
+  position: relative;
 }
 
 .review-project-detail__hero-resize-handle:hover,

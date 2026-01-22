@@ -690,6 +690,7 @@ function DetailPane({
   const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const [isHeroResizing, setIsHeroResizing] = useState(false);
+  const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
   type StatusOption = 'accepted' | 'pending';
   const initialStatusValue = useMemo<StatusOption>(() => {
@@ -709,8 +710,21 @@ function DetailPane({
     const rect = heroRef.current.getBoundingClientRect();
     if (rect.height) {
       setHeroHeight(rect.height);
+      setLastHeroHeight(rect.height);
     }
   }, [heroHeight, screenshotImages.length]);
+
+  useEffect(() => {
+    if (isScreenshotsCollapsed) {
+      if (heroHeight != null) {
+        setLastHeroHeight(heroHeight);
+      }
+      return;
+    }
+    if (heroHeight == null && lastHeroHeight != null) {
+      setHeroHeight(lastHeroHeight);
+    }
+  }, [heroHeight, isScreenshotsCollapsed, lastHeroHeight]);
 
   const handleStatusSelect = (key: StatusOption) => {
     setSelectedStatus(key);
@@ -813,57 +827,80 @@ function DetailPane({
                 </button>
               </div>
             )}
-            <div
-              className={`review-project-detail__hero-resize-handle${
-                isHeroResizing ? ' is-resizing' : ''
-              }`}
-              onMouseDown={(event) => {
-                if (!heroRef.current) return;
-                event.preventDefault();
-                if (isScreenshotsCollapsed) {
-                  setIsScreenshotsCollapsed(false);
-                }
-                setIsHeroResizing(true);
-                const rect = heroRef.current.getBoundingClientRect();
-                if (heroHeight == null) {
-                  setHeroHeight(rect.height);
-                }
-                const minHeight = 140;
-                const containerHeight =
-                  heroRef.current.parentElement?.clientHeight ?? window.innerHeight;
-                const maxHeight = Math.max(minHeight, Math.floor(containerHeight * 0.6));
-                const onMove = (e: MouseEvent) => {
-                  const next = Math.min(maxHeight, Math.max(minHeight, e.clientY - rect.top));
-                  setHeroHeight(next);
-                };
-                const onUp = () => {
-                  setIsHeroResizing(false);
-                  window.removeEventListener('mousemove', onMove);
-                  window.removeEventListener('mouseup', onUp);
-                };
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onUp);
-              }}
-              role="separator"
-              aria-label="Resize screenshots panel"
-              aria-orientation="horizontal"
-            >
-              <button
-                type="button"
-                className="review-project-detail__hero-toggle"
-                onClick={() => setIsScreenshotsCollapsed((prev) => !prev)}
-                onMouseDown={(event) => event.stopPropagation()}
-                aria-label={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
-                title={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
-              >
-                <span aria-hidden="true">{isScreenshotsCollapsed ? '▾' : '▴'}</span>
-              </button>
-            </div>
           </>
         ) : (
           <div className="review-project-detail__shots-empty">No screenshots attached.</div>
         )}
       </div>
+      {screenshotImages.length ? (
+        <div
+          className={`review-project-detail__hero-resize-handle${
+            isHeroResizing ? ' is-resizing' : ''
+          }`}
+          onMouseDown={(event) => {
+            if (!heroRef.current) return;
+            event.preventDefault();
+            if (isScreenshotsCollapsed) {
+              setIsScreenshotsCollapsed(false);
+            }
+            setIsHeroResizing(true);
+            const rect = heroRef.current.getBoundingClientRect();
+            if (heroHeight == null) {
+              setHeroHeight(rect.height);
+              setLastHeroHeight(rect.height);
+            }
+            const minHeight = 140;
+            const containerHeight = heroRef.current.parentElement?.clientHeight ?? window.innerHeight;
+            const maxHeight = Math.max(minHeight, Math.floor(containerHeight * 0.6));
+            const onMove = (e: MouseEvent) => {
+              const rawNext = Math.min(maxHeight, Math.max(0, e.clientY - rect.top));
+              if (rawNext <= 80) {
+                if (!isScreenshotsCollapsed) {
+                  setIsScreenshotsCollapsed(true);
+                }
+                return;
+              }
+              if (isScreenshotsCollapsed) {
+                setIsScreenshotsCollapsed(false);
+              }
+              const next = Math.max(minHeight, rawNext);
+              setHeroHeight(next);
+              setLastHeroHeight(next);
+            };
+            const onUp = () => {
+              setIsHeroResizing(false);
+              window.removeEventListener('mousemove', onMove);
+              window.removeEventListener('mouseup', onUp);
+            };
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+          }}
+          role="separator"
+          aria-label="Resize screenshots panel"
+          aria-orientation="horizontal"
+        >
+          <button
+            type="button"
+            className="review-project-detail__hero-toggle"
+            onClick={() =>
+              setIsScreenshotsCollapsed((prev) => {
+                if (!prev && heroHeight != null) {
+                  setLastHeroHeight(heroHeight);
+                }
+                if (prev && lastHeroHeight != null) {
+                  setHeroHeight(lastHeroHeight);
+                }
+                return !prev;
+              })
+            }
+            onMouseDown={(event) => event.stopPropagation()}
+            aria-label={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
+            title={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
+          >
+            <span aria-hidden="true">{isScreenshotsCollapsed ? '▾' : '▴'}</span>
+          </button>
+        </div>
+      ) : null}
       <div className="review-project-detail__layout">
         <div className="review-project-detail__main">
           {wasRejected ? (
