@@ -59,8 +59,7 @@ export type ReviewProjectRow = {
   name: string;
   type: ApiReviewProjectType;
   status: ApiReviewProjectStatus;
-  locales: string[];
-  repositoryNames: string[];
+  localeTag: string | null;
   acceptedCount: number;
   textUnitCount: number | null;
   wordCount: number | null;
@@ -381,7 +380,7 @@ function ReviewProjectRowView({
   const percent = formatPercent(project.acceptedCount, textUnitCount);
   const percentValue =
     textUnitCount === 0 ? 0 : Math.round((project.acceptedCount / textUnitCount) * 100);
-  const localeTag = project.locales[0];
+  const localeTag = project.localeTag;
   const typeClass =
     project.type === 'EMERGENCY'
       ? 'review-projects-page__type-pill--emergency'

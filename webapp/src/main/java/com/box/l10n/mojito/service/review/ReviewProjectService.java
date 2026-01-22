@@ -602,6 +602,13 @@ public class ReviewProjectService {
 
   private SearchReviewProjectsView.ReviewProject toSummaryView(
       ReviewProject project, int totalSelected, int wordCount) {
+    Locale locale =
+        java.util.Objects.requireNonNull(
+            project.getLocale(), "ReviewProject must have a locale (DB invariant)");
+    String bcp47Tag =
+        java.util.Objects.requireNonNull(
+            locale.getBcp47Tag(), "ReviewProject locale must have bcp47Tag");
+
     Long requestId =
         project.getReviewProjectRequest() != null
             ? project.getReviewProjectRequest().getId()
@@ -618,10 +625,7 @@ public class ReviewProjectService {
         wordCount,
         project.getType(),
         project.getStatus(),
-        project.getLocale() != null
-            ? new SearchReviewProjectsView.Locale(
-                project.getLocale().getId(), project.getLocale().getBcp47Tag())
-            : null,
+        new SearchReviewProjectsView.Locale(locale.getId(), bcp47Tag),
         new SearchReviewProjectsView.ReviewProjectRequest(requestId, requestName));
   }
 
