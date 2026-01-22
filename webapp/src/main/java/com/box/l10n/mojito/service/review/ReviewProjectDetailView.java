@@ -17,7 +17,6 @@ public record ReviewProjectDetailView(
     String name,
     String notes,
     Long requestId,
-    String requestUuid,
     String requestName,
     ReviewProjectLocaleDetailView locale,
     List<ReviewProjectRepositorySummaryView> repositories,

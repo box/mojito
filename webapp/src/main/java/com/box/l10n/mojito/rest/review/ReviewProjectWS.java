@@ -37,10 +37,9 @@ public class ReviewProjectWS {
   @PostMapping("/review-projects/search")
   public SearchReviewProjectsResponse searchReviewProjects(
       @RequestBody SearchReviewProjectsRequest request) {
+    SearchReviewProjectsView view = reviewProjectService.searchReviewProjects(toCriteria(request));
     List<SearchReviewProjectsResponse.Project> projects =
-        reviewProjectService.searchReviewProjects(toCriteria(request)).stream()
-            .map(this::toSearchReviewProjectsResponse)
-            .toList();
+        view.reviewProject().stream().map(this::toSearchReviewProjectsResponse).toList();
     return new SearchReviewProjectsResponse(projects);
   }
 
@@ -61,7 +60,6 @@ public class ReviewProjectWS {
 
     return new CreateReviewProjectRequestResponse(
         result.requestId(),
-        result.requestUuid(),
         result.requestName(),
         result.localeTags(),
         result.dueDate(),
@@ -110,7 +108,6 @@ public class ReviewProjectWS {
   /** Response contract for create review project request (minimal payload). */
   public record CreateReviewProjectRequestResponse(
       Long requestId,
-      String requestUuid,
       String requestName,
       List<String> localeTags,
       ZonedDateTime dueDate,
@@ -122,26 +119,16 @@ public class ReviewProjectWS {
     public record Project(
         Long id,
         ZonedDateTime createdDate,
+        ZonedDateTime lastModifiedDate,
         ZonedDateTime dueDate,
         String closeReason,
         Integer textUnitCount,
         Integer wordCount,
         ReviewProjectType type,
         ReviewProjectStatus status,
+        Long localeId,
         Long requestId,
-        String requestUuid,
-        String requestName,
-        int totalSelected,
-        long acceptedCount,
-        String name,
-        List<Repository> repositories,
-        List<LocaleSummary> locales,
-        List<String> screenshotImageIds) {}
-
-    public record Repository(Long id, String name) {}
-
-    public record LocaleSummary(
-        Long id, String bcp47Tag, String displayName, int selectedCount, long acceptedCount) {}
+        String requestName) {}
   }
 
   /** Response contract for project detail. */
@@ -158,12 +145,13 @@ public class ReviewProjectWS {
       String name,
       String notes,
       Long requestId,
-      String requestUuid,
       String requestName,
       LocaleDetail locale,
-      List<SearchReviewProjectsResponse.Repository> repositories,
+      List<Repository> repositories,
       List<LocaleDetail> locales,
       List<String> screenshotImageIds) {
+
+    public record Repository(Long id, String name) {}
 
     public record LocaleDetail(
         Long id,
@@ -197,36 +185,20 @@ public class ReviewProjectWS {
 
   // Mapping helpers
   private SearchReviewProjectsResponse.Project toSearchReviewProjectsResponse(
-      SearchReviewProjectsView view) {
+      SearchReviewProjectsView.ReviewProject view) {
     return new SearchReviewProjectsResponse.Project(
         view.id(),
         view.createdDate(),
+        view.lastModifiedDate(),
         view.dueDate(),
         view.closeReason(),
         view.textUnitCount(),
         view.wordCount(),
         view.type(),
         view.status(),
-        view.requestId(),
-        view.requestUuid(),
-        view.requestName(),
-        view.totalSelected(),
-        view.acceptedCount(),
-        view.name(),
-        view.repositories().stream()
-            .map(r -> new SearchReviewProjectsResponse.Repository(r.id(), r.name()))
-            .toList(),
-        view.locales().stream()
-            .map(
-                l ->
-                    new SearchReviewProjectsResponse.LocaleSummary(
-                        l.id(),
-                        l.bcp47Tag(),
-                        l.displayName(),
-                        l.selectedCount(),
-                        l.acceptedCount()))
-            .toList(),
-        view.screenshotImageIds());
+        view.localeId(),
+        view.reviewProjectRequest() != null ? view.reviewProjectRequest().id() : null,
+        view.reviewProjectRequest() != null ? view.reviewProjectRequest().name() : null);
   }
 
   private SearchReviewProjectsCriteria toCriteria(SearchReviewProjectsRequest request) {
@@ -269,11 +241,10 @@ public class ReviewProjectWS {
         view.name(),
         view.notes(),
         view.requestId(),
-        view.requestUuid(),
         view.requestName(),
         localeDetail,
         view.repositories().stream()
-            .map(r -> new SearchReviewProjectsResponse.Repository(r.id(), r.name()))
+            .map(r -> new GetReviewProjectResponse.Repository(r.id(), r.name()))
             .toList(),
         view.locales().stream().map(this::toLocaleDetail).toList(),
         view.screenshotImageIds());

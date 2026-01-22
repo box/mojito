@@ -5,7 +5,6 @@ import java.util.List;
 
 public record CreateReviewProjectRequestResult(
     Long requestId,
-    String requestUuid,
     String requestName,
     List<String> localeTags,
     ZonedDateTime dueDate,

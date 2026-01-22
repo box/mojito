@@ -35,7 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +115,6 @@ public class ReviewProjectService {
     }
 
     ReviewProjectRequest reviewProjectRequest = new ReviewProjectRequest();
-    reviewProjectRequest.setRequestUuid(UUID.randomUUID().toString());
     reviewProjectRequest.setName(request.name());
     reviewProjectRequest.setNotes(request.notes());
     reviewProjectRequest = reviewProjectRequestRepository.save(reviewProjectRequest);
@@ -127,7 +125,6 @@ public class ReviewProjectService {
 
     ReviewProjectType type = request.type() != null ? request.type() : ReviewProjectType.UNKNOWN;
 
-    List<com.box.l10n.mojito.service.review.SearchReviewProjectsView> summaries = new ArrayList<>();
     List<Long> projectIds = new ArrayList<>();
 
     for (String localeTag : request.localeTags()) {
@@ -159,11 +156,10 @@ public class ReviewProjectService {
       saved.setWordCount(selectionStats.wordCount());
       reviewProjectRepository.save(saved);
 
-      summaries.add(toSummaryView(saved, selectedCount, selectionStats.wordCount(), 0L));
       projectIds.add(saved.getId());
     }
 
-    if (summaries.isEmpty()) {
+    if (projectIds.isEmpty()) {
       reviewProjectScreenshotRepository.deleteByReviewProjectRequestId(
           reviewProjectRequest.getId());
       reviewProjectRequestRepository.delete(reviewProjectRequest);
@@ -173,30 +169,12 @@ public class ReviewProjectService {
 
     return new CreateReviewProjectRequestResult(
         reviewProjectRequest.getId(),
-        reviewProjectRequest.getRequestUuid(),
         reviewProjectRequest.getName(),
         request.localeTags(),
         request.dueDate(),
         projectIds);
   }
 
-
-  public record SearchReviewProjectsView(List<ReviewProject> reviewProject) {
-      public record ReviewProject(
-              Long id,
-              ZonedDateTime createdDate,
-              ZonedDateTime lastModifiedDate,
-              ZonedDateTime dueDate,
-              String closeReason,
-              Integer textUnitCount,
-              Integer wordCount,
-              ReviewProjectType type,
-              ReviewProjectStatus status,
-              ReviewProjectRequest reviewProjectRequest) {}
-
-      public record ReviewProjectRequest(Long id, String name) {
-      }
-  }
 
   @Transactional(readOnly = true)
   public SearchReviewProjectsView searchReviewProjects(SearchReviewProjectsCriteria request) {
@@ -250,7 +228,7 @@ public class ReviewProjectService {
       try {
         searchId = Long.parseLong(searchQuery.replace("#", ""));
       } catch (NumberFormatException nfe) {
-        return Collections.emptyList();
+        return new SearchReviewProjectsView(List.of());
       }
     }
 
@@ -323,18 +301,17 @@ public class ReviewProjectService {
 
     List<ReviewProject> projects = query.getResultList();
 
-    return projects.stream()
-        .map(
-            project -> {
-              int totalSelected = resolveTotalSelected(project);
-              int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
-              long acceptedCount =
-                  reviewProjectTextUnitDecisionRepository
-                      .countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(
-                          project.getId());
-              return toSummaryView(project, totalSelected, wordCount, acceptedCount);
-            })
-        .collect(Collectors.toList());
+    List<SearchReviewProjectsView.ReviewProject> summaries =
+        projects.stream()
+            .map(
+                project -> {
+                  int totalSelected = resolveTotalSelected(project);
+                  int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
+                  return toSummaryView(project, totalSelected, wordCount);
+                })
+            .toList();
+
+    return new SearchReviewProjectsView(summaries);
   }
 
   @Transactional(readOnly = true)
@@ -370,9 +347,6 @@ public class ReviewProjectService {
         resolveRequestNotes(project),
         project.getReviewProjectRequest() != null
             ? project.getReviewProjectRequest().getId()
-            : null,
-        project.getReviewProjectRequest() != null
-            ? project.getReviewProjectRequest().getRequestUuid()
             : null,
         resolveRequestName(project),
         localeDetail,
@@ -629,43 +603,26 @@ public class ReviewProjectService {
                 project.getReviewProjectRequest().getId())));
   }
 
-  private com.box.l10n.mojito.service.review.SearchReviewProjectsView toSummaryView(
-      ReviewProject project, int totalSelected, int wordCount, long acceptedCount) {
-    ReviewProjectLocaleSummaryView localeSummary =
-        new ReviewProjectLocaleSummaryView(
-            project.getId(),
-            project.getLocale().getBcp47Tag(),
-            project.getLocale().getBcp47Tag(),
-            totalSelected,
-            acceptedCount);
+  private SearchReviewProjectsView.ReviewProject toSummaryView(
+      ReviewProject project, int totalSelected, int wordCount) {
     Long requestId =
         project.getReviewProjectRequest() != null
             ? project.getReviewProjectRequest().getId()
             : null;
-    String requestUuid =
-        project.getReviewProjectRequest() != null
-            ? project.getReviewProjectRequest().getRequestUuid()
-            : null;
     String requestName = resolveRequestName(project);
 
-    return new com.box.l10n.mojito.service.review.SearchReviewProjectsView(
+    return new SearchReviewProjectsView.ReviewProject(
         project.getId(),
         project.getCreatedDate(),
+        project.getLastModifiedDate(),
         project.getDueDate(),
         project.getCloseReason(),
         totalSelected,
         wordCount,
         project.getType(),
         project.getStatus(),
-        requestId,
-        requestUuid,
-        requestName,
-        totalSelected,
-        acceptedCount,
-        requestName,
-        Collections.emptyList(),
-        Collections.singletonList(localeSummary),
-        resolveScreenshotImageKeys(project));
+        project.getLocale() != null ? project.getLocale().getId() : null,
+        new SearchReviewProjectsView.ReviewProjectRequest(requestId, requestName));
   }
 
   private String resolveRequestName(ReviewProject project) {

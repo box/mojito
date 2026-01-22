@@ -33,15 +33,14 @@ type SelectAllLocalesParams = {
 
 type ReviewProjectsNavState = {
   requestId?: number | null;
-  requestUuid?: string | null;
 };
 
 function isReviewProjectsNavState(value: unknown): value is ReviewProjectsNavState {
   return (
     typeof value === 'object' &&
     value !== null &&
-    (('requestId' in value && typeof (value as { requestId?: unknown }).requestId === 'number') ||
-      ('requestUuid' in value && typeof (value as { requestUuid?: unknown }).requestUuid === 'string'))
+    'requestId' in value &&
+    typeof (value as { requestId?: unknown }).requestId === 'number'
   );
 }
 
@@ -122,7 +121,6 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
   const [dueAfter, setDueAfter] = useState<string | null>(null);
   const [dueBefore, setDueBefore] = useState<string | null>(null);
   const [requestIdFilter, setRequestIdFilter] = useState<number | null>(null);
-  const [requestUuidFilter, setRequestUuidFilter] = useState<string | null>(null);
 
   const searchParams = useMemo<ReviewProjectsSearchRequest>(() => {
     const searchFieldValue: ReviewProjectsSearchRequest['searchField'] =
@@ -163,7 +161,6 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       return;
     }
     setRequestIdFilter(state.requestId ?? null);
-    setRequestUuidFilter(state.requestUuid ?? null);
     void navigate(location.pathname, { replace: true });
   }, [location.pathname, location.state, navigate]);
 
@@ -196,11 +193,9 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       : undefined;
 
   const filteredProjects = useMemo(() => {
-    let source = projects;
+    let source = projects ?? [];
     if (requestIdFilter !== null) {
       source = source.filter((project) => project.requestId === requestIdFilter);
-    } else if (requestUuidFilter) {
-      source = source.filter((project) => project.requestUuid === requestUuidFilter);
     }
     const {
       localeTags,
@@ -232,7 +227,9 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       if (!q) return true;
       const field: 'id' | 'name' = sf === 'ID' ? 'id' : 'name';
       const value =
-        field === 'id' ? String(project.id) : (project.name ?? `Review project #${project.id}`);
+        field === 'id'
+          ? String(project.id)
+          : project.requestName ?? `Review project #${project.id}`;
       const valueLower = value.toLowerCase();
       const queryLower = q.toLowerCase();
 
@@ -263,8 +260,8 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       if (!localeTags || localeTags.length === 0) {
         return true;
       }
-      const tags = (project.locales ?? []).map((loc) => loc.bcp47Tag);
-      return tags.some((tag) => localeTags.includes(tag));
+      // locales no longer returned; treat as unfiltered
+      return true;
     };
 
     const matchesStatus = (project: ApiReviewProjectSummary) => {
@@ -289,17 +286,17 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
 
     const limitValue = lmt && lmt > 0 ? lmt : undefined;
     return limitValue ? filtered.slice(0, limitValue) : filtered;
-  }, [projects, searchParams, hasTouchedLocales, requestIdFilter, requestUuidFilter]);
+  }, [projects, searchParams, hasTouchedLocales, requestIdFilter]);
 
   const rows = useMemo<ReviewProjectRow[]>(() => {
     return filteredProjects.map((project) => ({
       id: project.id,
-      name: project.name ?? `Review project #${project.id}`,
+      name: project.requestName ?? `Review project #${project.id}`,
       type: project.type,
       status: project.status,
-      locales: (project.locales ?? []).map((locale) => locale.bcp47Tag),
-      repositoryNames: (project.repositories ?? []).map((repo) => repo.name),
-      acceptedCount: project.acceptedCount,
+      locales: [],
+      repositoryNames: [],
+      acceptedCount: 0,
       textUnitCount: project.textUnitCount ?? null,
       wordCount: project.wordCount ?? null,
       dueDate: project.dueDate ?? null,
@@ -309,17 +306,15 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
 
   const requestFilter = useMemo(
     () =>
-      requestIdFilter === null && !requestUuidFilter
+      requestIdFilter === null
         ? null
         : {
             requestId: requestIdFilter,
-            requestUuid: requestUuidFilter,
             onClear: () => {
               setRequestIdFilter(null);
-              setRequestUuidFilter(null);
             },
           },
-    [requestIdFilter, requestUuidFilter],
+    [requestIdFilter],
   );
 
   const handleRetry = useCallback(() => {

@@ -76,7 +76,6 @@ export type ApiReviewProjectDetail = {
   status: ApiReviewProjectStatus;
   notes?: string | null;
   requestId?: number | null;
-  requestUuid?: string | null;
   requestName?: string | null;
   locale?: ApiReviewProjectLocaleDetail | null;
   repositories: ApiReviewProjectRepositorySummary[];
@@ -90,21 +89,17 @@ export type SearchReviewProjectsResponse = {
 
 export type ApiReviewProjectSummary = {
   id: number;
-  name?: string | null;
   requestName?: string | null;
   createdDate?: string | null;
+  lastModifiedDate?: string | null;
   dueDate?: string | null;
   closeReason?: string | null;
+  localeId?: number | null;
   requestId?: number | null;
-  requestUuid?: string | null;
   textUnitCount?: number | null;
   wordCount?: number | null;
   type: ApiReviewProjectType;
   status: ApiReviewProjectStatus;
-  acceptedCount: number;
-  repositories: ApiReviewProjectRepositorySummary[];
-  locales: ApiReviewProjectLocaleSummary[];
-  screenshotImageIds?: string[] | null;
 };
 
 export type ReviewProjectsSearchRequest = {
@@ -133,7 +128,6 @@ export type ReviewProjectCreateRequest = {
 
 export type ReviewProjectCreateResponse = {
   requestId: number;
-  requestUuid: string;
   requestName?: string | null;
   localeTags: string[];
   dueDate: string;

@@ -9,22 +9,11 @@ import jakarta.persistence.Table;
 @Table(name = "review_project_request")
 public class ReviewProjectRequest extends AuditableEntity {
 
-  @Column(name = "request_uuid", length = 36, nullable = false, unique = true)
-  private String requestUuid;
-
   @Column(name = "name", length = 255)
   private String name;
 
   @Column(name = "notes", length = Integer.MAX_VALUE)
   private String notes;
-
-  public String getRequestUuid() {
-    return requestUuid;
-  }
-
-  public void setRequestUuid(String requestUuid) {
-    this.requestUuid = requestUuid;
-  }
 
   public String getName() {
     return name;

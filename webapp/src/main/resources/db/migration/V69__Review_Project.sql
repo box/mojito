@@ -4,14 +4,10 @@ CREATE TABLE review_project_request (
     id BIGINT(20) NOT NULL AUTO_INCREMENT,
     created_date datetime DEFAULT NULL,
     last_modified_date datetime DEFAULT NULL,
-    request_uuid char(36) NOT NULL,
     name varchar(255) DEFAULT NULL,
     notes longtext,
     PRIMARY KEY (id)
 );
-
-ALTER TABLE review_project_request
-    ADD CONSTRAINT UK__REVIEW_PROJECT_REQUEST__UUID UNIQUE (request_uuid);
 
 CREATE TABLE review_project (
     id BIGINT(20) NOT NULL AUTO_INCREMENT,
