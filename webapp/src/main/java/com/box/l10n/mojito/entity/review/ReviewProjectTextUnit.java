@@ -20,7 +20,7 @@ public class ReviewProjectTextUnit extends SettableAuditableEntity {
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT__PROJECT"))
   private ReviewProject reviewProject;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "tm_text_unit_variant_id",
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT__VARIANT"))
