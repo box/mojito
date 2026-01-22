@@ -143,7 +143,7 @@ public class ReviewProjectWS {
       Integer wordCount,
       ReviewProjectRequest reviewProjectRequest,
       Locale locale,
-      List<ReviewProjectTextUnit> textUnits) {
+      List<ReviewProjectTextUnit> reviewProjectTextUnits) {
 
     public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {}
 
@@ -227,7 +227,7 @@ public class ReviewProjectWS {
         detail.locale() != null
             ? new GetReviewProjectResponse.Locale(detail.locale().id(), detail.locale().bcp47Tag())
             : null,
-        detail.textUnits().stream().map(this::toTextUnitResponse).toList());
+        detail.reviewProjectTextUnits().stream().map(this::toTextUnitResponse).toList());
   }
 
   private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(

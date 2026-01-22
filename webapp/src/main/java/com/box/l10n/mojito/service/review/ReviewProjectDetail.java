@@ -17,7 +17,7 @@ public record ReviewProjectDetail(
     Integer wordCount,
     ReviewProjectRequest reviewProjectRequest,
     Locale locale,
-    List<ReviewProjectTextUnit> textUnits) {
+    List<ReviewProjectTextUnit> reviewProjectTextUnits) {
 
   public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {}
 
