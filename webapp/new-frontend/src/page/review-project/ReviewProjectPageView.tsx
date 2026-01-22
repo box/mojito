@@ -836,7 +836,7 @@ function DetailPane({
         <div
           className={`review-project-detail__hero-resize-handle${
             isHeroResizing ? ' is-resizing' : ''
-          }`}
+          }${isScreenshotsCollapsed ? ' review-project-detail__hero-resize-handle--collapsed' : ''}`}
           onMouseDown={(event) => {
             if (!heroRef.current) return;
             event.preventDefault();
@@ -897,6 +897,9 @@ function DetailPane({
             aria-label={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
             title={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
           >
+            <span className="review-project-detail__hero-toggle-label">
+              {isScreenshotsCollapsed ? 'Screenshots' : 'Screenshots'}
+            </span>
             <span aria-hidden="true">{isScreenshotsCollapsed ? '▾' : '▴'}</span>
           </button>
         </div>
@@ -1086,6 +1089,14 @@ function ReviewProjectHeader({
     <header className="review-project-page__header review-project-page__header--compact">
       <div className="review-project-page__one-line">
         <div className="review-project-page__group review-project-page__group--left">
+          <Link
+            className="review-project-page__back-link"
+            to="/review-projects"
+            aria-label="Back to review projects"
+            title="Back to review projects"
+          >
+            ‹
+          </Link>
           <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
           <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
             {REVIEW_PROJECT_TYPE_LABELS[type]}
