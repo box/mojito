@@ -3,14 +3,12 @@ package com.box.l10n.mojito.service.review;
 import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Locale_;
-import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.review.*;
 import com.box.l10n.mojito.entity.review.ReviewProject;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProject_;
-import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
@@ -18,7 +16,6 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -26,9 +23,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -48,7 +43,6 @@ public class ReviewProjectService {
   private final LocaleService localeService;
   private final TextUnitSearcher textUnitSearcher;
   private final TMTextUnitRepository tmTextUnitRepository;
-  private final TMTextUnitVariantRepository tmTextUnitVariantRepository;
   private final TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
   private final TMService tmService;
   private final WordCountService wordCountService;
@@ -64,7 +58,6 @@ public class ReviewProjectService {
       LocaleService localeService,
       TextUnitSearcher textUnitSearcher,
       TMTextUnitRepository tmTextUnitRepository,
-      TMTextUnitVariantRepository tmTextUnitVariantRepository,
       TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository,
       TMService tmService,
       WordCountService wordCountService) {
@@ -76,7 +69,6 @@ public class ReviewProjectService {
     this.localeService = localeService;
     this.textUnitSearcher = textUnitSearcher;
     this.tmTextUnitRepository = tmTextUnitRepository;
-    this.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
     this.tmService = tmService;
     this.wordCountService = wordCountService;
@@ -237,7 +229,7 @@ public class ReviewProjectService {
     List<SearchReviewProjectsView.ReviewProject> reviewProjects = new ArrayList<>();
 
     for (ReviewProject project : projects) {
-      Locale locale = localeService.findById(project.getLocale().getId());
+      Locale locale = project.getLocale();
       reviewProjects.add(
           new SearchReviewProjectsView.ReviewProject(
               project.getId(),
@@ -265,23 +257,9 @@ public class ReviewProjectService {
             .findById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
 
-    List<ReviewProjectTextUnitView> textUnitViews = toTextUnitViews(project);
-    List<ReviewProjectDetail.ReviewProjectTextUnit> textUnits =
-        textUnitViews.stream().map(this::toDetailTextUnit).toList();
+    Locale locale = localeService.findById(project.getLocale().getId());
 
-    ReviewProjectDetail.ReviewProjectRequest request =
-        project.getReviewProjectRequest() != null
-            ? new ReviewProjectDetail.ReviewProjectRequest(
-                project.getReviewProjectRequest().getId(),
-                project.getReviewProjectRequest().getName(),
-                resolveScreenshotImageNames(project))
-            : null;
-
-    ReviewProjectDetail.Locale locale =
-        project.getLocale() != null
-            ? new ReviewProjectDetail.Locale(
-                project.getLocale().getId(), project.getLocale().getBcp47Tag())
-            : null;
+    List<ReviewProjectDetail.ReviewProjectTextUnit> reviewProjectTextUnits = new ArrayList<>();
 
     return new ReviewProjectDetail(
         project.getId(),
@@ -292,9 +270,14 @@ public class ReviewProjectService {
         project.getCloseReason(),
         project.getTextUnitCount(),
         project.getWordCount(),
-        request,
-        locale,
-        textUnits);
+        new ReviewProjectDetail.ReviewProjectRequest(
+            project.getReviewProjectRequest().getId(),
+            project.getReviewProjectRequest().getName(),
+            project.getReviewProjectRequest().getScreenshots().stream()
+                .map(ReviewProjectRequestScreenshot::getImageName)
+                .toList()),
+        new ReviewProjectDetail.Locale(locale.getId(), locale.getBcp47Tag()),
+        reviewProjectTextUnits);
   }
 
   @Transactional
@@ -364,8 +347,7 @@ public class ReviewProjectService {
               .orElse(null);
       throw new ReviewProjectCurrentVariantConflictException(
           expectedCurrentTmTextUnitVariantId,
-          currentVariantId,
-          toDetailTextUnit(textUnit, decision));
+          currentVariantId,null);
     }
 
     TMTextUnitCurrentVariant updatedCurrentVariant =
@@ -396,7 +378,7 @@ public class ReviewProjectService {
     variantDecision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
-    return toDetailTextUnit(textUnit, variantDecision);
+    return null;
   }
 
   @Transactional
@@ -434,7 +416,7 @@ public class ReviewProjectService {
     decision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(decision);
 
-    return toDetailTextUnit(textUnit, decision);
+    return null;
   }
 
   private List<TextUnitDTO> searchReviewCandidates(List<Long> tmTextUnitIds, Locale locale) {
@@ -449,139 +431,5 @@ public class ReviewProjectService {
     params.setLimit(tmTextUnitIds.size());
 
     return textUnitSearcher.search(params);
-  }
-
-  private List<String> resolveScreenshotImageNames(ReviewProject project) {
-    if (project.getReviewProjectRequest() == null
-        || project.getReviewProjectRequest().getId() == null) {
-      return Collections.emptyList();
-    }
-    return new ArrayList<>(
-        new LinkedHashSet<>(
-            reviewProjectScreenshotRepository.findImageNamesByReviewProjectRequestId(
-                project.getReviewProjectRequest().getId())));
-  }
-
-  private List<ReviewProjectTextUnitView> toTextUnitViews(ReviewProject reviewProject) {
-    Map<Long, ReviewProjectTextUnitDecision> decisionsByTextUnitId =
-        reviewProjectTextUnitDecisionRepository
-            .findByReviewProjectTextUnit_ReviewProject_Id(reviewProject.getId())
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    decision -> decision.getReviewProjectTextUnit().getId(), decision -> decision));
-
-    return reviewProjectTextUnitRepository
-        .findByReviewProjectIdOrderByIdAsc(reviewProject.getId())
-        .stream()
-        .map(textUnit -> toTextUnitView(textUnit, decisionsByTextUnitId.get(textUnit.getId())))
-        .collect(Collectors.toList());
-  }
-
-  private ReviewProjectDetail.ReviewProjectTextUnit toDetailTextUnit(
-      ReviewProjectTextUnit textUnit, ReviewProjectTextUnitDecision decision) {
-    return toDetailTextUnit(toTextUnitView(textUnit, decision));
-  }
-
-  private ReviewProjectDetail.ReviewProjectTextUnit toDetailTextUnit(
-      ReviewProjectTextUnitView view) {
-    ReviewProjectDetail.TmTextUnit tmTextUnit =
-        new ReviewProjectDetail.TmTextUnit(
-            view.tmTextUnitId(),
-            view.name(),
-            view.source(),
-            view.notes(),
-            new ReviewProjectDetail.Asset(
-                view.assetPath(),
-                new ReviewProjectDetail.Asset.Repository(
-                    view.repositoryId(), view.repositoryName())),
-            0L); // TODO(ja) wouat?
-
-    ReviewProjectDetail.TmTextUnitVariant tmTextUnitVariant =
-        new ReviewProjectDetail.TmTextUnitVariant(
-            view.tmTextUnitVariantId(),
-            view.currentTarget() != null ? view.currentTarget() : view.target(),
-            view.status(),
-            view.includedInLocalizedFile(),
-            view.notes());
-
-    return new ReviewProjectDetail.ReviewProjectTextUnit(
-        view.reviewProjectTextUnitId(),
-        tmTextUnit,
-        tmTextUnitVariant);
-  }
-
-  private ReviewProjectTextUnitView toTextUnitView(
-      ReviewProjectTextUnit textUnit, ReviewProjectTextUnitDecision decision) {
-    TMTextUnit tmTextUnit =
-        java.util.Objects.requireNonNull(
-            textUnit.getTmTextUnit(), "ReviewProjectTextUnit must have a TMTextUnit");
-
-    TMTextUnitVariant selectedVariantRef = textUnit.getTmTextUnitVariant();
-    TMTextUnitVariant resolvedVariant =
-        decision != null && decision.getVariant() != null
-            ? decision.getVariant()
-            : selectedVariantRef;
-
-    Long variantId = resolvedVariant != null ? resolvedVariant.getId() : null;
-    Long selectedVariantId = selectedVariantRef != null ? selectedVariantRef.getId() : null;
-    TMTextUnitVariant.Status baselineStatus =
-        selectedVariantRef != null ? selectedVariantRef.getStatus() : null;
-
-    String reviewStatus =
-        decision != null && decision.getVariant() != null
-            ? (decision.getVariant().getContent() != null
-                    && selectedVariantRef != null
-                    && selectedVariantRef.getContent() != null
-                    && !NormalizationUtils.normalize(selectedVariantRef.getContent())
-                        .equals(NormalizationUtils.normalize(decision.getVariant().getContent())))
-                ? "ACCEPTED_WITH_CHANGE"
-                : "ACCEPTED_AS_IS"
-            : "PENDING";
-
-    String notes = decision != null ? decision.getNotes() : null;
-    ZonedDateTime reviewedAt =
-        decision != null
-            ? (decision.getLastModifiedDate() != null
-                ? decision.getLastModifiedDate()
-                : decision.getCreatedDate())
-            : null;
-    User decidedBy =
-        decision != null
-            ? (decision.getLastModifiedByUser() != null
-                ? decision.getLastModifiedByUser()
-                : decision.getCreatedByUser())
-            : null;
-    String reviewedBy = decidedBy != null ? decidedBy.getUsername() : null;
-
-    Repository repository =
-        tmTextUnit.getAsset() != null ? tmTextUnit.getAsset().getRepository() : null;
-
-    String source = tmTextUnit.getContent(); // stored source string
-
-    return new ReviewProjectTextUnitView(
-        textUnit.getId(),
-        tmTextUnit.getId(),
-        variantId,
-        selectedVariantId,
-        variantId,
-        tmTextUnit.getName(),
-        source,
-        selectedVariantRef != null ? selectedVariantRef.getContent() : null,
-        resolvedVariant != null ? resolvedVariant.getContent() : null,
-        resolvedVariant != null && resolvedVariant.getStatus() != null
-            ? resolvedVariant.getStatus().name()
-            : null,
-        baselineStatus != null ? baselineStatus.name() : null,
-        reviewStatus,
-        notes,
-        reviewedAt,
-        reviewedBy,
-        repository != null ? repository.getId() : null,
-        repository != null ? repository.getName() : null,
-        tmTextUnit != null && tmTextUnit.getAsset() != null
-            ? tmTextUnit.getAsset().getPath()
-            : null,
-        resolvedVariant != null && resolvedVariant.isIncludedInLocalizedFile());
   }
 }

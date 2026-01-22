@@ -160,7 +160,7 @@ public class ReviewProjectWS {
     }
 
     public record TmTextUnitVariant(
-        Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
+        Long id, String content, String status, boolean includedInLocalizedFile, String comment) {}
   }
 
   // Mapping helpers

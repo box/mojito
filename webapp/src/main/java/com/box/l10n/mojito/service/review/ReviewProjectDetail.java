@@ -5,7 +5,6 @@ import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-/** Service-layer detail view aligned with the REST response shape. */
 public record ReviewProjectDetail(
     Long id,
     ReviewProjectType type,
