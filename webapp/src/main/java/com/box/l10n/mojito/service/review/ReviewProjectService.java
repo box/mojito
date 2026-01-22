@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 import org.springframework.util.CollectionUtils;
 
 @Service
@@ -290,13 +291,26 @@ public class ReviewProjectService {
 
   @Transactional(readOnly = true)
   public GetProjectDetailView getProjectDetail(Long projectId) throws EntityWithIdNotFoundException {
+      logger.error("JA--RIGHT BEFORE getProjectDetail");
+    StopWatch stopWatch = new StopWatch("getProjectDetail");
+    stopWatch.start("loadProject");
     ReviewProject project =
         reviewProjectRepository
             .findDetailById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
+    stopWatch.stop();
 
+    logger.error("JA--RIGHT BEFORE fetchTextUnits");
+    stopWatch.start("fetchTextUnits");
+
+    // TODO(ja) review extra fetch, N+1 issue see repository for info
+    List<ReviewProjectTextUnit> textUnitEntities =
+        reviewProjectTextUnitRepository.findByReviewProjectId(projectId);
+    stopWatch.stop();
+
+    stopWatch.start("mapTextUnits");
     List<GetProjectDetailView.ReviewProjectTextUnit> reviewProjectTextUnits =
-        reviewProjectTextUnitRepository.findByReviewProjectIdOrderByIdAsc(projectId).stream()
+        textUnitEntities.stream()
             .map(
                 textUnit -> {
                   TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
@@ -333,8 +347,11 @@ public class ReviewProjectService {
                       textUnit.getId(), tmTextUnitView, tmTextUnitVariantView);
                 })
             .toList();
+    stopWatch.stop();
 
-      return new GetProjectDetailView(
+    stopWatch.start("buildResponse");
+    GetProjectDetailView response =
+        new GetProjectDetailView(
         project.getId(),
         project.getType(),
         project.getStatus(),
@@ -351,6 +368,15 @@ public class ReviewProjectService {
                 .toList()),
         new GetProjectDetailView.Locale(project.getLocale().getId(), project.getLocale().getBcp47Tag()),
         reviewProjectTextUnits);
+    stopWatch.stop();
+
+    logger.error(
+        "getProjectDetail {} took {} ms (textUnits={}). {}",
+        projectId,
+        stopWatch.getTotalTimeMillis(),
+        textUnitEntities.size(),
+        stopWatch.prettyPrint());
+    return response;
   }
 
   @Transactional

@@ -26,12 +26,13 @@ import jakarta.persistence.Table;
       @NamedSubgraph(
           name = "ReviewProjectTextUnit.detail.tmTextUnit",
           attributeNodes = {
+            @NamedAttributeNode("tmTextUnitStatistic"), // TODO(ja) remove eventually see ReviewProjectTextUnitRepository
             @NamedAttributeNode(
                 value = "asset", subgraph = "ReviewProjectTextUnit.detail.tmTextUnit.asset")
           }),
       @NamedSubgraph(
           name = "ReviewProjectTextUnit.detail.tmTextUnit.asset",
-          attributeNodes = {@NamedAttributeNode("repository")})
+          attributeNodes = {@NamedAttributeNode("repository")}) // TODO(ja) this does not seem to work. It does a second query to fetch the Repository info
     })
 public class ReviewProjectTextUnit extends SettableAuditableEntity {
 
