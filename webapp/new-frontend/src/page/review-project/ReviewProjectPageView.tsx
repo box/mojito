@@ -3,7 +3,7 @@ import '../review-projects/review-projects-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -20,7 +20,7 @@ import { Modal } from '../../components/Modal';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
-import {useRepositories} from "../../hooks/useRepositories";
+import { useRepositories } from '../../hooks/useRepositories';
 
 type Props = {
   projectId: number;
@@ -38,8 +38,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   }, [primaryLocale]);
 
   const layoutRef = useRef<HTMLDivElement>(null);
-  const [listWidthPct, setListWidthPct] = useState(40);
-  const [lastListWidthPct, setLastListWidthPct] = useState(40);
+  const [listWidthPct, setListWidthPct] = useState(20);
+  const [lastListWidthPct, setLastListWidthPct] = useState(20);
   const [isListCollapsed, setIsListCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -53,6 +53,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [onlyReviewed, setOnlyReviewed] = useState(false);
   const [onlyEdited, setOnlyEdited] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
   const [draftTargets, setDraftTargets] = useState<Record<number, string>>({});
   const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
@@ -61,6 +62,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
   const [selectedScreenshotIdx, setSelectedScreenshotIdx] = useState<number>(0);
+  const filterRef = useRef<HTMLDivElement | null>(null);
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -215,6 +217,17 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   }, [handleKeyNav]);
 
   useEffect(() => {
+    const handleOutside = (event: MouseEvent) => {
+      if (!filterRef.current) return;
+      if (!filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  useEffect(() => {
     if (!selectedTextUnit) return;
     // No auto-status change anymore; pending until explicit accept/reject.
   }, [draftNotes, draftTargets, projectId, selectedTextUnit, setTextUnits]);
@@ -226,7 +239,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
   const expandList = useCallback(() => {
     setIsListCollapsed(false);
-    setListWidthPct(lastListWidthPct || 40);
+    setListWidthPct(lastListWidthPct || 20);
   }, [lastListWidthPct]);
 
   const toggleList = useCallback(() => {
@@ -372,7 +385,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             isListCollapsed ? ' review-project-page__list-pane--collapsed' : ''
           }`}
         >
-          <div className="review-project-page__controls review-project-page__controls--compact">
+          <div className="review-project-page__controls">
             <input
               className="review-project-page__search-input"
               type="search"
@@ -380,18 +393,41 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <select
-              className="review-project-page__control-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All statuses</option>
-              {availableStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
+            <div className="review-project-page__filter" ref={filterRef}>
+              <button
+                type="button"
+                className="review-project-page__filter-button"
+                onClick={() => setIsFilterOpen((open) => !open)}
+                aria-label="Filter text units"
+                aria-expanded={isFilterOpen}
+              >
+                <span className="review-project-page__filter-bars" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </button>
+              {isFilterOpen ? (
+                <div className="review-project-page__filter-panel">
+                  <label className="review-project-page__filter-label" htmlFor="review-project-status-filter">
+                    Status
+                  </label>
+                  <select
+                    id="review-project-status-filter"
+                    className="review-project-page__control-select review-project-page__control-select--panel"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All statuses</option>
+                    {availableStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+            </div>
           </div>
           <VirtualList
             scrollRef={scrollRef}
@@ -711,18 +747,12 @@ function DetailPane({
         <div className="review-project-detail__title" />
       </div>
       <div className="review-project-detail__hero">
-        <div className="review-project-detail__shots-header">
-          <div className="review-project-detail__actions-label">Screenshots</div>
-          <div className="review-project-detail__shots-count">
-            {screenshotCount === 0
-              ? 'No attachments'
-              : screenshotCount === 1
-                ? '1 attachment'
-                : `${screenshotCount} attachments`}
-          </div>
-        </div>
         {screenshotImages.length ? (
-          <div className="review-project-detail__gallery review-project-detail__gallery--hero">
+          <>
+            <div className="review-project-detail__shots-badge">
+              {screenshotCount === 1 ? '1 screenshot' : `${screenshotCount} screenshots`}
+            </div>
+            <div className="review-project-detail__gallery review-project-detail__gallery--hero">
             <button
               type="button"
               className="review-project-detail__gallery-nav"
@@ -760,7 +790,8 @@ function DetailPane({
             >
               ›
             </button>
-          </div>
+            </div>
+          </>
         ) : (
           <div className="review-project-detail__shots-empty">No screenshots attached.</div>
         )}

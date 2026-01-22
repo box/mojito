@@ -2,7 +2,7 @@ import './app.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
@@ -31,8 +31,13 @@ const navItems: NavItem[] = [
 const queryClient = new QueryClient();
 
 function AppLayout() {
+  const location = useLocation();
+  const isHeaderless =
+    /^\/review-projects\/\d+/.test(location.pathname) ||
+    /^\/review-projects-v2\/\d+/.test(location.pathname);
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isHeaderless ? ' app-shell--headerless' : ''}`}>
       <header className="app-shell__header">
         <div className="app-shell__header-content">
           <nav className="app-shell__nav">

@@ -157,6 +157,14 @@ body {
   min-height: 100vh;
 }
 
+.app-shell--headerless {
+  --app-shell-header-height: 0px;
+}
+
+.app-shell--headerless .app-shell__header {
+  display: none;
+}
+
 .app-shell__header {
   flex: 0 0 auto;
   height: var(--app-shell-header-height);

@@ -160,12 +160,12 @@
 }
 
 .review-project-page__content {
-  --review-list-width: 40%;
+  --review-list-width: 20%;
   --review-resize-handle-size: 16px;
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: var(--review-list-width, 40%) var(--review-resize-handle-size) calc(100% - var(--review-list-width, 40%) - var(--review-resize-handle-size));
+  grid-template-columns: var(--review-list-width, 20%) var(--review-resize-handle-size) calc(100% - var(--review-list-width, 20%) - var(--review-resize-handle-size));
   gap: 0;
 }
 
@@ -205,10 +205,11 @@
   display: grid;
   grid-template-columns: 1fr auto;
   gap: var(--space-2);
-  align-items: center;
-  padding: var(--space-2) var(--space-4);
+  align-items: stretch;
+  padding: var(--space-3) 0;
   border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
   font-size: var(--font-size-sm);
+  position: relative;
 }
 
 .review-project-page__controls--compact {
@@ -222,6 +223,7 @@
   border-radius: var(--radius-2);
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   font-size: var(--font-size-sm);
+  height: 2rem;
 }
 
 .review-project-page__control {
@@ -238,6 +240,78 @@
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
   background: var(--color-surface);
   font-size: var(--font-size-sm);
+}
+
+.review-project-page__control-select--panel {
+  width: 100%;
+}
+
+.review-project-page__filter {
+  position: relative;
+  display: inline-flex;
+}
+
+.review-project-page__filter-button {
+  height: 2rem;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.review-project-page__filter-button:hover {
+  background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
+}
+
+.review-project-page__filter-bars {
+  display: grid;
+  gap: 3px;
+}
+
+.review-project-page__filter-bars span {
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+
+.review-project-page__filter-bars span:nth-child(1) {
+  width: 14px;
+}
+
+.review-project-page__filter-bars span:nth-child(2) {
+  width: 10px;
+}
+
+.review-project-page__filter-bars span:nth-child(3) {
+  width: 6px;
+}
+
+.review-project-page__filter-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  min-width: 12rem;
+  padding: var(--space-2);
+  display: grid;
+  gap: var(--space-2);
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  box-shadow: 0 12px 30px -18px color-mix(in srgb, var(--color-text) 35%, transparent);
+  z-index: 5;
+}
+
+.review-project-page__filter-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
 }
 
 .review-project-page__detail-pane {
@@ -406,10 +480,11 @@
 .review-project-detail__hero {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-1);
   border-radius: var(--radius-3);
-  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
-  background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
+  border: none;
+  background: transparent;
+  position: relative;
 }
 
 .review-project-detail__field {
@@ -883,6 +958,23 @@
   font-size: var(--font-size-sm);
 }
 
+.review-project-detail__shots-badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 1.5rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 45%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  box-shadow: 0 6px 16px -12px color-mix(in srgb, var(--color-text) 40%, transparent);
+}
+
 .review-project-detail__actions-button {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-2);
@@ -1151,7 +1243,9 @@
 
 .review-project-detail__gallery--hero {
   grid-template-columns: 2.5rem 1fr 2.5rem;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1);
+  background: transparent;
+  border: none;
 }
 
 .review-project-detail__gallery--hero .review-project-detail__gallery-nav {
