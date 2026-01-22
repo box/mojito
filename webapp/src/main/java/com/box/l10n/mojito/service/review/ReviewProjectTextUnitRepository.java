@@ -20,9 +20,4 @@ public interface ReviewProjectTextUnitRepository
         "reviewProject.locale"
       })
   List<ReviewProjectTextUnit> findByReviewProjectIdOrderByIdAsc(Long reviewProjectId);
-
-  Optional<ReviewProjectTextUnit> findByReviewProjectIdAndTmTextUnitVariantId(
-      Long reviewProjectId, Long tmTextUnitVariantId);
-
-  long countByReviewProjectId(Long reviewProjectId);
 }

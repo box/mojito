@@ -289,17 +289,52 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewProjectDetail getProjectDetail(Long projectId) throws EntityWithIdNotFoundException {
+  public GetProjectDetailView getProjectDetail(Long projectId) throws EntityWithIdNotFoundException {
     ReviewProject project =
         reviewProjectRepository
-            .findById(projectId)
+            .findDetailById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
 
-    Locale locale = localeService.findById(project.getLocale().getId());
+    List<GetProjectDetailView.ReviewProjectTextUnit> reviewProjectTextUnits =
+        reviewProjectTextUnitRepository.findByReviewProjectIdOrderByIdAsc(projectId).stream()
+            .map(
+                textUnit -> {
+                  TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
+                  Asset asset = tmTextUnit.getAsset();
+                  GetProjectDetailView.Asset.Repository repository =
+                      new GetProjectDetailView.Asset.Repository(
+                          asset.getRepository().getId(), asset.getRepository().getName());
+                  GetProjectDetailView.Asset assetView =
+                      new GetProjectDetailView.Asset(asset.getPath(), repository);
+                  GetProjectDetailView.TmTextUnit tmTextUnitView =
+                      new GetProjectDetailView.TmTextUnit(
+                          tmTextUnit.getId(),
+                          tmTextUnit.getName(),
+                          tmTextUnit.getContent(),
+                          tmTextUnit.getComment(),
+                          assetView,
+                          tmTextUnit.getWordCount() != null
+                              ? tmTextUnit.getWordCount().longValue()
+                              : null);
+                  TMTextUnitVariant tmTextUnitVariant = textUnit.getTmTextUnitVariant();
+                  GetProjectDetailView.TmTextUnitVariant tmTextUnitVariantView =
+                      tmTextUnitVariant == null
+                          ? new GetProjectDetailView.TmTextUnitVariant(
+                              null, null, null, false, null)
+                          : new GetProjectDetailView.TmTextUnitVariant(
+                              tmTextUnitVariant.getId(),
+                              tmTextUnitVariant.getContent(),
+                              tmTextUnitVariant.getStatus() != null
+                                  ? tmTextUnitVariant.getStatus().name()
+                                  : null,
+                              tmTextUnitVariant.isIncludedInLocalizedFile(),
+                              tmTextUnitVariant.getComment());
+                  return new GetProjectDetailView.ReviewProjectTextUnit(
+                      textUnit.getId(), tmTextUnitView, tmTextUnitVariantView);
+                })
+            .toList();
 
-    List<ReviewProjectDetail.ReviewProjectTextUnit> reviewProjectTextUnits = new ArrayList<>();
-
-    return new ReviewProjectDetail(
+      return new GetProjectDetailView(
         project.getId(),
         project.getType(),
         project.getStatus(),
@@ -308,18 +343,18 @@ public class ReviewProjectService {
         project.getCloseReason(),
         project.getTextUnitCount(),
         project.getWordCount(),
-        new ReviewProjectDetail.ReviewProjectRequest(
+        new GetProjectDetailView.ReviewProjectRequest(
             project.getReviewProjectRequest().getId(),
             project.getReviewProjectRequest().getName(),
             project.getReviewProjectRequest().getScreenshots().stream()
                 .map(ReviewProjectRequestScreenshot::getImageName)
                 .toList()),
-        new ReviewProjectDetail.Locale(locale.getId(), locale.getBcp47Tag()),
+        new GetProjectDetailView.Locale(project.getLocale().getId(), project.getLocale().getBcp47Tag()),
         reviewProjectTextUnits);
   }
 
   @Transactional
-  public ReviewProjectDetail.ReviewProjectTextUnit acceptTextUnit(
+  public GetProjectDetailView.ReviewProjectTextUnit acceptTextUnit(
       Long projectId,
       Long reviewProjectTextUnitId,
       String target,
@@ -419,7 +454,7 @@ public class ReviewProjectService {
   }
 
   @Transactional
-  public ReviewProjectDetail.ReviewProjectTextUnit updateReviewStatus(
+  public GetProjectDetailView.ReviewProjectTextUnit updateReviewStatus(
       Long projectId, Long reviewProjectTextUnitId, String notes)
       throws EntityWithIdNotFoundException {
 

@@ -6,7 +6,7 @@ import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestCommand;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
-import com.box.l10n.mojito.service.review.ReviewProjectDetail;
+import com.box.l10n.mojito.service.review.GetProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
@@ -78,7 +78,7 @@ public class ReviewProjectWS {
       @RequestBody ReviewProjectTextUnitAcceptRequest request)
       throws EntityWithIdNotFoundException {
     try {
-      ReviewProjectDetail.ReviewProjectTextUnit view =
+      GetProjectDetailView.ReviewProjectTextUnit view =
           reviewProjectService.acceptTextUnit(
               projectId,
               textUnitId,
@@ -220,7 +220,7 @@ public class ReviewProjectWS {
             .orElse(null));
   }
 
-  private GetReviewProjectResponse toDetailResponse(ReviewProjectDetail detail) {
+  private GetReviewProjectResponse toDetailResponse(GetProjectDetailView detail) {
     return new GetReviewProjectResponse(
         detail.id(),
         detail.type(),
@@ -243,7 +243,7 @@ public class ReviewProjectWS {
   }
 
   private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
-      ReviewProjectDetail.ReviewProjectTextUnit view) {
+      GetProjectDetailView.ReviewProjectTextUnit view) {
     return new GetReviewProjectResponse.ReviewProjectTextUnit(
         view.id(),
         new GetReviewProjectResponse.TmTextUnit(

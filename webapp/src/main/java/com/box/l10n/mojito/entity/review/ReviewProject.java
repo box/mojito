@@ -15,6 +15,9 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import org.springframework.data.annotation.CreatedBy;
@@ -23,6 +26,17 @@ import org.springframework.data.annotation.CreatedBy;
 @Table(
     name = "review_project",
     indexes = {@Index(name = "IDX__REVIEW_PROJECT__STATUS", columnList = "status")})
+@NamedEntityGraph(
+    name = "ReviewProject.detail",
+    attributeNodes = {
+      @NamedAttributeNode("locale"),
+      @NamedAttributeNode(value = "reviewProjectRequest", subgraph = "ReviewProject.detail.request")
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "ReviewProject.detail.request",
+          attributeNodes = {@NamedAttributeNode("screenshots")})
+    })
 public class ReviewProject extends AuditableEntity {
 
   @Convert(converter = ReviewProjectTypeConverter.class)
