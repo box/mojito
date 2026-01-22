@@ -13,11 +13,8 @@ import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ReviewProjectWS {
 
-  private static final Logger logger = LoggerFactory.getLogger(ReviewProjectWS.class);
   private final ReviewProjectService reviewProjectService;
 
   public ReviewProjectWS(ReviewProjectService reviewProjectService) {
@@ -72,19 +68,8 @@ public class ReviewProjectWS {
   @GetMapping("/review-projects/{projectId}")
   public GetReviewProjectResponse getReviewProject(@PathVariable Long projectId)
       throws EntityWithIdNotFoundException {
-    StopWatch stopWatch = new StopWatch("getReviewProject");
-    stopWatch.start("service");
     GetProjectDetailView projectDetail = reviewProjectService.getProjectDetail(projectId);
-    stopWatch.stop();
-    stopWatch.start("mapResponse");
-    GetReviewProjectResponse response = toDetailResponse(projectDetail);
-    stopWatch.stop();
-    logger.error(
-        "getReviewProject {} took {} ms. {}",
-        projectId,
-        stopWatch.getTotalTimeMillis(),
-        stopWatch.prettyPrint());
-    return response;
+    return toDetailResponse(projectDetail);
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")

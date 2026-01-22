@@ -95,10 +95,6 @@ public class TMTextUnit extends SettableAuditableEntity {
   @Column(name = "plural_form_other", length = Integer.MAX_VALUE)
   protected String pluralFormOther;
 
-  // This LAZY does not work and it is causing N+1 queries. We must remove it eventually.
-  // Intellij now warn about it: Specifying FetchType.LAZY for the non-owning side of the @OneToOne association will
-  // not affect the loading. The related entity will still be loaded as if the FetchType.EAGER is defined.
-  // impacted query example: ReviewProjectTextUnitRepository
   @OneToOne(mappedBy = "tmTextUnit", fetch = FetchType.LAZY)
   protected TMTextUnitStatistic tmTextUnitStatistic;
 
