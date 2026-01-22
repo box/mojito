@@ -208,10 +208,7 @@ public class ReviewProjectService {
     }
 
     if (request.searchQuery() != null) {
-      String pattern = "%" + request.searchQuery().replace("%", "\\%").replace("_", "\\_") + "%";
-      Predicate searchPredicate =
-          cb.like(requestJoin.get(ReviewProjectRequest_.name), pattern, '\\');
-      predicates.add(searchPredicate);
+      predicates.add(buildSearchPredicate(cb, root, requestJoin, request));
     }
 
     Predicate[] predicateArray = predicates.toArray(Predicate[]::new);
@@ -248,6 +245,47 @@ public class ReviewProjectService {
     }
 
     return new SearchReviewProjectsView(reviewProjects);
+  }
+
+  private Predicate buildStringPredicate(
+      CriteriaBuilder cb,
+      Expression<String> expression,
+      String searchQuery,
+      SearchReviewProjectsCriteria.SearchMatchType matchType) {
+
+    boolean ignoreCase = matchType == SearchReviewProjectsCriteria.SearchMatchType.ILIKE;
+    String queryValue = ignoreCase ? searchQuery.toLowerCase() : searchQuery;
+    Expression<String> valueExpression = ignoreCase ? cb.lower(expression) : expression;
+
+    return switch (matchType) {
+      case EXACT -> cb.equal(valueExpression, searchQuery);
+      case ILIKE, CONTAINS -> {
+        String pattern = "%" + escapeForLike(queryValue) + "%";
+        yield cb.like(valueExpression, pattern, '\\');
+      }
+    };
+  }
+
+  private Predicate buildSearchPredicate(
+      CriteriaBuilder cb,
+      Root<ReviewProject> root,
+      Join<ReviewProject, ReviewProjectRequest> requestJoin,
+      SearchReviewProjectsCriteria request) {
+    SearchReviewProjectsCriteria.SearchField searchField = request.searchField();
+    SearchReviewProjectsCriteria.SearchMatchType matchType = request.searchMatchType();
+
+    Expression<String> expression;
+    expression =
+        switch (searchField) {
+          case ID -> root.get(ReviewProject_.id).as(String.class);
+          case NAME -> requestJoin.get(ReviewProjectRequest_.name);
+        };
+
+    return buildStringPredicate(cb, expression, request.searchQuery(), matchType);
+  }
+
+  private String escapeForLike(String value) {
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
   }
 
   @Transactional(readOnly = true)
@@ -346,8 +384,7 @@ public class ReviewProjectService {
               .findByReviewProjectTextUnitId(textUnit.getId())
               .orElse(null);
       throw new ReviewProjectCurrentVariantConflictException(
-          expectedCurrentTmTextUnitVariantId,
-          currentVariantId,null);
+          expectedCurrentTmTextUnitVariantId, currentVariantId, null);
     }
 
     TMTextUnitCurrentVariant updatedCurrentVariant =

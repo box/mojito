@@ -12,6 +12,7 @@ import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -199,7 +200,24 @@ public class ReviewProjectWS {
         request.dueAfter(),
         request.dueBefore(),
         request.limit(),
-        request.searchQuery());
+        request.searchQuery(),
+        Optional.ofNullable(request.searchField())
+            .map(
+                sf ->
+                    switch (sf) {
+                      case ID -> SearchReviewProjectsCriteria.SearchField.ID;
+                      case NAME -> SearchReviewProjectsCriteria.SearchField.NAME;
+                    })
+            .orElse(null),
+        Optional.ofNullable(request.searchMatchType())
+            .map(
+                mt ->
+                    switch (mt) {
+                      case EXACT -> SearchReviewProjectsCriteria.SearchMatchType.EXACT;
+                      case ILIKE -> SearchReviewProjectsCriteria.SearchMatchType.ILIKE;
+                      case CONTAINS -> SearchReviewProjectsCriteria.SearchMatchType.CONTAINS;
+                    })
+            .orElse(null));
   }
 
   private GetReviewProjectResponse toDetailResponse(ReviewProjectDetail detail) {

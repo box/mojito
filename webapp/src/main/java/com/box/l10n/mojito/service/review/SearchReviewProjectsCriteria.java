@@ -17,7 +17,9 @@ public record SearchReviewProjectsCriteria(
     ZonedDateTime dueAfter,
     ZonedDateTime dueBefore,
     Integer limit,
-    String searchQuery) {
+    String searchQuery,
+    SearchField searchField,
+    SearchMatchType searchMatchType) {
 
   public static final int DEFAULT_LIMIT = 500;
   public static final int MAX_LIMIT = 10_000;
@@ -28,5 +30,31 @@ public record SearchReviewProjectsCriteria(
     } else if (limit > MAX_LIMIT) {
       throw new IllegalArgumentException("limit must be <= " + MAX_LIMIT);
     }
+
+    if (searchQuery != null) {
+      searchQuery = searchQuery.trim();
+      if (searchQuery.isEmpty()) {
+        searchQuery = null;
+      }
+    }
+
+    if (searchField == null) {
+      searchField = SearchField.NAME;
+    }
+
+    if (searchMatchType == null) {
+      searchMatchType = SearchMatchType.CONTAINS;
+    }
+  }
+
+  public enum SearchField {
+    NAME,
+    ID
+  }
+
+  public enum SearchMatchType {
+    CONTAINS,
+    EXACT,
+    ILIKE
   }
 }
