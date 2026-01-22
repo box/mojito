@@ -482,9 +482,13 @@
   gap: var(--space-2);
   padding: var(--space-1);
   border-radius: var(--radius-3);
-  border: none;
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--color-border) 35%, transparent);
+  background: color-mix(in srgb, var(--color-surface-muted) 10%, transparent);
   position: relative;
+}
+
+.review-project-detail__hero--has-shots {
+  padding-top: calc(var(--space-1) + 1.75rem);
 }
 
 .review-project-detail__field {
@@ -974,6 +978,35 @@
   gap: var(--space-1);
   box-shadow: 0 6px 16px -12px color-mix(in srgb, var(--color-text) 40%, transparent);
 }
+
+.review-project-detail__shots-toggle {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.review-project-detail__shots-toggle:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
 
 .review-project-detail__actions-button {
   padding: var(--space-2) var(--space-3);

@@ -687,6 +687,7 @@ function DetailPane({
   const displayedTarget = textUnit.target;
   const proposedValue = draftTarget;
   const wasRejected = textUnit.includedInLocalizedFile === false;
+  const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
   type StatusOption = 'accepted' | 'pending';
   const initialStatusValue = useMemo<StatusOption>(() => {
     const status = textUnit.reviewStatus;
@@ -746,51 +747,69 @@ function DetailPane({
       <div className="review-project-detail__header">
         <div className="review-project-detail__title" />
       </div>
-      <div className="review-project-detail__hero">
+      <div
+        className={`review-project-detail__hero${
+          screenshotImages.length ? ' review-project-detail__hero--has-shots' : ''
+        }`}
+      >
         {screenshotImages.length ? (
           <>
+            <button
+              type="button"
+              className="review-project-detail__shots-toggle"
+              onClick={() => setIsScreenshotsCollapsed((prev) => !prev)}
+              aria-expanded={!isScreenshotsCollapsed}
+              aria-label={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
+              title={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
+            >
+              <span aria-hidden="true">{isScreenshotsCollapsed ? '▾' : '▴'}</span>
+            </button>
             <div className="review-project-detail__shots-badge">
               {screenshotCount === 1 ? '1 screenshot' : `${screenshotCount} screenshots`}
             </div>
-            <div className="review-project-detail__gallery review-project-detail__gallery--hero">
-            <button
-              type="button"
-              className="review-project-detail__gallery-nav"
-              onClick={() =>
-                onChangeScreenshotIdx(
-                  (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
-                )
-              }
-              aria-label="Previous screenshot"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              className="review-project-detail__gallery-main review-project-detail__gallery-main--hero"
-              onClick={() => onOpenGallery()}
-              title="Click to open fullscreen"
-            >
-              {renderMedia(
-                screenshotImages[currentScreenshotIdx],
-                'review-project-detail__gallery-image',
-                {
-                  controls: false,
-                  muted: true,
-                  loop: true,
-                  preload: 'metadata',
-                },
-              )}
-            </button>
-            <button
-              type="button"
-              className="review-project-detail__gallery-nav"
-              onClick={() => onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)}
-              aria-label="Next screenshot"
-            >
-              ›
-            </button>
-            </div>
+            {isScreenshotsCollapsed ? null : (
+              <div className="review-project-detail__gallery review-project-detail__gallery--hero">
+                <button
+                  type="button"
+                  className="review-project-detail__gallery-nav"
+                  onClick={() =>
+                    onChangeScreenshotIdx(
+                      (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
+                    )
+                  }
+                  aria-label="Previous screenshot"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="review-project-detail__gallery-main review-project-detail__gallery-main--hero"
+                  onClick={() => onOpenGallery()}
+                  title="Click to open fullscreen"
+                >
+                  {renderMedia(
+                    screenshotImages[currentScreenshotIdx],
+                    'review-project-detail__gallery-image',
+                    {
+                      controls: false,
+                      muted: true,
+                      loop: true,
+                      preload: 'metadata',
+                    },
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="review-project-detail__gallery-nav"
+                  onClick={() =>
+                    onChangeScreenshotIdx((currentScreenshotIdx + 1) % screenshotImages.length)
+                  }
+                  aria-label="Next screenshot"
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className="review-project-detail__shots-empty">No screenshots attached.</div>
