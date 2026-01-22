@@ -9,23 +9,25 @@ import java.util.List;
 public record ReviewProjectDetail(
     Long id,
     ReviewProjectType type,
-  ReviewProjectStatus status,
-  ZonedDateTime createdDate,
-  ZonedDateTime dueDate,
-  String closeReason,
-  Integer textUnitCount,
-  Integer wordCount,
-  ReviewProjectRequest reviewProjectRequest,
-  Locale locale,
-  List<ReviewProjectTextUnit> textUnits) {
+    ReviewProjectStatus status,
+    ZonedDateTime createdDate,
+    ZonedDateTime dueDate,
+    String closeReason,
+    Integer textUnitCount,
+    Integer wordCount,
+    ReviewProjectRequest reviewProjectRequest,
+    Locale locale,
+    List<ReviewProjectTextUnit> textUnits) {
 
   public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {}
 
   public record Locale(Long id, String bcp47Tag) {}
 
-  public record ReviewProjectTextUnit(Long id, TmTextUnit tmTextUnit, TmTextUnitVariant tmTextUnitVariant) {}
+  public record ReviewProjectTextUnit(
+      Long id, TmTextUnit tmTextUnit, TmTextUnitVariant tmTextUnitVariant) {}
 
-  public record TmTextUnit(Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
+  public record TmTextUnit(
+      Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
 
   public record Asset(Long assetPath) {}
 

@@ -314,8 +314,7 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewProjectDetail getProjectDetail(Long projectId)
-      throws EntityWithIdNotFoundException {
+  public ReviewProjectDetail getProjectDetail(Long projectId) throws EntityWithIdNotFoundException {
     ReviewProject project =
         reviewProjectRepository
             .findById(projectId)
@@ -335,7 +334,8 @@ public class ReviewProjectService {
 
     ReviewProjectDetail.Locale locale =
         project.getLocale() != null
-            ? new ReviewProjectDetail.Locale(project.getLocale().getId(), project.getLocale().getBcp47Tag())
+            ? new ReviewProjectDetail.Locale(
+                project.getLocale().getId(), project.getLocale().getBcp47Tag())
             : null;
 
     return new ReviewProjectDetail(
@@ -677,7 +677,8 @@ public class ReviewProjectService {
             view.includedInLocalizedFile(),
             view.notes());
 
-    return new ReviewProjectDetail.ReviewProjectTextUnit(view.reviewProjectTextUnitId(), tmTextUnit, tmTextUnitVariant);
+    return new ReviewProjectDetail.ReviewProjectTextUnit(
+        view.reviewProjectTextUnitId(), tmTextUnit, tmTextUnitVariant);
   }
 
   private ReviewProjectTextUnitView toTextUnitView(

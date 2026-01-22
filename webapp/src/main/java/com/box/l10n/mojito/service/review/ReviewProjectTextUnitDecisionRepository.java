@@ -13,5 +13,6 @@ public interface ReviewProjectTextUnitDecisionRepository
   List<ReviewProjectTextUnitDecision> findByReviewProjectTextUnit_ReviewProject_Id(
       Long reviewProjectId);
 
-  Optional<ReviewProjectTextUnitDecision> findByReviewProjectTextUnitId(Long reviewProjectTextUnitId);
+  Optional<ReviewProjectTextUnitDecision> findByReviewProjectTextUnitId(
+      Long reviewProjectTextUnitId);
 }

@@ -225,8 +225,7 @@ public class ReviewProjectWS {
                 detail.reviewProjectRequest().screenshotImageIds())
             : null,
         detail.locale() != null
-            ? new GetReviewProjectResponse.Locale(
-                detail.locale().id(), detail.locale().bcp47Tag())
+            ? new GetReviewProjectResponse.Locale(detail.locale().id(), detail.locale().bcp47Tag())
             : null,
         detail.textUnits().stream().map(this::toTextUnitResponse).toList());
   }

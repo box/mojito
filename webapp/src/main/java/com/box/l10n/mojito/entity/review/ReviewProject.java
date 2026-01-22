@@ -12,12 +12,11 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
-import jakarta.persistence.NamedAttributeNode;
-import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import org.springframework.data.annotation.CreatedBy;
@@ -28,10 +27,7 @@ import org.springframework.data.annotation.CreatedBy;
     indexes = {@Index(name = "IDX__REVIEW_PROJECT__STATUS", columnList = "status")})
 @NamedEntityGraph(
     name = "ReviewProject.detail",
-    attributeNodes = {
-      @NamedAttributeNode("locale"),
-      @NamedAttributeNode("reviewProjectRequest")
-    })
+    attributeNodes = {@NamedAttributeNode("locale"), @NamedAttributeNode("reviewProjectRequest")})
 public class ReviewProject extends AuditableEntity {
 
   @Convert(converter = ReviewProjectTypeConverter.class)
