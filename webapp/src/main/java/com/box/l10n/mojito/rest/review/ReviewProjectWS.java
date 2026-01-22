@@ -73,7 +73,7 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")
-  public ResponseEntity<GetReviewProjectResponse.TmTextUnit> acceptTextUnit(
+  public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> acceptTextUnit(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitAcceptRequest request)
@@ -96,7 +96,7 @@ public class ReviewProjectWS {
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/review")
-  public GetReviewProjectResponse.TmTextUnit updateReviewStatus(
+  public GetReviewProjectResponse.ReviewProjectTextUnit updateReviewStatus(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitReviewRequest request)
@@ -144,21 +144,22 @@ public class ReviewProjectWS {
       Integer wordCount,
       ReviewProjectRequest reviewProjectRequest,
       Locale locale,
-      List<TmTextUnit> textUnits) {
+      List<ReviewProjectTextUnit> textUnits) {
 
     public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {}
 
     public record Locale(Long id, String bcp47Tag) {}
 
+    public record ReviewProjectTextUnit(
+        Long id, TmTextUnit tmTextUnit, TmTextUnitVariant tmTextUnitVariant) {}
+
     public record TmTextUnit(
-        Long id,
-        Long name,
-        String content,
-        String comment,
-        Asset asset,
-        Long wordCount) {}
+        Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
 
     public record Asset(Long assetPath) {}
+
+    public record TmTextUnitVariant(
+        Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
   }
 
   // Mapping helpers
@@ -209,17 +210,25 @@ public class ReviewProjectWS {
   }
 
   private GetReviewProjectResponse toDetailResponse(ReviewProjectDetailView view) {
-    List<GetReviewProjectResponse.TmTextUnit> textUnits =
+    List<GetReviewProjectResponse.ReviewProjectTextUnit> textUnits =
         view.locale().textUnits().stream()
             .map(
                 tu ->
-                    new GetReviewProjectResponse.TmTextUnit(
-                        tu.tmTextUnitId(),
-                        tu.tmTextUnitId(),
-                        tu.target(),
-                        tu.notes(),
-                        new GetReviewProjectResponse.Asset(null),
-                        null))
+                    new GetReviewProjectResponse.ReviewProjectTextUnit(
+                        tu.reviewProjectTextUnitId(),
+                        new GetReviewProjectResponse.TmTextUnit(
+                            tu.tmTextUnitId(),
+                            tu.name(),
+                            tu.target(),
+                            tu.notes(),
+                            new GetReviewProjectResponse.Asset(null),
+                            null),
+                        new GetReviewProjectResponse.TmTextUnitVariant(
+                            tu.tmTextUnitVariantId(),
+                            tu.target(),
+                            tu.status(),
+                            tu.includedInLocalizedFile(),
+                            tu.notes())))
             .toList();
 
     GetReviewProjectResponse.ReviewProjectRequest request =
@@ -244,13 +253,22 @@ public class ReviewProjectWS {
         textUnits);
   }
 
-  private GetReviewProjectResponse.TmTextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
-    return new GetReviewProjectResponse.TmTextUnit(
+  private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
+      ReviewProjectTextUnitView view) {
+    return new GetReviewProjectResponse.ReviewProjectTextUnit(
         view.reviewProjectTextUnitId(),
-        view.tmTextUnitId(),
-        view.target(),
-        view.notes(),
-        new GetReviewProjectResponse.Asset(null),
-        null);
+        new GetReviewProjectResponse.TmTextUnit(
+            view.tmTextUnitId(),
+            view.name(),
+            view.target(),
+            view.notes(),
+            new GetReviewProjectResponse.Asset(null),
+            null),
+        new GetReviewProjectResponse.TmTextUnitVariant(
+            view.tmTextUnitVariantId(),
+            view.target(),
+            view.status(),
+            view.includedInLocalizedFile(),
+            view.notes()));
   }
 }

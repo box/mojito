@@ -536,11 +536,11 @@ function TextUnitRow({
   const { reviewProjectTextUnitId, name, source, target } = textUnit;
   return (
     <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
-      <div className="review-project-row__name" title={name ?? undefined}>
+      <div className="review-project-row__name" title={name != null ? String(name) : undefined}>
         {name || `Text unit ${reviewProjectTextUnitId}`}
       </div>
       <div className="review-project-row__strings">
-        <div className="review-project-row__string-line" title={source}>
+        <div className="review-project-row__string-line" title={source ?? undefined}>
           <span className="review-project-row__string-text">{source || '—'}</span>
         </div>
         <div
@@ -766,9 +766,13 @@ function DetailPane({
               className="pill review-project-detail__pill-link review-project-detail__pill-link--title"
               to={{
                 pathname: '/workbench',
-                search: `?tmTextUnitId=${encodeURIComponent(textUnit.tmTextUnitId)}${
-                  localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''
-                }${textUnit.repositoryId ? `&repo=${textUnit.repositoryId}` : ''}`,
+                search: `?tmTextUnitId=${encodeURIComponent(
+                  textUnit.tmTextUnitId != null ? String(textUnit.tmTextUnitId) : '',
+                )}${localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''}${
+                  textUnit.repositoryId != null
+                    ? `&repo=${encodeURIComponent(String(textUnit.repositoryId))}`
+                    : ''
+                }`,
               }}
               state={{
                 workbenchSearch: {

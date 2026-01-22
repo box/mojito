@@ -17,7 +17,7 @@ export function ReviewProjectPageViewV2({ projectId, project }: Props) {
     [project?.locale, project?.locales],
   );
   const textUnits = useMemo<ApiReviewProjectTextUnit[]>(
-    () => primaryLocale?.textUnits ?? [],
+    () => (primaryLocale as { textUnits?: ApiReviewProjectTextUnit[] } | null)?.textUnits ?? [],
     [primaryLocale],
   );
 

@@ -40,30 +40,45 @@ export type ApiReviewProjectLocaleSummary = {
 
 export type ApiReviewProjectTextUnit = {
   id?: number | null;
+  tmTextUnit?: {
+    id?: number | null;
+    name?: number | string | null;
+    content?: string | null;
+    comment?: string | null;
+    asset?: { assetPath?: number | string | null } | null;
+    wordCount?: number | null;
+  } | null;
   name?: number | string | null;
   content?: string | null;
   comment?: string | null;
   asset?: { assetPath?: number | string | null } | null;
   wordCount?: number | null;
-  // legacy fields used by UI (may be undefined)
-  reviewProjectTextUnitId?: number | null;
-  tmTextUnitId?: number | null;
-  tmTextUnitVariantId?: number | null;
-  selectedTmTextUnitVariantId?: number | null;
-  currentTmTextUnitVariantId?: number | null;
-  source?: string | null;
-  target?: string | null;
-  currentTarget?: string | null;
-  baselineStatus?: string | null;
-  reviewStatus?: 'PENDING' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | null;
-  notes?: string | null;
-  reviewedAt?: string | null;
-  reviewedBy?: string | null;
-  status?: string | null;
-  repositoryId?: number | null;
-  repositoryName?: string | null;
-  assetPath?: string | null;
-  includedInLocalizedFile?: boolean;
+  tmTextUnitVariant?: {
+    id?: number | null;
+    content?: string | null;
+    status?: string | null;
+    includedInLocalizedFile?: boolean | null;
+    comment?: string | null;
+  } | null;
+  // legacy fields used by UI (required)
+  reviewProjectTextUnitId: number;
+  tmTextUnitId: number | null;
+  tmTextUnitVariantId: number | null;
+  selectedTmTextUnitVariantId: number | null;
+  currentTmTextUnitVariantId: number | null;
+  source: string | null;
+  target: string | null;
+  currentTarget: string | null;
+  baselineStatus: string | null;
+  reviewStatus: 'PENDING' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | null;
+  notes: string | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  status: string | null;
+  repositoryId: number | null;
+  repositoryName: string | null;
+  assetPath: string | null;
+  includedInLocalizedFile: boolean;
 };
 
 export type ApiReviewProjectLocaleDetail = ApiReviewProjectLocaleSummary & {
@@ -142,6 +157,65 @@ const jsonHeaders = {
   'Content-Type': 'application/json',
 };
 
+const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUnit => {
+  const tm = tu.tmTextUnit ?? {};
+  const variant = tu.tmTextUnitVariant ?? null;
+
+  const reviewProjectTextUnitId = (tu.id ?? tm.id ?? tu.name ?? 0) as number;
+  const tmTextUnitId = (tm.id ?? tu.tmTextUnitId ?? null) as number | null;
+  const target = tm.content ?? tu.content ?? null;
+  const comment = tm.comment ?? tu.comment ?? tu.notes ?? null;
+  const name = tm.name ?? tu.name ?? tmTextUnitId ?? null;
+  const assetPath =
+    tm.asset && tm.asset.assetPath != null
+      ? String(tm.asset.assetPath)
+      : tu.asset && tu.asset.assetPath != null
+        ? String(tu.asset.assetPath)
+        : null;
+
+  const variantId = variant?.id ?? tu.tmTextUnitVariantId ?? null;
+  const variantContent = variant?.content ?? target;
+  const variantStatus = variant?.status ?? tu.status ?? null;
+  const variantIncluded = variant?.includedInLocalizedFile ?? tu.includedInLocalizedFile ?? true;
+  const variantComment = variant?.comment ?? tu.notes ?? null;
+
+  return {
+    ...tu,
+    tmTextUnit: tm,
+    reviewProjectTextUnitId,
+    tmTextUnitId,
+    name,
+    content: target,
+    comment,
+    asset: tm.asset ?? tu.asset ?? (assetPath != null ? { assetPath } : null),
+    wordCount: tm.wordCount ?? tu.wordCount ?? null,
+    tmTextUnitVariantId: variantId,
+    selectedTmTextUnitVariantId: variantId,
+    currentTmTextUnitVariantId: variantId,
+    source: target,
+    target,
+    currentTarget: variantContent ?? target,
+    baselineStatus: tu.baselineStatus ?? null,
+    reviewStatus: tu.reviewStatus ?? 'PENDING',
+    notes: comment,
+    reviewedAt: tu.reviewedAt ?? null,
+    reviewedBy: tu.reviewedBy ?? null,
+    status: variantStatus,
+    repositoryId: tu.repositoryId ?? null,
+    repositoryName: tu.repositoryName ?? null,
+    assetPath,
+    includedInLocalizedFile: variantIncluded,
+    tmTextUnitVariant: {
+      ...variant,
+      id: variantId ?? undefined,
+      content: variantContent ?? undefined,
+      status: variantStatus ?? undefined,
+      includedInLocalizedFile: variantIncluded,
+      comment: variantComment ?? undefined,
+    },
+  } as ApiReviewProjectTextUnit;
+};
+
 export const searchReviewProjects = async (
   params: ReviewProjectsSearchRequest,
 ): Promise<SearchReviewProjectsResponse> => {
@@ -201,16 +275,7 @@ export const fetchReviewProjectDetail = async (
 
   // Normalize to legacy-friendly shape for UI
   const textUnits =
-    raw.textUnits?.map((tu) => ({
-      ...tu,
-      reviewProjectTextUnitId: (tu.id ?? tu.name ?? 0) as number,
-      tmTextUnitId: typeof tu.name === 'number' ? tu.name : null,
-      source: tu.content ?? null,
-      notes: tu.comment ?? null,
-      assetPath:
-        tu.asset && tu.asset.assetPath != null ? String(tu.asset.assetPath) : null,
-      includedInLocalizedFile: tu.includedInLocalizedFile ?? true,
-    })) ?? [];
+    raw.textUnits?.map((tu) => normalizeTextUnit(tu as ApiReviewProjectTextUnit)) ?? [];
 
   const primaryLocale: ApiReviewProjectLocaleDetail | null = raw.locale
     ? {
@@ -269,7 +334,8 @@ export const acceptReviewProjectTextUnit = async ({
     throw error;
   }
 
-  return (await response.json()) as ApiReviewProjectTextUnit;
+  const raw = (await response.json()) as ApiReviewProjectTextUnit;
+  return normalizeTextUnit(raw);
 };
 
 export const updateReviewProjectTextUnitReview = async ({
@@ -293,5 +359,6 @@ export const updateReviewProjectTextUnitReview = async ({
     throw new Error(message || 'Failed to update review status');
   }
 
-  return (await response.json()) as ApiReviewProjectTextUnit;
+  const raw = (await response.json()) as ApiReviewProjectTextUnit;
+  return normalizeTextUnit(raw);
 };
