@@ -33,31 +33,37 @@ export type ApiReviewProjectRepositorySummary = {
 export type ApiReviewProjectLocaleSummary = {
   id: number;
   bcp47Tag: string;
-  displayName: string;
-  selectedCount: number;
-  acceptedCount: number;
+  displayName?: string;
+  selectedCount?: number;
+  acceptedCount?: number;
 };
 
 export type ApiReviewProjectTextUnit = {
-  reviewProjectTextUnitId: number;
-  tmTextUnitId: number;
-  tmTextUnitVariantId: number | null;
-  selectedTmTextUnitVariantId: number | null;
-  currentTmTextUnitVariantId: number | null;
-  name: string;
-  source: string;
-  target: string | null;
-  currentTarget: string | null;
+  id?: number | null;
+  name?: number | string | null;
+  content?: string | null;
+  comment?: string | null;
+  asset?: { assetPath?: number | string | null } | null;
+  wordCount?: number | null;
+  // legacy fields used by UI (may be undefined)
+  reviewProjectTextUnitId?: number | null;
+  tmTextUnitId?: number | null;
+  tmTextUnitVariantId?: number | null;
+  selectedTmTextUnitVariantId?: number | null;
+  currentTmTextUnitVariantId?: number | null;
+  source?: string | null;
+  target?: string | null;
+  currentTarget?: string | null;
   baselineStatus?: string | null;
   reviewStatus?: 'PENDING' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | null;
   notes?: string | null;
   reviewedAt?: string | null;
   reviewedBy?: string | null;
-  status: string | null;
-  repositoryId: number | null;
-  repositoryName: string | null;
-  assetPath: string | null;
-  includedInLocalizedFile: boolean;
+  status?: string | null;
+  repositoryId?: number | null;
+  repositoryName?: string | null;
+  assetPath?: string | null;
+  includedInLocalizedFile?: boolean;
 };
 
 export type ApiReviewProjectLocaleDetail = ApiReviewProjectLocaleSummary & {
@@ -66,7 +72,6 @@ export type ApiReviewProjectLocaleDetail = ApiReviewProjectLocaleSummary & {
 
 export type ApiReviewProjectDetail = {
   id: number;
-  name?: string | null;
   createdDate?: string | null;
   dueDate?: string | null;
   closeReason?: string | null;
@@ -74,13 +79,13 @@ export type ApiReviewProjectDetail = {
   wordCount?: number | null;
   type: ApiReviewProjectType;
   status: ApiReviewProjectStatus;
-  notes?: string | null;
-  requestId?: number | null;
-  requestName?: string | null;
-  locale?: ApiReviewProjectLocaleDetail | null;
-  repositories: ApiReviewProjectRepositorySummary[];
-  locales: ApiReviewProjectLocaleDetail[];
-  screenshotImageIds?: string[] | null;
+  reviewProjectRequest?: { id: number | null; name?: string | null; screenshotImageIds?: string[] } | null;
+  locale?: { id: number | null; bcp47Tag?: string | null } | null;
+  textUnits?: ApiReviewProjectTextUnit[];
+  // Legacy fields used by UI
+  name?: string | null;
+  locales?: ApiReviewProjectLocaleDetail[];
+  screenshotImageIds?: string[];
 };
 
 export type SearchReviewProjectsResponse = {
@@ -192,7 +197,39 @@ export const fetchReviewProjectDetail = async (
     throw new Error(message || 'Failed to load review project');
   }
 
-  return (await response.json()) as ApiReviewProjectDetail;
+  const raw = (await response.json()) as ApiReviewProjectDetail;
+
+  // Normalize to legacy-friendly shape for UI
+  const textUnits =
+    raw.textUnits?.map((tu) => ({
+      ...tu,
+      reviewProjectTextUnitId: (tu.id ?? tu.name ?? 0) as number,
+      tmTextUnitId: typeof tu.name === 'number' ? tu.name : null,
+      source: tu.content ?? null,
+      notes: tu.comment ?? null,
+      assetPath:
+        tu.asset && tu.asset.assetPath != null ? String(tu.asset.assetPath) : null,
+      includedInLocalizedFile: tu.includedInLocalizedFile ?? true,
+    })) ?? [];
+
+  const primaryLocale: ApiReviewProjectLocaleDetail | null = raw.locale
+    ? {
+        id: raw.locale.id ?? 0,
+        bcp47Tag: raw.locale.bcp47Tag ?? '',
+        displayName: raw.locale.bcp47Tag ?? '',
+        selectedCount: textUnits.length,
+        acceptedCount: 0,
+        textUnits,
+      }
+    : null;
+
+  return {
+    ...raw,
+    textUnits,
+    screenshotImageIds: raw.reviewProjectRequest?.screenshotImageIds ?? [],
+    name: raw.reviewProjectRequest?.name ?? null,
+    locales: primaryLocale ? [primaryLocale] : [],
+  };
 };
 
 export const acceptReviewProjectTextUnit = async ({

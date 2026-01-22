@@ -27,7 +27,7 @@ type Props = {
 };
 
 export function ReviewProjectPageView({ projectId, project }: Props) {
-  const primaryLocale = project?.locale ?? project?.locales?.[0];
+  const primaryLocale = project?.locales?.[0] ?? null;
   const [textUnits, setTextUnits] = useState<ApiReviewProjectTextUnit[]>(
     () => primaryLocale?.textUnits ?? [],
   );
@@ -92,7 +92,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       if (!term) return true;
       const haystacks = [tu.name, tu.source, tu.currentTarget, tu.target]
         .filter(Boolean)
-        .map((s) => s!.toLowerCase());
+        .map((s) => String(s).toLowerCase());
       return haystacks.some((h) => h.includes(term));
     });
   }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);

@@ -146,11 +146,9 @@ public class ReviewProjectWS {
       Locale locale,
       List<TmTextUnit> textUnits) {
 
-      public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {
-      }
+    public record ReviewProjectRequest(Long id, String name, List<String> screenshotImageIds) {}
 
-      public record Locale(Long id, String bcp47Tag) {}
-
+    public record Locale(Long id, String bcp47Tag) {}
 
     public record TmTextUnit(
         Long id,
@@ -158,11 +156,9 @@ public class ReviewProjectWS {
         String content,
         String comment,
         Asset asset,
-        Long wordCount) {
-        }
+        Long wordCount) {}
 
-        public record Asset(Long assetPath) {}
-    }
+    public record Asset(Long assetPath) {}
   }
 
   // Mapping helpers
@@ -213,7 +209,26 @@ public class ReviewProjectWS {
   }
 
   private GetReviewProjectResponse toDetailResponse(ReviewProjectDetailView view) {
-    GetReviewProjectResponse.LocaleDetail localeDetail = toLocaleDetail(view.locale());
+    List<GetReviewProjectResponse.TmTextUnit> textUnits =
+        view.locale().textUnits().stream()
+            .map(
+                tu ->
+                    new GetReviewProjectResponse.TmTextUnit(
+                        tu.tmTextUnitId(),
+                        tu.tmTextUnitId(),
+                        tu.target(),
+                        tu.notes(),
+                        new GetReviewProjectResponse.Asset(null),
+                        null))
+            .toList();
+
+    GetReviewProjectResponse.ReviewProjectRequest request =
+        new GetReviewProjectResponse.ReviewProjectRequest(
+            view.requestId(), view.requestName(), view.screenshotImageIds());
+
+    GetReviewProjectResponse.Locale locale =
+        new GetReviewProjectResponse.Locale(
+            view.locale().id(), view.locale().bcp47Tag());
 
     return new GetReviewProjectResponse(
         view.id(),
@@ -224,49 +239,18 @@ public class ReviewProjectWS {
         view.closeReason(),
         view.textUnitCount(),
         view.wordCount(),
-        view.name(),
-        view.notes(),
-        view.requestId(),
-        view.requestName(),
-        localeDetail,
-        view.repositories().stream()
-            .map(r -> new GetReviewProjectResponse.Repository(r.id(), r.name()))
-            .toList(),
-        view.locales().stream().map(this::toLocaleDetail).toList(),
-        view.screenshotImageIds());
-  }
-
-  private GetReviewProjectResponse.LocaleDetail toLocaleDetail(
-      ReviewProjectLocaleDetailView localeView) {
-    return new GetReviewProjectResponse.LocaleDetail(
-        localeView.id(),
-        localeView.bcp47Tag(),
-        localeView.displayName(),
-        localeView.selectedCount(),
-        localeView.acceptedCount(),
-        localeView.textUnits().stream().map(this::toTextUnitResponse).toList());
+        request,
+        locale,
+        textUnits);
   }
 
   private GetReviewProjectResponse.TmTextUnit toTextUnitResponse(ReviewProjectTextUnitView view) {
     return new GetReviewProjectResponse.TmTextUnit(
         view.reviewProjectTextUnitId(),
         view.tmTextUnitId(),
-        view.tmTextUnitVariantId(),
-        view.selectedTmTextUnitVariantId(),
-        view.currentTmTextUnitVariantId(),
-        view.name(),
-        view.source(),
         view.target(),
-        view.currentTarget(),
-        view.status(),
-        view.baselineStatus(),
-        view.reviewStatus(),
         view.notes(),
-        view.reviewedAt(),
-        view.reviewedBy(),
-        view.repositoryId(),
-        view.repositoryName(),
-        view.assetPath(),
-        view.includedInLocalizedFile());
+        new GetReviewProjectResponse.Asset(null),
+        null);
   }
 }
