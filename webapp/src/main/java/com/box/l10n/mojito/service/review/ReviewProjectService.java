@@ -3,7 +3,13 @@ package com.box.l10n.mojito.service.review;
 import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Locale_;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.review.*;
+import com.box.l10n.mojito.entity.review.ReviewProject;
+import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
+import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
+import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
+import com.box.l10n.mojito.entity.review.ReviewProject_;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
@@ -16,17 +22,6 @@ import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.security.user.User;
-import com.box.l10n.mojito.entity.review.ReviewProject;
-import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
-import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
-import com.box.l10n.mojito.entity.review.ReviewProjectType;
-import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
-import com.box.l10n.mojito.entity.review.ReviewProject_;
-import com.box.l10n.mojito.entity.review.ReviewProject_;
-import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -39,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 @Service
 public class ReviewProjectService {
@@ -200,9 +194,8 @@ public class ReviewProjectService {
       predicates.add(root.get("type").in(request.types()));
     }
 
-    if (request.localeTags() != null && !request.localeTags().isEmpty()) {
-      Expression<String> localeTagExpression = cb.lower(localeJoin.get(Locale_.bcp47Tag));
-      predicates.add(localeTagExpression.in(request.localeTags()));
+    if (request.localeTags() != null) {
+      predicates.add(localeJoin.get(Locale_.bcp47Tag).in(request.localeTags()));
     }
 
     if (request.createdAfter() != null) {
@@ -221,13 +214,9 @@ public class ReviewProjectService {
     }
 
     if (request.searchQuery() != null) {
-      String pattern =
-          "%" + request.searchQuery().toLowerCase().replace("%", "\\%").replace("_", "\\_") + "%";
+      String pattern = "%" + request.searchQuery().replace("%", "\\%").replace("_", "\\_") + "%";
       Predicate searchPredicate =
-          cb.like(
-              cb.function("lower", String.class, requestJoin.get(ReviewProjectRequest_.name)),
-              pattern,
-              '\\');
+          cb.like(requestJoin.get(ReviewProjectRequest_.name), pattern, '\\');
       predicates.add(searchPredicate);
     }
 
@@ -243,22 +232,30 @@ public class ReviewProjectService {
 
     List<ReviewProject> projects = query.getResultList();
 
+    List<SearchReviewProjectsView.ReviewProject> reviewProjects = new ArrayList<>();
+
     for (ReviewProject project : projects) {
-        new SearchReviewProjectsView.ReviewProject(
-                project.getId(),
-                project.getCreatedDate(),
-                project.getLastModifiedDate(),
-                project.getDueDate(),
-                project.getCloseReason(),
-                project.getTextUnitCount(),
-                project.getWordCount(),
-                project.getType(),
-                project.getStatus(),
-                new SearchReviewProjectsView.Locale(project.getLocale().getId(), project.getLocale().getBcp47Tag()), // this will do a request to the DB for every single row?
-                new SearchReviewProjectsView.ReviewProjectRequest(project.getReviewProjectRequest().getId(), project.getReviewProjectRequest().getName())); // is this bad how many extra query since we don't have fetch. does it cache if it is the same id?
+      Locale locale = localeService.findById(project.getLocale().getId());
+      reviewProjects.add(
+          new SearchReviewProjectsView.ReviewProject(
+              project.getId(),
+              project.getCreatedDate(),
+              project.getLastModifiedDate(),
+              project.getDueDate(),
+              project.getCloseReason(),
+              project.getTextUnitCount(),
+              project.getWordCount(),
+              project.getType(),
+              project.getStatus(),
+              new SearchReviewProjectsView.Locale(locale.getId(), locale.getBcp47Tag()),
+              new SearchReviewProjectsView.ReviewProjectRequest(
+                  project.getReviewProjectRequest().getId(),
+                  project
+                      .getReviewProjectRequest()
+                      .getName())));
     }
 
-    return new SearchReviewProjectsView(summaries);
+    return new SearchReviewProjectsView(reviewProjects);
   }
 
   @Transactional(readOnly = true)
@@ -464,8 +461,6 @@ public class ReviewProjectService {
             reviewProjectScreenshotRepository.findImageNamesByReviewProjectRequestId(
                 project.getReviewProjectRequest().getId())));
   }
-
-
 
   private List<ReviewProjectTextUnitView> toTextUnitViews(ReviewProject reviewProject) {
     Map<Long, ReviewProjectTextUnitDecision> decisionsByTextUnitId =
