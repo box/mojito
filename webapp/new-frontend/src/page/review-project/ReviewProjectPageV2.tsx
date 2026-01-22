@@ -9,11 +9,11 @@ export function ReviewProjectPageV2() {
   const projectDetailQuery = useReviewProjectDetail(projectId);
 
   if (!projectId) {
-    return <div>Missing project id</div>;
+    return <ErrorState message="Missing project id." />;
   }
 
   if (projectDetailQuery.isLoading) {
-    return <div>Loading project…</div>;
+    return <LoadingState />;
   }
 
   if (projectDetailQuery.isError) {
@@ -21,10 +21,27 @@ export function ReviewProjectPageV2() {
       projectDetailQuery.error instanceof Error
         ? projectDetailQuery.error.message
         : 'Failed to load project';
-    return <div>{message}</div>;
+    return <ErrorState message={message} />;
   }
 
   return (
     <ReviewProjectPageViewV2 projectId={projectId} project={projectDetailQuery.data ?? null} />
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="review-project-page__state">
+      <div className="spinner spinner--md" aria-hidden />
+      <div>Loading project…</div>
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="review-project-page__state review-project-page__state--error">
+      <div>{message}</div>
+    </div>
   );
 }

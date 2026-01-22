@@ -11,13 +11,11 @@ export function ReviewProjectPage() {
   const projectDetailQuery = useReviewProjectDetail(projectId);
 
   if (!projectId) {
-    // TODO(ja) will this really happen? overkill?
-    return <div>Missing project id</div>;
+    return <ErrorState message="Missing project id." />;
   }
 
   if (projectDetailQuery.isLoading) {
-    // TODO(ja) we need this to be render with proper style - centered etc, it needs to be reusing shared style.
-    return <div>Loading project…</div>;
+    return <LoadingState />;
   }
 
   if (projectDetailQuery.isError) {
@@ -25,9 +23,25 @@ export function ReviewProjectPage() {
       projectDetailQuery.error instanceof Error
         ? projectDetailQuery.error.message
         : 'Failed to load project';
-    // TODO(ja) same styling!
-    return <div>{message}</div>;
+    return <ErrorState message={message} />;
   }
 
   return <ReviewProjectPageView projectId={projectId} project={projectDetailQuery.data ?? null} />;
+}
+
+function LoadingState() {
+  return (
+    <div className="review-project-page__state">
+      <div className="spinner spinner--md" aria-hidden />
+      <div>Loading project…</div>
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="review-project-page__state review-project-page__state--error">
+      <div>{message}</div>
+    </div>
+  );
 }

@@ -122,14 +122,29 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
   const [dueBefore, setDueBefore] = useState<string | null>(null);
   const [requestIdFilter, setRequestIdFilter] = useState<number | null>(null);
 
+  const repositories = useMemo(() => repositoryData ?? [], [repositoryData]);
+  const localeOptions = useLocaleOptionsWithDisplayNames(repositories);
+  const availableLocaleTags = useMemo(() => {
+    const tags = localeOptions.map((option) => option.tag).filter(Boolean);
+    return Array.from(new Set(tags));
+  }, [localeOptions]);
+
   const searchParams = useMemo<ReviewProjectsSearchRequest>(() => {
     const searchFieldValue: ReviewProjectsSearchRequest['searchField'] =
       searchField === 'id' ? 'ID' : 'NAME';
     const searchMatchTypeValue: ReviewProjectsSearchRequest['searchMatchType'] =
       searchType === 'exact' ? 'EXACT' : searchType === 'ilike' ? 'ILIKE' : 'CONTAINS';
+    const selectedLocaleSet = new Set(selectedLocaleTags);
+    const localeTags =
+      selectedLocaleTags.length === 0
+        ? undefined
+        : availableLocaleTags.length > 0 &&
+            availableLocaleTags.every((tag) => selectedLocaleSet.has(tag))
+          ? undefined
+          : selectedLocaleTags;
 
     return {
-      localeTags: selectedLocaleTags.length > 0 ? selectedLocaleTags : undefined,
+      localeTags,
       statuses: statusFilter === 'all' ? undefined : [statusFilter],
       types: typeFilter === 'all' ? undefined : [typeFilter],
       createdAfter,
@@ -142,6 +157,7 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       searchMatchType: searchMatchTypeValue,
     };
   }, [
+    availableLocaleTags,
     createdAfter,
     createdBefore,
     dueAfter,
@@ -167,8 +183,6 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
   const { data, isLoading, isError, error, refetch } = useReviewProjects(searchParams);
 
   const projects = useMemo(() => data ?? [], [data]);
-  const repositories = useMemo(() => repositoryData ?? [], [repositoryData]);
-  const localeOptions = useLocaleOptionsWithDisplayNames(repositories);
   const preferredLocales = useMemo(() => loadPreferredLocales(), []);
   const myLocaleSelections = useMemo(
     () =>
