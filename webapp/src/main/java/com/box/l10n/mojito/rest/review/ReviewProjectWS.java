@@ -68,7 +68,8 @@ public class ReviewProjectWS {
   @GetMapping("/review-projects/{projectId}")
   public GetReviewProjectResponse getReviewProject(@PathVariable Long projectId)
       throws EntityWithIdNotFoundException {
-    return toDetailResponse(reviewProjectService.getProjectDetail(projectId));
+      GetProjectDetailView projectDetail = reviewProjectService.getProjectDetail(projectId);
+      return toDetailResponse(projectDetail);
   }
 
   @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")
