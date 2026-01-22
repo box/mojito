@@ -172,7 +172,8 @@ public class ReviewProjectService {
     }
 
     CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-    CriteriaQuery<ReviewProject> cq = cb.createQuery(ReviewProject.class);
+    CriteriaQuery<SearchReviewProjectDetail> cq =
+        cb.createQuery(SearchReviewProjectDetail.class);
     Root<ReviewProject> root = cq.from(ReviewProject.class);
     Join<ReviewProject, Locale> localeJoin = root.join(ReviewProject_.locale, JoinType.LEFT);
     Join<ReviewProject, ReviewProjectRequest> requestJoin =
@@ -214,35 +215,49 @@ public class ReviewProjectService {
     Predicate[] predicateArray = predicates.toArray(Predicate[]::new);
 
     cq.where(predicateArray)
-        .select(root)
+        .select(
+            cb.construct(
+                SearchReviewProjectDetail.class,
+                root.get(ReviewProject_.id),
+                root.get(ReviewProject_.createdDate),
+                root.get(ReviewProject_.lastModifiedDate),
+                root.get(ReviewProject_.dueDate),
+                root.get(ReviewProject_.closeReason),
+                root.get(ReviewProject_.textUnitCount),
+                root.get(ReviewProject_.wordCount),
+                root.get(ReviewProject_.type),
+                root.get(ReviewProject_.status),
+                localeJoin.get(Locale_.id),
+                localeJoin.get(Locale_.bcp47Tag),
+                requestJoin.get(ReviewProjectRequest_.id),
+                requestJoin.get(ReviewProjectRequest_.name)))
         .distinct(true)
         .orderBy(cb.desc(root.get(ReviewProject_.id)));
 
-    TypedQuery<ReviewProject> query = entityManager.createQuery(cq);
+    TypedQuery<SearchReviewProjectDetail> query = entityManager.createQuery(cq);
     query.setMaxResults(request.limit());
 
-    List<ReviewProject> projects = query.getResultList();
+    List<SearchReviewProjectDetail> projectDetails = query.getResultList();
 
-    List<SearchReviewProjectsView.ReviewProject> reviewProjects = new ArrayList<>();
-
-    for (ReviewProject project : projects) {
-      Locale locale = project.getLocale();
-      reviewProjects.add(
-          new SearchReviewProjectsView.ReviewProject(
-              project.getId(),
-              project.getCreatedDate(),
-              project.getLastModifiedDate(),
-              project.getDueDate(),
-              project.getCloseReason(),
-              project.getTextUnitCount(),
-              project.getWordCount(),
-              project.getType(),
-              project.getStatus(),
-              new SearchReviewProjectsView.Locale(locale.getId(), locale.getBcp47Tag()),
-              new SearchReviewProjectsView.ReviewProjectRequest(
-                  project.getReviewProjectRequest().getId(),
-                  project.getReviewProjectRequest().getName())));
-    }
+    List<SearchReviewProjectsView.ReviewProject> reviewProjects =
+        projectDetails.stream()
+            .map(
+                detail ->
+                    new SearchReviewProjectsView.ReviewProject(
+                        detail.id(),
+                        detail.createdDate(),
+                        detail.lastModifiedDate(),
+                        detail.dueDate(),
+                        detail.closeReason(),
+                        detail.textUnitCount(),
+                        detail.wordCount(),
+                        detail.type(),
+                        detail.status(),
+                        new SearchReviewProjectsView.Locale(
+                            detail.localeId(), detail.localeTag()),
+                        new SearchReviewProjectsView.ReviewProjectRequest(
+                            detail.requestId(), detail.requestName())))
+            .toList();
 
     return new SearchReviewProjectsView(reviewProjects);
   }
