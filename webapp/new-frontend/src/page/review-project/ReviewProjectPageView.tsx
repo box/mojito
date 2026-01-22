@@ -688,6 +688,9 @@ function DetailPane({
   const proposedValue = draftTarget;
   const wasRejected = textUnit.includedInLocalizedFile === false;
   const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
+  const [heroHeight, setHeroHeight] = useState<number | null>(null);
+  const [isHeroResizing, setIsHeroResizing] = useState(false);
+  const heroRef = useRef<HTMLDivElement | null>(null);
   type StatusOption = 'accepted' | 'pending';
   const initialStatusValue = useMemo<StatusOption>(() => {
     const status = textUnit.reviewStatus;
@@ -700,6 +703,14 @@ function DetailPane({
   useEffect(() => {
     setSelectedStatus(initialStatusValue);
   }, [initialStatusValue]);
+
+  useEffect(() => {
+    if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    if (rect.height) {
+      setHeroHeight(rect.height);
+    }
+  }, [heroHeight, screenshotImages.length]);
 
   const handleStatusSelect = (key: StatusOption) => {
     setSelectedStatus(key);
@@ -750,7 +761,9 @@ function DetailPane({
       <div
         className={`review-project-detail__hero${
           screenshotImages.length ? ' review-project-detail__hero--has-shots' : ''
-        }`}
+        }${isScreenshotsCollapsed ? ' review-project-detail__hero--collapsed' : ''}`}
+        ref={heroRef}
+        style={!isScreenshotsCollapsed && heroHeight != null ? { height: `${heroHeight}px` } : undefined}
       >
         {screenshotImages.length ? (
           <>
@@ -809,6 +822,37 @@ function DetailPane({
                   ›
                 </button>
               </div>
+            )}
+            {isScreenshotsCollapsed ? null : (
+              <div
+                className={`review-project-detail__hero-resize-handle${
+                  isHeroResizing ? ' is-resizing' : ''
+                }`}
+                onMouseDown={(event) => {
+                  if (!heroRef.current) return;
+                  event.preventDefault();
+                  setIsHeroResizing(true);
+                  const rect = heroRef.current.getBoundingClientRect();
+                  const minHeight = 140;
+                  const containerHeight =
+                    heroRef.current.parentElement?.clientHeight ?? window.innerHeight;
+                  const maxHeight = Math.max(minHeight, Math.floor(containerHeight * 0.6));
+                  const onMove = (e: MouseEvent) => {
+                    const next = Math.min(maxHeight, Math.max(minHeight, e.clientY - rect.top));
+                    setHeroHeight(next);
+                  };
+                  const onUp = () => {
+                    setIsHeroResizing(false);
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                  };
+                  window.addEventListener('mousemove', onMove);
+                  window.addEventListener('mouseup', onUp);
+                }}
+                role="separator"
+                aria-label="Resize screenshots panel"
+                aria-orientation="horizontal"
+              />
             )}
           </>
         ) : (

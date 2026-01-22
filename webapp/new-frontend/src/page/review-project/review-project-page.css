@@ -479,16 +479,25 @@
 
 .review-project-detail__hero {
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
   gap: var(--space-2);
   padding: var(--space-1);
   border-radius: var(--radius-3);
   border: 1px solid color-mix(in srgb, var(--color-border) 35%, transparent);
   background: color-mix(in srgb, var(--color-surface-muted) 10%, transparent);
   position: relative;
+  min-height: 140px;
 }
 
 .review-project-detail__hero--has-shots {
   padding-top: calc(var(--space-1) + 1.75rem);
+}
+
+.review-project-detail__hero--collapsed {
+  height: 2.25rem;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
 }
 
 .review-project-detail__field {
@@ -1279,6 +1288,8 @@
   padding: var(--space-1);
   background: transparent;
   border: none;
+  height: 100%;
+  align-items: stretch;
 }
 
 .review-project-detail__gallery--hero .review-project-detail__gallery-nav {
@@ -1288,12 +1299,35 @@
 }
 
 .review-project-detail__gallery-main--hero {
-  height: 18rem;
-  min-height: 18rem;
+  height: 100%;
+  min-height: 0;
 }
 
 .review-project-detail__gallery-main--hero .review-project-detail__gallery-image {
-  max-height: 18rem;
+  max-height: 100%;
+}
+
+.review-project-detail__hero-resize-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  cursor: row-resize;
+}
+
+.review-project-detail__hero-resize-handle::before {
+  content: '';
+  display: block;
+  width: 52px;
+  height: 3px;
+  margin: 4px auto 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text-subtle) 45%, transparent);
+}
+
+.review-project-detail__hero-resize-handle.is-resizing::before {
+  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
 }
 
 .review-project-screenshot-modal__gallery {
