@@ -988,33 +988,6 @@
   box-shadow: 0 6px 16px -12px color-mix(in srgb, var(--color-text) 40%, transparent);
 }
 
-.review-project-detail__shots-toggle {
-  position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
-  width: 1.5rem;
-  height: 1.5rem;
-  padding: 0;
-  border-radius: var(--radius-pill);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
-  color: var(--color-text-subtle);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.review-project-detail__shots-toggle:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-accent) 20%, transparent);
-}
 
 
 .review-project-detail__actions-button {
@@ -1289,7 +1262,7 @@
   background: transparent;
   border: none;
   height: 100%;
-  align-items: stretch;
+  align-items: center;
 }
 
 .review-project-detail__gallery--hero .review-project-detail__gallery-nav {
@@ -1309,25 +1282,50 @@
 
 .review-project-detail__hero-resize-handle {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 12px;
+  left: var(--space-1);
+  right: var(--space-1);
+  bottom: var(--space-1);
+  height: 10px;
   cursor: row-resize;
+  background: transparent;
+  transition: background 0.2s ease;
+  border-radius: var(--radius-pill);
 }
 
-.review-project-detail__hero-resize-handle::before {
-  content: '';
-  display: block;
-  width: 52px;
-  height: 3px;
-  margin: 4px auto 0;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-text-subtle) 45%, transparent);
+.review-project-detail__hero-resize-handle:hover,
+.review-project-detail__hero-resize-handle.is-resizing {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
 }
 
-.review-project-detail__hero-resize-handle.is-resizing::before {
-  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
+.review-project-detail__hero-toggle {
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-text-subtle);
+  font-size: 0.6rem;
+  cursor: pointer;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  z-index: 1;
+}
+
+.review-project-detail__hero-resize-handle:hover .review-project-detail__hero-toggle,
+.review-project-detail__hero-resize-handle.is-resizing .review-project-detail__hero-toggle {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 .review-project-screenshot-modal__gallery {
