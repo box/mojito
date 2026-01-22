@@ -97,7 +97,7 @@ ALTER TABLE review_project_text_unit_decision
 CREATE TABLE review_project_screenshot (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     review_project_request_id bigint(20) DEFAULT NULL,
-    image_key varchar(255) NOT NULL,
+    image_name varchar(255) NOT NULL,
     created_date datetime DEFAULT NULL,
     last_modified_date datetime DEFAULT NULL,
     PRIMARY KEY (id)

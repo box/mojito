@@ -19,8 +19,8 @@ public class ReviewProjectRequestScreenshot extends AuditableEntity {
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_SCREENSHOT__REQUEST"))
   private ReviewProjectRequest reviewProjectRequest;
 
-  @Column(name = "image_key", length = 255, nullable = false)
-  private String imageKey;
+  @Column(name = "image_name", length = 255, nullable = false)
+  private String imageName;
 
   public ReviewProjectRequest getReviewProjectRequest() {
     return reviewProjectRequest;
@@ -30,11 +30,11 @@ public class ReviewProjectRequestScreenshot extends AuditableEntity {
     this.reviewProjectRequest = reviewProjectRequest;
   }
 
-  public String getImageKey() {
-    return imageKey;
+  public String getImageName() {
+    return imageName;
   }
 
-  public void setImageKey(String imageKey) {
-    this.imageKey = imageKey;
+  public void setImageName(String imageKey) {
+    this.imageName = imageKey;
   }
 }

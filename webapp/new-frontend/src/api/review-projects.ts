@@ -97,6 +97,8 @@ export type ApiReviewProjectDetail = {
   reviewProjectRequest?: { id: number | null; name?: string | null; screenshotImageIds?: string[] } | null;
   locale?: { id: number | null; bcp47Tag?: string | null } | null;
   textUnits?: ApiReviewProjectTextUnit[];
+  // New canonical field name from WS
+  reviewProjectTextUnits?: ApiReviewProjectTextUnit[];
   // Legacy fields used by UI
   name?: string | null;
   locales?: ApiReviewProjectLocaleDetail[];
@@ -162,8 +164,9 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
   const variant = tu.tmTextUnitVariant ?? null;
 
   const reviewProjectTextUnitId = (tu.id ?? tm.id ?? tu.name ?? 0) as number;
-  const tmTextUnitId = (tm.id ?? tu.tmTextUnitId ?? null) as number | null;
-  const target = tm.content ?? tu.content ?? null;
+  const tmTextUnitId = (tu.tmTextUnitId ?? null) as number | null;
+  const source = tu.source ?? tm.content ?? null;
+  const target = tu.content ?? variant?.content ?? null;
   const comment = tm.comment ?? tu.comment ?? tu.notes ?? null;
   const name = tm.name ?? tu.name ?? tmTextUnitId ?? null;
   const assetPath =
@@ -185,6 +188,7 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
     reviewProjectTextUnitId,
     tmTextUnitId,
     name,
+    source,
     content: target,
     comment,
     asset: tm.asset ?? tu.asset ?? (assetPath != null ? { assetPath } : null),
@@ -192,7 +196,6 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
     tmTextUnitVariantId: variantId,
     selectedTmTextUnitVariantId: variantId,
     currentTmTextUnitVariantId: variantId,
-    source: target,
     target,
     currentTarget: variantContent ?? target,
     baselineStatus: tu.baselineStatus ?? null,
@@ -274,8 +277,10 @@ export const fetchReviewProjectDetail = async (
   const raw = (await response.json()) as ApiReviewProjectDetail;
 
   // Normalize to legacy-friendly shape for UI
-  const textUnits =
-    raw.textUnits?.map((tu) => normalizeTextUnit(tu as ApiReviewProjectTextUnit)) ?? [];
+  const sourceTextUnits =
+    raw.reviewProjectTextUnits ?? raw.textUnits ?? ([] as ApiReviewProjectTextUnit[]);
+
+  const textUnits = sourceTextUnits.map((tu) => normalizeTextUnit(tu as ApiReviewProjectTextUnit));
 
   const primaryLocale: ApiReviewProjectLocaleDetail | null = raw.locale
     ? {

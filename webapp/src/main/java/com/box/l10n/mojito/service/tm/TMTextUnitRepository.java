@@ -40,6 +40,9 @@ public interface TMTextUnitRepository extends JpaRepository<TMTextUnit, Long> {
 
   List<TMTextUnit> findByAssetId(Long assetId);
 
+  @Query("select coalesce(sum(t.wordCount), 0) from TMTextUnit t where t.id in ?1")
+  long sumWordCountByIdIn(Collection<Long> ids);
+
   @Query(
       "select new com.box.l10n.mojito.service.tm.TextUnitIdMd5DTO(tu.id, tu.md5) from TMTextUnit tu where tu.asset.id = ?1")
   List<TextUnitIdMd5DTO> getTextUnitIdMd5DTOByAssetId(Long assetId);

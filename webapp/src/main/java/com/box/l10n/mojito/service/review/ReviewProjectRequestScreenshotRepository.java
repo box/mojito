@@ -11,8 +11,8 @@ public interface ReviewProjectRequestScreenshotRepository
     extends JpaRepository<ReviewProjectRequestScreenshot, Long> {
 
   @Query(
-      "select s.imageKey from ReviewProjectRequestScreenshot s where s.reviewProjectRequest.id = ?1")
-  List<String> findImageKeysByReviewProjectRequestId(Long reviewProjectRequestId);
+      "select s.imageName from ReviewProjectRequestScreenshot s where s.reviewProjectRequest.id = ?1")
+  List<String> findImageNamesByReviewProjectRequestId(Long reviewProjectRequestId);
 
   void deleteByReviewProjectRequestId(Long reviewProjectRequestId);
 }
