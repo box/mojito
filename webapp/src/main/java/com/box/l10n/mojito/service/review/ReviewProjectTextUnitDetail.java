@@ -16,4 +16,6 @@ public record ReviewProjectTextUnitDetail(
     String tmTextUnitVariantContent,
     TMTextUnitVariant.Status tmTextUnitVariantStatus,
     Boolean tmTextUnitVariantIncludedInLocalizedFile,
-    String tmTextUnitVariantComment) {}
+    String tmTextUnitVariantComment,
+    Long decisionTmTextUnitVariantId,
+    String decisionNotes) {}

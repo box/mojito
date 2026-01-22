@@ -314,40 +314,7 @@ public class ReviewProjectService {
         reviewProjectTextUnitRepository.findDetailByReviewProjectId(projectId);
 
     List<GetProjectDetailView.ReviewProjectTextUnit> reviewProjectTextUnits =
-        textUnitDetails.stream()
-            .map(
-                detail -> {
-                  GetProjectDetailView.Asset.Repository repository =
-                      new GetProjectDetailView.Asset.Repository(
-                          detail.repositoryId(), detail.repositoryName());
-                  GetProjectDetailView.Asset assetView =
-                      new GetProjectDetailView.Asset(detail.assetPath(), repository);
-                  GetProjectDetailView.TmTextUnit tmTextUnitView =
-                      new GetProjectDetailView.TmTextUnit(
-                          detail.tmTextUnitId(),
-                          detail.tmTextUnitName(),
-                          detail.tmTextUnitContent(),
-                          detail.tmTextUnitComment(),
-                          assetView,
-                          detail.tmTextUnitWordCount() != null
-                              ? detail.tmTextUnitWordCount().longValue()
-                              : null);
-                  GetProjectDetailView.TmTextUnitVariant tmTextUnitVariantView =
-                      detail.tmTextUnitVariantId() == null
-                          ? new GetProjectDetailView.TmTextUnitVariant(
-                              null, null, null, false, null)
-                          : new GetProjectDetailView.TmTextUnitVariant(
-                              detail.tmTextUnitVariantId(),
-                              detail.tmTextUnitVariantContent(),
-                              detail.tmTextUnitVariantStatus() != null
-                                  ? detail.tmTextUnitVariantStatus().name()
-                                  : null,
-                              detail.tmTextUnitVariantIncludedInLocalizedFile(),
-                              detail.tmTextUnitVariantComment());
-                  return new GetProjectDetailView.ReviewProjectTextUnit(
-                      detail.reviewProjectTextUnitId(), tmTextUnitView, tmTextUnitVariantView);
-                })
-            .toList();
+        textUnitDetails.stream().map(this::toReviewProjectTextUnit).toList();
 
     List<String> screenshotImageIds =
         project.reviewProjectRequestId() == null
@@ -469,7 +436,7 @@ public class ReviewProjectService {
     variantDecision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
-    return null;
+    return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
   }
 
   @Transactional
@@ -504,10 +471,68 @@ public class ReviewProjectService {
                   return entity;
                 });
 
+    if (decision.getVariant() == null) {
+      TMTextUnitVariant baselineVariant = textUnit.getTmTextUnitVariant();
+      if (baselineVariant == null) {
+        throw new IllegalStateException("Review project text unit missing baseline variant");
+      }
+      decision.setVariant(baselineVariant);
+    }
+
     decision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(decision);
 
-    return null;
+    return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
+  }
+
+  private GetProjectDetailView.ReviewProjectTextUnit fetchReviewProjectTextUnitDetail(
+      Long reviewProjectTextUnitId) {
+    ReviewProjectTextUnitDetail detail =
+        reviewProjectTextUnitRepository
+            .findDetailByReviewProjectTextUnitId(reviewProjectTextUnitId)
+            .orElseThrow(
+                () ->
+                    new EntityWithIdNotFoundException(
+                        "reviewProjectTextUnit", reviewProjectTextUnitId));
+    return toReviewProjectTextUnit(detail);
+  }
+
+  private GetProjectDetailView.ReviewProjectTextUnit toReviewProjectTextUnit(
+      ReviewProjectTextUnitDetail detail) {
+    GetProjectDetailView.Asset.Repository repository =
+        new GetProjectDetailView.Asset.Repository(
+            detail.repositoryId(), detail.repositoryName());
+    GetProjectDetailView.Asset assetView =
+        new GetProjectDetailView.Asset(detail.assetPath(), repository);
+    GetProjectDetailView.TmTextUnit tmTextUnitView =
+        new GetProjectDetailView.TmTextUnit(
+            detail.tmTextUnitId(),
+            detail.tmTextUnitName(),
+            detail.tmTextUnitContent(),
+            detail.tmTextUnitComment(),
+            assetView,
+            detail.tmTextUnitWordCount() != null ? detail.tmTextUnitWordCount().longValue() : null);
+    GetProjectDetailView.TmTextUnitVariant tmTextUnitVariantView =
+        detail.tmTextUnitVariantId() == null
+            ? new GetProjectDetailView.TmTextUnitVariant(null, null, null, false, null)
+            : new GetProjectDetailView.TmTextUnitVariant(
+                detail.tmTextUnitVariantId(),
+                detail.tmTextUnitVariantContent(),
+                detail.tmTextUnitVariantStatus() != null
+                    ? detail.tmTextUnitVariantStatus().name()
+                    : null,
+                detail.tmTextUnitVariantIncludedInLocalizedFile(),
+                detail.tmTextUnitVariantComment());
+    GetProjectDetailView.ReviewProjectTextUnitDecision reviewProjectTextUnitDecision =
+        detail.decisionTmTextUnitVariantId() == null && detail.decisionNotes() == null
+            ? null
+            : new GetProjectDetailView.ReviewProjectTextUnitDecision(
+                detail.decisionTmTextUnitVariantId(), detail.decisionNotes());
+    return new GetProjectDetailView.ReviewProjectTextUnit(
+        detail.reviewProjectTextUnitId(),
+        tmTextUnitView,
+        tmTextUnitVariantView,
+        reviewProjectTextUnitDecision);
   }
 
   private List<TextUnitDTO> searchReviewCandidates(List<Long> tmTextUnitIds, Locale locale) {

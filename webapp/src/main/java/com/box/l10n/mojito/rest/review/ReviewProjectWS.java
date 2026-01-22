@@ -152,7 +152,10 @@ public class ReviewProjectWS {
     public record Locale(Long id, String bcp47Tag) {}
 
     public record ReviewProjectTextUnit(
-        Long id, TmTextUnit tmTextUnit, TmTextUnitVariant tmTextUnitVariant) {}
+        Long id,
+        TmTextUnit tmTextUnit,
+        TmTextUnitVariant tmTextUnitVariant,
+        ReviewProjectTextUnitDecision reviewProjectTextUnitDecision) {}
 
     public record TmTextUnit(
         Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
@@ -163,6 +166,8 @@ public class ReviewProjectWS {
 
     public record TmTextUnitVariant(
         Long id, String content, String status, boolean includedInLocalizedFile, String comment) {}
+
+    public record ReviewProjectTextUnitDecision(Long tmTextUnitVariantId, String notes) {}
   }
 
   // Mapping helpers
@@ -263,6 +268,11 @@ public class ReviewProjectWS {
             view.tmTextUnitVariant().content(),
             view.tmTextUnitVariant().status(),
             view.tmTextUnitVariant().includedInLocalizedFile(),
-            view.tmTextUnitVariant().comment()));
+            view.tmTextUnitVariant().comment()),
+        view.reviewProjectTextUnitDecision() == null
+            ? null
+            : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
+                view.reviewProjectTextUnitDecision().tmTextUnitVariantId(),
+                view.reviewProjectTextUnitDecision().notes()));
   }
 }

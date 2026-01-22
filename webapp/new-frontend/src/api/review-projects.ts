@@ -60,6 +60,10 @@ export type ApiReviewProjectTextUnit = {
     includedInLocalizedFile?: boolean | null;
     comment?: string | null;
   } | null;
+  reviewProjectTextUnitDecision?: {
+    tmTextUnitVariantId?: number | null;
+    notes?: string | null;
+  } | null;
   // legacy fields used by UI (required)
   reviewProjectTextUnitId: number;
   tmTextUnitId: number | null;
@@ -162,12 +166,14 @@ const jsonHeaders = {
 const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUnit => {
   const tm = tu.tmTextUnit ?? {};
   const variant = tu.tmTextUnitVariant ?? null;
+  const decisionVariantId = tu.reviewProjectTextUnitDecision?.tmTextUnitVariantId ?? null;
 
   const reviewProjectTextUnitId = (tu.id ?? tm.id ?? tu.name ?? 0) as number;
   const tmTextUnitId = (tu.tmTextUnitId ?? null) as number | null;
   const source = tu.source ?? tm.content ?? null;
   const target = tu.content ?? variant?.content ?? null;
-  const comment = tm.comment ?? tu.comment ?? tu.notes ?? null;
+  const comment = tm.comment ?? tu.comment ?? null;
+  const notes = tu.reviewProjectTextUnitDecision?.notes ?? tu.notes ?? null;
   const name = tm.name ?? tu.name ?? tmTextUnitId ?? null;
   const assetPath =
     tm.asset && tm.asset.assetPath != null
@@ -176,11 +182,19 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
         ? String(tu.asset.assetPath)
         : null;
 
-  const variantId = variant?.id ?? tu.tmTextUnitVariantId ?? null;
+  const baselineVariantId = variant?.id ?? tu.tmTextUnitVariantId ?? null;
+  const selectedVariantId = decisionVariantId ?? baselineVariantId;
   const variantContent = variant?.content ?? target;
   const variantStatus = variant?.status ?? tu.status ?? null;
   const variantIncluded = variant?.includedInLocalizedFile ?? tu.includedInLocalizedFile ?? true;
-  const variantComment = variant?.comment ?? tu.notes ?? null;
+  const variantComment = variant?.comment ?? notes ?? null;
+  const reviewStatus =
+    tu.reviewStatus ??
+    (decisionVariantId != null
+      ? baselineVariantId != null && decisionVariantId === baselineVariantId
+        ? 'ACCEPTED_AS_IS'
+        : 'ACCEPTED_WITH_CHANGE'
+      : 'PENDING');
 
   return {
     ...tu,
@@ -193,14 +207,14 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
     comment,
     asset: tm.asset ?? tu.asset ?? (assetPath != null ? { assetPath } : null),
     wordCount: tm.wordCount ?? tu.wordCount ?? null,
-    tmTextUnitVariantId: variantId,
-    selectedTmTextUnitVariantId: variantId,
-    currentTmTextUnitVariantId: variantId,
+    tmTextUnitVariantId: baselineVariantId,
+    selectedTmTextUnitVariantId: selectedVariantId,
+    currentTmTextUnitVariantId: baselineVariantId,
     target,
     currentTarget: variantContent ?? target,
     baselineStatus: tu.baselineStatus ?? null,
-    reviewStatus: tu.reviewStatus ?? 'PENDING',
-    notes: comment,
+    reviewStatus,
+    notes,
     reviewedAt: tu.reviewedAt ?? null,
     reviewedBy: tu.reviewedBy ?? null,
     status: variantStatus,
@@ -210,7 +224,7 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
     includedInLocalizedFile: variantIncluded,
     tmTextUnitVariant: {
       ...variant,
-      id: variantId ?? undefined,
+      id: baselineVariantId ?? undefined,
       content: variantContent ?? undefined,
       status: variantStatus ?? undefined,
       includedInLocalizedFile: variantIncluded,

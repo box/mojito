@@ -23,7 +23,10 @@ public record GetProjectDetailView(
   public record Locale(Long id, String bcp47Tag) {}
 
   public record ReviewProjectTextUnit(
-      Long id, TmTextUnit tmTextUnit, TmTextUnitVariant tmTextUnitVariant) {}
+      Long id,
+      TmTextUnit tmTextUnit,
+      TmTextUnitVariant tmTextUnitVariant,
+      ReviewProjectTextUnitDecision reviewProjectTextUnitDecision) {}
 
   public record TmTextUnit(
       Long id, String name, String content, String comment, Asset asset, Long wordCount) {}
@@ -34,4 +37,6 @@ public record GetProjectDetailView(
 
   public record TmTextUnitVariant(
       Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
+
+  public record ReviewProjectTextUnitDecision(Long tmTextUnitVariantId, String notes) {}
 }
