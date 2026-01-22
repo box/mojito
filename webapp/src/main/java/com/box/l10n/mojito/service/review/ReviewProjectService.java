@@ -1,10 +1,7 @@
 package com.box.l10n.mojito.service.review;
 
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.review.*;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
@@ -18,27 +15,13 @@ import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.collect.Iterables;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -70,18 +53,18 @@ public class ReviewProjectService {
   @PersistenceContext private EntityManager entityManager;
 
   public ReviewProjectService(
-          ReviewProjectRepository reviewProjectRepository,
-          ReviewProjectTextUnitRepository reviewProjectTextUnitRepository,
-          ReviewProjectTextUnitDecisionRepository reviewProjectTextUnitDecisionRepository,
-          ReviewProjectRequestRepository reviewProjectRequestRepository,
-          ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository,
-          LocaleService localeService,
-          TextUnitSearcher textUnitSearcher,
-          TMTextUnitRepository tmTextUnitRepository,
-          TMTextUnitVariantRepository tmTextUnitVariantRepository,
-          TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository,
-          TMService tmService,
-          WordCountService wordCountService) {
+      ReviewProjectRepository reviewProjectRepository,
+      ReviewProjectTextUnitRepository reviewProjectTextUnitRepository,
+      ReviewProjectTextUnitDecisionRepository reviewProjectTextUnitDecisionRepository,
+      ReviewProjectRequestRepository reviewProjectRequestRepository,
+      ReviewProjectRequestScreenshotRepository reviewProjectScreenshotRepository,
+      LocaleService localeService,
+      TextUnitSearcher textUnitSearcher,
+      TMTextUnitRepository tmTextUnitRepository,
+      TMTextUnitVariantRepository tmTextUnitVariantRepository,
+      TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository,
+      TMService tmService,
+      WordCountService wordCountService) {
     this.reviewProjectRepository = reviewProjectRepository;
     this.reviewProjectTextUnitRepository = reviewProjectTextUnitRepository;
     this.reviewProjectTextUnitDecisionRepository = reviewProjectTextUnitDecisionRepository;
@@ -93,7 +76,7 @@ public class ReviewProjectService {
     this.tmTextUnitVariantRepository = tmTextUnitVariantRepository;
     this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
     this.tmService = tmService;
-      this.wordCountService = wordCountService;
+    this.wordCountService = wordCountService;
   }
 
   @Transactional
@@ -116,7 +99,7 @@ public class ReviewProjectService {
     }
 
     if (request.type() == null) {
-        throw new IllegalArgumentException("type must be provided");
+      throw new IllegalArgumentException("type must be provided");
     }
 
     ReviewProjectRequest reviewProjectRequest = new ReviewProjectRequest();
@@ -125,12 +108,12 @@ public class ReviewProjectService {
     reviewProjectRequest = reviewProjectRequestRepository.save(reviewProjectRequest);
 
     if (request.screenshotImageIds() != null) {
-        for (String screenshotImageId : request.screenshotImageIds()) {
-            ReviewProjectRequestScreenshot screenshot = new ReviewProjectRequestScreenshot();
-            screenshot.setReviewProjectRequest(reviewProjectRequest);
-            screenshot.setImageName(screenshotImageId);
-            reviewProjectScreenshotRepository.save(screenshot);
-        }
+      for (String screenshotImageId : request.screenshotImageIds()) {
+        ReviewProjectRequestScreenshot screenshot = new ReviewProjectRequestScreenshot();
+        screenshot.setReviewProjectRequest(reviewProjectRequest);
+        screenshot.setImageName(screenshotImageId);
+        reviewProjectScreenshotRepository.save(screenshot);
+      }
     }
 
     List<Long> projectIds = new ArrayList<>();
@@ -155,16 +138,19 @@ public class ReviewProjectService {
       int wordCount = 0;
       int textUnitCount = 0;
       for (TextUnitDTO textUnitDTO : candidates) {
-          ReviewProjectTextUnit reviewProjectTextUnit = new ReviewProjectTextUnit();
-          reviewProjectTextUnit.setReviewProject(reviewProject);
-          reviewProjectTextUnit.setTmTextUnit(entityManager.getReference(TMTextUnit.class, textUnitDTO.getTmTextUnitId()));
-          if(textUnitDTO.getTmTextUnitVariantId() != null) {
-              reviewProjectTextUnit.setTmTextUnitVariant(entityManager.getReference(TMTextUnitVariant.class, textUnitDTO.getTmTextUnitVariantId()));
-          }
-          reviewProjectTextUnitRepository.save(reviewProjectTextUnit);
+        ReviewProjectTextUnit reviewProjectTextUnit = new ReviewProjectTextUnit();
+        reviewProjectTextUnit.setReviewProject(reviewProject);
+        reviewProjectTextUnit.setTmTextUnit(
+            entityManager.getReference(TMTextUnit.class, textUnitDTO.getTmTextUnitId()));
+        if (textUnitDTO.getTmTextUnitVariantId() != null) {
+          reviewProjectTextUnit.setTmTextUnitVariant(
+              entityManager.getReference(
+                  TMTextUnitVariant.class, textUnitDTO.getTmTextUnitVariantId()));
+        }
+        reviewProjectTextUnitRepository.save(reviewProjectTextUnit);
 
-          textUnitCount++;
-          wordCount += new WordCountService().getEnglishWordCount(textUnitDTO.getSource());
+        textUnitCount++;
+        wordCount += wordCountService.getEnglishWordCount(textUnitDTO.getSource());
       }
 
       saved.setWordCount(wordCount);
@@ -311,7 +297,7 @@ public class ReviewProjectService {
         projects.stream()
             .map(
                 project -> {
-                  int totalSelected = resolveTotalSelected(project);
+                  int totalSelected = 0; // to remove
                   int wordCount = project.getWordCount() != null ? project.getWordCount() : 0;
                   return toSummaryView(project, totalSelected, wordCount);
                 })
@@ -498,7 +484,6 @@ public class ReviewProjectService {
 
     return toDetailTextUnit(textUnit, decision);
   }
-
 
   private List<TextUnitDTO> searchReviewCandidates(List<Long> tmTextUnitIds) {
     if (tmTextUnitIds == null || tmTextUnitIds.isEmpty()) {
