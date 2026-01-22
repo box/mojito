@@ -30,19 +30,7 @@ import org.springframework.data.annotation.CreatedBy;
     name = "ReviewProject.detail",
     attributeNodes = {
       @NamedAttributeNode("locale"),
-      @NamedAttributeNode("reviewProjectRequest"),
-      @NamedAttributeNode(value = "reviewProjectTextUnits", subgraph = "ReviewProject.detail.textUnits")
-    },
-    subgraphs = {
-      @NamedSubgraph(
-          name = "ReviewProject.detail.textUnits",
-          attributeNodes = {
-            @NamedAttributeNode("tmTextUnit"),
-            @NamedAttributeNode("tmTextUnitVariant")
-          }),
-      @NamedSubgraph(
-          name = "ReviewProject.detail.tmTextUnit",
-          attributeNodes = {@NamedAttributeNode("asset")})
+      @NamedAttributeNode("reviewProjectRequest")
     })
 public class ReviewProject extends AuditableEntity {
 

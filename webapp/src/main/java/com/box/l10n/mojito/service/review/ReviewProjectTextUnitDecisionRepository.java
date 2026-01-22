@@ -10,13 +10,8 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface ReviewProjectTextUnitDecisionRepository
     extends JpaRepository<ReviewProjectTextUnitDecision, Long> {
 
-  long countByReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
-
-  long countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(Long reviewProjectId);
-
   List<ReviewProjectTextUnitDecision> findByReviewProjectTextUnit_ReviewProject_Id(
       Long reviewProjectId);
 
-  Optional<ReviewProjectTextUnitDecision> findByReviewProjectTextUnitId(
-      Long reviewProjectTextUnitId);
+  Optional<ReviewProjectTextUnitDecision> findByReviewProjectTextUnitId(Long reviewProjectTextUnitId);
 }

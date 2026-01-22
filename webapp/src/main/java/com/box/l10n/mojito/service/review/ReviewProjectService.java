@@ -314,26 +314,31 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewProjectDetailView getProjectDetail(Long projectId)
+  public ReviewProjectDetail getProjectDetail(Long projectId)
       throws EntityWithIdNotFoundException {
     ReviewProject project =
         reviewProjectRepository
             .findById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
 
-    List<ReviewProjectTextUnitView> textUnits = toTextUnitViews(project);
-    long acceptedCount =
-        reviewProjectTextUnitDecisionRepository
-            .countByVariantIsNotNullAndReviewProjectTextUnit_ReviewProject_Id(projectId);
-    ReviewProjectLocaleDetailView localeDetail =
-        new ReviewProjectLocaleDetailView(
-            project.getId(),
-            project.getLocale().getBcp47Tag(),
-            project.getLocale().getBcp47Tag(),
-            textUnits.size(),
-            acceptedCount,
-            textUnits);
-    return new ReviewProjectDetailView(
+    List<ReviewProjectTextUnitView> textUnitViews = toTextUnitViews(project);
+    List<ReviewProjectDetail.ReviewProjectTextUnit> textUnits =
+        textUnitViews.stream().map(this::toDetailTextUnit).toList();
+
+    ReviewProjectDetail.ReviewProjectRequest request =
+        project.getReviewProjectRequest() != null
+            ? new ReviewProjectDetail.ReviewProjectRequest(
+                project.getReviewProjectRequest().getId(),
+                project.getReviewProjectRequest().getName(),
+                resolveScreenshotImageKeys(project))
+            : null;
+
+    ReviewProjectDetail.Locale locale =
+        project.getLocale() != null
+            ? new ReviewProjectDetail.Locale(project.getLocale().getId(), project.getLocale().getBcp47Tag())
+            : null;
+
+    return new ReviewProjectDetail(
         project.getId(),
         project.getType(),
         project.getStatus(),
@@ -342,20 +347,13 @@ public class ReviewProjectService {
         project.getCloseReason(),
         project.getTextUnitCount(),
         project.getWordCount(),
-        resolveRequestName(project),
-        resolveRequestNotes(project),
-        project.getReviewProjectRequest() != null
-            ? project.getReviewProjectRequest().getId()
-            : null,
-        resolveRequestName(project),
-        localeDetail,
-        Collections.emptyList(),
-        Collections.singletonList(localeDetail),
-        resolveScreenshotImageKeys(project));
+        request,
+        locale,
+        textUnits);
   }
 
   @Transactional
-  public ReviewProjectTextUnitView acceptTextUnit(
+  public ReviewProjectDetail.ReviewProjectTextUnit acceptTextUnit(
       Long projectId,
       Long reviewProjectTextUnitId,
       String target,
@@ -422,7 +420,7 @@ public class ReviewProjectService {
       throw new ReviewProjectCurrentVariantConflictException(
           expectedCurrentTmTextUnitVariantId,
           currentVariantId,
-          toTextUnitView(textUnit, conflictVariant, decision));
+          toDetailTextUnit(textUnit, conflictVariant, decision));
     }
 
     TMTextUnitCurrentVariant updatedCurrentVariant =
@@ -453,11 +451,11 @@ public class ReviewProjectService {
     variantDecision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(variantDecision);
 
-    return toTextUnitView(textUnit, newVariant, variantDecision);
+    return toDetailTextUnit(textUnit, newVariant, variantDecision);
   }
 
   @Transactional
-  public ReviewProjectTextUnitView updateReviewStatus(
+  public ReviewProjectDetail.ReviewProjectTextUnit updateReviewStatus(
       Long projectId, Long reviewProjectTextUnitId, String notes)
       throws EntityWithIdNotFoundException {
 
@@ -491,7 +489,7 @@ public class ReviewProjectService {
     decision.setNotes(notes);
     reviewProjectTextUnitDecisionRepository.save(decision);
 
-    return toTextUnitView(textUnit, null, decision);
+    return toDetailTextUnit(textUnit, null, decision);
   }
 
   private void saveScreenshotsForRequest(
@@ -651,6 +649,35 @@ public class ReviewProjectService {
         .map(
             textUnit -> toTextUnitView(textUnit, null, decisionsByTextUnitId.get(textUnit.getId())))
         .collect(Collectors.toList());
+  }
+
+  private ReviewProjectDetail.ReviewProjectTextUnit toDetailTextUnit(
+      ReviewProjectTextUnit textUnit,
+      TMTextUnitVariant variantOverride,
+      ReviewProjectTextUnitDecision decision) {
+    return toDetailTextUnit(toTextUnitView(textUnit, variantOverride, decision));
+  }
+
+  private ReviewProjectDetail.ReviewProjectTextUnit toDetailTextUnit(
+      ReviewProjectTextUnitView view) {
+    ReviewProjectDetail.TmTextUnit tmTextUnit =
+        new ReviewProjectDetail.TmTextUnit(
+            view.tmTextUnitId(),
+            view.name(),
+            view.target(),
+            view.notes(),
+            new ReviewProjectDetail.Asset(null),
+            null);
+
+    ReviewProjectDetail.TmTextUnitVariant tmTextUnitVariant =
+        new ReviewProjectDetail.TmTextUnitVariant(
+            view.tmTextUnitVariantId(),
+            view.target(),
+            view.status(),
+            view.includedInLocalizedFile(),
+            view.notes());
+
+    return new ReviewProjectDetail.ReviewProjectTextUnit(view.reviewProjectTextUnitId(), tmTextUnit, tmTextUnitVariant);
   }
 
   private ReviewProjectTextUnitView toTextUnitView(

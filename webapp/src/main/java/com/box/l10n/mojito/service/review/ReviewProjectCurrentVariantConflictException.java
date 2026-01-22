@@ -4,10 +4,12 @@ public class ReviewProjectCurrentVariantConflictException extends RuntimeExcepti
 
   private final Long expectedVariantId;
   private final Long currentVariantId;
-  private final ReviewProjectTextUnitView currentTextUnit;
+  private final ReviewProjectDetail.ReviewProjectTextUnit currentTextUnit;
 
   public ReviewProjectCurrentVariantConflictException(
-      Long expectedVariantId, Long currentVariantId, ReviewProjectTextUnitView currentTextUnit) {
+      Long expectedVariantId,
+      Long currentVariantId,
+      ReviewProjectDetail.ReviewProjectTextUnit currentTextUnit) {
     super("Current TM text unit variant changed");
     this.expectedVariantId = expectedVariantId;
     this.currentVariantId = currentVariantId;
@@ -22,7 +24,7 @@ public class ReviewProjectCurrentVariantConflictException extends RuntimeExcepti
     return currentVariantId;
   }
 
-  public ReviewProjectTextUnitView getCurrentTextUnit() {
+  public ReviewProjectDetail.ReviewProjectTextUnit getCurrentTextUnit() {
     return currentTextUnit;
   }
 }

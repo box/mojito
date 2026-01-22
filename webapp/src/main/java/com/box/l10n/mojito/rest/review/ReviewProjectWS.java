@@ -6,9 +6,8 @@ import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestCommand;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
-import com.box.l10n.mojito.service.review.ReviewProjectDetailView;
+import com.box.l10n.mojito.service.review.ReviewProjectDetail;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
-import com.box.l10n.mojito.service.review.ReviewProjectTextUnitView;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
 import java.time.ZonedDateTime;
@@ -78,7 +77,7 @@ public class ReviewProjectWS {
       @RequestBody ReviewProjectTextUnitAcceptRequest request)
       throws EntityWithIdNotFoundException {
     try {
-      ReviewProjectTextUnitView view =
+      ReviewProjectDetail.ReviewProjectTextUnit view =
           reviewProjectService.acceptTextUnit(
               projectId,
               textUnitId,
@@ -209,65 +208,47 @@ public class ReviewProjectWS {
     return criteria;
   }
 
-  private GetReviewProjectResponse toDetailResponse(ReviewProjectDetailView view) {
-    List<GetReviewProjectResponse.ReviewProjectTextUnit> textUnits =
-        view.locale().textUnits().stream()
-            .map(
-                tu ->
-                    new GetReviewProjectResponse.ReviewProjectTextUnit(
-                        tu.reviewProjectTextUnitId(),
-                        new GetReviewProjectResponse.TmTextUnit(
-                            tu.tmTextUnitId(),
-                            tu.name(),
-                            tu.target(),
-                            tu.notes(),
-                            new GetReviewProjectResponse.Asset(null),
-                            null),
-                        new GetReviewProjectResponse.TmTextUnitVariant(
-                            tu.tmTextUnitVariantId(),
-                            tu.target(),
-                            tu.status(),
-                            tu.includedInLocalizedFile(),
-                            tu.notes())))
-            .toList();
-
-    GetReviewProjectResponse.ReviewProjectRequest request =
-        new GetReviewProjectResponse.ReviewProjectRequest(
-            view.requestId(), view.requestName(), view.screenshotImageIds());
-
-    GetReviewProjectResponse.Locale locale =
-        new GetReviewProjectResponse.Locale(view.locale().id(), view.locale().bcp47Tag());
-
+  private GetReviewProjectResponse toDetailResponse(ReviewProjectDetail detail) {
     return new GetReviewProjectResponse(
-        view.id(),
-        view.type(),
-        view.status(),
-        view.createdDate(),
-        view.dueDate(),
-        view.closeReason(),
-        view.textUnitCount(),
-        view.wordCount(),
-        request,
-        locale,
-        textUnits);
+        detail.id(),
+        detail.type(),
+        detail.status(),
+        detail.createdDate(),
+        detail.dueDate(),
+        detail.closeReason(),
+        detail.textUnitCount(),
+        detail.wordCount(),
+        detail.reviewProjectRequest() != null
+            ? new GetReviewProjectResponse.ReviewProjectRequest(
+                detail.reviewProjectRequest().id(),
+                detail.reviewProjectRequest().name(),
+                detail.reviewProjectRequest().screenshotImageIds())
+            : null,
+        detail.locale() != null
+            ? new GetReviewProjectResponse.Locale(
+                detail.locale().id(), detail.locale().bcp47Tag())
+            : null,
+        detail.textUnits().stream().map(this::toTextUnitResponse).toList());
   }
 
   private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
-      ReviewProjectTextUnitView view) {
+      ReviewProjectDetail.ReviewProjectTextUnit view) {
     return new GetReviewProjectResponse.ReviewProjectTextUnit(
-        view.reviewProjectTextUnitId(),
+        view.id(),
         new GetReviewProjectResponse.TmTextUnit(
-            view.tmTextUnitId(),
-            view.name(),
-            view.target(),
-            view.notes(),
-            new GetReviewProjectResponse.Asset(null),
-            null),
+            view.tmTextUnit().id(),
+            view.tmTextUnit().name(),
+            view.tmTextUnit().content(),
+            view.tmTextUnit().comment(),
+            view.tmTextUnit().asset() != null
+                ? new GetReviewProjectResponse.Asset(view.tmTextUnit().asset().assetPath())
+                : new GetReviewProjectResponse.Asset(null),
+            view.tmTextUnit().wordCount()),
         new GetReviewProjectResponse.TmTextUnitVariant(
-            view.tmTextUnitVariantId(),
-            view.target(),
-            view.status(),
-            view.includedInLocalizedFile(),
-            view.notes()));
+            view.tmTextUnitVariant().id(),
+            view.tmTextUnitVariant().content(),
+            view.tmTextUnitVariant().status(),
+            view.tmTextUnitVariant().includedInLocalizedFile(),
+            view.tmTextUnitVariant().comment()));
   }
 }
