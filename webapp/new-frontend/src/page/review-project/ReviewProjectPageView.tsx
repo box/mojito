@@ -39,6 +39,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
 
   const layoutRef = useRef<HTMLDivElement>(null);
   const [listWidthPct, setListWidthPct] = useState(40);
+  const [lastListWidthPct, setLastListWidthPct] = useState(40);
+  const [isListCollapsed, setIsListCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
@@ -217,6 +219,27 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     // No auto-status change anymore; pending until explicit accept/reject.
   }, [draftNotes, draftTargets, projectId, selectedTextUnit, setTextUnits]);
 
+  const collapseList = useCallback(() => {
+    setIsListCollapsed(true);
+    setListWidthPct(0);
+  }, []);
+
+  const expandList = useCallback(() => {
+    setIsListCollapsed(false);
+    setListWidthPct(lastListWidthPct || 40);
+  }, [lastListWidthPct]);
+
+  const toggleList = useCallback(() => {
+    if (isListCollapsed) {
+      expandList();
+    } else {
+      if (listWidthPct > 0) {
+        setLastListWidthPct(listWidthPct);
+      }
+      collapseList();
+    }
+  }, [collapseList, expandList, isListCollapsed, listWidthPct]);
+
   const startResize = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
     setIsResizing(true);
@@ -224,7 +247,18 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       if (!layoutRef.current) return;
       const rect = layoutRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
-      const pct = Math.min(75, Math.max(20, (x / rect.width) * 100));
+      const pct = Math.min(75, Math.max(0, (x / rect.width) * 100));
+      if (pct <= 12) {
+        if (listWidthPct > 0) {
+          setLastListWidthPct(listWidthPct);
+        }
+        collapseList();
+        return;
+      }
+      if (isListCollapsed) {
+        setIsListCollapsed(false);
+      }
+      setLastListWidthPct(pct);
       setListWidthPct(pct);
     };
     const onUp = () => {
@@ -234,7 +268,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-  }, []);
+  }, [collapseList, isListCollapsed, listWidthPct]);
 
   const handleAccept = useCallback(
     (override: boolean) => {
@@ -329,8 +363,15 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     <div className="review-project-page">
       <ReviewProjectHeader projectId={projectId} project={project} textUnits={textUnits} />
 
-      <div className="review-project-page__content" ref={layoutRef}>
-        <section className="review-project-page__list-pane">
+      <div
+        className={`review-project-page__content${isListCollapsed ? ' review-project-page__content--collapsed' : ''}`}
+        ref={layoutRef}
+      >
+        <section
+          className={`review-project-page__list-pane${
+            isListCollapsed ? ' review-project-page__list-pane--collapsed' : ''
+          }`}
+        >
           <div className="review-project-page__controls review-project-page__controls--compact">
             {/*  that search area does not work well with resizing ,  we need it more compact, probably one line
              with a single small filter button. we first need to clarify the states though */}
@@ -386,6 +427,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         <div
           className={`review-project-page__resize-handle${isResizing ? ' is-resizing' : ''}`}
           onMouseDown={startResize}
+          onDoubleClick={toggleList}
+          role="separator"
+          aria-label={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
+          aria-orientation="vertical"
+          aria-expanded={!isListCollapsed}
         />
         <section className="review-project-page__detail-pane">
           {selectedTextUnit ? (

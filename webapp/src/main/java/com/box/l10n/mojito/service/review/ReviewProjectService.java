@@ -486,7 +486,7 @@ public class ReviewProjectService {
   }
 
   private GetProjectDetailView.ReviewProjectTextUnit fetchReviewProjectTextUnitDetail(
-      Long reviewProjectTextUnitId) {
+      Long reviewProjectTextUnitId) throws EntityWithIdNotFoundException {
     ReviewProjectTextUnitDetail detail =
         reviewProjectTextUnitRepository
             .findDetailByReviewProjectTextUnitId(reviewProjectTextUnitId)

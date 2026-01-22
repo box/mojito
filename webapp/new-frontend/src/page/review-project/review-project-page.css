@@ -168,6 +168,10 @@
   gap: 0;
 }
 
+.review-project-page__content--collapsed {
+  grid-template-columns: 0 8px calc(100% - 8px);
+}
+
 .review-project-page__list-pane,
 .review-project-page__detail-pane {
   border-radius: 0;
@@ -182,6 +186,11 @@
   min-height: 0;
   overflow: hidden;
   --review-project-row-height: auto;
+}
+
+.review-project-page__list-pane--collapsed {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .review-project-page__search {
