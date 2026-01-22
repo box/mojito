@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import type {
   ApiReviewProjectSummary,
@@ -23,6 +23,7 @@ export const useReviewProjects = (
       const result = await searchReviewProjects(params);
       return result.reviewProjects ?? [];
     },
+    placeholderData: keepPreviousData,
     staleTime: 30_000,
     ...options,
   });
