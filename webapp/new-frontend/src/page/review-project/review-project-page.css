@@ -283,7 +283,11 @@
 }
 
 .review-project-row__string-text {
-  overflow: visible;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: normal;
   line-height: 1.35;
 }
