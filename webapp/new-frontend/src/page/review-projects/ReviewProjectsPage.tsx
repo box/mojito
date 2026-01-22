@@ -263,9 +263,17 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
         return true;
       }
       const localeId = project.locale?.id ?? null;
-      if (localeId === null) return true;
-      // best effort: allow locale id matching stringified ids
-      return localeTags.some((tag) => String(localeId) === tag);
+      const localeTag = project.locale?.bcp47Tag ?? null;
+      if (localeId == null && !localeTag) {
+        return true;
+      }
+      return localeTags.some((tag) => {
+        const lowered = tag.toLowerCase();
+        if (localeTag && localeTag.toLowerCase() === lowered) {
+          return true;
+        }
+        return localeId != null && String(localeId) === tag;
+      });
     };
 
     const matchesStatus = (project: ApiReviewProjectSummary) => {

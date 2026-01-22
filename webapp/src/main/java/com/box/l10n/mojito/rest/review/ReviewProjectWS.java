@@ -126,7 +126,7 @@ public class ReviewProjectWS {
         ReviewProjectStatus status,
         Locale locale,
         ReviewProjectRequest reviewProjectRequest) {
-      public record Locale(Long id) {}
+      public record Locale(Long id, String bcp47Tag) {}
 
       public record ReviewProjectRequest(Long id, String name) {}
     }
@@ -174,8 +174,9 @@ public class ReviewProjectWS {
         view.wordCount(),
         view.type(),
         view.status(),
-        view.localeId() != null
-            ? new SearchReviewProjectsResponse.ReviewProject.Locale(view.localeId())
+        view.locale() != null
+            ? new SearchReviewProjectsResponse.ReviewProject.Locale(
+                view.locale().id(), view.locale().bcp47Tag())
             : null,
         view.reviewProjectRequest() != null
             ? new SearchReviewProjectsResponse.ReviewProject.ReviewProjectRequest(

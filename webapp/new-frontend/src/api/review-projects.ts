@@ -117,7 +117,7 @@ export type ApiReviewProjectSummary = {
   wordCount?: number | null;
   type: ApiReviewProjectType;
   status: ApiReviewProjectStatus;
-  locale?: { id: number | null } | null;
+  locale?: { id: number | null; bcp47Tag?: string | null } | null;
   reviewProjectRequest?: { id: number | null; name?: string | null } | null;
 };
 

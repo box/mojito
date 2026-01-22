@@ -618,7 +618,10 @@ public class ReviewProjectService {
         wordCount,
         project.getType(),
         project.getStatus(),
-        project.getLocale() != null ? project.getLocale().getId() : null,
+        project.getLocale() != null
+            ? new SearchReviewProjectsView.Locale(
+                project.getLocale().getId(), project.getLocale().getBcp47Tag())
+            : null,
         new SearchReviewProjectsView.ReviewProjectRequest(requestId, requestName));
   }
 

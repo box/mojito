@@ -17,8 +17,10 @@ public record SearchReviewProjectsView(List<ReviewProject> reviewProject) {
       Integer wordCount,
       ReviewProjectType type,
       ReviewProjectStatus status,
-      Long localeId,
+      Locale locale,
       ReviewProjectRequest reviewProjectRequest) {}
+
+  public record Locale(Long id, String bcp47Tag) {}
 
   public record ReviewProjectRequest(Long id, String name) {}
 }
