@@ -38,7 +38,7 @@ public class ReviewProjectWS {
   public SearchReviewProjectsResponse searchReviewProjects(
       @RequestBody SearchReviewProjectsRequest request) {
     SearchReviewProjectsView view = reviewProjectService.searchReviewProjects(toCriteria(request));
-    List<SearchReviewProjectsResponse.Project> projects =
+    List<SearchReviewProjectsResponse.ReviewProject> projects =
         view.reviewProject().stream().map(this::toSearchReviewProjectsResponse).toList();
     return new SearchReviewProjectsResponse(projects);
   }
@@ -114,9 +114,9 @@ public class ReviewProjectWS {
       List<Long> projectIds) {}
 
   /** Summary response used by list/search endpoints. */
-  public record SearchReviewProjectsResponse(List<Project> reviewProjects) {
+  public record SearchReviewProjectsResponse(List<ReviewProject> reviewProjects) {
 
-    public record Project(
+    public record ReviewProject(
         Long id,
         ZonedDateTime createdDate,
         ZonedDateTime lastModifiedDate,
@@ -126,9 +126,11 @@ public class ReviewProjectWS {
         Integer wordCount,
         ReviewProjectType type,
         ReviewProjectStatus status,
-        Long localeId,
-        Long requestId,
-        String requestName) {}
+        Locale locale,
+        ReviewProjectRequest reviewProjectRequest) {
+        public record Locale(Long id) {}
+        public record ReviewProjectRequest(Long id, String name) {}
+    }
   }
 
   /** Response contract for project detail. */
@@ -184,9 +186,9 @@ public class ReviewProjectWS {
   }
 
   // Mapping helpers
-  private SearchReviewProjectsResponse.Project toSearchReviewProjectsResponse(
+  private SearchReviewProjectsResponse.ReviewProject toSearchReviewProjectsResponse(
       SearchReviewProjectsView.ReviewProject view) {
-    return new SearchReviewProjectsResponse.Project(
+    return new SearchReviewProjectsResponse.ReviewProject(
         view.id(),
         view.createdDate(),
         view.lastModifiedDate(),
