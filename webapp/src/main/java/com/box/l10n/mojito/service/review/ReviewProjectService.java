@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 @Service
 public class ReviewProjectService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ReviewProjectService.class);
+  private static final Logger logger = LoggerFactory.getLogger(ReviewProjectService.class);
 
   private static final int DEFAULT_SEARCH_LIMIT = 500;
   private static final int MAX_SEARCH_LIMIT = 10_000;
