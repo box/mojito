@@ -303,48 +303,44 @@ public class ReviewProjectService {
     logger.error("JA--RIGHT BEFORE fetchTextUnits");
     stopWatch.start("fetchTextUnits");
 
-    // TODO(ja) review extra fetch, N+1 issue see repository for info
-    List<ReviewProjectTextUnit> textUnitEntities =
-        reviewProjectTextUnitRepository.findByReviewProjectId(projectId);
+    List<ReviewProjectTextUnitDetail> textUnitDetails =
+        reviewProjectTextUnitRepository.findDetailByReviewProjectId(projectId);
     stopWatch.stop();
 
     stopWatch.start("mapTextUnits");
     List<GetProjectDetailView.ReviewProjectTextUnit> reviewProjectTextUnits =
-        textUnitEntities.stream()
+        textUnitDetails.stream()
             .map(
-                textUnit -> {
-                  TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
-                  Asset asset = tmTextUnit.getAsset();
+                detail -> {
                   GetProjectDetailView.Asset.Repository repository =
                       new GetProjectDetailView.Asset.Repository(
-                          asset.getRepository().getId(), asset.getRepository().getName());
+                          detail.repositoryId(), detail.repositoryName());
                   GetProjectDetailView.Asset assetView =
-                      new GetProjectDetailView.Asset(asset.getPath(), repository);
+                      new GetProjectDetailView.Asset(detail.assetPath(), repository);
                   GetProjectDetailView.TmTextUnit tmTextUnitView =
                       new GetProjectDetailView.TmTextUnit(
-                          tmTextUnit.getId(),
-                          tmTextUnit.getName(),
-                          tmTextUnit.getContent(),
-                          tmTextUnit.getComment(),
+                          detail.tmTextUnitId(),
+                          detail.tmTextUnitName(),
+                          detail.tmTextUnitContent(),
+                          detail.tmTextUnitComment(),
                           assetView,
-                          tmTextUnit.getWordCount() != null
-                              ? tmTextUnit.getWordCount().longValue()
+                          detail.tmTextUnitWordCount() != null
+                              ? detail.tmTextUnitWordCount().longValue()
                               : null);
-                  TMTextUnitVariant tmTextUnitVariant = textUnit.getTmTextUnitVariant();
                   GetProjectDetailView.TmTextUnitVariant tmTextUnitVariantView =
-                      tmTextUnitVariant == null
+                      detail.tmTextUnitVariantId() == null
                           ? new GetProjectDetailView.TmTextUnitVariant(
                               null, null, null, false, null)
                           : new GetProjectDetailView.TmTextUnitVariant(
-                              tmTextUnitVariant.getId(),
-                              tmTextUnitVariant.getContent(),
-                              tmTextUnitVariant.getStatus() != null
-                                  ? tmTextUnitVariant.getStatus().name()
+                              detail.tmTextUnitVariantId(),
+                              detail.tmTextUnitVariantContent(),
+                              detail.tmTextUnitVariantStatus() != null
+                                  ? detail.tmTextUnitVariantStatus().name()
                                   : null,
-                              tmTextUnitVariant.isIncludedInLocalizedFile(),
-                              tmTextUnitVariant.getComment());
+                              detail.tmTextUnitVariantIncludedInLocalizedFile(),
+                              detail.tmTextUnitVariantComment());
                   return new GetProjectDetailView.ReviewProjectTextUnit(
-                      textUnit.getId(), tmTextUnitView, tmTextUnitVariantView);
+                      detail.reviewProjectTextUnitId(), tmTextUnitView, tmTextUnitVariantView);
                 })
             .toList();
     stopWatch.stop();
@@ -374,7 +370,7 @@ public class ReviewProjectService {
         "getProjectDetail {} took {} ms (textUnits={}). {}",
         projectId,
         stopWatch.getTotalTimeMillis(),
-        textUnitEntities.size(),
+        textUnitDetails.size(),
         stopWatch.prettyPrint());
     return response;
   }
