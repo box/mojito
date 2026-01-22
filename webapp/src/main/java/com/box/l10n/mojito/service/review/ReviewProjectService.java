@@ -305,7 +305,7 @@ public class ReviewProjectService {
 
   @Transactional(readOnly = true)
   public GetProjectDetailView getProjectDetail(Long projectId) throws EntityWithIdNotFoundException {
-    ReviewProject project =
+    ReviewProjectDetail project =
         reviewProjectRepository
             .findDetailById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
@@ -349,23 +349,26 @@ public class ReviewProjectService {
                 })
             .toList();
 
+    List<String> screenshotImageIds =
+        project.reviewProjectRequestId() == null
+            ? List.of()
+            : reviewProjectScreenshotRepository.findImageNamesByReviewProjectRequestId(
+                project.reviewProjectRequestId());
+
     return new GetProjectDetailView(
-        project.getId(),
-        project.getType(),
-        project.getStatus(),
-        project.getCreatedDate(),
-        project.getDueDate(),
-        project.getCloseReason(),
-        project.getTextUnitCount(),
-        project.getWordCount(),
+        project.id(),
+        project.type(),
+        project.status(),
+        project.createdDate(),
+        project.dueDate(),
+        project.closeReason(),
+        project.textUnitCount(),
+        project.wordCount(),
         new GetProjectDetailView.ReviewProjectRequest(
-            project.getReviewProjectRequest().getId(),
-            project.getReviewProjectRequest().getName(),
-            project.getReviewProjectRequest().getScreenshots().stream()
-                .map(ReviewProjectRequestScreenshot::getImageName)
-                .toList()),
-        new GetProjectDetailView.Locale(
-            project.getLocale().getId(), project.getLocale().getBcp47Tag()),
+            project.reviewProjectRequestId(),
+            project.reviewProjectRequestName(),
+            screenshotImageIds),
+        new GetProjectDetailView.Locale(project.localeId(), project.localeTag()),
         reviewProjectTextUnits);
   }
 
