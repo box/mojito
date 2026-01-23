@@ -551,6 +551,20 @@
   line-height: 1;
 }
 
+.pill.review-project-detail__pill-link--always {
+  display: inline-flex;
+  text-decoration: none;
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-0_5);
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 0 var(--space-2);
+  min-height: 1.25rem;
+  font-size: var(--font-size-2xs);
+  line-height: 1;
+}
+
 .review-project-detail__layout {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);

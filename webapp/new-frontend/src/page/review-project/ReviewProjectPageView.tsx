@@ -524,6 +524,7 @@ function DetailPane({
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
+  const workbenchTextUnitId = textUnit.tmTextUnitId ?? textUnit.tmTextUnit?.id ?? null;
 
   useEffect(() => {
     if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
@@ -704,31 +705,33 @@ function DetailPane({
                 {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
               </span>
             </div>
-            <Link
-              className="pill review-project-detail__pill-link review-project-detail__pill-link--title"
-              to={{
-                pathname: '/workbench',
-                search: `?tmTextUnitId=${encodeURIComponent(
-                  textUnit.tmTextUnitId != null ? String(textUnit.tmTextUnitId) : '',
-                )}${localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''}${
-                  textUnit.repositoryId != null
-                    ? `&repo=${encodeURIComponent(String(textUnit.repositoryId))}`
-                    : ''
-                }`,
-              }}
-              state={{
-                workbenchSearch: {
-                  searchAttribute: 'tmTextUnitIds',
-                  searchType: 'exact',
-                  searchText: String(textUnit.tmTextUnitId),
-                  localeTags: [localeTag],
-                  repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : [],
-                },
-              }}
-              title="Open this string in Workbench"
-            >
-              Open in Workbench
-            </Link>
+            {workbenchTextUnitId != null ? (
+              <Link
+                className="pill review-project-detail__pill-link review-project-detail__pill-link--always"
+                to={{
+                  pathname: '/workbench',
+                  search: `?tmTextUnitId=${encodeURIComponent(
+                    String(workbenchTextUnitId),
+                  )}${localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''}${
+                    textUnit.repositoryId != null
+                      ? `&repo=${encodeURIComponent(String(textUnit.repositoryId))}`
+                      : ''
+                  }`,
+                }}
+                state={{
+                  workbenchSearch: {
+                    searchAttribute: 'tmTextUnitIds',
+                    searchType: 'exact',
+                    searchText: String(workbenchTextUnitId),
+                    localeTags: [localeTag],
+                    repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : [],
+                  },
+                }}
+                title="Open this string in Workbench"
+              >
+                Open in Workbench
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>

@@ -45,7 +45,10 @@ export type ApiReviewProjectTextUnit = {
     name?: number | string | null;
     content?: string | null;
     comment?: string | null;
-    asset?: { assetPath?: number | string | null } | null;
+    asset?: {
+      assetPath?: number | string | null;
+      repository?: { id?: number | null; name?: string | null } | null;
+    } | null;
     wordCount?: number | null;
   } | null;
   name?: number | string | null;
@@ -169,7 +172,13 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
   const decisionVariantId = tu.reviewProjectTextUnitDecision?.tmTextUnitVariantId ?? null;
 
   const reviewProjectTextUnitId = (tu.id ?? tm.id ?? tu.name ?? 0) as number;
-  const tmTextUnitId = (tu.tmTextUnitId ?? null) as number | null;
+  const tmTextUnitIdRaw = tu.tmTextUnitId ?? tm.id ?? null;
+  const tmTextUnitId =
+    tmTextUnitIdRaw == null
+      ? null
+      : Number.isFinite(Number(tmTextUnitIdRaw))
+        ? Number(tmTextUnitIdRaw)
+        : null;
   const source = tu.source ?? tm.content ?? null;
   const target = tu.content ?? variant?.content ?? null;
   const comment = tm.comment ?? tu.comment ?? null;
@@ -181,6 +190,7 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
       : tu.asset && tu.asset.assetPath != null
         ? String(tu.asset.assetPath)
         : null;
+  const repositoryId = tu.repositoryId ?? tm.asset?.repository?.id ?? null;
 
   const baselineVariantId = variant?.id ?? tu.tmTextUnitVariantId ?? null;
   const selectedVariantId = decisionVariantId ?? baselineVariantId;
@@ -218,7 +228,7 @@ const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUn
     reviewedAt: tu.reviewedAt ?? null,
     reviewedBy: tu.reviewedBy ?? null,
     status: variantStatus,
-    repositoryId: tu.repositoryId ?? null,
+    repositoryId,
     repositoryName: tu.repositoryName ?? null,
     assetPath,
     includedInLocalizedFile: variantIncluded,
