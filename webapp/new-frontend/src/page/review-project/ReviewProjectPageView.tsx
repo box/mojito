@@ -272,7 +272,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             <input
               className="review-project-page__search-input"
               type="search"
-              placeholder="Search source/target/id"
+              placeholder="Search source, translation, or id"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

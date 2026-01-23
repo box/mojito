@@ -183,72 +183,52 @@ export const fetchReviewProjectDetail = async (
   return (await response.json()) as ApiReviewProjectDetail;
 };
 
-export const acceptReviewProjectTextUnit = async ({
+export const saveReviewProjectTextUnitDecision = async ({
   projectId,
   textUnitId,
   target,
-  includedInLocalizedFile = true,
+  comment,
+  status,
+  includedInLocalizedFile,
   expectedCurrentTmTextUnitVariantId,
   overrideChangedCurrent = false,
-  notes,
+  decisionNotes,
 }: {
   projectId: number;
   textUnitId: number;
-  target: string;
-  includedInLocalizedFile?: boolean;
+  target?: string | null;
+  comment?: string | null;
+  status?: string | null;
+  includedInLocalizedFile?: boolean | null;
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
-  notes?: string | null;
+  decisionNotes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
   const response = await fetch(
-    `/api/review-projects/${projectId}/text-units/${textUnitId}/accept`,
+    `/api/review-projects/${projectId}/text-units/${textUnitId}/decision`,
     {
       method: 'POST',
       credentials: 'include',
       headers: jsonHeaders,
       body: JSON.stringify({
         target,
+        comment,
+        status,
         includedInLocalizedFile,
         expectedCurrentTmTextUnitVariantId,
         overrideChangedCurrent,
-        notes,
+        decisionNotes,
       }),
     },
   );
 
   if (!response.ok) {
     const message = await response.text().catch(() => '');
-    const error = new Error(message || 'Failed to accept text unit') as Error & { status?: number };
+    const error = new Error(message || 'Failed to save text unit decision') as Error & {
+      status?: number;
+    };
     error.status = response.status;
     throw error;
-  }
-
-  const raw = (await response.json()) as ApiReviewProjectTextUnit;
-  return raw;
-};
-
-export const updateReviewProjectTextUnitReview = async ({
-  projectId,
-  textUnitId,
-  notes,
-}: {
-  projectId: number;
-  textUnitId: number;
-  notes?: string | null;
-}): Promise<ApiReviewProjectTextUnit> => {
-  const response = await fetch(
-    `/api/review-projects/${projectId}/text-units/${textUnitId}/review`,
-    {
-      method: 'POST',
-      credentials: 'include',
-      headers: jsonHeaders,
-      body: JSON.stringify({ notes }),
-    },
-  );
-
-  if (!response.ok) {
-    const message = await response.text().catch(() => '');
-    throw new Error(message || 'Failed to update review status');
   }
 
   const raw = (await response.json()) as ApiReviewProjectTextUnit;

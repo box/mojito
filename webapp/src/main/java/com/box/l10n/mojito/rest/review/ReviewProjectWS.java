@@ -10,6 +10,7 @@ import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictExc
 import com.box.l10n.mojito.service.review.ReviewProjectService;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
+import com.box.l10n.mojito.service.review.ReviewProjectTextUnitDetail;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -72,37 +73,31 @@ public class ReviewProjectWS {
     return toDetailResponse(projectDetail);
   }
 
-  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/accept")
-  public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> acceptTextUnit(
+  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/decision")
+  public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> saveDecision(
       @PathVariable Long projectId,
       @PathVariable Long textUnitId,
-      @RequestBody ReviewProjectTextUnitAcceptRequest request)
+      @RequestBody ReviewProjectTextUnitDecisionRequest request)
       throws EntityWithIdNotFoundException {
     try {
-      GetProjectDetailView.ReviewProjectTextUnit view =
-          reviewProjectService.acceptTextUnit(
+      ReviewProjectTextUnitDetail detail =
+          reviewProjectService.saveDecision(
               projectId,
               textUnitId,
               request.getTarget(),
+              request.getComment(),
+              request.getStatus(),
               request.getIncludedInLocalizedFile(),
               request.getExpectedCurrentTmTextUnitVariantId(),
               Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
-              request.getNotes());
-      return ResponseEntity.ok(toTextUnitResponse(view));
+              request.getDecisionNotes());
+      return ResponseEntity.ok(toTextUnitResponse(detail));
     } catch (ReviewProjectCurrentVariantConflictException conflict) {
-      return ResponseEntity.status(HttpStatus.CONFLICT)
-          .body(toTextUnitResponse(conflict.getCurrentTextUnit()));
+      ReviewProjectTextUnitDetail currentTextUnit = conflict.getCurrentTextUnit();
+      return currentTextUnit == null
+          ? ResponseEntity.status(HttpStatus.CONFLICT).build()
+          : ResponseEntity.status(HttpStatus.CONFLICT).body(toTextUnitResponse(currentTextUnit));
     }
-  }
-
-  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/review")
-  public GetReviewProjectResponse.ReviewProjectTextUnit updateReviewStatus(
-      @PathVariable Long projectId,
-      @PathVariable Long textUnitId,
-      @RequestBody ReviewProjectTextUnitReviewRequest request)
-      throws EntityWithIdNotFoundException {
-    return toTextUnitResponse(
-        reviewProjectService.updateReviewStatus(projectId, textUnitId, request.getNotes()));
   }
 
   /** Response contract for create review project request (minimal payload). */
@@ -276,5 +271,52 @@ public class ReviewProjectWS {
                 view.reviewProjectTextUnitDecision().decisionTmTextUnitVariantId(),
                 view.reviewProjectTextUnitDecision().reviewedTmTextUnitVariantId(),
                 view.reviewProjectTextUnitDecision().notes()));
+  }
+
+  private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
+      ReviewProjectTextUnitDetail detail) {
+    GetReviewProjectResponse.Asset.Repository repository =
+        new GetReviewProjectResponse.Asset.Repository(
+            detail.repositoryId(), detail.repositoryName());
+    GetReviewProjectResponse.Asset asset =
+        new GetReviewProjectResponse.Asset(detail.assetPath(), repository);
+    GetReviewProjectResponse.TmTextUnit tmTextUnit =
+        new GetReviewProjectResponse.TmTextUnit(
+            detail.tmTextUnitId(),
+            detail.tmTextUnitName(),
+            detail.tmTextUnitContent(),
+            detail.tmTextUnitComment(),
+            asset,
+            detail.tmTextUnitWordCount() != null ? detail.tmTextUnitWordCount().longValue() : null);
+
+    boolean includedInLocalizedFile =
+        Boolean.TRUE.equals(detail.baselineTmTextUnitVariantIncludedInLocalizedFile());
+    GetReviewProjectResponse.TmTextUnitVariant baselineVariant =
+        new GetReviewProjectResponse.TmTextUnitVariant(
+            detail.baselineTmTextUnitVariantId(),
+            detail.baselineTmTextUnitVariantContent(),
+            detail.baselineTmTextUnitVariantStatus() != null
+                ? detail.baselineTmTextUnitVariantStatus().name()
+                : null,
+            includedInLocalizedFile,
+            detail.baselineTmTextUnitVariantComment());
+
+    boolean hasDecision =
+        detail.decisionTmTextUnitVariantId() != null
+            || detail.reviewedTmTextUnitVariantId() != null
+            || detail.decisionNotes() != null;
+    GetReviewProjectResponse.ReviewProjectTextUnitDecision decision =
+        hasDecision
+            ? new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
+                detail.decisionTmTextUnitVariantId(),
+                detail.reviewedTmTextUnitVariantId(),
+                detail.decisionNotes())
+            : null;
+
+    return new GetReviewProjectResponse.ReviewProjectTextUnit(
+        detail.reviewProjectTextUnitId(),
+        tmTextUnit,
+        baselineVariant,
+        decision);
   }
 }

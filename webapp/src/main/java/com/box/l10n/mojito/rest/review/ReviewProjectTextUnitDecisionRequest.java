@@ -1,12 +1,14 @@
 package com.box.l10n.mojito.rest.review;
 
-public class ReviewProjectTextUnitAcceptRequest {
+public class ReviewProjectTextUnitDecisionRequest {
 
   private String target;
+  private String comment;
+  private String status;
   private Boolean includedInLocalizedFile;
   private Long expectedCurrentTmTextUnitVariantId;
   private Boolean overrideChangedCurrent;
-  private String notes;
+  private String decisionNotes;
 
   public String getTarget() {
     return target;
@@ -14,6 +16,22 @@ public class ReviewProjectTextUnitAcceptRequest {
 
   public void setTarget(String target) {
     this.target = target;
+  }
+
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
   }
 
   public Boolean getIncludedInLocalizedFile() {
@@ -40,11 +58,11 @@ public class ReviewProjectTextUnitAcceptRequest {
     this.overrideChangedCurrent = overrideChangedCurrent;
   }
 
-  public String getNotes() {
-    return notes;
+  public String getDecisionNotes() {
+    return decisionNotes;
   }
 
-  public void setNotes(String notes) {
-    this.notes = notes;
+  public void setDecisionNotes(String decisionNotes) {
+    this.decisionNotes = decisionNotes;
   }
 }

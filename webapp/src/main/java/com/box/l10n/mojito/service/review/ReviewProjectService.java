@@ -339,108 +339,16 @@ public class ReviewProjectService {
   }
 
   @Transactional
-  public GetProjectDetailView.ReviewProjectTextUnit acceptTextUnit(
+  public ReviewProjectTextUnitDetail saveDecision(
       Long projectId,
       Long reviewProjectTextUnitId,
       String target,
+      String comment,
+      String status,
       Boolean includedInLocalizedFile,
       Long expectedCurrentTmTextUnitVariantId,
       boolean overrideChangedCurrent,
-      String notes)
-      throws EntityWithIdNotFoundException {
-
-    // TODO(ja) we must clean up that method.
-    // First the name is think with our new API should be: saveDecision()
-    // info we need to save:
-    // - for the new current variant: content, optional<comment>
-
-    ReviewProject project =
-        reviewProjectRepository
-            .findById(projectId)
-            .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
-
-    ReviewProjectTextUnit textUnit =
-        reviewProjectTextUnitRepository
-            .findById(reviewProjectTextUnitId)
-            .orElseThrow(
-                () ->
-                    new EntityWithIdNotFoundException(
-                        "reviewProjectTextUnit", reviewProjectTextUnitId));
-
-    if (!textUnit.getReviewProject().getId().equals(projectId)) {
-      throw new IllegalArgumentException("Review project text unit does not belong to project");
-    }
-
-    if (target == null) {
-      throw new IllegalArgumentException("Target translation is required");
-    }
-
-    String normalizedTarget = NormalizationUtils.normalize(target);
-    boolean includeInLocalizedFile =
-        includedInLocalizedFile == null ? true : includedInLocalizedFile.booleanValue();
-
-    TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
-    if (tmTextUnit == null && textUnit.getTmTextUnitVariant() != null) {
-      tmTextUnit = textUnit.getTmTextUnitVariant().getTmTextUnit();
-    }
-    if (tmTextUnit == null) {
-      throw new IllegalStateException("Review project text unit missing TM reference");
-    }
-
-    TMTextUnitVariant baselineVariant = textUnit.getTmTextUnitVariant();
-    if (baselineVariant == null) {
-      throw new IllegalStateException("Review project text unit missing baseline variant");
-    }
-
-    TMTextUnitCurrentVariant currentVariant =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            project.getLocale().getId(), tmTextUnit.getId());
-    Long currentVariantId =
-        currentVariant != null && currentVariant.getTmTextUnitVariant() != null
-            ? currentVariant.getTmTextUnitVariant().getId()
-            : null;
-
-    if (!overrideChangedCurrent
-        && expectedCurrentTmTextUnitVariantId != null
-        && !expectedCurrentTmTextUnitVariantId.equals(currentVariantId)) {
-      throw new ReviewProjectCurrentVariantConflictException(
-          expectedCurrentTmTextUnitVariantId, currentVariantId, null);
-    }
-
-    TMTextUnitCurrentVariant updatedCurrentVariant =
-        tmService.addTMTextUnitCurrentVariant(
-            tmTextUnit.getId(),
-            project.getLocale().getId(),
-            normalizedTarget,
-            null,
-            TMTextUnitVariant.Status.APPROVED,
-            includeInLocalizedFile);
-
-    TMTextUnitVariant newVariant = updatedCurrentVariant.getTmTextUnitVariant();
-
-    ReviewProjectTextUnitDecision variantDecision =
-        reviewProjectTextUnitDecisionRepository
-            .findByReviewProjectTextUnitId(textUnit.getId())
-            .orElseGet(
-                () -> {
-                  ReviewProjectTextUnitDecision entity = new ReviewProjectTextUnitDecision();
-                  entity.setReviewProjectTextUnit(textUnit);
-                  return entity;
-                });
-
-    if (variantDecision.getReviewedVariant() == null) {
-      variantDecision.setReviewedVariant(baselineVariant);
-    }
-    variantDecision.setDecisionVariant(newVariant);
-    variantDecision.setNotes(notes);
-    reviewProjectTextUnitDecisionRepository.save(variantDecision);
-
-    return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
-  }
-
-  @Transactional
-  public GetProjectDetailView.ReviewProjectTextUnit updateReviewStatus(
-      Long projectId, Long reviewProjectTextUnitId, String notes)
+      String decisionNotes)
       throws EntityWithIdNotFoundException {
 
     ReviewProject project =
@@ -460,6 +368,80 @@ public class ReviewProjectService {
       throw new IllegalArgumentException("Review project text unit does not belong to project");
     }
 
+    TMTextUnitVariant baselineVariant = textUnit.getTmTextUnitVariant();
+    if (baselineVariant == null) {
+      throw new IllegalStateException("Review project text unit missing baseline variant");
+    }
+
+    TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
+    if (tmTextUnit == null) {
+      tmTextUnit = baselineVariant.getTmTextUnit();
+    }
+    if (tmTextUnit == null) {
+      throw new IllegalStateException("Review project text unit missing TM reference");
+    }
+
+    TMTextUnitCurrentVariant currentVariant =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            project.getLocale().getId(), tmTextUnit.getId());
+    TMTextUnitVariant currentTmTextUnitVariant =
+        currentVariant != null ? currentVariant.getTmTextUnitVariant() : null;
+    Long currentVariantId =
+        currentTmTextUnitVariant != null ? currentTmTextUnitVariant.getId() : null;
+
+    if (!overrideChangedCurrent
+        && expectedCurrentTmTextUnitVariantId != null
+        && !expectedCurrentTmTextUnitVariantId.equals(currentVariantId)) {
+      throw new ReviewProjectCurrentVariantConflictException(
+          expectedCurrentTmTextUnitVariantId,
+          currentVariantId,
+          fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId));
+    }
+
+    TMTextUnitVariant.Status effectiveStatus =
+        status == null
+            ? (currentTmTextUnitVariant != null
+                ? currentTmTextUnitVariant.getStatus()
+                : baselineVariant.getStatus())
+            : TMTextUnitVariant.Status.valueOf(status);
+    boolean effectiveIncludedInLocalizedFile =
+        includedInLocalizedFile == null
+            ? (currentTmTextUnitVariant != null
+                ? currentTmTextUnitVariant.isIncludedInLocalizedFile()
+                : baselineVariant.isIncludedInLocalizedFile())
+            : includedInLocalizedFile.booleanValue();
+    String effectiveComment =
+        comment == null
+            ? (currentTmTextUnitVariant != null
+                ? currentTmTextUnitVariant.getComment()
+                : baselineVariant.getComment())
+            : comment;
+
+    boolean shouldUpdateTm =
+        target != null || status != null || includedInLocalizedFile != null || comment != null;
+
+    TMTextUnitVariant decidedVariant =
+        currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
+
+    if (shouldUpdateTm) {
+      String contentToSave =
+          target != null
+              ? NormalizationUtils.normalize(target)
+              : (currentTmTextUnitVariant != null
+                  ? currentTmTextUnitVariant.getContent()
+                  : baselineVariant.getContent());
+
+      TMTextUnitCurrentVariant updatedCurrentVariant =
+          tmService.addTMTextUnitCurrentVariant(
+              tmTextUnit.getId(),
+              project.getLocale().getId(),
+              contentToSave,
+              effectiveComment,
+              effectiveStatus,
+              effectiveIncludedInLocalizedFile);
+      decidedVariant = updatedCurrentVariant.getTmTextUnitVariant();
+    }
+
     ReviewProjectTextUnitDecision decision =
         reviewProjectTextUnitDecisionRepository
             .findByReviewProjectTextUnitId(reviewProjectTextUnitId)
@@ -470,33 +452,21 @@ public class ReviewProjectService {
                   return entity;
                 });
 
-    TMTextUnitVariant baselineVariant = textUnit.getTmTextUnitVariant();
-    if (baselineVariant == null) {
-      throw new IllegalStateException("Review project text unit missing baseline variant");
-    }
-    if (decision.getDecisionVariant() == null) {
-      decision.setDecisionVariant(baselineVariant);
-    }
-    if (decision.getReviewedVariant() == null) {
-      decision.setReviewedVariant(baselineVariant);
-    }
-
-    decision.setNotes(notes);
+    decision.setReviewedVariant(baselineVariant);
+    decision.setDecisionVariant(decidedVariant);
+    decision.setNotes(decisionNotes);
     reviewProjectTextUnitDecisionRepository.save(decision);
 
     return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
   }
 
-  private GetProjectDetailView.ReviewProjectTextUnit fetchReviewProjectTextUnitDetail(
+  private ReviewProjectTextUnitDetail fetchReviewProjectTextUnitDetail(
       Long reviewProjectTextUnitId) throws EntityWithIdNotFoundException {
-    ReviewProjectTextUnitDetail detail =
-        reviewProjectTextUnitRepository
-            .findDetailByReviewProjectTextUnitId(reviewProjectTextUnitId)
-            .orElseThrow(
-                () ->
-                    new EntityWithIdNotFoundException(
-                        "reviewProjectTextUnit", reviewProjectTextUnitId));
-    return toReviewProjectTextUnit(detail);
+    return reviewProjectTextUnitRepository
+        .findDetailByReviewProjectTextUnitId(reviewProjectTextUnitId)
+        .orElseThrow(
+            () ->
+                new EntityWithIdNotFoundException("reviewProjectTextUnit", reviewProjectTextUnitId));
   }
 
   private GetProjectDetailView.ReviewProjectTextUnit toReviewProjectTextUnit(
