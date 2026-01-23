@@ -419,22 +419,19 @@
   align-items: center;
   justify-content: center;
   touch-action: none;
-  border-left: var(--border-width) solid color-mix(in srgb, var(--color-border) 35%, transparent);
-  border-right: var(--border-width) solid color-mix(in srgb, var(--color-border) 35%, transparent);
 }
 
 .review-project-page__resize-handle::before {
   content: '';
-  width: 26px;
-  height: 2px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-border) 70%, transparent);
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  margin: auto;
+  height: 1px;
+  width: 100%;
+  background: color-mix(in srgb, var(--color-border) 55%, transparent);
   z-index: 0;
 }
+
 
 .review-project-page__collapse-toggle {
   width: 24px;
@@ -444,7 +441,6 @@
 .review-project-page__resize-handle:hover,
 .review-project-page__resize-handle.is-resizing {
   background: color-mix(in srgb, var(--color-accent) 6%, transparent);
-  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .review-project-handle-button {
@@ -452,7 +448,7 @@
   height: 24px;
   border-radius: var(--radius-2);
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 60%, transparent);
-  background: transparent;
+  background: var(--color-surface);
   color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
@@ -1342,21 +1338,19 @@
   transition: background 0.2s ease;
   border-radius: var(--radius-pill);
   position: relative;
-  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 35%, transparent);
 }
 
 .review-project-detail__hero-resize-handle::before {
   content: '';
-  width: 32px;
-  height: 2px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-border) 70%, transparent);
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  margin: auto;
+  height: 1px;
+  width: 100%;
+  background: color-mix(in srgb, var(--color-border) 55%, transparent);
   z-index: 0;
 }
+
 
 .review-project-detail__hero-resize-handle--collapsed {
   margin: 0;
@@ -1365,15 +1359,22 @@
 .review-project-detail__hero-resize-handle:hover,
 .review-project-detail__hero-resize-handle.is-resizing {
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
-  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .review-project-detail__hero-toggle {
+  width: 3.125rem;
+  height: 0.625rem;
+  border-radius: var(--radius-pill);
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1;
+}
+
+.review-project-detail__hero-toggle .review-project-chevron {
+  width: 0.45rem;
+  height: 0.45rem;
 }
 
 
@@ -1391,11 +1392,11 @@
 }
 
 .review-project-chevron--left {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 
 .review-project-chevron--right {
-  transform: rotate(90deg);
+  transform: rotate(-90deg);
 }
 
 .review-project-chevron--up {
