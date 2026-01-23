@@ -25,6 +25,7 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,10 +79,19 @@ public class RepositoryWS {
    * @return List of {@link Repository}s
    */
   @JsonView(View.RepositorySummary.class)
+  @RequestMapping(value = "/api/legacy/repositories", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  public List<Repository> getRepositoriesLegacy() {
+    return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
+  }
+
   @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
   public List<Repository> getRepositories() {
-    return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
+
+      // TODO(ja) we are reimplementing getRepositoriesLegacy.
+
+      return new ArrayList<>();
   }
 
   /**

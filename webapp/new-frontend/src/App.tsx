@@ -2,7 +2,7 @@ import './app.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
 import { RequireUser } from './components/RequireUser';
 import { UserMenu } from './components/UserMenu';
@@ -30,30 +30,27 @@ const navItems: NavItem[] = [
 
 const queryClient = new QueryClient();
 
-function AppLayout() {
-  const location = useLocation();
-  const isHeaderless =
-    /^\/review-projects\/\d+/.test(location.pathname) ||
-    /^\/review-projects-v2\/\d+/.test(location.pathname);
-
+function AppLayout({ showHeader }: { showHeader: boolean }) {
   return (
-    <div className={`app-shell${isHeaderless ? ' app-shell--headerless' : ''}`}>
-      <header className="app-shell__header">
-        <div className="app-shell__header-content">
-          <nav className="app-shell__nav">
-            {navItems.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) => `app-shell__nav-link${isActive ? ' is-active' : ''}`}
-              >
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-          <UserMenu />
-        </div>
-      </header>
+    <div className={`app-shell${showHeader ? '' : ' app-shell--bare'}`}>
+      {showHeader ? (
+        <header className="app-shell__header">
+          <div className="app-shell__header-content">
+            <nav className="app-shell__nav">
+              {navItems.map(({ to, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) => `app-shell__nav-link${isActive ? ' is-active' : ''}`}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </nav>
+            <UserMenu />
+          </div>
+        </header>
+      ) : null}
       <main className="app-shell__main">
         <Outlet />
       </main>
@@ -69,7 +66,7 @@ export function App() {
           <Route
             element={
               <RequireUser>
-                <AppLayout />
+                <AppLayout showHeader />
               </RequireUser>
             }
           >
@@ -78,11 +75,19 @@ export function App() {
               <Route key={to} path={to} element={element} />
             ))}
             <Route path="/review-projects/new" element={<ReviewProjectCreatePage />} />
-            <Route path="/review-projects/:projectId" element={<ReviewProjectPage />} />
-            <Route path="/review-projects-v2/:projectId" element={<ReviewProjectPageV2 />} />
             <Route path="/settings/admin" element={<AdminSettingsPage />} />
             <Route path="/tools/char-code" element={<CharCodeHelperPage />} />
             <Route path="*" element={<Navigate to="/repositories" replace />} />
+          </Route>
+          <Route
+            element={
+              <RequireUser>
+                <AppLayout showHeader={false} />
+              </RequireUser>
+            }
+          >
+            <Route path="/review-projects/:projectId" element={<ReviewProjectPage />} />
+            <Route path="/review-projects-v2/:projectId" element={<ReviewProjectPageV2 />} />
           </Route>
         </Routes>
       </BrowserRouter>

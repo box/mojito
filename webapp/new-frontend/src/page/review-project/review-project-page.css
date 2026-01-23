@@ -8,6 +8,11 @@
   width: 100%;
 }
 
+.app-shell--bare .review-project-page,
+.app-shell--bare .review-project-page__state {
+  height: 100vh;
+}
+
 .review-project-page__state {
   height: calc(100vh - var(--app-shell-header-height));
   display: flex;
@@ -31,7 +36,9 @@
   justify-content: space-between;
   gap: var(--space-2);
   margin: 0;
-  padding: var(--space-3) var(--space-6);
+  height: var(--app-shell-header-height);
+  min-height: var(--app-shell-header-height);
+  padding: 0 var(--space-6);
   border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 65%, transparent);
   border-radius: 0;
   background: var(--color-surface);

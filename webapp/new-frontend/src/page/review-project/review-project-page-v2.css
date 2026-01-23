@@ -6,6 +6,10 @@
   padding: var(--space-3) var(--space-5);
 }
 
+.app-shell--bare .review-project-page-v2 {
+  height: 100vh;
+}
+
 .review-project-page-v2__header {
   display: grid;
   gap: var(--space-1);
