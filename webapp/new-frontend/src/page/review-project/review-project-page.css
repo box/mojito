@@ -542,7 +542,6 @@
 
 .review-project-detail__hero--has-shots {
   padding: var(--space-2);
-  padding-top: calc(var(--space-2) + 1.75rem);
   margin-bottom: var(--space-3);
 }
 
@@ -1027,7 +1026,7 @@
 
 .review-project-detail__shots-badge {
   position: absolute;
-  top: var(--space-2);
+  bottom: var(--space-2);
   right: var(--space-2);
   padding: 0 var(--space-2);
   height: 1.5rem;
@@ -1040,6 +1039,14 @@
   align-items: center;
   gap: var(--space-1);
   box-shadow: 0 6px 16px -12px color-mix(in srgb, var(--color-text) 40%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.review-project-detail__hero:hover .review-project-detail__shots-badge,
+.review-project-detail__hero:focus-within .review-project-detail__shots-badge {
+  opacity: 1;
 }
 
 
@@ -1317,6 +1324,18 @@
   border: none;
   height: 100%;
   align-items: center;
+}
+
+.review-project-detail__gallery--hero .review-project-detail__gallery-nav {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.review-project-detail__hero:hover .review-project-detail__gallery--hero .review-project-detail__gallery-nav,
+.review-project-detail__hero:focus-within .review-project-detail__gallery--hero .review-project-detail__gallery-nav {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .review-project-detail__gallery--hero .review-project-detail__gallery-nav {

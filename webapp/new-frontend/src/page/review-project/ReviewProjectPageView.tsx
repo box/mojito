@@ -721,9 +721,12 @@ function DetailPane({
   useEffect(() => {
     if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
     const rect = heroRef.current.getBoundingClientRect();
-    if (rect.height) {
-      setHeroHeight(rect.height);
-      setLastHeroHeight(rect.height);
+    const containerHeight = heroRef.current.parentElement?.clientHeight ?? rect.height;
+    if (containerHeight) {
+      const minHeight = 140;
+      const targetHeight = Math.max(minHeight, Math.floor(containerHeight * 0.4));
+      setHeroHeight(targetHeight);
+      setLastHeroHeight(targetHeight);
     }
   }, [heroHeight, screenshotImages.length]);
 
@@ -795,7 +798,7 @@ function DetailPane({
         {screenshotImages.length ? (
           <>
             <div className="review-project-detail__shots-badge">
-              {screenshotCount === 1 ? '1 screenshot' : `${screenshotCount} screenshots`}
+              {currentScreenshotIdx + 1} / {screenshotImages.length}
             </div>
             {isScreenshotsCollapsed ? null : (
               <div className="review-project-detail__gallery review-project-detail__gallery--hero">
@@ -815,7 +818,6 @@ function DetailPane({
                   type="button"
                   className="review-project-detail__gallery-main review-project-detail__gallery-main--hero"
                   onClick={() => onOpenGallery()}
-                  title="Click to open fullscreen"
                 >
                   {renderMedia(
                     screenshotImages[currentScreenshotIdx],
