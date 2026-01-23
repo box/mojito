@@ -13,6 +13,8 @@ import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.security.user.UserService;
+import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -46,6 +48,7 @@ public class ReviewProjectService {
   private final TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
   private final TMService tmService;
   private final WordCountService wordCountService;
+  private final UserService userService;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -60,7 +63,8 @@ public class ReviewProjectService {
       TMTextUnitRepository tmTextUnitRepository,
       TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository,
       TMService tmService,
-      WordCountService wordCountService) {
+      WordCountService wordCountService,
+      UserService userService) {
     this.reviewProjectRepository = reviewProjectRepository;
     this.reviewProjectTextUnitRepository = reviewProjectTextUnitRepository;
     this.reviewProjectTextUnitDecisionRepository = reviewProjectTextUnitDecisionRepository;
@@ -72,6 +76,7 @@ public class ReviewProjectService {
     this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
     this.tmService = tmService;
     this.wordCountService = wordCountService;
+    this.userService = userService;
   }
 
   @Transactional
@@ -366,6 +371,8 @@ public class ReviewProjectService {
             .findById(projectId)
             .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
 
+    userService.checkUserCanEditLocale(project.getLocale().getId());
+
     ReviewProjectTextUnit textUnit =
         reviewProjectTextUnitRepository
             .findById(reviewProjectTextUnitId)
@@ -399,41 +406,24 @@ public class ReviewProjectService {
           fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId));
     }
 
-    TMTextUnitVariant.Status statusEnum = TMTextUnitVariant.Status.valueOf(status);
-    TMTextUnitVariant comparisonVariant =
-        currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
     String normalizedTarget = NormalizationUtils.normalize(target);
+    TMTextUnitVariant.Status statusEnum = TMTextUnitVariant.Status.valueOf(status);
 
-    boolean targetChanged =
-        comparisonVariant == null
-            || !Objects.equals(comparisonVariant.getContent(), normalizedTarget);
-    boolean statusChanged =
-        comparisonVariant == null || comparisonVariant.getStatus() != statusEnum;
-    boolean includedChanged =
-        comparisonVariant == null
-            || comparisonVariant.isIncludedInLocalizedFile()
-                != includedInLocalizedFile;
-    boolean commentChanged =
-        comparisonVariant == null
-            ? comment != null
-            : !Objects.equals(comparisonVariant.getComment(), comment);
-
-    boolean shouldUpdateTm = targetChanged || statusChanged || includedChanged || commentChanged;
-
+    AddTMTextUnitCurrentVariantResult addResult =
+        tmService.addTMTextUnitCurrentVariantWithResult(
+            currentVariant,
+            tmTextUnit.getTm().getId(),
+            tmTextUnit.getAsset().getId(),
+            tmTextUnit.getId(),
+            project.getLocale().getId(),
+            normalizedTarget,
+            comment,
+            statusEnum,
+            includedInLocalizedFile,
+            null,
+            null);
     TMTextUnitVariant decidedVariant =
-        currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
-
-    if (shouldUpdateTm) {
-      TMTextUnitCurrentVariant updatedCurrentVariant =
-          tmService.addTMTextUnitCurrentVariant(
-              tmTextUnit.getId(),
-              project.getLocale().getId(),
-              normalizedTarget,
-              comment,
-              statusEnum,
-                  includedInLocalizedFile);
-      decidedVariant = updatedCurrentVariant.getTmTextUnitVariant();
-    }
+        addResult.getTmTextUnitCurrentVariant().getTmTextUnitVariant();
 
     ReviewProjectTextUnitDecision decision =
         reviewProjectTextUnitDecisionRepository

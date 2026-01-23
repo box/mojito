@@ -4,18 +4,14 @@ import static com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterServi
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetTextUnit;
-import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.entity.security.user.User;
-import com.box.l10n.mojito.entity.security.user.UserLocale;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.rest.textunit.TextUnitWS.SearchTextUnitsHybridResponse.HybridSearchError;
-import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetPathNotFoundException;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -29,7 +25,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
-import com.box.l10n.mojito.service.security.user.UserRepository;
+import com.box.l10n.mojito.service.security.user.UserService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
 import com.box.l10n.mojito.service.tm.TMTextUnitHistoryService;
@@ -49,7 +45,6 @@ import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -108,9 +103,7 @@ public class TextUnitWS {
 
   @Autowired AssetRepository assetRepository;
 
-  @Autowired AuditorAwareImpl auditorAwareImpl;
-
-  @Autowired UserRepository userRepository;
+  @Autowired UserService userService;
 
   @Autowired StructuredBlobStorage structuredBlobStorage;
 
@@ -440,7 +433,7 @@ public class TextUnitWS {
   @Transactional
   @RequestMapping(method = RequestMethod.POST, value = "/api/textunits")
   public TextUnitDTO addTextUnit(@RequestBody TextUnitDTO textUnitDTO) {
-    checkUserCanEditLocale(textUnitDTO.getLocaleId());
+    userService.checkUserCanEditLocale(textUnitDTO.getLocaleId());
 
     logger.debug("Add TextUnit");
     textUnitDTO.setTarget(NormalizationUtils.normalize(textUnitDTO.getTarget()));
@@ -663,25 +656,4 @@ public class TextUnitWS {
     return pollableFuture.getPollableTask();
   }
 
-  private void checkUserCanEditLocale(Long localeId) {
-    // Fetch the User from the DB to ensure it is up to date
-    final Optional<String> username = auditorAwareImpl.getCurrentAuditor().map(User::getUsername);
-    if (username.isEmpty() || localeId == null) {
-      return;
-    }
-    final User user = userRepository.findByUsername(username.get());
-
-    // Check if the user is allowed to edit the locale
-    if (!user.getCanTranslateAllLocales()) {
-      boolean canEditLocale =
-          user.getUserLocales().stream()
-              .map(UserLocale::getLocale)
-              .map(BaseEntity::getId)
-              .anyMatch(x -> Objects.equals(x, localeId));
-      if (!canEditLocale) {
-        throw new AccessDeniedException(
-            "The user is not authorized to edit the locale with ID: " + localeId);
-      }
-    }
-  }
 }

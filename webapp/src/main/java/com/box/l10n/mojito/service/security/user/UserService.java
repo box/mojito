@@ -82,6 +82,26 @@ public class UserService {
     }
   }
 
+  public void checkUserCanEditLocale(Long localeId) {
+    final Optional<User> currentUser = auditorAwareImpl.getCurrentAuditor();
+    if (currentUser.isEmpty() || localeId == null) {
+      return;
+    }
+
+    final User user = userRepository.findByUsername(currentUser.get().getUsername());
+    if (!user.getCanTranslateAllLocales()) {
+      boolean canEditLocale =
+          user.getUserLocales().stream()
+              .map(UserLocale::getLocale)
+              .map(Locale::getId)
+              .anyMatch(id -> Objects.equals(id, localeId));
+      if (!canEditLocale) {
+        throw new AccessDeniedException(
+            "The user is not authorized to edit the locale with ID: " + localeId);
+      }
+    }
+  }
+
   /**
    * Create a {@link com.box.l10n.mojito.entity.security.user.User}. This does not check if there is
    * already a user with the provided username
