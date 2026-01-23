@@ -72,10 +72,15 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-size: 1.1rem;
   line-height: 1;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-project-page__back-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: block;
 }
 
 .review-project-page__back-link:hover {
