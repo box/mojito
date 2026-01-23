@@ -1275,13 +1275,14 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-1);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
 }
 
 .review-project-screenshot-modal__count-number {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
+  font-weight: inherit;
+  color: inherit;
 }
 
 .review-project-screenshot-modal__count-sep {
