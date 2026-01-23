@@ -470,7 +470,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           />
         </section>
         <div
-          className={`review-project-page__resize-handle${isResizing ? ' is-resizing' : ''}`}
+          className={`review-project-page__resize-handle${
+            isResizing ? ' is-resizing' : ''
+          }${isListCollapsed ? ' review-project-page__resize-handle--collapsed' : ''}`}
           onMouseDown={startResize}
           role="separator"
           aria-label={isListCollapsed ? 'Expand review list' : 'Collapse review list'}

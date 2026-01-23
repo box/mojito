@@ -426,17 +426,16 @@
   position: absolute;
   inset: 0;
   margin: auto;
-  height: 1px;
-  width: 100%;
+  height: 100%;
+  width: 1px;
   background: color-mix(in srgb, var(--color-border) 55%, transparent);
   z-index: 0;
 }
 
-
-.review-project-page__collapse-toggle {
-  width: 24px;
-  height: 40px;
+.review-project-page__resize-handle--collapsed::before {
+  display: none;
 }
+
 
 .review-project-page__resize-handle:hover,
 .review-project-page__resize-handle.is-resizing {
@@ -444,9 +443,9 @@
 }
 
 .review-project-handle-button {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-2);
+  width: 3.125rem;
+  height: 0.625rem;
+  border-radius: var(--radius-pill);
   border: var(--border-width) solid color-mix(in srgb, var(--color-border) 60%, transparent);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -459,6 +458,12 @@
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   position: relative;
   z-index: 1;
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+.review-project-page__collapse-toggle.review-project-handle-button {
+  width: 0.625rem;
+  height: 3.125rem;
 }
 
 .review-project-page__resize-handle:hover .review-project-handle-button,
@@ -1354,6 +1359,10 @@
 
 .review-project-detail__hero-resize-handle--collapsed {
   margin: 0;
+}
+
+.review-project-detail__hero-resize-handle--collapsed::before {
+  display: none;
 }
 
 .review-project-detail__hero-resize-handle:hover,
