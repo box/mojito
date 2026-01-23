@@ -767,6 +767,28 @@ function ReviewProjectHeader({
     <header className="review-project-page__header review-project-page__header--compact">
       <div className="review-project-page__one-line">
         <div className="review-project-page__group review-project-page__group--left">
+          <Link
+            className="review-project-page__back-link"
+            to="/review-projects"
+            aria-label="Back to review projects"
+            title="Back to review projects"
+          >
+            <svg
+              className="review-project-page__back-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M20 12H6m0 0l5-5m-5 5l5 5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
           <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
           <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
             {REVIEW_PROJECT_TYPE_LABELS[type]}
@@ -809,27 +831,6 @@ function ReviewProjectHeader({
 
         <div className="review-project-page__group review-project-page__group--meta">
           <span>Due {formatDate(dueDate)}</span>
-          <Link
-            className="review-project-page__back-link"
-            to="/review-projects"
-            aria-label="Back to review projects"
-            title="Back to review projects"
-          >
-            <svg
-              className="review-project-page__back-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
         </div>
       </div>
     </header>

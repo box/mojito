@@ -73,7 +73,7 @@
   border-radius: 0;
   border: none;
   background: transparent;
-  color: var(--color-accent);
+  color: var(--color-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -84,8 +84,8 @@
 }
 
 .review-project-page__back-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.2rem;
+  height: 1.2rem;
   display: block;
 }
 
@@ -127,16 +127,21 @@
 }
 
 .review-project-page__title {
-  font-size: 0.98rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.01em;
-  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  height: var(--app-shell-header-height);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0;
+  color: var(--color-accent);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: clamp(8rem, 18vw, 16rem);
   min-width: 0;
+  padding: 0 var(--space-3);
+  background: rgba(31, 122, 224, 0.08);
 }
 
 .review-project-page__pill-row {
