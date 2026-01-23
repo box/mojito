@@ -172,8 +172,7 @@ public class ReviewProjectService {
     }
 
     CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-    CriteriaQuery<SearchReviewProjectDetail> cq =
-        cb.createQuery(SearchReviewProjectDetail.class);
+    CriteriaQuery<SearchReviewProjectDetail> cq = cb.createQuery(SearchReviewProjectDetail.class);
     Root<ReviewProject> root = cq.from(ReviewProject.class);
     Join<ReviewProject, Locale> localeJoin = root.join(ReviewProject_.locale, JoinType.LEFT);
     Join<ReviewProject, ReviewProjectRequest> requestJoin =
@@ -253,8 +252,7 @@ public class ReviewProjectService {
                         detail.wordCount(),
                         detail.type(),
                         detail.status(),
-                        new SearchReviewProjectsView.Locale(
-                            detail.localeId(), detail.localeTag()),
+                        new SearchReviewProjectsView.Locale(detail.localeId(), detail.localeTag()),
                         new SearchReviewProjectsView.ReviewProjectRequest(
                             detail.requestId(), detail.requestName())))
             .toList();
@@ -304,7 +302,8 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public GetProjectDetailView getProjectDetail(Long projectId) throws EntityWithIdNotFoundException {
+  public GetProjectDetailView getProjectDetail(Long projectId)
+      throws EntityWithIdNotFoundException {
     ReviewProjectDetail project =
         reviewProjectRepository
             .findDetailById(projectId)
@@ -350,10 +349,10 @@ public class ReviewProjectService {
       String notes)
       throws EntityWithIdNotFoundException {
 
-      // TODO(ja) we must clean up that method.
-      // First the name is think with our new API should be: saveDecision()
-      // info we need to save:
-      // - for the new current variant: content, optional<comment>
+    // TODO(ja) we must clean up that method.
+    // First the name is think with our new API should be: saveDecision()
+    // info we need to save:
+    // - for the new current variant: content, optional<comment>
 
     ReviewProject project =
         reviewProjectRepository
@@ -505,8 +504,7 @@ public class ReviewProjectService {
   private GetProjectDetailView.ReviewProjectTextUnit toReviewProjectTextUnit(
       ReviewProjectTextUnitDetail detail) {
     GetProjectDetailView.Asset.Repository repository =
-        new GetProjectDetailView.Asset.Repository(
-            detail.repositoryId(), detail.repositoryName());
+        new GetProjectDetailView.Asset.Repository(detail.repositoryId(), detail.repositoryName());
     GetProjectDetailView.Asset assetView =
         new GetProjectDetailView.Asset(detail.assetPath(), repository);
     GetProjectDetailView.TmTextUnit tmTextUnitView =
