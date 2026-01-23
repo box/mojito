@@ -764,17 +764,17 @@ function ReviewProjectHeader({
   }, [textUnits]);
 
   return (
-    <header className="review-project-page__header review-project-page__header--compact">
-      <div className="review-project-page__one-line">
-        <div className="review-project-page__group review-project-page__group--left">
+    <header className="review-project-page__header">
+      <div className="review-project-page__header-row">
+        <div className="review-project-page__header-group review-project-page__header-group--left">
           <Link
-            className="review-project-page__back-link"
+            className="review-project-page__header-back-link"
             to="/review-projects"
             aria-label="Back to review projects"
             title="Back to review projects"
           >
             <svg
-              className="review-project-page__back-icon"
+              className="review-project-page__header-back-icon"
               viewBox="0 0 24 24"
               aria-hidden="true"
               focusable="false"
@@ -789,16 +789,20 @@ function ReviewProjectHeader({
               />
             </svg>
           </Link>
-          <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
-          <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
-            {REVIEW_PROJECT_TYPE_LABELS[type]}
-          </Pill>
-          <Pill
-            className={`review-project-page__pill review-project-page__pill--status-${status.toLowerCase()}`}
-          >
-            {REVIEW_PROJECT_STATUS_LABELS[status]}
-          </Pill>
-          <div className="review-project-page__locale-row">
+          <span className="review-project-page__header-name">
+            {name ?? `Project ${projectId}`}
+          </span>
+          <span className="review-project-page__header-pills">
+            <Pill className={`review-project-page__header-pill review-project-page__header-pill--type-${type}`}>
+              {REVIEW_PROJECT_TYPE_LABELS[type]}
+            </Pill>
+            <Pill
+              className={`review-project-page__header-pill review-project-page__header-pill--status-${status.toLowerCase()}`}
+            >
+              {REVIEW_PROJECT_STATUS_LABELS[status]}
+            </Pill>
+          </span>
+          <div className="review-project-page__header-locale-row">
             {locales.length > 0 ? (
               locales.map((locale) => (
                 <LocalePill
@@ -806,7 +810,7 @@ function ReviewProjectHeader({
                   bcp47Tag={locale.bcp47Tag}
                   displayName={locale.displayName}
                   labelMode="tag"
-                  className="review-project-page__locale-pill"
+                  className="review-project-page__header-locale-pill"
                 />
               ))
             ) : (
@@ -815,12 +819,12 @@ function ReviewProjectHeader({
           </div>
         </div>
 
-        <div className="review-project-page__group review-project-page__group--stats">
+        <div className="review-project-page__header-group review-project-page__header-group--stats">
           <CountsInline words={wordCount} strings={textUnitCount ?? selectedCount} />
-          <span className="review-project-page__dot">•</span>
-          <div className="review-project-page__progress-chip">
+          <span className="review-project-page__header-dot">•</span>
+          <div className="review-project-page__header-progress">
             <span
-              className="review-project-page__progress-label"
+              className="review-project-page__header-progress-label"
               title={`${acceptedCount}/${selectedCount} accepted`}
             >
               {progressPercent}%
@@ -829,7 +833,7 @@ function ReviewProjectHeader({
           </div>
         </div>
 
-        <div className="review-project-page__group review-project-page__group--meta">
+        <div className="review-project-page__header-group review-project-page__header-group--meta">
           <span>Due {formatDate(dueDate)}</span>
         </div>
       </div>
@@ -857,9 +861,9 @@ function CountsInline({
 
 function ProgressBar({ percent }: { percent: number }) {
   return (
-    <div className="review-project-page__progress-bar review-project-page__progress-bar--compact">
+    <div className="review-project-page__header-progress-bar">
       <div
-        className="review-project-page__progress-fill"
+        className="review-project-page__header-progress-fill"
         style={{ width: `${Math.min(Math.max(percent, 0), 100)}%` }}
       />
     </div>
