@@ -379,6 +379,7 @@ public class ReviewProjectService {
         currentVariant != null ? currentVariant.getTmTextUnitVariant() : null;
     Long currentVariantId =
         currentTmTextUnitVariant != null ? currentTmTextUnitVariant.getId() : null;
+
     boolean hasNoBaselineOrCurrent =
         baselineVariant == null && currentTmTextUnitVariant == null;
 
