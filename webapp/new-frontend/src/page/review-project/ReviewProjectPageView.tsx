@@ -1131,11 +1131,6 @@ function ReviewProjectHeader({
           >
             {REVIEW_PROJECT_STATUS_LABELS[status]}
           </Pill>
-        </div>
-
-        <div className="review-project-page__group review-project-page__group--meta">
-          <span>Due {formatDate(dueDate)}</span>
-          <span className="review-project-page__dot">•</span>
           <div className="review-project-page__locale-row">
             {locales.length > 0 ? (
               locales.map((locale) => (
@@ -1165,6 +1160,10 @@ function ReviewProjectHeader({
             </span>
             <ProgressBar percent={progressPercent} />
           </div>
+        </div>
+
+        <div className="review-project-page__group review-project-page__group--meta">
+          <span>Due {formatDate(dueDate)}</span>
         </div>
       </div>
     </header>

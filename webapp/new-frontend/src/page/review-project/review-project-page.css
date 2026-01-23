@@ -30,10 +30,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-2);
-  border: none;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 65%, transparent);
   border-radius: 0;
-  background: transparent;
+  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
   box-shadow: none;
 }
 
@@ -42,10 +42,10 @@
 }
 
 .review-project-page__one-line {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-2);
-  flex-wrap: wrap;
   width: 100%;
 }
 
@@ -57,17 +57,17 @@
 }
 
 .review-project-page__group--left {
-  flex: 1;
   min-width: 280px;
+  justify-self: start;
 }
 
 .review-project-page__back-link {
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius-pill);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
-  color: var(--color-text);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -85,8 +85,8 @@
 
 .review-project-page__back-link:hover {
   border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
   box-shadow: 0 2px 6px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
@@ -96,21 +96,36 @@
 }
 
 .review-project-page__group--meta {
-  flex: 1.2;
-  min-width: 320px;
+  flex: 0 0 auto;
+  min-width: 160px;
+  justify-content: flex-end;
+  justify-self: end;
 }
 
 .review-project-page__group--stats {
   flex: 0 0 auto;
   min-width: 260px;
-  margin-left: auto;
-  justify-content: flex-end;
+  justify-content: center;
+  justify-self: center;
+}
+
+@media (max-width: 1200px) {
+  .review-project-page__one-line {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .review-project-page__group--left,
+  .review-project-page__group--stats,
+  .review-project-page__group--meta {
+    justify-self: auto;
+  }
 }
 
 .review-project-page__title {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   color: var(--color-text);
   margin: 0;
 }
@@ -123,9 +138,9 @@
 
 .review-project-page__pill {
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  padding: 0 var(--space-3);
-  min-height: 1.75rem;
+  font-weight: var(--font-weight-medium);
+  padding: 0 var(--space-2);
+  min-height: 1.5rem;
 }
 
 .review-project-page__pill--status-open {
@@ -153,6 +168,12 @@
 
 .review-project-page__dot {
   color: var(--color-text-subtle);
+}
+
+.review-project-page__group--meta,
+.review-project-page__group--stats {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .review-project-page__progress-chip {
