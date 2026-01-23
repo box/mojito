@@ -11,7 +11,6 @@ import {
   REVIEW_PROJECT_TYPE_LABELS,
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
-import { Modal } from '../../components/Modal';
 import { Pill } from '../../components/Pill';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
@@ -269,7 +268,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             <input
               className="review-project-page__search-input"
               type="search"
-              placeholder="Search source/target/name"
+              placeholder="Search source/target/id"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -378,108 +377,12 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         </section>
       </div>
       {isScreenshotModalOpen ? (
-        <Modal
-          open
+        <ScreenshotOverlay
+          screenshotImages={screenshotImages}
+          selectedScreenshotIdx={selectedScreenshotIdx}
+          onChangeScreenshotIdx={setSelectedScreenshotIdx}
           onClose={() => setIsScreenshotModalOpen(false)}
-          closeOnBackdrop
-          size="lg"
-          className="modal--screenshot"
-          ariaLabel="Screenshot gallery"
-        >
-          <div className="review-project-screenshot-modal">
-            <div className="review-project-screenshot-modal__header">
-              <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--left">
-                <button
-                  type="button"
-                  className="review-project-page__header-back-link review-project-screenshot-modal__back"
-                  onClick={() => setIsScreenshotModalOpen(false)}
-                  aria-label="Back to review project"
-                  title="Back to review project"
-                >
-                  <svg
-                    className="review-project-page__header-back-icon"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M20 12H6m0 0l5-5m-5 5l5 5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-                <span className="review-project-page__header-name review-project-screenshot-modal__title">
-                  Screenshots
-                </span>
-              </div>
-              <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--center">
-                {screenshotImages.length ? (
-                  <span className="pill review-project-screenshot-modal__count">
-                    {selectedScreenshotIdx + 1} / {screenshotImages.length}
-                  </span>
-                ) : null}
-              </div>
-              <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--right" />
-            </div>
-            {screenshotImages.length ? (
-              <div className="review-project-screenshot-modal__gallery">
-                <button
-                  type="button"
-                  className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--prev"
-                  onClick={() =>
-                    setSelectedScreenshotIdx(
-                      (selectedScreenshotIdx - 1 + screenshotImages.length) %
-                        screenshotImages.length,
-                    )
-                  }
-                  aria-label="Previous screenshot"
-                >
-                  ‹
-                </button>
-                <div className="review-project-detail__gallery-main review-project-detail__gallery-main--modal">
-                  {renderMedia(
-                    screenshotImages[selectedScreenshotIdx],
-                    'review-project-screenshot-modal__image--main',
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--next"
-                  onClick={() =>
-                    setSelectedScreenshotIdx((selectedScreenshotIdx + 1) % screenshotImages.length)
-                  }
-                  aria-label="Next screenshot"
-                >
-                  ›
-                </button>
-              </div>
-            ) : (
-              <div className="review-project-screenshot-modal__empty">No screenshots attached.</div>
-            )}
-            {screenshotImages.length ? (
-              <div className="review-project-detail__thumbs review-project-detail__thumbs--modal">
-                {screenshotImages.map((key, idx) => {
-                  const isActive = idx === selectedScreenshotIdx;
-                  return (
-                    <button
-                      key={`${key}-${idx}`}
-                      type="button"
-                      className={`review-project-detail__thumb${isActive ? ' is-active' : ''}`}
-                      onClick={() => setSelectedScreenshotIdx(idx)}
-                      title="Click to preview"
-                    >
-                      {renderThumbMedia(key)}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
-        </Modal>
+        />
       ) : null}
     </div>
   );
@@ -753,6 +656,136 @@ function DetailPane({
             ) : null}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenshotOverlay({
+  screenshotImages,
+  selectedScreenshotIdx,
+  onChangeScreenshotIdx,
+  onClose,
+}: {
+  screenshotImages: string[];
+  selectedScreenshotIdx: number;
+  onChangeScreenshotIdx: (index: number) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="review-project-screenshot-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Screenshot gallery"
+    >
+      <div className="review-project-screenshot-modal">
+        <div className="review-project-screenshot-modal__header">
+          <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--left">
+            <button
+              type="button"
+              className="review-project-page__header-back-link review-project-screenshot-modal__back"
+              onClick={onClose}
+              aria-label="Back to review project"
+              title="Back to review project"
+            >
+              <svg
+                className="review-project-page__header-back-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M20 12H6m0 0l5-5m-5 5l5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <span className="review-project-page__header-name review-project-screenshot-modal__title">
+              Screenshots
+            </span>
+          </div>
+          <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--center">
+            {screenshotImages.length ? (
+              <span className="review-project-screenshot-modal__count">
+                <span className="review-project-screenshot-modal__count-number">
+                  {selectedScreenshotIdx + 1}
+                </span>
+                <span className="review-project-screenshot-modal__count-sep"> / </span>
+                <span className="review-project-screenshot-modal__count-number">
+                  {screenshotImages.length}
+                </span>
+              </span>
+            ) : null}
+          </div>
+          <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--right" />
+        </div>
+        {screenshotImages.length ? (
+          <div className="review-project-screenshot-modal__gallery">
+            <button
+              type="button"
+              className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--prev"
+              onClick={() =>
+                onChangeScreenshotIdx(
+                  (selectedScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
+                )
+              }
+              aria-label="Previous screenshot"
+            >
+              ‹
+            </button>
+            <div className="review-project-detail__gallery-main review-project-detail__gallery-main--modal">
+              {renderMedia(
+                screenshotImages[selectedScreenshotIdx],
+                'review-project-screenshot-modal__image--main',
+              )}
+            </div>
+            <button
+              type="button"
+              className="review-project-screenshot-lightbox__nav review-project-screenshot-lightbox__nav--next"
+              onClick={() =>
+                onChangeScreenshotIdx((selectedScreenshotIdx + 1) % screenshotImages.length)
+              }
+              aria-label="Next screenshot"
+            >
+              ›
+            </button>
+          </div>
+        ) : (
+          <div className="review-project-screenshot-modal__empty">No screenshots attached.</div>
+        )}
+        {screenshotImages.length ? (
+          <div className="review-project-detail__thumbs review-project-detail__thumbs--modal">
+            {screenshotImages.map((key, idx) => {
+              const isActive = idx === selectedScreenshotIdx;
+              return (
+                <button
+                  key={`${key}-${idx}`}
+                  type="button"
+                  className={`review-project-detail__thumb${isActive ? ' is-active' : ''}`}
+                  onClick={() => onChangeScreenshotIdx(idx)}
+                  title="Click to preview"
+                >
+                  {renderThumbMedia(key)}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </div>
   );
