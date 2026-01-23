@@ -698,7 +698,6 @@ function DetailPane({
           </div>
 
           <div className="review-project-detail__field">
-            {/*  for consistency with the workbench, it should Text Unit ID */}
             <div className="review-project-detail__label">Id</div>
             <div className="review-project-detail__value review-project-detail__value--meta">
               <span className="review-project-detail__title-text">

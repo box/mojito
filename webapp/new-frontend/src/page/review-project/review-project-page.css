@@ -1,4 +1,3 @@
-/* Layout */
 .review-project-page {
   height: calc(100vh - var(--app-shell-header-height));
   display: flex;
@@ -1162,7 +1161,6 @@
   background: color-mix(in srgb, var(--color-surface-muted) 50%, transparent);
 }
 
-/* Ensure primary CTA stays accented, overriding base button styles above */
 .review-project-detail__actions-button.review-project-detail__actions-button--primary {
   background: var(--color-accent);
   border-color: var(--color-accent);
@@ -1180,21 +1178,11 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);
 }
 
-/*.review-project-detail__input:focus,*/
-/*.review-project-detail__input:focus-visible {*/
-/*  outline: 0;*/
-/*  border-color: var(--color-border);*/
-/*  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);*/
-/*  !*background: var(--color-surface);*!*/
-/*  resize: vertical;*/
-/*}*/
-
 .review-project-detail__input:focus,
 .review-project-detail__input:focus-visible {
   outline: none;
   border-color: color-mix(in srgb, var(--color-border) 80%, transparent);
   resize: vertical;
-  /*background: color-mix(in srgb, var(--color-surface-muted) 40%, transparent);*/
 }
 
 .review-project-page__empty-detail {

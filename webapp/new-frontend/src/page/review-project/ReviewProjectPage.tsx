@@ -6,7 +6,6 @@ import { ReviewProjectPageView } from './ReviewProjectPageView';
 export function ReviewProjectPage() {
   const { projectId: projectIdParam } = useParams<{ projectId: string }>();
 
-  // Convert the route param to a number once; hook accepts number | undefined.
   const projectId = projectIdParam ? Number(projectIdParam) : undefined;
   const projectDetailQuery = useReviewProjectDetail(projectId);
 
