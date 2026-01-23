@@ -131,17 +131,22 @@
   align-items: center;
   height: var(--app-shell-header-height);
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: 0;
-  color: var(--color-accent);
+  color: var(--color-text);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: clamp(8rem, 18vw, 16rem);
   min-width: 0;
-  padding: 0 var(--space-3);
-  background: rgba(31, 122, 224, 0.08);
+  padding: 0;
+  background: transparent;
+  box-shadow: inset 0 -2px 0 rgba(31, 122, 224, 0.4);
+}
+
+.review-project-page__title + .review-project-page__pill {
+  margin-left: var(--space-2);
 }
 
 .review-project-page__pill-row {
