@@ -38,10 +38,6 @@
   box-shadow: none;
 }
 
-.review-project-page__header--compact {
-  padding: var(--space-3) var(--space-6);
-}
-
 .review-project-page__one-line {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
