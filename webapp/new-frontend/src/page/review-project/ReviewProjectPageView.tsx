@@ -388,10 +388,42 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         >
           <div className="review-project-screenshot-modal">
             <div className="review-project-screenshot-modal__header">
-              <div className="review-project-screenshot-modal__title">Screenshots</div>
-              <div className="review-project-screenshot-modal__count">
-                {screenshotImages.length} attached
+              <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--left">
+                <button
+                  type="button"
+                  className="review-project-page__header-back-link review-project-screenshot-modal__back"
+                  onClick={() => setIsScreenshotModalOpen(false)}
+                  aria-label="Back to review project"
+                  title="Back to review project"
+                >
+                  <svg
+                    className="review-project-page__header-back-icon"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M20 12H6m0 0l5-5m-5 5l5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <span className="review-project-page__header-name review-project-screenshot-modal__title">
+                  Screenshots
+                </span>
               </div>
+              <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--center">
+                {screenshotImages.length ? (
+                  <span className="pill review-project-screenshot-modal__count">
+                    {selectedScreenshotIdx + 1} / {screenshotImages.length}
+                  </span>
+                ) : null}
+              </div>
+              <div className="review-project-screenshot-modal__header-group review-project-screenshot-modal__header-group--right" />
             </div>
             {screenshotImages.length ? (
               <div className="review-project-screenshot-modal__gallery">
@@ -446,15 +478,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 })}
               </div>
             ) : null}
-            <div className="review-project-screenshot-modal__footer">
-              <button
-                type="button"
-                className="review-project-detail__actions-button"
-                onClick={() => setIsScreenshotModalOpen(false)}
-              >
-                Close
-              </button>
-            </div>
           </div>
         </Modal>
       ) : null}
