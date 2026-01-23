@@ -413,12 +413,27 @@
 .review-project-page__resize-handle {
   cursor: col-resize;
   width: 100%;
-  background: var(--color-surface);
+  background: transparent;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   touch-action: none;
+  border-left: var(--border-width) solid color-mix(in srgb, var(--color-border) 35%, transparent);
+  border-right: var(--border-width) solid color-mix(in srgb, var(--color-border) 35%, transparent);
+}
+
+.review-project-page__resize-handle::before {
+  content: '';
+  width: 26px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-border) 70%, transparent);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
 }
 
 .review-project-page__collapse-toggle {
@@ -429,6 +444,7 @@
 .review-project-page__resize-handle:hover,
 .review-project-page__resize-handle.is-resizing {
   background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .review-project-handle-button {
@@ -445,6 +461,8 @@
   line-height: 1;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .review-project-page__resize-handle:hover .review-project-handle-button,
@@ -515,8 +533,8 @@
   gap: var(--space-2);
   padding: var(--space-1);
   border-radius: var(--radius-3);
-  border: 1px solid color-mix(in srgb, var(--color-border) 35%, transparent);
-  background: color-mix(in srgb, var(--color-surface-muted) 10%, transparent);
+  border: none;
+  background: transparent;
   position: relative;
   min-height: 140px;
 }
@@ -1324,6 +1342,20 @@
   transition: background 0.2s ease;
   border-radius: var(--radius-pill);
   position: relative;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 35%, transparent);
+}
+
+.review-project-detail__hero-resize-handle::before {
+  content: '';
+  width: 32px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-border) 70%, transparent);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
 }
 
 .review-project-detail__hero-resize-handle--collapsed {
@@ -1333,6 +1365,7 @@
 .review-project-detail__hero-resize-handle:hover,
 .review-project-detail__hero-resize-handle.is-resizing {
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .review-project-detail__hero-toggle {
@@ -1352,27 +1385,25 @@
 }
 
 .review-project-chevron {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
+  width: 0.7rem;
+  height: 0.7rem;
+  display: block;
 }
 
 .review-project-chevron--left {
-  transform: translateX(-1px) rotate(135deg);
+  transform: rotate(-90deg);
 }
 
 .review-project-chevron--right {
-  transform: translateX(1px) rotate(-45deg);
+  transform: rotate(90deg);
 }
 
 .review-project-chevron--up {
-  transform: rotate(-135deg);
+  transform: rotate(180deg);
 }
 
 .review-project-chevron--down {
-  transform: rotate(45deg);
+  transform: rotate(0deg);
 }
 
 .review-project-screenshot-modal__gallery {

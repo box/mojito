@@ -22,6 +22,17 @@ import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
 import { useRepositories } from '../../hooks/useRepositories';
 
+const Chevron = ({ direction }: { direction: 'left' | 'right' | 'up' | 'down' }) => (
+  <svg
+    className={`review-project-chevron review-project-chevron--${direction}`}
+    viewBox="0 0 10 6"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+);
+
 type Props = {
   projectId: number;
   project: ApiReviewProjectDetail | null;
@@ -474,12 +485,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
             aria-label={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
             title={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
           >
-            <span
-              className={`review-project-chevron ${
-                isListCollapsed ? 'review-project-chevron--right' : 'review-project-chevron--left'
-              }`}
-              aria-hidden="true"
-            />
+            <Chevron direction={isListCollapsed ? 'right' : 'left'} />
           </button>
         </div>
         <section className="review-project-page__detail-pane">
@@ -902,12 +908,7 @@ function DetailPane({
             aria-label={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
             title={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
           >
-            <span
-              className={`review-project-chevron ${
-                isScreenshotsCollapsed ? 'review-project-chevron--down' : 'review-project-chevron--up'
-              }`}
-              aria-hidden="true"
-            />
+            <Chevron direction={isScreenshotsCollapsed ? 'down' : 'up'} />
           </button>
         </div>
       ) : null}
