@@ -14,7 +14,6 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
-import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -22,10 +21,10 @@ import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.repository.RepositorySummaryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +51,9 @@ public class RepositoryWS {
 
   @Autowired RepositoryRepository repositoryRepository;
 
-  @Autowired AssetRepository assetRepository;
-
   @Autowired RepositoryService repositoryService;
+
+  @Autowired RepositorySummaryService repositorySummaryService;
 
   @Autowired BranchRepository branchRepository;
 
@@ -87,11 +86,8 @@ public class RepositoryWS {
 
   @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
-  public List<Repository> getRepositories() {
-
-      // TODO(ja) we are reimplementing getRepositoriesLegacy.
-
-      return new ArrayList<>();
+  public List<RepositorySummaryResponse> getRepositories() {
+    return repositorySummaryService.getRepositorySummaries();
   }
 
   /**

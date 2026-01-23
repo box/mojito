@@ -3,8 +3,11 @@ package com.box.l10n.mojito.service.repository;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import java.util.List;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
@@ -24,4 +27,21 @@ public interface RepositoryLocaleRepository extends JpaRepository<RepositoryLoca
 
   @EntityGraph(value = "RepositoryLocale.legacy", type = EntityGraph.EntityGraphType.FETCH)
   RepositoryLocale findByRepositoryIdAndLocaleId(Long repositoryId, long localeId);
+
+  @Query(
+      """
+      select new com.box.l10n.mojito.service.repository.RepositoryLocaleRow(
+        rl.id,
+        rl.repository.id,
+        rl.locale.id,
+        rl.toBeFullyTranslated,
+        parentLocale.id
+      )
+      from RepositoryLocale rl
+      left join rl.parentLocale parentLocale
+      where rl.repository.id in :repositoryIds
+      order by rl.id asc
+      """)
+  List<RepositoryLocaleRow> findRowsByRepositoryIdIn(
+      @Param("repositoryIds") List<Long> repositoryIds);
 }
