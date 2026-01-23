@@ -350,6 +350,11 @@ public class ReviewProjectService {
       String notes)
       throws EntityWithIdNotFoundException {
 
+      // TODO(ja) we must clean up that method.
+      // First the name is think with our new API should be: saveDecision()
+      // info we need to save:
+      // - for the new current variant: content, optional<comment>
+
     ReviewProject project =
         reviewProjectRepository
             .findById(projectId)

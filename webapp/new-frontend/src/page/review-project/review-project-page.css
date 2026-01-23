@@ -192,6 +192,23 @@
   font-size: var(--font-size-sm);
 }
 
+.review-project-page__header-count-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.review-project-page__header-count {
+  font-weight: var(--font-weight-semibold);
+  text-align: right;
+  font-size: var(--font-size-md);
+}
+
+.review-project-page__header-count-sep,
+.review-project-page__header-muted {
+  color: var(--color-text-muted);
+}
+
 .review-project-page__header-progress {
   display: inline-flex;
   align-items: center;

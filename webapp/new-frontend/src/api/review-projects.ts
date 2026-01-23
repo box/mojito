@@ -25,23 +25,10 @@ export const REVIEW_PROJECT_TYPE_LABELS: Record<ApiReviewProjectType, string> = 
   UNKNOWN: 'Unknown',
 };
 
-export type ApiReviewProjectRepositorySummary = {
-  id: number;
-  name: string;
-};
-
-export type ApiReviewProjectLocaleSummary = {
-  id: number;
-  bcp47Tag: string;
-  displayName?: string;
-  selectedCount?: number;
-  acceptedCount?: number;
-};
-
 export type ApiReviewProjectTextUnit = {
-  id?: number | null;
-  tmTextUnit?: {
-    id?: number | null;
+  id: number;
+  tmTextUnit: {
+    id: number;
     name?: number | string | null;
     content?: string | null;
     comment?: string | null;
@@ -51,12 +38,7 @@ export type ApiReviewProjectTextUnit = {
     } | null;
     wordCount?: number | null;
   } | null;
-  name?: number | string | null;
-  content?: string | null;
-  comment?: string | null;
-  asset?: { assetPath?: number | string | null } | null;
-  wordCount?: number | null;
-  tmTextUnitVariant?: {
+  tmTextUnitVariant: {
     id?: number | null;
     content?: string | null;
     status?: string | null;
@@ -67,29 +49,6 @@ export type ApiReviewProjectTextUnit = {
     tmTextUnitVariantId?: number | null;
     notes?: string | null;
   } | null;
-  // legacy fields used by UI (required)
-  reviewProjectTextUnitId: number;
-  tmTextUnitId: number | null;
-  tmTextUnitVariantId: number | null;
-  selectedTmTextUnitVariantId: number | null;
-  currentTmTextUnitVariantId: number | null;
-  source: string | null;
-  target: string | null;
-  currentTarget: string | null;
-  baselineStatus: string | null;
-  reviewStatus: 'PENDING' | 'ACCEPTED_AS_IS' | 'ACCEPTED_WITH_CHANGE' | 'REJECTED' | null;
-  notes: string | null;
-  reviewedAt: string | null;
-  reviewedBy: string | null;
-  status: string | null;
-  repositoryId: number | null;
-  repositoryName: string | null;
-  assetPath: string | null;
-  includedInLocalizedFile: boolean;
-};
-
-export type ApiReviewProjectLocaleDetail = ApiReviewProjectLocaleSummary & {
-  textUnits: ApiReviewProjectTextUnit[];
 };
 
 export type ApiReviewProjectDetail = {
@@ -103,13 +62,8 @@ export type ApiReviewProjectDetail = {
   status: ApiReviewProjectStatus;
   reviewProjectRequest?: { id: number | null; name?: string | null; screenshotImageIds?: string[] } | null;
   locale?: { id: number | null; bcp47Tag?: string | null } | null;
-  textUnits?: ApiReviewProjectTextUnit[];
   // New canonical field name from WS
   reviewProjectTextUnits?: ApiReviewProjectTextUnit[];
-  // Legacy fields used by UI
-  name?: string | null;
-  locales?: ApiReviewProjectLocaleDetail[];
-  screenshotImageIds?: string[];
 };
 
 export type SearchReviewProjectsResponse = {
@@ -164,83 +118,6 @@ export type ReviewProjectCreateResponse = {
 
 const jsonHeaders = {
   'Content-Type': 'application/json',
-};
-
-const normalizeTextUnit = (tu: ApiReviewProjectTextUnit): ApiReviewProjectTextUnit => {
-  const tm = tu.tmTextUnit ?? {};
-  const variant = tu.tmTextUnitVariant ?? null;
-  const decisionVariantId = tu.reviewProjectTextUnitDecision?.tmTextUnitVariantId ?? null;
-
-  const reviewProjectTextUnitId = (tu.id ?? tm.id ?? tu.name ?? 0) as number;
-  const tmTextUnitIdRaw = tu.tmTextUnitId ?? tm.id ?? null;
-  const tmTextUnitId =
-    tmTextUnitIdRaw == null
-      ? null
-      : Number.isFinite(Number(tmTextUnitIdRaw))
-        ? Number(tmTextUnitIdRaw)
-        : null;
-  const source = tu.source ?? tm.content ?? null;
-  const target = tu.content ?? variant?.content ?? null;
-  const comment = tm.comment ?? tu.comment ?? null;
-  const notes = tu.reviewProjectTextUnitDecision?.notes ?? tu.notes ?? null;
-  const name = tm.name ?? tu.name ?? tmTextUnitId ?? null;
-  const assetPath =
-    tm.asset && tm.asset.assetPath != null
-      ? String(tm.asset.assetPath)
-      : tu.asset && tu.asset.assetPath != null
-        ? String(tu.asset.assetPath)
-        : null;
-  const repositoryId = tu.repositoryId ?? tm.asset?.repository?.id ?? null;
-
-  const baselineVariantId = variant?.id ?? tu.tmTextUnitVariantId ?? null;
-  const selectedVariantId = decisionVariantId ?? baselineVariantId;
-  const variantContent = variant?.content ?? target;
-  const variantStatus = variant?.status ?? tu.status ?? null;
-  const variantIncluded = variant?.includedInLocalizedFile ?? tu.includedInLocalizedFile ?? true;
-  const variantComment = variant?.comment ?? notes ?? null;
-  const reviewStatus =
-    tu.reviewStatus ??
-    (decisionVariantId != null
-      ? baselineVariantId != null && decisionVariantId === baselineVariantId
-        ? 'ACCEPTED_AS_IS'
-        : 'ACCEPTED_WITH_CHANGE'
-      : 'PENDING');
-
-  return {
-    ...tu,
-    tmTextUnit: tm,
-    reviewProjectTextUnitId,
-    tmTextUnitId,
-    name,
-    source,
-    content: target,
-    comment,
-    asset: tm.asset ?? tu.asset ?? (assetPath != null ? { assetPath } : null),
-    wordCount: tm.wordCount ?? tu.wordCount ?? null,
-    tmTextUnitVariantId: baselineVariantId,
-    selectedTmTextUnitVariantId: selectedVariantId,
-    currentTmTextUnitVariantId: baselineVariantId,
-    target,
-    currentTarget: variantContent ?? target,
-    baselineStatus: tu.baselineStatus ?? null,
-    reviewStatus,
-    notes,
-    reviewedAt: tu.reviewedAt ?? null,
-    reviewedBy: tu.reviewedBy ?? null,
-    status: variantStatus,
-    repositoryId,
-    repositoryName: tu.repositoryName ?? null,
-    assetPath,
-    includedInLocalizedFile: variantIncluded,
-    tmTextUnitVariant: {
-      ...variant,
-      id: baselineVariantId ?? undefined,
-      content: variantContent ?? undefined,
-      status: variantStatus ?? undefined,
-      includedInLocalizedFile: variantIncluded,
-      comment: variantComment ?? undefined,
-    },
-  } as ApiReviewProjectTextUnit;
 };
 
 export const searchReviewProjects = async (
@@ -298,32 +175,7 @@ export const fetchReviewProjectDetail = async (
     throw new Error(message || 'Failed to load review project');
   }
 
-  const raw = (await response.json()) as ApiReviewProjectDetail;
-
-  // Normalize to legacy-friendly shape for UI
-  const sourceTextUnits =
-    raw.reviewProjectTextUnits ?? raw.textUnits ?? ([] as ApiReviewProjectTextUnit[]);
-
-  const textUnits = sourceTextUnits.map((tu) => normalizeTextUnit(tu as ApiReviewProjectTextUnit));
-
-  const primaryLocale: ApiReviewProjectLocaleDetail | null = raw.locale
-    ? {
-        id: raw.locale.id ?? 0,
-        bcp47Tag: raw.locale.bcp47Tag ?? '',
-        displayName: raw.locale.bcp47Tag ?? '',
-        selectedCount: textUnits.length,
-        acceptedCount: 0,
-        textUnits,
-      }
-    : null;
-
-  return {
-    ...raw,
-    textUnits,
-    screenshotImageIds: raw.reviewProjectRequest?.screenshotImageIds ?? [],
-    name: raw.reviewProjectRequest?.name ?? null,
-    locales: primaryLocale ? [primaryLocale] : [],
-  };
+  return (await response.json()) as ApiReviewProjectDetail;
 };
 
 export const acceptReviewProjectTextUnit = async ({
@@ -364,7 +216,7 @@ export const acceptReviewProjectTextUnit = async ({
   }
 
   const raw = (await response.json()) as ApiReviewProjectTextUnit;
-  return normalizeTextUnit(raw);
+  return raw;
 };
 
 export const updateReviewProjectTextUnitReview = async ({
@@ -389,5 +241,5 @@ export const updateReviewProjectTextUnitReview = async ({
   }
 
   const raw = (await response.json()) as ApiReviewProjectTextUnit;
-  return normalizeTextUnit(raw);
+  return raw;
 };

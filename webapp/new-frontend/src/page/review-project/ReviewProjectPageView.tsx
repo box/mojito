@@ -1,5 +1,4 @@
 import './review-project-page.css';
-import '../review-projects/review-projects-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
@@ -32,14 +31,12 @@ type Props = {
 };
 
 export function ReviewProjectPageView({ projectId, project }: Props) {
-  const primaryLocale = project?.locales?.[0] ?? null;
-  const [textUnits, setTextUnits] = useState<ApiReviewProjectTextUnit[]>(
-    () => primaryLocale?.textUnits ?? [],
+  const locale = project?.locale ?? null;
+  const localeTag = locale?.bcp47Tag ?? '';
+  const textUnits = useMemo<ApiReviewProjectTextUnit[]>(
+    () => project?.reviewProjectTextUnits ?? [],
+    [project?.reviewProjectTextUnits],
   );
-
-  useEffect(() => {
-    setTextUnits(primaryLocale?.textUnits ?? []);
-  }, [primaryLocale]);
 
   const layoutRef = useRef<HTMLDivElement>(null);
   const [listWidthPct, setListWidthPct] = useState(20);
@@ -54,8 +51,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   }, [listWidthPct]);
 
   const [search, setSearch] = useState('');
-  const [onlyReviewed, setOnlyReviewed] = useState(false);
-  const [onlyEdited, setOnlyEdited] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
@@ -66,8 +61,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
     textUnits.forEach((tu) => {
-      if (tu?.status) {
-        statuses.add(tu.status);
+      if (tu?.tmTextUnitVariant?.status) {
+        statuses.add(tu.tmTextUnitVariant.status);
       }
     });
     return Array.from(statuses.values()).sort();
@@ -77,33 +72,20 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     const term = search.trim().toLowerCase();
     return textUnits.filter((tu) => {
       if (!tu) return false;
-      if (onlyReviewed && tu.selectedTmTextUnitVariantId == null) {
-        return false;
-      }
-      if (
-        onlyEdited &&
-        !(
-          tu.selectedTmTextUnitVariantId != null &&
-          tu.currentTmTextUnitVariantId != null &&
-          tu.selectedTmTextUnitVariantId !== tu.currentTmTextUnitVariantId
-        )
-      ) {
-        return false;
-      }
-      if (statusFilter !== 'all' && tu.status !== statusFilter) {
+      if (statusFilter !== 'all' && tu.tmTextUnitVariant?.status !== statusFilter) {
         return false;
       }
       if (!term) return true;
-      const haystacks = [tu.name, tu.source, tu.currentTarget, tu.target]
+      const haystacks = [tu.tmTextUnit?.name, tu.tmTextUnit?.content, tu.tmTextUnitVariant?.content]
         .filter(Boolean)
         .map((s) => String(s).toLowerCase());
       return haystacks.some((h) => h.includes(term));
     });
-  }, [onlyEdited, onlyReviewed, search, statusFilter, textUnits]);
+  }, [search, statusFilter, textUnits]);
 
   const screenshotImages = useMemo(
-    () => project?.screenshotImageIds ?? [],
-    [project?.screenshotImageIds],
+    () => project?.reviewProjectRequest?.screenshotImageIds ?? [],
+    [project?.reviewProjectRequest?.screenshotImageIds],
   );
 
   useEffect(() => {
@@ -115,7 +97,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   }, [screenshotImages]);
 
   const selectedTextUnit = useMemo(
-    () => filtered.find((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId),
+    () => filtered.find((tu) => tu.id === selectedTextUnitId),
     [filtered, selectedTextUnitId],
   );
 
@@ -126,9 +108,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     }
     if (
       selectedTextUnitId == null ||
-      !filtered.some((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId)
+      !filtered.some((tu) => tu.id === selectedTextUnitId)
     ) {
-      setSelectedTextUnitId(filtered[0]?.reviewProjectTextUnitId ?? null);
+      setSelectedTextUnitId(filtered[0]?.id ?? null);
     }
   }, [filtered, selectedTextUnitId]);
 
@@ -142,7 +124,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   );
 
   const getItemKey = useCallback(
-    (index: number) => filtered[index]?.reviewProjectTextUnitId ?? index,
+    (index: number) => filtered[index]?.id ?? index,
     [filtered],
   );
 
@@ -169,13 +151,13 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       if (!filtered.length) return;
 
       const idx = selectedTextUnitId
-        ? filtered.findIndex((tu) => tu.reviewProjectTextUnitId === selectedTextUnitId)
+        ? filtered.findIndex((tu) => tu.id === selectedTextUnitId)
         : -1;
 
       if (event.key === 'ArrowDown' || event.key === 'j') {
         event.preventDefault();
         const nextIndex = Math.min(filtered.length - 1, idx + 1);
-        const nextId = filtered[nextIndex]?.reviewProjectTextUnitId ?? null;
+        const nextId = filtered[nextIndex]?.id ?? null;
         if (nextId != null) {
           setSelectedTextUnitId(nextId);
           scrollToIndex(nextIndex, { align: 'center' });
@@ -183,7 +165,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       } else if (event.key === 'ArrowUp' || event.key === 'k') {
         event.preventDefault();
         const prevIndex = Math.max(0, idx <= 0 ? 0 : idx - 1);
-        const prevId = filtered[prevIndex]?.reviewProjectTextUnitId ?? null;
+        const prevId = filtered[prevIndex]?.id ?? null;
         if (prevId != null) {
           setSelectedTextUnitId(prevId);
           scrollToIndex(prevIndex, { align: 'center' });
@@ -334,16 +316,16 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                 key: virtualItem.key,
                 props: {
                   ref: measureElement,
-                  onClick: () => setSelectedTextUnitId(textUnit.reviewProjectTextUnitId),
+                  onClick: () => setSelectedTextUnitId(textUnit.id),
                   className:
-                    textUnit.reviewProjectTextUnitId === selectedTextUnitId
+                    textUnit.id === selectedTextUnitId
                       ? 'review-project-row is-selected'
                       : 'review-project-row',
                 },
                 content: (
                   <TextUnitRow
                     textUnit={textUnit}
-                    isSelected={textUnit.reviewProjectTextUnitId === selectedTextUnitId}
+                    isSelected={textUnit.id === selectedTextUnitId}
                   />
                 ),
               };
@@ -375,7 +357,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           {selectedTextUnit ? (
             <DetailPane
               textUnit={selectedTextUnit}
-              localeTag={primaryLocale?.bcp47Tag ?? primaryLocale?.displayName ?? ''}
+              localeTag={localeTag}
               screenshotImages={screenshotImages}
               currentScreenshotIdx={selectedScreenshotIdx}
               onChangeScreenshotIdx={setSelectedScreenshotIdx}
@@ -481,11 +463,13 @@ function TextUnitRow({
   if (!textUnit) {
     return null;
   }
-  const { reviewProjectTextUnitId, name, source, target } = textUnit;
+  const name = textUnit.tmTextUnit?.name ?? null;
+  const source = textUnit.tmTextUnit?.content ?? null;
+  const target = textUnit.tmTextUnitVariant?.content ?? null;
   return (
     <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
       <div className="review-project-row__name" title={name != null ? String(name) : undefined}>
-        {name || `Text unit ${reviewProjectTextUnitId}`}
+        {name || `Text unit ${textUnit.id}`}
       </div>
       <div className="review-project-row__strings">
         <div className="review-project-row__string-line" title={source ?? undefined}>
@@ -524,7 +508,11 @@ function DetailPane({
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
-  const workbenchTextUnitId = textUnit.tmTextUnitId ?? textUnit.tmTextUnit?.id ?? null;
+  const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
+  const repositoryId = textUnit.tmTextUnit?.asset?.repository?.id ?? null;
+  const textUnitName = textUnit.tmTextUnit?.name ?? `Text unit ${textUnit.id}`;
+  const source = textUnit.tmTextUnit?.content ?? null;
+  const comment = textUnit.tmTextUnit?.comment ?? null;
 
   useEffect(() => {
     if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
@@ -689,19 +677,19 @@ function DetailPane({
         <div className="review-project-detail__side">
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Source</div>
-            <div className="review-project-detail__value">{textUnit.source || '—'}</div>
+            <div className="review-project-detail__value">{source || '—'}</div>
           </div>
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Comment</div>
-            <div className="review-project-detail__value">{textUnit.comment || '—'}</div>
+            <div className="review-project-detail__value">{comment || '—'}</div>
           </div>
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Id</div>
             <div className="review-project-detail__value review-project-detail__value--meta">
               <span className="review-project-detail__title-text">
-                {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
+                {textUnitName}
               </span>
             </div>
             {workbenchTextUnitId != null ? (
@@ -712,9 +700,7 @@ function DetailPane({
                   search: `?tmTextUnitId=${encodeURIComponent(
                     String(workbenchTextUnitId),
                   )}${localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''}${
-                    textUnit.repositoryId != null
-                      ? `&repo=${encodeURIComponent(String(textUnit.repositoryId))}`
-                      : ''
+                    repositoryId != null ? `&repo=${encodeURIComponent(String(repositoryId))}` : ''
                   }`,
                 }}
                 state={{
@@ -723,7 +709,7 @@ function DetailPane({
                     searchType: 'exact',
                     searchText: String(workbenchTextUnitId),
                     localeTags: [localeTag],
-                    repositoryIds: textUnit.repositoryId ? [textUnit.repositoryId] : [],
+                    repositoryIds: repositoryId != null ? [repositoryId] : [],
                   },
                 }}
                 title="Open this string in Workbench"
@@ -747,17 +733,17 @@ function ReviewProjectHeader({
   project: ApiReviewProjectDetail;
   textUnits: ApiReviewProjectTextUnit[];
 }) {
-  const { name, dueDate, textUnitCount, wordCount, status, type, locales: localesRaw } = project;
+  const { dueDate, textUnitCount, wordCount, status, type } = project;
+  const name = project.reviewProjectRequest?.name ?? null;
+  const locale = project.locale ?? null;
   const textUnits = useMemo(() => textUnitsProp ?? [], [textUnitsProp]);
-  const locales = useMemo(() => localesRaw ?? [], [localesRaw]);
+  const locales = useMemo(() => (locale ? [locale] : []), [locale]);
 
   const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
     const selected = textUnits?.length ?? 0;
     const accepted =
-      textUnits?.filter(
-        (tu) =>
-          tu.reviewStatus === 'ACCEPTED_AS_IS' || tu.reviewStatus === 'ACCEPTED_WITH_CHANGE',
-      ).length ?? 0;
+      textUnits?.filter((tu) => tu.reviewProjectTextUnitDecision?.tmTextUnitVariantId != null)
+        .length ?? 0;
     const percent = selected > 0 ? Math.round((accepted / selected) * 100) : 0;
     return { acceptedCount: accepted, selectedCount: selected, progressPercent: percent };
   }, [textUnits]);
@@ -807,13 +793,13 @@ function ReviewProjectHeader({
                 <LocalePill
                   key={locale.id ?? locale.bcp47Tag}
                   bcp47Tag={locale.bcp47Tag}
-                  displayName={locale.displayName}
+                  displayName={locale.bcp47Tag}
                   labelMode="tag"
                   className="review-project-page__header-locale-pill"
                 />
               ))
             ) : (
-              <span className="review-project-page__muted">No locale</span>
+              <span className="review-project-page__header-muted">No locale</span>
             )}
           </div>
         </div>
@@ -848,12 +834,12 @@ function CountsInline({
   strings: number | null | undefined;
 }) {
   return (
-    <span className="review-projects-page__count-line">
-      <span className="review-projects-page__count">{formatNumber(words)}</span>
-      <span className="review-projects-page__muted">&nbsp;words</span>
-      <span className="review-projects-page__count-sep">&nbsp;·&nbsp;</span>
-      <span className="review-projects-page__count">{formatNumber(strings)}</span>
-      <span className="review-projects-page__muted">&nbsp;strings</span>
+    <span className="review-project-page__header-count-line">
+      <span className="review-project-page__header-count">{formatNumber(words)}</span>
+      <span className="review-project-page__header-muted">&nbsp;words</span>
+      <span className="review-project-page__header-count-sep">&nbsp;·&nbsp;</span>
+      <span className="review-project-page__header-count">{formatNumber(strings)}</span>
+      <span className="review-project-page__header-muted">&nbsp;strings</span>
     </span>
   );
 }
