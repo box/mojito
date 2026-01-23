@@ -351,6 +351,16 @@ public class ReviewProjectService {
       String decisionNotes)
       throws EntityWithIdNotFoundException {
 
+    if (target == null) {
+      throw new IllegalArgumentException("Target is required");
+    }
+    if (status == null) {
+      throw new IllegalArgumentException("Status is required");
+    }
+    if (includedInLocalizedFile == null) {
+      throw new IllegalArgumentException("includedInLocalizedFile is required");
+    }
+
     ReviewProject project =
         reviewProjectRepository
             .findById(projectId)
@@ -380,9 +390,6 @@ public class ReviewProjectService {
     Long currentVariantId =
         currentTmTextUnitVariant != null ? currentTmTextUnitVariant.getId() : null;
 
-    boolean hasNoBaselineOrCurrent =
-        baselineVariant == null && currentTmTextUnitVariant == null;
-
     if (!overrideChangedCurrent
         && expectedCurrentTmTextUnitVariantId != null
         && !expectedCurrentTmTextUnitVariantId.equals(currentVariantId)) {
@@ -392,60 +399,39 @@ public class ReviewProjectService {
           fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId));
     }
 
-    TMTextUnitVariant.Status effectiveStatus =
-        status == null
-            ? (currentTmTextUnitVariant != null
-                ? currentTmTextUnitVariant.getStatus()
-                : baselineVariant != null
-                    ? baselineVariant.getStatus()
-                    : TMTextUnitVariant.Status.APPROVED)
-            : TMTextUnitVariant.Status.valueOf(status);
-    boolean effectiveIncludedInLocalizedFile =
-        includedInLocalizedFile == null
-            ? (currentTmTextUnitVariant != null
-                ? currentTmTextUnitVariant.isIncludedInLocalizedFile()
-                : baselineVariant != null
-                    ? baselineVariant.isIncludedInLocalizedFile()
-                    : true)
-            : includedInLocalizedFile.booleanValue();
-    String effectiveComment =
-        comment == null
-            ? (currentTmTextUnitVariant != null
-                ? currentTmTextUnitVariant.getComment()
-                : baselineVariant != null ? baselineVariant.getComment() : null)
-            : comment;
+    TMTextUnitVariant.Status statusEnum = TMTextUnitVariant.Status.valueOf(status);
+    TMTextUnitVariant comparisonVariant =
+        currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
+    String normalizedTarget = NormalizationUtils.normalize(target);
 
-    boolean shouldUpdateTm =
-        hasNoBaselineOrCurrent
-            || target != null
-            || status != null
-            || includedInLocalizedFile != null
-            || comment != null;
+    boolean targetChanged =
+        comparisonVariant == null
+            || !Objects.equals(comparisonVariant.getContent(), normalizedTarget);
+    boolean statusChanged =
+        comparisonVariant == null || comparisonVariant.getStatus() != statusEnum;
+    boolean includedChanged =
+        comparisonVariant == null
+            || comparisonVariant.isIncludedInLocalizedFile()
+                != includedInLocalizedFile;
+    boolean commentChanged =
+        comparisonVariant == null
+            ? comment != null
+            : !Objects.equals(comparisonVariant.getComment(), comment);
 
-    if (hasNoBaselineOrCurrent && target == null) {
-      throw new IllegalArgumentException(
-          "Target translation is required when no baseline variant exists");
-    }
+    boolean shouldUpdateTm = targetChanged || statusChanged || includedChanged || commentChanged;
 
     TMTextUnitVariant decidedVariant =
         currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
 
     if (shouldUpdateTm) {
-      String contentToSave =
-          target != null
-              ? NormalizationUtils.normalize(target)
-              : (currentTmTextUnitVariant != null
-                  ? currentTmTextUnitVariant.getContent()
-                  : baselineVariant != null ? baselineVariant.getContent() : null);
-
       TMTextUnitCurrentVariant updatedCurrentVariant =
           tmService.addTMTextUnitCurrentVariant(
               tmTextUnit.getId(),
               project.getLocale().getId(),
-              contentToSave,
-              effectiveComment,
-              effectiveStatus,
-              effectiveIncludedInLocalizedFile);
+              normalizedTarget,
+              comment,
+              statusEnum,
+                  includedInLocalizedFile);
       decidedVariant = updatedCurrentVariant.getTmTextUnitVariant();
     }
 
@@ -459,7 +445,8 @@ public class ReviewProjectService {
                   return entity;
                 });
 
-    decision.setReviewedVariant(baselineVariant != null ? baselineVariant : currentTmTextUnitVariant);
+    decision.setReviewedVariant(
+        baselineVariant != null ? baselineVariant : currentTmTextUnitVariant);
     decision.setDecisionVariant(decidedVariant);
     decision.setNotes(decisionNotes);
     reviewProjectTextUnitDecisionRepository.save(decision);

@@ -196,10 +196,10 @@ export const saveReviewProjectTextUnitDecision = async ({
 }: {
   projectId: number;
   textUnitId: number;
-  target?: string | null;
-  comment?: string | null;
-  status?: string | null;
-  includedInLocalizedFile?: boolean | null;
+  target: string;
+  comment: string | null;
+  status: string;
+  includedInLocalizedFile: boolean;
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
   decisionNotes?: string | null;
