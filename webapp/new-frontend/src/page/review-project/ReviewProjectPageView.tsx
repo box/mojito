@@ -468,13 +468,18 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         >
           <button
             type="button"
-            className="review-project-page__collapse-toggle"
+            className="review-project-handle-button review-project-page__collapse-toggle"
             onClick={toggleList}
             onMouseDown={(event) => event.stopPropagation()}
             aria-label={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
             title={isListCollapsed ? 'Expand review list' : 'Collapse review list'}
           >
-            {isListCollapsed ? '>' : '<'}
+            <span
+              className={`review-project-chevron ${
+                isListCollapsed ? 'review-project-chevron--right' : 'review-project-chevron--left'
+              }`}
+              aria-hidden="true"
+            />
           </button>
         </div>
         <section className="review-project-page__detail-pane">
@@ -881,7 +886,7 @@ function DetailPane({
         >
           <button
             type="button"
-            className="review-project-detail__hero-toggle"
+            className="review-project-handle-button review-project-detail__hero-toggle"
             onClick={() =>
               setIsScreenshotsCollapsed((prev) => {
                 if (!prev && heroHeight != null) {
@@ -897,10 +902,12 @@ function DetailPane({
             aria-label={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
             title={isScreenshotsCollapsed ? 'Show screenshots' : 'Hide screenshots'}
           >
-            <span className="review-project-detail__hero-toggle-label">
-              {isScreenshotsCollapsed ? 'Screenshots' : 'Screenshots'}
-            </span>
-            <span aria-hidden="true">{isScreenshotsCollapsed ? '▾' : '▴'}</span>
+            <span
+              className={`review-project-chevron ${
+                isScreenshotsCollapsed ? 'review-project-chevron--down' : 'review-project-chevron--up'
+              }`}
+              aria-hidden="true"
+            />
           </button>
         </div>
       ) : null}
