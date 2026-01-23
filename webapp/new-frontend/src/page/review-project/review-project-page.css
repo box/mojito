@@ -3,8 +3,8 @@
   height: calc(100vh - var(--app-shell-header-height));
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
+  gap: 0;
+  padding: 0;
   width: 100%;
 }
 
@@ -30,15 +30,16 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  margin: 0;
+  padding: var(--space-3) var(--space-6);
   border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 65%, transparent);
   border-radius: 0;
-  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  background: var(--color-surface);
   box-shadow: none;
 }
 
 .review-project-page__header--compact {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-6);
 }
 
 .review-project-page__one-line {
@@ -47,34 +48,36 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
+  height: auto;
 }
 
 .review-project-page__group {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .review-project-page__group--left {
-  min-width: 280px;
+  min-width: 0;
   justify-self: start;
 }
 
 .review-project-page__back-link {
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-pill);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-accent) 30%, transparent);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  width: var(--app-shell-header-height);
+  height: var(--app-shell-header-height);
+  border-radius: 0;
+  border: none;
+  background: transparent;
   color: var(--color-accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   line-height: 1;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
 }
 
 .review-project-page__back-icon {
@@ -84,10 +87,8 @@
 }
 
 .review-project-page__back-link:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
   color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .review-project-page__back-link:focus-visible {
@@ -128,6 +129,11 @@
   letter-spacing: -0.01em;
   color: var(--color-text);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: clamp(8rem, 18vw, 16rem);
+  min-width: 0;
 }
 
 .review-project-page__pill-row {
@@ -141,6 +147,7 @@
   font-weight: var(--font-weight-medium);
   padding: 0 var(--space-2);
   min-height: 1.5rem;
+  flex-shrink: 0;
 }
 
 .review-project-page__pill--status-open {
@@ -191,12 +198,15 @@
 .review-project-page__locale-pill {
   font-size: var(--font-size-xs);
   padding: 0 var(--space-2);
+  flex-shrink: 0;
 }
 
 .review-project-page__locale-row {
   display: inline-flex;
   gap: var(--space-1);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  max-width: 10rem;
 }
 
 .review-project-page__progress-bar {
@@ -221,6 +231,7 @@
   min-height: 0;
   display: grid;
   grid-template-columns: var(--review-list-width, 20%) var(--review-resize-handle-size) calc(100% - var(--review-list-width, 20%) - var(--review-resize-handle-size));
+  padding: var(--space-3) var(--space-5);
   gap: 0;
 }
 

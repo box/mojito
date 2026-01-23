@@ -7,20 +7,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
-import {
-  acceptReviewProjectTextUnit,
-  REVIEW_PROJECT_STATUS_LABELS,
-  REVIEW_PROJECT_TYPE_LABELS,
-  updateReviewProjectTextUnitReview,
-} from '../../api/review-projects';
+import { REVIEW_PROJECT_STATUS_LABELS, REVIEW_PROJECT_TYPE_LABELS } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
-import { PillDropdown } from '../../components/PillDropdown';
 import { Modal } from '../../components/Modal';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
-import { useRepositories } from '../../hooks/useRepositories';
 
 const Chevron = ({ direction }: { direction: 'left' | 'right' | 'up' | 'down' }) => (
   <svg
@@ -66,11 +59,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
-  const [draftTargets, setDraftTargets] = useState<Record<number, string>>({});
-  const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
-  const [isAccepting, setIsAccepting] = useState(false);
-  const [acceptError, setAcceptError] = useState<string | null>(null);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
   const [selectedScreenshotIdx, setSelectedScreenshotIdx] = useState<number>(0);
   const filterRef = useRef<HTMLDivElement | null>(null);
@@ -143,23 +131,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       setSelectedTextUnitId(filtered[0]?.reviewProjectTextUnitId ?? null);
     }
   }, [filtered, selectedTextUnitId]);
-
-  useEffect(() => {
-    if (!selectedTextUnit) return;
-    const id = selectedTextUnit.reviewProjectTextUnitId;
-    setDraftTargets((prev) =>
-      prev[id] !== undefined
-        ? prev
-        : {
-            ...prev,
-            [id]: selectedTextUnit.currentTarget ?? selectedTextUnit.target ?? '',
-          },
-    );
-    setDraftNotes((prev) =>
-      prev[id] !== undefined ? prev : { ...prev, [id]: selectedTextUnit.notes || '' },
-    );
-    setAcceptError(null);
-  }, [selectedTextUnit]);
 
   const estimateRowHeight = useCallback(
     () =>
@@ -238,11 +209,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     return () => document.removeEventListener('mousedown', handleOutside);
   }, []);
 
-  useEffect(() => {
-    if (!selectedTextUnit) return;
-    // No auto-status change anymore; pending until explicit accept/reject.
-  }, [draftNotes, draftTargets, projectId, selectedTextUnit, setTextUnits]);
-
   const collapseList = useCallback(() => {
     setIsListCollapsed(true);
     setListWidthPct(0);
@@ -293,91 +259,6 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   }, [collapseList, isListCollapsed, listWidthPct]);
-
-  const handleAccept = useCallback(
-    (override: boolean) => {
-      if (!selectedTextUnit) return;
-      const draftTargetValue =
-        draftTargets[selectedTextUnit.reviewProjectTextUnitId] ??
-        selectedTextUnit.currentTarget ??
-        selectedTextUnit.target ??
-        '';
-      const notesValue = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
-
-      setAcceptError(null);
-      setIsAccepting(true);
-      void (async () => {
-        try {
-          const updated = await acceptReviewProjectTextUnit({
-            projectId,
-            textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-            target: draftTargetValue,
-            expectedCurrentTmTextUnitVariantId: selectedTextUnit.currentTmTextUnitVariantId ?? undefined,
-            overrideChangedCurrent: override,
-            notes: notesValue,
-          });
-
-          setDraftTargets((prev) => ({
-            ...prev,
-            [updated.reviewProjectTextUnitId]: draftTargetValue,
-          }));
-          setDraftNotes((prev) => ({
-            ...prev,
-            [updated.reviewProjectTextUnitId]: updated.notes ?? notesValue,
-          }));
-          setTextUnits((prev) =>
-            prev.map((tu) =>
-              tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId
-                ? { ...tu, ...updated }
-                : tu,
-            ),
-          );
-          setAcceptError(null);
-        } catch (error) {
-          const status = (error as { status?: number }).status;
-          setAcceptError(
-            status === 409
-              ? 'Current translation changed; refresh to review the latest version before accepting.'
-              : error instanceof Error
-                ? error.message
-                : 'Failed to accept translation',
-          );
-        } finally {
-          setIsAccepting(false);
-        }
-      })();
-    },
-    [draftNotes, draftTargets, projectId, selectedTextUnit],
-  );
-
-  const handleReviewStatus = useCallback(
-    async () => {
-      if (!selectedTextUnit) return;
-      setIsUpdatingStatus(true);
-      setAcceptError(null);
-      try {
-        const updated = await updateReviewProjectTextUnitReview({
-          projectId,
-          textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-          notes: draftNotes[selectedTextUnit.reviewProjectTextUnitId],
-        });
-        setTextUnits((prev) =>
-          prev.map((tu) =>
-            tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId ? { ...tu, ...updated } : tu,
-          ),
-        );
-        setDraftNotes((prev) => ({
-          ...prev,
-          [updated.reviewProjectTextUnitId]: updated.notes ?? prev[updated.reviewProjectTextUnitId] ?? '',
-        }));
-      } catch (error) {
-        setAcceptError(error instanceof Error ? error.message : 'Failed to update review status');
-      } finally {
-        setIsUpdatingStatus(false);
-      }
-    },
-    [draftNotes, projectId, selectedTextUnit],
-  );
 
   if (!project) {
     return <div>No project data for id {projectId}</div>;
@@ -494,48 +375,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           {selectedTextUnit ? (
             <DetailPane
               textUnit={selectedTextUnit}
-              draftTarget={draftTargets[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
-              draftNote={draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? ''}
               localeTag={primaryLocale?.bcp47Tag ?? primaryLocale?.displayName ?? ''}
-              onChangeDraftTarget={(value) =>
-                setDraftTargets((prev) => ({
-                  ...prev,
-                  [selectedTextUnit.reviewProjectTextUnitId]: value,
-                }))
-              }
-              onChangeDraftNote={(value) =>
-                setDraftNotes((prev) => ({
-                  ...prev,
-                  [selectedTextUnit.reviewProjectTextUnitId]: value,
-                }))
-              }
-              screenshotCount={screenshotImages.length}
               screenshotImages={screenshotImages}
               currentScreenshotIdx={selectedScreenshotIdx}
               onChangeScreenshotIdx={setSelectedScreenshotIdx}
               onOpenGallery={() => setIsScreenshotModalOpen(true)}
-              onAccept={handleAccept}
-              onReviewStatus={handleReviewStatus}
-              onSaveNote={() => {
-                void (async () => {
-                  const note = draftNotes[selectedTextUnit.reviewProjectTextUnitId] ?? '';
-                  const updated = await updateReviewProjectTextUnitReview({
-                    projectId,
-                    textUnitId: selectedTextUnit.reviewProjectTextUnitId,
-                    notes: note,
-                  });
-                  setTextUnits((prev) =>
-                    prev.map((tu) =>
-                      tu.reviewProjectTextUnitId === updated.reviewProjectTextUnitId
-                        ? { ...tu, ...updated }
-                        : tu,
-                    ),
-                  );
-                })();
-              }}
-              acceptError={acceptError}
-              isAccepting={isAccepting}
-              isUpdatingStatus={isUpdatingStatus}
             />
           ) : (
             <div className="review-project-page__empty-detail">No text unit selected</div>
@@ -662,61 +506,24 @@ function TextUnitRow({
 
 function DetailPane({
   textUnit,
-  draftTarget,
-  draftNote,
   localeTag,
-  onChangeDraftTarget,
-  onChangeDraftNote,
-  onSaveNote,
-  onReviewStatus,
-  screenshotCount,
   screenshotImages,
   currentScreenshotIdx,
   onChangeScreenshotIdx,
   onOpenGallery,
-  onAccept,
-  acceptError,
-  isAccepting,
-  isUpdatingStatus,
 }: {
   textUnit: ApiReviewProjectTextUnit;
-  draftTarget: string;
-  draftNote: string;
   localeTag: string;
-  onChangeDraftTarget: (value: string) => void;
-  onChangeDraftNote: (value: string) => void;
-  onSaveNote: () => void;
-  onReviewStatus: () => Promise<void> | void;
-  screenshotCount: number;
   screenshotImages: string[];
   currentScreenshotIdx: number;
   onChangeScreenshotIdx: (index: number) => void;
   onOpenGallery: () => void;
-  onAccept: (override: boolean) => void;
-  acceptError: string | null;
-  isAccepting: boolean;
-  isUpdatingStatus: boolean;
 }) {
-  const displayedTarget = textUnit.target;
-  const proposedValue = draftTarget;
-  const wasRejected = textUnit.includedInLocalizedFile === false;
   const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
-  type StatusOption = 'accepted' | 'pending';
-  const initialStatusValue = useMemo<StatusOption>(() => {
-    const status = textUnit.reviewStatus;
-    const upper = status?.toUpperCase();
-    if (upper && upper.startsWith('ACCEPTED')) return 'accepted';
-    return 'pending';
-  }, [textUnit.reviewStatus]);
-  const [selectedStatus, setSelectedStatus] = useState<StatusOption>(initialStatusValue);
-
-  useEffect(() => {
-    setSelectedStatus(initialStatusValue);
-  }, [initialStatusValue]);
 
   useEffect(() => {
     if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
@@ -741,47 +548,6 @@ function DetailPane({
       setHeroHeight(lastHeroHeight);
     }
   }, [heroHeight, isScreenshotsCollapsed, lastHeroHeight]);
-
-  const handleStatusSelect = (key: StatusOption) => {
-    setSelectedStatus(key);
-  };
-
-  const applySelectedStatus = () => {
-    if (selectedStatus === 'accepted') {
-      onAccept(false);
-      return;
-    }
-    void onReviewStatus();
-  };
-
-  const statusDisplay: Record<StatusOption, string> = {
-    accepted: 'Accept',
-    pending: 'Keep pending',
-  };
-  const isBusy = isAccepting || isUpdatingStatus;
-  const statusOptions = useMemo(
-    () =>
-      (Object.keys(statusDisplay) as StatusOption[]).map((key) => ({
-        value: key,
-        label: statusDisplay[key],
-      })),
-    [],
-  );
-  const initialStatusLabel = useMemo(
-    () => getDisplayStatus(textUnit.status) ?? textUnit.status ?? '—',
-    [textUnit.status],
-  );
-  const reviewStatusLabel = useMemo(
-    () => getDisplayStatus(textUnit.reviewStatus) ?? 'Pending',
-    [textUnit.reviewStatus],
-  );
-  const reviewStatusClass = useMemo(() => {
-    const status = (textUnit.reviewStatus ?? '').toUpperCase();
-    if (status.startsWith('ACCEPTED')) return 'accepted';
-    if (status === 'REJECTED') return 'rejected';
-    if (status === 'PENDING' || !status) return 'needs-review';
-    return 'unknown';
-  }, [textUnit.reviewStatus]);
 
   return (
     <div className="review-project-detail">
@@ -917,89 +683,7 @@ function DetailPane({
         </div>
       ) : null}
       <div className="review-project-detail__layout">
-        <div className="review-project-detail__main">
-          {wasRejected ? (
-            <div className="review-project-detail__notice review-project-detail__notice--rejected">
-              Previously rejected. This string was not included in the localized file.
-            </div>
-          ) : null}
-          <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Review</div>
-            <textarea
-              className={`review-project-detail__input${wasRejected ? ' review-project-detail__input--rejected' : ''}`}
-              value={draftTarget}
-              onChange={(e) => onChangeDraftTarget(e.target.value)}
-              rows={5}
-              placeholder="Enter proposed translation"
-            />
-            <div className="review-project-detail__status-row">
-              <div className="pill-dropdown pill-dropdown--static review-project-detail__pill-dropdown-static">
-                <button
-                  type="button"
-                  className="pill-dropdown__button"
-                  aria-label="Current status"
-                  aria-disabled="true"
-                  tabIndex={-1}
-                >
-                  <span className="pill-dropdown__label">{initialStatusLabel}</span>
-                </button>
-              </div>
-              <span className="review-project-detail__status-arrow" aria-hidden="true">
-                →
-              </span>
-              <PillDropdown
-                value={selectedStatus}
-                options={statusOptions}
-                onChange={(next) => handleStatusSelect(next as StatusOption)}
-                disabled={isBusy}
-              />
-              <button
-                type="button"
-                className="review-project-detail__actions-button"
-                onClick={() => {
-                  setSelectedStatus(initialStatusValue);
-                }}
-                disabled={isBusy}
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__status-save"
-                onClick={applySelectedStatus}
-                disabled={isBusy}
-              >
-                Save
-              </button>
-              <span className="review-project-detail__status-spinner">
-                {isBusy ? <span className="spinner spinner--inline" aria-hidden="true" /> : null}
-              </span>
-            </div>
-            {acceptError ? <div className="review-project-detail__error">{acceptError}</div> : null}
-          </div>
-
-          <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Reviewer notes</div>
-            <textarea
-              className="review-project-detail__input"
-              value={draftNote}
-              onChange={(e) => onChangeDraftNote(e.target.value)}
-              rows={4}
-              placeholder="Add context for AI/translator: errors seen, tone, glossary, or rationale (optional)"
-            />
-            <div className="review-project-detail__note-actions">
-              <button
-                type="button"
-                className="review-project-detail__actions-button"
-                onClick={() => {
-                  void onSaveNote();
-                }}
-              >
-                Save note
-              </button>
-            </div>
-          </div>
-        </div>
+        <div className="review-project-detail__main" />
 
         <div className="review-project-detail__side">
           <div className="review-project-detail__field">
@@ -1008,22 +692,13 @@ function DetailPane({
           </div>
 
           <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Status</div>
-            <Pill className={`review-project-detail__status-chip review-project-detail__status-chip--${reviewStatusClass}`}>
-              {reviewStatusLabel}
-            </Pill>
-          </div>
-
-          <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Translation</div>
-            <div className="review-project-detail__value review-project-detail__value--target review-project-detail__value--restorable">
-              <span>{displayedTarget || '—'}</span>
-            </div>
+            <div className="review-project-detail__label">Comment</div>
+            <div className="review-project-detail__value">{textUnit.comment || '—'}</div>
           </div>
 
           <div className="review-project-detail__field">
             {/*  for consistency with the workbench, it should Text Unit ID */}
-            <div className="review-project-detail__label">String</div>
+            <div className="review-project-detail__label">Id</div>
             <div className="review-project-detail__value review-project-detail__value--meta">
               <span className="review-project-detail__title-text">
                 {textUnit.name || `Text unit ${textUnit.reviewProjectTextUnitId}`}
@@ -1054,18 +729,6 @@ function DetailPane({
             >
               Open in Workbench
             </Link>
-          </div>
-
-          <div className="review-project-detail__meta review-project-detail__field">
-            <div className="review-project-detail__label">IDs</div>
-            <div className="review-project-detail__value review-project-detail__value--meta">
-              TM text unit ID {textUnit.tmTextUnitId}
-            </div>
-            {textUnit.repositoryName ? (
-              <div className="review-project-detail__value review-project-detail__value--meta">
-                Repo: {textUnit.repositoryName}
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
@@ -1101,27 +764,6 @@ function ReviewProjectHeader({
     <header className="review-project-page__header review-project-page__header--compact">
       <div className="review-project-page__one-line">
         <div className="review-project-page__group review-project-page__group--left">
-          <Link
-            className="review-project-page__back-link"
-            to="/review-projects"
-            aria-label="Back to review projects"
-            title="Back to review projects"
-          >
-            <svg
-              className="review-project-page__back-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
           <span className="review-project-page__title">{name ?? `Project ${projectId}`}</span>
           <Pill className={`review-project-page__pill review-project-page__pill--type-${type}`}>
             {REVIEW_PROJECT_TYPE_LABELS[type]}
@@ -1164,6 +806,27 @@ function ReviewProjectHeader({
 
         <div className="review-project-page__group review-project-page__group--meta">
           <span>Due {formatDate(dueDate)}</span>
+          <Link
+            className="review-project-page__back-link"
+            to="/review-projects"
+            aria-label="Back to review projects"
+            title="Back to review projects"
+          >
+            <svg
+              className="review-project-page__back-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
         </div>
       </div>
     </header>
@@ -1219,18 +882,6 @@ const formatDate = (value: string | null | undefined) => {
     month: 'short',
     day: 'numeric',
   });
-};
-
-const getDisplayStatus = (status: string | null | undefined) => {
-  if (!status) return null;
-  const upper = status.toUpperCase();
-  if (upper === 'ACCEPTED_AS_IS' || upper === 'ACCEPTED_WITH_CHANGE' || upper === 'ACCEPTED') {
-    return 'Accepted';
-  }
-  if (upper === 'REJECTED') return 'Rejected';
-  if (upper === 'PENDING') return 'Pending';
-  const cleaned = status.toLowerCase().replace(/_/g, ' ');
-  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm', '.ogv', '.ogg', '.m4v', '.mkv'];
