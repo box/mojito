@@ -10,7 +10,10 @@ import { RepositoriesPage } from './page/repositories/RepositoriesPage';
 import { ReviewProjectPage } from './page/review-project/ReviewProjectPage';
 import { ReviewProjectPageV2 } from './page/review-project/ReviewProjectPageV2';
 import { ReviewProjectCreatePage } from './page/review-projects/ReviewProjectCreatePage';
-import { ReviewProjectsPage, ReviewProjectsPageV2 } from './page/review-projects/ReviewProjectsPage';
+import {
+  ReviewProjectsPage,
+  ReviewProjectsPageV2,
+} from './page/review-projects/ReviewProjectsPage';
 import { AdminSettingsPage } from './page/settings/AdminSettingsPage';
 import { CharCodeHelperPage } from './page/tools/CharCodeHelperPage';
 import { WorkbenchPage } from './page/workbench/WorkbenchPage';

@@ -11,7 +11,6 @@ import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRe
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,26 +79,20 @@ public class RepositorySummaryService {
         assetIntegrityCheckerRows.stream()
             .collect(Collectors.groupingBy(AssetIntegrityCheckerRow::repositoryId));
 
-    Map<Long, LocaleSummary> localeCache = new HashMap<>();
-    Map<Long, RepositoryLocaleSummary> repositoryLocaleCache = new HashMap<>();
-
     List<RepositorySummaryResponse> response = new ArrayList<>(repositoryRows.size());
 
     for (RepositorySummaryRow repositoryRow : repositoryRows) {
       Long repositoryId = repositoryRow.repositoryId();
       List<RepositoryLocaleSummary> repositoryLocales =
           repositoryLocalesByRepositoryId.getOrDefault(repositoryId, List.of()).stream()
-              .map(
-                  row ->
-                      toRepositoryLocaleSummary(
-                          row, repositoryLocaleById, repositoryLocaleCache, localeCache))
+              .map(row -> toRepositoryLocaleSummary(row, repositoryLocaleById))
               .toList();
 
       List<RepositoryLocaleStatisticSummary> repositoryLocaleStatistics =
           repositoryLocaleStatisticsByStatisticId
               .getOrDefault(repositoryRow.repositoryStatisticId(), List.of())
               .stream()
-              .map(row -> toRepositoryLocaleStatisticSummary(row, localeCache))
+              .map(this::toRepositoryLocaleStatisticSummary)
               .toList();
 
       RepositoryStatisticSummary repositoryStatistic =
@@ -129,7 +122,7 @@ public class RepositorySummaryService {
               repositoryRow.repositoryCreatedDate(),
               repositoryRow.repositoryName(),
               repositoryRow.repositoryDescription(),
-              toLocaleSummary(repositoryRow.sourceLocaleId(), localeCache),
+              toLocaleSummary(repositoryRow.sourceLocaleId()),
               repositoryLocales,
               repositoryStatistic,
               assetIntegrityCheckers,
@@ -141,53 +134,29 @@ public class RepositorySummaryService {
     return response;
   }
 
-  private LocaleSummary toLocaleSummary(Long localeId, Map<Long, LocaleSummary> localeCache) {
-    if (localeId == null) {
-      return null;
-    }
-
-    return localeCache.computeIfAbsent(
-        localeId,
-        id -> {
-          Locale locale = localeService.findById(id);
-          if (locale == null) {
-            return new LocaleSummary(id, null);
-          }
-          return new LocaleSummary(locale.getId(), locale.getBcp47Tag());
-        });
+  private LocaleSummary toLocaleSummary(Long localeId) {
+    Locale locale = localeService.findById(localeId);
+    return new LocaleSummary(locale.getId(), locale.getBcp47Tag());
   }
 
   private RepositoryLocaleSummary toRepositoryLocaleSummary(
-      RepositoryLocaleRow row,
-      Map<Long, RepositoryLocaleRow> repositoryLocaleById,
-      Map<Long, RepositoryLocaleSummary> repositoryLocaleCache,
-      Map<Long, LocaleSummary> localeCache) {
+      RepositoryLocaleRow row, Map<Long, RepositoryLocaleRow> repositoryLocaleById) {
     if (row == null) {
       return null;
     }
 
-    return repositoryLocaleCache.computeIfAbsent(
-        row.id(),
-        id -> {
-          RepositoryLocaleSummary parentLocale =
-              toRepositoryLocaleSummary(
-                  repositoryLocaleById.get(row.parentLocaleId()),
-                  repositoryLocaleById,
-                  repositoryLocaleCache,
-                  localeCache);
-          return new RepositoryLocaleSummary(
-              row.id(),
-              toLocaleSummary(row.localeId(), localeCache),
-              row.toBeFullyTranslated(),
-              parentLocale);
-        });
+    RepositoryLocaleSummary parentLocale =
+        toRepositoryLocaleSummary(
+            repositoryLocaleById.get(row.parentLocaleId()), repositoryLocaleById);
+    return new RepositoryLocaleSummary(
+        row.id(), toLocaleSummary(row.localeId()), row.toBeFullyTranslated(), parentLocale);
   }
 
   private RepositoryLocaleStatisticSummary toRepositoryLocaleStatisticSummary(
-      RepositoryLocaleStatisticRow row, Map<Long, LocaleSummary> localeCache) {
+      RepositoryLocaleStatisticRow row) {
     return new RepositoryLocaleStatisticSummary(
         row.id(),
-        toLocaleSummary(row.localeId(), localeCache),
+        toLocaleSummary(row.localeId()),
         row.translatedCount(),
         row.translatedWordCount(),
         row.translationNeededCount(),

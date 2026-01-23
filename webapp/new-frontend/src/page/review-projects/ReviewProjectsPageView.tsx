@@ -200,13 +200,7 @@ const formatPercent = (accepted: number, total: number) => {
   return `${value}%`;
 };
 
-function FilterControls({
-  filters,
-  canCreate,
-}: {
-  filters: FiltersProps;
-  canCreate: boolean;
-}) {
+function FilterControls({ filters, canCreate }: { filters: FiltersProps; canCreate: boolean }) {
   const dateQuickRanges = getStandardDateQuickRanges();
 
   return (
@@ -521,7 +515,7 @@ export function ReviewProjectsPageView({
           </button>
         </div>
       ) : null}
-      {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+      { }
       <FilterControls filters={filters} canCreate={canCreate} />
       {hasResults ? (
         <SummaryBar

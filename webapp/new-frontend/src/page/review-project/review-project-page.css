@@ -78,7 +78,9 @@
   justify-content: center;
   text-decoration: none;
   line-height: 1;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -256,13 +258,17 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: var(--review-list-width, 20%) var(--review-resize-handle-size) calc(100% - var(--review-list-width, 20%) - var(--review-resize-handle-size));
+  grid-template-columns: var(--review-list-width, 20%) var(--review-resize-handle-size) calc(
+      100% - var(--review-list-width, 20%) - var(--review-resize-handle-size)
+    );
   padding: var(--space-3) var(--space-5);
   gap: 0;
 }
 
 .review-project-page__content--collapsed {
-  grid-template-columns: 0 var(--review-resize-handle-size) calc(100% - var(--review-resize-handle-size));
+  grid-template-columns: 0 var(--review-resize-handle-size) calc(
+      100% - var(--review-resize-handle-size)
+    );
 }
 
 .review-project-page__list-pane,
@@ -499,7 +505,6 @@
   display: none;
 }
 
-
 .review-project-page__resize-handle:hover,
 .review-project-page__resize-handle.is-resizing {
   background: color-mix(in srgb, var(--color-accent) 6%, transparent);
@@ -518,7 +523,10 @@
   padding: 0;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
   position: relative;
   z-index: 1;
   box-shadow: 0 0 0 2px var(--color-surface);
@@ -749,7 +757,7 @@
   background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-semibold);
 }
 
 .review-project-detail__status-pill--right {
@@ -1126,8 +1134,6 @@
   opacity: 1;
 }
 
-
-
 .review-project-detail__actions-button {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-2);
@@ -1184,7 +1190,9 @@
   color: #fff;
 }
 
-.review-project-detail__actions-button.review-project-detail__actions-button--primary:hover:not(:disabled) {
+.review-project-detail__actions-button.review-project-detail__actions-button--primary:hover:not(
+    :disabled
+  ) {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: #fff;
@@ -1398,8 +1406,12 @@
   transition: opacity 0.2s ease;
 }
 
-.review-project-detail__hero:hover .review-project-detail__gallery--hero .review-project-detail__gallery-nav,
-.review-project-detail__hero:focus-within .review-project-detail__gallery--hero .review-project-detail__gallery-nav {
+.review-project-detail__hero:hover
+  .review-project-detail__gallery--hero
+  .review-project-detail__gallery-nav,
+.review-project-detail__hero:focus-within
+  .review-project-detail__gallery--hero
+  .review-project-detail__gallery-nav {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1441,7 +1453,6 @@
   z-index: 0;
 }
 
-
 .review-project-detail__hero-resize-handle--collapsed {
   margin: 0;
 }
@@ -1470,7 +1481,6 @@
   width: 0.45rem;
   height: 0.45rem;
 }
-
 
 .review-project-detail__hero-resize-handle:hover .review-project-handle-button,
 .review-project-detail__hero-resize-handle.is-resizing .review-project-handle-button {

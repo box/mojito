@@ -60,7 +60,11 @@ export type ApiReviewProjectDetail = {
   wordCount?: number | null;
   type: ApiReviewProjectType;
   status: ApiReviewProjectStatus;
-  reviewProjectRequest?: { id: number | null; name?: string | null; screenshotImageIds?: string[] } | null;
+  reviewProjectRequest?: {
+    id: number | null;
+    name?: string | null;
+    screenshotImageIds?: string[];
+  } | null;
   locale?: { id: number | null; bcp47Tag?: string | null } | null;
   // New canonical field name from WS
   reviewProjectTextUnits?: ApiReviewProjectTextUnit[];
@@ -195,18 +199,21 @@ export const acceptReviewProjectTextUnit = async ({
   overrideChangedCurrent?: boolean;
   notes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
-  const response = await fetch(`/api/review-projects/${projectId}/text-units/${textUnitId}/accept`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders,
-    body: JSON.stringify({
-      target,
-      includedInLocalizedFile,
-      expectedCurrentTmTextUnitVariantId,
-      overrideChangedCurrent,
-      notes,
-    }),
-  });
+  const response = await fetch(
+    `/api/review-projects/${projectId}/text-units/${textUnitId}/accept`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: jsonHeaders,
+      body: JSON.stringify({
+        target,
+        includedInLocalizedFile,
+        expectedCurrentTmTextUnitVariantId,
+        overrideChangedCurrent,
+        notes,
+      }),
+    },
+  );
 
   if (!response.ok) {
     const message = await response.text().catch(() => '');
@@ -228,12 +235,15 @@ export const updateReviewProjectTextUnitReview = async ({
   textUnitId: number;
   notes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
-  const response = await fetch(`/api/review-projects/${projectId}/text-units/${textUnitId}/review`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders,
-    body: JSON.stringify({ notes }),
-  });
+  const response = await fetch(
+    `/api/review-projects/${projectId}/text-units/${textUnitId}/review`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: jsonHeaders,
+      body: JSON.stringify({ notes }),
+    },
+  );
 
   if (!response.ok) {
     const message = await response.text().catch(() => '');

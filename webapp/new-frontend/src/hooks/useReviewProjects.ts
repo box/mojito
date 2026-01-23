@@ -3,7 +3,6 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type {
   ApiReviewProjectSummary,
   ReviewProjectsSearchRequest,
-  SearchReviewProjectsResponse,
 } from '../api/review-projects';
 import { searchReviewProjects } from '../api/review-projects';
 

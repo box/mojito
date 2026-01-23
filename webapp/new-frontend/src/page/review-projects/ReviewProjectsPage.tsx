@@ -102,7 +102,9 @@ type ReviewProjectsPageProps = {
   detailPathPrefix?: string;
 };
 
-export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: ReviewProjectsPageProps = {}) {
+export function ReviewProjectsPage({
+  detailPathPrefix = '/review-projects',
+}: ReviewProjectsPageProps = {}) {
   const user = useUser();
   const { data: repositoryData } = useRepositories();
   const location = useLocation();
@@ -196,22 +198,18 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
     [localeOptions, preferredLocales, user.canTranslateAllLocales, user.role, user.userLocales],
   );
 
-  const status: 'loading' | 'error' | 'ready' =
-    isLoading ? 'loading' : isError ? 'error' : 'ready';
+  const status: 'loading' | 'error' | 'ready' = isLoading ? 'loading' : isError ? 'error' : 'ready';
 
-  const errorMessage =
-    isError
-      ? error instanceof Error
-        ? error.message
-        : 'Failed to load review projects.'
-      : undefined;
+  const errorMessage = isError
+    ? error instanceof Error
+      ? error.message
+      : 'Failed to load review projects.'
+    : undefined;
 
   const filteredProjects = useMemo(() => {
     let source = projects ?? [];
     if (requestIdFilter !== null) {
-      source = source.filter(
-        (project) => project.reviewProjectRequest?.id === requestIdFilter,
-      );
+      source = source.filter((project) => project.reviewProjectRequest?.id === requestIdFilter);
     }
     const {
       localeTags,
@@ -245,7 +243,7 @@ export function ReviewProjectsPage({ detailPathPrefix = '/review-projects' }: Re
       const value =
         field === 'id'
           ? String(project.id)
-          : project.reviewProjectRequest?.name ?? `Review project #${project.id}`;
+          : (project.reviewProjectRequest?.name ?? `Review project #${project.id}`);
       const valueLower = value.toLowerCase();
       const queryLower = q.toLowerCase();
 

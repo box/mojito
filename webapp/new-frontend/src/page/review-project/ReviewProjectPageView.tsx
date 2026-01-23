@@ -6,10 +6,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
-import { REVIEW_PROJECT_STATUS_LABELS, REVIEW_PROJECT_TYPE_LABELS } from '../../api/review-projects';
+import {
+  REVIEW_PROJECT_STATUS_LABELS,
+  REVIEW_PROJECT_TYPE_LABELS,
+} from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
-import { Pill } from '../../components/Pill';
 import { Modal } from '../../components/Modal';
+import { Pill } from '../../components/Pill';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
@@ -21,7 +24,13 @@ const Chevron = ({ direction }: { direction: 'left' | 'right' | 'up' | 'down' })
     aria-hidden="true"
     focusable="false"
   >
-    <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    <path
+      d="M1 1l4 4 4-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -106,10 +115,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       setSelectedTextUnitId(null);
       return;
     }
-    if (
-      selectedTextUnitId == null ||
-      !filtered.some((tu) => tu.id === selectedTextUnitId)
-    ) {
+    if (selectedTextUnitId == null || !filtered.some((tu) => tu.id === selectedTextUnitId)) {
       setSelectedTextUnitId(filtered[0]?.id ?? null);
     }
   }, [filtered, selectedTextUnitId]);
@@ -123,10 +129,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     [],
   );
 
-  const getItemKey = useCallback(
-    (index: number) => filtered[index]?.id ?? index,
-    [filtered],
-  );
+  const getItemKey = useCallback((index: number) => filtered[index]?.id ?? index, [filtered]);
 
   const { scrollRef, items, totalSize, measureElement, scrollToIndex } =
     useVirtualRows<HTMLDivElement>({
@@ -212,35 +215,38 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     }
   }, [collapseList, expandList, isListCollapsed, listWidthPct]);
 
-  const startResize = useCallback((event: React.MouseEvent) => {
-    event.preventDefault();
-    setIsResizing(true);
-    const onMove = (e: MouseEvent) => {
-      if (!layoutRef.current) return;
-      const rect = layoutRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const pct = Math.min(75, Math.max(0, (x / rect.width) * 100));
-      if (pct <= 8) {
-        if (listWidthPct > 0) {
-          setLastListWidthPct(listWidthPct);
+  const startResize = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      setIsResizing(true);
+      const onMove = (e: MouseEvent) => {
+        if (!layoutRef.current) return;
+        const rect = layoutRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const pct = Math.min(75, Math.max(0, (x / rect.width) * 100));
+        if (pct <= 8) {
+          if (listWidthPct > 0) {
+            setLastListWidthPct(listWidthPct);
+          }
+          collapseList();
+          return;
         }
-        collapseList();
-        return;
-      }
-      if (isListCollapsed) {
-        setIsListCollapsed(false);
-      }
-      setLastListWidthPct(pct);
-      setListWidthPct(pct);
-    };
-    const onUp = () => {
-      setIsResizing(false);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  }, [collapseList, isListCollapsed, listWidthPct]);
+        if (isListCollapsed) {
+          setIsListCollapsed(false);
+        }
+        setLastListWidthPct(pct);
+        setListWidthPct(pct);
+      };
+      const onUp = () => {
+        setIsResizing(false);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    },
+    [collapseList, isListCollapsed, listWidthPct],
+  );
 
   if (!project) {
     return <div>No project data for id {projectId}</div>;
@@ -283,7 +289,10 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
               </button>
               {isFilterOpen ? (
                 <div className="review-project-page__filter-panel">
-                  <label className="review-project-page__filter-label" htmlFor="review-project-status-filter">
+                  <label
+                    className="review-project-page__filter-label"
+                    htmlFor="review-project-status-filter"
+                  >
                     Status
                   </label>
                   <select
@@ -548,7 +557,9 @@ function DetailPane({
           screenshotImages.length ? ' review-project-detail__hero--has-shots' : ''
         }${isScreenshotsCollapsed ? ' review-project-detail__hero--collapsed' : ''}`}
         ref={heroRef}
-        style={!isScreenshotsCollapsed && heroHeight != null ? { height: `${heroHeight}px` } : undefined}
+        style={
+          !isScreenshotsCollapsed && heroHeight != null ? { height: `${heroHeight}px` } : undefined
+        }
       >
         {screenshotImages.length ? (
           <>
@@ -562,7 +573,8 @@ function DetailPane({
                   className="review-project-detail__gallery-nav"
                   onClick={() =>
                     onChangeScreenshotIdx(
-                      (currentScreenshotIdx - 1 + screenshotImages.length) % screenshotImages.length,
+                      (currentScreenshotIdx - 1 + screenshotImages.length) %
+                        screenshotImages.length,
                     )
                   }
                   aria-label="Previous screenshot"
@@ -620,7 +632,8 @@ function DetailPane({
               setLastHeroHeight(rect.height);
             }
             const minHeight = 140;
-            const containerHeight = heroRef.current.parentElement?.clientHeight ?? window.innerHeight;
+            const containerHeight =
+              heroRef.current.parentElement?.clientHeight ?? window.innerHeight;
             const maxHeight = Math.max(minHeight, Math.floor(containerHeight * 0.6));
             const onMove = (e: MouseEvent) => {
               const rawNext = Math.min(maxHeight, Math.max(0, e.clientY - rect.top));
@@ -688,9 +701,7 @@ function DetailPane({
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Id</div>
             <div className="review-project-detail__value review-project-detail__value--meta">
-              <span className="review-project-detail__title-text">
-                {textUnitName}
-              </span>
+              <span className="review-project-detail__title-text">{textUnitName}</span>
             </div>
             {workbenchTextUnitId != null ? (
               <Link
@@ -774,11 +785,11 @@ function ReviewProjectHeader({
               />
             </svg>
           </Link>
-          <span className="review-project-page__header-name">
-            {name ?? `Project ${projectId}`}
-          </span>
+          <span className="review-project-page__header-name">{name ?? `Project ${projectId}`}</span>
           <span className="review-project-page__header-pills">
-            <Pill className={`review-project-page__header-pill review-project-page__header-pill--type-${type}`}>
+            <Pill
+              className={`review-project-page__header-pill review-project-page__header-pill--type-${type}`}
+            >
               {REVIEW_PROJECT_TYPE_LABELS[type]}
             </Pill>
             <Pill
@@ -789,15 +800,18 @@ function ReviewProjectHeader({
           </span>
           <div className="review-project-page__header-locale-row">
             {locales.length > 0 ? (
-              locales.map((locale) => (
-                <LocalePill
-                  key={locale.id ?? locale.bcp47Tag}
-                  bcp47Tag={locale.bcp47Tag}
-                  displayName={locale.bcp47Tag}
-                  labelMode="tag"
-                  className="review-project-page__header-locale-pill"
-                />
-              ))
+              locales.map((locale) => {
+                const tag = locale.bcp47Tag ?? '';
+                return (
+                  <LocalePill
+                    key={String(locale.id ?? (tag || 'unknown-locale'))}
+                    bcp47Tag={tag}
+                    displayName={tag}
+                    labelMode="tag"
+                    className="review-project-page__header-locale-pill"
+                  />
+                );
+              })
             ) : (
               <span className="review-project-page__header-muted">No locale</span>
             )}
@@ -881,13 +895,20 @@ const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm', '.ogv', '.ogg', '.m4v', '.mkv
 
 const resolveMediaUrl = (key: string) => {
   const isExternal =
-    /^https?:\/\//i.test(key) || key.startsWith('//') || key.startsWith('data:') || key.startsWith('blob:');
+    /^https?:\/\//i.test(key) ||
+    key.startsWith('//') ||
+    key.startsWith('data:') ||
+    key.startsWith('blob:');
   return isExternal ? key : `/api/images/${encodeURIComponent(key)}`;
 };
 
 const isVideoKey = (key: string) => {
   const lower = key.split('?')[0].toLowerCase();
-  return key.startsWith('data:video') || key.startsWith('blob:') || VIDEO_EXTENSIONS.some((ext) => lower.endsWith(ext));
+  return (
+    key.startsWith('data:video') ||
+    key.startsWith('blob:') ||
+    VIDEO_EXTENSIONS.some((ext) => lower.endsWith(ext))
+  );
 };
 
 type MediaRenderOptions = {

@@ -62,7 +62,6 @@ export function ReviewProjectCreatePage() {
     [],
   );
 
-  const collectionSize = tmIds.length || 0;
   const localeOptions = useLocaleOptionsWithDisplayNames(repositories, undefined);
   const collectionOptions = useMemo<CollectionOption[]>(
     () =>
@@ -154,8 +153,7 @@ export function ReviewProjectCreatePage() {
             });
           },
           onError: (err: unknown) => {
-            const message =
-              err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+            const message = err instanceof Error ? err.message : typeof err === 'string' ? err : '';
             setErrorMessage(message.trim() || 'Failed to create project');
           },
         },
@@ -177,7 +175,6 @@ export function ReviewProjectCreatePage() {
           defaultName={prefillName || 'Review project'}
           defaultDueDate={prefillDueDate ?? defaultDueDate}
           localeOptions={localeOptions}
-          collectionSize={collectionSize}
           tmTextUnitIds={tmIds}
           collectionName={prefillCollectionName ?? null}
           collectionOptions={collectionOptions.length ? collectionOptions : undefined}

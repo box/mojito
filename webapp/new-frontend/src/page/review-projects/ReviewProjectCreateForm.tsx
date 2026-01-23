@@ -22,11 +22,19 @@ export type ReviewProjectCreateFormValues = {
 
 export type CollectionOption = { id: string; name: string; size: number };
 
+type UploadQueueItem = {
+  key: string;
+  name: string;
+  status: 'uploading' | 'done' | 'error';
+  kind: 'image' | 'video';
+  preview?: string | null;
+  error?: string;
+};
+
 type Props = {
   defaultName: string;
   defaultDueDate: string;
   localeOptions: LocaleSelectionOption[];
-  collectionSize: number;
   tmTextUnitIds: number[];
   collectionName?: string | null;
   collectionOptions?: CollectionOption[];
@@ -43,7 +51,6 @@ export function ReviewProjectCreateForm({
   defaultName,
   defaultDueDate,
   localeOptions,
-  collectionSize,
   tmTextUnitIds,
   collectionName,
   collectionOptions,
@@ -64,16 +71,7 @@ export function ReviewProjectCreateForm({
   const [notes, setNotes] = useState('');
   const [screenshotKeys, setScreenshotKeys] = useState<string[]>([]);
   const [screenshotDraft, setScreenshotDraft] = useState('');
-  const [uploadQueue, setUploadQueue] = useState<
-    Array<{
-      key: string;
-      name: string;
-      status: 'uploading' | 'done' | 'error';
-      kind: 'image' | 'video';
-      preview?: string | null;
-      error?: string;
-    }>
-  >([]);
+  const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => setName(defaultName), [defaultName]);
@@ -126,7 +124,7 @@ export function ReviewProjectCreateForm({
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const ext = file.name.includes('.') ? file.name.split('.').pop() ?? '' : '';
+    const ext = file.name.includes('.') ? (file.name.split('.').pop() ?? '') : '';
     const suffix = ext ? `.${ext.toLowerCase()}` : '';
     const key =
       (typeof crypto !== 'undefined' && 'randomUUID' in crypto && crypto.randomUUID
@@ -161,11 +159,11 @@ export function ReviewProjectCreateForm({
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const fileArr = Array.from(files);
-    const queueEntries = fileArr.map((file) => ({
+    const queueEntries: UploadQueueItem[] = fileArr.map((file) => ({
       key: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: file.name,
       status: isSupportedFile(file) ? ('uploading' as const) : ('error' as const),
-      kind: (isVideoFile(file) ? 'video' : 'image') as 'image' | 'video',
+      kind: (isVideoFile(file) ? 'video' : 'image'),
       preview: URL.createObjectURL(file),
       error: isSupportedFile(file) ? undefined : 'Unsupported file type',
     }));
@@ -180,9 +178,7 @@ export function ReviewProjectCreateForm({
         try {
           const uploadedKey = await uploadImage(file);
           setUploadQueue((prev) =>
-            prev.map((item) =>
-              item.key === entry.key ? { ...item, status: 'done' } : item,
-            ),
+            prev.map((item) => (item.key === entry.key ? { ...item, status: 'done' } : item)),
           );
           addScreenshotKeys([uploadedKey]);
         } catch (error) {
@@ -358,7 +354,9 @@ export function ReviewProjectCreateForm({
                   <button
                     type="button"
                     className="review-create__chip-remove"
-                    onClick={() => setScreenshotKeys((current) => current.filter((value) => value !== key))}
+                    onClick={() =>
+                      setScreenshotKeys((current) => current.filter((value) => value !== key))
+                    }
                     disabled={isSubmitting}
                     aria-label={`Remove ${key}`}
                   >
@@ -418,18 +416,18 @@ export function ReviewProjectCreateForm({
         <button
           type="button"
           className="review-create__cta"
-            onClick={() => {
-              if (!canSubmit || isSubmitting) return;
-              const dueIso = new Date(dueDate).toISOString();
-              onSubmit({
-                name: name.trim(),
-                dueDate: dueIso,
-                type,
-                localeTags: selectedLocaleTags,
-                notes: notes.trim() || null,
-                tmTextUnitIds,
-                screenshotImageIds: screenshotKeys,
-              });
+          onClick={() => {
+            if (!canSubmit || isSubmitting) return;
+            const dueIso = new Date(dueDate).toISOString();
+            onSubmit({
+              name: name.trim(),
+              dueDate: dueIso,
+              type,
+              localeTags: selectedLocaleTags,
+              notes: notes.trim() || null,
+              tmTextUnitIds,
+              screenshotImageIds: screenshotKeys,
+            });
           }}
           disabled={!canSubmit || isSubmitting}
         >

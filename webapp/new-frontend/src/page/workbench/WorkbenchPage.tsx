@@ -294,32 +294,40 @@ export function WorkbenchPage() {
     [buildCollectionSearchRequest, collections.collections],
   );
 
-  const handleCreateReviewProjectFromCollection = useCallback((collectionId: string) => {
-    const collection = collections.collections.find((item) => item.id === collectionId);
-    if (!collection || collection.entries.length === 0) {
-      return;
-    }
-    const repoIds = Array.from(
-      new Set(collection.entries.map((entry) => entry.repositoryId).filter((id): id is number => id != null)),
-    );
-    const tmIds = Array.from(new Set(collection.entries.map((entry) => entry.tmTextUnitId)));
-    if (!repoIds.length || !tmIds.length) {
-      return;
-    }
-    const defaultName =
-      collection.name?.trim()?.length ? `Review · ${collection.name.trim()}` : 'Review project';
-    const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
-    void navigate('/review-projects/new', {
-      state: {
-        collectionId: collection.id,
-        repositoryIds: repoIds,
-        tmTextUnitIds: tmIds,
-        collectionName: collection.name,
-        defaultName,
-        defaultDueDate,
-      },
-    });
-  }, [collections.collections, navigate]);
+  const handleCreateReviewProjectFromCollection = useCallback(
+    (collectionId: string) => {
+      const collection = collections.collections.find((item) => item.id === collectionId);
+      if (!collection || collection.entries.length === 0) {
+        return;
+      }
+      const repoIds = Array.from(
+        new Set(
+          collection.entries
+            .map((entry) => entry.repositoryId)
+            .filter((id): id is number => id != null),
+        ),
+      );
+      const tmIds = Array.from(new Set(collection.entries.map((entry) => entry.tmTextUnitId)));
+      if (!repoIds.length || !tmIds.length) {
+        return;
+      }
+      const defaultName = collection.name?.trim()?.length
+        ? `Review · ${collection.name.trim()}`
+        : 'Review project';
+      const defaultDueDate = toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+      void navigate('/review-projects/new', {
+        state: {
+          collectionId: collection.id,
+          repositoryIds: repoIds,
+          tmTextUnitIds: tmIds,
+          collectionName: collection.name,
+          defaultName,
+          defaultDueDate,
+        },
+      });
+    },
+    [collections.collections, navigate],
+  );
 
   useEffect(() => {
     if (!pendingCollectionOpenId) {
