@@ -69,8 +69,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
     textUnits.forEach((tu) => {
-      if (tu?.tmTextUnitVariant?.status) {
-        statuses.add(tu.tmTextUnitVariant.status);
+      if (tu?.baselineTmTextUnitVariant?.status) {
+        statuses.add(tu.baselineTmTextUnitVariant.status);
       }
     });
     return Array.from(statuses.values()).sort();
@@ -80,11 +80,15 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     const term = search.trim().toLowerCase();
     return textUnits.filter((tu) => {
       if (!tu) return false;
-      if (statusFilter !== 'all' && tu.tmTextUnitVariant?.status !== statusFilter) {
+      if (statusFilter !== 'all' && tu.baselineTmTextUnitVariant?.status !== statusFilter) {
         return false;
       }
       if (!term) return true;
-      const haystacks = [tu.tmTextUnit?.name, tu.tmTextUnit?.content, tu.tmTextUnitVariant?.content]
+      const haystacks = [
+        tu.tmTextUnit?.name,
+        tu.tmTextUnit?.content,
+        tu.baselineTmTextUnitVariant?.content,
+      ]
         .filter(Boolean)
         .map((s) => String(s).toLowerCase());
       return haystacks.some((h) => h.includes(term));
@@ -400,7 +404,7 @@ function TextUnitRow({
   }
   const name = textUnit.tmTextUnit?.name ?? null;
   const source = textUnit.tmTextUnit?.content ?? null;
-  const target = textUnit.tmTextUnitVariant?.content ?? null;
+  const target = textUnit.baselineTmTextUnitVariant?.content ?? null;
   return (
     <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
       <div className="review-project-row__name" title={name != null ? String(name) : undefined}>
@@ -809,8 +813,9 @@ function ReviewProjectHeader({
   const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
     const selected = textUnits?.length ?? 0;
     const accepted =
-      textUnits?.filter((tu) => tu.reviewProjectTextUnitDecision?.tmTextUnitVariantId != null)
-        .length ?? 0;
+      textUnits?.filter(
+        (tu) => tu.reviewProjectTextUnitDecision?.decisionTmTextUnitVariantId != null,
+      ).length ?? 0;
     const percent = selected > 0 ? Math.round((accepted / selected) * 100) : 0;
     return { acceptedCount: accepted, selectedCount: selected, progressPercent: percent };
   }, [textUnits]);

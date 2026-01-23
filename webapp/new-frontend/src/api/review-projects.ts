@@ -38,7 +38,7 @@ export type ApiReviewProjectTextUnit = {
     } | null;
     wordCount?: number | null;
   } | null;
-  tmTextUnitVariant: {
+  baselineTmTextUnitVariant: {
     id?: number | null;
     content?: string | null;
     status?: string | null;
@@ -46,7 +46,8 @@ export type ApiReviewProjectTextUnit = {
     comment?: string | null;
   } | null;
   reviewProjectTextUnitDecision?: {
-    tmTextUnitVariantId?: number | null;
+    decisionTmTextUnitVariantId?: number | null;
+    reviewedTmTextUnitVariantId?: number | null;
     notes?: string | null;
   } | null;
 };

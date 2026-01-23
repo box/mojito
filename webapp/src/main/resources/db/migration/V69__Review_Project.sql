@@ -72,6 +72,7 @@ CREATE TABLE review_project_text_unit_decision (
     review_project_text_unit_id bigint(20) NOT NULL,
     notes varchar(4000),
     variant_id bigint(20) NOT NULL,
+    reviewed_variant_id bigint(20) DEFAULT NULL,
     created_date datetime DEFAULT NULL,
     last_modified_date datetime DEFAULT NULL,
     created_by_user_id bigint(20) DEFAULT NULL,
@@ -86,6 +87,9 @@ ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT FOREIGN KEY (variant_id) REFERENCES tm_text_unit_variant (id);
 
 ALTER TABLE review_project_text_unit_decision
+    ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEWED_VARIANT FOREIGN KEY (reviewed_variant_id) REFERENCES tm_text_unit_variant (id);
+
+ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__CREATED_BY_USER FOREIGN KEY (created_by_user_id) REFERENCES user (id);
 
 ALTER TABLE review_project_text_unit_decision
@@ -93,6 +97,8 @@ ALTER TABLE review_project_text_unit_decision
 
 ALTER TABLE review_project_text_unit_decision
     ADD CONSTRAINT UK__REVIEW_PROJECT_TEXT_UNIT_DECISION__TEXT_UNIT UNIQUE (review_project_text_unit_id);
+
+CREATE INDEX IDX__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEWED_VARIANT ON review_project_text_unit_decision (reviewed_variant_id);
 
 CREATE TABLE review_project_screenshot (
     id bigint(20) NOT NULL AUTO_INCREMENT,

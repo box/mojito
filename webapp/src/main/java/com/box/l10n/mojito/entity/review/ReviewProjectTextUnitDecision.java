@@ -29,7 +29,14 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
   @JoinColumn(
       name = "variant_id",
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT"))
-  private TMTextUnitVariant variant;
+  private TMTextUnitVariant decisionVariant;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "reviewed_variant_id",
+      foreignKey =
+          @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEWED_VARIANT"))
+  private TMTextUnitVariant reviewedVariant;
 
   @Column(name = "notes", length = 4000)
   private String notes;
@@ -58,11 +65,35 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
   }
 
   public TMTextUnitVariant getVariant() {
-    return variant;
+    return decisionVariant;
   }
 
   public void setVariant(TMTextUnitVariant variant) {
-    this.variant = variant;
+    this.decisionVariant = variant;
+  }
+
+  public TMTextUnitVariant getDecisionVariant() {
+    return decisionVariant;
+  }
+
+  public void setDecisionVariant(TMTextUnitVariant decisionVariant) {
+    this.decisionVariant = decisionVariant;
+  }
+
+  public TMTextUnitVariant getAcceptedVariant() {
+    return decisionVariant;
+  }
+
+  public void setAcceptedVariant(TMTextUnitVariant acceptedVariant) {
+    this.decisionVariant = acceptedVariant;
+  }
+
+  public TMTextUnitVariant getReviewedVariant() {
+    return reviewedVariant;
+  }
+
+  public void setReviewedVariant(TMTextUnitVariant reviewedVariant) {
+    this.reviewedVariant = reviewedVariant;
   }
 
   public String getNotes() {

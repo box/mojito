@@ -29,7 +29,8 @@ public interface ReviewProjectTextUnitRepository
         ttuv.status,
         ttuv.includedInLocalizedFile,
         ttuv.comment,
-        rptud.variant.id,
+        rptud.decisionVariant.id,
+        rptud.reviewedVariant.id,
         rptud.notes
       )
       from ReviewProjectTextUnit rptu
@@ -62,7 +63,8 @@ public interface ReviewProjectTextUnitRepository
         ttuv.status,
         ttuv.includedInLocalizedFile,
         ttuv.comment,
-        rptud.variant.id,
+        rptud.decisionVariant.id,
+        rptud.reviewedVariant.id,
         rptud.notes
       )
       from ReviewProjectTextUnit rptu

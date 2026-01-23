@@ -25,7 +25,7 @@ public record GetProjectDetailView(
   public record ReviewProjectTextUnit(
       Long id,
       TmTextUnit tmTextUnit,
-      TmTextUnitVariant tmTextUnitVariant,
+      TmTextUnitVariant baselineTmTextUnitVariant,
       ReviewProjectTextUnitDecision reviewProjectTextUnitDecision) {}
 
   public record TmTextUnit(
@@ -38,5 +38,6 @@ public record GetProjectDetailView(
   public record TmTextUnitVariant(
       Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
 
-  public record ReviewProjectTextUnitDecision(Long tmTextUnitVariantId, String notes) {}
+  public record ReviewProjectTextUnitDecision(
+      Long decisionTmTextUnitVariantId, Long reviewedTmTextUnitVariantId, String notes) {}
 }

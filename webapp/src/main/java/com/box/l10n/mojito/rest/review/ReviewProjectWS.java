@@ -154,7 +154,7 @@ public class ReviewProjectWS {
     public record ReviewProjectTextUnit(
         Long id,
         TmTextUnit tmTextUnit,
-        TmTextUnitVariant tmTextUnitVariant,
+        TmTextUnitVariant baselineTmTextUnitVariant,
         ReviewProjectTextUnitDecision reviewProjectTextUnitDecision) {}
 
     public record TmTextUnit(
@@ -167,7 +167,8 @@ public class ReviewProjectWS {
     public record TmTextUnitVariant(
         Long id, String content, String status, boolean includedInLocalizedFile, String comment) {}
 
-    public record ReviewProjectTextUnitDecision(Long tmTextUnitVariantId, String notes) {}
+    public record ReviewProjectTextUnitDecision(
+        Long decisionTmTextUnitVariantId, Long reviewedTmTextUnitVariantId, String notes) {}
   }
 
   // Mapping helpers
@@ -264,15 +265,16 @@ public class ReviewProjectWS {
                     view.tmTextUnit().asset().repository().name())),
             view.tmTextUnit().wordCount()),
         new GetReviewProjectResponse.TmTextUnitVariant(
-            view.tmTextUnitVariant().id(),
-            view.tmTextUnitVariant().content(),
-            view.tmTextUnitVariant().status(),
-            view.tmTextUnitVariant().includedInLocalizedFile(),
-            view.tmTextUnitVariant().comment()),
+            view.baselineTmTextUnitVariant().id(),
+            view.baselineTmTextUnitVariant().content(),
+            view.baselineTmTextUnitVariant().status(),
+            view.baselineTmTextUnitVariant().includedInLocalizedFile(),
+            view.baselineTmTextUnitVariant().comment()),
         view.reviewProjectTextUnitDecision() == null
             ? null
             : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
-                view.reviewProjectTextUnitDecision().tmTextUnitVariantId(),
+                view.reviewProjectTextUnitDecision().decisionTmTextUnitVariantId(),
+                view.reviewProjectTextUnitDecision().reviewedTmTextUnitVariantId(),
                 view.reviewProjectTextUnitDecision().notes()));
   }
 }
