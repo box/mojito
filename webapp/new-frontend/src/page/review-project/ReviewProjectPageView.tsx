@@ -56,6 +56,8 @@ type DecisionStateChoice = 'PENDING' | 'DECIDED';
 type DecisionStateFilter = DecisionStateChoice | 'all';
 type StatusFilter = 'all' | 'APPROVED' | 'REVIEW_NEEDED' | 'TRANSLATION_NEEDED' | 'REJECTED';
 
+const SAVING_INDICATOR_MIN_MS = 600;
+
 function mapChoiceToApi(choice: StatusChoice): {
   status: string;
   includedInLocalizedFile: boolean;
@@ -614,8 +616,11 @@ function DetailPane({
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const [showBaseline, setShowBaseline] = useState(false);
   const [showStaleDecision, setShowStaleDecision] = useState(false);
+  const [showSavingIndicator, setShowSavingIndicator] = useState(false);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
+  const savingIndicatorStartRef = useRef<number | null>(null);
+  const savingIndicatorTimeoutRef = useRef<number | null>(null);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
   const repositoryId = textUnit.tmTextUnit?.asset?.repository?.id ?? null;
   const textUnitName = textUnit.tmTextUnit?.name ?? `Text unit ${textUnit.id}`;
@@ -763,6 +768,45 @@ function DetailPane({
     setShowBaseline(false);
     setShowStaleDecision(false);
   }, [textUnit.id]);
+
+  useEffect(() => {
+    if (isSaving) {
+      if (savingIndicatorTimeoutRef.current != null) {
+        window.clearTimeout(savingIndicatorTimeoutRef.current);
+        savingIndicatorTimeoutRef.current = null;
+      }
+      savingIndicatorStartRef.current = Date.now();
+      setShowSavingIndicator(true);
+      return;
+    }
+
+    if (!showSavingIndicator) {
+      return;
+    }
+
+    const startedAt = savingIndicatorStartRef.current;
+    const elapsed = startedAt != null ? Date.now() - startedAt : SAVING_INDICATOR_MIN_MS;
+    const remaining = SAVING_INDICATOR_MIN_MS - elapsed;
+
+    if (remaining <= 0) {
+      setShowSavingIndicator(false);
+      savingIndicatorStartRef.current = null;
+      return;
+    }
+
+    savingIndicatorTimeoutRef.current = window.setTimeout(() => {
+      setShowSavingIndicator(false);
+      savingIndicatorStartRef.current = null;
+      savingIndicatorTimeoutRef.current = null;
+    }, remaining);
+
+    return () => {
+      if (savingIndicatorTimeoutRef.current != null) {
+        window.clearTimeout(savingIndicatorTimeoutRef.current);
+        savingIndicatorTimeoutRef.current = null;
+      }
+    };
+  }, [isSaving, showSavingIndicator]);
 
   return (
     <div className="review-project-detail">
@@ -1042,6 +1086,17 @@ function DetailPane({
                 className="review-project-detail__status-dropdown"
               />
             </div>
+            <div
+              className={`review-project-detail__saving-indicator${
+                showSavingIndicator ? ' is-active' : ''
+              }`}
+              role="status"
+              aria-live="polite"
+              aria-hidden={!showSavingIndicator}
+            >
+              <span className="spinner" aria-hidden="true" />
+              <span>Saving…</span>
+            </div>
             <div className="review-project-detail__editor-actions">
               <button
                 type="button"
@@ -1049,7 +1104,7 @@ function DetailPane({
                 onClick={handleToggleDecisionState}
                 disabled={isDirty || isSavingGlobal}
               >
-                {isDecided ? 'To do' : 'Done'}
+                {isDecided ? 'Mark pending' : 'Mark decided'}
               </button>
               <button
                 type="button"
@@ -1061,11 +1116,11 @@ function DetailPane({
               </button>
               <button
                 type="button"
-                className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__actions-button--save"
+                className="review-project-detail__actions-button review-project-detail__actions-button--primary"
                 onClick={handleSave}
                 disabled={!isDirty || isSavingGlobal}
               >
-                {isSaving ? 'Saving…' : 'Save'}
+                Save
               </button>
             </div>
           </div>
