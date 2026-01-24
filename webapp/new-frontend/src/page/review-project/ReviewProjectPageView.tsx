@@ -99,7 +99,7 @@ function getDecisionState(textUnit: ApiReviewProjectTextUnit): DecisionStateChoi
   if (decision?.decisionState === 'DECIDED' || decision?.decisionState === 'PENDING') {
     return decision.decisionState;
   }
-  return decision?.decisionTmTextUnitVariantId != null ? 'DECIDED' : 'PENDING';
+  return decision?.decisionTmTextUnitVariant?.id != null ? 'DECIDED' : 'PENDING';
 }
 
 function getStatusKey(variant: TextUnitVariant | null | undefined): string | null {
@@ -192,7 +192,7 @@ function buildSnapshotKey(textUnit: ApiReviewProjectTextUnit, snapshot: Decision
   const baselineId = textUnit.baselineTmTextUnitVariant?.id ?? 'null';
   const currentId = snapshot.expectedCurrentVariantId ?? 'null';
   const decisionVariantId =
-    textUnit.reviewProjectTextUnitDecision?.decisionTmTextUnitVariantId ?? 'null';
+    textUnit.reviewProjectTextUnitDecision?.decisionTmTextUnitVariant?.id ?? 'null';
   const decisionNotes = textUnit.reviewProjectTextUnitDecision?.notes ?? '';
   const decisionState = snapshot.decisionState;
   return `${textUnit.id}:${baselineId}:${currentId}:${decisionVariantId}:${decisionNotes}:${decisionState}`;
@@ -637,7 +637,7 @@ function DetailPane({
   const conflictTextUnit = isMutationActive ? mutations.conflictTextUnit : null;
   const decision = textUnit.reviewProjectTextUnitDecision;
   const decisionVariant = decision?.decisionTmTextUnitVariant ?? null;
-  const decisionVariantId = decision?.decisionTmTextUnitVariantId ?? null;
+  const decisionVariantId = decisionVariant?.id ?? null;
   const currentVariantId = textUnit.currentTmTextUnitVariant?.id ?? null;
   const isDecisionStale =
     decision?.decisionState === 'DECIDED' &&
@@ -980,7 +980,7 @@ function DetailPane({
               </div>
               <textarea
                 className="review-project-detail__input review-project-detail__input--baseline"
-                value={decisionVariant.content ?? ''}
+                value={decisionVariant?.content ?? ''}
                 readOnly
                 rows={6}
               />

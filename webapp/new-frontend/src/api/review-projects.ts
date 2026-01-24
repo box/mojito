@@ -53,7 +53,6 @@ export type ApiReviewProjectTextUnit = {
     comment?: string | null;
   } | null;
   reviewProjectTextUnitDecision?: {
-    decisionTmTextUnitVariantId?: number | null;
     reviewedTmTextUnitVariantId?: number | null;
     notes?: string | null;
     decisionState?: string | null;

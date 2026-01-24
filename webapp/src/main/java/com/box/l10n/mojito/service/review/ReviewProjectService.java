@@ -598,7 +598,6 @@ public class ReviewProjectService {
     GetProjectDetailView.ReviewProjectTextUnitDecision reviewProjectTextUnitDecision =
         hasDecision
             ? new GetProjectDetailView.ReviewProjectTextUnitDecision(
-                detail.decisionTmTextUnitVariantId(),
                 detail.reviewedTmTextUnitVariantId(),
                 detail.decisionNotes(),
                 decisionStateName,

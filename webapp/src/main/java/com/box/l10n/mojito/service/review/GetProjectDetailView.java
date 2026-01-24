@@ -40,7 +40,6 @@ public record GetProjectDetailView(
       Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
 
   public record ReviewProjectTextUnitDecision(
-      Long decisionTmTextUnitVariantId,
       Long reviewedTmTextUnitVariantId,
       String notes,
       String decisionState,

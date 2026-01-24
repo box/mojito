@@ -202,7 +202,6 @@ public class ReviewProjectWS {
         Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
 
     public record ReviewProjectTextUnitDecision(
-        Long decisionTmTextUnitVariantId,
         Long reviewedTmTextUnitVariantId,
         String notes,
         String decisionState,
@@ -328,7 +327,6 @@ public class ReviewProjectWS {
         decision == null
             ? null
             : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
-                decision.decisionTmTextUnitVariantId(),
                 decision.reviewedTmTextUnitVariantId(),
                 decision.notes(),
                 decision.decisionState(),
@@ -391,7 +389,6 @@ public class ReviewProjectWS {
     GetReviewProjectResponse.ReviewProjectTextUnitDecision decision =
         hasDecision
             ? new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
-                detail.decisionTmTextUnitVariantId(),
                 detail.reviewedTmTextUnitVariantId(),
                 detail.decisionNotes(),
                 decisionStateName,
