@@ -1076,7 +1076,7 @@ function DetailPane({
               className="review-project-detail__input review-project-detail__input--compact"
               value={draftComment}
               onChange={(event) => setDraftComment(event.target.value)}
-              placeholder="Why this translation?"
+              placeholder="Explain why you chose this translation (if not obvious)."
               rows={1}
             />
           </div>
@@ -1087,7 +1087,7 @@ function DetailPane({
               className="review-project-detail__input review-project-detail__input--compact"
               value={draftDecisionNotes}
               onChange={(event) => setDraftDecisionNotes(event.target.value)}
-              placeholder="Why the baseline is wrong"
+              placeholder="Explain why the baseline translation was bad (to improve AI translation)."
               rows={1}
             />
           </div>
