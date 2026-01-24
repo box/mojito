@@ -4,7 +4,7 @@ import './review-project-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -57,6 +57,20 @@ type DecisionStateFilter = DecisionStateChoice | 'all';
 type StatusFilter = 'all' | 'APPROVED' | 'REVIEW_NEEDED' | 'TRANSLATION_NEEDED' | 'REJECTED';
 
 const SAVING_INDICATOR_MIN_MS = 600;
+
+function useAutosizeTextArea(
+  ref: React.RefObject<HTMLTextAreaElement | null>,
+  value: string,
+) {
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+    element.style.height = '0px';
+    element.style.height = `${element.scrollHeight}px`;
+  }, [ref, value]);
+}
 
 function mapChoiceToApi(choice: StatusChoice): {
   status: string;
@@ -619,6 +633,9 @@ function DetailPane({
   const [showSavingIndicator, setShowSavingIndicator] = useState(false);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
+  const targetRef = useRef<HTMLTextAreaElement | null>(null);
+  const commentRef = useRef<HTMLTextAreaElement | null>(null);
+  const decisionNotesRef = useRef<HTMLTextAreaElement | null>(null);
   const savingIndicatorStartRef = useRef<number | null>(null);
   const savingIndicatorTimeoutRef = useRef<number | null>(null);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
@@ -657,6 +674,10 @@ function DetailPane({
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
     didAutoAcceptRef.current = false;
   }, [snapshot, snapshotKey]);
+
+  useAutosizeTextArea(targetRef, draftTarget);
+  useAutosizeTextArea(commentRef, draftComment);
+  useAutosizeTextArea(decisionNotesRef, draftDecisionNotes);
 
   const draftStatusApi = mapChoiceToApi(draftStatusChoice);
   const snapshotStatusApi = mapChoiceToApi(snapshot.statusChoice);
@@ -1057,7 +1078,8 @@ function DetailPane({
               </div>
             </div>
             <textarea
-              className={`review-project-detail__input${
+              ref={targetRef}
+              className={`review-project-detail__input review-project-detail__input--autosize${
                 isRejected ? ' review-project-detail__input--rejected' : ''
               }`}
               value={draftTarget}
@@ -1128,7 +1150,8 @@ function DetailPane({
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Comment on translation</div>
             <textarea
-              className="review-project-detail__input review-project-detail__input--compact"
+              ref={commentRef}
+              className="review-project-detail__input review-project-detail__input--compact review-project-detail__input--autosize"
               value={draftComment}
               onChange={(event) => setDraftComment(event.target.value)}
               placeholder="Explain why you chose this translation (if not obvious)."
@@ -1139,7 +1162,8 @@ function DetailPane({
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Decision notes</div>
             <textarea
-              className="review-project-detail__input review-project-detail__input--compact"
+              ref={decisionNotesRef}
+              className="review-project-detail__input review-project-detail__input--compact review-project-detail__input--autosize"
               value={draftDecisionNotes}
               onChange={(event) => setDraftDecisionNotes(event.target.value)}
               placeholder="Explain why the baseline translation was bad (to improve AI translation)."

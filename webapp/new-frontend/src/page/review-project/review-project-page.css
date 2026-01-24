@@ -831,6 +831,16 @@
   color: var(--color-text-subtle);
 }
 
+.review-project-detail__input--autosize {
+  overflow: hidden;
+  resize: none;
+}
+
+.review-project-detail__input--autosize:focus,
+.review-project-detail__input--autosize:focus-visible {
+  resize: none;
+}
+
 .review-project-detail__input:hover:not(:focus) {
   border-color: color-mix(in srgb, var(--color-border) 65%, transparent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);
