@@ -61,15 +61,19 @@ const SAVING_INDICATOR_MIN_MS = 600;
 function useAutosizeTextArea(
   ref: React.RefObject<HTMLTextAreaElement | null>,
   value: string,
+  isActive = true,
 ) {
   useLayoutEffect(() => {
+    if (!isActive) {
+      return;
+    }
     const element = ref.current;
     if (!element) {
       return;
     }
     element.style.height = '0px';
     element.style.height = `${element.scrollHeight}px`;
-  }, [ref, value]);
+  }, [isActive, ref, value]);
 }
 
 function mapChoiceToApi(choice: StatusChoice): {
@@ -678,8 +682,8 @@ function DetailPane({
   }, [snapshot, snapshotKey]);
 
   useAutosizeTextArea(targetRef, draftTarget);
-  useAutosizeTextArea(baselineRef, baselineVariant?.content ?? '');
-  useAutosizeTextArea(staleDecisionRef, decisionVariant?.content ?? '');
+  useAutosizeTextArea(baselineRef, baselineVariant?.content ?? '', showBaseline);
+  useAutosizeTextArea(staleDecisionRef, decisionVariant?.content ?? '', showStaleDecision);
   useAutosizeTextArea(commentRef, draftComment);
   useAutosizeTextArea(decisionNotesRef, draftDecisionNotes);
 

@@ -581,20 +581,20 @@ public class ReviewProjectService {
                     : null,
                 detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
                 detail.currentTmTextUnitVariantComment());
+    ReviewProjectTextUnitDetail.DecisionTmTextUnitVariant decisionVariant =
+        detail.decisionTmTextUnitVariant();
     GetProjectDetailView.TmTextUnitVariant decisionTmTextUnitVariantView =
-        detail.decisionTmTextUnitVariantId() == null
+        decisionVariant == null || decisionVariant.id() == null
             ? null
             : new GetProjectDetailView.TmTextUnitVariant(
-                detail.decisionTmTextUnitVariantId(),
-                detail.decisionTmTextUnitVariantContent(),
-                detail.decisionTmTextUnitVariantStatus() != null
-                    ? detail.decisionTmTextUnitVariantStatus().name()
-                    : null,
-                detail.decisionTmTextUnitVariantIncludedInLocalizedFile(),
-                detail.decisionTmTextUnitVariantComment());
+                decisionVariant.id(),
+                decisionVariant.content(),
+                decisionVariant.status() != null ? decisionVariant.status().name() : null,
+                decisionVariant.includedInLocalizedFile(),
+                decisionVariant.comment());
     boolean hasDecision =
         detail.decisionState() != null
-            || detail.decisionTmTextUnitVariantId() != null
+            || (decisionVariant != null && decisionVariant.id() != null)
             || detail.reviewedTmTextUnitVariantId() != null
             || detail.decisionNotes() != null;
     GetProjectDetailView.ReviewProjectTextUnitDecision reviewProjectTextUnitDecision =
