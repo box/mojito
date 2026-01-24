@@ -1009,17 +1009,26 @@ function DetailPane({
 
           {showBaseline && baselineVariant?.id != null ? (
             <div className="review-project-detail__field review-project-detail__field--baseline">
-              <div className="review-project-detail__label-row">
+              <div className="review-project-detail__label-row review-project-detail__label-row--spread">
                 <div className="review-project-detail__label">Baseline</div>
-                {baselineStatusKey ? (
-                  <Pill
-                    className={`review-project-detail__status-pill review-project-detail__status-chip review-project-detail__status-chip--${statusKeyToChipClass(
-                      baselineStatusKey,
-                    )}`}
-                  >
-                    {statusKeyToLabel(baselineStatusKey)}
-                  </Pill>
-                ) : null}
+                <div className="review-project-detail__label-status" aria-hidden>
+                  {baselineStatusKey ? (
+                    <Pill
+                      className={`review-project-detail__status-pill review-project-detail__status-chip review-project-detail__status-chip--${statusKeyToChipClass(
+                        baselineStatusKey,
+                      )}`}
+                    >
+                      {statusKeyToLabel(baselineStatusKey)}
+                    </Pill>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="review-project-detail__baseline-toggle review-project-detail__label-actions review-project-detail__label-actions--right"
+                  onClick={() => setShowBaseline(false)}
+                >
+                  Hide
+                </button>
               </div>
               <textarea
                 ref={baselineRef}
@@ -1033,20 +1042,29 @@ function DetailPane({
 
           {showStaleDecision ? (
             <div className="review-project-detail__field review-project-detail__field--baseline">
-              <div className="review-project-detail__label-row">
+              <div className="review-project-detail__label-row review-project-detail__label-row--spread">
                 <div className="review-project-detail__label">Stale decision</div>
-                {(() => {
-                  const staleStatusKey = getStatusKey(decisionVariant);
-                  return staleStatusKey ? (
-                    <Pill
-                      className={`review-project-detail__status-pill review-project-detail__status-chip review-project-detail__status-chip--${statusKeyToChipClass(
-                        staleStatusKey,
-                      )}`}
-                    >
-                      {statusKeyToLabel(staleStatusKey)}
-                    </Pill>
-                  ) : null;
-                })()}
+                <div className="review-project-detail__label-status" aria-hidden>
+                  {(() => {
+                    const staleStatusKey = getStatusKey(decisionVariant);
+                    return staleStatusKey ? (
+                      <Pill
+                        className={`review-project-detail__status-pill review-project-detail__status-chip review-project-detail__status-chip--${statusKeyToChipClass(
+                          staleStatusKey,
+                        )}`}
+                      >
+                        {statusKeyToLabel(staleStatusKey)}
+                      </Pill>
+                    ) : null;
+                  })()}
+                </div>
+                <button
+                  type="button"
+                  className="review-project-detail__baseline-toggle review-project-detail__label-actions review-project-detail__label-actions--right"
+                  onClick={() => setShowStaleDecision(false)}
+                >
+                  Hide
+                </button>
               </div>
               <textarea
                 ref={staleDecisionRef}
@@ -1062,24 +1080,31 @@ function DetailPane({
             <div className="review-project-detail__label-row">
               <div className="review-project-detail__label">Translation</div>
               <div className="review-project-detail__label-actions">
-                {isDecisionStale ? (
+                {isDecisionStale && !showStaleDecision ? (
                   <button
                     type="button"
                     className="review-project-detail__baseline-toggle"
-                    onClick={() => setShowStaleDecision((prev) => !prev)}
+                    onClick={() => setShowStaleDecision(true)}
                     title="Show the translation used for the decision"
                   >
-                    {showStaleDecision ? 'Hide stale decision' : 'Show stale decision'}
+                    Stale decision
                   </button>
                 ) : null}
-                {baselineVariant?.id != null ? (
-                  <button
-                    type="button"
-                    className="review-project-detail__baseline-toggle"
-                    onClick={() => setShowBaseline((prev) => !prev)}
-                  >
-                    {showBaseline ? 'Hide baseline' : 'Show baseline'}
-                  </button>
+                {baselineVariant?.id != null && !showBaseline ? (
+                  <>
+                    {isDecisionStale && !showStaleDecision ? (
+                      <span className="review-project-detail__label-dot" aria-hidden="true">
+                        ·
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="review-project-detail__baseline-toggle"
+                      onClick={() => setShowBaseline(true)}
+                    >
+                      Baseline
+                    </button>
+                  </>
                 ) : null}
               </div>
             </div>

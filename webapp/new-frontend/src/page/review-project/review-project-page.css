@@ -892,10 +892,32 @@
   min-height: 1.5rem;
 }
 
+.review-project-detail__label-row--spread {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.review-project-detail__label-status {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+}
+
 .review-project-detail__label-actions {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.review-project-detail__label-dot {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+}
+
+.review-project-detail__label-actions--right {
+  justify-self: end;
 }
 
 .review-project-detail__baseline-toggle {
