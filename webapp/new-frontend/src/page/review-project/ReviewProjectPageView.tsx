@@ -127,6 +127,21 @@ function statusKeyToLabel(statusKey: string): string {
   }
 }
 
+function statusKeyToChipClass(statusKey: string | null): string {
+  switch (statusKey) {
+    case 'APPROVED':
+      return 'accepted';
+    case 'REVIEW_NEEDED':
+      return 'needs-review';
+    case 'TRANSLATION_NEEDED':
+      return 'needs-translation';
+    case 'REJECTED':
+      return 'rejected';
+    default:
+      return 'unknown';
+  }
+}
+
 const STATUS_FILTER_OPTIONS: Array<FilterOption<StatusFilter>> = [
   { value: 'all', label: 'All statuses' },
   { value: 'APPROVED', label: statusKeyToLabel('APPROVED') },
@@ -597,6 +612,7 @@ function DetailPane({
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
+  const [showBaseline, setShowBaseline] = useState(false);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
@@ -618,6 +634,14 @@ function DetailPane({
   const isSaving = isMutationActive && isSavingGlobal;
   const errorMessage = isMutationActive ? mutations.errorMessage : null;
   const conflictTextUnit = isMutationActive ? mutations.conflictTextUnit : null;
+  const decision = textUnit.reviewProjectTextUnitDecision;
+  const reviewedVariantId = decision?.reviewedTmTextUnitVariantId ?? null;
+  const currentVariantId = textUnit.currentTmTextUnitVariant?.id ?? null;
+  const isDecisionStale =
+    decision?.decisionState === 'DECIDED' &&
+    reviewedVariantId != null &&
+    currentVariantId != null &&
+    reviewedVariantId !== currentVariantId;
 
   useEffect(() => {
     setDraftTarget(snapshot.target);
@@ -732,6 +756,10 @@ function DetailPane({
       setHeroHeight(lastHeroHeight);
     }
   }, [heroHeight, isScreenshotsCollapsed, lastHeroHeight]);
+
+  useEffect(() => {
+    setShowBaseline(false);
+  }, [textUnit.id]);
 
   return (
     <div className="review-project-detail">
@@ -907,8 +935,42 @@ function DetailPane({
             </div>
           ) : null}
 
+          {showBaseline && baselineVariant?.id != null ? (
+            <div className="review-project-detail__field review-project-detail__field--baseline">
+              <div className="review-project-detail__label-row">
+                <div className="review-project-detail__label">Baseline</div>
+                {baselineStatusKey ? (
+                  <Pill
+                    className={`review-project-detail__status-pill review-project-detail__status-chip review-project-detail__status-chip--${statusKeyToChipClass(
+                      baselineStatusKey,
+                    )}`}
+                  >
+                    {statusKeyToLabel(baselineStatusKey)}
+                  </Pill>
+                ) : null}
+              </div>
+              <textarea
+                className="review-project-detail__input review-project-detail__input--baseline"
+                value={baselineVariant.content ?? ''}
+                readOnly
+                rows={6}
+              />
+            </div>
+          ) : null}
+
           <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Translation</div>
+            <div className="review-project-detail__label-row">
+              <div className="review-project-detail__label">Translation</div>
+              {baselineVariant?.id != null ? (
+                <button
+                  type="button"
+                  className="review-project-detail__baseline-toggle"
+                  onClick={() => setShowBaseline((prev) => !prev)}
+                >
+                  {showBaseline ? 'Hide baseline' : 'Show baseline'}
+                </button>
+              ) : null}
+            </div>
             <textarea
               className={`review-project-detail__input${
                 isRejected ? ' review-project-detail__input--rejected' : ''
@@ -924,19 +986,6 @@ function DetailPane({
               }}
               rows={6}
             />
-            {baselineVariant?.id != null ? (
-              <div className="review-project-detail__meta">
-                <div>
-                  <span className="review-project-detail__meta-label">Baseline</span>{' '}
-                  {baselineVariant.content ?? '—'}
-                </div>
-                {baselineStatusKey ? (
-                  <div className="review-project-detail__meta-status">
-                    {statusKeyToLabel(baselineStatusKey)}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
           <div className="review-project-detail__editor-controls">
@@ -986,16 +1035,26 @@ function DetailPane({
               className="review-project-detail__input review-project-detail__input--compact"
               value={draftComment}
               onChange={(event) => setDraftComment(event.target.value)}
+              placeholder="Why this translation?"
               rows={1}
             />
           </div>
 
           <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Review notes</div>
+            <div className="review-project-detail__label">Decision notes</div>
+            {isDecisionStale ? (
+              <div
+                className="review-project-detail__stale-note"
+                title="Decision is stale because the current translation changed."
+              >
+                Stale decision
+              </div>
+            ) : null}
             <textarea
               className="review-project-detail__input review-project-detail__input--compact"
               value={draftDecisionNotes}
               onChange={(event) => setDraftDecisionNotes(event.target.value)}
+              placeholder="Why the baseline is wrong"
               rows={1}
             />
           </div>

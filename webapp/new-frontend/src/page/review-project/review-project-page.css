@@ -323,21 +323,13 @@
 
 .review-project-page__filter-chip .chip-dropdown__button::before {
   content: '';
-  width: 14px;
-  height: 10px;
-  background:
-    linear-gradient(
-        color-mix(in srgb, var(--color-text) 70%, transparent) 0 0
-      )
-      left top / 100% 2px no-repeat,
-    linear-gradient(
-        color-mix(in srgb, var(--color-text) 60%, transparent) 0 0
-      )
-      left center / 70% 2px no-repeat,
-    linear-gradient(
-        color-mix(in srgb, var(--color-text) 55%, transparent) 0 0
-      )
-      left bottom / 40% 2px no-repeat;
+  width: 16px;
+  height: 16px;
+  background-color: color-mix(in srgb, var(--color-text) 45%, transparent);
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M2 3h12l-5 6v4l-2 1V9z' fill='black'/></svg>")
+    center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M2 3h12l-5 6v4l-2 1V9z' fill='black'/></svg>")
+    center / contain no-repeat;
 }
 
 .review-project-page__controls--compact {
@@ -834,6 +826,11 @@
   min-height: 2rem;
 }
 
+.review-project-detail__input--compact::placeholder {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
 .review-project-detail__input:hover:not(:focus) {
   border-color: color-mix(in srgb, var(--color-border) 65%, transparent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);
@@ -859,6 +856,27 @@
   gap: var(--space-1);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.review-project-detail__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.review-project-detail__baseline-toggle {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  text-align: left;
+}
+
+.review-project-detail__baseline-toggle:hover {
+  color: var(--color-text);
 }
 
 .review-project-detail__meta-label {
@@ -891,6 +909,19 @@
   margin-left: auto;
   display: flex;
   gap: var(--space-2);
+}
+
+.review-project-detail__stale-note {
+  display: inline-flex;
+  align-items: center;
+  height: 1.5rem;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  border: var(--border-width) dashed color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: color-mix(in srgb, var(--color-surface-muted) 60%, transparent);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .review-project-detail__conflict {
@@ -1282,6 +1313,12 @@
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: #fff;
+}
+
+.review-project-detail__actions-button--save {
+  min-width: 5.75rem;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .review-project-detail__actions-button.review-project-detail__actions-button--primary:hover:not(
