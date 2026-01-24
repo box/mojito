@@ -214,13 +214,13 @@
 .review-project-page__header-progress {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  min-width: 120px;
+  gap: var(--space-2);
+  min-width: 150px;
 }
 
 .review-project-page__header-progress-label {
   font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
 }
 
 .review-project-page__header-locale-pill {
@@ -238,8 +238,8 @@
 }
 
 .review-project-page__header-progress-bar {
-  width: 5.5rem;
-  height: 0.35rem;
+  width: 6.75rem;
+  height: 0.5rem;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--color-surface-muted) 80%, transparent);
   overflow: hidden;

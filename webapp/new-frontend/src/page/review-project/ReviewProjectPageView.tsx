@@ -1182,14 +1182,19 @@ function ReviewProjectHeader({
   const textUnits = useMemo(() => textUnitsProp ?? [], [textUnitsProp]);
   const locales = useMemo(() => (locale ? [locale] : []), [locale]);
 
-  const { acceptedCount, selectedCount, progressPercent } = useMemo(() => {
+  const { selectedCount, progressPercent, progressTitle } = useMemo(() => {
     const selected = textUnits?.length ?? 0;
     const accepted =
       textUnits?.filter(
         (tu) => tu.reviewProjectTextUnitDecision?.decisionTmTextUnitVariantId != null,
       ).length ?? 0;
     const percent = selected > 0 ? Math.round((accepted / selected) * 100) : 0;
-    return { acceptedCount: accepted, selectedCount: selected, progressPercent: percent };
+    const title = selected > 0 ? `${accepted}/${selected}` : 'No text units';
+    return {
+      selectedCount: selected,
+      progressPercent: percent,
+      progressTitle: title,
+    };
   }, [textUnits]);
 
   return (
@@ -1255,13 +1260,10 @@ function ReviewProjectHeader({
           <CountsInline words={wordCount} strings={textUnitCount ?? selectedCount} />
           <span className="review-project-page__header-dot">•</span>
           <div className="review-project-page__header-progress">
-            <span
-              className="review-project-page__header-progress-label"
-              title={`${acceptedCount}/${selectedCount} accepted`}
-            >
+            <span className="review-project-page__header-progress-label" title={progressTitle}>
               {progressPercent}%
             </span>
-            <ProgressBar percent={progressPercent} />
+            <ProgressBar percent={progressPercent} title={progressTitle} />
           </div>
         </div>
 
@@ -1291,9 +1293,9 @@ function CountsInline({
   );
 }
 
-function ProgressBar({ percent }: { percent: number }) {
+function ProgressBar({ percent, title }: { percent: number; title?: string }) {
   return (
-    <div className="review-project-page__header-progress-bar">
+    <div className="review-project-page__header-progress-bar" title={title}>
       <div
         className="review-project-page__header-progress-fill"
         style={{ width: `${Math.min(Math.max(percent, 0), 100)}%` }}
