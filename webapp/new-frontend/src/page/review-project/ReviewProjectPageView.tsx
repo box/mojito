@@ -1050,10 +1050,10 @@ function DetailPane({
             </div>
           ) : null}
 
-          <div className="review-project-detail__field">
+          <div className="review-project-detail__field review-project-detail__field--translation">
             <div className="review-project-detail__label-row">
               <div className="review-project-detail__label">Translation</div>
-              <div className="review-project-detail__label-actions">
+              <div className="review-project-detail__label-actions review-project-detail__label-actions--hover">
                 {isDecisionStale && !showStaleDecision ? (
                   <button
                     type="button"

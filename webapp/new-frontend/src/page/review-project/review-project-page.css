@@ -913,6 +913,26 @@
   gap: var(--space-2);
 }
 
+.review-project-detail__field--translation .review-project-detail__label-row {
+  position: relative;
+}
+
+.review-project-detail__label-actions--hover {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.review-project-detail__field--translation:hover .review-project-detail__label-actions--hover,
+.review-project-detail__field--translation:focus-within .review-project-detail__label-actions--hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .review-project-detail__label-dot {
   color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
