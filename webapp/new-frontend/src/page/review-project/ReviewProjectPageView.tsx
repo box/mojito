@@ -998,7 +998,7 @@ function DetailPane({
                 </div>
                 <button
                   type="button"
-                  className="review-project-detail__baseline-toggle review-project-detail__label-actions review-project-detail__label-actions--right"
+                  className="review-project-detail__baseline-toggle review-project-detail__label-actions review-project-detail__label-actions--right review-project-detail__label-actions--fade"
                   onClick={() => setShowBaseline(false)}
                 >
                   Hide
@@ -1034,7 +1034,7 @@ function DetailPane({
                 </div>
                 <button
                   type="button"
-                  className="review-project-detail__baseline-toggle review-project-detail__label-actions review-project-detail__label-actions--right"
+                  className="review-project-detail__baseline-toggle review-project-detail__label-actions review-project-detail__label-actions--right review-project-detail__label-actions--fade"
                   onClick={() => setShowStaleDecision(false)}
                 >
                   Hide
@@ -1195,7 +1195,7 @@ function DetailPane({
               <div className="review-project-detail__label">Id</div>
               {workbenchTextUnitId != null ? (
                 <Link
-                  className="pill review-project-detail__pill-link"
+                  className="review-project-detail__baseline-toggle review-project-detail__label-actions--fade"
                   to={{
                     pathname: '/workbench',
                     search: `?tmTextUnitId=${encodeURIComponent(
