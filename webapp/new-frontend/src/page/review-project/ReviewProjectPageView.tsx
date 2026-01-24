@@ -843,22 +843,20 @@ function DetailPane({
                 >
                   ‹
                 </button>
-                <button
-                  type="button"
-                  className="review-project-detail__gallery-main review-project-detail__gallery-main--hero"
-                  onClick={() => onOpenGallery()}
-                >
+                <div className="review-project-detail__gallery-main review-project-detail__gallery-main--hero">
                   {renderMedia(
                     screenshotImages[currentScreenshotIdx],
-                    'review-project-detail__gallery-image',
+                    'review-project-detail__gallery-image review-project-detail__gallery-image--interactive',
                     {
                       controls: false,
                       muted: true,
                       loop: true,
                       preload: 'metadata',
+                      onClick: onOpenGallery,
+                      ariaLabel: 'Open screenshot gallery',
                     },
                   )}
-                </button>
+                </div>
                 <button
                   type="button"
                   className="review-project-detail__gallery-nav"
@@ -1052,10 +1050,10 @@ function DetailPane({
             </div>
           ) : null}
 
-          <div className="review-project-detail__field review-project-detail__field--translation">
+          <div className="review-project-detail__field">
             <div className="review-project-detail__label-row">
               <div className="review-project-detail__label">Translation</div>
-              <div className="review-project-detail__label-actions review-project-detail__label-actions--hover">
+              <div className="review-project-detail__label-actions">
                 {isDecisionStale && !showStaleDecision ? (
                   <button
                     type="button"
@@ -1542,11 +1540,32 @@ type MediaRenderOptions = {
   muted?: boolean;
   loop?: boolean;
   preload?: 'none' | 'metadata' | 'auto';
+  onClick?: () => void;
+  ariaLabel?: string;
 };
 
 const renderMedia = (key: string, className?: string, options: MediaRenderOptions = {}) => {
   const url = resolveMediaUrl(key);
   const baseClass = className ? `${className} review-project-media` : 'review-project-media';
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (!options.onClick) {
+      return;
+    }
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    options.onClick();
+  };
+  const interactiveProps = options.onClick
+    ? {
+        onClick: options.onClick,
+        role: 'button' as const,
+        tabIndex: 0,
+        onKeyDown: handleKeyDown,
+        'aria-label': options.ariaLabel ?? 'Open media',
+      }
+    : {};
   if (isVideoKey(key)) {
     return (
       <video
@@ -1558,10 +1577,11 @@ const renderMedia = (key: string, className?: string, options: MediaRenderOption
         loop={options.loop ?? false}
         playsInline
         preload={options.preload ?? 'metadata'}
+        {...interactiveProps}
       />
     );
   }
-  return <img key={url} className={baseClass} src={url} alt="" loading="lazy" />;
+  return <img key={url} className={baseClass} src={url} alt="" loading="lazy" {...interactiveProps} />;
 };
 
 const renderThumbMedia = (key: string) =>

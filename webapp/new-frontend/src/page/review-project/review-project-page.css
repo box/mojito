@@ -913,18 +913,6 @@
   gap: var(--space-2);
 }
 
-.review-project-detail__label-actions--hover {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-}
-
-.review-project-detail__field--translation:hover .review-project-detail__label-actions--hover,
-.review-project-detail__field--translation:focus-within .review-project-detail__label-actions--hover {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .review-project-detail__label-dot {
   color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
@@ -1582,7 +1570,6 @@
   border: none;
   padding: 0;
   background: transparent;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1595,6 +1582,16 @@
   height: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+.review-project-detail__gallery-image--interactive {
+  cursor: pointer;
+}
+
+.review-project-detail__gallery-image--interactive:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 70%, transparent);
+  outline-offset: 3px;
+  border-radius: var(--radius-2);
 }
 
 .review-project-detail__gallery-nav {
@@ -1660,6 +1657,9 @@
 }
 
 .review-project-detail__gallery-main--hero .review-project-detail__gallery-image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
   max-height: 100%;
 }
 
