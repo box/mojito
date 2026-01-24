@@ -16,6 +16,7 @@ import { checkTextUnitIntegrity, type TextUnitIntegrityCheckResult } from '../..
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
+import { PillDropdown } from '../../components/PillDropdown';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
@@ -42,8 +43,8 @@ type StatusChoice = 'ACCEPTED' | 'NEEDS_REVIEW' | 'NEEDS_TRANSLATION' | 'REJECTE
 
 const STATUS_CHOICES: Array<{ value: StatusChoice; label: string }> = [
   { value: 'ACCEPTED', label: 'Accepted' },
-  { value: 'NEEDS_REVIEW', label: 'Needs review' },
-  { value: 'NEEDS_TRANSLATION', label: 'Needs translation' },
+  { value: 'NEEDS_REVIEW', label: 'To review' },
+  { value: 'NEEDS_TRANSLATION', label: 'To translate' },
   { value: 'REJECTED', label: 'Rejected' },
 ];
 
@@ -1026,24 +1027,16 @@ function DetailPane({
 
           <div className="review-project-detail__editor-controls">
             <div className="review-project-detail__field review-project-detail__field--status">
-              <label
-                className="review-project-detail__status-label"
-                htmlFor={`review-project-status-${textUnit.id}`}
-              >
-                Status
-              </label>
-              <select
-                id={`review-project-status-${textUnit.id}`}
-                className="review-project-page__control-select review-project-detail__status-select"
+              <PillDropdown
                 value={draftStatusChoice}
-                onChange={(event) => setDraftStatusChoice(event.target.value as StatusChoice)}
-              >
-                {STATUS_CHOICES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                options={STATUS_CHOICES.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+                onChange={(next) => setDraftStatusChoice(next)}
+                ariaLabel="Translation status"
+                className="review-project-detail__status-dropdown"
+              />
             </div>
             <div className="review-project-detail__editor-actions">
               <button
@@ -1068,20 +1061,20 @@ function DetailPane({
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Comment on translation</div>
             <textarea
-              className="review-project-detail__input"
+              className="review-project-detail__input review-project-detail__input--compact"
               value={draftComment}
               onChange={(event) => setDraftComment(event.target.value)}
-              rows={3}
+              rows={1}
             />
           </div>
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Review notes</div>
             <textarea
-              className="review-project-detail__input"
+              className="review-project-detail__input review-project-detail__input--compact"
               value={draftDecisionNotes}
               onChange={(event) => setDraftDecisionNotes(event.target.value)}
-              rows={3}
+              rows={1}
             />
           </div>
 

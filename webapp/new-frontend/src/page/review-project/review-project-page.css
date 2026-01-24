@@ -800,6 +800,10 @@
     box-shadow 0.15s ease;
 }
 
+.review-project-detail__input--compact {
+  min-height: 2rem;
+}
+
 .review-project-detail__input:hover:not(:focus) {
   border-color: color-mix(in srgb, var(--color-border) 65%, transparent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border) 25%, transparent);
@@ -845,11 +849,12 @@
 }
 
 .review-project-detail__field--status {
-  min-width: 12rem;
+  min-width: 0;
 }
 
-.review-project-detail__status-select {
-  min-width: 12rem;
+.review-project-detail__status-dropdown {
+  min-width: 0;
+  display: inline-flex;
 }
 
 .review-project-detail__editor-actions {
@@ -953,12 +958,6 @@
   justify-content: flex-start;
   width: 100%;
   flex-wrap: wrap;
-}
-
-.review-project-detail__status-label {
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-semibold);
 }
 
 .pill-dropdown--static .pill-dropdown__chevron {
