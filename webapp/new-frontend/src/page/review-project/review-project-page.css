@@ -310,6 +310,36 @@
   position: relative;
 }
 
+.review-project-page__filter-chip .chip-dropdown__button {
+  width: 2rem;
+  padding: 0;
+  justify-content: center;
+}
+
+.review-project-page__filter-chip .chip-dropdown__summary,
+.review-project-page__filter-chip .chip-dropdown__chevron {
+  display: none;
+}
+
+.review-project-page__filter-chip .chip-dropdown__button::before {
+  content: '';
+  width: 14px;
+  height: 10px;
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--color-text) 70%, transparent) 0 0
+      )
+      left top / 100% 2px no-repeat,
+    linear-gradient(
+        color-mix(in srgb, var(--color-text) 60%, transparent) 0 0
+      )
+      left center / 70% 2px no-repeat,
+    linear-gradient(
+        color-mix(in srgb, var(--color-text) 55%, transparent) 0 0
+      )
+      left bottom / 40% 2px no-repeat;
+}
+
 .review-project-page__controls--compact {
   grid-template-columns: 1fr auto;
   gap: var(--space-1);

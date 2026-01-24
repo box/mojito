@@ -1,3 +1,5 @@
+import '../../components/chip-dropdown.css';
+import '../../components/filters/filter-chip.css';
 import './review-project-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
@@ -11,6 +13,10 @@ import {
   REVIEW_PROJECT_TYPE_LABELS,
 } from '../../api/review-projects';
 import { ConfirmModal } from '../../components/ConfirmModal';
+import {
+  type FilterOption,
+  MultiSectionFilterChip,
+} from '../../components/filters/MultiSectionFilterChip';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
 import { PillDropdown } from '../../components/PillDropdown';
@@ -47,6 +53,8 @@ const STATUS_CHOICES: Array<{ value: StatusChoice; label: string }> = [
 
 type TextUnitVariant = ApiReviewProjectTextUnit['baselineTmTextUnitVariant'];
 type DecisionStateChoice = 'PENDING' | 'DECIDED';
+type DecisionStateFilter = DecisionStateChoice | 'all';
+type StatusFilter = 'all' | 'APPROVED' | 'REVIEW_NEEDED' | 'TRANSLATION_NEEDED' | 'REJECTED';
 
 function mapChoiceToApi(choice: StatusChoice): {
   status: string;
@@ -119,6 +127,20 @@ function statusKeyToLabel(statusKey: string): string {
   }
 }
 
+const STATUS_FILTER_OPTIONS: Array<FilterOption<StatusFilter>> = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'APPROVED', label: statusKeyToLabel('APPROVED') },
+  { value: 'REVIEW_NEEDED', label: statusKeyToLabel('REVIEW_NEEDED') },
+  { value: 'TRANSLATION_NEEDED', label: statusKeyToLabel('TRANSLATION_NEEDED') },
+  { value: 'REJECTED', label: statusKeyToLabel('REJECTED') },
+];
+
+const DECISION_STATE_OPTIONS: Array<FilterOption<DecisionStateFilter>> = [
+  { value: 'all', label: 'All states' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'DECIDED', label: 'Decided' },
+];
+
 function normalizeOptional(value: string): string | null {
   return value === '' ? null : value;
 }
@@ -188,23 +210,13 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
   }, [listWidthPct]);
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [stateFilter, setStateFilter] = useState<DecisionStateFilter>('all');
   const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
   const previousSelectedRef = useRef<number | null>(null);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
   const [selectedScreenshotIdx, setSelectedScreenshotIdx] = useState<number>(0);
-  const filterRef = useRef<HTMLDivElement | null>(null);
   const { onDismissValidationSave, showValidationDialog } = mutations;
-
-  const availableStatuses = useMemo(() => {
-    const statuses = new Set<string>();
-    textUnits.forEach((tu) => {
-      const statusKey = getStatusKey(getEffectiveVariant(tu));
-      if (statusKey) statuses.add(statusKey);
-    });
-    return Array.from(statuses.values()).sort();
-  }, [textUnits]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -212,6 +224,9 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
       if (!tu) return false;
       const statusKey = getStatusKey(getEffectiveVariant(tu));
       if (statusFilter !== 'all' && statusKey !== statusFilter) {
+        return false;
+      }
+      if (stateFilter !== 'all' && getDecisionState(tu) !== stateFilter) {
         return false;
       }
       if (!term) return true;
@@ -225,7 +240,7 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
         .map((s) => String(s).toLowerCase());
       return haystacks.some((h) => h.includes(term));
     });
-  }, [search, statusFilter, textUnits]);
+  }, [search, stateFilter, statusFilter, textUnits]);
 
   const screenshotImages = useMemo(
     () => project?.reviewProjectRequest?.screenshotImageIds ?? [],
@@ -329,17 +344,6 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
     return () => window.removeEventListener('keydown', handleKeyNav);
   }, [handleKeyNav]);
 
-  useEffect(() => {
-    const handleOutside = (event: MouseEvent) => {
-      if (!filterRef.current) return;
-      if (!filterRef.current.contains(event.target as Node)) {
-        setIsFilterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
-  }, []);
-
   const collapseList = useCallback(() => {
     setIsListCollapsed(true);
     setListWidthPct(0);
@@ -419,44 +423,36 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <div className="review-project-page__filter" ref={filterRef}>
-              <button
-                type="button"
-                className="review-project-page__filter-button"
-                onClick={() => setIsFilterOpen((open) => !open)}
-                aria-label="Filter text units"
-                aria-expanded={isFilterOpen}
-              >
-                <span className="review-project-page__filter-bars" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              </button>
-              {isFilterOpen ? (
-                <div className="review-project-page__filter-panel">
-                  <label
-                    className="review-project-page__filter-label"
-                    htmlFor="review-project-status-filter"
-                  >
-                    Status
-                  </label>
-                  <select
-                    id="review-project-status-filter"
-                    className="review-project-page__control-select review-project-page__control-select--panel"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="all">All statuses</option>
-                    {availableStatuses.map((status) => (
-                      <option key={status} value={status}>
-                        {statusKeyToLabel(status)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
-            </div>
+            <MultiSectionFilterChip
+              ariaLabel="Filter text units"
+              align="right"
+              className="review-project-page__filter-chip"
+              classNames={{
+                button: 'filter-chip__button',
+                panel: 'filter-chip__panel',
+                section: 'filter-chip__section',
+                label: 'filter-chip__label',
+                list: 'filter-chip__list',
+                option: 'filter-chip__option',
+                helper: 'filter-chip__helper',
+              }}
+              sections={[
+                {
+                  kind: 'radio',
+                  label: 'Status',
+                  options: STATUS_FILTER_OPTIONS as Array<FilterOption<string | number>>,
+                  value: statusFilter,
+                  onChange: (value) => setStatusFilter(value as StatusFilter),
+                },
+                {
+                  kind: 'radio',
+                  label: 'State',
+                  options: DECISION_STATE_OPTIONS as Array<FilterOption<string | number>>,
+                  value: stateFilter,
+                  onChange: (value) => setStateFilter(value as DecisionStateFilter),
+                },
+              ]}
+            />
           </div>
           <VirtualList
             scrollRef={scrollRef}
@@ -975,7 +971,7 @@ function DetailPane({
               </button>
               <button
                 type="button"
-                className="review-project-detail__actions-button review-project-detail__actions-button--primary"
+                className="review-project-detail__actions-button review-project-detail__actions-button--primary review-project-detail__actions-button--save"
                 onClick={handleSave}
                 disabled={!isDirty || isSavingGlobal}
               >
