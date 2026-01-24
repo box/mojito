@@ -964,7 +964,7 @@ function DetailPane({
           {showStaleDecision ? (
             <div className="review-project-detail__field review-project-detail__field--baseline">
               <div className="review-project-detail__label-row">
-                <div className="review-project-detail__label">Stale translation</div>
+                <div className="review-project-detail__label">Stale decision</div>
                 {(() => {
                   const staleStatusKey = getStatusKey(decisionVariant);
                   return staleStatusKey ? (
@@ -998,7 +998,7 @@ function DetailPane({
                     onClick={() => setShowStaleDecision((prev) => !prev)}
                     title="Show the translation used for the decision"
                   >
-                    {showStaleDecision ? 'Hide stale' : 'Stale decision'}
+                    {showStaleDecision ? 'Hide stale decision' : 'Show stale decision'}
                   </button>
                 ) : null}
                 {baselineVariant?.id != null ? (
