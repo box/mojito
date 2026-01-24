@@ -290,6 +290,8 @@ public class ReviewProjectWS {
       GetProjectDetailView.ReviewProjectTextUnit view) {
     GetProjectDetailView.ReviewProjectTextUnitDecision decision =
         view.reviewProjectTextUnitDecision();
+    String decisionStateName =
+        decision != null && decision.decisionState() != null ? decision.decisionState().name() : null;
     GetReviewProjectResponse.TmTextUnitVariant decisionVariant =
         decision != null && decision.decisionTmTextUnitVariant() != null
             ? new GetReviewProjectResponse.TmTextUnitVariant(
@@ -329,7 +331,7 @@ public class ReviewProjectWS {
             : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
                 decision.reviewedTmTextUnitVariantId(),
                 decision.notes(),
-                decision.decisionState(),
+                decisionStateName,
                 decisionVariant));
   }
 

@@ -588,10 +588,8 @@ public class ReviewProjectService {
                     : null,
                 detail.decisionTmTextUnitVariantIncludedInLocalizedFile(),
                 detail.decisionTmTextUnitVariantComment());
-    String decisionStateName =
-        detail.decisionState() != null ? detail.decisionState().name() : null;
     boolean hasDecision =
-        decisionStateName != null
+        detail.decisionState() != null
             || detail.decisionTmTextUnitVariantId() != null
             || detail.reviewedTmTextUnitVariantId() != null
             || detail.decisionNotes() != null;
@@ -600,7 +598,7 @@ public class ReviewProjectService {
             ? new GetProjectDetailView.ReviewProjectTextUnitDecision(
                 detail.reviewedTmTextUnitVariantId(),
                 detail.decisionNotes(),
-                decisionStateName,
+                detail.decisionState(),
                 decisionTmTextUnitVariantView)
             : null;
     return new GetProjectDetailView.ReviewProjectTextUnit(

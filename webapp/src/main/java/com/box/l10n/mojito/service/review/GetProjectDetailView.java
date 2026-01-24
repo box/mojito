@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.review;
 
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -42,6 +43,6 @@ public record GetProjectDetailView(
   public record ReviewProjectTextUnitDecision(
       Long reviewedTmTextUnitVariantId,
       String notes,
-      String decisionState,
+      DecisionState decisionState,
       TmTextUnitVariant decisionTmTextUnitVariant) {}
 }
