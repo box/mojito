@@ -4,7 +4,7 @@ import './review-project-page.css';
 
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api/review-projects';
@@ -12,6 +12,7 @@ import {
   REVIEW_PROJECT_STATUS_LABELS,
   REVIEW_PROJECT_TYPE_LABELS,
 } from '../../api/review-projects';
+import { AutoTextarea } from '../../components/AutoTextarea';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import {
   type FilterOption,
@@ -57,24 +58,6 @@ type DecisionStateFilter = DecisionStateChoice | 'all';
 type StatusFilter = 'all' | 'APPROVED' | 'REVIEW_NEEDED' | 'TRANSLATION_NEEDED' | 'REJECTED';
 
 const SAVING_INDICATOR_MIN_MS = 600;
-
-function useAutosizeTextArea(
-  ref: React.RefObject<HTMLTextAreaElement | null>,
-  value: string,
-  isActive = true,
-) {
-  useLayoutEffect(() => {
-    if (!isActive) {
-      return;
-    }
-    const element = ref.current;
-    if (!element) {
-      return;
-    }
-    element.style.height = '0px';
-    element.style.height = `${element.scrollHeight}px`;
-  }, [isActive, ref, value]);
-}
 
 function mapChoiceToApi(choice: StatusChoice): {
   status: string;
@@ -637,11 +620,6 @@ function DetailPane({
   const [showSavingIndicator, setShowSavingIndicator] = useState(false);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
-  const targetRef = useRef<HTMLTextAreaElement | null>(null);
-  const baselineRef = useRef<HTMLTextAreaElement | null>(null);
-  const staleDecisionRef = useRef<HTMLTextAreaElement | null>(null);
-  const commentRef = useRef<HTMLTextAreaElement | null>(null);
-  const decisionNotesRef = useRef<HTMLTextAreaElement | null>(null);
   const savingIndicatorStartRef = useRef<number | null>(null);
   const savingIndicatorTimeoutRef = useRef<number | null>(null);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
@@ -680,12 +658,6 @@ function DetailPane({
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
     didAutoAcceptRef.current = false;
   }, [snapshot, snapshotKey]);
-
-  useAutosizeTextArea(targetRef, draftTarget);
-  useAutosizeTextArea(baselineRef, baselineVariant?.content ?? '', showBaseline);
-  useAutosizeTextArea(staleDecisionRef, decisionVariant?.content ?? '', showStaleDecision);
-  useAutosizeTextArea(commentRef, draftComment);
-  useAutosizeTextArea(decisionNotesRef, draftDecisionNotes);
 
   const draftStatusApi = mapChoiceToApi(draftStatusChoice);
   const snapshotStatusApi = mapChoiceToApi(snapshot.statusChoice);
@@ -1034,12 +1006,12 @@ function DetailPane({
                   Hide
                 </button>
               </div>
-              <textarea
-                ref={baselineRef}
+              <AutoTextarea
                 className="review-project-detail__input review-project-detail__input--baseline review-project-detail__input--autosize"
                 value={baselineVariant.content ?? ''}
                 readOnly
                 rows={1}
+                style={{ resize: 'none' }}
               />
             </div>
           ) : null}
@@ -1070,20 +1042,20 @@ function DetailPane({
                   Hide
                 </button>
               </div>
-              <textarea
-                ref={staleDecisionRef}
+              <AutoTextarea
                 className="review-project-detail__input review-project-detail__input--baseline review-project-detail__input--autosize"
                 value={decisionVariant?.content ?? ''}
                 readOnly
                 rows={1}
+                style={{ resize: 'none' }}
               />
             </div>
           ) : null}
 
-          <div className="review-project-detail__field">
+          <div className="review-project-detail__field review-project-detail__field--translation">
             <div className="review-project-detail__label-row">
               <div className="review-project-detail__label">Translation</div>
-              <div className="review-project-detail__label-actions">
+              <div className="review-project-detail__label-actions review-project-detail__label-actions--hover">
                 {isDecisionStale && !showStaleDecision ? (
                   <button
                     type="button"
@@ -1112,8 +1084,7 @@ function DetailPane({
                 ) : null}
               </div>
             </div>
-            <textarea
-              ref={targetRef}
+            <AutoTextarea
               className={`review-project-detail__input review-project-detail__input--autosize${
                 isRejected ? ' review-project-detail__input--rejected' : ''
               }`}
@@ -1127,6 +1098,7 @@ function DetailPane({
                 setDraftTarget(next);
               }}
               rows={1}
+              style={{ resize: 'none' }}
             />
           </div>
 
@@ -1184,25 +1156,25 @@ function DetailPane({
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Comment on translation</div>
-            <textarea
-              ref={commentRef}
+            <AutoTextarea
               className="review-project-detail__input review-project-detail__input--compact review-project-detail__input--autosize"
               value={draftComment}
               onChange={(event) => setDraftComment(event.target.value)}
               placeholder="Explain why you chose this translation (if not obvious)."
               rows={1}
+              style={{ resize: 'none' }}
             />
           </div>
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Decision notes</div>
-            <textarea
-              ref={decisionNotesRef}
+            <AutoTextarea
               className="review-project-detail__input review-project-detail__input--compact review-project-detail__input--autosize"
               value={draftDecisionNotes}
               onChange={(event) => setDraftDecisionNotes(event.target.value)}
               placeholder="Explain why the baseline translation was bad (to improve AI translation)."
               rows={1}
+              style={{ resize: 'none' }}
             />
           </div>
 
