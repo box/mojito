@@ -568,6 +568,7 @@ function DetailPane({
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
+  const didAutoAcceptRef = useRef(false);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
   const repositoryId = textUnit.tmTextUnit?.asset?.repository?.id ?? null;
   const textUnitName = textUnit.tmTextUnit?.name ?? `Text unit ${textUnit.id}`;
@@ -585,6 +586,10 @@ function DetailPane({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictTextUnit, setConflictTextUnit] = useState<ApiReviewProjectTextUnit | null>(null);
+
+  useEffect(() => {
+    didAutoAcceptRef.current = false;
+  }, [textUnit.id]);
 
   useEffect(() => {
     setDraftTarget(snapshot.target);
@@ -681,6 +686,7 @@ function DetailPane({
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
     setErrorMessage(null);
     setConflictTextUnit(null);
+    didAutoAcceptRef.current = false;
   }, [snapshot]);
 
   const handleSave = useCallback(() => {
@@ -907,7 +913,14 @@ function DetailPane({
                 isRejected ? ' review-project-detail__input--rejected' : ''
               }`}
               value={draftTarget}
-              onChange={(event) => setDraftTarget(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                if (!didAutoAcceptRef.current && next !== snapshot.target) {
+                  setDraftStatusChoice('ACCEPTED');
+                  didAutoAcceptRef.current = true;
+                }
+                setDraftTarget(next);
+              }}
               rows={6}
             />
             {baselineVariant?.id != null ? (
