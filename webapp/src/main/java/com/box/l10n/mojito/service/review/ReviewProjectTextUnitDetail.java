@@ -24,6 +24,10 @@ public record ReviewProjectTextUnitDetail(
     Boolean currentTmTextUnitVariantIncludedInLocalizedFile,
     String currentTmTextUnitVariantComment,
     Long decisionTmTextUnitVariantId,
+    String decisionTmTextUnitVariantContent,
+    TMTextUnitVariant.Status decisionTmTextUnitVariantStatus,
+    Boolean decisionTmTextUnitVariantIncludedInLocalizedFile,
+    String decisionTmTextUnitVariantComment,
     Long reviewedTmTextUnitVariantId,
     String decisionNotes,
     DecisionState decisionState) {}

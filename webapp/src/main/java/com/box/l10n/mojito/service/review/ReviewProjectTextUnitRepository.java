@@ -34,7 +34,11 @@ public interface ReviewProjectTextUnitRepository
         currentTtuv.status,
         currentTtuv.includedInLocalizedFile,
         currentTtuv.comment,
-        rptud.decisionVariant.id,
+        decisionTtuv.id,
+        decisionTtuv.content,
+        decisionTtuv.status,
+        decisionTtuv.includedInLocalizedFile,
+        decisionTtuv.comment,
         rptud.reviewedVariant.id,
         rptud.notes,
         rptud.decisionState
@@ -51,6 +55,7 @@ public interface ReviewProjectTextUnitRepository
       left join ttucv.tmTextUnitVariant currentTtuv
       left join ReviewProjectTextUnitDecision rptud
         on rptud.reviewProjectTextUnit = rptu
+      left join rptud.decisionVariant decisionTtuv
       where rp.id = :reviewProjectId
       order by rptu.id
       """)
@@ -79,7 +84,11 @@ public interface ReviewProjectTextUnitRepository
         currentTtuv.status,
         currentTtuv.includedInLocalizedFile,
         currentTtuv.comment,
-        rptud.decisionVariant.id,
+        decisionTtuv.id,
+        decisionTtuv.content,
+        decisionTtuv.status,
+        decisionTtuv.includedInLocalizedFile,
+        decisionTtuv.comment,
         rptud.reviewedVariant.id,
         rptud.notes,
         rptud.decisionState
@@ -96,6 +105,7 @@ public interface ReviewProjectTextUnitRepository
       left join ttucv.tmTextUnitVariant currentTtuv
       left join ReviewProjectTextUnitDecision rptud
         on rptud.reviewProjectTextUnit = rptu
+      left join rptud.decisionVariant decisionTtuv
       where rptu.id = :reviewProjectTextUnitId
       """)
   Optional<ReviewProjectTextUnitDetail> findDetailByReviewProjectTextUnitId(

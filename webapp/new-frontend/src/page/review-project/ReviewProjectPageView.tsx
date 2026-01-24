@@ -613,6 +613,7 @@ function DetailPane({
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const [showBaseline, setShowBaseline] = useState(false);
+  const [showStaleDecision, setShowStaleDecision] = useState(false);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
@@ -635,13 +636,14 @@ function DetailPane({
   const errorMessage = isMutationActive ? mutations.errorMessage : null;
   const conflictTextUnit = isMutationActive ? mutations.conflictTextUnit : null;
   const decision = textUnit.reviewProjectTextUnitDecision;
-  const reviewedVariantId = decision?.reviewedTmTextUnitVariantId ?? null;
+  const decisionVariant = decision?.decisionTmTextUnitVariant ?? null;
+  const decisionVariantId = decision?.decisionTmTextUnitVariantId ?? null;
   const currentVariantId = textUnit.currentTmTextUnitVariant?.id ?? null;
   const isDecisionStale =
     decision?.decisionState === 'DECIDED' &&
-    reviewedVariantId != null &&
+    decisionVariantId != null &&
     currentVariantId != null &&
-    reviewedVariantId !== currentVariantId;
+    decisionVariantId !== currentVariantId;
 
   useEffect(() => {
     setDraftTarget(snapshot.target);
@@ -759,6 +761,7 @@ function DetailPane({
 
   useEffect(() => {
     setShowBaseline(false);
+    setShowStaleDecision(false);
   }, [textUnit.id]);
 
   return (
@@ -958,18 +961,56 @@ function DetailPane({
             </div>
           ) : null}
 
+          {showStaleDecision ? (
+            <div className="review-project-detail__field review-project-detail__field--baseline">
+              <div className="review-project-detail__label-row">
+                <div className="review-project-detail__label">Stale translation</div>
+                {(() => {
+                  const staleStatusKey = getStatusKey(decisionVariant);
+                  return staleStatusKey ? (
+                    <Pill
+                      className={`review-project-detail__status-pill review-project-detail__status-chip review-project-detail__status-chip--${statusKeyToChipClass(
+                        staleStatusKey,
+                      )}`}
+                    >
+                      {statusKeyToLabel(staleStatusKey)}
+                    </Pill>
+                  ) : null;
+                })()}
+              </div>
+              <textarea
+                className="review-project-detail__input review-project-detail__input--baseline"
+                value={decisionVariant.content ?? ''}
+                readOnly
+                rows={6}
+              />
+            </div>
+          ) : null}
+
           <div className="review-project-detail__field">
             <div className="review-project-detail__label-row">
               <div className="review-project-detail__label">Translation</div>
-              {baselineVariant?.id != null ? (
-                <button
-                  type="button"
-                  className="review-project-detail__baseline-toggle"
-                  onClick={() => setShowBaseline((prev) => !prev)}
-                >
-                  {showBaseline ? 'Hide baseline' : 'Show baseline'}
-                </button>
-              ) : null}
+              <div className="review-project-detail__label-actions">
+                {isDecisionStale ? (
+                  <button
+                    type="button"
+                    className="review-project-detail__baseline-toggle"
+                    onClick={() => setShowStaleDecision((prev) => !prev)}
+                    title="Show the translation used for the decision"
+                  >
+                    {showStaleDecision ? 'Hide stale' : 'Stale decision'}
+                  </button>
+                ) : null}
+                {baselineVariant?.id != null ? (
+                  <button
+                    type="button"
+                    className="review-project-detail__baseline-toggle"
+                    onClick={() => setShowBaseline((prev) => !prev)}
+                  >
+                    {showBaseline ? 'Hide baseline' : 'Show baseline'}
+                  </button>
+                ) : null}
+              </div>
             </div>
             <textarea
               className={`review-project-detail__input${
@@ -1042,14 +1083,6 @@ function DetailPane({
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Decision notes</div>
-            {isDecisionStale ? (
-              <div
-                className="review-project-detail__stale-note"
-                title="Decision is stale because the current translation changed."
-              >
-                Stale decision
-              </div>
-            ) : null}
             <textarea
               className="review-project-detail__input review-project-detail__input--compact"
               value={draftDecisionNotes}

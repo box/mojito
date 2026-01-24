@@ -43,5 +43,6 @@ public record GetProjectDetailView(
       Long decisionTmTextUnitVariantId,
       Long reviewedTmTextUnitVariantId,
       String notes,
-      String decisionState) {}
+      String decisionState,
+      TmTextUnitVariant decisionTmTextUnitVariant) {}
 }

@@ -205,7 +205,8 @@ public class ReviewProjectWS {
         Long decisionTmTextUnitVariantId,
         Long reviewedTmTextUnitVariantId,
         String notes,
-        String decisionState) {}
+        String decisionState,
+        TmTextUnitVariant decisionTmTextUnitVariant) {}
   }
 
   // Mapping helpers
@@ -288,6 +289,17 @@ public class ReviewProjectWS {
 
   private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
       GetProjectDetailView.ReviewProjectTextUnit view) {
+    GetProjectDetailView.ReviewProjectTextUnitDecision decision =
+        view.reviewProjectTextUnitDecision();
+    GetReviewProjectResponse.TmTextUnitVariant decisionVariant =
+        decision != null && decision.decisionTmTextUnitVariant() != null
+            ? new GetReviewProjectResponse.TmTextUnitVariant(
+                decision.decisionTmTextUnitVariant().id(),
+                decision.decisionTmTextUnitVariant().content(),
+                decision.decisionTmTextUnitVariant().status(),
+                decision.decisionTmTextUnitVariant().includedInLocalizedFile(),
+                decision.decisionTmTextUnitVariant().comment())
+            : null;
     return new GetReviewProjectResponse.ReviewProjectTextUnit(
         view.id(),
         new GetReviewProjectResponse.TmTextUnit(
@@ -313,13 +325,14 @@ public class ReviewProjectWS {
             view.currentTmTextUnitVariant().status(),
             view.currentTmTextUnitVariant().includedInLocalizedFile(),
             view.currentTmTextUnitVariant().comment()),
-        view.reviewProjectTextUnitDecision() == null
+        decision == null
             ? null
             : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
-                view.reviewProjectTextUnitDecision().decisionTmTextUnitVariantId(),
-                view.reviewProjectTextUnitDecision().reviewedTmTextUnitVariantId(),
-                view.reviewProjectTextUnitDecision().notes(),
-                view.reviewProjectTextUnitDecision().decisionState()));
+                decision.decisionTmTextUnitVariantId(),
+                decision.reviewedTmTextUnitVariantId(),
+                decision.notes(),
+                decision.decisionState(),
+                decisionVariant));
   }
 
   private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
@@ -356,6 +369,17 @@ public class ReviewProjectWS {
                 : null,
             detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
             detail.currentTmTextUnitVariantComment());
+    GetReviewProjectResponse.TmTextUnitVariant decisionVariant =
+        detail.decisionTmTextUnitVariantId() == null
+            ? null
+            : new GetReviewProjectResponse.TmTextUnitVariant(
+                detail.decisionTmTextUnitVariantId(),
+                detail.decisionTmTextUnitVariantContent(),
+                detail.decisionTmTextUnitVariantStatus() != null
+                    ? detail.decisionTmTextUnitVariantStatus().name()
+                    : null,
+                detail.decisionTmTextUnitVariantIncludedInLocalizedFile(),
+                detail.decisionTmTextUnitVariantComment());
 
     String decisionStateName =
         detail.decisionState() != null ? detail.decisionState().name() : null;
@@ -370,7 +394,8 @@ public class ReviewProjectWS {
                 detail.decisionTmTextUnitVariantId(),
                 detail.reviewedTmTextUnitVariantId(),
                 detail.decisionNotes(),
-                decisionStateName)
+                decisionStateName,
+                decisionVariant)
             : null;
 
     return new GetReviewProjectResponse.ReviewProjectTextUnit(

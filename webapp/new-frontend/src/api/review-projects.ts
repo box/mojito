@@ -57,6 +57,13 @@ export type ApiReviewProjectTextUnit = {
     reviewedTmTextUnitVariantId?: number | null;
     notes?: string | null;
     decisionState?: string | null;
+    decisionTmTextUnitVariant?: {
+      id?: number | null;
+      content?: string | null;
+      status?: string | null;
+      includedInLocalizedFile?: boolean | null;
+      comment?: string | null;
+    } | null;
   } | null;
 };
 

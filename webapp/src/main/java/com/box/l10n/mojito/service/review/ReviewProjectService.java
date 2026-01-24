@@ -10,6 +10,7 @@ import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProject_;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
+// TODO(JA) NO rest !!
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
@@ -576,6 +577,17 @@ public class ReviewProjectService {
                     : null,
                 detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
                 detail.currentTmTextUnitVariantComment());
+    GetProjectDetailView.TmTextUnitVariant decisionTmTextUnitVariantView =
+        detail.decisionTmTextUnitVariantId() == null
+            ? null
+            : new GetProjectDetailView.TmTextUnitVariant(
+                detail.decisionTmTextUnitVariantId(),
+                detail.decisionTmTextUnitVariantContent(),
+                detail.decisionTmTextUnitVariantStatus() != null
+                    ? detail.decisionTmTextUnitVariantStatus().name()
+                    : null,
+                detail.decisionTmTextUnitVariantIncludedInLocalizedFile(),
+                detail.decisionTmTextUnitVariantComment());
     String decisionStateName =
         detail.decisionState() != null ? detail.decisionState().name() : null;
     boolean hasDecision =
@@ -589,7 +601,8 @@ public class ReviewProjectService {
                 detail.decisionTmTextUnitVariantId(),
                 detail.reviewedTmTextUnitVariantId(),
                 detail.decisionNotes(),
-                decisionStateName)
+                decisionStateName,
+                decisionTmTextUnitVariantView)
             : null;
     return new GetProjectDetailView.ReviewProjectTextUnit(
         detail.reviewProjectTextUnitId(),
