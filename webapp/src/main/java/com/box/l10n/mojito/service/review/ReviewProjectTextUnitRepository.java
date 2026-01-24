@@ -36,7 +36,8 @@ public interface ReviewProjectTextUnitRepository
         currentTtuv.comment,
         rptud.decisionVariant.id,
         rptud.reviewedVariant.id,
-        rptud.notes
+        rptud.notes,
+        rptud.decisionState
       )
       from ReviewProjectTextUnit rptu
       join rptu.reviewProject rp
@@ -80,7 +81,8 @@ public interface ReviewProjectTextUnitRepository
         currentTtuv.comment,
         rptud.decisionVariant.id,
         rptud.reviewedVariant.id,
-        rptud.notes
+        rptud.notes,
+        rptud.decisionState
       )
       from ReviewProjectTextUnit rptu
       join rptu.reviewProject rp

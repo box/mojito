@@ -1,6 +1,5 @@
 import './review-project-page.css';
 
-import { useQueryClient } from '@tanstack/react-query';
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -10,9 +9,7 @@ import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api
 import {
   REVIEW_PROJECT_STATUS_LABELS,
   REVIEW_PROJECT_TYPE_LABELS,
-  saveReviewProjectTextUnitDecision,
 } from '../../api/review-projects';
-import { checkTextUnitIntegrity, type TextUnitIntegrityCheckResult } from '../../api/text-units';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
@@ -20,7 +17,7 @@ import { PillDropdown } from '../../components/PillDropdown';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
-import { REVIEW_PROJECT_DETAIL_QUERY_KEY } from '../../hooks/useReviewProjectDetail';
+import type { ReviewProjectMutationControls } from './review-project-mutations';
 
 const Chevron = ({ direction }: { direction: 'left' | 'right' | 'up' | 'down' }) => (
   <svg
@@ -49,6 +46,7 @@ const STATUS_CHOICES: Array<{ value: StatusChoice; label: string }> = [
 ];
 
 type TextUnitVariant = ApiReviewProjectTextUnit['baselineTmTextUnitVariant'];
+type DecisionStateChoice = 'PENDING' | 'DECIDED';
 
 function mapChoiceToApi(choice: StatusChoice): {
   status: string;
@@ -88,6 +86,14 @@ function getEffectiveVariant(textUnit: ApiReviewProjectTextUnit): TextUnitVarian
   return current?.id != null ? current : textUnit.baselineTmTextUnitVariant;
 }
 
+function getDecisionState(textUnit: ApiReviewProjectTextUnit): DecisionStateChoice {
+  const decision = textUnit.reviewProjectTextUnitDecision;
+  if (decision?.decisionState === 'DECIDED' || decision?.decisionState === 'PENDING') {
+    return decision.decisionState;
+  }
+  return decision?.decisionTmTextUnitVariantId != null ? 'DECIDED' : 'PENDING';
+}
+
 function getStatusKey(variant: TextUnitVariant | null | undefined): string | null {
   if (!variant) {
     return null;
@@ -123,6 +129,7 @@ type DecisionSnapshot = {
   comment: string | null;
   decisionNotes: string | null;
   statusChoice: StatusChoice;
+  decisionState: DecisionStateChoice;
 };
 
 function buildSnapshot(textUnit: ApiReviewProjectTextUnit): DecisionSnapshot {
@@ -140,6 +147,7 @@ function buildSnapshot(textUnit: ApiReviewProjectTextUnit): DecisionSnapshot {
     comment: baseVariant?.comment ?? null,
     decisionNotes: textUnit.reviewProjectTextUnitDecision?.notes ?? null,
     statusChoice,
+    decisionState: getDecisionState(textUnit),
   };
 }
 
@@ -149,15 +157,17 @@ function buildSnapshotKey(textUnit: ApiReviewProjectTextUnit, snapshot: Decision
   const decisionVariantId =
     textUnit.reviewProjectTextUnitDecision?.decisionTmTextUnitVariantId ?? 'null';
   const decisionNotes = textUnit.reviewProjectTextUnitDecision?.notes ?? '';
-  return `${textUnit.id}:${baselineId}:${currentId}:${decisionVariantId}:${decisionNotes}`;
+  const decisionState = snapshot.decisionState;
+  return `${textUnit.id}:${baselineId}:${currentId}:${decisionVariantId}:${decisionNotes}:${decisionState}`;
 }
 
 type Props = {
   projectId: number;
   project: ApiReviewProjectDetail | null;
+  mutations: ReviewProjectMutationControls;
 };
 
-export function ReviewProjectPageView({ projectId, project }: Props) {
+export function ReviewProjectPageView({ projectId, project, mutations }: Props) {
   const locale = project?.locale ?? null;
   const localeTag = locale?.bcp47Tag ?? '';
   const textUnits = useMemo<ApiReviewProjectTextUnit[]>(
@@ -181,9 +191,11 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTextUnitId, setSelectedTextUnitId] = useState<number | null>(null);
+  const previousSelectedRef = useRef<number | null>(null);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
   const [selectedScreenshotIdx, setSelectedScreenshotIdx] = useState<number>(0);
   const filterRef = useRef<HTMLDivElement | null>(null);
+  const { onDismissValidationSave, showValidationDialog } = mutations;
 
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
@@ -242,6 +254,17 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
       setSelectedTextUnitId(filtered[0]?.id ?? null);
     }
   }, [filtered, selectedTextUnitId]);
+
+  useEffect(() => {
+    if (
+      previousSelectedRef.current !== null &&
+      previousSelectedRef.current !== selectedTextUnitId &&
+      showValidationDialog
+    ) {
+      onDismissValidationSave();
+    }
+    previousSelectedRef.current = selectedTextUnitId;
+  }, [onDismissValidationSave, selectedTextUnitId, showValidationDialog]);
 
   const estimateRowHeight = useCallback(
     () =>
@@ -488,9 +511,9 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         <section className="review-project-page__detail-pane">
           {selectedTextUnit ? (
             <DetailPane
-              projectId={projectId}
               textUnit={selectedTextUnit}
               localeTag={localeTag}
+              mutations={mutations}
               screenshotImages={screenshotImages}
               currentScreenshotIdx={selectedScreenshotIdx}
               onChangeScreenshotIdx={setSelectedScreenshotIdx}
@@ -509,6 +532,15 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
           onClose={() => setIsScreenshotModalOpen(false)}
         />
       ) : null}
+      <ConfirmModal
+        open={mutations.showValidationDialog}
+        title="Translation check failed"
+        body={mutations.validationDialogBody}
+        confirmLabel="Save anyway"
+        cancelLabel="Keep editing"
+        onConfirm={mutations.onConfirmValidationSave}
+        onCancel={mutations.onDismissValidationSave}
+      />
     </div>
   );
 }
@@ -549,30 +581,28 @@ function TextUnitRow({
 }
 
 function DetailPane({
-  projectId,
   textUnit,
   localeTag,
+  mutations,
   screenshotImages,
   currentScreenshotIdx,
   onChangeScreenshotIdx,
   onOpenGallery,
 }: {
-  projectId: number;
   textUnit: ApiReviewProjectTextUnit;
   localeTag: string;
+  mutations: ReviewProjectMutationControls;
   screenshotImages: string[];
   currentScreenshotIdx: number;
   onChangeScreenshotIdx: (index: number) => void;
   onOpenGallery: () => void;
 }) {
-  const queryClient = useQueryClient();
   const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const [isHeroResizing, setIsHeroResizing] = useState(false);
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
-  const integrityAttemptRef = useRef(0);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
   const repositoryId = textUnit.tmTextUnit?.asset?.repository?.id ?? null;
   const textUnitName = textUnit.tmTextUnit?.name ?? `Text unit ${textUnit.id}`;
@@ -587,47 +617,19 @@ function DetailPane({
   const [draftStatusChoice, setDraftStatusChoice] = useState<StatusChoice>(snapshot.statusChoice);
   const [draftComment, setDraftComment] = useState(snapshot.comment ?? '');
   const [draftDecisionNotes, setDraftDecisionNotes] = useState(snapshot.decisionNotes ?? '');
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [conflictTextUnit, setConflictTextUnit] = useState<ApiReviewProjectTextUnit | null>(null);
-  const [pendingValidationSave, setPendingValidationSave] = useState<{
-    overrideChangedCurrent: boolean;
-    expectedCurrentVariantId: number | null;
-    body: string;
-  } | null>(null);
+  const isMutationActive = mutations.activeTextUnitId === textUnit.id;
+  const isSavingGlobal = mutations.isSaving;
+  const isSaving = isMutationActive && isSavingGlobal;
+  const errorMessage = isMutationActive ? mutations.errorMessage : null;
+  const conflictTextUnit = isMutationActive ? mutations.conflictTextUnit : null;
 
   useEffect(() => {
-    didAutoAcceptRef.current = false;
-  }, [textUnit.id]);
-
-  useEffect(() => {
-    integrityAttemptRef.current += 1;
     setDraftTarget(snapshot.target);
     setDraftStatusChoice(snapshot.statusChoice);
     setDraftComment(snapshot.comment ?? '');
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
-    setErrorMessage(null);
-    setConflictTextUnit(null);
-    setPendingValidationSave(null);
+    didAutoAcceptRef.current = false;
   }, [snapshot, snapshotKey]);
-
-  const updateTextUnitInCache = useCallback(
-    (updatedTextUnit: ApiReviewProjectTextUnit) => {
-      queryClient.setQueryData<ApiReviewProjectDetail>(
-        [...REVIEW_PROJECT_DETAIL_QUERY_KEY, projectId],
-        (prev) => {
-          if (!prev?.reviewProjectTextUnits) {
-            return prev;
-          }
-          const nextTextUnits = prev.reviewProjectTextUnits.map((tu) =>
-            tu.id === updatedTextUnit.id ? updatedTextUnit : tu,
-          );
-          return { ...prev, reviewProjectTextUnits: nextTextUnits };
-        },
-      );
-    },
-    [projectId, queryClient],
-  );
 
   const draftStatusApi = mapChoiceToApi(draftStatusChoice);
   const snapshotStatusApi = mapChoiceToApi(snapshot.statusChoice);
@@ -641,156 +643,72 @@ function DetailPane({
     draftDecisionNotesNormalized !== snapshot.decisionNotes;
   const isRejected = draftStatusApi.includedInLocalizedFile === false;
 
-  const persistDecision = useCallback(
-    async (overrideChangedCurrent: boolean, expectedCurrentVariantId?: number | null) => {
-      setIsSaving(true);
-      setErrorMessage(null);
-      try {
-        const updated = await saveReviewProjectTextUnitDecision({
-          projectId,
-          textUnitId: textUnit.id,
-          target: draftTarget,
-          comment: draftCommentNormalized,
-          status: draftStatusApi.status,
-          includedInLocalizedFile: draftStatusApi.includedInLocalizedFile,
-          expectedCurrentTmTextUnitVariantId:
-            expectedCurrentVariantId !== undefined
-              ? expectedCurrentVariantId
-              : snapshot.expectedCurrentVariantId,
-          overrideChangedCurrent,
-          decisionNotes: draftDecisionNotesNormalized,
-        });
-        updateTextUnitInCache(updated);
-        setConflictTextUnit(null);
-      } catch (error) {
-        const err = error as Error & {
-          status?: number;
-          data?: ApiReviewProjectTextUnit | null;
-        };
-        if (err.status === 409 && err.data) {
-          setConflictTextUnit(err.data);
-          setErrorMessage(null);
-        } else {
-          setErrorMessage(err.message || 'Failed to save changes');
-        }
-      } finally {
-        setIsSaving(false);
-      }
+  const requestSaveDecision = useCallback(() => {
+    mutations.onRequestSaveDecision({
+      textUnitId: textUnit.id,
+      tmTextUnitId: workbenchTextUnitId,
+      target: draftTarget,
+      comment: draftCommentNormalized,
+      status: draftStatusApi.status,
+      includedInLocalizedFile: draftStatusApi.includedInLocalizedFile,
+      expectedCurrentTmTextUnitVariantId: snapshot.expectedCurrentVariantId,
+      decisionNotes: draftDecisionNotesNormalized,
+    });
+  }, [
+    draftCommentNormalized,
+    draftDecisionNotesNormalized,
+    draftStatusApi.includedInLocalizedFile,
+    draftStatusApi.status,
+    draftTarget,
+    mutations,
+    snapshot.expectedCurrentVariantId,
+    textUnit.id,
+    workbenchTextUnitId,
+  ]);
+
+  const requestDecisionState = useCallback(
+    (decisionState: DecisionStateChoice) => {
+      mutations.onRequestDecisionState({
+        textUnitId: textUnit.id,
+        decisionState,
+        expectedCurrentTmTextUnitVariantId: snapshot.expectedCurrentVariantId,
+      });
     },
-    [
-      draftCommentNormalized,
-      draftDecisionNotesNormalized,
-      draftStatusApi.includedInLocalizedFile,
-      draftStatusApi.status,
-      draftTarget,
-      projectId,
-      snapshot.expectedCurrentVariantId,
-      textUnit.id,
-      updateTextUnitInCache,
-    ],
-  );
-
-  const formatCheckFailureBody = useCallback((result: TextUnitIntegrityCheckResult | null) => {
-    const detail = result?.failureDetail?.trim();
-    if (detail) {
-      return `This translation failed the placeholder/integrity check:\n\n${detail}\n\nDo you want to save it anyway?`;
-    }
-    return 'This translation failed the placeholder/integrity check. Do you want to save it anyway?';
-  }, []);
-
-  const runIntegrityCheckThenSave = useCallback(
-    (overrideChangedCurrent: boolean, expectedCurrentVariantId?: number | null) => {
-      const attemptId = (integrityAttemptRef.current += 1);
-      const expectedId =
-        expectedCurrentVariantId !== undefined
-          ? expectedCurrentVariantId
-          : snapshot.expectedCurrentVariantId;
-
-      setPendingValidationSave(null);
-      setErrorMessage(null);
-
-      if (workbenchTextUnitId == null) {
-        void persistDecision(overrideChangedCurrent, expectedId);
-        return;
-      }
-
-      void checkTextUnitIntegrity({ tmTextUnitId: workbenchTextUnitId, content: draftTarget })
-        .then((result) => {
-          if (integrityAttemptRef.current !== attemptId) {
-            return;
-          }
-          if (result?.checkResult === false) {
-            setPendingValidationSave({
-              overrideChangedCurrent,
-              expectedCurrentVariantId: expectedId ?? null,
-              body: formatCheckFailureBody(result),
-            });
-            return;
-          }
-          void persistDecision(overrideChangedCurrent, expectedId);
-        })
-        .catch((error: unknown) => {
-          if (integrityAttemptRef.current !== attemptId) {
-            return;
-          }
-          const message = error instanceof Error ? error.message : 'Unknown error';
-          setPendingValidationSave({
-            overrideChangedCurrent,
-            expectedCurrentVariantId: expectedId ?? null,
-            body: `Unable to validate placeholders (${message}). Do you want to save it anyway?`,
-          });
-        });
-    },
-    [
-      draftTarget,
-      formatCheckFailureBody,
-      persistDecision,
-      snapshot.expectedCurrentVariantId,
-      workbenchTextUnitId,
-    ],
+    [mutations, snapshot.expectedCurrentVariantId, textUnit.id],
   );
 
   const handleReset = useCallback(() => {
-    integrityAttemptRef.current += 1;
     setDraftTarget(snapshot.target);
     setDraftStatusChoice(snapshot.statusChoice);
     setDraftComment(snapshot.comment ?? '');
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
-    setErrorMessage(null);
-    setConflictTextUnit(null);
-    setPendingValidationSave(null);
     didAutoAcceptRef.current = false;
   }, [snapshot]);
 
   const handleSave = useCallback(() => {
-    runIntegrityCheckThenSave(false);
-  }, [runIntegrityCheckThenSave]);
+    requestSaveDecision();
+  }, [requestSaveDecision]);
 
-  const confirmValidationSave = useCallback(() => {
-    if (!pendingValidationSave) {
-      return;
-    }
-    const { overrideChangedCurrent, expectedCurrentVariantId } = pendingValidationSave;
-    setPendingValidationSave(null);
-    void persistDecision(overrideChangedCurrent, expectedCurrentVariantId);
-  }, [pendingValidationSave, persistDecision]);
+  const isDecided = snapshot.decisionState === 'DECIDED';
 
-  const dismissValidationSave = useCallback(() => {
-    integrityAttemptRef.current += 1;
-    setPendingValidationSave(null);
-  }, []);
+  const handleToggleDecisionState = useCallback(() => {
+    const nextState: DecisionStateChoice = isDecided ? 'PENDING' : 'DECIDED';
+    requestDecisionState(nextState);
+  }, [isDecided, requestDecisionState]);
 
   const handleUseCurrent = useCallback(() => {
-    if (!conflictTextUnit) return;
-    updateTextUnitInCache(conflictTextUnit);
-    setConflictTextUnit(null);
-    setErrorMessage(null);
-  }, [conflictTextUnit, updateTextUnitInCache]);
+    if (!isMutationActive) {
+      return;
+    }
+    mutations.onUseConflictCurrent();
+  }, [isMutationActive, mutations]);
 
   const handleOverwrite = useCallback(() => {
-    const expectedCurrentId = conflictTextUnit?.currentTmTextUnitVariant?.id ?? null;
-    runIntegrityCheckThenSave(true, expectedCurrentId);
-  }, [conflictTextUnit, runIntegrityCheckThenSave]);
+    if (!isMutationActive) {
+      return;
+    }
+    mutations.onOverwriteConflict();
+  }, [isMutationActive, mutations]);
 
   const conflictVariant = conflictTextUnit ? getEffectiveVariant(conflictTextUnit) : null;
   const conflictStatusKey = getStatusKey(conflictVariant);
@@ -961,7 +879,7 @@ function DetailPane({
           {conflictTextUnit ? (
             <div className="review-project-detail__conflict" role="alert">
               <div className="review-project-detail__conflict-title">
-                Translation changed while you were editing.
+                Translation changed while you were working.
               </div>
               <div className="review-project-detail__conflict-current">
                 <span className="review-project-detail__meta-label">Current</span>{' '}
@@ -977,7 +895,7 @@ function DetailPane({
                   type="button"
                   className="review-project-detail__actions-button"
                   onClick={handleUseCurrent}
-                  disabled={isSaving}
+                  disabled={isSavingGlobal}
                 >
                   Use current
                 </button>
@@ -985,7 +903,7 @@ function DetailPane({
                   type="button"
                   className="review-project-detail__actions-button review-project-detail__actions-button--primary"
                   onClick={handleOverwrite}
-                  disabled={isSaving}
+                  disabled={isSavingGlobal}
                 >
                   Overwrite
                 </button>
@@ -1042,8 +960,16 @@ function DetailPane({
               <button
                 type="button"
                 className="review-project-detail__actions-button"
+                onClick={handleToggleDecisionState}
+                disabled={isDirty || isSavingGlobal}
+              >
+                {isDecided ? 'To do' : 'Done'}
+              </button>
+              <button
+                type="button"
+                className="review-project-detail__actions-button"
                 onClick={handleReset}
-                disabled={!isDirty || isSaving}
+                disabled={!isDirty || isSavingGlobal}
               >
                 Reset
               </button>
@@ -1051,7 +977,7 @@ function DetailPane({
                 type="button"
                 className="review-project-detail__actions-button review-project-detail__actions-button--primary"
                 onClick={handleSave}
-                disabled={!isDirty || isSaving}
+                disabled={!isDirty || isSavingGlobal}
               >
                 {isSaving ? 'Saving…' : 'Save'}
               </button>
@@ -1125,15 +1051,6 @@ function DetailPane({
           </div>
         </div>
       </div>
-      <ConfirmModal
-        open={pendingValidationSave != null}
-        title="Translation check failed"
-        body={pendingValidationSave?.body ?? ''}
-        confirmLabel="Save anyway"
-        cancelLabel="Keep editing"
-        onConfirm={confirmValidationSave}
-        onCancel={dismissValidationSave}
-      />
     </div>
   );
 }
@@ -1285,12 +1202,9 @@ function ReviewProjectHeader({
 
   const { selectedCount, progressPercent, progressTitle } = useMemo(() => {
     const selected = textUnits?.length ?? 0;
-    const accepted =
-      textUnits?.filter(
-        (tu) => tu.reviewProjectTextUnitDecision?.decisionTmTextUnitVariantId != null,
-      ).length ?? 0;
-    const percent = selected > 0 ? Math.round((accepted / selected) * 100) : 0;
-    const title = selected > 0 ? `${accepted}/${selected}` : 'No text units';
+    const decided = textUnits?.filter((tu) => getDecisionState(tu) === 'DECIDED').length ?? 0;
+    const percent = selected > 0 ? Math.round((decided / selected) * 100) : 0;
+    const title = selected > 0 ? `${decided}/${selected}` : 'No text units';
     return {
       selectedCount: selected,
       progressPercent: percent,

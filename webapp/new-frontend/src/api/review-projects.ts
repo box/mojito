@@ -56,6 +56,7 @@ export type ApiReviewProjectTextUnit = {
     decisionTmTextUnitVariantId?: number | null;
     reviewedTmTextUnitVariantId?: number | null;
     notes?: string | null;
+    decisionState?: string | null;
   } | null;
 };
 
@@ -240,6 +241,55 @@ export const saveReviewProjectTextUnitDecision = async ({
   if (!response.ok) {
     const message = await responseClone.text().catch(() => '');
     const error = new Error(message || 'Failed to save text unit decision') as Error & {
+      status?: number;
+      data?: ApiReviewProjectTextUnit | null;
+    };
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data as ApiReviewProjectTextUnit;
+};
+
+export const setReviewProjectTextUnitDecisionState = async ({
+  projectId,
+  textUnitId,
+  decisionState,
+  expectedCurrentTmTextUnitVariantId,
+  overrideChangedCurrent = false,
+}: {
+  projectId: number;
+  textUnitId: number;
+  decisionState: 'PENDING' | 'DECIDED';
+  expectedCurrentTmTextUnitVariantId?: number | null;
+  overrideChangedCurrent?: boolean;
+}): Promise<ApiReviewProjectTextUnit> => {
+  const response = await fetch(
+    `/api/review-projects/${projectId}/text-units/${textUnitId}/decision-state`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: jsonHeaders,
+      body: JSON.stringify({
+        decisionState,
+        expectedCurrentTmTextUnitVariantId,
+        overrideChangedCurrent,
+      }),
+    },
+  );
+
+  const responseClone = response.clone();
+  let data: ApiReviewProjectTextUnit | null = null;
+  try {
+    data = (await response.json()) as ApiReviewProjectTextUnit;
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    const message = await responseClone.text().catch(() => '');
+    const error = new Error(message || 'Failed to update decision state') as Error & {
       status?: number;
       data?: ApiReviewProjectTextUnit | null;
     };

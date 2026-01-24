@@ -2,15 +2,16 @@ package com.box.l10n.mojito.rest.review;
 
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProjectType;
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestCommand;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
 import com.box.l10n.mojito.service.review.GetProjectDetailView;
 import com.box.l10n.mojito.service.review.ReviewProjectCurrentVariantConflictException;
 import com.box.l10n.mojito.service.review.ReviewProjectService;
+import com.box.l10n.mojito.service.review.ReviewProjectTextUnitDetail;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsCriteria;
 import com.box.l10n.mojito.service.review.SearchReviewProjectsView;
-import com.box.l10n.mojito.service.review.ReviewProjectTextUnitDetail;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api")
@@ -100,6 +102,42 @@ public class ReviewProjectWS {
     }
   }
 
+  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/decision-state")
+  public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> setDecisionState(
+      @PathVariable Long projectId,
+      @PathVariable Long textUnitId,
+      @RequestBody ReviewProjectTextUnitDecisionStateRequest request)
+      throws EntityWithIdNotFoundException {
+    String decisionStateRaw = request.getDecisionState();
+    if (decisionStateRaw == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "decisionState is required");
+    }
+
+    final DecisionState decisionState;
+    try {
+      decisionState = DecisionState.valueOf(decisionStateRaw);
+    } catch (IllegalArgumentException ex) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Invalid decisionState: " + decisionStateRaw, ex);
+    }
+
+    try {
+      ReviewProjectTextUnitDetail detail =
+          reviewProjectService.setDecisionState(
+              projectId,
+              textUnitId,
+              decisionState,
+              request.getExpectedCurrentTmTextUnitVariantId(),
+              Boolean.TRUE.equals(request.getOverrideChangedCurrent()));
+      return ResponseEntity.ok(toTextUnitResponse(detail));
+    } catch (ReviewProjectCurrentVariantConflictException conflict) {
+      ReviewProjectTextUnitDetail currentTextUnit = conflict.getCurrentTextUnit();
+      return currentTextUnit == null
+          ? ResponseEntity.status(HttpStatus.CONFLICT).build()
+          : ResponseEntity.status(HttpStatus.CONFLICT).body(toTextUnitResponse(currentTextUnit));
+    }
+  }
+
   /** Response contract for create review project request (minimal payload). */
   public record CreateReviewProjectRequestResponse(
       Long requestId,
@@ -164,7 +202,10 @@ public class ReviewProjectWS {
         Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
 
     public record ReviewProjectTextUnitDecision(
-        Long decisionTmTextUnitVariantId, Long reviewedTmTextUnitVariantId, String notes) {}
+        Long decisionTmTextUnitVariantId,
+        Long reviewedTmTextUnitVariantId,
+        String notes,
+        String decisionState) {}
   }
 
   // Mapping helpers
@@ -277,7 +318,8 @@ public class ReviewProjectWS {
             : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
                 view.reviewProjectTextUnitDecision().decisionTmTextUnitVariantId(),
                 view.reviewProjectTextUnitDecision().reviewedTmTextUnitVariantId(),
-                view.reviewProjectTextUnitDecision().notes()));
+                view.reviewProjectTextUnitDecision().notes(),
+                view.reviewProjectTextUnitDecision().decisionState()));
   }
 
   private GetReviewProjectResponse.ReviewProjectTextUnit toTextUnitResponse(
@@ -315,8 +357,11 @@ public class ReviewProjectWS {
             detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
             detail.currentTmTextUnitVariantComment());
 
+    String decisionStateName =
+        detail.decisionState() != null ? detail.decisionState().name() : null;
     boolean hasDecision =
-        detail.decisionTmTextUnitVariantId() != null
+        decisionStateName != null
+            || detail.decisionTmTextUnitVariantId() != null
             || detail.reviewedTmTextUnitVariantId() != null
             || detail.decisionNotes() != null;
     GetReviewProjectResponse.ReviewProjectTextUnitDecision decision =
@@ -324,7 +369,8 @@ public class ReviewProjectWS {
             ? new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
                 detail.decisionTmTextUnitVariantId(),
                 detail.reviewedTmTextUnitVariantId(),
-                detail.decisionNotes())
+                detail.decisionNotes(),
+                decisionStateName)
             : null;
 
     return new GetReviewProjectResponse.ReviewProjectTextUnit(

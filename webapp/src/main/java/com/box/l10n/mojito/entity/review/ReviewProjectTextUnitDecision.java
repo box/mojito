@@ -6,6 +6,8 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.security.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
@@ -18,6 +20,11 @@ import org.springframework.data.annotation.LastModifiedBy;
 @Table(name = "review_project_text_unit_decision")
 public class ReviewProjectTextUnitDecision extends AuditableEntity {
 
+  public enum DecisionState {
+    PENDING,
+    DECIDED
+  }
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "review_project_text_unit_id",
@@ -25,7 +32,7 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
           @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEW_PROJECT_TEXT_UNIT"))
   private ReviewProjectTextUnit reviewProjectTextUnit;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "variant_id",
       foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__VARIANT"))
@@ -40,6 +47,10 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
 
   @Column(name = "notes", length = 4000)
   private String notes;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "decision_state", nullable = false, length = 16)
+  private DecisionState decisionState = DecisionState.PENDING;
 
   @CreatedBy
   @ManyToOne(fetch = FetchType.LAZY)
@@ -102,6 +113,14 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
 
   public void setNotes(String notes) {
     this.notes = notes;
+  }
+
+  public DecisionState getDecisionState() {
+    return decisionState;
+  }
+
+  public void setDecisionState(DecisionState decisionState) {
+    this.decisionState = decisionState;
   }
 
   public User getCreatedByUser() {

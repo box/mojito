@@ -9,6 +9,7 @@ import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProject_;
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
@@ -366,36 +367,18 @@ public class ReviewProjectService {
       throw new IllegalArgumentException("includedInLocalizedFile is required");
     }
 
-    ReviewProject project =
-        reviewProjectRepository
-            .findById(projectId)
-            .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
-
-    userService.checkUserCanEditLocale(project.getLocale().getId());
-
-    ReviewProjectTextUnit textUnit =
-        reviewProjectTextUnitRepository
-            .findById(reviewProjectTextUnitId)
-            .orElseThrow(
-                () ->
-                    new EntityWithIdNotFoundException(
-                        "reviewProjectTextUnit", reviewProjectTextUnitId));
-
-    if (!textUnit.getReviewProject().getId().equals(project.getId())) {
-      throw new IllegalArgumentException("Review project text unit does not belong to project");
-    }
+    LoadedTextUnit loaded = loadProjectTextUnit(projectId, reviewProjectTextUnitId);
+    ReviewProject project = loaded.project();
+    ReviewProjectTextUnit textUnit = loaded.textUnit();
 
     TMTextUnitVariant baselineVariant = textUnit.getTmTextUnitVariant();
 
     TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
 
-    TMTextUnitCurrentVariant currentVariant =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            project.getLocale().getId(), tmTextUnit.getId());
-    TMTextUnitVariant currentTmTextUnitVariant =
-        currentVariant != null ? currentVariant.getTmTextUnitVariant() : null;
-    Long currentVariantId =
-        currentTmTextUnitVariant != null ? currentTmTextUnitVariant.getId() : null;
+    CurrentVariantState currentState = loadCurrentVariant(project, tmTextUnit);
+    TMTextUnitCurrentVariant currentVariant = currentState.currentVariant();
+    TMTextUnitVariant currentTmTextUnitVariant = currentState.currentVariantEntity();
+    Long currentVariantId = currentState.currentVariantId();
 
     if (!overrideChangedCurrent
         && expectedCurrentTmTextUnitVariantId != null
@@ -439,9 +422,113 @@ public class ReviewProjectService {
         baselineVariant != null ? baselineVariant : currentTmTextUnitVariant);
     decision.setDecisionVariant(decidedVariant);
     decision.setNotes(decisionNotes);
+    decision.setDecisionState(DecisionState.DECIDED);
     reviewProjectTextUnitDecisionRepository.save(decision);
 
     return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
+  }
+
+  @Transactional
+  public ReviewProjectTextUnitDetail setDecisionState(
+      Long projectId,
+      Long reviewProjectTextUnitId,
+      DecisionState decisionState,
+      Long expectedCurrentTmTextUnitVariantId,
+      boolean overrideChangedCurrent)
+      throws EntityWithIdNotFoundException {
+
+    if (decisionState == null) {
+      throw new IllegalArgumentException("decisionState is required");
+    }
+
+    LoadedTextUnit loaded = loadProjectTextUnit(projectId, reviewProjectTextUnitId);
+    ReviewProject project = loaded.project();
+    ReviewProjectTextUnit textUnit = loaded.textUnit();
+
+    TMTextUnit tmTextUnit = textUnit.getTmTextUnit();
+    TMTextUnitVariant baselineVariant = textUnit.getTmTextUnitVariant();
+
+    CurrentVariantState currentState = loadCurrentVariant(project, tmTextUnit);
+    TMTextUnitVariant currentTmTextUnitVariant = currentState.currentVariantEntity();
+    Long currentVariantId = currentState.currentVariantId();
+
+    if (!overrideChangedCurrent
+        && expectedCurrentTmTextUnitVariantId != null
+        && !expectedCurrentTmTextUnitVariantId.equals(currentVariantId)) {
+      throw new ReviewProjectCurrentVariantConflictException(
+          expectedCurrentTmTextUnitVariantId,
+          currentVariantId,
+          fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId));
+    }
+
+    Optional<ReviewProjectTextUnitDecision> existingDecision =
+        reviewProjectTextUnitDecisionRepository.findByReviewProjectTextUnitId(reviewProjectTextUnitId);
+
+    if (decisionState == DecisionState.PENDING && existingDecision.isEmpty()) {
+      return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
+    }
+
+    ReviewProjectTextUnitDecision decision =
+        existingDecision.orElseGet(
+            () -> {
+              ReviewProjectTextUnitDecision entity = new ReviewProjectTextUnitDecision();
+              entity.setReviewProjectTextUnit(textUnit);
+              return entity;
+            });
+
+    if (decisionState == DecisionState.DECIDED && decision.getDecisionVariant() == null) {
+      TMTextUnitVariant fallbackVariant =
+          currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
+      decision.setDecisionVariant(fallbackVariant);
+      decision.setReviewedVariant(baselineVariant != null ? baselineVariant : currentTmTextUnitVariant);
+    }
+
+    decision.setDecisionState(decisionState);
+    reviewProjectTextUnitDecisionRepository.save(decision);
+    return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
+  }
+
+  private record LoadedTextUnit(ReviewProject project, ReviewProjectTextUnit textUnit) {}
+
+  private record CurrentVariantState(
+      TMTextUnitCurrentVariant currentVariant, TMTextUnitVariant currentVariantEntity) {
+
+    Long currentVariantId() {
+      return currentVariantEntity != null ? currentVariantEntity.getId() : null;
+    }
+  }
+
+  private LoadedTextUnit loadProjectTextUnit(Long projectId, Long reviewProjectTextUnitId)
+      throws EntityWithIdNotFoundException {
+    ReviewProject project =
+        reviewProjectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
+
+    userService.checkUserCanEditLocale(project.getLocale().getId());
+
+    ReviewProjectTextUnit textUnit =
+        reviewProjectTextUnitRepository
+            .findById(reviewProjectTextUnitId)
+            .orElseThrow(
+                () ->
+                    new EntityWithIdNotFoundException(
+                        "reviewProjectTextUnit", reviewProjectTextUnitId));
+
+    if (!textUnit.getReviewProject().getId().equals(project.getId())) {
+      throw new IllegalArgumentException("Review project text unit does not belong to project");
+    }
+
+    return new LoadedTextUnit(project, textUnit);
+  }
+
+  private CurrentVariantState loadCurrentVariant(ReviewProject project, TMTextUnit tmTextUnit) {
+    TMTextUnitCurrentVariant currentVariant =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            project.getLocale().getId(), tmTextUnit.getId());
+    TMTextUnitVariant currentTmTextUnitVariant =
+        currentVariant != null ? currentVariant.getTmTextUnitVariant() : null;
+    return new CurrentVariantState(currentVariant, currentTmTextUnitVariant);
   }
 
   private ReviewProjectTextUnitDetail fetchReviewProjectTextUnitDetail(
@@ -489,15 +576,21 @@ public class ReviewProjectService {
                     : null,
                 detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
                 detail.currentTmTextUnitVariantComment());
+    String decisionStateName =
+        detail.decisionState() != null ? detail.decisionState().name() : null;
+    boolean hasDecision =
+        decisionStateName != null
+            || detail.decisionTmTextUnitVariantId() != null
+            || detail.reviewedTmTextUnitVariantId() != null
+            || detail.decisionNotes() != null;
     GetProjectDetailView.ReviewProjectTextUnitDecision reviewProjectTextUnitDecision =
-        detail.decisionTmTextUnitVariantId() == null
-                && detail.reviewedTmTextUnitVariantId() == null
-                && detail.decisionNotes() == null
-            ? null
-            : new GetProjectDetailView.ReviewProjectTextUnitDecision(
+        hasDecision
+            ? new GetProjectDetailView.ReviewProjectTextUnitDecision(
                 detail.decisionTmTextUnitVariantId(),
                 detail.reviewedTmTextUnitVariantId(),
-                detail.decisionNotes());
+                detail.decisionNotes(),
+                decisionStateName)
+            : null;
     return new GetProjectDetailView.ReviewProjectTextUnit(
         detail.reviewProjectTextUnitId(),
         tmTextUnitView,
