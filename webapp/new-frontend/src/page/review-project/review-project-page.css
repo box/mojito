@@ -621,6 +621,20 @@
   line-height: 1;
 }
 
+.pill.review-project-detail__pill-link {
+  display: none;
+  text-decoration: none;
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-0_5);
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 0 var(--space-2);
+  min-height: 1.25rem;
+  font-size: var(--font-size-2xs);
+  line-height: 1;
+}
+
 .review-project-detail__layout {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
@@ -674,6 +688,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 1.5rem;
 }
 
 .review-project-detail__muted {
@@ -834,6 +849,7 @@
 .review-project-detail__input--autosize {
   overflow: hidden;
   resize: none;
+  min-height: 0;
 }
 
 .review-project-detail__input--autosize:focus,
@@ -873,6 +889,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  min-height: 1.5rem;
 }
 
 .review-project-detail__label-actions {
@@ -947,10 +964,10 @@
 }
 
 .review-project-detail__editor-actions .review-project-detail__actions-button {
-  height: 1.5rem;
+  height: 1.75rem;
   padding: 0 var(--space-3);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-2xs);
+  font-size: var(--font-size-xs);
   line-height: 1;
 }
 

@@ -634,6 +634,8 @@ function DetailPane({
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
   const targetRef = useRef<HTMLTextAreaElement | null>(null);
+  const baselineRef = useRef<HTMLTextAreaElement | null>(null);
+  const staleDecisionRef = useRef<HTMLTextAreaElement | null>(null);
   const commentRef = useRef<HTMLTextAreaElement | null>(null);
   const decisionNotesRef = useRef<HTMLTextAreaElement | null>(null);
   const savingIndicatorStartRef = useRef<number | null>(null);
@@ -676,6 +678,8 @@ function DetailPane({
   }, [snapshot, snapshotKey]);
 
   useAutosizeTextArea(targetRef, draftTarget);
+  useAutosizeTextArea(baselineRef, baselineVariant?.content ?? '');
+  useAutosizeTextArea(staleDecisionRef, decisionVariant?.content ?? '');
   useAutosizeTextArea(commentRef, draftComment);
   useAutosizeTextArea(decisionNotesRef, draftDecisionNotes);
 
@@ -1018,10 +1022,11 @@ function DetailPane({
                 ) : null}
               </div>
               <textarea
-                className="review-project-detail__input review-project-detail__input--baseline"
+                ref={baselineRef}
+                className="review-project-detail__input review-project-detail__input--baseline review-project-detail__input--autosize"
                 value={baselineVariant.content ?? ''}
                 readOnly
-                rows={6}
+                rows={1}
               />
             </div>
           ) : null}
@@ -1044,10 +1049,11 @@ function DetailPane({
                 })()}
               </div>
               <textarea
-                className="review-project-detail__input review-project-detail__input--baseline"
+                ref={staleDecisionRef}
+                className="review-project-detail__input review-project-detail__input--baseline review-project-detail__input--autosize"
                 value={decisionVariant?.content ?? ''}
                 readOnly
-                rows={6}
+                rows={1}
               />
             </div>
           ) : null}
@@ -1091,7 +1097,7 @@ function DetailPane({
                 }
                 setDraftTarget(next);
               }}
-              rows={6}
+              rows={1}
             />
           </div>
 
@@ -1186,35 +1192,37 @@ function DetailPane({
           </div>
 
           <div className="review-project-detail__field">
-            <div className="review-project-detail__label">Id</div>
+            <div className="review-project-detail__label-row">
+              <div className="review-project-detail__label">Id</div>
+              {workbenchTextUnitId != null ? (
+                <Link
+                  className="pill review-project-detail__pill-link"
+                  to={{
+                    pathname: '/workbench',
+                    search: `?tmTextUnitId=${encodeURIComponent(
+                      String(workbenchTextUnitId),
+                    )}${localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''}${
+                      repositoryId != null ? `&repo=${encodeURIComponent(String(repositoryId))}` : ''
+                    }`,
+                  }}
+                  state={{
+                    workbenchSearch: {
+                      searchAttribute: 'tmTextUnitIds',
+                      searchType: 'exact',
+                      searchText: String(workbenchTextUnitId),
+                      localeTags: [localeTag],
+                      repositoryIds: repositoryId != null ? [repositoryId] : [],
+                    },
+                  }}
+                  title="Open this string in Workbench"
+                >
+                  Open in Workbench
+                </Link>
+              ) : null}
+            </div>
             <div className="review-project-detail__value review-project-detail__value--meta">
               <span className="review-project-detail__title-text">{textUnitName}</span>
             </div>
-            {workbenchTextUnitId != null ? (
-              <Link
-                className="pill review-project-detail__pill-link review-project-detail__pill-link--always"
-                to={{
-                  pathname: '/workbench',
-                  search: `?tmTextUnitId=${encodeURIComponent(
-                    String(workbenchTextUnitId),
-                  )}${localeTag ? `&locale=${encodeURIComponent(localeTag)}` : ''}${
-                    repositoryId != null ? `&repo=${encodeURIComponent(String(repositoryId))}` : ''
-                  }`,
-                }}
-                state={{
-                  workbenchSearch: {
-                    searchAttribute: 'tmTextUnitIds',
-                    searchType: 'exact',
-                    searchText: String(workbenchTextUnitId),
-                    localeTags: [localeTag],
-                    repositoryIds: repositoryId != null ? [repositoryId] : [],
-                  },
-                }}
-                title="Open this string in Workbench"
-              >
-                Open in Workbench
-              </Link>
-            ) : null}
           </div>
         </div>
       </div>
