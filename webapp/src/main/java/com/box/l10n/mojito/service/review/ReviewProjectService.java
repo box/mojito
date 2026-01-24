@@ -11,7 +11,6 @@ import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
 import com.box.l10n.mojito.entity.review.ReviewProject_;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 // TODO(JA) NO rest !!
-import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -309,12 +308,14 @@ public class ReviewProjectService {
   }
 
   @Transactional(readOnly = true)
-  public GetProjectDetailView getProjectDetail(Long projectId)
-      throws EntityWithIdNotFoundException {
+  public GetProjectDetailView getProjectDetail(Long projectId) {
     ReviewProjectDetail project =
         reviewProjectRepository
             .findDetailById(projectId)
-            .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "reviewProject with id: " + projectId + " not found"));
 
     List<ReviewProjectTextUnitDetail> textUnitDetails =
         reviewProjectTextUnitRepository.findDetailByReviewProjectId(projectId);
@@ -355,8 +356,7 @@ public class ReviewProjectService {
       Boolean includedInLocalizedFile,
       Long expectedCurrentTmTextUnitVariantId,
       boolean overrideChangedCurrent,
-      String decisionNotes)
-      throws EntityWithIdNotFoundException {
+      String decisionNotes) {
 
     if (target == null) {
       throw new IllegalArgumentException("Target is required");
@@ -435,8 +435,7 @@ public class ReviewProjectService {
       Long reviewProjectTextUnitId,
       DecisionState decisionState,
       Long expectedCurrentTmTextUnitVariantId,
-      boolean overrideChangedCurrent)
-      throws EntityWithIdNotFoundException {
+      boolean overrideChangedCurrent) {
 
     if (decisionState == null) {
       throw new IllegalArgumentException("decisionState is required");
@@ -499,12 +498,14 @@ public class ReviewProjectService {
     }
   }
 
-  private LoadedTextUnit loadProjectTextUnit(Long projectId, Long reviewProjectTextUnitId)
-      throws EntityWithIdNotFoundException {
+  private LoadedTextUnit loadProjectTextUnit(Long projectId, Long reviewProjectTextUnitId) {
     ReviewProject project =
         reviewProjectRepository
             .findById(projectId)
-            .orElseThrow(() -> new EntityWithIdNotFoundException("reviewProject", projectId));
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "reviewProject with id: " + projectId + " not found"));
 
     userService.checkUserCanEditLocale(project.getLocale().getId());
 
@@ -513,8 +514,10 @@ public class ReviewProjectService {
             .findById(reviewProjectTextUnitId)
             .orElseThrow(
                 () ->
-                    new EntityWithIdNotFoundException(
-                        "reviewProjectTextUnit", reviewProjectTextUnitId));
+                    new IllegalArgumentException(
+                        "reviewProjectTextUnit with id: "
+                            + reviewProjectTextUnitId
+                            + " not found"));
 
     if (!textUnit.getReviewProject().getId().equals(project.getId())) {
       throw new IllegalArgumentException("Review project text unit does not belong to project");
@@ -533,12 +536,13 @@ public class ReviewProjectService {
   }
 
   private ReviewProjectTextUnitDetail fetchReviewProjectTextUnitDetail(
-      Long reviewProjectTextUnitId) throws EntityWithIdNotFoundException {
+      Long reviewProjectTextUnitId) {
     return reviewProjectTextUnitRepository
         .findDetailByReviewProjectTextUnitId(reviewProjectTextUnitId)
         .orElseThrow(
             () ->
-                new EntityWithIdNotFoundException("reviewProjectTextUnit", reviewProjectTextUnitId));
+                new IllegalArgumentException(
+                    "reviewProjectTextUnit with id: " + reviewProjectTextUnitId + " not found"));
   }
 
   private GetProjectDetailView.ReviewProjectTextUnit toReviewProjectTextUnit(

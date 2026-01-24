@@ -291,7 +291,9 @@ public class ReviewProjectWS {
     GetProjectDetailView.ReviewProjectTextUnitDecision decision =
         view.reviewProjectTextUnitDecision();
     String decisionStateName =
-        decision != null && decision.decisionState() != null ? decision.decisionState().name() : null;
+        decision != null && decision.decisionState() != null
+            ? decision.decisionState().name()
+            : null;
     GetReviewProjectResponse.TmTextUnitVariant decisionVariant =
         decision != null && decision.decisionTmTextUnitVariant() != null
             ? new GetReviewProjectResponse.TmTextUnitVariant(
