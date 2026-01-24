@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.review;
 
-import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 
 public record ReviewProjectTextUnitDetail(
     Long reviewProjectTextUnitId,
@@ -23,15 +23,11 @@ public record ReviewProjectTextUnitDetail(
     TMTextUnitVariant.Status currentTmTextUnitVariantStatus,
     Boolean currentTmTextUnitVariantIncludedInLocalizedFile,
     String currentTmTextUnitVariantComment,
-    DecisionTmTextUnitVariant decisionTmTextUnitVariant,
+    Long decisionVariantId,
+    String decisionVariantContent,
+    TMTextUnitVariant.Status decisionVariantStatus,
+    Boolean decisionVariantIncludedInLocalizedFile,
+    String decisionVariantComment,
     Long reviewedTmTextUnitVariantId,
     String decisionNotes,
-    DecisionState decisionState) {
-
-  public record DecisionTmTextUnitVariant(
-      Long id,
-      String content,
-      TMTextUnitVariant.Status status,
-      Boolean includedInLocalizedFile,
-      String comment) {}
-}
+    DecisionState decisionState) {}

@@ -371,25 +371,21 @@ public class ReviewProjectWS {
                 : null,
             detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
             detail.currentTmTextUnitVariantComment());
-    ReviewProjectTextUnitDetail.DecisionTmTextUnitVariant decisionVariantDetail =
-        detail.decisionTmTextUnitVariant();
     GetReviewProjectResponse.TmTextUnitVariant decisionVariant =
-        decisionVariantDetail == null || decisionVariantDetail.id() == null
+        detail.decisionVariantId() == null
             ? null
             : new GetReviewProjectResponse.TmTextUnitVariant(
-                decisionVariantDetail.id(),
-                decisionVariantDetail.content(),
-                decisionVariantDetail.status() != null
-                    ? decisionVariantDetail.status().name()
-                    : null,
-                decisionVariantDetail.includedInLocalizedFile(),
-                decisionVariantDetail.comment());
+                detail.decisionVariantId(),
+                detail.decisionVariantContent(),
+                detail.decisionVariantStatus() != null ? detail.decisionVariantStatus().name() : null,
+                detail.decisionVariantIncludedInLocalizedFile(),
+                detail.decisionVariantComment());
 
     String decisionStateName =
         detail.decisionState() != null ? detail.decisionState().name() : null;
     boolean hasDecision =
         decisionStateName != null
-            || (decisionVariantDetail != null && decisionVariantDetail.id() != null)
+            || detail.decisionVariantId() != null
             || detail.reviewedTmTextUnitVariantId() != null
             || detail.decisionNotes() != null;
     GetReviewProjectResponse.ReviewProjectTextUnitDecision decision =

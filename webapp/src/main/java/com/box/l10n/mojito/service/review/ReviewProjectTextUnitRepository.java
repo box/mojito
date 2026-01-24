@@ -34,13 +34,11 @@ public interface ReviewProjectTextUnitRepository
         currentTtuv.status,
         currentTtuv.includedInLocalizedFile,
         currentTtuv.comment,
-        new com.box.l10n.mojito.service.review.ReviewProjectTextUnitDetail.DecisionTmTextUnitVariant(
-          decisionTtuv.id,
-          decisionTtuv.content,
-          decisionTtuv.status,
-          decisionTtuv.includedInLocalizedFile,
-          decisionTtuv.comment
-        ),
+        decisionTtuv.id,
+        decisionTtuv.content,
+        decisionTtuv.status,
+        decisionTtuv.includedInLocalizedFile,
+        decisionTtuv.comment,
         rptud.reviewedVariant.id,
         rptud.notes,
         rptud.decisionState
@@ -86,13 +84,11 @@ public interface ReviewProjectTextUnitRepository
         currentTtuv.status,
         currentTtuv.includedInLocalizedFile,
         currentTtuv.comment,
-        new com.box.l10n.mojito.service.review.ReviewProjectTextUnitDetail.DecisionTmTextUnitVariant(
-          decisionTtuv.id,
-          decisionTtuv.content,
-          decisionTtuv.status,
-          decisionTtuv.includedInLocalizedFile,
-          decisionTtuv.comment
-        ),
+        decisionTtuv.id,
+        decisionTtuv.content,
+        decisionTtuv.status,
+        decisionTtuv.includedInLocalizedFile,
+        decisionTtuv.comment,
         rptud.reviewedVariant.id,
         rptud.notes,
         rptud.decisionState
