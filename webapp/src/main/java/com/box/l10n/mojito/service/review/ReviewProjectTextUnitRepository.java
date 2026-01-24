@@ -29,18 +29,28 @@ public interface ReviewProjectTextUnitRepository
         ttuv.status,
         ttuv.includedInLocalizedFile,
         ttuv.comment,
+        currentTtuv.id,
+        currentTtuv.content,
+        currentTtuv.status,
+        currentTtuv.includedInLocalizedFile,
+        currentTtuv.comment,
         rptud.decisionVariant.id,
         rptud.reviewedVariant.id,
         rptud.notes
       )
       from ReviewProjectTextUnit rptu
+      join rptu.reviewProject rp
       join rptu.tmTextUnit ttu
       join ttu.asset asset
       join asset.repository repo
       left join rptu.tmTextUnitVariant ttuv
+      left join TMTextUnitCurrentVariant ttucv
+        on ttucv.tmTextUnit = ttu
+       and ttucv.locale = rp.locale
+      left join ttucv.tmTextUnitVariant currentTtuv
       left join ReviewProjectTextUnitDecision rptud
         on rptud.reviewProjectTextUnit = rptu
-      where rptu.reviewProject.id = :reviewProjectId
+      where rp.id = :reviewProjectId
       order by rptu.id
       """)
   List<ReviewProjectTextUnitDetail> findDetailByReviewProjectId(
@@ -63,15 +73,25 @@ public interface ReviewProjectTextUnitRepository
         ttuv.status,
         ttuv.includedInLocalizedFile,
         ttuv.comment,
+        currentTtuv.id,
+        currentTtuv.content,
+        currentTtuv.status,
+        currentTtuv.includedInLocalizedFile,
+        currentTtuv.comment,
         rptud.decisionVariant.id,
         rptud.reviewedVariant.id,
         rptud.notes
       )
       from ReviewProjectTextUnit rptu
+      join rptu.reviewProject rp
       join rptu.tmTextUnit ttu
       join ttu.asset asset
       join asset.repository repo
       left join rptu.tmTextUnitVariant ttuv
+      left join TMTextUnitCurrentVariant ttucv
+        on ttucv.tmTextUnit = ttu
+       and ttucv.locale = rp.locale
+      left join ttucv.tmTextUnitVariant currentTtuv
       left join ReviewProjectTextUnitDecision rptud
         on rptud.reviewProjectTextUnit = rptu
       where rptu.id = :reviewProjectTextUnitId

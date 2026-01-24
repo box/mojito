@@ -26,6 +26,7 @@ public record GetProjectDetailView(
       Long id,
       TmTextUnit tmTextUnit,
       TmTextUnitVariant baselineTmTextUnitVariant,
+      TmTextUnitVariant currentTmTextUnitVariant,
       ReviewProjectTextUnitDecision reviewProjectTextUnitDecision) {}
 
   public record TmTextUnit(

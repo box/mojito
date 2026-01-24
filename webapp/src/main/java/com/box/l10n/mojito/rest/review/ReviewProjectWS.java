@@ -150,6 +150,7 @@ public class ReviewProjectWS {
         Long id,
         TmTextUnit tmTextUnit,
         TmTextUnitVariant baselineTmTextUnitVariant,
+        TmTextUnitVariant currentTmTextUnitVariant,
         ReviewProjectTextUnitDecision reviewProjectTextUnitDecision) {}
 
     public record TmTextUnit(
@@ -160,7 +161,7 @@ public class ReviewProjectWS {
     }
 
     public record TmTextUnitVariant(
-        Long id, String content, String status, boolean includedInLocalizedFile, String comment) {}
+        Long id, String content, String status, Boolean includedInLocalizedFile, String comment) {}
 
     public record ReviewProjectTextUnitDecision(
         Long decisionTmTextUnitVariantId, Long reviewedTmTextUnitVariantId, String notes) {}
@@ -265,6 +266,12 @@ public class ReviewProjectWS {
             view.baselineTmTextUnitVariant().status(),
             view.baselineTmTextUnitVariant().includedInLocalizedFile(),
             view.baselineTmTextUnitVariant().comment()),
+        new GetReviewProjectResponse.TmTextUnitVariant(
+            view.currentTmTextUnitVariant().id(),
+            view.currentTmTextUnitVariant().content(),
+            view.currentTmTextUnitVariant().status(),
+            view.currentTmTextUnitVariant().includedInLocalizedFile(),
+            view.currentTmTextUnitVariant().comment()),
         view.reviewProjectTextUnitDecision() == null
             ? null
             : new GetReviewProjectResponse.ReviewProjectTextUnitDecision(
@@ -289,8 +296,6 @@ public class ReviewProjectWS {
             asset,
             detail.tmTextUnitWordCount() != null ? detail.tmTextUnitWordCount().longValue() : null);
 
-    boolean includedInLocalizedFile =
-        Boolean.TRUE.equals(detail.baselineTmTextUnitVariantIncludedInLocalizedFile());
     GetReviewProjectResponse.TmTextUnitVariant baselineVariant =
         new GetReviewProjectResponse.TmTextUnitVariant(
             detail.baselineTmTextUnitVariantId(),
@@ -298,8 +303,17 @@ public class ReviewProjectWS {
             detail.baselineTmTextUnitVariantStatus() != null
                 ? detail.baselineTmTextUnitVariantStatus().name()
                 : null,
-            includedInLocalizedFile,
+            detail.baselineTmTextUnitVariantIncludedInLocalizedFile(),
             detail.baselineTmTextUnitVariantComment());
+    GetReviewProjectResponse.TmTextUnitVariant currentVariant =
+        new GetReviewProjectResponse.TmTextUnitVariant(
+            detail.currentTmTextUnitVariantId(),
+            detail.currentTmTextUnitVariantContent(),
+            detail.currentTmTextUnitVariantStatus() != null
+                ? detail.currentTmTextUnitVariantStatus().name()
+                : null,
+            detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
+            detail.currentTmTextUnitVariantComment());
 
     boolean hasDecision =
         detail.decisionTmTextUnitVariantId() != null
@@ -317,6 +331,7 @@ public class ReviewProjectWS {
         detail.reviewProjectTextUnitId(),
         tmTextUnit,
         baselineVariant,
+        currentVariant,
         decision);
   }
 }

@@ -832,6 +832,65 @@
   color: var(--color-text);
 }
 
+.review-project-detail__meta-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.review-project-detail__editor-controls {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.review-project-detail__field--status {
+  min-width: 12rem;
+}
+
+.review-project-detail__status-select {
+  min-width: 12rem;
+}
+
+.review-project-detail__editor-actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.review-project-detail__conflict {
+  padding: var(--space-3);
+  border-radius: var(--radius-3);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.review-project-detail__conflict-title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.review-project-detail__conflict-current {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  color: var(--color-text);
+}
+
+.review-project-detail__conflict-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.review-project-detail__conflict-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
 .review-project-detail__notice {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-2);
@@ -1066,6 +1125,12 @@
 @media (max-width: 960px) {
   .review-project-detail__grid {
     grid-template-columns: 1fr;
+  }
+
+  .review-project-detail__editor-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 

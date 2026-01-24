@@ -1,5 +1,6 @@
 import './review-project-page.css';
 
+import { useQueryClient } from '@tanstack/react-query';
 import type { VirtualItem } from '@tanstack/react-virtual';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,12 +10,14 @@ import type { ApiReviewProjectDetail, ApiReviewProjectTextUnit } from '../../api
 import {
   REVIEW_PROJECT_STATUS_LABELS,
   REVIEW_PROJECT_TYPE_LABELS,
+  saveReviewProjectTextUnitDecision,
 } from '../../api/review-projects';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
 import { useVirtualRows } from '../../components/virtual/useVirtualRows';
 import { VirtualList } from '../../components/virtual/VirtualList';
+import { REVIEW_PROJECT_DETAIL_QUERY_KEY } from '../../hooks/useReviewProjectDetail';
 
 const Chevron = ({ direction }: { direction: 'left' | 'right' | 'up' | 'down' }) => (
   <svg
@@ -32,6 +35,119 @@ const Chevron = ({ direction }: { direction: 'left' | 'right' | 'up' | 'down' })
     />
   </svg>
 );
+
+type StatusChoice = 'ACCEPTED' | 'NEEDS_REVIEW' | 'NEEDS_TRANSLATION' | 'REJECTED';
+
+const STATUS_CHOICES: Array<{ value: StatusChoice; label: string }> = [
+  { value: 'ACCEPTED', label: 'Accepted' },
+  { value: 'NEEDS_REVIEW', label: 'Needs review' },
+  { value: 'NEEDS_TRANSLATION', label: 'Needs translation' },
+  { value: 'REJECTED', label: 'Rejected' },
+];
+
+type TextUnitVariant = ApiReviewProjectTextUnit['baselineTmTextUnitVariant'];
+
+function mapChoiceToApi(choice: StatusChoice): {
+  status: string;
+  includedInLocalizedFile: boolean;
+} {
+  switch (choice) {
+    case 'ACCEPTED':
+      return { status: 'APPROVED', includedInLocalizedFile: true };
+    case 'NEEDS_REVIEW':
+      return { status: 'REVIEW_NEEDED', includedInLocalizedFile: true };
+    case 'REJECTED':
+      return { status: 'TRANSLATION_NEEDED', includedInLocalizedFile: false };
+    case 'NEEDS_TRANSLATION':
+    default:
+      return { status: 'TRANSLATION_NEEDED', includedInLocalizedFile: true };
+  }
+}
+
+function mapVariantToChoice(status?: string | null, includedInLocalizedFile?: boolean | null) {
+  if (includedInLocalizedFile === false) {
+    return 'REJECTED' as const;
+  }
+
+  switch (status) {
+    case 'APPROVED':
+      return 'ACCEPTED' as const;
+    case 'REVIEW_NEEDED':
+      return 'NEEDS_REVIEW' as const;
+    case 'TRANSLATION_NEEDED':
+    default:
+      return 'NEEDS_TRANSLATION' as const;
+  }
+}
+
+function getEffectiveVariant(textUnit: ApiReviewProjectTextUnit): TextUnitVariant {
+  const current = textUnit.currentTmTextUnitVariant;
+  return current?.id != null ? current : textUnit.baselineTmTextUnitVariant;
+}
+
+function getStatusKey(variant: TextUnitVariant | null | undefined): string | null {
+  if (!variant) {
+    return null;
+  }
+  if (variant.includedInLocalizedFile === false) {
+    return 'REJECTED';
+  }
+  return variant.status ?? null;
+}
+
+function statusKeyToLabel(statusKey: string): string {
+  switch (statusKey) {
+    case 'APPROVED':
+      return 'Accepted';
+    case 'REVIEW_NEEDED':
+      return 'Needs review';
+    case 'TRANSLATION_NEEDED':
+      return 'Needs translation';
+    case 'REJECTED':
+      return 'Rejected';
+    default:
+      return statusKey;
+  }
+}
+
+function normalizeOptional(value: string): string | null {
+  return value === '' ? null : value;
+}
+
+type DecisionSnapshot = {
+  expectedCurrentVariantId: number | null;
+  target: string;
+  comment: string | null;
+  decisionNotes: string | null;
+  statusChoice: StatusChoice;
+};
+
+function buildSnapshot(textUnit: ApiReviewProjectTextUnit): DecisionSnapshot {
+  const current =
+    textUnit.currentTmTextUnitVariant?.id != null ? textUnit.currentTmTextUnitVariant : null;
+  const baseVariant = current ?? textUnit.baselineTmTextUnitVariant;
+  const statusChoice = mapVariantToChoice(
+    baseVariant?.status ?? null,
+    baseVariant?.includedInLocalizedFile ?? null,
+  );
+
+  return {
+    expectedCurrentVariantId: current?.id ?? null,
+    target: baseVariant?.content ?? '',
+    comment: baseVariant?.comment ?? null,
+    decisionNotes: textUnit.reviewProjectTextUnitDecision?.notes ?? null,
+    statusChoice,
+  };
+}
+
+function buildSnapshotKey(textUnit: ApiReviewProjectTextUnit, snapshot: DecisionSnapshot): string {
+  const baselineId = textUnit.baselineTmTextUnitVariant?.id ?? 'null';
+  const currentId = snapshot.expectedCurrentVariantId ?? 'null';
+  const decisionVariantId =
+    textUnit.reviewProjectTextUnitDecision?.decisionTmTextUnitVariantId ?? 'null';
+  const decisionNotes = textUnit.reviewProjectTextUnitDecision?.notes ?? '';
+  return `${textUnit.id}:${baselineId}:${currentId}:${decisionVariantId}:${decisionNotes}`;
+}
 
 type Props = {
   projectId: number;
@@ -69,9 +185,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
   const availableStatuses = useMemo(() => {
     const statuses = new Set<string>();
     textUnits.forEach((tu) => {
-      if (tu?.baselineTmTextUnitVariant?.status) {
-        statuses.add(tu.baselineTmTextUnitVariant.status);
-      }
+      const statusKey = getStatusKey(getEffectiveVariant(tu));
+      if (statusKey) statuses.add(statusKey);
     });
     return Array.from(statuses.values()).sort();
   }, [textUnits]);
@@ -80,7 +195,8 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
     const term = search.trim().toLowerCase();
     return textUnits.filter((tu) => {
       if (!tu) return false;
-      if (statusFilter !== 'all' && tu.baselineTmTextUnitVariant?.status !== statusFilter) {
+      const statusKey = getStatusKey(getEffectiveVariant(tu));
+      if (statusFilter !== 'all' && statusKey !== statusFilter) {
         return false;
       }
       if (!term) return true;
@@ -88,6 +204,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         tu.tmTextUnit?.name,
         tu.tmTextUnit?.content,
         tu.baselineTmTextUnitVariant?.content,
+        tu.currentTmTextUnitVariant?.content,
       ]
         .filter(Boolean)
         .map((s) => String(s).toLowerCase());
@@ -307,7 +424,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
                     <option value="all">All statuses</option>
                     {availableStatuses.map((status) => (
                       <option key={status} value={status}>
-                        {status}
+                        {statusKeyToLabel(status)}
                       </option>
                     ))}
                   </select>
@@ -368,6 +485,7 @@ export function ReviewProjectPageView({ projectId, project }: Props) {
         <section className="review-project-page__detail-pane">
           {selectedTextUnit ? (
             <DetailPane
+              projectId={projectId}
               textUnit={selectedTextUnit}
               localeTag={localeTag}
               screenshotImages={screenshotImages}
@@ -404,7 +522,7 @@ function TextUnitRow({
   }
   const name = textUnit.tmTextUnit?.name ?? null;
   const source = textUnit.tmTextUnit?.content ?? null;
-  const target = textUnit.baselineTmTextUnitVariant?.content ?? null;
+  const target = getEffectiveVariant(textUnit)?.content ?? null;
   return (
     <div className="review-project-row__inner" data-selected={isSelected ? 'true' : 'false'}>
       <div className="review-project-row__name" title={name != null ? String(name) : undefined}>
@@ -428,6 +546,7 @@ function TextUnitRow({
 }
 
 function DetailPane({
+  projectId,
   textUnit,
   localeTag,
   screenshotImages,
@@ -435,6 +554,7 @@ function DetailPane({
   onChangeScreenshotIdx,
   onOpenGallery,
 }: {
+  projectId: number;
   textUnit: ApiReviewProjectTextUnit;
   localeTag: string;
   screenshotImages: string[];
@@ -442,6 +562,7 @@ function DetailPane({
   onChangeScreenshotIdx: (index: number) => void;
   onOpenGallery: () => void;
 }) {
+  const queryClient = useQueryClient();
   const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
   const [isHeroResizing, setIsHeroResizing] = useState(false);
@@ -451,7 +572,135 @@ function DetailPane({
   const repositoryId = textUnit.tmTextUnit?.asset?.repository?.id ?? null;
   const textUnitName = textUnit.tmTextUnit?.name ?? `Text unit ${textUnit.id}`;
   const source = textUnit.tmTextUnit?.content ?? null;
-  const comment = textUnit.tmTextUnit?.comment ?? null;
+  const sourceComment = textUnit.tmTextUnit?.comment ?? null;
+  const baselineVariant = textUnit.baselineTmTextUnitVariant;
+  const baselineStatusKey = getStatusKey(baselineVariant);
+  const snapshot = useMemo(() => buildSnapshot(textUnit), [textUnit]);
+  const snapshotKey = useMemo(() => buildSnapshotKey(textUnit, snapshot), [textUnit, snapshot]);
+
+  const [draftTarget, setDraftTarget] = useState(snapshot.target);
+  const [draftStatusChoice, setDraftStatusChoice] = useState<StatusChoice>(snapshot.statusChoice);
+  const [draftComment, setDraftComment] = useState(snapshot.comment ?? '');
+  const [draftDecisionNotes, setDraftDecisionNotes] = useState(snapshot.decisionNotes ?? '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [conflictTextUnit, setConflictTextUnit] = useState<ApiReviewProjectTextUnit | null>(null);
+
+  useEffect(() => {
+    setDraftTarget(snapshot.target);
+    setDraftStatusChoice(snapshot.statusChoice);
+    setDraftComment(snapshot.comment ?? '');
+    setDraftDecisionNotes(snapshot.decisionNotes ?? '');
+    setErrorMessage(null);
+    setConflictTextUnit(null);
+  }, [snapshot, snapshotKey]);
+
+  const updateTextUnitInCache = useCallback(
+    (updatedTextUnit: ApiReviewProjectTextUnit) => {
+      queryClient.setQueryData<ApiReviewProjectDetail>(
+        [...REVIEW_PROJECT_DETAIL_QUERY_KEY, projectId],
+        (prev) => {
+          if (!prev?.reviewProjectTextUnits) {
+            return prev;
+          }
+          const nextTextUnits = prev.reviewProjectTextUnits.map((tu) =>
+            tu.id === updatedTextUnit.id ? updatedTextUnit : tu,
+          );
+          return { ...prev, reviewProjectTextUnits: nextTextUnits };
+        },
+      );
+    },
+    [projectId, queryClient],
+  );
+
+  const draftStatusApi = mapChoiceToApi(draftStatusChoice);
+  const snapshotStatusApi = mapChoiceToApi(snapshot.statusChoice);
+  const draftCommentNormalized = normalizeOptional(draftComment);
+  const draftDecisionNotesNormalized = normalizeOptional(draftDecisionNotes);
+  const isDirty =
+    draftTarget !== snapshot.target ||
+    draftStatusApi.status !== snapshotStatusApi.status ||
+    draftStatusApi.includedInLocalizedFile !== snapshotStatusApi.includedInLocalizedFile ||
+    draftCommentNormalized !== snapshot.comment ||
+    draftDecisionNotesNormalized !== snapshot.decisionNotes;
+  const isRejected = draftStatusApi.includedInLocalizedFile === false;
+
+  const persistDecision = useCallback(
+    async (overrideChangedCurrent: boolean, expectedCurrentVariantId?: number | null) => {
+      setIsSaving(true);
+      setErrorMessage(null);
+      try {
+        const updated = await saveReviewProjectTextUnitDecision({
+          projectId,
+          textUnitId: textUnit.id,
+          target: draftTarget,
+          comment: draftCommentNormalized,
+          status: draftStatusApi.status,
+          includedInLocalizedFile: draftStatusApi.includedInLocalizedFile,
+          expectedCurrentTmTextUnitVariantId:
+            expectedCurrentVariantId !== undefined
+              ? expectedCurrentVariantId
+              : snapshot.expectedCurrentVariantId,
+          overrideChangedCurrent,
+          decisionNotes: draftDecisionNotesNormalized,
+        });
+        updateTextUnitInCache(updated);
+        setConflictTextUnit(null);
+      } catch (error) {
+        const err = error as Error & {
+          status?: number;
+          data?: ApiReviewProjectTextUnit | null;
+        };
+        if (err.status === 409 && err.data) {
+          setConflictTextUnit(err.data);
+          setErrorMessage(null);
+        } else {
+          setErrorMessage(err.message || 'Failed to save changes');
+        }
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      draftCommentNormalized,
+      draftDecisionNotesNormalized,
+      draftStatusApi.includedInLocalizedFile,
+      draftStatusApi.status,
+      draftTarget,
+      projectId,
+      snapshot.expectedCurrentVariantId,
+      textUnit.id,
+      updateTextUnitInCache,
+    ],
+  );
+
+  const handleReset = useCallback(() => {
+    setDraftTarget(snapshot.target);
+    setDraftStatusChoice(snapshot.statusChoice);
+    setDraftComment(snapshot.comment ?? '');
+    setDraftDecisionNotes(snapshot.decisionNotes ?? '');
+    setErrorMessage(null);
+    setConflictTextUnit(null);
+  }, [snapshot]);
+
+  const handleSave = useCallback(() => {
+    void persistDecision(false);
+  }, [persistDecision]);
+
+  const handleUseCurrent = useCallback(() => {
+    if (!conflictTextUnit) return;
+    updateTextUnitInCache(conflictTextUnit);
+    setConflictTextUnit(null);
+    setErrorMessage(null);
+  }, [conflictTextUnit, updateTextUnitInCache]);
+
+  const handleOverwrite = useCallback(() => {
+    const expectedCurrentId = conflictTextUnit?.currentTmTextUnitVariant?.id ?? null;
+    void persistDecision(true, expectedCurrentId);
+  }, [conflictTextUnit, persistDecision]);
+
+  const conflictVariant = conflictTextUnit ? getEffectiveVariant(conflictTextUnit) : null;
+  const conflictStatusKey = getStatusKey(conflictVariant);
 
   useEffect(() => {
     if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
@@ -615,7 +864,130 @@ function DetailPane({
         </div>
       ) : null}
       <div className="review-project-detail__layout">
-        <div className="review-project-detail__main" />
+        <div className="review-project-detail__main">
+          {conflictTextUnit ? (
+            <div className="review-project-detail__conflict" role="alert">
+              <div className="review-project-detail__conflict-title">
+                Translation changed while you were editing.
+              </div>
+              <div className="review-project-detail__conflict-current">
+                <span className="review-project-detail__meta-label">Current</span>{' '}
+                {conflictVariant?.content ?? '—'}
+                {conflictStatusKey ? (
+                  <span className="review-project-detail__conflict-status">
+                    {statusKeyToLabel(conflictStatusKey)}
+                  </span>
+                ) : null}
+              </div>
+              <div className="review-project-detail__conflict-actions">
+                <button
+                  type="button"
+                  className="review-project-detail__actions-button"
+                  onClick={handleUseCurrent}
+                  disabled={isSaving}
+                >
+                  Use current
+                </button>
+                <button
+                  type="button"
+                  className="review-project-detail__actions-button review-project-detail__actions-button--primary"
+                  onClick={handleOverwrite}
+                  disabled={isSaving}
+                >
+                  Overwrite
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Translation</div>
+            <textarea
+              className={`review-project-detail__input${
+                isRejected ? ' review-project-detail__input--rejected' : ''
+              }`}
+              value={draftTarget}
+              onChange={(event) => setDraftTarget(event.target.value)}
+              rows={6}
+            />
+            {baselineVariant?.id != null ? (
+              <div className="review-project-detail__meta">
+                <div>
+                  <span className="review-project-detail__meta-label">Baseline</span>{' '}
+                  {baselineVariant.content ?? '—'}
+                </div>
+                {baselineStatusKey ? (
+                  <div className="review-project-detail__meta-status">
+                    {statusKeyToLabel(baselineStatusKey)}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="review-project-detail__editor-controls">
+            <div className="review-project-detail__field review-project-detail__field--status">
+              <label
+                className="review-project-detail__status-label"
+                htmlFor={`review-project-status-${textUnit.id}`}
+              >
+                Status
+              </label>
+              <select
+                id={`review-project-status-${textUnit.id}`}
+                className="review-project-page__control-select review-project-detail__status-select"
+                value={draftStatusChoice}
+                onChange={(event) => setDraftStatusChoice(event.target.value as StatusChoice)}
+              >
+                {STATUS_CHOICES.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="review-project-detail__editor-actions">
+              <button
+                type="button"
+                className="review-project-detail__actions-button"
+                onClick={handleReset}
+                disabled={!isDirty || isSaving}
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                className="review-project-detail__actions-button review-project-detail__actions-button--primary"
+                onClick={handleSave}
+                disabled={!isDirty || isSaving}
+              >
+                {isSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Comment on translation</div>
+            <textarea
+              className="review-project-detail__input"
+              value={draftComment}
+              onChange={(event) => setDraftComment(event.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div className="review-project-detail__field">
+            <div className="review-project-detail__label">Review notes</div>
+            <textarea
+              className="review-project-detail__input"
+              value={draftDecisionNotes}
+              onChange={(event) => setDraftDecisionNotes(event.target.value)}
+              rows={3}
+            />
+          </div>
+
+          {errorMessage ? <div className="review-project-detail__error">{errorMessage}</div> : null}
+        </div>
 
         <div className="review-project-detail__side">
           <div className="review-project-detail__field">
@@ -625,7 +997,7 @@ function DetailPane({
 
           <div className="review-project-detail__field">
             <div className="review-project-detail__label">Comment</div>
-            <div className="review-project-detail__value">{comment || '—'}</div>
+            <div className="review-project-detail__value">{sourceComment ?? '—'}</div>
           </div>
 
           <div className="review-project-detail__field">

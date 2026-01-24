@@ -469,7 +469,7 @@ public class ReviewProjectService {
             detail.tmTextUnitWordCount() != null ? detail.tmTextUnitWordCount().longValue() : null);
     GetProjectDetailView.TmTextUnitVariant baselineTmTextUnitVariantView =
         detail.baselineTmTextUnitVariantId() == null
-            ? new GetProjectDetailView.TmTextUnitVariant(null, null, null, false, null)
+            ? new GetProjectDetailView.TmTextUnitVariant(null, null, null, null, null)
             : new GetProjectDetailView.TmTextUnitVariant(
                 detail.baselineTmTextUnitVariantId(),
                 detail.baselineTmTextUnitVariantContent(),
@@ -478,6 +478,17 @@ public class ReviewProjectService {
                     : null,
                 detail.baselineTmTextUnitVariantIncludedInLocalizedFile(),
                 detail.baselineTmTextUnitVariantComment());
+    GetProjectDetailView.TmTextUnitVariant currentTmTextUnitVariantView =
+        detail.currentTmTextUnitVariantId() == null
+            ? new GetProjectDetailView.TmTextUnitVariant(null, null, null, null, null)
+            : new GetProjectDetailView.TmTextUnitVariant(
+                detail.currentTmTextUnitVariantId(),
+                detail.currentTmTextUnitVariantContent(),
+                detail.currentTmTextUnitVariantStatus() != null
+                    ? detail.currentTmTextUnitVariantStatus().name()
+                    : null,
+                detail.currentTmTextUnitVariantIncludedInLocalizedFile(),
+                detail.currentTmTextUnitVariantComment());
     GetProjectDetailView.ReviewProjectTextUnitDecision reviewProjectTextUnitDecision =
         detail.decisionTmTextUnitVariantId() == null
                 && detail.reviewedTmTextUnitVariantId() == null
@@ -491,6 +502,7 @@ public class ReviewProjectService {
         detail.reviewProjectTextUnitId(),
         tmTextUnitView,
         baselineTmTextUnitVariantView,
+        currentTmTextUnitVariantView,
         reviewProjectTextUnitDecision);
   }
 

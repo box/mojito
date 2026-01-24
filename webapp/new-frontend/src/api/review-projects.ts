@@ -45,6 +45,13 @@ export type ApiReviewProjectTextUnit = {
     includedInLocalizedFile?: boolean | null;
     comment?: string | null;
   } | null;
+  currentTmTextUnitVariant: {
+    id?: number | null;
+    content?: string | null;
+    status?: string | null;
+    includedInLocalizedFile?: boolean | null;
+    comment?: string | null;
+  } | null;
   reviewProjectTextUnitDecision?: {
     decisionTmTextUnitVariantId?: number | null;
     reviewedTmTextUnitVariantId?: number | null;
@@ -222,15 +229,24 @@ export const saveReviewProjectTextUnitDecision = async ({
     },
   );
 
+  const responseClone = response.clone();
+  let data: ApiReviewProjectTextUnit | null = null;
+  try {
+    data = (await response.json()) as ApiReviewProjectTextUnit;
+  } catch {
+    data = null;
+  }
+
   if (!response.ok) {
-    const message = await response.text().catch(() => '');
+    const message = await responseClone.text().catch(() => '');
     const error = new Error(message || 'Failed to save text unit decision') as Error & {
       status?: number;
+      data?: ApiReviewProjectTextUnit | null;
     };
     error.status = response.status;
+    error.data = data;
     throw error;
   }
 
-  const raw = (await response.json()) as ApiReviewProjectTextUnit;
-  return raw;
+  return data as ApiReviewProjectTextUnit;
 };
