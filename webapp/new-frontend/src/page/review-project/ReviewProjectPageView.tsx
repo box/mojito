@@ -12,6 +12,8 @@ import {
   REVIEW_PROJECT_TYPE_LABELS,
   saveReviewProjectTextUnitDecision,
 } from '../../api/review-projects';
+import { checkTextUnitIntegrity, type TextUnitIntegrityCheckResult } from '../../api/text-units';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import { LocalePill } from '../../components/LocalePill';
 import { Pill } from '../../components/Pill';
 import { getRowHeightPx } from '../../components/virtual/getRowHeightPx';
@@ -569,6 +571,7 @@ function DetailPane({
   const [lastHeroHeight, setLastHeroHeight] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const didAutoAcceptRef = useRef(false);
+  const integrityAttemptRef = useRef(0);
   const workbenchTextUnitId = textUnit.tmTextUnit?.id ?? null;
   const repositoryId = textUnit.tmTextUnit?.asset?.repository?.id ?? null;
   const textUnitName = textUnit.tmTextUnit?.name ?? `Text unit ${textUnit.id}`;
@@ -586,18 +589,25 @@ function DetailPane({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictTextUnit, setConflictTextUnit] = useState<ApiReviewProjectTextUnit | null>(null);
+  const [pendingValidationSave, setPendingValidationSave] = useState<{
+    overrideChangedCurrent: boolean;
+    expectedCurrentVariantId: number | null;
+    body: string;
+  } | null>(null);
 
   useEffect(() => {
     didAutoAcceptRef.current = false;
   }, [textUnit.id]);
 
   useEffect(() => {
+    integrityAttemptRef.current += 1;
     setDraftTarget(snapshot.target);
     setDraftStatusChoice(snapshot.statusChoice);
     setDraftComment(snapshot.comment ?? '');
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
     setErrorMessage(null);
     setConflictTextUnit(null);
+    setPendingValidationSave(null);
   }, [snapshot, snapshotKey]);
 
   const updateTextUnitInCache = useCallback(
@@ -679,19 +689,95 @@ function DetailPane({
     ],
   );
 
+  const formatCheckFailureBody = useCallback((result: TextUnitIntegrityCheckResult | null) => {
+    const detail = result?.failureDetail?.trim();
+    if (detail) {
+      return `This translation failed the placeholder/integrity check:\n\n${detail}\n\nDo you want to save it anyway?`;
+    }
+    return 'This translation failed the placeholder/integrity check. Do you want to save it anyway?';
+  }, []);
+
+  const runIntegrityCheckThenSave = useCallback(
+    (overrideChangedCurrent: boolean, expectedCurrentVariantId?: number | null) => {
+      const attemptId = (integrityAttemptRef.current += 1);
+      const expectedId =
+        expectedCurrentVariantId !== undefined
+          ? expectedCurrentVariantId
+          : snapshot.expectedCurrentVariantId;
+
+      setPendingValidationSave(null);
+      setErrorMessage(null);
+
+      if (workbenchTextUnitId == null) {
+        void persistDecision(overrideChangedCurrent, expectedId);
+        return;
+      }
+
+      void checkTextUnitIntegrity({ tmTextUnitId: workbenchTextUnitId, content: draftTarget })
+        .then((result) => {
+          if (integrityAttemptRef.current !== attemptId) {
+            return;
+          }
+          if (result?.checkResult === false) {
+            setPendingValidationSave({
+              overrideChangedCurrent,
+              expectedCurrentVariantId: expectedId ?? null,
+              body: formatCheckFailureBody(result),
+            });
+            return;
+          }
+          void persistDecision(overrideChangedCurrent, expectedId);
+        })
+        .catch((error: unknown) => {
+          if (integrityAttemptRef.current !== attemptId) {
+            return;
+          }
+          const message = error instanceof Error ? error.message : 'Unknown error';
+          setPendingValidationSave({
+            overrideChangedCurrent,
+            expectedCurrentVariantId: expectedId ?? null,
+            body: `Unable to validate placeholders (${message}). Do you want to save it anyway?`,
+          });
+        });
+    },
+    [
+      draftTarget,
+      formatCheckFailureBody,
+      persistDecision,
+      snapshot.expectedCurrentVariantId,
+      workbenchTextUnitId,
+    ],
+  );
+
   const handleReset = useCallback(() => {
+    integrityAttemptRef.current += 1;
     setDraftTarget(snapshot.target);
     setDraftStatusChoice(snapshot.statusChoice);
     setDraftComment(snapshot.comment ?? '');
     setDraftDecisionNotes(snapshot.decisionNotes ?? '');
     setErrorMessage(null);
     setConflictTextUnit(null);
+    setPendingValidationSave(null);
     didAutoAcceptRef.current = false;
   }, [snapshot]);
 
   const handleSave = useCallback(() => {
-    void persistDecision(false);
-  }, [persistDecision]);
+    runIntegrityCheckThenSave(false);
+  }, [runIntegrityCheckThenSave]);
+
+  const confirmValidationSave = useCallback(() => {
+    if (!pendingValidationSave) {
+      return;
+    }
+    const { overrideChangedCurrent, expectedCurrentVariantId } = pendingValidationSave;
+    setPendingValidationSave(null);
+    void persistDecision(overrideChangedCurrent, expectedCurrentVariantId);
+  }, [pendingValidationSave, persistDecision]);
+
+  const dismissValidationSave = useCallback(() => {
+    integrityAttemptRef.current += 1;
+    setPendingValidationSave(null);
+  }, []);
 
   const handleUseCurrent = useCallback(() => {
     if (!conflictTextUnit) return;
@@ -702,8 +788,8 @@ function DetailPane({
 
   const handleOverwrite = useCallback(() => {
     const expectedCurrentId = conflictTextUnit?.currentTmTextUnitVariant?.id ?? null;
-    void persistDecision(true, expectedCurrentId);
-  }, [conflictTextUnit, persistDecision]);
+    runIntegrityCheckThenSave(true, expectedCurrentId);
+  }, [conflictTextUnit, runIntegrityCheckThenSave]);
 
   const conflictVariant = conflictTextUnit ? getEffectiveVariant(conflictTextUnit) : null;
   const conflictStatusKey = getStatusKey(conflictVariant);
@@ -1046,6 +1132,15 @@ function DetailPane({
           </div>
         </div>
       </div>
+      <ConfirmModal
+        open={pendingValidationSave != null}
+        title="Translation check failed"
+        body={pendingValidationSave?.body ?? ''}
+        confirmLabel="Save anyway"
+        cancelLabel="Keep editing"
+        onConfirm={confirmValidationSave}
+        onCancel={dismissValidationSave}
+      />
     </div>
   );
 }
