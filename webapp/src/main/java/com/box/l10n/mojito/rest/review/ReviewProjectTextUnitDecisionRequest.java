@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.review;
 
+import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
+
 public class ReviewProjectTextUnitDecisionRequest {
 
   private String target;
@@ -9,7 +11,7 @@ public class ReviewProjectTextUnitDecisionRequest {
   private Long expectedCurrentTmTextUnitVariantId;
   private Boolean overrideChangedCurrent;
   private String decisionNotes;
-  private String decisionState;
+  private DecisionState decisionState;
 
   public String getTarget() {
     return target;
@@ -67,11 +69,11 @@ public class ReviewProjectTextUnitDecisionRequest {
     this.decisionNotes = decisionNotes;
   }
 
-  public String getDecisionState() {
+  public DecisionState getDecisionState() {
     return decisionState;
   }
 
-  public void setDecisionState(String decisionState) {
+  public void setDecisionState(DecisionState decisionState) {
     this.decisionState = decisionState;
   }
 }

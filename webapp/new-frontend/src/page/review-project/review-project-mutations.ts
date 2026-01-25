@@ -16,6 +16,7 @@ export type SaveDecisionRequest = {
   comment: string | null;
   status: string;
   includedInLocalizedFile: boolean;
+  decisionState: 'PENDING' | 'DECIDED';
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
   decisionNotes?: string | null;
@@ -116,6 +117,7 @@ export function useReviewProjectMutations(
           comment: action.request.comment,
           status: action.request.status,
           includedInLocalizedFile: action.request.includedInLocalizedFile,
+          decisionState: action.request.decisionState,
           expectedCurrentTmTextUnitVariantId: action.request.expectedCurrentTmTextUnitVariantId,
           overrideChangedCurrent: action.request.overrideChangedCurrent,
           decisionNotes: action.request.decisionNotes,

@@ -679,6 +679,7 @@ function DetailPane({
       comment: draftCommentNormalized,
       status: draftStatusApi.status,
       includedInLocalizedFile: draftStatusApi.includedInLocalizedFile,
+      decisionState: 'DECIDED',
       expectedCurrentTmTextUnitVariantId: snapshot.expectedCurrentVariantId,
       decisionNotes: draftDecisionNotesNormalized,
     });

@@ -84,6 +84,7 @@ export function ReviewProjectPage() {
             comment: action.request.comment,
             status: action.request.status,
             includedInLocalizedFile: action.request.includedInLocalizedFile,
+            decisionState: action.request.decisionState,
             expectedCurrentTmTextUnitVariantId: action.request.expectedCurrentTmTextUnitVariantId,
             overrideChangedCurrent: action.request.overrideChangedCurrent,
             decisionNotes: action.request.decisionNotes,

@@ -213,7 +213,7 @@ export const saveReviewProjectTextUnitDecision = async ({
   comment: string | null;
   status: string;
   includedInLocalizedFile: boolean;
-  decisionState?: 'PENDING' | 'DECIDED';
+  decisionState: 'PENDING' | 'DECIDED';
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
   decisionNotes?: string | null;

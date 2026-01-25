@@ -366,14 +366,13 @@ public class ReviewProjectService {
       if (includedInLocalizedFile == null) {
         throw new IllegalArgumentException("includedInLocalizedFile is required");
       }
-    } else if (decisionState == null) {
-      throw new IllegalArgumentException("decisionState is required when target is not provided");
     }
 
-    DecisionState effectiveDecisionState =
-        decisionState != null ? decisionState : DecisionState.DECIDED;
-    boolean requireCurrentVariantMatch =
-        hasTarget || effectiveDecisionState == DecisionState.DECIDED;
+    if (decisionState == null) {
+      throw new IllegalArgumentException("decisionState is required");
+    }
+
+    boolean requireCurrentVariantMatch = hasTarget || decisionState == DecisionState.DECIDED;
 
     ReviewProjectTextUnit textUnit =
         reviewProjectTextUnitRepository
@@ -413,7 +412,7 @@ public class ReviewProjectService {
         reviewProjectTextUnitDecisionRepository.findByReviewProjectTextUnitId(
             reviewProjectTextUnitId);
     if (!hasTarget
-        && effectiveDecisionState == DecisionState.PENDING
+        && decisionState == DecisionState.PENDING
         && existingDecision.isEmpty()) {
       return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
     }
@@ -451,7 +450,7 @@ public class ReviewProjectService {
       decision.setReviewedVariant(reviewedVariant);
       decision.setDecisionVariant(decidedVariant);
       decision.setNotes(decisionNotes);
-    } else if (effectiveDecisionState == DecisionState.DECIDED
+    } else if (decisionState == DecisionState.DECIDED
         && decision.getDecisionVariant() == null) {
       TMTextUnitVariant fallbackVariant =
           currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
@@ -459,7 +458,7 @@ public class ReviewProjectService {
       decision.setReviewedVariant(reviewedVariant);
     }
 
-    decision.setDecisionState(effectiveDecisionState);
+    decision.setDecisionState(decisionState);
     reviewProjectTextUnitDecisionRepository.save(decision);
     return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
   }

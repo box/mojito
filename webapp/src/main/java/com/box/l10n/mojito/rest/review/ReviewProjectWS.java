@@ -80,19 +80,9 @@ public class ReviewProjectWS {
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitDecisionRequest request)
       throws EntityWithIdNotFoundException {
-    DecisionState decisionState = null;
-    String decisionStateRaw = request.getDecisionState();
-    if (decisionStateRaw == null && request.getTarget() == null) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "decisionState is required when target is not provided");
-    }
-    if (decisionStateRaw != null) {
-      try {
-        decisionState = DecisionState.valueOf(decisionStateRaw);
-      } catch (IllegalArgumentException ex) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Invalid decisionState: " + decisionStateRaw, ex);
-      }
+    DecisionState decisionState = request.getDecisionState();
+    if (decisionState == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "decisionState is required");
     }
 
     try {
