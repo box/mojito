@@ -79,7 +79,6 @@ export function ReviewProjectPage() {
         let updated: ApiReviewProjectTextUnit;
         if (action.kind === 'save-decision') {
           updated = await saveReviewProjectTextUnitDecision({
-            projectId,
             textUnitId: action.request.textUnitId,
             target: action.request.target,
             comment: action.request.comment,
@@ -91,7 +90,6 @@ export function ReviewProjectPage() {
           });
         } else {
           updated = await setReviewProjectTextUnitDecisionState({
-            projectId,
             textUnitId: action.request.textUnitId,
             decisionState: action.request.decisionState,
             expectedCurrentTmTextUnitVariantId: action.request.expectedCurrentTmTextUnitVariantId,

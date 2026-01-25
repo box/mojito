@@ -198,28 +198,28 @@ export const fetchReviewProjectDetail = async (
 };
 
 export const saveReviewProjectTextUnitDecision = async ({
-  projectId,
   textUnitId,
   target,
   comment,
   status,
   includedInLocalizedFile,
+  decisionState,
   expectedCurrentTmTextUnitVariantId,
   overrideChangedCurrent = false,
   decisionNotes,
 }: {
-  projectId: number;
   textUnitId: number;
   target: string;
   comment: string | null;
   status: string;
   includedInLocalizedFile: boolean;
+  decisionState?: 'PENDING' | 'DECIDED';
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
   decisionNotes?: string | null;
 }): Promise<ApiReviewProjectTextUnit> => {
   const response = await fetch(
-    `/api/review-projects/${projectId}/text-units/${textUnitId}/decision`,
+    `/api/review-project-text-units/${textUnitId}/decision`,
     {
       method: 'POST',
       credentials: 'include',
@@ -229,6 +229,7 @@ export const saveReviewProjectTextUnitDecision = async ({
         comment,
         status,
         includedInLocalizedFile,
+        decisionState,
         expectedCurrentTmTextUnitVariantId,
         overrideChangedCurrent,
         decisionNotes,
@@ -259,20 +260,18 @@ export const saveReviewProjectTextUnitDecision = async ({
 };
 
 export const setReviewProjectTextUnitDecisionState = async ({
-  projectId,
   textUnitId,
   decisionState,
   expectedCurrentTmTextUnitVariantId,
   overrideChangedCurrent = false,
 }: {
-  projectId: number;
   textUnitId: number;
   decisionState: 'PENDING' | 'DECIDED';
   expectedCurrentTmTextUnitVariantId?: number | null;
   overrideChangedCurrent?: boolean;
 }): Promise<ApiReviewProjectTextUnit> => {
   const response = await fetch(
-    `/api/review-projects/${projectId}/text-units/${textUnitId}/decision-state`,
+    `/api/review-project-text-units/${textUnitId}/decision`,
     {
       method: 'POST',
       credentials: 'include',

@@ -75,60 +75,38 @@ public class ReviewProjectWS {
     return toDetailResponse(projectDetail);
   }
 
-  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/decision")
+  @PostMapping("/review-project-text-units/{textUnitId}/decision")
   public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> saveDecision(
-      @PathVariable Long projectId,
       @PathVariable Long textUnitId,
       @RequestBody ReviewProjectTextUnitDecisionRequest request)
       throws EntityWithIdNotFoundException {
+    DecisionState decisionState = null;
+    String decisionStateRaw = request.getDecisionState();
+    if (decisionStateRaw == null && request.getTarget() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "decisionState is required when target is not provided");
+    }
+    if (decisionStateRaw != null) {
+      try {
+        decisionState = DecisionState.valueOf(decisionStateRaw);
+      } catch (IllegalArgumentException ex) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Invalid decisionState: " + decisionStateRaw, ex);
+      }
+    }
+
     try {
       ReviewProjectTextUnitDetail detail =
           reviewProjectService.saveDecision(
-              projectId,
               textUnitId,
               request.getTarget(),
               request.getComment(),
               request.getStatus(),
               request.getIncludedInLocalizedFile(),
+              decisionState,
               request.getExpectedCurrentTmTextUnitVariantId(),
               Boolean.TRUE.equals(request.getOverrideChangedCurrent()),
               request.getDecisionNotes());
-      return ResponseEntity.ok(toTextUnitResponse(detail));
-    } catch (ReviewProjectCurrentVariantConflictException conflict) {
-      ReviewProjectTextUnitDetail currentTextUnit = conflict.getCurrentTextUnit();
-      return currentTextUnit == null
-          ? ResponseEntity.status(HttpStatus.CONFLICT).build()
-          : ResponseEntity.status(HttpStatus.CONFLICT).body(toTextUnitResponse(currentTextUnit));
-    }
-  }
-
-  @PostMapping("/review-projects/{projectId}/text-units/{textUnitId}/decision-state")
-  public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> setDecisionState(
-      @PathVariable Long projectId,
-      @PathVariable Long textUnitId,
-      @RequestBody ReviewProjectTextUnitDecisionStateRequest request)
-      throws EntityWithIdNotFoundException {
-    String decisionStateRaw = request.getDecisionState();
-    if (decisionStateRaw == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "decisionState is required");
-    }
-
-    final DecisionState decisionState;
-    try {
-      decisionState = DecisionState.valueOf(decisionStateRaw);
-    } catch (IllegalArgumentException ex) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Invalid decisionState: " + decisionStateRaw, ex);
-    }
-
-    try {
-      ReviewProjectTextUnitDetail detail =
-          reviewProjectService.setDecisionState(
-              projectId,
-              textUnitId,
-              decisionState,
-              request.getExpectedCurrentTmTextUnitVariantId(),
-              Boolean.TRUE.equals(request.getOverrideChangedCurrent()));
       return ResponseEntity.ok(toTextUnitResponse(detail));
     } catch (ReviewProjectCurrentVariantConflictException conflict) {
       ReviewProjectTextUnitDetail currentTextUnit = conflict.getCurrentTextUnit();

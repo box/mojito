@@ -111,7 +111,6 @@ export function useReviewProjectMutations(
       }
       if (action.kind === 'save-decision') {
         return saveReviewProjectTextUnitDecision({
-          projectId,
           textUnitId: action.request.textUnitId,
           target: action.request.target,
           comment: action.request.comment,
@@ -123,7 +122,6 @@ export function useReviewProjectMutations(
         });
       }
       return setReviewProjectTextUnitDecisionState({
-        projectId,
         textUnitId: action.request.textUnitId,
         decisionState: action.request.decisionState,
         expectedCurrentTmTextUnitVariantId: action.request.expectedCurrentTmTextUnitVariantId,
