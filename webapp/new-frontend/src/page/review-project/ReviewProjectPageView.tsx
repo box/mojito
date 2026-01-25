@@ -718,12 +718,15 @@ function DetailPane({
     requestSaveDecision();
   }, [requestSaveDecision]);
 
-  const isDecided = snapshot.decisionState === 'DECIDED';
-
-  const handleToggleDecisionState = useCallback(() => {
-    const nextState: DecisionStateChoice = isDecided ? 'PENDING' : 'DECIDED';
-    requestDecisionState(nextState);
-  }, [isDecided, requestDecisionState]);
+  const handleDecisionStateChange = useCallback(
+    (nextState: DecisionStateChoice) => {
+      if (nextState === snapshot.decisionState) {
+        return;
+      }
+      requestDecisionState(nextState);
+    },
+    [requestDecisionState, snapshot.decisionState],
+  );
 
   const handleUseCurrent = useCallback(() => {
     if (!isMutationActive) {
@@ -1126,14 +1129,30 @@ function DetailPane({
               <span>Saving…</span>
             </div>
             <div className="review-project-detail__editor-actions">
-              <button
-                type="button"
-                className="review-project-detail__actions-button"
-                onClick={handleToggleDecisionState}
-                disabled={isDirty || isSavingGlobal}
-              >
-                {isDecided ? 'Mark pending' : 'Mark decided'}
-              </button>
+              <div className="review-project-detail__decision-segmented" role="group">
+                <button
+                  type="button"
+                  className={`review-project-detail__decision-option${
+                    snapshot.decisionState === 'PENDING' ? ' is-active' : ''
+                  }`}
+                  onClick={() => handleDecisionStateChange('PENDING')}
+                  disabled={isDirty || isSavingGlobal}
+                  aria-pressed={snapshot.decisionState === 'PENDING'}
+                >
+                  Pending
+                </button>
+                <button
+                  type="button"
+                  className={`review-project-detail__decision-option${
+                    snapshot.decisionState === 'DECIDED' ? ' is-active' : ''
+                  }`}
+                  onClick={() => handleDecisionStateChange('DECIDED')}
+                  disabled={isDirty || isSavingGlobal}
+                  aria-pressed={snapshot.decisionState === 'DECIDED'}
+                >
+                  Decided
+                </button>
+              </div>
               <button
                 type="button"
                 className="review-project-detail__actions-button"

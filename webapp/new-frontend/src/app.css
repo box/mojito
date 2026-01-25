@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
   color-scheme: light;
   --app-shell-header-height: 2.5rem;
@@ -9,6 +11,7 @@
   --color-text-subtle: #9ca3af;
   --color-border: #e5e7eb;
   --color-accent: #1f7ae0;
+  --color-on-accent: #ffffff;
   --color-danger: #d03a3a;
   --color-surface-selected: rgba(31, 122, 224, 0.08);
   --color-focus-outline: rgba(31, 122, 224, 0.2);
@@ -62,6 +65,7 @@
     --color-text-subtle: #cbd5e1;
     --color-border: #1f2937;
     --color-accent: #60a5fa;
+    --color-on-accent: #ffffff;
     --color-danger: #ef4444;
     --color-surface-selected: rgba(96, 165, 250, 0.12);
     --color-focus-outline: rgba(96, 165, 250, 0.25);

@@ -1039,6 +1039,52 @@
   line-height: 1;
 }
 
+.review-project-detail__decision-segmented {
+  height: 1.75rem;
+  display: inline-flex;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.review-project-detail__decision-option {
+  height: 100%;
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.review-project-detail__decision-option + .review-project-detail__decision-option {
+  border-left: var(--border-width) solid var(--color-border);
+}
+
+.review-project-detail__decision-option.is-active {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.review-project-detail__decision-option:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.review-project-detail__decision-option.is-active:hover:not(:disabled) {
+  color: var(--color-on-accent);
+}
+
+.review-project-detail__decision-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .review-project-detail__conflict {
   padding: var(--space-3);
   border-radius: var(--radius-3);
