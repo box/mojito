@@ -216,6 +216,7 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
   );
 
   const layoutRef = useRef<HTMLDivElement>(null);
+  const detailPaneRef = useRef<HTMLDivElement>(null);
   const [listWidthPct, setListWidthPct] = useState(20);
   const [lastListWidthPct, setLastListWidthPct] = useState(20);
   const [isListCollapsed, setIsListCollapsed] = useState(false);
@@ -522,7 +523,7 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
             <Chevron direction={isListCollapsed ? 'right' : 'left'} />
           </button>
         </div>
-        <section className="review-project-page__detail-pane">
+        <section className="review-project-page__detail-pane" ref={detailPaneRef}>
           {selectedTextUnit ? (
             <DetailPane
               textUnit={selectedTextUnit}
@@ -532,6 +533,7 @@ export function ReviewProjectPageView({ projectId, project, mutations }: Props) 
               currentScreenshotIdx={selectedScreenshotIdx}
               onChangeScreenshotIdx={setSelectedScreenshotIdx}
               onOpenGallery={() => setIsScreenshotModalOpen(true)}
+              detailPaneRef={detailPaneRef}
             />
           ) : (
             <div className="review-project-page__empty-detail">No text unit selected</div>
@@ -602,6 +604,7 @@ function DetailPane({
   currentScreenshotIdx,
   onChangeScreenshotIdx,
   onOpenGallery,
+  detailPaneRef,
 }: {
   textUnit: ApiReviewProjectTextUnit;
   localeTag: string;
@@ -610,6 +613,7 @@ function DetailPane({
   currentScreenshotIdx: number;
   onChangeScreenshotIdx: (index: number) => void;
   onOpenGallery: () => void;
+  detailPaneRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const [isScreenshotsCollapsed, setIsScreenshotsCollapsed] = useState(false);
   const [heroHeight, setHeroHeight] = useState<number | null>(null);
@@ -745,17 +749,48 @@ function DetailPane({
   const conflictVariant = conflictTextUnit ? getEffectiveVariant(conflictTextUnit) : null;
   const conflictStatusKey = getStatusKey(conflictVariant);
 
-  useEffect(() => {
-    if (!heroRef.current || heroHeight != null || !screenshotImages.length) return;
-    const rect = heroRef.current.getBoundingClientRect();
-    const containerHeight = heroRef.current.parentElement?.clientHeight ?? rect.height;
-    if (containerHeight) {
-      const minHeight = 140;
-      const targetHeight = Math.max(minHeight, Math.floor(containerHeight * 0.4));
-      setHeroHeight(targetHeight);
-      setLastHeroHeight(targetHeight);
+  const recomputeHeroHeight = useCallback(() => {
+    if (!heroRef.current || !detailPaneRef.current || !screenshotImages.length) {
+      return;
     }
-  }, [heroHeight, screenshotImages.length]);
+    const containerHeight = detailPaneRef.current.clientHeight;
+    if (!containerHeight) {
+      return;
+    }
+    const minHeight = 140;
+    const maxHeight = Math.max(minHeight, Math.floor(containerHeight * 0.6));
+    const targetHeight = Math.min(maxHeight, Math.max(minHeight, Math.floor(containerHeight * 0.4)));
+    const clamp = (value: number) => Math.min(maxHeight, Math.max(minHeight, value));
+    setHeroHeight((prev) => (prev == null ? targetHeight : clamp(prev)));
+    setLastHeroHeight((prev) => (prev == null ? targetHeight : clamp(prev)));
+  }, [detailPaneRef, screenshotImages.length]);
+
+  useEffect(() => {
+    recomputeHeroHeight();
+  }, [recomputeHeroHeight, textUnit.id]);
+
+  useEffect(() => {
+    if (!detailPaneRef.current || !screenshotImages.length) {
+      return;
+    }
+    if (typeof ResizeObserver === 'undefined') {
+      recomputeHeroHeight();
+      return;
+    }
+    const observer = new ResizeObserver(() => {
+      recomputeHeroHeight();
+    });
+    observer.observe(detailPaneRef.current);
+    return () => observer.disconnect();
+  }, [detailPaneRef, recomputeHeroHeight, screenshotImages.length]);
+
+  useEffect(() => {
+    if (!screenshotImages.length) {
+      setHeroHeight(null);
+      setLastHeroHeight(null);
+      setIsScreenshotsCollapsed(false);
+    }
+  }, [screenshotImages.length]);
 
   useEffect(() => {
     if (isScreenshotsCollapsed) {
@@ -858,6 +893,8 @@ function DetailPane({
                       preload: 'metadata',
                       onClick: onOpenGallery,
                       ariaLabel: 'Open screenshot gallery',
+                      onLoad: recomputeHeroHeight,
+                      onLoadedMetadata: recomputeHeroHeight,
                     },
                   )}
                 </div>
@@ -897,7 +934,9 @@ function DetailPane({
             }
             const minHeight = 140;
             const containerHeight =
-              heroRef.current.parentElement?.clientHeight ?? window.innerHeight;
+              detailPaneRef.current?.clientHeight ??
+              heroRef.current.parentElement?.clientHeight ??
+              window.innerHeight;
             const maxHeight = Math.max(minHeight, Math.floor(containerHeight * 0.6));
             const onMove = (e: MouseEvent) => {
               const rawNext = Math.min(maxHeight, Math.max(0, e.clientY - rect.top));
@@ -1562,6 +1601,8 @@ type MediaRenderOptions = {
   preload?: 'none' | 'metadata' | 'auto';
   onClick?: () => void;
   ariaLabel?: string;
+  onLoad?: () => void;
+  onLoadedMetadata?: () => void;
 };
 
 const renderMedia = (key: string, className?: string, options: MediaRenderOptions = {}) => {
@@ -1597,11 +1638,22 @@ const renderMedia = (key: string, className?: string, options: MediaRenderOption
         loop={options.loop ?? false}
         playsInline
         preload={options.preload ?? 'metadata'}
+        onLoadedMetadata={options.onLoadedMetadata}
         {...interactiveProps}
       />
     );
   }
-  return <img key={url} className={baseClass} src={url} alt="" loading="lazy" {...interactiveProps} />;
+  return (
+    <img
+      key={url}
+      className={baseClass}
+      src={url}
+      alt=""
+      loading="lazy"
+      onLoad={options.onLoad}
+      {...interactiveProps}
+    />
+  );
 };
 
 const renderThumbMedia = (key: string) =>

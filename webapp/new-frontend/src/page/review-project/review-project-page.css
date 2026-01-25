@@ -663,6 +663,7 @@
   background: transparent;
   position: relative;
   min-height: 140px;
+  max-height: 60vh;
 }
 
 .review-project-detail__hero--has-shots {
