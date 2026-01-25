@@ -641,7 +641,7 @@
 
 .review-project-detail__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: var(--space-6);
   align-items: start;
 }
