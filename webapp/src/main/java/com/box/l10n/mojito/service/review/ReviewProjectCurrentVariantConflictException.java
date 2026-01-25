@@ -7,9 +7,7 @@ public class ReviewProjectCurrentVariantConflictException extends RuntimeExcepti
   private final ReviewProjectTextUnitDetail currentTextUnit;
 
   public ReviewProjectCurrentVariantConflictException(
-      Long expectedVariantId,
-      Long currentVariantId,
-      ReviewProjectTextUnitDetail currentTextUnit) {
+      Long expectedVariantId, Long currentVariantId, ReviewProjectTextUnitDetail currentTextUnit) {
     super("Current TM text unit variant changed");
     this.expectedVariantId = expectedVariantId;
     this.currentVariantId = currentVariantId;

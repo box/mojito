@@ -41,8 +41,7 @@ public class ReviewProjectTextUnitDecision extends AuditableEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "reviewed_variant_id",
-      foreignKey =
-          @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEWED_VARIANT"))
+      foreignKey = @ForeignKey(name = "FK__REVIEW_PROJECT_TEXT_UNIT_DECISION__REVIEWED_VARIANT"))
   private TMTextUnitVariant reviewedVariant;
 
   @Column(name = "notes", length = 4000)

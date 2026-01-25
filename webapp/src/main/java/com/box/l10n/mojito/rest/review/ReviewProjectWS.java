@@ -1,8 +1,8 @@
 package com.box.l10n.mojito.rest.review;
 
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
-import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
+import com.box.l10n.mojito.entity.review.ReviewProjectType;
 import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestCommand;
 import com.box.l10n.mojito.service.review.CreateReviewProjectRequestResult;
@@ -77,8 +77,7 @@ public class ReviewProjectWS {
 
   @PostMapping("/review-project-text-units/{textUnitId}/decision")
   public ResponseEntity<GetReviewProjectResponse.ReviewProjectTextUnit> saveDecision(
-      @PathVariable Long textUnitId,
-      @RequestBody ReviewProjectTextUnitDecisionRequest request)
+      @PathVariable Long textUnitId, @RequestBody ReviewProjectTextUnitDecisionRequest request)
       throws EntityWithIdNotFoundException {
     DecisionState decisionState = request.getDecisionState();
     if (decisionState == null) {
@@ -345,7 +344,9 @@ public class ReviewProjectWS {
             : new GetReviewProjectResponse.TmTextUnitVariant(
                 detail.decisionVariantId(),
                 detail.decisionVariantContent(),
-                detail.decisionVariantStatus() != null ? detail.decisionVariantStatus().name() : null,
+                detail.decisionVariantStatus() != null
+                    ? detail.decisionVariantStatus().name()
+                    : null,
                 detail.decisionVariantIncludedInLocalizedFile(),
                 detail.decisionVariantComment());
 
@@ -366,10 +367,6 @@ public class ReviewProjectWS {
             : null;
 
     return new GetReviewProjectResponse.ReviewProjectTextUnit(
-        detail.reviewProjectTextUnitId(),
-        tmTextUnit,
-        baselineVariant,
-        currentVariant,
-        decision);
+        detail.reviewProjectTextUnitId(), tmTextUnit, baselineVariant, currentVariant, decision);
   }
 }

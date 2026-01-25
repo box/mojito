@@ -8,9 +8,9 @@ import com.box.l10n.mojito.entity.review.ReviewProject;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest;
 import com.box.l10n.mojito.entity.review.ReviewProjectRequest_;
 import com.box.l10n.mojito.entity.review.ReviewProjectStatus;
-import com.box.l10n.mojito.entity.review.ReviewProject_;
 import com.box.l10n.mojito.entity.review.ReviewProjectTextUnitDecision.DecisionState;
 // TODO(JA) NO rest !!
+import com.box.l10n.mojito.entity.review.ReviewProject_;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -411,9 +411,7 @@ public class ReviewProjectService {
     Optional<ReviewProjectTextUnitDecision> existingDecision =
         reviewProjectTextUnitDecisionRepository.findByReviewProjectTextUnitId(
             reviewProjectTextUnitId);
-    if (!hasTarget
-        && decisionState == DecisionState.PENDING
-        && existingDecision.isEmpty()) {
+    if (!hasTarget && decisionState == DecisionState.PENDING && existingDecision.isEmpty()) {
       return fetchReviewProjectTextUnitDetail(reviewProjectTextUnitId);
     }
 
@@ -450,8 +448,7 @@ public class ReviewProjectService {
       decision.setReviewedVariant(reviewedVariant);
       decision.setDecisionVariant(decidedVariant);
       decision.setNotes(decisionNotes);
-    } else if (decisionState == DecisionState.DECIDED
-        && decision.getDecisionVariant() == null) {
+    } else if (decisionState == DecisionState.DECIDED && decision.getDecisionVariant() == null) {
       TMTextUnitVariant fallbackVariant =
           currentTmTextUnitVariant != null ? currentTmTextUnitVariant : baselineVariant;
       decision.setDecisionVariant(fallbackVariant);
@@ -515,7 +512,9 @@ public class ReviewProjectService {
             : new GetProjectDetailView.TmTextUnitVariant(
                 detail.decisionVariantId(),
                 detail.decisionVariantContent(),
-                detail.decisionVariantStatus() != null ? detail.decisionVariantStatus().name() : null,
+                detail.decisionVariantStatus() != null
+                    ? detail.decisionVariantStatus().name()
+                    : null,
                 detail.decisionVariantIncludedInLocalizedFile(),
                 detail.decisionVariantComment());
     boolean hasDecision =
