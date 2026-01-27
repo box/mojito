@@ -1041,7 +1041,9 @@ public class AssetExtractionService {
         .name(
             localBranchToEntityBranchConverter.branchEntityToLocalBranchName(
                 assetContent.getBranch()))
-        .createdAt(assetContent.getBranch().getCreatedDate())
+        .createdAt(
+            localBranchToEntityBranchConverter.branchEntityToLocalCreatedDate(
+                assetContent.getBranch()))
         .build();
   }
 

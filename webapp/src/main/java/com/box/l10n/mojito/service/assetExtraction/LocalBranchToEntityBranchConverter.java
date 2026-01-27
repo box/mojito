@@ -31,6 +31,17 @@ public class LocalBranchToEntityBranchConverter {
         : entityBranchNameToLocalBranchName(branch.getName());
   }
 
+  public ZonedDateTime entityBranchCreatedDateToLocalBranchCreatedDate(
+      ZonedDateTime localBranchCreatedDate) {
+    return localBranchCreatedDate == null ? NULL_BRANCH_DATE_PLACEHODLER : localBranchCreatedDate;
+  }
+
+  public ZonedDateTime branchEntityToLocalCreatedDate(com.box.l10n.mojito.entity.Branch branch) {
+    return branch == null
+        ? NULL_BRANCH_DATE_PLACEHODLER
+        : entityBranchCreatedDateToLocalBranchCreatedDate(branch.getCreatedDate());
+  }
+
   public Branch convertEntityBranchToLocaleBranch(com.box.l10n.mojito.entity.Branch b) {
     Branch.Builder builder = Branch.builder();
 
