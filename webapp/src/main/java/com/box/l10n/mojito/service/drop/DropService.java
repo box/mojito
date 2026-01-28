@@ -28,10 +28,8 @@ import com.box.l10n.mojito.service.tm.UpdateTMWithXLIFFResult;
 import com.box.l10n.mojito.service.translationkit.TranslationKitAsXliff;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Stream;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.exceptions.OkapiIOException;
 import org.hibernate.Hibernate;
@@ -511,23 +509,25 @@ public class DropService {
     final Page<Drop> drops = dropRepository.findAll(spec, pageable);
     drops.forEach(
         drop -> {
-          Hibernate.initialize(drop.getCreatedByUser());
-          if (drop.getRepository() != null) {
-            Hibernate.initialize(drop.getRepository());
-            Hibernate.initialize(drop.getRepository().getCreatedByUser());
-          }
-          if (drop.getImportPollableTask() != null) {
-            Hibernate.initialize(drop.getImportPollableTask());
-            Hibernate.initialize(drop.getImportPollableTask().getSubTasks());
-          }
-          if (drop.getExportPollableTask() != null) {
-            Hibernate.initialize(drop.getExportPollableTask());
-            Hibernate.initialize(drop.getExportPollableTask().getSubTasks());
-          }
-          Hibernate.initialize(drop.getTranslationKits());
-          if (drop.getTranslationKits() != null) {
-            drop.getTranslationKits().forEach(tk -> Hibernate.initialize(tk.getLocale()));
-          }
+          Stream.ofNullable(drop.getRepository())
+              .peek(Hibernate::initialize)
+              .map(Repository::getCreatedByUser)
+              .forEach(Hibernate::initialize);
+
+          Stream.of(drop.getImportPollableTask(), drop.getExportPollableTask())
+              .filter(Objects::nonNull)
+              .peek(Hibernate::initialize)
+              .map(PollableTask::getSubTasks)
+              .forEach(Hibernate::initialize);
+
+          Stream.ofNullable(drop.getTranslationKits())
+              .peek(Hibernate::initialize)
+              .flatMap(Collection::stream)
+              .filter(Objects::nonNull)
+              .map(TranslationKit::getLocale)
+              .forEach(Hibernate::initialize);
+
+          Stream.ofNullable(drop.getCreatedByUser()).forEach(Hibernate::initialize);
         });
     return drops;
   }
