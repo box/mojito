@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
-import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBranchConverter.NULL_BRANCH_DATE_PLACEHODLER;
+import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBranchConverter.NULL_BRANCH_DATE_PLACEHOLDER;
 import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBranchConverter.NULL_BRANCH_TEXT_PLACEHOLDER;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -56,7 +56,7 @@ public class MultiBranchStateServiceTest extends ServiceTestBase {
                 ImmutableSet.of(
                     Branch.builder()
                         .name(NULL_BRANCH_TEXT_PLACEHOLDER)
-                        .createdAt(NULL_BRANCH_DATE_PLACEHODLER)
+                        .createdAt(NULL_BRANCH_DATE_PLACEHOLDER)
                         .build()))
             .withBranchStateTextUnits(
                 ImmutableList.of(
