@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.search.*;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import jakarta.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,9 +82,11 @@ public class DropTestData {
   public RepositoryLocale repoLocaleKoKR;
 
   TestIdWatcher testIdWatcher;
+  public final List<String> bcp47Tags;
 
-  public DropTestData(TestIdWatcher testIdWatcher) {
+  public DropTestData(TestIdWatcher testIdWatcher, List<String> bcp47Tags) {
     this.testIdWatcher = testIdWatcher;
+    this.bcp47Tags = Collections.unmodifiableList(bcp47Tags);
   }
 
   @PostConstruct
@@ -192,8 +195,7 @@ public class DropTestData {
     assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
   }
 
-  public List<TextUnitDTO> getTextUnitsForStatus(
-      List<String> bcp47Tags, StatusFilter statusFilter) {
+  public List<TextUnitDTO> getTextUnitsForStatus(StatusFilter statusFilter) {
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
     textUnitSearcherParameters.setStatusFilter(statusFilter);
