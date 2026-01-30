@@ -101,9 +101,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
 
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(dropTestData.repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Check inital number of untranslated units");
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
@@ -163,11 +161,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
 
-    Repository repository = dropTestData.repository;
-
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Check inital number of untranslated units");
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
@@ -218,11 +212,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
 
-    Repository repository = dropTestData.repository;
-
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Check inital number of untranslated units");
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
@@ -287,9 +277,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = createDataForReview();
 
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(dropTestData.repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
     exportDropConfig.setType(TranslationKit.Type.REVIEW);
 
     logger.debug("Check inital number of needs review");
@@ -340,11 +328,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR"));
 
-    Repository repository = dropTestData.repository;
-
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -405,8 +389,6 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ja-JP"));
 
-    Repository repository = dropTestData.repository;
-
     // make French be fully translated and Japanese not
     dropTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
     tmService.addCurrentTMTextUnitVariant(
@@ -414,9 +396,7 @@ public class DropServiceTest extends ServiceTestBase {
         localeService.findByBcp47Tag("fr-FR").getId(),
         "French stuff here.");
 
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Check inital number of untranslated units");
     checkNumberOfUntranslatedTextUnit(dropTestData, 2);
@@ -800,11 +780,7 @@ public class DropServiceTest extends ServiceTestBase {
       throws DropExporterException, InterruptedException, ExecutionException, CancelDropException {
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR"));
 
-    Repository repository = dropTestData.repository;
-
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Check inital number of untranslated units");
     checkNumberOfUntranslatedTextUnit(dropTestData, 1);
@@ -843,11 +819,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR"));
 
-    Repository repository = dropTestData.repository;
-
-    ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
-    exportDropConfig.setBcp47Tags(dropTestData.bcp47Tags);
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Check initial number of untranslated units");
     checkNumberOfUntranslatedTextUnit(dropTestData, 1);
