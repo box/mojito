@@ -15,13 +15,14 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.search.*;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import jakarta.annotation.PostConstruct;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +56,7 @@ public class DropTestData {
 
   @Autowired RepositoryLocaleRepository repositoryLocaleRepository;
 
-  @Autowired PluralFormService pluralFormService;
+  @Autowired TextUnitSearcher textUnitSearcher;
 
   public Repository repository;
   public TM tm;
@@ -189,5 +190,16 @@ public class DropTestData {
     assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
         assetExtraction.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
     assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
+  }
+
+  public List<TextUnitDTO> getTextUnitsForStatus(
+      List<String> bcp47Tags, StatusFilter statusFilter) {
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repository.getId());
+    textUnitSearcherParameters.setStatusFilter(statusFilter);
+    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+    textUnitSearcherParameters.setLocaleTags(bcp47Tags);
+
+    return textUnitSearcher.search(textUnitSearcherParameters);
   }
 }
