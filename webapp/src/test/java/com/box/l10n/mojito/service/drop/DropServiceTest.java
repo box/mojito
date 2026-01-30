@@ -32,7 +32,6 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
-import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -106,9 +105,9 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void forNotTranslated() throws Exception {
 
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
@@ -175,9 +174,9 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void forTranslation() throws Exception {
 
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
@@ -235,9 +234,9 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void forTranslationWithTranslationAddedAfterExport() throws Exception {
 
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
@@ -268,8 +267,8 @@ public class DropServiceTest extends ServiceTestBase {
 
     TMTextUnitVariant translationAddedAfterTheImport =
         tmService.addCurrentTMTextUnitVariant(
-            tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
-            tmTestData.frFR.getId(),
+            dropTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
+            dropTestData.frFR.getId(),
             "string added while the drop is translated");
 
     logger.debug("Import drop");
@@ -297,8 +296,8 @@ public class DropServiceTest extends ServiceTestBase {
         "Check that the current translation is the one that was added after the export and before the import and not coming from the TK");
     TMTextUnitCurrentVariant currentTranslation =
         tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            tmTestData.frFR.getId(),
-            tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId());
+            dropTestData.frFR.getId(),
+            dropTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId());
 
     assertEquals(
         "The translation that has been added between the export and import must be kept",
@@ -353,13 +352,13 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Transactional
   Repository createDataForReview() {
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
-    Repository repository = tmTestData.repository;
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
+    Repository repository = dropTestData.repository;
     logger.debug("Mark on translated string as need review");
     tmService.addTMTextUnitCurrentVariant(
-        tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
-        tmTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
-        tmTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
+        dropTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
+        dropTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
+        dropTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
         null,
         TMTextUnitVariant.Status.REVIEW_NEEDED);
     return repository;
@@ -368,9 +367,9 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void allWithSevereError() throws Exception {
 
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
@@ -436,14 +435,14 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void forNoEmptyXliffs() throws Exception {
 
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     // make French be fully translated and Japanese not
-    tmTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
+    dropTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
     tmService.addCurrentTMTextUnitVariant(
-        tmTestData.addTMTextUnit2.getId(),
+        dropTestData.addTMTextUnit2.getId(),
         localeService.findByBcp47Tag("fr-FR").getId(),
         "French stuff here.");
 
@@ -847,9 +846,9 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void testCancelDrop()
       throws DropExporterException, InterruptedException, ExecutionException, CancelDropException {
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
@@ -893,9 +892,9 @@ public class DropServiceTest extends ServiceTestBase {
     DropService dropServiceSpy = spy(dropService);
     doReturn(true).when(dropServiceSpy).isDropBeingProcessed(any(Drop.class));
 
-    TMTestData tmTestData = new TMTestData(testIdWatcher);
+    DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = tmTestData.repository;
+    Repository repository = dropTestData.repository;
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
