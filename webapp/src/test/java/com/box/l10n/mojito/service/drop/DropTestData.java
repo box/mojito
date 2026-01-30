@@ -186,15 +186,6 @@ public class DropTestData {
             addTMTextUnit3.getId(), frCA.getId(), "Content3 fr-CA");
   }
 
-  @Transactional
-  public void addTextUnit(String name, String content, String comment) {
-    tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
-    assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
-    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
-        assetExtraction.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-    assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
-  }
-
   public List<TextUnitDTO> getTextUnitsForStatus(StatusFilter statusFilter) {
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
