@@ -204,4 +204,11 @@ public class DropTestData {
 
     return textUnitSearcher.search(textUnitSearcherParameters);
   }
+
+  public ExportDropConfig getExportDropConfig() {
+    ExportDropConfig exportDropConfig = new ExportDropConfig();
+    exportDropConfig.setRepositoryId(repository.getId());
+    exportDropConfig.setBcp47Tags(bcp47Tags);
+    return exportDropConfig;
+  }
 }
