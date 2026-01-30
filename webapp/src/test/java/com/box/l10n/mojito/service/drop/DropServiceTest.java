@@ -35,9 +35,6 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.XliffUtils;
@@ -80,8 +77,6 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Autowired DropExporterService dropExporterService;
 
-  @Autowired TextUnitSearcher textUnitSearcher;
-
   @Autowired LocaleService localeService;
 
   @Autowired TranslationKitRepository translationKitRepository;
@@ -107,19 +102,17 @@ public class DropServiceTest extends ServiceTestBase {
 
     DropTestData dropTestData = new DropTestData(testIdWatcher);
 
-    Repository repository = dropTestData.repository;
-
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
     bcp47Tags.add("ko-KR");
     bcp47Tags.add("ja-JP");
 
     ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
+    exportDropConfig.setRepositoryId(dropTestData.repository.getId());
     exportDropConfig.setBcp47Tags(bcp47Tags);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 4);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -142,7 +135,7 @@ public class DropServiceTest extends ServiceTestBase {
     pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
 
     logger.debug("Check everything is still untranslated");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 4);
     checkTranslationKitImported(drop.getId(), false);
 
     logger.debug("Force complete");
@@ -188,7 +181,7 @@ public class DropServiceTest extends ServiceTestBase {
     exportDropConfig.setBcp47Tags(bcp47Tags);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 4);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -211,7 +204,7 @@ public class DropServiceTest extends ServiceTestBase {
     pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
 
     logger.debug("Check everything is now translated");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 0);
     checkImportedFilesContent(drop, 1);
     checkTranslationKitStatistics(drop);
 
@@ -225,7 +218,7 @@ public class DropServiceTest extends ServiceTestBase {
     pollableTaskService.waitForPollableTask(startImportDrop3.getPollableTask().getId(), 60000L);
 
     logger.debug("Check everything is now translated");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 0);
 
     checkImportedFilesContent(drop, 2);
     checkTranslationKitStatistics(drop);
@@ -248,7 +241,7 @@ public class DropServiceTest extends ServiceTestBase {
     exportDropConfig.setBcp47Tags(bcp47Tags);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 4);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -279,7 +272,7 @@ public class DropServiceTest extends ServiceTestBase {
     pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
 
     logger.debug("Check everything is now translated");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 0);
 
     checkImportedFilesContent(drop, 1);
 
@@ -308,7 +301,7 @@ public class DropServiceTest extends ServiceTestBase {
   @Test
   public void forReview() throws Exception {
 
-    Repository repository = createDataForReview();
+    DropTestData dropTestData = createDataForReview();
 
     List<String> bcp47Tags = new ArrayList<>();
     bcp47Tags.add("fr-FR");
@@ -316,12 +309,12 @@ public class DropServiceTest extends ServiceTestBase {
     bcp47Tags.add("ja-JP");
 
     ExportDropConfig exportDropConfig = new ExportDropConfig();
-    exportDropConfig.setRepositoryId(repository.getId());
+    exportDropConfig.setRepositoryId(dropTestData.repository.getId());
     exportDropConfig.setBcp47Tags(bcp47Tags);
     exportDropConfig.setType(TranslationKit.Type.REVIEW);
 
     logger.debug("Check inital number of needs review");
-    checkNumberOfNeedsReviewTextUnit(repository, bcp47Tags, 1);
+    checkNumberOfNeedsReviewTextUnit(dropTestData, bcp47Tags, 1);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -345,13 +338,13 @@ public class DropServiceTest extends ServiceTestBase {
     pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
 
     logger.debug("Check everything is now translated");
-    checkNumberOfNeedsReviewTextUnit(repository, bcp47Tags, 0);
+    checkNumberOfNeedsReviewTextUnit(dropTestData, bcp47Tags, 0);
 
     checkImportedFilesForReviewContent(drop);
   }
 
   @Transactional
-  Repository createDataForReview() {
+  DropTestData createDataForReview() {
     DropTestData dropTestData = new DropTestData(testIdWatcher);
     Repository repository = dropTestData.repository;
     logger.debug("Mark on translated string as need review");
@@ -361,7 +354,7 @@ public class DropServiceTest extends ServiceTestBase {
         dropTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
         null,
         TMTextUnitVariant.Status.REVIEW_NEEDED);
-    return repository;
+    return dropTestData;
   }
 
   @Test
@@ -455,7 +448,7 @@ public class DropServiceTest extends ServiceTestBase {
     exportDropConfig.setBcp47Tags(bcp47Tags);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 2);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 2);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -489,26 +482,16 @@ public class DropServiceTest extends ServiceTestBase {
   }
 
   public void checkNumberOfUntranslatedTextUnit(
-      Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
-    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setRepositoryIds(repository.getId());
-    textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
-    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-    textUnitSearcherParameters.setLocaleTags(bcp47Tags);
-
-    List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+      DropTestData dropTestData, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
+    List<TextUnitDTO> search =
+        dropTestData.getTextUnitsForStatus(bcp47Tags, StatusFilter.UNTRANSLATED);
     assertEquals(expectedNumberOfUnstranslated, search.size());
   }
 
   public void checkNumberOfNeedsReviewTextUnit(
-      Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
-    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setRepositoryIds(repository.getId());
-    textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NEEDED);
-    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-    textUnitSearcherParameters.setLocaleTags(bcp47Tags);
-
-    List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+      DropTestData dropTestData, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
+    List<TextUnitDTO> search =
+        dropTestData.getTextUnitsForStatus(bcp47Tags, StatusFilter.REVIEW_NEEDED);
     assertEquals(expectedNumberOfUnstranslated, search.size());
   }
 
@@ -858,7 +841,7 @@ public class DropServiceTest extends ServiceTestBase {
     exportDropConfig.setBcp47Tags(bcp47Tags);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 1);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 1);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
@@ -904,7 +887,7 @@ public class DropServiceTest extends ServiceTestBase {
     exportDropConfig.setBcp47Tags(bcp47Tags);
 
     logger.debug("Check initial number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 1);
+    checkNumberOfUntranslatedTextUnit(dropTestData, bcp47Tags, 1);
 
     logger.debug("Create an initial drop for the repository");
     PollableFuture<Drop> startExportProcess =
