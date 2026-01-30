@@ -96,6 +96,18 @@ public class DropServiceTest extends ServiceTestBase {
     assertNotNull(createDrop.getCreatedByUser());
   }
 
+  public <T> PollableFuture<T> awaitPollableProcess(PollableFuture<T> process)
+      throws InterruptedException, PollableTaskException {
+    String processName = process.getClass().getName();
+    logger.debug("Starting process [{}]", processName);
+    PollableTask pollableTask = process.getPollableTask();
+    Long taskId = pollableTask.getId();
+    logger.debug("Wait for process [{}] task [{}] to finish", processName, taskId);
+    pollableTaskService.waitForPollableTask(taskId, 600000L);
+    logger.debug("Process [{}] finished", processName);
+    return process;
+  }
+
   @Test
   public void forNotTranslated() throws Exception {
 
@@ -107,24 +119,18 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box without updating the state");
-    Drop drop = startExportProcess.get();
     localizeDropFiles(drop, 1, "new", false);
 
     logger.debug("Import drop");
-    PollableFuture<Void> startImportDrop =
-        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-
-    logger.debug("Wait for import to finish");
-    pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is still untranslated");
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
@@ -167,24 +173,18 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box");
-    Drop drop = startExportProcess.get();
     localizeDropFiles(drop, 1);
 
     logger.debug("Import drop");
-    PollableFuture<Void> startImportDrop =
-        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-
-    logger.debug("Wait for import to finish");
-    pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
     checkNumberOfUntranslatedTextUnit(dropTestData, 0);
@@ -194,11 +194,8 @@ public class DropServiceTest extends ServiceTestBase {
     logger.debug(
         "Perform a third import drop with changes (must be able to re-import as many time as wanted)");
     localizeDropFiles(drop, 2);
-    PollableFuture<Void> startImportDrop3 =
-        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-
-    logger.debug("Wait for import to finish");
-    pollableTaskService.waitForPollableTask(startImportDrop3.getPollableTask().getId(), 60000L);
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
     checkNumberOfUntranslatedTextUnit(dropTestData, 0);
@@ -218,16 +215,13 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfUntranslatedTextUnit(dropTestData, 4);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box");
-    Drop drop = startExportProcess.get();
     localizeDropFiles(drop, 1);
 
     logger.debug("Translate one of the entry, will check later that this string wasn't overriden");
@@ -239,11 +233,8 @@ public class DropServiceTest extends ServiceTestBase {
             "string added while the drop is translated");
 
     logger.debug("Import drop");
-    PollableFuture<Void> startImportDrop =
-        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-
-    logger.debug("Wait for import to finish");
-    pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
     checkNumberOfUntranslatedTextUnit(dropTestData, 0);
@@ -253,11 +244,8 @@ public class DropServiceTest extends ServiceTestBase {
     checkTranslationKitStatistics(drop);
 
     logger.debug("Perform a second import drop (must be able to re-import as many time as wanted)");
-    PollableFuture<Void> startImportDrop2 =
-        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-
-    logger.debug("Wait for import to finish");
-    pollableTaskService.waitForPollableTask(startImportDrop2.getPollableTask().getId(), 60000L);
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug(
         "Check that the current translation is the one that was added after the export and before the import and not coming from the TK");
@@ -284,25 +272,19 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfNeedsReviewTextUnit(dropTestData, 1);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box");
-    Drop drop = startExportProcess.get();
 
     reviewDropFiles(drop);
 
     logger.debug("Import drop");
-    PollableFuture<Void> startImportDrop =
-        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-
-    logger.debug("Wait for import to finish");
-    pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
     checkNumberOfNeedsReviewTextUnit(dropTestData, 0);
@@ -331,16 +313,13 @@ public class DropServiceTest extends ServiceTestBase {
     ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box");
-    Drop drop = startExportProcess.get();
     localizeDropFiles(drop, 1, "translated", true); // introduce syntax error!
 
     logger.debug("Import drop");
@@ -349,7 +328,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     logger.debug("Wait for import to finish");
     try {
-      pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+      awaitPollableProcess(startImportDrop);
       fail();
     } catch (PollableTaskException pte) {
       PollableTask importPollableTask =
@@ -372,7 +351,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     logger.debug("Wait for import to finish");
     try {
-      pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+      awaitPollableProcess(startImportDrop);
       fail();
     } catch (PollableTaskException pte) {
       PollableTask importPollableTask =
@@ -402,16 +381,13 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfUntranslatedTextUnit(dropTestData, 2);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box without updating the state");
-    Drop drop = startExportProcess.get();
 
     // Make sure no French xliff was generated
     assertFalse(
@@ -786,26 +762,18 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfUntranslatedTextUnit(dropTestData, 1);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
-
-    PollableTask pollableTask = startExportProcess.getPollableTask();
-
-    logger.debug("Wait for export to finish");
-    pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
     logger.debug("Drop export finished, localize files in Box");
-    Drop drop = startExportProcess.get();
 
-    PollableFuture<Drop> dropPollableFuture =
-        dropService.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK);
-    PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
-    pollableTaskService.getPollableTask(cancelDropPollableTask.getId());
+    Drop canceledDrop =
+        awaitPollableProcess(dropService.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
-    logger.debug("Wait for cancellation to finish");
-    pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 600000L);
-
-    Drop canceledDrop = dropPollableFuture.get();
     Assert.assertTrue("Drop should be canceled", canceledDrop.getCanceled());
   }
 
@@ -825,17 +793,13 @@ public class DropServiceTest extends ServiceTestBase {
     checkNumberOfUntranslatedTextUnit(dropTestData, 1);
 
     logger.debug("Create an initial drop for the repository");
-    PollableFuture<Drop> startExportProcess =
-        dropServiceSpy.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+    Drop drop =
+        awaitPollableProcess(
+                dropServiceSpy.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
 
-    Drop drop = startExportProcess.get();
-
-    PollableFuture<Drop> dropPollableFuture =
-        dropServiceSpy.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK);
-    PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
-
-    logger.debug("Wait for cancellation to finish");
-    pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 600000L);
+    awaitPollableProcess(dropServiceSpy.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK));
   }
 
   @Test
@@ -845,19 +809,17 @@ public class DropServiceTest extends ServiceTestBase {
     // don't create any drops
     Long nonExistentDropId = 9999L;
 
-    PollableFuture<Drop> dropPollableFuture =
+    PollableFuture<Drop> startCancelDrop =
         dropService.cancelDrop(nonExistentDropId, PollableTask.INJECT_CURRENT_TASK);
-    PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
-    pollableTaskService.getPollableTask(cancelDropPollableTask.getId());
 
     try {
-      pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 60000L);
+      awaitPollableProcess(startCancelDrop);
       fail();
     } catch (PollableTaskException pte) {
-      PollableTask importPollableTask =
-          pollableTaskService.getPollableTask(cancelDropPollableTask.getId());
+      PollableTask cancelPollableTask =
+          pollableTaskService.getPollableTask(startCancelDrop.getPollableTask().getId());
       assertTrue(
-          importPollableTask
+          cancelPollableTask
               .getErrorMessage()
               .contains("Drop with ID [" + nonExistentDropId + "] does not exist"));
     }
