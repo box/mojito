@@ -257,6 +257,36 @@ public class DropServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void forTranslationLargeXliffFile() throws Exception {
+    List<String> locales = List.of("fr-FR");
+    int unitCount = 100;
+
+    DropTestData dropTestData =
+        DropTestData.createWithGeneratedUnits(testIdWatcher, locales, unitCount);
+
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
+
+    logger.debug("Check inital number of untranslated units");
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, locales.size() * unitCount);
+
+    logger.debug("Create an initial drop for the repository");
+    Drop drop =
+        awaitPollableProcess(
+                dropService.startDropExportProcess(
+                    exportDropConfig, PollableTask.INJECT_CURRENT_TASK))
+            .get();
+
+    localizeDropFiles(drop, 1);
+
+    logger.debug("Import drop");
+    awaitPollableProcess(
+        dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
+
+    logger.debug("Check everything is now translated");
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 0);
+  }
+
+  @Test
   public void forReview() throws Exception {
     List<String> locales = List.of("fr-FR", "ko-KR", "ja-JP");
 

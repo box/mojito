@@ -13,6 +13,7 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.search.*;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.*;
+import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,21 +71,46 @@ public class DropTestData {
     data.setLocaleMapping("fr-FR", "fr-CA", false);
 
     data.createUnits(
-        new TextUnitDefinition(
-            "zuora_error_message_verify_state_province",
-            "Please enter a valid state, region or province",
-            "Comment1"),
-        new TextUnitDefinition("TEST2", "Content2", "Comment2"));
+        List.of(
+            new TextUnitDefinition(
+                "zuora_error_message_verify_state_province",
+                "Please enter a valid state, region or province",
+                "Comment1"),
+            new TextUnitDefinition("TEST2", "Content2", "Comment2")));
     data.createTranslations(
         "ko-KR",
-        new TranslationDefinition(
-            "zuora_error_message_verify_state_province", "올바른 국가, 지역 또는 시/도를 입력하십시오."));
+        List.of(
+            new TranslationDefinition(
+                "zuora_error_message_verify_state_province", "올바른 국가, 지역 또는 시/도를 입력하십시오.")));
     data.createTranslations(
         "fr-FR",
-        new TranslationDefinition(
-            "zuora_error_message_verify_state_province",
-            "Veuillez indiquer un état, une région ou une province valide."));
-    data.createTranslations("fr-CA", new TranslationDefinition("TEST2", "Content2 fr-CA"));
+        List.of(
+            new TranslationDefinition(
+                "zuora_error_message_verify_state_province",
+                "Veuillez indiquer un état, une région ou une province valide.")));
+    data.createTranslations("fr-CA", List.of(new TranslationDefinition("TEST2", "Content2 fr-CA")));
+    return data;
+  }
+
+  @Transactional
+  public static DropTestData createWithGeneratedUnits(
+      TestIdWatcher testIdWatcher, List<String> locales, int unitCount) throws Exception {
+    var data = new DropTestData(testIdWatcher);
+    data.createRepository();
+    for (var localeTag : locales) {
+      data.addLocale(localeTag);
+    }
+
+    data.createUnits(
+        IntStream.range(0, unitCount)
+            .mapToObj(
+                i ->
+                    new TextUnitDefinition(
+                        String.format("generated_unit_id_%,d", i),
+                        String.format("Content of generated unit %,d", i),
+                        String.format("Comment for generated unit %,d", i)))
+            .toList());
+
     return data;
   }
 
@@ -125,7 +151,7 @@ public class DropTestData {
   }
 
   @Transactional
-  public void createUnits(TextUnitDefinition... textUnits) {
+  public void createUnits(Collection<TextUnitDefinition> textUnits) {
     asset =
         assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
     assetExtraction = new AssetExtraction();
@@ -150,7 +176,7 @@ public class DropTestData {
   }
 
   @Transactional
-  public void createTranslations(String localeTag, TranslationDefinition... translations) {
+  public void createTranslations(String localeTag, Collection<TranslationDefinition> translations) {
     var locale = findLocaleForTag(localeTag);
     if (Objects.isNull(addCurrentTMTextUnitVariants)) {
       addCurrentTMTextUnitVariants = new HashMap<>();
