@@ -11,13 +11,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
-import com.box.l10n.mojito.entity.Drop;
-import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
-import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
@@ -46,7 +41,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -110,13 +104,14 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Test
   public void forNotTranslated() throws Exception {
+    List<String> locales = List.of("fr-FR", "ko-KR", "ja-JP");
 
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 4);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -133,7 +128,7 @@ public class DropServiceTest extends ServiceTestBase {
         dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is still untranslated");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 4);
     checkTranslationKitImported(drop.getId(), false);
 
     logger.debug("Force complete");
@@ -164,13 +159,14 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Test
   public void forTranslation() throws Exception {
+    List<String> locales = List.of("fr-FR", "ko-KR", "ja-JP");
 
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 4);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -187,7 +183,7 @@ public class DropServiceTest extends ServiceTestBase {
         dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 0);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 0);
     checkImportedFilesContent(drop, 1);
     checkTranslationKitStatistics(drop);
 
@@ -198,7 +194,7 @@ public class DropServiceTest extends ServiceTestBase {
         dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 0);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 0);
 
     checkImportedFilesContent(drop, 2);
     checkTranslationKitStatistics(drop);
@@ -206,13 +202,14 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Test
   public void forTranslationWithTranslationAddedAfterExport() throws Exception {
+    List<String> locales = List.of("fr-FR", "ko-KR", "ja-JP");
 
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 4);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 4);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -225,19 +222,20 @@ public class DropServiceTest extends ServiceTestBase {
     localizeDropFiles(drop, 1);
 
     logger.debug("Translate one of the entry, will check later that this string wasn't overriden");
+    Long tmTextUnitId =
+        dropTestData.tmTextUnits.get("zuora_error_message_verify_state_province").getId();
+    Long localeId = dropTestData.findLocaleForTag("fr-FR").getId();
 
     TMTextUnitVariant translationAddedAfterTheImport =
         tmService.addCurrentTMTextUnitVariant(
-            dropTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
-            dropTestData.frFR.getId(),
-            "string added while the drop is translated");
+            tmTextUnitId, localeId, "string added while the drop is translated");
 
     logger.debug("Import drop");
     awaitPollableProcess(
         dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 0);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 0);
 
     checkImportedFilesContent(drop, 1);
 
@@ -250,9 +248,7 @@ public class DropServiceTest extends ServiceTestBase {
     logger.debug(
         "Check that the current translation is the one that was added after the export and before the import and not coming from the TK");
     TMTextUnitCurrentVariant currentTranslation =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            dropTestData.frFR.getId(),
-            dropTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId());
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
 
     assertEquals(
         "The translation that has been added between the export and import must be kept",
@@ -262,14 +258,32 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Test
   public void forReview() throws Exception {
+    List<String> locales = List.of("fr-FR", "ko-KR", "ja-JP");
 
-    DropTestData dropTestData = createDataForReview();
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    logger.debug("Mark on translated string as need review");
+    Long tmTextUnitId =
+        dropTestData.tmTextUnits.get("zuora_error_message_verify_state_province").getId();
+    Locale locale = dropTestData.findLocaleForTag("fr-FR");
+    String currentTranslation =
+        dropTestData
+            .addCurrentTMTextUnitVariants
+            .get(locale)
+            .get("zuora_error_message_verify_state_province")
+            .getContent();
+    tmService.addTMTextUnitCurrentVariant(
+        tmTextUnitId,
+        locale.getId(),
+        currentTranslation,
+        null,
+        TMTextUnitVariant.Status.REVIEW_NEEDED);
+
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
     exportDropConfig.setType(TranslationKit.Type.REVIEW);
 
     logger.debug("Check inital number of needs review");
-    checkNumberOfNeedsReviewTextUnit(dropTestData, 1);
+    checkNumberOfNeedsReviewTextUnit(dropTestData, locales, 1);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -287,30 +301,18 @@ public class DropServiceTest extends ServiceTestBase {
         dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK));
 
     logger.debug("Check everything is now translated");
-    checkNumberOfNeedsReviewTextUnit(dropTestData, 0);
+    checkNumberOfNeedsReviewTextUnit(dropTestData, locales, 0);
 
     checkImportedFilesForReviewContent(drop);
   }
 
-  @Transactional
-  DropTestData createDataForReview() {
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ko-KR", "ja-JP"));
-    logger.debug("Mark on translated string as need review");
-    tmService.addTMTextUnitCurrentVariant(
-        dropTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
-        dropTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
-        dropTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
-        null,
-        TMTextUnitVariant.Status.REVIEW_NEEDED);
-    return dropTestData;
-  }
-
   @Test
   public void allWithSevereError() throws Exception {
+    List<String> locales = List.of("fr-FR");
 
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR"));
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -365,20 +367,24 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Test
   public void forNoEmptyXliffs() throws Exception {
+    List<String> locales = List.of("fr-FR", "ja-JP");
 
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR", "ja-JP"));
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
     // make French be fully translated and Japanese not
-    dropTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
+    Locale locale = dropTestData.findLocaleForTag("fr-FR");
+    dropTestData
+        .addCurrentTMTextUnitVariants
+        .get(locale)
+        .get("zuora_error_message_verify_state_province")
+        .setStatus(Status.APPROVED);
     tmService.addCurrentTMTextUnitVariant(
-        dropTestData.addTMTextUnit2.getId(),
-        localeService.findByBcp47Tag("fr-FR").getId(),
-        "French stuff here.");
+        dropTestData.tmTextUnits.get("TEST2").getId(), locale.getId(), "French stuff here.");
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 2);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 2);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -409,14 +415,16 @@ public class DropServiceTest extends ServiceTestBase {
   }
 
   public void checkNumberOfUntranslatedTextUnit(
-      DropTestData dropTestData, int expectedNumberOfUnstranslated) {
-    List<TextUnitDTO> search = dropTestData.getTextUnitsForStatus(StatusFilter.UNTRANSLATED);
+      DropTestData dropTestData, List<String> locales, int expectedNumberOfUnstranslated) {
+    List<TextUnitDTO> search =
+        dropTestData.getTextUnitsForStatus(StatusFilter.UNTRANSLATED, locales);
     assertEquals(expectedNumberOfUnstranslated, search.size());
   }
 
   public void checkNumberOfNeedsReviewTextUnit(
-      DropTestData dropTestData, int expectedNumberOfUnstranslated) {
-    List<TextUnitDTO> search = dropTestData.getTextUnitsForStatus(StatusFilter.REVIEW_NEEDED);
+      DropTestData dropTestData, List<String> locales, int expectedNumberOfUnstranslated) {
+    List<TextUnitDTO> search =
+        dropTestData.getTextUnitsForStatus(StatusFilter.REVIEW_NEEDED, locales);
     assertEquals(expectedNumberOfUnstranslated, search.size());
   }
 
@@ -752,14 +760,14 @@ public class DropServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void testCancelDrop()
-      throws DropExporterException, InterruptedException, ExecutionException, CancelDropException {
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR"));
+  public void testCancelDrop() throws Exception {
+    List<String> locales = List.of("fr-FR");
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Check inital number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 1);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 1);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
@@ -779,18 +787,19 @@ public class DropServiceTest extends ServiceTestBase {
 
   @Test(expected = PollableTaskExecutionException.class)
   @Ignore("flaky test")
-  public void testCancelDropException()
-      throws DropExporterException, ExecutionException, InterruptedException, CancelDropException {
+  public void testCancelDropException() throws Exception {
 
     DropService dropServiceSpy = spy(dropService);
     doReturn(true).when(dropServiceSpy).isDropBeingProcessed(any(Drop.class));
 
-    DropTestData dropTestData = new DropTestData(testIdWatcher, List.of("fr-FR"));
+    List<String> locales = List.of("fr-FR");
 
-    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig();
+    DropTestData dropTestData = DropTestData.createWithDefaultData(testIdWatcher);
+
+    ExportDropConfig exportDropConfig = dropTestData.getExportDropConfig(locales);
 
     logger.debug("Check initial number of untranslated units");
-    checkNumberOfUntranslatedTextUnit(dropTestData, 1);
+    checkNumberOfUntranslatedTextUnit(dropTestData, locales, 1);
 
     logger.debug("Create an initial drop for the repository");
     Drop drop =
