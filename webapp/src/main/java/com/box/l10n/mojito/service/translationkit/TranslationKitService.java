@@ -116,7 +116,7 @@ public class TranslationKitService {
         new RawDocument(
             RawDocument.EMPTY, LocaleId.ENGLISH, LocaleId.fromBCP47(locale.getBcp47Tag()));
 
-    driver.addBatchItem(rawDocument, RawDocument.getFakeOutputURIForStream(), null);
+    driver.addBatchItem(rawDocument);
 
     logger.debug("Start processing batch");
     driver.processBatch();

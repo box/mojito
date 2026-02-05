@@ -915,7 +915,7 @@ public class TMService {
         targetLanguage != null ? LocaleId.fromBCP47(targetLanguage) : LocaleId.EMPTY;
     RawDocument rawDocument = new RawDocument(xliffContent, LocaleId.ENGLISH, targetLocaleId);
 
-    driver.addBatchItem(rawDocument, RawDocument.getFakeOutputURIForStream(), null);
+    driver.addBatchItem(rawDocument);
 
     logger.debug("Start processing batch");
     driver.processBatch();
@@ -987,7 +987,7 @@ public class TMService {
         new RawDocument(
             RawDocument.EMPTY, LocaleId.ENGLISH, LocaleId.fromBCP47(locale.getBcp47Tag()));
 
-    driver.addBatchItem(rawDocument, RawDocument.getFakeOutputURIForStream(), null);
+    driver.addBatchItem(rawDocument);
 
     logger.debug("Start processing batch");
     driver.processBatch();
