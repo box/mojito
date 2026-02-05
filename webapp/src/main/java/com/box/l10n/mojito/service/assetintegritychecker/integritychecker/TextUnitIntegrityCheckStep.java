@@ -4,10 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.google.common.io.CharStreams;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.sf.okapi.common.Event;
@@ -16,7 +13,6 @@ import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
-import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +23,10 @@ import org.springframework.beans.factory.annotation.Configurable;
  * @author aloison
  */
 @Configurable
-public class IntegrityCheckStep extends BasePipelineStep {
+public class TextUnitIntegrityCheckStep extends BasePipelineStep {
 
   /** Logger */
-  static Logger logger = LoggerFactory.getLogger(IntegrityCheckStep.class);
+  static Logger logger = LoggerFactory.getLogger(TextUnitIntegrityCheckStep.class);
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
@@ -39,7 +35,6 @@ public class IntegrityCheckStep extends BasePipelineStep {
   Map<Long, Set<TextUnitIntegrityChecker>> textUnitIntegrityCheckerMap = new HashMap<>();
 
   private LocaleId targetLocale;
-  private RawDocument rawDocument;
 
   @SuppressWarnings("deprecation")
   @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
@@ -47,42 +42,15 @@ public class IntegrityCheckStep extends BasePipelineStep {
     this.targetLocale = targetLocale;
   }
 
-  @StepParameterMapping(parameterType = StepParameterType.INPUT_RAWDOC)
-  public void setInputDocument(RawDocument rawDocument) {
-    this.rawDocument = rawDocument;
-  }
-
   @Override
   public String getName() {
-    return "Integrity Check";
+    return "Text Unit Integrity Check";
   }
 
   @Override
   public String getDescription() {
     return "Updates the TM with the extracted new/changed variants."
-        + " Expects: raw document. Sends back: original events.";
-  }
-
-  @Override
-  protected Event handleStartDocument(Event event) {
-    logger.debug("Check integrity of document");
-
-    String documentContent = null;
-    try {
-      documentContent = CharStreams.toString(rawDocument.getReader());
-    } catch (IOException e) {
-      logger.error("Error reading document content", e);
-      throw new RuntimeException("Error reading document content", e);
-    }
-
-    // TODO(P1): do not hardcode the type here
-    List<DocumentIntegrityChecker> documentIntegrityCheckers =
-        integrityCheckerFactory.getDocumentCheckers("xliff");
-    for (DocumentIntegrityChecker checker : documentIntegrityCheckers) {
-      checker.check(documentContent);
-    }
-
-    return super.handleStartDocument(event);
+        + " Expects: Text unit events. Sends back: original events.";
   }
 
   @Override

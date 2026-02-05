@@ -47,7 +47,8 @@ import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
-import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.DocumentIntegrityCheckStep;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
@@ -887,11 +888,14 @@ public class TMService {
     logger.debug("Configuring pipeline for localized XLIFF processing");
 
     IPipelineDriver driver = new PipelineDriver();
+
+    driver.addStep(new DocumentIntegrityCheckStep());
+
     driver.addStep(new RawDocumentToFilterEventsStep(new XLIFFFilter()));
 
+    driver.addStep(new TextUnitIntegrityCheckStep());
+
     driver.addStep(getConfiguredQualityStep());
-    IntegrityCheckStep integrityCheckStep = new IntegrityCheckStep();
-    driver.addStep(integrityCheckStep);
 
     abstractImportTranslationsStep.setImportWithStatus(importStatus);
     driver.addStep(abstractImportTranslationsStep);
