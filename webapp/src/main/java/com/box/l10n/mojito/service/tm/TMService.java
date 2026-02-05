@@ -981,13 +981,12 @@ public class TMService {
     driver.addStep(new RawDocumentToFilterEventsStep(new TMExportFilter(assetId)));
     driver.addStep(filterEventsWriterStep);
 
-    logger.trace("Add single document with fake output URI to be processed with an outputStream");
+    logger.trace("Add fake document to be processed");
     Locale locale = localeService.findByBcp47Tag(bcp47Tag);
-    RawDocument rawDocument =
-        new RawDocument(
-            RawDocument.EMPTY, LocaleId.ENGLISH, LocaleId.fromBCP47(locale.getBcp47Tag()));
+    RawDocument fakeDocument =
+        RawDocument.createFakeDocument(LocaleId.ENGLISH, LocaleId.fromBCP47(locale.getBcp47Tag()));
 
-    driver.addBatchItem(rawDocument);
+    driver.addBatchItem(fakeDocument);
 
     logger.debug("Start processing batch");
     driver.processBatch();
