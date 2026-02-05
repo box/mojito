@@ -32,8 +32,8 @@ Optional:
 
 Everything that `Spring boot 2.x` brings can potentially be re-used in Mojito. A few things to call-out though:
 
-* Improved OAuth2 support: multiple registrations, improved login page (see [details](/docs/guides/authentication/#oauth-2))
-* Monitoring with `micrometer` (statds dependency was added)
+* Improved OAuth2 support: multiple registrations, improved login page (see [details]({{ site.url }}/docs/guides/authentication/#oauth-2))
+* Monitoring with `micrometer` (statsd dependency was added)
 
 ## Known issue
 

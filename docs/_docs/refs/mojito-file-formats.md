@@ -72,7 +72,6 @@ Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 | 2             | Source      |
 | 3             | Target      |
 | 4             | Comment     |
-|||
 
 Source Resource File (English): `example.csv`
 

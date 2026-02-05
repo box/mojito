@@ -27,7 +27,7 @@ If you want to use different path to store the override configuration, you can s
 
 The default database configuration of {{ site.mojito_green }} is in-memory HSQL database.
 
-    spring.flyway.eanbled=false
+    spring.flyway.enabled=false
     spring.datasource.url=jdbc:hsqldb:mem:testdb;DB_CLOSE_DELAY=-1
     spring.datasource.initialization-mode=embedded
     spring.datasource.data=classpath:/db/hsql/data.sql
@@ -96,7 +96,7 @@ Depending on the file size that will be processed, it might be required to incre
 If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
 instead `utf8mb4` but it has its limitation in term of character support.
 
-We recommand to run both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set
+We recommend running both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set
 `UTC` as default use the following:
 
 ```properties
@@ -149,10 +149,10 @@ The default user authentication setting in {{ site.mojito_green }} is to use dat
 
 With database authentication, {{ site.mojito_green }} users can be added, updated (with new password) and deleted using {{ site.mojito_green }} CLI.
 
-    # add user - enter password when promted
+    # add user - enter password when prompted
     mojito user-create  --username ${USERNAME} --password --surname ${SURNAME} --given-name ${GIVEN_NAME} --common-name ${COMMON_NAME}
 
-    # update password - enter password when promted
+    # update password - enter password when prompted
     mojito user-update --username ${USERNAME} --password
 
     # delete user
@@ -229,7 +229,7 @@ You can also optionally use it in production by setting the following configurat
 
    The ID of the newly created `mojito` folder will be stored and used as the rootFolderId
 
-        <UserRootRolder>
+        <UserRootFolder>
         |-> mojito
           |-> Project Requests
 

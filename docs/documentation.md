@@ -4,6 +4,8 @@ title: Documentation
 permalink: /docs/
 ---
 
+<p><strong>Using the webapp?</strong> Start with <a href="{{ site.url }}/docs/guides/user-roles-overview/">User Roles & Permissions</a> to see what you can do based on your role (Translator, Project Manager, Admin, or User).</p>
+
 <h3>Guides</h3>
 {% assign docs=site.docs | sort: 'path' %}
 {% for my_page in docs %}
