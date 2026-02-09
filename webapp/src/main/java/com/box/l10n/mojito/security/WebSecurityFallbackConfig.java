@@ -20,8 +20,9 @@ public class WebSecurityFallbackConfig {
 
   @Bean
   @Order(99)
-  SecurityFilterChain securityFallbackBlock(HttpSecurity http) throws Exception {
-    WebSecurityJWTConfig.applyStatelessSharedConfig(http);
+  SecurityFilterChain securityFallbackBlock(HttpSecurity http, SecurityConfig securityConfig)
+      throws Exception {
+    WebSecurityJWTConfig.applyStatelessSharedConfig(http, securityConfig);
     HttpStatusEntryPoint httpStatusEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
     http.exceptionHandling(
         e -> {

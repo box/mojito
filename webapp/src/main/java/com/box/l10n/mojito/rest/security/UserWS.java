@@ -14,6 +14,7 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author jyi
@@ -57,10 +59,18 @@ public class UserWS {
   public Page<User> getUsers(
       @RequestParam(value = "username", required = false) String username,
       @PageableDefault(sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
-    Page<User> users =
-        userService.findAll(
-            where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)), pageable);
-    return users;
+    return userService.findAll(
+        where(ifParamNotNull(usernameEquals(username))).and(enabledEquals(true)), pageable);
+  }
+
+  /**
+   * Returns list of {@link User} including disabled users for admin UI.
+   *
+   * @return
+   */
+  @RequestMapping(value = "/api/users/admin", method = RequestMethod.GET)
+  public List<UserAdminSummary> getUsersAdmin() {
+    return userService.findAdminSummaries();
   }
 
   /**
@@ -164,6 +174,24 @@ public class UserWS {
 
     if (userToUpdate == null) {
       throw new UserWithIdNotFoundException(userId);
+    }
+
+    if (user.getUsername() != null) {
+      String trimmedUsername = user.getUsername().trim();
+      if (trimmedUsername.isEmpty()) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
+      }
+      if (!trimmedUsername.equals(userToUpdate.getUsername())) {
+        User existingUser = userRepository.findByUsername(trimmedUsername);
+        if (existingUser != null && !existingUser.getId().equals(userToUpdate.getId())) {
+          throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+        }
+        userToUpdate.setUsername(trimmedUsername);
+      }
+    }
+
+    if (user.getEnabled() != null) {
+      userToUpdate.setEnabled(user.getEnabled());
     }
 
     Role role = null;

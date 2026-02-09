@@ -7,12 +7,17 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.security.user.Authority;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.entity.security.user.UserLocale;
+import com.box.l10n.mojito.rest.security.UserAdminSummary;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -50,6 +56,8 @@ public class UserService {
   @Autowired UserLocaleRepository userLocaleRepository;
 
   @Autowired LocaleService localeService;
+
+  @Autowired UserDeletionService userDeletionService;
 
   /**
    * Allow PMs and ADMINs to create / edit users. However, a PM user can not create / edit ADMIN
@@ -80,6 +88,44 @@ public class UserService {
           throw new AccessDeniedException(
               "Access denied! Users and Translators are not allowed to to edit / create users");
     }
+  }
+
+  public void checkUserCanEditLocale(Long localeId) {
+    final Optional<User> currentUser = auditorAwareImpl.getCurrentAuditor();
+    if (currentUser.isEmpty() || localeId == null) {
+      return;
+    }
+
+    final User user = userRepository.findByUsername(currentUser.get().getUsername());
+    if (!user.getCanTranslateAllLocales()) {
+      boolean canEditLocale =
+          user.getUserLocales().stream()
+              .map(UserLocale::getLocale)
+              .map(Locale::getId)
+              .anyMatch(id -> Objects.equals(id, localeId));
+      if (!canEditLocale) {
+        throw new AccessDeniedException(
+            "The user is not authorized to edit the locale with ID: " + localeId);
+      }
+    }
+  }
+
+  public boolean isCurrentUserAdmin() {
+    Optional<User> currentUser = auditorAwareImpl.getCurrentAuditor();
+    if (currentUser.isEmpty()) {
+      return false;
+    }
+
+    User user = userRepository.findByUsername(currentUser.get().getUsername());
+    if (user == null || user.getAuthorities() == null || user.getAuthorities().isEmpty()) {
+      return false;
+    }
+
+    return user.getAuthorities().stream()
+        .map(Authority::getAuthority)
+        .filter(Objects::nonNull)
+        .map(this::createRoleFromAuthority)
+        .anyMatch(role -> role == Role.ROLE_ADMIN);
   }
 
   /**
@@ -161,15 +207,15 @@ public class UserService {
     checkPermissionsForRole(role == null ? Role.ROLE_PM : role);
 
     if (givenName != null) {
-      user.setGivenName(givenName);
+      user.setGivenName(StringUtils.isEmpty(givenName) ? null : givenName);
     }
 
     if (surname != null) {
-      user.setSurname(surname);
+      user.setSurname(StringUtils.isEmpty(surname) ? null : surname);
     }
 
     if (commonName != null) {
-      user.setCommonName(commonName);
+      user.setCommonName(StringUtils.isEmpty(commonName) ? null : commonName);
     }
 
     if (!StringUtils.isEmpty(password)) {
@@ -328,13 +374,29 @@ public class UserService {
 
     logger.debug("Delete a user with username: {}", user.getUsername());
 
+    if (tryHardDeleteUser(user.getId())) {
+      logger.debug("Hard deleted user with username: {}", user.getUsername());
+      return;
+    }
+
     // rename the deleted username so that the username can be reused to create new user
     String name = "deleted__" + System.currentTimeMillis() + "__" + user.getUsername();
     user.setUsername(StringUtils.abbreviate(name, User.NAME_MAX_LENGTH));
     user.setEnabled(false);
     userRepository.save(user);
 
-    logger.debug("Deleted user with username: {}", user.getUsername());
+    logger.debug("Soft deleted user with username: {}", user.getUsername());
+  }
+
+  private boolean tryHardDeleteUser(Long userId) {
+    boolean deleted = true;
+    try {
+      userDeletionService.hardDeleteUser(userId);
+    } catch (DataIntegrityViolationException ex) {
+      logger.info("Hard delete failed for user id {}, falling back to disable", userId);
+      deleted = false;
+    }
+    return deleted;
   }
 
   public User createBasicUser(
@@ -449,7 +511,51 @@ public class UserService {
                     Hibernate.initialize(a.getCreatedByUser());
                   });
           Hibernate.initialize(u.getCreatedByUser());
+          Hibernate.initialize(u.getUserLocales());
         });
     return users;
+  }
+
+  public List<UserAdminSummary> findAdminSummaries() {
+    List<UserAdminSummaryProjection> summaries = userRepository.findAdminSummaries();
+    if (summaries.isEmpty()) {
+      return List.of();
+    }
+
+    List<Long> userIds = summaries.stream().map(UserAdminSummaryProjection::id).toList();
+
+    Map<Long, List<UserAdminSummary.UserAdminAuthority>> authoritiesByUserId = new HashMap<>();
+    for (UserAuthorityProjection row : authorityRepository.findAuthoritiesForUsers(userIds)) {
+      Long userId = row.getUserId();
+      String authority = row.getAuthority();
+      authoritiesByUserId
+          .computeIfAbsent(userId, (key) -> new ArrayList<>())
+          .add(UserAdminSummary.authority(authority));
+    }
+
+    Map<Long, List<UserAdminSummary.UserAdminLocale>> userLocalesByUserId = new HashMap<>();
+    for (UserLocaleTagProjection row : userLocaleRepository.findLocaleTagsForUsers(userIds)) {
+      Long userId = row.getUserId();
+      String tag = row.getBcp47Tag();
+      userLocalesByUserId
+          .computeIfAbsent(userId, (key) -> new ArrayList<>())
+          .add(UserAdminSummary.locale(tag));
+    }
+
+    return summaries.stream()
+        .map(
+            summary ->
+                new UserAdminSummary(
+                    summary.id(),
+                    summary.username(),
+                    summary.givenName(),
+                    summary.surname(),
+                    summary.commonName(),
+                    summary.enabled(),
+                    summary.canTranslateAllLocales(),
+                    summary.createdDate(),
+                    authoritiesByUserId.getOrDefault(summary.id(), List.of()),
+                    userLocalesByUserId.getOrDefault(summary.id(), List.of())))
+        .toList();
   }
 }

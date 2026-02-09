@@ -25,7 +25,7 @@ public class User {
 
   private String commonName;
 
-  private boolean canTranslateAllLocales;
+  private boolean canTranslateAllLocales = true;
 
   @JsonManagedReference Set<Authority> authorities = new HashSet<>();
 

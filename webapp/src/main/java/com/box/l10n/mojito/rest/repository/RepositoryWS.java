@@ -14,7 +14,6 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
-import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -22,6 +21,7 @@ import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.repository.RepositorySummaryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.time.ZonedDateTime;
@@ -51,9 +51,9 @@ public class RepositoryWS {
 
   @Autowired RepositoryRepository repositoryRepository;
 
-  @Autowired AssetRepository assetRepository;
-
   @Autowired RepositoryService repositoryService;
+
+  @Autowired RepositorySummaryService repositorySummaryService;
 
   @Autowired BranchRepository branchRepository;
 
@@ -78,10 +78,16 @@ public class RepositoryWS {
    * @return List of {@link Repository}s
    */
   @JsonView(View.RepositorySummary.class)
+  @RequestMapping(value = "/api/legacy/repositories", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  public List<Repository> getRepositoriesLegacy() {
+    return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
+  }
+
   @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
-  public List<Repository> getRepositories() {
-    return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
+  public List<RepositorySummaryResponse> getRepositories() {
+    return repositorySummaryService.getRepositorySummaries();
   }
 
   /**

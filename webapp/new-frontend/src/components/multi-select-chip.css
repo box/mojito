@@ -1,0 +1,112 @@
+.multi-select-chip__search {
+  width: 100%;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: var(--radius-2);
+  padding: 0 var(--space-2);
+  height: 1.875rem;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+
+.multi-select-chip__search:focus {
+  outline: none;
+  border-color: var(--color-focus-border);
+  box-shadow: 0 0 0 0.125rem var(--color-focus-outline);
+}
+
+.multi-select-chip__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.multi-select-chip__actions--secondary {
+  margin-top: var(--space-1);
+  justify-content: center;
+}
+
+.multi-select-chip__action-button {
+  flex: 1;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  padding: 0 var(--space-2);
+  height: 1.625rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.multi-select-chip__action-button--link {
+  flex: 0;
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  padding: 0;
+  min-height: auto;
+  height: auto;
+  font-size: var(--font-size-xs);
+  text-decoration: underline;
+}
+
+.multi-select-chip__action-button--link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.multi-select-chip__action-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.multi-select-chip__options {
+  max-height: min(60vh, 32.5rem);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.multi-select-chip__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+
+.multi-select-chip__option input {
+  cursor: pointer;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.multi-select-chip__only {
+  margin-left: auto;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: inherit;
+  font-size: var(--font-size-2xs);
+  padding: 0 var(--space-2);
+  height: 1.25rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.multi-select-chip__option:hover .multi-select-chip__only,
+.multi-select-chip__option:focus-within .multi-select-chip__only {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.multi-select-chip__empty {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

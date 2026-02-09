@@ -1,0 +1,93 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(0.1875rem);
+}
+
+.modal__card {
+  position: relative;
+  width: min(var(--modal-max-width, 32.5rem), 92vw);
+  max-height: min(86vh, 56.25rem);
+  overflow: auto;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-3, 0.75rem);
+  background: var(--color-surface);
+  box-shadow: 0 1.125rem 2.5rem rgba(15, 23, 42, 0.25);
+  padding: var(--space-5);
+}
+
+.modal--sm {
+  --modal-max-width: 22.5rem;
+}
+
+.modal--md {
+  --modal-max-width: 32.5rem;
+}
+
+.modal--lg {
+  --modal-max-width: 47.5rem;
+}
+
+.modal--xl {
+  --modal-max-width: 60rem;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.modal__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--space-2);
+}
+
+.modal__body {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  white-space: pre-line;
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.modal__button {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: 0 var(--space-3);
+  height: 2rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.modal__button--primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
+.modal__button--danger {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}

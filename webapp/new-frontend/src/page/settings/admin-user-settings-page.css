@@ -1,0 +1,287 @@
+.user-admin-page {
+  max-width: 72rem;
+}
+
+.user-admin-page .settings-card {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.user-admin-page .settings-card + .settings-card {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.user-admin-page__toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(10rem, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.user-admin-page__search {
+  width: 100%;
+}
+
+.user-admin-page__filter .chip-dropdown__button {
+  min-width: 10rem;
+}
+
+.user-admin-page__create {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.user-admin-page__count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  text-align: left;
+  margin-bottom: var(--space-3);
+}
+
+.user-admin-page__error {
+  margin-top: calc(var(--space-2) * -1);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+}
+
+.user-admin-page__count-text {
+  justify-self: start;
+}
+
+.user-admin-page__count-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: center;
+}
+
+.user-admin-page__count-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.user-admin-page__count-link:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.user-admin-page__count-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-admin-page__count-sep {
+  color: var(--color-text-subtle);
+}
+
+.user-admin-page__bulk .chip-dropdown__button {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  height: auto;
+  justify-content: flex-end;
+}
+
+.user-admin-page__bulk .chip-dropdown__button:hover:not(:disabled) {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.user-admin-page__bulk .chip-dropdown__button:hover:not(:disabled),
+.user-admin-page__bulk .chip-dropdown__button:focus-visible {
+  border: none;
+  box-shadow: none;
+}
+
+.user-admin-page__bulk .chip-dropdown__summary {
+  padding-right: 0.75rem;
+  text-align: right;
+}
+
+.user-admin-page__bulk .chip-dropdown__chevron {
+  right: 0;
+  border-top-color: var(--color-text-subtle);
+}
+
+.user-admin-page__bulk .single-select-dropdown__option.is-destructive {
+  color: var(--color-danger);
+}
+
+.user-admin-page__bulk .single-select-dropdown__option.is-warning {
+  color: var(--color-text-muted);
+}
+
+.user-admin-page__count-spinner {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.user-admin-page__count-spinner .spinner {
+  --spinner-size: 0.75rem;
+  --spinner-border: 0.125rem;
+  color: var(--color-text-subtle);
+}
+
+.user-admin-page__count-spinner[data-visible='true'] {
+  opacity: 1;
+}
+
+.user-admin-page__table {
+  display: flex;
+  flex-direction: column;
+  min-height: 20rem;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.user-admin-page__table-header,
+.user-admin-page__row {
+  display: grid;
+  grid-template-columns: 2.25rem 4.5rem 1.4fr 1.6fr 1fr 0.8fr 1fr;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.user-admin-page__table-header {
+  padding: 0 0 var(--space-2);
+  background: transparent;
+  border-bottom: var(--border-width) solid var(--color-border);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.user-admin-page__table-header .user-admin-page__cell {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+
+.user-admin-page__row {
+  --user-admin-row-height: 3rem;
+  min-height: var(--user-admin-row-height);
+  padding: 0 var(--space-1);
+  border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.user-admin-page__row:hover {
+  background: color-mix(in srgb, var(--color-surface-muted) 40%, transparent);
+}
+
+.user-admin-page__row:focus-visible {
+  outline: 0.125rem solid var(--color-focus-outline);
+  outline-offset: -0.125rem;
+}
+
+.user-admin-page__cell {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-admin-page__cell--checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.user-admin-page__cell--muted {
+  color: var(--color-text-muted);
+}
+
+.user-admin-page__empty {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.user-admin-page__empty-text {
+  font-size: var(--font-size-sm);
+}
+
+.user-admin-page__retry {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+@media (max-width: 70rem) {
+  .user-admin-page {
+    max-width: none;
+  }
+
+  .user-admin-page__toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .user-admin-page__create {
+    justify-self: start;
+  }
+
+  .user-admin-page__count {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .user-admin-page__count-actions {
+    justify-self: start;
+  }
+
+  .user-admin-page__count-spinner {
+    justify-self: start;
+  }
+
+  .user-admin-page__table-header,
+  .user-admin-page__row {
+    grid-template-columns: 2.25rem 3.5rem 1.2fr 1.4fr 1fr 0.8fr 1fr;
+  }
+}
+
+@media (max-width: 52rem) {
+  .user-admin-page__table-header,
+  .user-admin-page__row {
+    grid-template-columns: 2.25rem 3rem 1.4fr 1.6fr 1fr 0.8fr;
+  }
+
+  .user-admin-page__table-header > :nth-child(7),
+  .user-admin-page__row > :nth-child(7) {
+    display: none;
+  }
+}

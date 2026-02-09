@@ -11,7 +11,6 @@ application.pid
 *.iml
 npm-debug.log
 /webapp/node
-/webapp/node_modules
 /webapp/src/main/resources/new/js/bundle.min.js
 .sass-cache/
 /mavenplugin/target/
@@ -29,7 +28,15 @@ release.properties
 /docs/.jekyll-cache/
 /docs/_site/
 /.java-version
-/node_modules/
+# Ignore node_modules everywhere
+**/node_modules/
+# Vite/Node caches and outputs
+**/.vite/
+**/.eslintcache
+**/.parcel-cache/
+**/.turbo/
+**/.cache/
+**/*.tsbuildinfo
 /tmp/
 /local/
 .vscode/

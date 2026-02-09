@@ -69,7 +69,7 @@ public class WebSecurityJWTConfig {
 
     http.securityMatcher(req -> StringUtils.hasText(resolveAccessToken(req)));
 
-    applyStatelessSharedConfig(http);
+    applyStatelessSharedConfig(http, securityConfig);
 
     http.oauth2ResourceServer(
         oauth ->
@@ -98,7 +98,8 @@ public class WebSecurityJWTConfig {
     return http.build();
   }
 
-  public static void applyStatelessSharedConfig(HttpSecurity http) throws Exception {
+  public static void applyStatelessSharedConfig(HttpSecurity http, SecurityConfig securityConfig)
+      throws Exception {
 
     http.headers(h -> h.cacheControl(HeadersConfigurer.CacheControlConfig::disable))
         .csrf(AbstractHttpConfigurer::disable)
@@ -120,6 +121,8 @@ public class WebSecurityJWTConfig {
                 "/auth/callback",
                 "/repositories",
                 "/project-requests",
+                "/review-projects",
+                "/review-projects/**",
                 "/workbench",
                 "/branches",
                 "/screenshots",
@@ -129,7 +132,9 @@ public class WebSecurityJWTConfig {
 
     // forwarding was for the old implementation and is not needed anymore so
     // hardcoded to false.
-    spaSpecificPermitAll.addAll(WebSecurityConfig.getHealthcheckPatterns(false));
+    spaSpecificPermitAll.addAll(
+        WebSecurityConfig.getActuatorPermitAllPatterns(
+            false, securityConfig.getActuator().isPrometheusPermitAll()));
     WebSecurityConfig.setAuthorizationRequests(http, spaSpecificPermitAll);
   }
 

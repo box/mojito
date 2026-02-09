@@ -21,9 +21,15 @@ public class LeveragerByTmTextUnit extends AbstractLeverager {
   static Logger logger = LoggerFactory.getLogger(LeveragerByTmTextUnit.class);
 
   Long tmTextUnitId;
+  boolean translationNeededIfUniqueMatch;
 
   public LeveragerByTmTextUnit(Long tmTextUnitId) {
+    this(tmTextUnitId, true);
+  }
+
+  public LeveragerByTmTextUnit(Long tmTextUnitId, boolean translationNeededIfUniqueMatch) {
     this.tmTextUnitId = tmTextUnitId;
+    this.translationNeededIfUniqueMatch = translationNeededIfUniqueMatch;
   }
 
   @Override
@@ -41,7 +47,7 @@ public class LeveragerByTmTextUnit extends AbstractLeverager {
 
   @Override
   public boolean isTranslationNeededIfUniqueMatch() {
-    return true;
+    return translationNeededIfUniqueMatch;
   }
 
   @Override

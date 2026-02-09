@@ -50,8 +50,11 @@ import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob
 import com.box.l10n.mojito.service.tm.TMRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TextUnitIdMd5DTO;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -64,6 +67,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.ibm.icu.text.MessageFormat;
@@ -72,6 +76,7 @@ import jakarta.persistence.EntityManager;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +154,8 @@ public class AssetExtractionService {
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
+  @Autowired TextUnitSearcher textUnitSearcher;
+
   @Autowired AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
   @Autowired StructuredBlobStorage structuredBlobStorage;
@@ -171,6 +178,9 @@ public class AssetExtractionService {
 
   @Value("${l10n.assetExtraction.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String quartzSchedulerName;
+
+  @Value("${l10n.assetExtraction.crossAssetLeveragingBatchSize:1000}")
+  int crossAssetLeveragingBatchSize;
 
   @Autowired
   public void setRepositoryStatisticsJobScheduler(
@@ -197,6 +207,23 @@ public class AssetExtractionService {
       List<String> filterOptions,
       PollableTask currentTask)
       throws UnsupportedAssetFilterTypeException, AssetExtractionConflictException {
+    return processAsset(
+        assetContentId,
+        pushRunId,
+        filterConfigIdOverride,
+        filterOptions,
+        LeveragingType.LEGACY_SOURCE,
+        currentTask);
+  }
+
+  public PollableFuture<Asset> processAsset(
+      Long assetContentId,
+      Long pushRunId,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      LeveragingType leveragingTypeForCurrentPush,
+      PollableTask currentTask)
+      throws UnsupportedAssetFilterTypeException, AssetExtractionConflictException {
 
     logger.info("Start processing asset content, id: {}", assetContentId);
     AssetContent assetContent = assetContentService.findOne(assetContentId);
@@ -205,8 +232,11 @@ public class AssetExtractionService {
     MultiBranchState stateForNewContent =
         convertAssetContentToMultiBranchState(
             assetContent, filterConfigIdOverride, filterOptions, currentTask);
-    CreateTextUnitsResult createdTextUnitsResult =
-        createTextUnitsForNewContent(assetContent, stateForNewContent, currentTask);
+    LeveragingType leveragingType =
+        Objects.requireNonNullElse(leveragingTypeForCurrentPush, LeveragingType.LEGACY_SOURCE);
+
+    CreateTextUnitsForNewContentResult createdTextUnitsResult =
+        createTextUnitsForNewContent(assetContent, stateForNewContent, leveragingType, currentTask);
 
     updateBranchAssetExtraction(
         assetContent, createdTextUnitsResult.getUpdatedState(), filterOptions, currentTask);
@@ -413,73 +443,108 @@ public class AssetExtractionService {
    */
   @Timed("AssetExtractionService.createTextUnitsForNewContent")
   @Pollable(message = "Create new text units")
-  CreateTextUnitsResult createTextUnitsForNewContent(
+  CreateTextUnitsForNewContentResult createTextUnitsForNewContent(
       AssetContent assetContent,
       MultiBranchState stateForNewContent,
       @ParentTask PollableTask currentTask) {
-    return retryTemplate.execute(
-        context -> {
-          if (context.getRetryCount() > 0) {
-            logger.info(
-                "Assume concurrent modification when creating tm text units for state (re-fetch current tm text unit ids and try to save again), attempt: {}",
-                context.getRetryCount());
-          }
-
-          boolean updateCache = context.getRetryCount() > 0;
-          logger.debug(
-              "Read text unit dto from cache with update: {} (first attempt update if missing)",
-              updateCache);
-          ImmutableMap<String, TextUnitDTO> textUnitDTOsForAssetAndLocaleByMD5 =
-              textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(
-                  assetContent.getAsset().getId(),
-                  localeService.getDefaultLocale().getId(),
-                  StatusFilter.ALL,
-                  true,
-                  updateCache ? UpdateType.ALWAYS : UpdateType.IF_MISSING);
-
-          logger.debug("Update the state with tm text unit id from the database");
-          MultiBranchState stateForNewContentWithIds =
-              stateForNewContent.withBranchStateTextUnits(
-                  stateForNewContent.getBranchStateTextUnits().stream()
-                      .map(
-                          bstu ->
-                              Optional.ofNullable(
-                                      textUnitDTOsForAssetAndLocaleByMD5.get(bstu.getMd5()))
-                                  .map(
-                                      textUnitDTO ->
-                                          bstu.withTmTextUnitId(textUnitDTO.getTmTextUnitId()))
-                                  .orElse(bstu))
-                      .collect(ImmutableList.toImmutableList()));
-
-          ImmutableList<BranchStateTextUnit> toCreateTmTextUnits =
-              getBranchStateTextUnitsWithoutId(stateForNewContentWithIds);
-
-          final Repository repository = assetContent.getBranch().getRepository();
-          // Required to ensure branches with duplicate strings are displayed in the GUI
-          if (toCreateTmTextUnits.isEmpty() && repository != null) {
-            this.repositoryStatisticsJobScheduler.schedule(repository.getId());
-          }
-
-          ImmutableList<BranchStateTextUnit> createdTextUnits =
-              createTmTextUnitsInTx(
-                  assetContent.getAsset(),
-                  toCreateTmTextUnits,
-                  assetContent.getBranch().getCreatedByUser());
-
-          ImmutableList<TextUnitDTOMatch> leveragingMatches =
-              getLeveragingMatchesForTextUnits(
-                  createdTextUnits, textUnitDTOsForAssetAndLocaleByMD5.values().asList());
-
-          MultiBranchState stateWithCreatedIds =
-              updateStateWithCreatedIds(stateForNewContentWithIds, createdTextUnits);
-
-          return CreateTextUnitsResult.builder()
-              .createdTextUnits(createdTextUnits)
-              .leveragingMatches(leveragingMatches)
-              .updatedState(stateWithCreatedIds)
-              .build();
-        });
+    return createTextUnitsForNewContent(
+        assetContent, stateForNewContent, LeveragingType.LEGACY_SOURCE, currentTask);
   }
+
+  @Timed("AssetExtractionService.createTextUnitsForNewContent")
+  @Pollable(message = "Create new text units")
+  CreateTextUnitsForNewContentResult createTextUnitsForNewContent(
+      AssetContent assetContent,
+      MultiBranchState stateForNewContent,
+      LeveragingType leveragingTypeForCurrentPush,
+      @ParentTask PollableTask currentTask) {
+    CreateTmTextUnitResult createTmTextUnitResult =
+        retryTemplate.execute(
+            context -> {
+              if (context.getRetryCount() > 0) {
+                logger.info(
+                    "Assume concurrent modification when creating tm text units for state (re-fetch current tm text unit ids and try to save again), attempt: {}",
+                    context.getRetryCount());
+              }
+
+              boolean updateCache = context.getRetryCount() > 0;
+              logger.debug(
+                  "Read text unit dto from cache with update: {} (first attempt update if missing)",
+                  updateCache);
+              ImmutableMap<String, TextUnitDTO> textUnitDTOsForAssetAndLocaleByMD5 =
+                  textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(
+                      assetContent.getAsset().getId(),
+                      localeService.getDefaultLocale().getId(),
+                      StatusFilter.ALL,
+                      true,
+                      updateCache ? UpdateType.ALWAYS : UpdateType.IF_MISSING);
+
+              logger.debug("Update the state with tm text unit id from the database");
+              MultiBranchState stateForNewContentWithIds =
+                  stateForNewContent.withBranchStateTextUnits(
+                      stateForNewContent.getBranchStateTextUnits().stream()
+                          .map(
+                              bstu ->
+                                  Optional.ofNullable(
+                                          textUnitDTOsForAssetAndLocaleByMD5.get(bstu.getMd5()))
+                                      .map(
+                                          textUnitDTO ->
+                                              bstu.withTmTextUnitId(textUnitDTO.getTmTextUnitId()))
+                                      .orElse(bstu))
+                          .collect(ImmutableList.toImmutableList()));
+
+              ImmutableList<BranchStateTextUnit> toCreateTmTextUnits =
+                  getBranchStateTextUnitsWithoutId(stateForNewContentWithIds);
+
+              final Repository repository = assetContent.getBranch().getRepository();
+              // Required to ensure branches with duplicate strings are displayed in the GUI
+              if (toCreateTmTextUnits.isEmpty() && repository != null) {
+                this.repositoryStatisticsJobScheduler.schedule(repository.getId());
+              }
+
+              ImmutableList<BranchStateTextUnit> createdTextUnits =
+                  createTmTextUnitsInTx(
+                      assetContent.getAsset(),
+                      toCreateTmTextUnits,
+                      assetContent.getBranch().getCreatedByUser());
+
+              MultiBranchState stateWithCreatedIds =
+                  updateStateWithCreatedIds(stateForNewContentWithIds, createdTextUnits);
+
+              return new CreateTmTextUnitResult(
+                  stateWithCreatedIds,
+                  createdTextUnits,
+                  textUnitDTOsForAssetAndLocaleByMD5.values().asList());
+            });
+
+    ImmutableList<TextUnitDTOMatch> leveragingMatches =
+        switch (leveragingTypeForCurrentPush) {
+          case LEGACY_SOURCE ->
+              getLeveragingMatchesForTextUnits(
+                  createTmTextUnitResult.createdTextUnits(),
+                  createTmTextUnitResult.assetScopedTextUnitDTOs());
+          case ASSET_SOURCE_AND_COMMENT ->
+              getLeveragingMatchesForTextUnitsBySourceAndComment(
+                  createTmTextUnitResult.createdTextUnits(),
+                  createTmTextUnitResult.assetScopedTextUnitDTOs());
+          case CROSS_ASSET_FALLBACK ->
+              getCrossAssetLeveragingMatchesForTextUnits(
+                  assetContent,
+                  createTmTextUnitResult.createdTextUnits(),
+                  createTmTextUnitResult.assetScopedTextUnitDTOs());
+        };
+
+    return CreateTextUnitsForNewContentResult.builder()
+        .createdTextUnits(createTmTextUnitResult.createdTextUnits())
+        .leveragingMatches(leveragingMatches)
+        .updatedState(createTmTextUnitResult.updatedState())
+        .build();
+  }
+
+  record CreateTmTextUnitResult(
+      MultiBranchState updatedState,
+      ImmutableList<BranchStateTextUnit> createdTextUnits,
+      ImmutableList<TextUnitDTO> assetScopedTextUnitDTOs) {}
 
   MultiBranchState updateStateWithCreatedIds(
       MultiBranchState stateForNewContentWithIds,
@@ -796,13 +861,14 @@ public class AssetExtractionService {
 
   @Pollable(message = "Perform leveraging")
   void performLeveraging(
-      ImmutableList<TextUnitDTOMatch> matchesForSourceLeveraging,
-      @ParentTask PollableTask currentTask) {
-    matchesForSourceLeveraging.stream()
+      ImmutableList<TextUnitDTOMatch> leveragingMatches, @ParentTask PollableTask currentTask) {
+    leveragingMatches.stream()
         .forEach(
             match -> {
               LeveragerByTmTextUnit leveragerByTmTextUnit =
-                  new LeveragerByTmTextUnit(match.getMatch().getTmTextUnitId());
+                  new LeveragerByTmTextUnit(
+                      match.getMatch().getTmTextUnitId(),
+                      match.getTranslationNeededIfUniqueMatch());
               if (match.getSource().getTmTextUnitId() == null) {
                 throw new RuntimeException(
                     "The source must be saved in the database when requesting leveraging");
@@ -812,6 +878,315 @@ public class AssetExtractionService {
               leveragerByTmTextUnit.performLeveragingFor(
                   new ArrayList<>(Arrays.asList(tmTextUnit)), null, null);
             });
+  }
+
+  ImmutableList<TextUnitDTOMatch> getCrossAssetLeveragingMatchesForTextUnits(
+      AssetContent assetContent,
+      ImmutableList<BranchStateTextUnit> createdTextUnits,
+      ImmutableList<TextUnitDTO> assetScopedTextUnitDTOs) {
+    if (createdTextUnits.isEmpty()) {
+      return ImmutableList.of();
+    }
+
+    // Priority order for cross fallback mode:
+    // 1) cross-asset exact md5 (name+source+comment),
+    // 2) in-asset source+comment,
+    // 3) cross-asset source+comment.
+    ImmutableList<TextUnitDTOMatch> crossAssetMd5Matches =
+        getCrossAssetMd5LeveragingMatchesForTextUnits(assetContent, createdTextUnits);
+
+    ImmutableList<BranchStateTextUnit> createdTextUnitsWithoutCrossAssetMd5Match =
+        getCreatedTextUnitsWithoutLeveragingMatch(createdTextUnits, crossAssetMd5Matches);
+
+    if (createdTextUnitsWithoutCrossAssetMd5Match.isEmpty()) {
+      return crossAssetMd5Matches;
+    }
+
+    ImmutableList<TextUnitDTOMatch> inAssetSourceAndCommentMatches =
+        getLeveragingMatchesForTextUnitsBySourceAndComment(
+            createdTextUnitsWithoutCrossAssetMd5Match, assetScopedTextUnitDTOs);
+    ImmutableList<BranchStateTextUnit> createdTextUnitsWithoutInAssetSourceAndCommentMatch =
+        getCreatedTextUnitsWithoutLeveragingMatch(
+            createdTextUnitsWithoutCrossAssetMd5Match, inAssetSourceAndCommentMatches);
+    if (createdTextUnitsWithoutInAssetSourceAndCommentMatch.isEmpty()) {
+      return ImmutableList.<TextUnitDTOMatch>builder()
+          .addAll(crossAssetMd5Matches)
+          .addAll(inAssetSourceAndCommentMatches)
+          .build();
+    }
+
+    ImmutableList<TextUnitDTOMatch> crossAssetSourceAndCommentMatches =
+        getCrossAssetSourceAndCommentLeveragingMatchesForTextUnits(
+            assetContent, createdTextUnitsWithoutInAssetSourceAndCommentMatch);
+    return ImmutableList.<TextUnitDTOMatch>builder()
+        .addAll(crossAssetMd5Matches)
+        .addAll(inAssetSourceAndCommentMatches)
+        .addAll(crossAssetSourceAndCommentMatches)
+        .build();
+  }
+
+  ImmutableList<TextUnitDTOMatch> getCrossAssetMd5LeveragingMatchesForTextUnits(
+      AssetContent assetContent, ImmutableList<BranchStateTextUnit> createdTextUnits) {
+
+    if (createdTextUnits.isEmpty()) {
+      return ImmutableList.of();
+    }
+
+    ImmutableSet<String> md5sToMatch =
+        createdTextUnits.stream()
+            .map(BranchStateTextUnit::getMd5)
+            .collect(ImmutableSet.toImmutableSet());
+
+    ImmutableSet<Long> idsToExclude =
+        createdTextUnits.stream()
+            .map(BranchStateTextUnit::getTmTextUnitId)
+            .filter(Objects::nonNull)
+            .collect(ImmutableSet.toImmutableSet());
+
+    Long tmId = assetContent.getAsset().getRepository().getTm().getId();
+    ImmutableSetMultimap<String, Long> candidateTmTextUnitIdsByMd5 =
+        findCandidateTmTextUnitIdsForMd5s(tmId, md5sToMatch, idsToExclude);
+
+    if (candidateTmTextUnitIdsByMd5.isEmpty()) {
+      return ImmutableList.of();
+    }
+
+    return createdTextUnits.stream()
+        .map(
+            createdTextUnit -> {
+              ImmutableList<Long> md5MatchTmTextUnitIds =
+                  candidateTmTextUnitIdsByMd5.get(createdTextUnit.getMd5()).stream()
+                      .sorted()
+                      .collect(ImmutableList.toImmutableList());
+              if (md5MatchTmTextUnitIds.isEmpty()) {
+                return null;
+              }
+              return TextUnitDTOMatch.builder()
+                  .source(createdTextUnit)
+                  .match(textUnitDTOWithTmTextUnitId(md5MatchTmTextUnitIds.get(0)))
+                  .uniqueMatch(md5MatchTmTextUnitIds.size() == 1)
+                  .translationNeededIfUniqueMatch(false)
+                  .build();
+            })
+        .filter(Objects::nonNull)
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  ImmutableList<TextUnitDTOMatch> getCrossAssetSourceAndCommentLeveragingMatchesForTextUnits(
+      AssetContent assetContent, ImmutableList<BranchStateTextUnit> createdTextUnits) {
+    if (createdTextUnits.isEmpty()) {
+      return ImmutableList.of();
+    }
+
+    ImmutableSet<Long> createdTmTextUnitIds =
+        createdTextUnits.stream()
+            .map(BranchStateTextUnit::getTmTextUnitId)
+            .filter(Objects::nonNull)
+            .collect(ImmutableSet.toImmutableSet());
+    Long tmId = assetContent.getAsset().getRepository().getTm().getId();
+
+    ImmutableSet<String> contentMd5sToMatch =
+        createdTextUnits.stream()
+            .map(
+                createdTextUnit ->
+                    DigestUtils.md5Hex(Objects.toString(createdTextUnit.getSource(), "")))
+            .collect(ImmutableSet.toImmutableSet());
+
+    ImmutableMap<String, ImmutableList<Long>> candidateTmTextUnitIdsByContentMd5 =
+        findCandidateTmTextUnitIdsForContentMd5s(tmId, contentMd5sToMatch, createdTmTextUnitIds);
+
+    return createdTextUnits.stream()
+        .map(
+            createdTextUnit -> {
+              String contentMd5 =
+                  DigestUtils.md5Hex(Objects.toString(createdTextUnit.getSource(), ""));
+              ImmutableList<Long> sourceAndCommentMatches =
+                  candidateTmTextUnitIdsByContentMd5.getOrDefault(contentMd5, ImmutableList.of());
+              if (sourceAndCommentMatches.isEmpty()) {
+                return null;
+              }
+
+              // Approximation: higher IDs are typically newer, but not guaranteed in every edge
+              // case. We do not have a stronger ordering signal in this fallback path.
+              Long selectedTmTextUnitId =
+                  sourceAndCommentMatches.stream().max(Long::compareTo).orElse(null);
+              if (selectedTmTextUnitId == null) {
+                return null;
+              }
+
+              return TextUnitDTOMatch.builder()
+                  .source(createdTextUnit)
+                  .match(textUnitDTOWithTmTextUnitId(selectedTmTextUnitId))
+                  .uniqueMatch(sourceAndCommentMatches.size() == 1)
+                  .translationNeededIfUniqueMatch(true)
+                  .build();
+            })
+        .filter(Objects::nonNull)
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  ImmutableList<BranchStateTextUnit> getCreatedTextUnitsWithoutLeveragingMatch(
+      ImmutableList<BranchStateTextUnit> createdTextUnits,
+      ImmutableList<TextUnitDTOMatch> leveragingMatches) {
+    if (createdTextUnits.isEmpty()) {
+      return ImmutableList.of();
+    }
+    if (leveragingMatches.isEmpty()) {
+      return createdTextUnits;
+    }
+
+    ImmutableSet<Long> sourceTmTextUnitIdsWithLeveragingMatch =
+        leveragingMatches.stream()
+            .map(match -> match.getSource().getTmTextUnitId())
+            .filter(Objects::nonNull)
+            .collect(ImmutableSet.toImmutableSet());
+
+    return createdTextUnits.stream()
+        .filter(
+            createdTextUnit ->
+                !sourceTmTextUnitIdsWithLeveragingMatch.contains(createdTextUnit.getTmTextUnitId()))
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  ImmutableSetMultimap<String, Long> findCandidateTmTextUnitIdsForMd5s(
+      Long tmId, ImmutableSet<String> md5sToMatch, ImmutableSet<Long> idsToExclude) {
+    // Batch `IN (...)` queries to keep SQL size bounded and avoid driver/DB limits for large
+    // pushes.
+    int batchSize = Math.max(1, crossAssetLeveragingBatchSize);
+    ImmutableSetMultimap.Builder<String, Long> candidateTmTextUnitIdsByMd5Builder =
+        ImmutableSetMultimap.builder();
+    Lists.partition(new ArrayList<>(md5sToMatch), batchSize)
+        .forEach(
+            batch ->
+                tmTextUnitRepository.getTextUnitIdMd5DTOByTmIdAndMd5In(tmId, batch).stream()
+                    .filter(textUnitIdMd5DTO -> !idsToExclude.contains(textUnitIdMd5DTO.getId()))
+                    .forEach(
+                        textUnitIdMd5DTO ->
+                            candidateTmTextUnitIdsByMd5Builder.put(
+                                textUnitIdMd5DTO.getMd5(), textUnitIdMd5DTO.getId())));
+    return candidateTmTextUnitIdsByMd5Builder.build();
+  }
+
+  ImmutableMap<String, ImmutableList<Long>> findCandidateTmTextUnitIdsForContentMd5s(
+      Long tmId, ImmutableSet<String> contentMd5sToMatch, ImmutableSet<Long> idsToExclude) {
+    if (contentMd5sToMatch.isEmpty()) {
+      return ImmutableMap.of();
+    }
+
+    int batchSize = Math.max(1, crossAssetLeveragingBatchSize);
+    Map<String, List<Long>> candidatesByContentMd5 =
+        Lists.partition(new ArrayList<>(contentMd5sToMatch), batchSize).stream()
+            .flatMap(
+                batch ->
+                    tmTextUnitRepository
+                        .getTextUnitIdContentMd5DTOByTmIdAndContentMd5In(tmId, batch)
+                        .stream())
+            .filter(textUnitIdMd5DTO -> !idsToExclude.contains(textUnitIdMd5DTO.getId()))
+            .collect(
+                Collectors.groupingBy(
+                    TextUnitIdMd5DTO::getMd5,
+                    Collectors.mapping(TextUnitIdMd5DTO::getId, Collectors.toList())));
+
+    ImmutableMap.Builder<String, ImmutableList<Long>> candidatesByContentMd5Builder =
+        ImmutableMap.builder();
+    candidatesByContentMd5.forEach(
+        (contentMd5, tmTextUnitIds) ->
+            candidatesByContentMd5Builder.put(
+                contentMd5,
+                tmTextUnitIds.stream()
+                    .distinct()
+                    .sorted()
+                    .collect(ImmutableList.toImmutableList())));
+
+    return candidatesByContentMd5Builder.build();
+  }
+
+  ImmutableList<TextUnitDTO> getTranslatedTextUnitDTOsForTmTextUnitIds(
+      ImmutableSet<Long> tmTextUnitIds) {
+    // TODO(ja) that can be crazy too big!!!! taking all locales WOW!
+    return Lists.partition(new ArrayList<>(tmTextUnitIds), BATCH_SIZE).stream()
+        .flatMap(
+            tmTextUnitIdsBatch -> {
+              TextUnitSearcherParameters searchParameters = new TextUnitSearcherParameters();
+              searchParameters.setTmTextUnitIds(tmTextUnitIdsBatch);
+              searchParameters.setStatusFilter(StatusFilter.TRANSLATED);
+              searchParameters.setRootLocaleExcluded(true);
+              return textUnitSearcher.search(searchParameters).stream();
+            })
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  ImmutableList<TextUnitDTOMatch> getLeveragingMatchesForTextUnitsBySourceAndComment(
+      ImmutableList<BranchStateTextUnit> textUnits, ImmutableList<TextUnitDTO> textUnitDTOs) {
+
+    Predicate<TextUnitDTO> notInIdsOfTextUnits = isNotInIdsOfTextUnits(textUnits);
+    Predicate<TextUnitDTO> isInSourceAndCommentToCreatePredicate =
+        isInSourceAndCommentToCreatePredicate(textUnits);
+
+    ImmutableListMultimap<String, TextUnitDTO> candidateBySourceAndComment =
+        textUnitDTOs.stream()
+            .filter(notInIdsOfTextUnits)
+            .filter(isInSourceAndCommentToCreatePredicate)
+            .collect(
+                ImmutableListMultimap.toImmutableListMultimap(
+                    textUnitDTO ->
+                        sourceAndCommentKey(textUnitDTO.getSource(), textUnitDTO.getComment()),
+                    identity()));
+
+    return textUnits.stream()
+        .map(
+            bstu -> {
+              ImmutableList<TextUnitDTO> sourceAndCommentMatches =
+                  candidateBySourceAndComment.get(
+                      sourceAndCommentKey(bstu.getSource(), bstu.getComments()));
+
+              if (sourceAndCommentMatches.isEmpty()) {
+                return null;
+              }
+
+              // this part is flakey by design, we may have multiple matches but we take one
+              // arbitrarily.
+              ImmutableList<TextUnitDTO> sortedMatches =
+                  sourceAndCommentMatches.stream()
+                      .sorted(
+                          Comparator.comparing(TextUnitDTO::isUsed)
+                              .reversed()
+                              .thenComparing(
+                                  TextUnitDTO::getTmTextUnitId,
+                                  Comparator.nullsLast(Long::compareTo)))
+                      .collect(ImmutableList.toImmutableList());
+
+              TextUnitDTO match = sortedMatches.get(0);
+
+              return TextUnitDTOMatch.builder()
+                  .source(bstu)
+                  .match(match)
+                  .uniqueMatch(hasSingleTmTextUnitCandidate(sortedMatches))
+                  .translationNeededIfUniqueMatch(true)
+                  .build();
+            })
+        .filter(Objects::nonNull)
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  boolean hasSingleTmTextUnitCandidate(ImmutableList<TextUnitDTO> matches) {
+    return matches.stream()
+            .map(TextUnitDTO::getTmTextUnitId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .limit(2)
+            .count()
+        == 1;
+  }
+
+  TextUnitDTO textUnitDTOWithTmTextUnitId(Long tmTextUnitId) {
+    TextUnitDTO textUnitDTO = new TextUnitDTO();
+    textUnitDTO.setTmTextUnitId(tmTextUnitId);
+    return textUnitDTO;
+  }
+
+  String sourceAndCommentKey(String source, String comment) {
+    return Objects.toString(source, "") + "\u0001" + Objects.toString(comment, "");
   }
 
   ImmutableList<TextUnitDTOMatch> getLeveragingMatchesForTextUnits(
@@ -939,6 +1314,18 @@ public class AssetExtractionService {
 
   Predicate<BranchStateTextUnit> unusedBranchStateTextUnit() {
     return m -> m.getBranchNameToBranchDatas().isEmpty();
+  }
+
+  Predicate<TextUnitDTO> isInSourceAndCommentToCreatePredicate(
+      ImmutableList<BranchStateTextUnit> textUnitsToCreate) {
+    ImmutableSet<String> sourceAndCommentToCreate =
+        textUnitsToCreate.stream()
+            .map(textUnit -> sourceAndCommentKey(textUnit.getSource(), textUnit.getComments()))
+            .collect(ImmutableSet.toImmutableSet());
+
+    return textUnitDTO ->
+        sourceAndCommentToCreate.contains(
+            sourceAndCommentKey(textUnitDTO.getSource(), textUnitDTO.getComment()));
   }
 
   /** Returns text units without ids (= tm text unit ids). */
@@ -1148,12 +1535,33 @@ public class AssetExtractionService {
       throws UnsupportedAssetFilterTypeException,
           InterruptedException,
           AssetExtractionConflictException {
+    return processAssetAsync(
+        assetContentId,
+        pushRunId,
+        filterConfigIdOverride,
+        filterOptions,
+        LeveragingType.LEGACY_SOURCE,
+        parentTaskId);
+  }
+
+  public PollableFuture<Void> processAssetAsync(
+      Long assetContentId,
+      Long pushRunId,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      LeveragingType leveragingTypeForCurrentPush,
+      Long parentTaskId)
+      throws UnsupportedAssetFilterTypeException,
+          InterruptedException,
+          AssetExtractionConflictException {
 
     ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();
     processAssetJobInput.setAssetContentId(assetContentId);
     processAssetJobInput.setPushRunId(pushRunId);
     processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
     processAssetJobInput.setFilterOptions(filterOptions);
+    processAssetJobInput.setLeveragingType(
+        Objects.requireNonNullElse(leveragingTypeForCurrentPush, LeveragingType.LEGACY_SOURCE));
 
     String pollableMessage =
         MessageFormat.format("Process asset content, id: {0}", assetContentId.toString());

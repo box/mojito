@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.service.assetExtraction.LeveragingType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,6 +28,7 @@ public class SourceAsset {
   private FilterConfigIdOverride filterConfigIdOverride;
   private List<String> filterOptions;
   private boolean extractedContent;
+  private LeveragingType leveragingType = LeveragingType.LEGACY_SOURCE;
 
   private String commitHash;
 
@@ -108,6 +110,14 @@ public class SourceAsset {
 
   public void setFilterOptions(List<String> filterOptions) {
     this.filterOptions = filterOptions;
+  }
+
+  public LeveragingType getLeveragingType() {
+    return leveragingType;
+  }
+
+  public void setLeveragingType(LeveragingType leveragingType) {
+    this.leveragingType = leveragingType;
   }
 
   public String getCommitHash() {

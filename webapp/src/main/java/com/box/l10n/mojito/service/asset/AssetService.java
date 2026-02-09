@@ -25,6 +25,7 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetExtraction.LeveragingType;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchService;
@@ -134,6 +135,34 @@ public class AssetService {
         pushRunId,
         filterConfigIdOverride,
         filterOptions,
+        LeveragingType.LEGACY_SOURCE);
+  }
+
+  public PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(
+      Long repositoryId,
+      String assetPath,
+      String assetContent,
+      boolean extractedContent,
+      String branch,
+      String branchCreatedByUsername,
+      Set<String> branchNotifierIds,
+      Long pushRunId,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      LeveragingType leveragingType)
+      throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
+    return addOrUpdateAssetAndProcessIfNeeded(
+        repositoryId,
+        assetPath,
+        assetContent,
+        extractedContent,
+        branch,
+        branchCreatedByUsername,
+        branchNotifierIds,
+        pushRunId,
+        filterConfigIdOverride,
+        filterOptions,
+        leveragingType,
         PollableTask.INJECT_CURRENT_TASK);
   }
 
@@ -162,6 +191,7 @@ public class AssetService {
       Long pushRunId,
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions,
+      LeveragingType leveragingType,
       @InjectCurrentTask PollableTask currentTask)
       throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
@@ -208,6 +238,7 @@ public class AssetService {
           pushRunId,
           filterConfigIdOverride,
           filterOptions,
+          leveragingType,
           currentTask.getId());
     } else {
       logger.debug(

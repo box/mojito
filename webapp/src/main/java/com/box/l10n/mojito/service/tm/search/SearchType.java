@@ -8,5 +8,6 @@ package com.box.l10n.mojito.service.tm.search;
 public enum SearchType {
   EXACT,
   CONTAINS,
-  ILIKE
+  ILIKE,
+  REGEX
 }

@@ -1,0 +1,8 @@
+@import './char-code-helper.css';
+
+.icu-message-preview-page {
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--space-5) var(--space-7);
+}

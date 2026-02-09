@@ -8,6 +8,7 @@ public class ProcessAssetJobInput {
   Long pushRunId;
   FilterConfigIdOverride filterConfigIdOverride;
   List<String> filterOptions;
+  LeveragingType leveragingType = LeveragingType.LEGACY_SOURCE;
 
   public Long getAssetContentId() {
     return assetContentId;
@@ -39,5 +40,13 @@ public class ProcessAssetJobInput {
 
   public void setFilterOptions(List<String> filterOptions) {
     this.filterOptions = filterOptions;
+  }
+
+  public LeveragingType getLeveragingType() {
+    return leveragingType;
+  }
+
+  public void setLeveragingType(LeveragingType leveragingType) {
+    this.leveragingType = leveragingType != null ? leveragingType : LeveragingType.LEGACY_SOURCE;
   }
 }

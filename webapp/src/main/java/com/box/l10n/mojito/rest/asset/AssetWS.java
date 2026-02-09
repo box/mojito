@@ -18,6 +18,7 @@ import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.assetExtraction.LeveragingType;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
@@ -137,6 +138,8 @@ public class AssetWS {
     // TODO(P1) check permission to update the repo
     // ********************************************
     String normalizedContent = NormalizationUtils.normalize(sourceAsset.getContent());
+    LeveragingType leveragingType =
+        MoreObjects.firstNonNull(sourceAsset.getLeveragingType(), LeveragingType.LEGACY_SOURCE);
     PollableFuture<Asset> assetFuture =
         assetService.addOrUpdateAssetAndProcessIfNeeded(
             sourceAsset.getRepositoryId(),
@@ -148,7 +151,8 @@ public class AssetWS {
             sourceAsset.getBranchNotifiers(),
             pushRun != null ? pushRun.getId() : null,
             sourceAsset.getFilterConfigIdOverride(),
-            sourceAsset.getFilterOptions());
+            sourceAsset.getFilterOptions(),
+            leveragingType);
 
     try {
       sourceAsset.setAddedAssetId(assetFuture.get().getId());

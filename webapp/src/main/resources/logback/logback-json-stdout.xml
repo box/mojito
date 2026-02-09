@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <include resource="logback/base.xml" />
+
+    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timeZone>UTC</timeZone>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_STDOUT" />
+    </root>
+</configuration>

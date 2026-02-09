@@ -1,0 +1,244 @@
+.ai-chat-review__thread,
+.ai-chat-review__review,
+.ai-chat-review__suggestion {
+  --ai-chat-review-score-column-width: 5.5em;
+}
+
+.ai-chat-review__thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 24em;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.ai-chat-review__message {
+  border-radius: 0;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ai-chat-review__message--assistant {
+  background: transparent;
+  border-left: var(--border-width) solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  padding-left: var(--space-2);
+  color: var(--color-text);
+}
+
+.ai-chat-review__message--user {
+  margin-left: 0;
+  align-self: flex-end;
+  max-width: 94%;
+  background: transparent;
+  border-right: var(--border-width) solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  padding-right: var(--space-2);
+  color: var(--color-text);
+}
+
+.ai-chat-review__message-content {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ai-chat-review__review {
+  display: grid;
+  grid-template-columns: var(--ai-chat-review-score-column-width) minmax(0, 1fr);
+  column-gap: var(--space-2);
+  align-items: start;
+}
+
+.ai-chat-review__review p {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.ai-chat-review__review-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  background: color-mix(in srgb, var(--color-border) 28%, transparent);
+  color: var(--color-text-subtle);
+  padding: 0.2em 0.65em;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.ai-chat-review__review-badge--bad {
+  border-color: color-mix(in srgb, #ef4444 52%, transparent);
+  background: color-mix(in srgb, #ef4444 16%, transparent);
+  color: color-mix(in srgb, #991b1b 88%, var(--color-text));
+}
+
+.ai-chat-review__review-badge--average {
+  border-color: color-mix(in srgb, #ef4444 38%, transparent);
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  color: color-mix(in srgb, #7f1d1d 72%, var(--color-text-subtle));
+}
+
+.ai-chat-review__suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ai-chat-review__suggestion {
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-1) var(--space-2) var(--space-1) 0;
+  display: grid;
+  grid-template-columns: var(--ai-chat-review-score-column-width) minmax(0, 1fr);
+  column-gap: var(--space-2);
+  gap: var(--space-2);
+}
+
+.ai-chat-review__suggestion-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  min-width: 2em;
+  height: 1.4em;
+  padding-inline: var(--space-1);
+  margin-top: 0.2em;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: color-mix(in srgb, var(--color-border) 24%, transparent);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.ai-chat-review__suggestion-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-right: 11em;
+}
+
+.ai-chat-review__suggestion-content {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ai-chat-review__suggestion-explanation {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.ai-chat-review__suggestion-actions {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.12em);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.ai-chat-review__suggestion-actions .ai-chat-review__button {
+  min-height: 1.625rem;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-2xs);
+}
+
+.ai-chat-review__suggestion:hover .ai-chat-review__suggestion-actions,
+.ai-chat-review__suggestion:focus-within .ai-chat-review__suggestion-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.ai-chat-review__state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.ai-chat-review__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.ai-chat-review__form input {
+  min-width: 0;
+  min-height: 1.75rem;
+  border-radius: var(--radius-2);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+  padding: 0 var(--space-2);
+}
+
+.ai-chat-review__form input:focus-visible {
+  outline: 0;
+  border-color: var(--color-focus-border);
+  box-shadow: 0 0 0 0.15em var(--color-focus-outline);
+}
+
+.ai-chat-review__form button {
+  justify-self: start;
+  min-height: 1.75rem;
+  padding: 0 var(--space-2);
+}
+
+.ai-chat-review__button {
+  min-height: 1.75rem;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  padding: 0 var(--space-3);
+  cursor: pointer;
+}
+
+.ai-chat-review__button:hover:not(:disabled),
+.ai-chat-review__button:focus-visible:not(:disabled) {
+  border-color: var(--color-focus-border);
+}
+
+.ai-chat-review__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ai-chat-review__button--primary {
+  border-color: color-mix(in srgb, var(--color-accent) 84%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 88%, transparent);
+  color: var(--color-on-accent);
+}

@@ -51,6 +51,13 @@ public enum StatusFilter {
   REVIEW_NOT_NEEDED,
   /** TextUnits with status ({@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}). */
   TRANSLATION_NEEDED,
+  /**
+   * TextUnits that are not accepted.
+   *
+   * <p>This is the complement of {@link #APPROVED_AND_NOT_REJECTED}: untranslated rows, non
+   * approved statuses, and rejected rows.
+   */
+  NOT_ACCEPTED,
   /** TextUnits that are rejected, ie {@link TMTextUnitVariant#includedInLocalizedFile} is false. */
   REJECTED,
   /**

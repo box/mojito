@@ -175,8 +175,19 @@ public class WebSecurityConfig {
                 .authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/textunits/search-hybrid")
                 .authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/translate")
+                .authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/ai/review")
+                .authenticated()
+                // Review projects search should be available to translators
+                .requestMatchers(HttpMethod.POST, "/api/review-projects/search")
+                .authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/review-projects/*/status")
+                .hasAnyRole("TRANSLATOR", "PM", "ADMIN")
                 // USERs are not allowed to change translations
                 .requestMatchers("/api/textunits/**")
+                .hasAnyRole("TRANSLATOR", "PM", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/review-project-text-units/**")
                 .hasAnyRole("TRANSLATOR", "PM", "ADMIN")
                 // Read-only is OK for everyone
                 .requestMatchers(HttpMethod.GET, "/api/**")
@@ -218,7 +229,10 @@ public class WebSecurityConfig {
         .ignoringRequestMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation");
 
     setAuthorizationRequests(
-        http, getHealthcheckPatterns(actuatorHealthLegacyConfig.isForwarding()));
+        http,
+        getActuatorPermitAllPatterns(
+            actuatorHealthLegacyConfig.isForwarding(),
+            securityConfig.getActuator().isPrometheusPermitAll()));
 
     logger.debug("For APIs, we don't redirect to login page. Instead we return a 401");
     http.exceptionHandling()
@@ -286,12 +300,16 @@ public class WebSecurityConfig {
    * @param forwarding
    * @return
    */
-  static List<String> getHealthcheckPatterns(boolean forwarding) {
+  static List<String> getActuatorPermitAllPatterns(
+      boolean forwarding, boolean allowPrometheusScrape) {
     List<String> patterns = new ArrayList<>();
     patterns.add("/actuator/health");
 
     if (forwarding) {
       patterns.add("/health");
+    }
+    if (allowPrometheusScrape) {
+      patterns.add("/actuator/prometheus");
     }
     return patterns;
   }

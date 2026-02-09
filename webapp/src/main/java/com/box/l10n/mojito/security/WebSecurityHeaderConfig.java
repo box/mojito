@@ -51,12 +51,13 @@ class WebSecurityHeaderConfig {
   SecurityFilterChain headerPreAuthenticated(
       HttpSecurity http,
       RequestHeaderAuthenticationFilter headerFilter,
-      PreAuthenticatedAuthenticationProvider preauthProvider)
+      PreAuthenticatedAuthenticationProvider preauthProvider,
+      SecurityConfig securityConfig)
       throws Exception {
 
     http.securityMatcher(req -> req.getHeader(X_FORWARDED_USER) != null);
 
-    WebSecurityJWTConfig.applyStatelessSharedConfig(http);
+    WebSecurityJWTConfig.applyStatelessSharedConfig(http, securityConfig);
 
     http.authenticationProvider(preauthProvider);
     http.addFilterBefore(headerFilter, BearerTokenAuthenticationFilter.class);

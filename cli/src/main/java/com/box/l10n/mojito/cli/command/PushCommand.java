@@ -7,6 +7,7 @@ import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.rest.entity.LeveragingType;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.ibm.icu.text.MessageFormat;
@@ -147,6 +148,13 @@ public class PushCommand extends Command {
       converter = AssetMappingConverter.class)
   Map<String, String> assetMapping;
 
+  @Parameter(
+      names = {"--leveraging-type"},
+      required = false,
+      description =
+          "Leveraging strategy during push: LEGACY_SOURCE, ASSET_SOURCE_AND_COMMENT, or CROSS_ASSET_FALLBACK")
+  LeveragingType leveragingType = LeveragingType.LEGACY_SOURCE;
+
   @Autowired RepositoryClient repositoryClient;
 
   @Autowired CommandHelper commandHelper;
@@ -229,6 +237,7 @@ public class PushCommand extends Command {
                   sourceAsset.setFilterOptions(
                       commandHelper.getFilterOptionsOrDefaults(
                           sourceFileMatch.getFileType(), filterOptionsParam));
+                  sourceAsset.setLeveragingType(leveragingType);
 
                   return sourceAsset;
                 });

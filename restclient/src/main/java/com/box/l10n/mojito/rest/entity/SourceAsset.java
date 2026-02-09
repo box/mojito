@@ -29,6 +29,7 @@ public class SourceAsset {
   private FilterConfigIdOverride filterConfigIdOverride;
   private List<String> filterOptions;
   private boolean extractedContent;
+  private LeveragingType leveragingType = LeveragingType.LEGACY_SOURCE;
 
   private String commitHash;
 
@@ -110,6 +111,14 @@ public class SourceAsset {
 
   public void setFilterOptions(List<String> filterOptions) {
     this.filterOptions = filterOptions;
+  }
+
+  public LeveragingType getLeveragingType() {
+    return leveragingType;
+  }
+
+  public void setLeveragingType(LeveragingType leveragingType) {
+    this.leveragingType = leveragingType;
   }
 
   public String getCommitHash() {

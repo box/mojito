@@ -1,0 +1,101 @@
+.ai-translate-page {
+  width: 100%;
+}
+
+.ai-translate-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--space-6);
+}
+
+.ai-translate-repo-select.chip-dropdown {
+  width: 100%;
+}
+
+.ai-translate-repo-select .chip-dropdown__button {
+  min-height: 2.25rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.ai-translate-hint-error {
+  color: var(--color-danger);
+}
+
+.ai-translate-quick-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ai-translate-quick-size {
+  border: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 0.2rem 0.65rem;
+  background: var(--color-surface);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.ai-translate-quick-size.is-active {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-border));
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.ai-translate-quick-size:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-translate-toggle-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ai-translate-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.ai-translate-toggle input {
+  accent-color: var(--color-accent);
+}
+
+.ai-translate-status {
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ai-translate-status--success {
+  color: var(--color-accent);
+}
+
+.ai-translate-report h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.ai-translate-report ul {
+  margin: 0;
+  padding-left: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.ai-translate-report a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+@media (max-width: 960px) {
+  .ai-translate-grid {
+    grid-template-columns: 1fr;
+  }
+}

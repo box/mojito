@@ -19,6 +19,7 @@ public class TextUnitSearcherParameters {
   String source;
   String target;
   String assetPath;
+  String assetTextUnitUsages;
   String pluralFormOther;
   SearchType searchType;
   List<Long> repositoryIds;
@@ -36,7 +37,7 @@ public class TextUnitSearcherParameters {
   boolean forRootLocale = false;
   boolean rootLocaleExcluded = true;
   Boolean toBeFullyTranslatedFilter;
-  boolean untranslatedOrTranslationNeeded = false;
+
   boolean pluralFormsFiltered = true;
   boolean pluralFormsExcluded = false;
 
@@ -45,6 +46,8 @@ public class TextUnitSearcherParameters {
   Boolean doNotTranslateFilter;
   ZonedDateTime tmTextUnitCreatedBefore;
   ZonedDateTime tmTextUnitCreatedAfter;
+  ZonedDateTime tmTextUnitVariantCreatedBefore;
+  ZonedDateTime tmTextUnitVariantCreatedAfter;
   Long branchId;
   String skipTextUnitWithPattern;
   String includeTextUnitsWithPattern;
@@ -90,6 +93,14 @@ public class TextUnitSearcherParameters {
 
   public void setAssetPath(String assetPath) {
     this.assetPath = assetPath;
+  }
+
+  public String getAssetTextUnitUsages() {
+    return assetTextUnitUsages;
+  }
+
+  public void setAssetTextUnitUsages(String assetTextUnitUsages) {
+    this.assetTextUnitUsages = assetTextUnitUsages;
   }
 
   public List<Long> getRepositoryIds() {
@@ -262,6 +273,22 @@ public class TextUnitSearcherParameters {
 
   public void setTmTextUnitCreatedAfter(ZonedDateTime tmTextUnitCreatedAfter) {
     this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+  }
+
+  public ZonedDateTime getTmTextUnitVariantCreatedBefore() {
+    return tmTextUnitVariantCreatedBefore;
+  }
+
+  public void setTmTextUnitVariantCreatedBefore(ZonedDateTime tmTextUnitVariantCreatedBefore) {
+    this.tmTextUnitVariantCreatedBefore = tmTextUnitVariantCreatedBefore;
+  }
+
+  public ZonedDateTime getTmTextUnitVariantCreatedAfter() {
+    return tmTextUnitVariantCreatedAfter;
+  }
+
+  public void setTmTextUnitVariantCreatedAfter(ZonedDateTime tmTextUnitVariantCreatedAfter) {
+    this.tmTextUnitVariantCreatedAfter = tmTextUnitVariantCreatedAfter;
   }
 
   public Long getBranchId() {

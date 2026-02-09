@@ -36,6 +36,8 @@ public class SecurityConfig {
 
   Jwt jwt;
 
+  Actuator actuator = new Actuator();
+
   public List<AuthenticationType> getAuthenticationType() {
     return authenticationType;
   }
@@ -66,6 +68,14 @@ public class SecurityConfig {
 
   public void setJwt(Jwt jwt) {
     this.jwt = jwt;
+  }
+
+  public Actuator getActuator() {
+    return actuator;
+  }
+
+  public void setActuator(Actuator actuator) {
+    this.actuator = actuator;
   }
 
   /** Types of authentication available */
@@ -169,6 +179,20 @@ public class SecurityConfig {
 
     public void setTokenHeaderPrefix(String tokenHeaderPrefix) {
       this.tokenHeaderPrefix = tokenHeaderPrefix;
+    }
+  }
+
+  public static class Actuator {
+
+    /** Allow unauthenticated access to /actuator/prometheus for scraping. */
+    boolean prometheusPermitAll = false;
+
+    public boolean isPrometheusPermitAll() {
+      return prometheusPermitAll;
+    }
+
+    public void setPrometheusPermitAll(boolean prometheusPermitAll) {
+      this.prometheusPermitAll = prometheusPermitAll;
     }
   }
 }

@@ -8,7 +8,7 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 @NoPrefixNoBuiltinContainer
-public abstract class AbstractCreateTextUnitsResult {
+public abstract class AbstractCreateTextUnitsForNewContentResult {
   public abstract MultiBranchState getUpdatedState();
 
   public abstract ImmutableList<BranchStateTextUnit> getCreatedTextUnits();

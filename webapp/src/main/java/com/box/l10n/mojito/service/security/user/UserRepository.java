@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
@@ -37,4 +38,20 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
   @Override
   @EntityGraph(value = "User.legacy", type = EntityGraphType.FETCH)
   Optional<User> findById(Long aLong);
+
+  @Query(
+      """
+          select new com.box.l10n.mojito.service.security.user.UserAdminSummaryProjection(
+            u.id,
+            u.username,
+            u.givenName,
+            u.surname,
+            u.commonName,
+            u.enabled,
+            u.canTranslateAllLocales,
+            u.createdDate
+          )
+          from User u
+          """)
+  List<UserAdminSummaryProjection> findAdminSummaries();
 }

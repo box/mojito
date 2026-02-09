@@ -360,6 +360,10 @@ public class TextUnitDTOsCacheService {
         case TRANSLATION_NEEDED:
           return t.isTranslated()
               && TMTextUnitVariant.Status.TRANSLATION_NEEDED.equals(t.getStatus());
+        case NOT_ACCEPTED:
+          return t.getTmTextUnitVariantId() == null
+              || !TMTextUnitVariant.Status.APPROVED.equals(t.getStatus())
+              || !t.isIncludedInLocalizedFile();
         case TRANSLATED:
           return t.isTranslated();
         case APPROVED_AND_NOT_REJECTED:
