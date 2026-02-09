@@ -8,7 +8,7 @@ import net.sf.okapi.common.encoder.EncoderContext;
 import net.sf.okapi.common.encoder.IEncoder;
 
 /**
- * Encoder to handle escaping \n, \r, double-quotes.
+ * Encoder to handle escaping backslash, \n, \r, double-quotes.
  *
  * @author jyi
  */
@@ -50,6 +50,9 @@ public class SimpleEncoder implements IEncoder {
     String res;
 
     switch (value) {
+      case '\\':
+        res = "\\\\";
+        break;
       case '\n':
         res = "\\n";
         break;
