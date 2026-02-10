@@ -31,6 +31,13 @@ public class UnescapeUtilsTest {
   }
 
   @Test
+  public void replaceEscapedBackslash() {
+    assertEquals("\\", unescapeUtils.replaceEscapedBackslash("\\\\"));
+    assertEquals("C:\\Users\\test", unescapeUtils.replaceEscapedBackslash("C:\\\\Users\\\\test"));
+    assertEquals("\\\\\\", unescapeUtils.replaceEscapedBackslash("\\\\\\\\\\\\"));
+  }
+
+  @Test
   public void collapseSpaces() {
     assertEquals(" a b c ", unescapeUtils.collapseSpaces("   a   b   c  "));
   }
@@ -43,5 +50,17 @@ public class UnescapeUtilsTest {
   @Test
   public void unescape() {
     assertEquals("  ' \" \n  ", unescapeUtils.unescape("  \' \\\" \\n  "));
+  }
+
+  @Test
+  public void unescapeWithBackslash() {
+    assertEquals("C:\\Users\\test", unescapeUtils.unescape("C:\\\\Users\\\\test"));
+  }
+
+  @Test
+  public void unescapeComplexString() {
+    assertEquals(
+        "path\\to\\file\nwith \"quotes\"",
+        unescapeUtils.unescape("path\\\\to\\\\file\\nwith \\\"quotes\\\""));
   }
 }

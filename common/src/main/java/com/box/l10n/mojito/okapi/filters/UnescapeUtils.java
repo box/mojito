@@ -14,6 +14,7 @@ public class UnescapeUtils {
   /** Logger */
   static Logger logger = LoggerFactory.getLogger(UnescapeUtils.class);
 
+  private static final Pattern ESCAPED_BACKSLASH = Pattern.compile("\\\\\\\\");
   private static final Pattern ESCAPED_CARIAGE_RETURN = Pattern.compile("\\\\r");
   private static final Pattern ESCAPED_LINE_FEED = Pattern.compile("\\\\n");
   private static final Pattern ESCAPED_QUOTES = Pattern.compile("\\\\(\"|')");
@@ -24,7 +25,10 @@ public class UnescapeUtils {
   private static final Pattern LINE_FEED = Pattern.compile("\n");
 
   /**
-   * Unescapes line feed, cariage return, single quote and double quote
+   * Unescapes backslash, line feed, carriage return, single quote and double quote.
+   *
+   * <p>Order matters: backslash must be unescaped last to avoid double-processing. For example,
+   * "\\n" should become "\n" (literal backslash + n), not a newline character.
    *
    * @param text
    * @return
@@ -33,7 +37,18 @@ public class UnescapeUtils {
     String unescapedText = replaceEscapedCarriageReturn(text);
     unescapedText = replaceEscapedLineFeed(unescapedText);
     unescapedText = replaceEscapedQuotes(unescapedText);
+    unescapedText = replaceEscapedBackslash(unescapedText);
     return unescapedText;
+  }
+
+  /**
+   * Replaces \\\\ with \\
+   *
+   * @param text
+   * @return
+   */
+  String replaceEscapedBackslash(String text) {
+    return ESCAPED_BACKSLASH.matcher(text).replaceAll("\\\\");
   }
 
   String replaceEscapedCarriageReturn(String text) {

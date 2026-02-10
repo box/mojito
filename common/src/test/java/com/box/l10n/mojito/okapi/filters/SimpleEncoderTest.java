@@ -11,12 +11,14 @@ public class SimpleEncoderTest {
 
   private SimpleEncoder encoder;
   private EncoderContext context;
+  private UnescapeUtils unescapeUtils;
 
   @Before
   public void setUp() {
     encoder = new SimpleEncoder();
     encoder.setOptions(null, "UTF-8", "\n");
     context = EncoderContext.TEXT;
+    unescapeUtils = new UnescapeUtils();
   }
 
   @Test
@@ -76,5 +78,54 @@ public class SimpleEncoderTest {
   @Test
   public void testEncodeOnlyBackslashes() {
     assertEquals("\\\\\\\\\\\\", encoder.encode("\\\\\\", context));
+  }
+
+  // Roundtrip tests to verify unescape(encode(str)) == str
+  @Test
+  public void testRoundtripBackslash() {
+    String original = "C:\\Users\\test";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripNewline() {
+    String original = "line1\nline2";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripCarriageReturn() {
+    String original = "line1\rline2";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripDoubleQuote() {
+    String original = "say \"hello\"";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripComplexString() {
+    String original = "path\\to\\file\nwith \"quotes\" and\rcarriage return";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripMultipleBackslashes() {
+    String original = "\\\\\\";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
   }
 }
