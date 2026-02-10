@@ -63,4 +63,44 @@ public class UnescapeUtilsTest {
         "path\\to\\file\nwith \"quotes\"",
         unescapeUtils.unescape("path\\\\to\\\\file\\nwith \\\"quotes\\\""));
   }
+
+  @Test
+  public void unescapeBackslashFollowedByN() {
+    // "\\\\n" (4 chars: \, \, \, n → escaped backslash + literal n)
+    // should unescape to "\n" (2 chars: backslash + n), NOT a newline character
+    assertEquals("\\n", unescapeUtils.unescape("\\\\n"));
+  }
+
+  @Test
+  public void unescapeBackslashFollowedByR() {
+    // "\\\\r" should unescape to "\r" (backslash + r), NOT a carriage return
+    assertEquals("\\r", unescapeUtils.unescape("\\\\r"));
+  }
+
+  @Test
+  public void unescapeBackslashFollowedByQuote() {
+    // "\\\\\"" should unescape to "\"" (backslash + quote)
+    assertEquals("\\\"", unescapeUtils.unescape("\\\\\\\""));
+  }
+
+  @Test
+  public void unescapeTab() {
+    assertEquals("\t", unescapeUtils.unescape("\\t"));
+  }
+
+  @Test
+  public void unescapeNoEscapeSequences() {
+    assertEquals("hello world", unescapeUtils.unescape("hello world"));
+  }
+
+  @Test
+  public void unescapeEmptyString() {
+    assertEquals("", unescapeUtils.unescape(""));
+  }
+
+  @Test
+  public void unescapeMultipleBackslashes() {
+    // 6 backslashes: three escaped pairs → 3 literal backslashes
+    assertEquals("\\\\\\", unescapeUtils.unescape("\\\\\\\\\\\\"));
+  }
 }

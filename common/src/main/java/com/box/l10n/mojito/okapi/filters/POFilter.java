@@ -167,19 +167,16 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   }
 
   void unescapeSource(TextUnit textUnit) {
-    String sourceString = textUnitUtils.getSourceAsString(textUnit);
-    String unescapedSourceString = unescapeUtils.replaceEscapedQuotes(sourceString);
-    textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
+    // No-op: Okapi's POFilter already fully handles all C-style escape sequences
+    // (\\, \n, \r, \t, \", etc.) via its own single-pass unescape in toAbstract().
+    // Any additional unescaping here would double-process and corrupt strings.
+    // For example, PO \\\" (escaped-backslash + escaped-quote) becomes \" (literal
+    // backslash + quote) after Okapi's unescape. Applying replaceEscapedQuotes()
+    // would then strip the literal backslash.
   }
 
   void unescapeTarget(TextUnit textUnit) {
-    TextContainer target = textUnit.getTarget(targetLocale);
-    if (target != null) {
-      String targetString = target.toString();
-      String unescapedTargetString = unescapeUtils.replaceEscapedQuotes(targetString);
-      TextContainer newTarget = new TextContainer(unescapedTargetString);
-      textUnit.setTarget(targetLocale, newTarget);
-    }
+    // No-op: same reasoning as unescapeSource.
   }
 
   boolean isPluralGroupStarting(Event event) {
@@ -290,13 +287,13 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         // source should always be singular form for "one" form,
         // this is needed for language with 6 entry like arabic
         logger.debug("Set message singular: {}", msgID);
-        textUnit.setSource(new TextContainer(unescapeUtils.replaceEscapedQuotes(msgID)));
+        textUnit.setSource(new TextContainer(unescapeUtils.unescape(msgID)));
       } else {
         // source should always be plural form unless for "one" form,
         // this is needed for language with only one entry like
         // japanese: [0] --> other
         logger.debug("Set message plural: {}", msgIDPlural);
-        textUnit.setSource(new TextContainer(unescapeUtils.replaceEscapedQuotes(msgIDPlural)));
+        textUnit.setSource(new TextContainer(unescapeUtils.unescape(msgIDPlural)));
       }
     }
 
@@ -361,10 +358,12 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     Property property = textUnit.getProperty(POFilter.PROPERTY_CONTEXT);
 
-    StringBuilder newName = new StringBuilder(msgID);
+    // Unescape msgID for the name (backslash, newline, carriage return, quotes)
+    StringBuilder newName = new StringBuilder(unescapeUtils.unescape(msgID));
 
     if (property != null) {
-      newName.append(" --- ").append(property.getValue());
+      // Also unescape the context value
+      newName.append(" --- ").append(unescapeUtils.unescape(property.getValue()));
     }
 
     if (poPluralForm != null) {

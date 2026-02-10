@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,20 +26,74 @@ public class UnescapeUtils {
   private static final Pattern LINE_FEED = Pattern.compile("\n");
 
   /**
-   * Unescapes backslash, line feed, carriage return, single quote and double quote.
+   * Single-pass pattern for C-style escape sequences used in GNU PO files. Matches exactly
+   * two-character sequences starting with a backslash, so "\\\\n" (4 chars) matches "\\\\" first (→
+   * \), leaving "n" as a literal — not "\n" (newline).
    *
-   * <p>Order matters: backslash must be unescaped last to avoid double-processing. For example,
-   * "\\n" should become "\n" (literal backslash + n), not a newline character.
+   * <p>Covers the same set as Okapi's {@code POFilter.unescape()}: {@code \\[abfnrtv"'\\]}.
+   */
+  private static final Pattern ESCAPE_SEQUENCE = Pattern.compile("\\\\[abfnrtv\"'\\\\]");
+
+  /**
+   * Unescapes C-style escape sequences in a single pass, following the GNU PO file format (same
+   * escaping rules as C strings).
    *
-   * @param text
-   * @return
+   * <p>Handles: {@code \\} (backslash), {@code \n} (newline), {@code \r} (CR), {@code \t} (tab),
+   * {@code \"} (quote), {@code \'} (single quote), {@code \a} (bell), {@code \b} (backspace),
+   * {@code \f} (form feed), {@code \v} (vertical tab).
+   *
+   * <p>A single-pass approach is required because sequential replacement can corrupt strings
+   * containing ambiguous sequences like "\\\\n" (escaped-backslash followed by literal 'n'). With
+   * sequential replacement, this would be incorrectly decoded as a newline character.
+   *
+   * @param text the escaped text
+   * @return the unescaped text
    */
   public String unescape(String text) {
-    String unescapedText = replaceEscapedCarriageReturn(text);
-    unescapedText = replaceEscapedLineFeed(unescapedText);
-    unescapedText = replaceEscapedQuotes(unescapedText);
-    unescapedText = replaceEscapedBackslash(unescapedText);
-    return unescapedText;
+    Matcher matcher = ESCAPE_SEQUENCE.matcher(text);
+    StringBuilder sb = new StringBuilder(text.length());
+    while (matcher.find()) {
+      String match = matcher.group();
+      String replacement;
+      switch (match.charAt(1)) {
+        case '\\':
+          replacement = "\\";
+          break;
+        case 'a':
+          replacement = "\u0007"; // bell
+          break;
+        case 'b':
+          replacement = "\b"; // backspace
+          break;
+        case 'f':
+          replacement = "\f"; // form feed
+          break;
+        case 'n':
+          replacement = "\n";
+          break;
+        case 'r':
+          replacement = "\r";
+          break;
+        case 't':
+          replacement = "\t";
+          break;
+        case 'v':
+          replacement = "\u000B"; // vertical tab
+          break;
+        case '"':
+          replacement = "\"";
+          break;
+        case '\'':
+          replacement = "'";
+          break;
+        default:
+          replacement = match;
+          break;
+      }
+      matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+    }
+    matcher.appendTail(sb);
+    return sb.toString();
   }
 
   /**

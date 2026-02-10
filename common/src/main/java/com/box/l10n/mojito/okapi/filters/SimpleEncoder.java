@@ -8,7 +8,9 @@ import net.sf.okapi.common.encoder.EncoderContext;
 import net.sf.okapi.common.encoder.IEncoder;
 
 /**
- * Encoder to handle escaping backslash, \n, \r, double-quotes.
+ * Encoder to handle escaping backslash, \n, \r, \t, double-quotes.
+ *
+ * <p>Follows C-style string escaping as required by the GNU PO file format.
  *
  * @author jyi
  */
@@ -58,6 +60,9 @@ public class SimpleEncoder implements IEncoder {
         break;
       case '\r':
         res = "\\r";
+        break;
+      case '\t':
+        res = "\\t";
         break;
       case '"':
         res = "\\\"";

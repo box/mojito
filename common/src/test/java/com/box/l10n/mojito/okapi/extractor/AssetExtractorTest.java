@@ -7,6 +7,7 @@ import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
 import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.filters.UnescapeUtils;
 import java.util.Arrays;
 import java.util.List;
 import org.assertj.core.api.Assertions;
@@ -25,6 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
       AssetPathToFilterConfigMapper.class,
       FilterConfigurationMappers.class,
       TextUnitUtils.class,
+      UnescapeUtils.class,
       AssetExtractorTest.class
     })
 @EnableSpringConfigured
@@ -252,5 +254,134 @@ public class AssetExtractorTest {
             tuple(
                 "34a6a48789dd1ff7dff813a8fb627b91-8f1bdae06589d55b62184a76e0e70d0e-1",
                 "Image in text <br id='p1'/>."));
+  }
+
+  @Test
+  public void extractPoWithBackslash() throws UnsupportedAssetFilterTypeException {
+    // PO file with backslash in msgid - should be unescaped to literal backslash
+    String poContent =
+        "msgid \"\"\n"
+            + "msgstr \"\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\n"
+            + "#. Path with backslash\n"
+            + "msgid \"C:\\\\Users\\\\test\"\n"
+            + "msgstr \"\"\n";
+
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset("messages.pot", poContent, null, null);
+
+    // The backslash should be unescaped: C:\\Users\\test -> C:\Users\test
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(tuple("C:\\Users\\test", "C:\\Users\\test"));
+  }
+
+  @Test
+  public void extractPoWithNewlineEscape() throws UnsupportedAssetFilterTypeException {
+    // PO file with escaped newline in msgid
+    String poContent =
+        "msgid \"\"\n"
+            + "msgstr \"\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\n"
+            + "#. Multi-line text\n"
+            + "msgid \"line1\\nline2\"\n"
+            + "msgstr \"\"\n";
+
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset("messages.pot", poContent, null, null);
+
+    // The newline escape should be unescaped: line1\nline2 -> line1<newline>line2
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(tuple("line1\nline2", "line1\nline2"));
+  }
+
+  @Test
+  public void extractPoWithQuoteEscape() throws UnsupportedAssetFilterTypeException {
+    // PO file with escaped quote in msgid
+    String poContent =
+        "msgid \"\"\n"
+            + "msgstr \"\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\n"
+            + "#. Text with quotes\n"
+            + "msgid \"say \\\"hello\\\"\"\n"
+            + "msgstr \"\"\n";
+
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset("messages.pot", poContent, null, null);
+
+    // The quote escape should be unescaped: say \"hello\" -> say "hello"
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(tuple("say \"hello\"", "say \"hello\""));
+  }
+
+  @Test
+  public void extractPoWithComplexEscapes() throws UnsupportedAssetFilterTypeException {
+    // PO file with multiple escape sequences
+    String poContent =
+        "msgid \"\"\n"
+            + "msgstr \"\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\n"
+            + "#. Complex escapes\n"
+            + "msgid \"path\\\\to\\\\file\\nwith \\\"quotes\\\"\"\n"
+            + "msgstr \"\"\n";
+
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset("messages.pot", poContent, null, null);
+
+    // All escapes should be unescaped
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            tuple("path\\to\\file\nwith \"quotes\"", "path\\to\\file\nwith \"quotes\""));
+  }
+
+  @Test
+  public void extractPoWithContext() throws UnsupportedAssetFilterTypeException {
+    // PO file with msgctxt containing backslash
+    String poContent =
+        "msgid \"\"\n"
+            + "msgstr \"\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\n"
+            + "#. Context test\n"
+            + "msgctxt \"menu\\\\file\"\n"
+            + "msgid \"Open\"\n"
+            + "msgstr \"\"\n";
+
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset("messages.pot", poContent, null, null);
+
+    // The name should include the context with unescaped backslash
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(tuple("Open --- menu\\file", "Open"));
+  }
+
+  @Test
+  public void extractPoWithRealisticBackslashMessage() throws UnsupportedAssetFilterTypeException {
+    // Realistic PO message: You are not able to use "/" or "\" in text files
+    // PO escaping: \" for quotes, \\ for backslash
+    String poContent =
+        "msgid \"\"\n"
+            + "msgstr \"\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\n"
+            + "#. File name validation error\n"
+            + "msgid \"You are not able to use \\\"/\\\" or \\\"\\\\\\\" in text files\"\n"
+            + "msgstr \"\"\n";
+
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset("messages.pot", poContent, null, null);
+
+    String expectedString = "You are not able to use \"/\" or \"\\\" in text files";
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(tuple(expectedString, expectedString));
   }
 }

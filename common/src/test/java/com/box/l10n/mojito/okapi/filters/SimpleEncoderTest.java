@@ -37,6 +37,11 @@ public class SimpleEncoderTest {
   }
 
   @Test
+  public void testEncodeTab() {
+    assertEquals("\\t", encoder.encode('\t', context));
+  }
+
+  @Test
   public void testEncodeDoubleQuote() {
     assertEquals("\\\"", encoder.encode('"', context));
   }
@@ -122,8 +127,44 @@ public class SimpleEncoderTest {
   }
 
   @Test
+  public void testRoundtripTab() {
+    String original = "col1\tcol2";
+    String encoded = encoder.encode(original, context);
+    assertEquals("col1\\tcol2", encoded);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
   public void testRoundtripMultipleBackslashes() {
     String original = "\\\\\\";
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripBackslashN() {
+    // Edge case: backslash followed by 'n' (not newline)
+    String original = "\\n"; // backslash + n, 2 chars
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripBackslashR() {
+    // Edge case: backslash followed by 'r' (not carriage return)
+    String original = "\\r"; // backslash + r, 2 chars
+    String encoded = encoder.encode(original, context);
+    String decoded = unescapeUtils.unescape(encoded);
+    assertEquals(original, decoded);
+  }
+
+  @Test
+  public void testRoundtripBackslashQuote() {
+    // Edge case: backslash followed by quote
+    String original = "\\\""; // backslash + quote, 2 chars
     String encoded = encoder.encode(original, context);
     String decoded = unescapeUtils.unescape(encoded);
     assertEquals(original, decoded);

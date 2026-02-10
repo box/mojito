@@ -3160,7 +3160,8 @@ public class TMServiceTest extends ServiceTestBase {
 
     assertEquals(1, textUnitDTOs.size());
     TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
-    assertEquals("repin \\\"{}\\\"", textUnitDTO.getName());
+    // Name is now unescaped (quotes decoded from raw PO msgID)
+    assertEquals("repin \"{}\"", textUnitDTO.getName());
     assertEquals("repin \"{}\"", textUnitDTO.getSource());
 
     String localizedAsset =
@@ -3226,9 +3227,153 @@ public class TMServiceTest extends ServiceTestBase {
 
     assertEquals(1, textUnitDTOs.size());
     textUnitDTO = textUnitDTOs.get(0);
-    assertEquals("repin \\\"{}\\\"", textUnitDTO.getName());
+    // Name is now unescaped (quotes decoded from raw PO msgID)
+    assertEquals("repin \"{}\"", textUnitDTO.getName());
     assertEquals("repin \"{}\"", textUnitDTO.getSource());
     assertEquals("repin \"{}\" jp", textUnitDTO.getTarget());
+  }
+
+  @Test
+  public void testLocalizePoBackslashEscaping() throws Exception {
+
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale;
+    try {
+      repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+    } catch (RepositoryLocaleCreationException e) {
+      throw new RuntimeException(e);
+    }
+
+    // PO file with backslash escapes in msgid: C:\\Users\\test represents C:\Users\test
+    String assetContent =
+        "msgstr \"\"\n"
+            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+            + "\"Report-Msgid-Bugs-To: \\n\"\n"
+            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+            + "\"MIME-Version: 1.0\\n\"\n"
+            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+            + "#. Path comment\n"
+            + "#: src/config.py:10\n"
+            + "msgid \"C:\\\\Users\\\\test\"\n"
+            + "msgstr \"\"";
+
+    // USE_PARENT: msgstr inherits from source, encoder must re-escape backslashes
+    String expectedLocalizedAsset =
+        "msgstr \"\"\n"
+            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+            + "\"Report-Msgid-Bugs-To: \\n\"\n"
+            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+            + "\"MIME-Version: 1.0\\n\"\n"
+            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+            + "#. Path comment\n"
+            + "#: src/config.py:10\n"
+            + "msgid \"C:\\\\Users\\\\test\"\n"
+            + "msgstr \"C:\\\\Users\\\\test\"\n";
+
+    asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null, null);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+    assertEquals(1, textUnitDTOs.size());
+    TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
+    // Name and source should have decoded backslashes
+    assertEquals("C:\\Users\\test", textUnitDTO.getName());
+    assertEquals("C:\\Users\\test", textUnitDTO.getSource());
+
+    // Generate localized: USE_PARENT means msgstr gets the source, re-encoded with backslashes
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "ja-JP",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+
+    // Import a translation that also contains backslashes
+    String forImport =
+        "msgstr \"\"\n"
+            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+            + "\"Report-Msgid-Bugs-To: \\n\"\n"
+            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+            + "\"MIME-Version: 1.0\\n\"\n"
+            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
+            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+            + "#. Path comment\n"
+            + "#: src/config.py:10\n"
+            + "msgid \"C:\\\\Users\\\\test\"\n"
+            + "msgstr \"C:\\\\Users\\\\test jp\"\n";
+
+    tmService
+        .importLocalizedAssetAsync(
+            assetId,
+            forImport,
+            repoLocale.getLocale().getId(),
+            StatusForEqualTarget.TRANSLATION_NEEDED,
+            null,
+            null)
+        .get();
+
+    localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "ja-JP",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.REMOVE_UNTRANSLATED,
+            null);
+    logger.debug("localized after import=\n{}", localizedAsset);
+    assertEquals(forImport, localizedAsset);
+
+    textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+    textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+    textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+    assertEquals(1, textUnitDTOs.size());
+    textUnitDTO = textUnitDTOs.get(0);
+    assertEquals("C:\\Users\\test", textUnitDTO.getName());
+    assertEquals("C:\\Users\\test", textUnitDTO.getSource());
+    assertEquals("C:\\Users\\test jp", textUnitDTO.getTarget());
   }
 
   @Test
