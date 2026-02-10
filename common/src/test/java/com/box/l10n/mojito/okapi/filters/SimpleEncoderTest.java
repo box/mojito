@@ -16,7 +16,7 @@ public class SimpleEncoderTest {
   public void setUp() {
     encoder = new SimpleEncoder();
     encoder.setOptions(null, "UTF-8", "\n");
-    context = new EncoderContext();
+    context = EncoderContext.TEXT;
   }
 
   @Test
