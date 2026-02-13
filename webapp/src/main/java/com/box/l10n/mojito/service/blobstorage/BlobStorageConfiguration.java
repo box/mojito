@@ -6,8 +6,11 @@ import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorage;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorageCleanupJob;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorageConfigurationProperties;
 import com.box.l10n.mojito.service.blobstorage.database.MBlobRepository;
+import com.box.l10n.mojito.service.blobstorage.gcs.GCSBlobStorage;
+import com.box.l10n.mojito.service.blobstorage.gcs.GCSBlobStorageConfigurationProperties;
 import com.box.l10n.mojito.service.blobstorage.s3.S3BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.s3.S3BlobStorageConfigurationProperties;
+import com.google.cloud.storage.Storage;
 import java.time.Duration;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -15,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +33,12 @@ import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
  * testing or deployments with limited load.
  *
  * <p>Consider using {@link S3BlobStorage} for larger deployment. An {@link AmazonS3} client must be
- * configured first, and then the storage enabled with the `l10n.blob-storage.type=s3` property
+ * configured first, and then the storage enabled with the `l10n.blob-storage.type=s3` property.
+ *
+ * <p>Alternatively use {@link GCSBlobStorage} with Google Cloud Storage. Enable the GCS client with
+ * `l10n.gcs.enabled=true`, set `l10n.blob-storage.type=gcs`, and configure
+ * `l10n.blob-storage.gcs.bucket` (and optionally `l10n.blob-storage.gcs.prefix`). Authentication
+ * uses Application Default Credentials (ADC).
  */
 @Configuration
 public class BlobStorageConfiguration {
@@ -48,6 +57,20 @@ public class BlobStorageConfiguration {
     public S3BlobStorage s3BlobStorage() {
       logger.info("Configure S3BlobStorage");
       return new S3BlobStorage(amazonS3, s3BlobStorageConfigurationProperties);
+    }
+  }
+
+  @ConditionalOnProperty(value = "l10n.blob-storage.type", havingValue = "gcs")
+  @ConditionalOnBean(Storage.class)
+  @Configuration
+  static class GCSBlobStorageConfiguration {
+
+    @Autowired GCSBlobStorageConfigurationProperties gcsBlobStorageConfigurationProperties;
+
+    @Bean
+    public GCSBlobStorage gcsBlobStorage(Storage gcsStorage) {
+      logger.info("Configure GCSBlobStorage (using Application Default Credentials)");
+      return new GCSBlobStorage(gcsStorage, gcsBlobStorageConfigurationProperties);
     }
   }
 
