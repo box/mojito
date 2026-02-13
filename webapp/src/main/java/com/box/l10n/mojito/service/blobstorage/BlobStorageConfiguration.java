@@ -32,13 +32,14 @@ import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
  * <p>{@link DatabaseBlobStorage} is the default implementation but it should be use only for
  * testing or deployments with limited load.
  *
- * <p>Consider using {@link S3BlobStorage} for larger deployment. An {@link AmazonS3} client must be
- * configured first, and then the storage enabled with the `l10n.blob-storage.type=s3` property.
+ * <p>Consider using one of the following alternatives for larger deployment:
  *
- * <p>Alternatively use {@link GCSBlobStorage} with Google Cloud Storage. Enable the GCS client with
- * `l10n.gcs.enabled=true`, set `l10n.blob-storage.type=gcs`, and configure
- * `l10n.blob-storage.gcs.bucket` (and optionally `l10n.blob-storage.gcs.prefix`). Authentication
- * uses Application Default Credentials (ADC).
+ * <ul>
+ *   <li>{@link S3BlobStorage} with {@link AmazonS3} client
+ *   <li>{@link GCSBlobStorage} with Google Cloud {@link Storage} client
+ * </ul>
+ *
+ * <p>The `l10n.blob-storage.type` property can be set switch between the desired implementation.
  */
 @Configuration
 public class BlobStorageConfiguration {

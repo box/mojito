@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation that uses S3 to store blobs.
  *
+ * <p>To use it, first enable and configure the client through {@link
+ * com.box.l10n.mojito.aws.s3.AmazonS3Configuration}.
+ *
  * <p>Rely on S3 lifecyle rules to cleanup expired blobs. This must be setup manually else no clean
  * up will happen.
  *
