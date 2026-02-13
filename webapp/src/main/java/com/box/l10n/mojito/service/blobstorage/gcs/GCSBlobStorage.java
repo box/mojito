@@ -8,6 +8,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,18 +18,27 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation that uses Google Cloud Storage to store blobs.
  *
- * <p>Uses Application Default Credentials (ADC) for authentication. ADC is automatically used when
- * you run on Google Cloud (GCE, GKE, Cloud Run) or when {@code GOOGLE_APPLICATION_CREDENTIALS} is
- * set to a service account key file, or after {@code gcloud auth application-default login}.
+ * <p>Rely on S3 lifecyle rules to clean up expired blobs. This must be set up on the bucket,
+ * otherwise no cleanup will happen.
  *
- * <p>Rely on GCS lifecycle rules to cleanup expired blobs. This must be setup manually in the
- * bucket; otherwise no cleanup will happen.
+ * <p>Objects will have a <a
+ * href="https://docs.cloud.google.com/storage/docs/metadata#custom-time">Custom-Time</a> metadata
+ * field set to the end of the desired retention period (except {@link Retention#PERMANENT} where
+ * this is not set).
  *
- * <p>Objects will have a "retention" custom metadata field, see values in {@link Retention}. You
- * can configure lifecycle rules to delete objects with retention=ephemeral (or equivalent) after a
- * given age.
+ * <p>On the bucket, configure a single lifecycle rule:
  *
- * <p>See https://cloud.google.com/storage/docs/lifecycle for details.
+ * <ul>
+ *   <li>action: Delete
+ *   <li>condition: {@code daysSinceCustomTime: 0}
+ * </ul>
+ *
+ * That will delete objects once the current time is past their Custom-Time (end of retention). Note
+ * that objects without Custom-Time set (i.e. {@link Retention#PERMANENT}) are never deleted by this
+ * rule.
+ *
+ * <p>See <a href="https://docs.cloud.google.com/storage/docs/lifecycle#dayssincecustomtime">Object
+ * Lifecycle Management</a> for reference.
  */
 public class GCSBlobStorage implements BlobStorage {
 
@@ -86,7 +96,6 @@ public class GCSBlobStorage implements BlobStorage {
 
   void put(String name, byte[] content, Retention retention, String contentType) {
     Map<String, String> metadata = new HashMap<>();
-    metadata.put("retention", retention.toString());
     put(name, content, retention, contentType, metadata);
   }
 
@@ -97,20 +106,26 @@ public class GCSBlobStorage implements BlobStorage {
       String contentType,
       Map<String, String> metadata) {
     Map<String, String> fullMetadata = new HashMap<>(metadata != null ? metadata : Map.of());
-    fullMetadata.put("retention", retention.toString());
-
-    BlobInfo blobInfo =
+    BlobInfo.Builder builder =
         BlobInfo.newBuilder(BlobId.of(configurationProperties.getBucket(), getFullName(name)))
             .setContentType(contentType)
-            .setMetadata(fullMetadata)
-            .build();
+            .setMetadata(fullMetadata);
 
-    storage.create(blobInfo, content);
+    customTimeAtEndOfRetention(retention).ifPresent(builder::setCustomTimeOffsetDateTime);
+
+    storage.create(builder.build(), content);
   }
 
-  /** Returns the GCS URI for the given blob name (e.g. gs://bucket/prefix/name). */
-  public String getGcsUri(String name) {
-    return String.format("gs://%s/%s", configurationProperties.getBucket(), getFullName(name));
+  /**
+   * GCS Custom-Time at end of retention for lifecycle (daysSinceCustomTime: 0). Empty means no
+   * Custom-Time (object never expires). Exhaustive on {@link Retention} so new enum values require
+   * an explicit case here.
+   */
+  private static Optional<OffsetDateTime> customTimeAtEndOfRetention(Retention retention) {
+    return switch (retention) {
+      case PERMANENT -> Optional.empty();
+      case MIN_1_DAY -> Optional.of(OffsetDateTime.now().plusDays(1));
+    };
   }
 
   String getFullName(String name) {
