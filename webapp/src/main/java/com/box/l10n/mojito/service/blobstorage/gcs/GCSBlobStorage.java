@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation that uses Google Cloud Storage to store blobs.
  *
- * <p>Rely on S3 lifecyle rules to clean up expired blobs. This must be set up on the bucket,
+ * <p>To use it, first enable the client through {@link com.box.l10n.mojito.gcs.GCSConfiguration}.
+ *
+ * <p>Rely on GCS lifecyle rules to clean up expired blobs. This must be set up on the bucket,
  * otherwise no cleanup will happen.
  *
  * <p>Objects will have a <a
