@@ -7,10 +7,7 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +44,8 @@ public class GCSBlobStorage implements BlobStorage {
   private final Storage storage;
   private final GCSBlobStorageConfigurationProperties configurationProperties;
 
+  private static final String byteContentType = "application/octet-stream";
+
   public GCSBlobStorage(
       Storage storage, GCSBlobStorageConfigurationProperties configurationProperties) {
     Preconditions.checkNotNull(storage);
@@ -55,7 +54,6 @@ public class GCSBlobStorage implements BlobStorage {
     this.configurationProperties = configurationProperties;
   }
 
-  @Override
   public Optional<byte[]> getBytes(String name) {
     Blob blob = storage.get(BlobId.of(configurationProperties.getBucket(), getFullName(name)));
     if (blob == null) {
@@ -64,56 +62,23 @@ public class GCSBlobStorage implements BlobStorage {
     return Optional.of(blob.getContent());
   }
 
-  @Override
-  public Optional<String> getString(String name) {
-    return getBytes(name).map(bytes -> new String(bytes, StandardCharsets.UTF_8));
-  }
-
-  @Override
   public void put(String name, byte[] content, Retention retention) {
-    put(name, content, retention, "application/octet-stream");
-  }
-
-  @Override
-  public void delete(String name) {
-    storage.delete(BlobId.of(configurationProperties.getBucket(), getFullName(name)));
-  }
-
-  @Override
-  public boolean exists(String name) {
-    Blob blob = storage.get(BlobId.of(configurationProperties.getBucket(), getFullName(name)));
-    return blob != null;
-  }
-
-  @Override
-  public void put(String name, String content, Retention retention) {
-    byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-    Map<String, String> metadata = new HashMap<>();
-    metadata.put("Content-Type", "text/plain");
-    metadata.put("Content-Encoding", StandardCharsets.UTF_8.toString());
-    put(name, bytes, retention, "text/plain", metadata);
-  }
-
-  void put(String name, byte[] content, Retention retention, String contentType) {
-    Map<String, String> metadata = new HashMap<>();
-    put(name, content, retention, contentType, metadata);
-  }
-
-  void put(
-      String name,
-      byte[] content,
-      Retention retention,
-      String contentType,
-      Map<String, String> metadata) {
-    Map<String, String> fullMetadata = new HashMap<>(metadata != null ? metadata : Map.of());
     BlobInfo.Builder builder =
         BlobInfo.newBuilder(BlobId.of(configurationProperties.getBucket(), getFullName(name)))
-            .setContentType(contentType)
-            .setMetadata(fullMetadata);
+            .setContentType(byteContentType);
 
     customTimeAtEndOfRetention(retention).ifPresent(builder::setCustomTimeOffsetDateTime);
 
     storage.create(builder.build(), content);
+  }
+
+  public void delete(String name) {
+    storage.delete(BlobId.of(configurationProperties.getBucket(), getFullName(name)));
+  }
+
+  public boolean exists(String name) {
+    Blob blob = storage.get(BlobId.of(configurationProperties.getBucket(), getFullName(name)));
+    return blob != null;
   }
 
   /**
