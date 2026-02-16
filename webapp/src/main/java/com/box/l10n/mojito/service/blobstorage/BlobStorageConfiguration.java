@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,16 +61,17 @@ public class BlobStorageConfiguration {
   }
 
   @ConditionalOnProperty(value = "l10n.blob-storage.type", havingValue = "gcs")
-  @ConditionalOnBean(Storage.class)
   @Configuration
   static class GCSBlobStorageConfiguration {
+
+    @Autowired Storage storage;
 
     @Autowired GCSBlobStorageConfigurationProperties gcsBlobStorageConfigurationProperties;
 
     @Bean
-    public GCSBlobStorage gcsBlobStorage(Storage gcsStorage) {
-      logger.info("Configure GCSBlobStorage (using Application Default Credentials)");
-      return new GCSBlobStorage(gcsStorage, gcsBlobStorageConfigurationProperties);
+    public GCSBlobStorage gcsBlobStorage() {
+      logger.info("Configure GCSBlobStorage");
+      return new GCSBlobStorage(storage, gcsBlobStorageConfigurationProperties);
     }
   }
 
