@@ -156,7 +156,8 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     if (event != null && event.isTextUnit()) {
       TextUnit textUnit = (TextUnit) event.getTextUnit();
       renameTextUnitWithSourceAndContent(textUnit);
-      unescpae(textUnit);
+      // temp LXP-1094
+      // unescpae(textUnit);
       addUsagesToTextUnit(textUnit);
     }
   }
@@ -347,7 +348,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     }
   }
 
-  /**
+ /**
    * If context is present, add it to the text unit name. We keep the generated ID by Okapi for
    * prefix of the text unit name allows to distinguish plural form easily.
    *
@@ -357,23 +358,31 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
    *
    * @param textUnit
    */
-  void renameTextUnitWithSourceAndContent(ITextUnit textUnit) {
+ void renameTextUnitWithSourceAndContent(ITextUnit textUnit) {
 
-    Property property = textUnit.getProperty(POFilter.PROPERTY_CONTEXT);
+  Property property = textUnit.getProperty(POFilter.PROPERTY_CONTEXT);
 
-    StringBuilder newName = new StringBuilder(msgID);
-
-    if (property != null) {
-      newName.append(" --- ").append(property.getValue());
-    }
-
-    if (poPluralForm != null) {
-      String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(poPluralForm));
-      newName.append(PLURAL_SEPARATOR).append(cldrForm);
-    }
-
-    textUnit.setName(newName.toString());
+  // temp LXP-1094: use unescaped content for name: source from Okapi (singular) or
+  // replaceEscapedCharacters(msgID) (plural), so ID displays correctly. 
+  String baseName;
+  if (poPluralForm == null) {
+    baseName = textUnitUtils.getSourceAsString(textUnit);
+  } else {
+    baseName = unescapeUtils.replaceEscapedCharacters(msgID != null ? msgID : "");
   }
+  StringBuilder newName = new StringBuilder(baseName);
+
+  if (property != null) {
+    newName.append(" --- ").append(property.getValue());
+  }
+
+  if (poPluralForm != null) {
+    String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(poPluralForm));
+    newName.append(PLURAL_SEPARATOR).append(cldrForm);
+  }
+
+  textUnit.setName(newName.toString());
+}
 
   /**
    * Rewrite the plural forms if processing a target locale.
