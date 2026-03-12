@@ -21,26 +21,30 @@ public class TMServiceTsTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "namespace Translations {\n"
-            + "    export const en = {\n"
-            + "        // login comment\n"
-            + "        \"loginText\": \"Log In\",\n"
-            + "        // signup comment\n"
-            + "        \"signupText\": \"Sign up with `backquote`\",\n"
-            + "        \"quotedText\": \"Hello \\\"%s\\\"\",\n"
-            + "        \"noComment\": \"String with no comment\\nand newline\",\n"
-            + "        // template literals\n"
-            + "        \"templateText1\": `one line`,\n"
-            + "        \"templateText2\": `one line no comment`,\n"
-            + "        \"templateText3\": `one line \\`/special\\` character`,\n"
-            + "        // template multiline literals\n"
-            + "        \"templateMultilineText1\": `first line\nsecond line`,\n"
-            + "        // template multiline literals with escaped backquote\n"
-            + "        \"templateMultilineText2\": `special character\ncheck \\`/command\\` out`,\n\n"
-            + "    };\n"
-            + "}\n"
-            + "\n"
-            + "export default Translations;";
+        """
+        namespace Translations {
+            export const en = {
+                // login comment
+                "loginText": "Log In",
+                // signup comment
+                "signupText": "Sign up with `backquote`",
+                "quotedText": "Hello \\"%s\\"",
+                "noComment": "String with no comment\\nand newline",
+                // template literals
+                "templateText1": `one line`,
+                "templateText2": `one line no comment`,
+                "templateText3": `one line \\`/special\\` character`,
+                // template multiline literals
+                "templateMultilineText1": `first line
+        second line`,
+                // template multiline literals with escaped backquote
+                "templateMultilineText2": `special character
+        check \\`/command\\` out`,
+
+            };
+        }
+
+        export default Translations;""";
 
     createAsset(repo, "translations.ts", assetContent);
     processAsset(repo, assetContent);

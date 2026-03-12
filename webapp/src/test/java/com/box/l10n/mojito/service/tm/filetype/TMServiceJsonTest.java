@@ -22,14 +22,15 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "{\n"
-            + "  // Greeting from Main UI 1\n"
-            + "  \"hello1\": \"Hello 1\",\n"
-            + "  \"hello2\": \"Hello 2\",\n"
-            + "  // Extra\n"
-            + "  // Greeting from Main UI 3\n"
-            + "  \"hello3\": \"Hello 3\"\n"
-            + "}";
+        """
+        {
+          // Greeting from Main UI 1
+          "hello1": "Hello 1",
+          "hello2": "Hello 2",
+          // Extra
+          // Greeting from Main UI 3
+          "hello3": "Hello 3"
+        }""";
     String expectedContent = assetContent;
 
     createAsset(repo, "strings.json", assetContent);
@@ -58,19 +59,20 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
         Arrays.asList("useFullKeyPath=true", "extractAllPairs=false", "exceptions=.*/string");
 
     String assetContent =
-        "{\n"
-            + "  \"this to ignore\": {\n"
-            + "    \"k1\": \"v1\"\n"
-            + "  },\n"
-            + "  \"hello_world\": {\n"
-            + "    \"string\": \"Hello World\",\n"
-            + "    \"note\": \"The start of every language book.\"\n"
-            + "  },\n"
-            + "  \"num_photos\": {\n"
-            + "    \"string\": \"You have {numPhotos, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}\",\n"
-            + "    \"note\": \"A description that shows the number of photos a user has.\"\n"
-            + "  }\n"
-            + "}";
+        """
+        {
+          "this to ignore": {
+            "k1": "v1"
+          },
+          "hello_world": {
+            "string": "Hello World",
+            "note": "The start of every language book."
+          },
+          "num_photos": {
+            "string": "You have {numPhotos, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}",
+            "note": "A description that shows the number of photos a user has."
+          }
+        }""";
     String expectedContent = assetContent;
 
     createAsset(repo, "strings.json", assetContent);
@@ -102,19 +104,20 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
             "removeKeySuffix=/string");
 
     String assetContent =
-        "{\n"
-            + "  \"this to ignore\": {\n"
-            + "    \"k1\": \"v1\"\n"
-            + "  },\n"
-            + "  \"hello_world\": {\n"
-            + "    \"string\": \"Hello World\",\n"
-            + "    \"note\": \"The start of every language book.\"\n"
-            + "  },\n"
-            + "  \"num_photos\": {\n"
-            + "    \"string\": \"You have {numPhotos, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}\",\n"
-            + "    \"note\": \"A description that shows the number of photos a user has.\"\n"
-            + "  }\n"
-            + "}";
+        """
+        {
+          "this to ignore": {
+            "k1": "v1"
+          },
+          "hello_world": {
+            "string": "Hello World",
+            "note": "The start of every language book."
+          },
+          "num_photos": {
+            "string": "You have {numPhotos, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}",
+            "note": "A description that shows the number of photos a user has."
+          }
+        }""";
     String expectedContent = assetContent;
 
     createAsset(repo, "strings.json", assetContent);
@@ -141,13 +144,14 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
     List<String> jsonFilterOptions =
         Arrays.asList(
             "convertToHtmlCodes=true",
-            "codeFinderData=#v1\n"
-                + "count.i=3\n"
-                + "rule0=%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]\n"
-                + "rule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v\n"
-                + "rule2=\\{\\d.*?\\}\n"
-                + "sample=%s, %d, {1}, \\n, \\r, \\t, etc.\n"
-                + "useAllRulesWhenTesting.b=false");
+            """
+            codeFinderData=#v1
+            count.i=3
+            rule0=%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]
+            rule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v
+            rule2=\\{\\d.*?\\}
+            sample=%s, %d, {1}, \\n, \\r, \\t, etc.
+            useAllRulesWhenTesting.b=false""");
 
     String assetContent = "{\"hello\" : \"Hello %s!\" }\n";
 

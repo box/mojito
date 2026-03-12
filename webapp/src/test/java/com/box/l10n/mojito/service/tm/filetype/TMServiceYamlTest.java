@@ -22,14 +22,15 @@ public class TMServiceYamlTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "activerecord:\n"
-            + "  errors:\n"
-            + "    template:\n"
-            + "      header:\n"
-            + "        list: [one, two, three]\n"
-            + "        map: {key: value, key2: value2}\n"
-            + "        one: \"Impossible d'enregistrer {{model}}: 1 erreur\"\n"
-            + "        other: \"Impossible d'enregistrer {{model}}: {{count}} erreurs.\"";
+        """
+        activerecord:
+          errors:
+            template:
+              header:
+                list: [one, two, three]
+                map: {key: value, key2: value2}
+                one: "Impossible d'enregistrer {{model}}: 1 erreur"
+                other: "Impossible d'enregistrer {{model}}: {{count}} erreurs.\"""";
 
     createAsset(repo, "translations.yaml", assetContent);
     processAsset(repo, assetContent);
@@ -66,14 +67,15 @@ public class TMServiceYamlTest extends TMServiceFileTypeTestBase {
             "extractAllPairs=false", "exceptions=one|activerecord/errors/template/header/other");
 
     String assetContent =
-        "activerecord:\n"
-            + "  errors:\n"
-            + "    template:\n"
-            + "      header:\n"
-            + "        list: [one, two, three]\n"
-            + "        map: {key: value, key2: value2}\n"
-            + "        one: \"Impossible d'enregistrer {{model}}: 1 erreur\"\n"
-            + "        other: \"Impossible d'enregistrer {{model}}: {{count}} erreurs.\"";
+        """
+        activerecord:
+          errors:
+            template:
+              header:
+                list: [one, two, three]
+                map: {key: value, key2: value2}
+                one: "Impossible d'enregistrer {{model}}: 1 erreur"
+                other: "Impossible d'enregistrer {{model}}: {{count}} erreurs.\"""";
 
     createAsset(repo, "translations.yaml", assetContent);
     processAsset(repo, assetContent, filterOptions);
