@@ -16,17 +16,20 @@ public class JSONFilterExtractionTest extends FilterExtractionTestBase {
     List<AssetExtractorTextUnit> units =
         extract(
             "test.json",
-            "{\"hello\" : \"Hello %s!\" }\n",
+            """
+                {"hello" : "Hello %s!" }
+                """,
             null,
             Arrays.asList(
                 "convertToHtmlCodes=true",
-                "codeFinderData=#v1\n"
-                    + "count.i=3\n"
-                    + "rule0=%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]\n"
-                    + "rule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v\n"
-                    + "rule2=\\{\\d.*?\\}\n"
-                    + "sample=%s, %d, {1}, \\n, \\r, \\t, etc.\n"
-                    + "useAllRulesWhenTesting.b=false"));
+                """
+                    codeFinderData=#v1
+                    count.i=3
+                    rule0=%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]
+                    rule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v
+                    rule2=\\{\\d.*?\\}
+                    sample=%s, %d, {1}, \\n, \\r, \\t, etc.
+                    useAllRulesWhenTesting.b=false"""));
 
     Assertions.assertThat(units)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
