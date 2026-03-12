@@ -24,43 +24,47 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "ja-JP");
 
     String assetContent =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"\"\n"
-            + "msgstr[1] \"\"";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] ""
+        msgstr[1] ""
+        """;
 
     String expectedLocalizedAsset =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"repins\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] "repins"
+        """;
 
     createAsset(repo, "messages.pot", assetContent);
     processAsset(repo, assetContent);
@@ -76,23 +80,25 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"repin-jp\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] "repin-jp"
+        """;
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -108,42 +114,48 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "ja-JP");
 
     String assetContent =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n\n\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgstr \"\"\n"
-            + "#. Description\n"
-            + "#: core/logic/week_in_review_email_logic.py:50\n"
-            + "msgid \"description\"\n"
-            + "msgstr \"\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+
+
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgstr ""
+        #. Description
+        #: core/logic/week_in_review_email_logic.py:50
+        msgid "description"
+        msgstr ""
+        """;
 
     String expectedLocalizedAsset =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "\n"
-            + "\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+
+
+        """;
 
     createAsset(repo, "messages.pot", assetContent);
     processAsset(repo, assetContent);
@@ -153,22 +165,26 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n\n\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgstr \"repin-jp\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+
+
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgstr "repin-jp"
+        """;
 
     logger.debug("formimport=\n{}", forImport);
 
@@ -186,38 +202,42 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "ja-JP");
 
     String assetContent =
-        "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin \\\"{}\\\"\"\n"
-            + "msgstr \"\"";
+        """
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin \\"{}\\""
+        msgstr ""
+        """;
 
     String expectedLocalizedAsset =
-        "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin \\\"{}\\\"\"\n"
-            + "msgstr \"repin \\\"{}\\\"\"\n";
+        """
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin \\"{}\\""
+        msgstr "repin \\"{}\\""
+        """;
 
     createAsset(repo, "messages.pot", assetContent);
     processAsset(repo, assetContent);
@@ -234,21 +254,23 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin \\\"{}\\\"\"\n"
-            + "msgstr \"repin \\\"{}\\\" jp\"\n";
+        """
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin \\"{}\\""
+        msgstr "repin \\"{}\\" jp"
+        """;
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -276,45 +298,49 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "ru-RU");
 
     String assetContent =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"\"\n"
-            + "msgstr[1] \"\"";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] ""
+        msgstr[1] ""
+        """;
 
     String expectedLocalizedAsset =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"repin\"\n"
-            + "msgstr[1] \"repins\"\n"
-            + "msgstr[2] \"repins\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] "repin"
+        msgstr[1] "repins"
+        msgstr[2] "repins"
+        """;
 
     createAsset(repo, "messages.pot", assetContent);
     processAsset(repo, assetContent);
@@ -332,25 +358,27 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"repin-ru\"\n"
-            + "msgstr[1] \"repins-ru-1\"\n"
-            + "msgstr[2] \"repins-ru-2\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] "repin-ru"
+        msgstr[1] "repins-ru-1"
+        msgstr[2] "repins-ru-2"
+        """;
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -367,45 +395,49 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "cs-CZ");
 
     String assetContent =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"\"\n"
-            + "msgstr[1] \"\"";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] ""
+        msgstr[1] ""
+        """;
 
     String expectedLocalizedAsset =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"repin\"\n"
-            + "msgstr[1] \"repins\"\n"
-            + "msgstr[2] \"repins\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] "repin"
+        msgstr[1] "repins"
+        msgstr[2] "repins"
+        """;
 
     createAsset(repo, "messages.pot", assetContent);
     processAsset(repo, assetContent);
@@ -421,25 +453,27 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin\"\n"
-            + "msgid_plural \"repins\"\n"
-            + "msgstr[0] \"repin-cs\"\n"
-            + "msgstr[1] \"repins-cz-1\"\n"
-            + "msgstr[2] \"repins-cz-2\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin"
+        msgid_plural "repins"
+        msgstr[0] "repin-cs"
+        msgstr[1] "repins-cz-1"
+        msgstr[2] "repins-cz-2"
+        """;
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -456,48 +490,52 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "ar-SA");
 
     String assetContent =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin \\\"{placeholder}\\\"\"\n"
-            + "msgid_plural \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[0] \"\"\n"
-            + "msgstr[1] \"\"";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin \\"{placeholder}\\""
+        msgid_plural "repins \\"{placeholder}\\""
+        msgstr[0] ""
+        msgstr[1] ""
+        """;
 
     String expectedLocalizedAsset =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin \\\"{placeholder}\\\"\"\n"
-            + "msgid_plural \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[0] \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[1] \"repin \\\"{placeholder}\\\"\"\n"
-            + "msgstr[2] \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[3] \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[4] \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[5] \"repins \\\"{placeholder}\\\"\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin \\"{placeholder}\\""
+        msgid_plural "repins \\"{placeholder}\\""
+        msgstr[0] "repins \\"{placeholder}\\""
+        msgstr[1] "repin \\"{placeholder}\\""
+        msgstr[2] "repins \\"{placeholder}\\""
+        msgstr[3] "repins \\"{placeholder}\\""
+        msgstr[4] "repins \\"{placeholder}\\""
+        msgstr[5] "repins \\"{placeholder}\\""
+        """;
 
     createAsset(repo, "messages.pot", assetContent);
     processAsset(repo, assetContent);
@@ -513,28 +551,30 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "#. Comments\n"
-            + "#: core/logic/week_in_review_email_logic.py:49\n"
-            + "msgid \"repin \\\"{placeholder}\\\"\"\n"
-            + "msgid_plural \"repins \\\"{placeholder}\\\"\"\n"
-            + "msgstr[0] \"repins \\\"{placeholder}\\\"-ar-0\"\n"
-            + "msgstr[1] \"repins \\\"{placeholder}\\\"-ar-1\"\n"
-            + "msgstr[2] \"repins \\\"{placeholder}\\\"-ar-2\"\n"
-            + "msgstr[3] \"repins \\\"{placeholder}\\\"-ar-3\"\n"
-            + "msgstr[4] \"repins \\\"{placeholder}\\\"-ar-4\"\n"
-            + "msgstr[5] \"repins \\\"{placeholder}\\\"-ar-5\"\n";
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: core/logic/week_in_review_email_logic.py:49
+        msgid "repin \\"{placeholder}\\""
+        msgid_plural "repins \\"{placeholder}\\""
+        msgstr[0] "repins \\"{placeholder}\\"-ar-0"
+        msgstr[1] "repins \\"{placeholder}\\"-ar-1"
+        msgstr[2] "repins \\"{placeholder}\\"-ar-2"
+        msgstr[3] "repins \\"{placeholder}\\"-ar-3"
+        msgstr[4] "repins \\"{placeholder}\\"-ar-4"
+        msgstr[5] "repins \\"{placeholder}\\"-ar-5"
+        """;
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -550,80 +590,82 @@ public class TMServicePoTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repository, "ja-JP");
 
     String assetContent =
-        "# SOME DESCRIPTIVE TITLE.\n"
-            + "# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER\n"
-            + "# This file is distributed under the same license as the PACKAGE package.\n"
-            + "# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n"
-            + "#\n"
-            + "#, fuzzy\n"
-            + "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-02-24 11:50-0800\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"Language: \\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + " \n"
-            + "   \n"
-            + "#. Test plural\n"
-            + "#: file.js:20\n"
-            + "msgctxt \"car\"\n"
-            + "msgid \"There is {number} car\"\n"
-            + "msgid_plural \"There are {number} cars\"\n"
-            + "msgstr[0] \"\"\n"
-            + "msgstr[1] \"\"\n"
-            + "\n"
-            + "#. Test plural okapi bug\n"
-            + "#: file.js:24\n"
-            + "msgctxt \"testpluralokapibug\"\n"
-            + "msgid \"test okapi bug\"\n"
-            + "msgstr \"\"\n"
-            + "";
+        """
+        # SOME DESCRIPTIVE TITLE.
+        # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+        # This file is distributed under the same license as the PACKAGE package.
+        # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+        #
+        #, fuzzy
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-02-24 11:50-0800\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "Language: \\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        \s
+        \s\s\s
+        #. Test plural
+        #: file.js:20
+        msgctxt "car"
+        msgid "There is {number} car"
+        msgid_plural "There are {number} cars"
+        msgstr[0] ""
+        msgstr[1] ""
+
+        #. Test plural okapi bug
+        #: file.js:24
+        msgctxt "testpluralokapibug"
+        msgid "test okapi bug"
+        msgstr ""
+        """;
     createAsset(repository, "messages.pot", assetContent);
     processAsset(repository, assetContent);
 
     String localizedAssetContent =
-        "# SOME DESCRIPTIVE TITLE.\n"
-            + "# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER\n"
-            + "# This file is distributed under the same license as the PACKAGE package.\n"
-            + "# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n"
-            + "#\n"
-            + "#, fuzzy\n"
-            + "msgid \"\"\n"
-            + "msgstr \"\"\n"
-            + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-            + "\"Report-Msgid-Bugs-To: \\n\"\n"
-            + "\"POT-Creation-Date: 2017-02-24 11:50-0800\\n\"\n"
-            + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-            + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-            + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-            + "\"Language: \\n\"\n"
-            + "\"MIME-Version: 1.0\\n\"\n"
-            + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-            + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-            + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
-            + "  \n"
-            + "   \n"
-            + "#. Test plural\n"
-            + "#: file.js:20\n"
-            + "msgctxt \"car\"\n"
-            + "msgid \"There is {number} car\"\n"
-            + "msgid_plural \"There are {number} cars\"\n"
-            + "msgstr[0] \"There is {number} car\"\n"
-            + "\n"
-            + "#. Test plural okapi bug\n"
-            + "#: file.js:24\n"
-            + "msgctxt \"testpluralokapibug\"\n"
-            + "msgid \"test okapi bug\"\n"
-            + "msgstr \"jp test okapi bug\"\n"
-            + "\n"
-            + "";
+        """
+        # SOME DESCRIPTIVE TITLE.
+        # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+        # This file is distributed under the same license as the PACKAGE package.
+        # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+        #
+        #, fuzzy
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-02-24 11:50-0800\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "Language: \\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        \s\s
+        \s\s\s
+        #. Test plural
+        #: file.js:20
+        msgctxt "car"
+        msgid "There is {number} car"
+        msgid_plural "There are {number} cars"
+        msgstr[0] "There is {number} car"
+
+        #. Test plural okapi bug
+        #: file.js:24
+        msgctxt "testpluralokapibug"
+        msgid "test okapi bug"
+        msgstr "jp test okapi bug"
+
+        """;
     importTranslations(repoLocale, localizedAssetContent, StatusForEqualTarget.APPROVED);
   }
 }

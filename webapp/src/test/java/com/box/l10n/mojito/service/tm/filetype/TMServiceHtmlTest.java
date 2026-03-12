@@ -22,27 +22,28 @@ public class TMServiceHtmlTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<!DOCTYPE html>\n"
-            + "<html>\n"
-            + "<head>\n"
-            + "    <title>My Title</title>\n"
-            + "    <meta name=\"description\" content=\"My description\"/>\n"
-            + "    <meta name=\"author\" content=\"My author\"/>\n"
-            + "    <meta name=\"keywords\" content=\"My keywords\"/>\n"
-            + "    <link rel=\"stylesheet\" href=\"./stylesheet.css\" type=\"text/css\"/>\n"
-            + "    <style>.body {\n"
-            + "        width: auto;\n"
-            + "    }</style>\n"
-            + "</head>\n"
-            + "<body>\n"
-            + "<p>thi is the first paragraph</p>\n"
-            + "<p>this is the second paragraph. With an <img src=\"someimage.jpg\"> inside text</p>\n"
-            + "<ul>\n"
-            + "    <li>item1</li>\n"
-            + "    <li>item2</li>\n"
-            + "</ul>\n"
-            + "</body>\n"
-            + "</html>";
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>My Title</title>
+            <meta name="description" content="My description"/>
+            <meta name="author" content="My author"/>
+            <meta name="keywords" content="My keywords"/>
+            <link rel="stylesheet" href="./stylesheet.css" type="text/css"/>
+            <style>.body {
+                width: auto;
+            }</style>
+        </head>
+        <body>
+        <p>thi is the first paragraph</p>
+        <p>this is the second paragraph. With an <img src="someimage.jpg"> inside text</p>
+        <ul>
+            <li>item1</li>
+            <li>item2</li>
+        </ul>
+        </body>
+        </html>""";
 
     createAsset(repo, "demo.html", assetContent);
     processAsset(repo, assetContent, FilterConfigIdOverride.HTML_ALPHA, null);

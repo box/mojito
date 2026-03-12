@@ -32,8 +32,9 @@ public class TMServiceMacStringsTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "\"100_character_description\" = \"\\\"100\\\" character description:\";\n"
-            + "\"two_lines\" = \"first\\nsecond\";";
+        """
+        "100_character_description" = "\\"100\\" character description:";
+        "two_lines" = "first\\nsecond";""";
     createAsset(repo, "en.lproj/Localizable.strings", assetContent);
     processAsset(repo, assetContent);
 

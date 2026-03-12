@@ -34,15 +34,16 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <string description=\"Example html markup string1\" name=\"welcome1\">Welcome to <b>Android</b>!</string>\n"
-            + "    <string description=\"Example html markup string2\" name=\"welcome2\">Welcome to <i>Android</i>!</string>\n"
-            + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
-            + "    <string description=\"Example html markup string4\" name=\"welcome4\">Welcome to <annotation font=\"title_emphasis\">Android</annotation>!</string>\n"
-            + "    <string name=\"subheader_text1\">\\\'Make sure you\\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
-            + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string description="Example html markup string1" name="welcome1">Welcome to <b>Android</b>!</string>
+            <string description="Example html markup string2" name="welcome2">Welcome to <i>Android</i>!</string>
+            <string description="Example html markup string3" name="welcome3">Welcome to <u>Android</u>!</string>
+            <string description="Example html markup string4" name="welcome4">Welcome to <annotation font="title_emphasis">Android</annotation>!</string>
+            <string name="subheader_text1">\\'Make sure you\\'d \\"escaped\\" special characters like quotes &amp; ampersands.\\n</string>
+            <string name="subheader_text2">"This'll also work"</string>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent, filterOptionOldEscaping);
@@ -65,27 +66,33 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <string description=\"Text for when user is drawing.\" name=\"test_annotation\"><annotation tag=\"user\">%1$s</annotation> is drawing…</string>"
-            + "    <string description=\"Example html markup string1\" name=\"welcome1\">Welcome to <b>Android</b>!</string>\n"
-            + "    <string description=\"Example html markup string2\" name=\"welcome2\">Welcome to <i>Android</i>!</string>\n"
-            + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
-            + "    <string description=\"Example html markup string4\" name=\"welcome4\">Welcome to <annotation font=\"title_emphasis\">Android</annotation>!</string>\n"
-            + "    <string name=\"subheader_text1\">\\\'Make sure you\\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
-            + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
-            + "    <string name=\"escape_dot\">\\.</string>\n"
-            + "    <string name=\"escape_quote\">\\'</string>\n"
-            + "    <string name=\"escape_apostrophe\">\\ʼ</string>\n"
-            + "    <string name=\"escape_escape\">\\\\</string>\n"
-            + "    <string name=\"escape_at_sign\">\\@</string>\n"
-            + "    <string name=\"escape_ampersand\">&amp;</string>\n"
-            + "    <string name=\"escape_lowerthan\">&lt;</string>\n"
-            + "    <string name=\"replace_tab\">a\tb\tc</string>\n"
-            + "    <string name=\"remove_line_feed\">\nline1\n   line2\n  line3   </string>\n"
-            + "    <string name=\"escape_line_feed2\">\\nline1\\n   line2\\n  line3   </string>\n"
-            + "    <string name=\"trim\">    \n a \n   </string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string description="Text for when user is drawing." name="test_annotation"><annotation tag="user">%1$s</annotation> is drawing…</string>
+            <string description="Example html markup string1" name="welcome1">Welcome to <b>Android</b>!</string>
+            <string description="Example html markup string2" name="welcome2">Welcome to <i>Android</i>!</string>
+            <string description="Example html markup string3" name="welcome3">Welcome to <u>Android</u>!</string>
+            <string description="Example html markup string4" name="welcome4">Welcome to <annotation font="title_emphasis">Android</annotation>!</string>
+            <string name="subheader_text1">\\'Make sure you\\'d \\"escaped\\" special characters like quotes &amp; ampersands.\\n</string>
+            <string name="subheader_text2">"This'll also work"</string>
+            <string name="escape_dot">\\.</string>
+            <string name="escape_quote">\\'</string>
+            <string name="escape_apostrophe">\\ʼ</string>
+            <string name="escape_escape">\\\\</string>
+            <string name="escape_at_sign">\\@</string>
+            <string name="escape_ampersand">&amp;</string>
+            <string name="escape_lowerthan">&lt;</string>
+            <string name="replace_tab">a\tb\tc</string>
+            <string name="remove_line_feed">
+        line1
+           line2
+          line3   </string>
+            <string name="escape_line_feed2">\\nline1\\n   line2\\n  line3   </string>
+            <string name="trim">   \s
+         a\s
+           </string>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
@@ -99,27 +106,28 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     logger.debug("localized=\n{}", localizedAsset);
 
     String expected =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <string description=\"Text for when user is drawing.\" name=\"test_annotation\"><annotation tag=\"user\">%1$s</annotation> is drawing…</string>"
-            + "    <string description=\"Example html markup string1\" name=\"welcome1\">Welcome to <b>Android</b>!</string>\n"
-            + "    <string description=\"Example html markup string2\" name=\"welcome2\">Welcome to <i>Android</i>!</string>\n"
-            + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
-            + "    <string description=\"Example html markup string4\" name=\"welcome4\">Welcome to <annotation font=\"title_emphasis\">Android</annotation>!</string>\n"
-            + "    <string name=\"subheader_text1\">\\'Make sure you\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
-            + "    <string name=\"subheader_text2\">This\\'ll also work</string>\n"
-            + "    <string name=\"escape_dot\">.</string>\n"
-            + "    <string name=\"escape_quote\">\\'</string>\n"
-            + "    <string name=\"escape_apostrophe\">ʼ</string>\n"
-            + "    <string name=\"escape_escape\">\\</string>\n"
-            + "    <string name=\"escape_at_sign\">@</string>\n"
-            + "    <string name=\"escape_ampersand\">&amp;</string>\n"
-            + "    <string name=\"escape_lowerthan\">&lt;</string>\n"
-            + "    <string name=\"replace_tab\">a b c</string>\n"
-            + "    <string name=\"remove_line_feed\">line1 line2 line3</string>\n"
-            + "    <string name=\"escape_line_feed2\">\\nline1\\n line2\\n line3</string>\n"
-            + "    <string name=\"trim\">a</string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string description="Text for when user is drawing." name="test_annotation"><annotation tag="user">%1$s</annotation> is drawing…</string>
+            <string description="Example html markup string1" name="welcome1">Welcome to <b>Android</b>!</string>
+            <string description="Example html markup string2" name="welcome2">Welcome to <i>Android</i>!</string>
+            <string description="Example html markup string3" name="welcome3">Welcome to <u>Android</u>!</string>
+            <string description="Example html markup string4" name="welcome4">Welcome to <annotation font="title_emphasis">Android</annotation>!</string>
+            <string name="subheader_text1">\\'Make sure you\\'d \\"escaped\\" special characters like quotes &amp; ampersands.\\n</string>
+            <string name="subheader_text2">This\\'ll also work</string>
+            <string name="escape_dot">.</string>
+            <string name="escape_quote">\\'</string>
+            <string name="escape_apostrophe">ʼ</string>
+            <string name="escape_escape">\\</string>
+            <string name="escape_at_sign">@</string>
+            <string name="escape_ampersand">&amp;</string>
+            <string name="escape_lowerthan">&lt;</string>
+            <string name="replace_tab">a b c</string>
+            <string name="remove_line_feed">line1 line2 line3</string>
+            <string name="escape_line_feed2">\\nline1\\n line2\\n line3</string>
+            <string name="trim">a</string>
+        </resources>""";
 
     assertEquals(expected, localizedAsset);
   }
@@ -137,19 +145,21 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <string name=\"welcome_messages0\">Hello, %1$s! You have <b>%2$d new messages</b>.</string>\n"
-            + "    <string name=\"welcome_messages1\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
-            + "    <string name=\"welcome_messages2\">Hello, %1$s! You have <![CDATA[<b>%2$d new messages</b>]]>.</string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string name="welcome_messages0">Hello, %1$s! You have <b>%2$d new messages</b>.</string>
+            <string name="welcome_messages1">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>
+            <string name="welcome_messages2">Hello, %1$s! You have <![CDATA[<b>%2$d new messages</b>]]>.</string>
+        </resources>""";
     String expectedLocalizedAsset =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <string name=\"welcome_messages0\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
-            + "    <string name=\"welcome_messages1\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
-            + "    <string name=\"welcome_messages2\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string name="welcome_messages0">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>
+            <string name="welcome_messages1">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>
+            <string name="welcome_messages2">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
@@ -172,13 +182,14 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <!-- Comment that should be skipped -->\n"
-            + "    <string name=\"to_skip\" translatable=\"false\">Some string to skip</string>\n"
-            + "    <!-- Comment for hello string -->\n"
-            + "    <string name=\"hello\">Hello</string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <!-- Comment that should be skipped -->
+            <string name="to_skip" translatable="false">Some string to skip</string>
+            <!-- Comment for hello string -->
+            <string name="hello">Hello</string>
+        </resources>""";
 
     createAsset(repo, "res/values/strings.xml", assetContent);
 
@@ -283,55 +294,58 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "  <!-- Example of plurals -->\n"
-            + "  <plurals name=\"numberOfCollaborators\">\n"
-            + "    <item quantity=\"one\">%1$d people</item>\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "  <!-- Example2 of plurals -->\n"
-            + "  <plurals name=\"numberOfCollaborators2\">\n"
-            + "    <item quantity=\"one\">%1$d people</item>\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "  <plurals name=\"numberOfCollaborators3\">\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+          <!-- Example of plurals -->
+          <plurals name="numberOfCollaborators">
+            <item quantity="one">%1$d people</item>
+            <item quantity="other">%1$d people</item>
+          </plurals>
+          <!-- Example2 of plurals -->
+          <plurals name="numberOfCollaborators2">
+            <item quantity="one">%1$d people</item>
+            <item quantity="other">%1$d people</item>
+          </plurals>
+          <plurals name="numberOfCollaborators3">
+            <item quantity="other">%1$d people</item>
+          </plurals>
+        </resources>""";
     String expectedLocalizedAsset_jaJP =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "  <!-- Example of plurals -->\n"
-            + "  <plurals name=\"numberOfCollaborators\">\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "  <!-- Example2 of plurals -->\n"
-            + "  <plurals name=\"numberOfCollaborators2\">\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "  <plurals name=\"numberOfCollaborators3\">\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+          <!-- Example of plurals -->
+          <plurals name="numberOfCollaborators">
+            <item quantity="other">%1$d people</item>
+          </plurals>
+          <!-- Example2 of plurals -->
+          <plurals name="numberOfCollaborators2">
+            <item quantity="other">%1$d people</item>
+          </plurals>
+          <plurals name="numberOfCollaborators3">
+            <item quantity="other">%1$d people</item>
+          </plurals>
+        </resources>""";
     String expectedLocalizedAsset_enGB =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "  <!-- Example of plurals -->\n"
-            + "  <plurals name=\"numberOfCollaborators\">\n"
-            + "    <item quantity=\"one\">%1$d people</item>\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "  <!-- Example2 of plurals -->\n"
-            + "  <plurals name=\"numberOfCollaborators2\">\n"
-            + "    <item quantity=\"one\">%1$d people</item>\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "  <plurals name=\"numberOfCollaborators3\">\n"
-            + "    <item quantity=\"one\">%1$d people</item>\n"
-            + "    <item quantity=\"other\">%1$d people</item>\n"
-            + "  </plurals>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+          <!-- Example of plurals -->
+          <plurals name="numberOfCollaborators">
+            <item quantity="one">%1$d people</item>
+            <item quantity="other">%1$d people</item>
+          </plurals>
+          <!-- Example2 of plurals -->
+          <plurals name="numberOfCollaborators2">
+            <item quantity="one">%1$d people</item>
+            <item quantity="other">%1$d people</item>
+          </plurals>
+          <plurals name="numberOfCollaborators3">
+            <item quantity="one">%1$d people</item>
+            <item quantity="other">%1$d people</item>
+          </plurals>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
@@ -363,14 +377,15 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<resources>\n"
-            + "    <string-array name=\"N_items_failed_to_move\">\n"
-            + "        <item/>\n"
-            + "        <item>1 item failed to move</item>\n"
-            + "        <item>%1$d items failed to move</item>\n"
-            + "    </string-array>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <resources>
+            <string-array name="N_items_failed_to_move">
+                <item/>
+                <item>1 item failed to move</item>
+                <item>%1$d items failed to move</item>
+            </string-array>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
@@ -397,7 +412,10 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<resources>\n" + "    <string name=\"test\">This is test</string>\n" + "</resources>";
+        """
+        <resources>
+            <string name="test">This is test</string>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
@@ -424,16 +442,21 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<resources>\n"
-            + "    <string name=\"test\">This is test</string>\n"
-            + "    <string name=\"desc\">This is a description</string>\n"
-            + "</resources>";
+        """
+        <resources>
+            <string name="test">This is test</string>
+            <string name="desc">This is a description</string>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
 
     String forImport =
-        "<resources>\n" + "    <string name=\"test\">Le test</string>\n" + "</resources>\n";
+        """
+        <resources>
+            <string name="test">Le test</string>
+        </resources>
+        """;
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -458,19 +481,22 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!-- comment after prolog -->\n\n"
-            + "<resources>\n"
-            + "    <string name=\"test\">This is test</string>\n"
-            + "</resources>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!-- comment after prolog -->
+
+        <resources>
+            <string name="test">This is test</string>
+        </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
     processAsset(repo, assetContent);
 
     String expectedLocalized =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!-- comment after prolog -->"
-            + "<resources/>\n";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!-- comment after prolog --><resources/>
+        """;
 
     String localizedAsset = generateLocalizedRemoveUntranslated(assetContent, repoLocale, "en-GB");
     logger.debug("localized=\n{}", localizedAsset);

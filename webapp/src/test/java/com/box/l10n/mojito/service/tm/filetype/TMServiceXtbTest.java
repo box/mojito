@@ -22,20 +22,22 @@ public class TMServiceXtbTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!DOCTYPE translationbundle>\n"
-            + "<translationbundle lang=\"en-US\">\n"
-            + "	<translation id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\" desc=\"Standard caption for the dialog 'OK' button.\">OK</translation>\n"
-            + "     <translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">More</translation>\n"
-            + "     <translation id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\" desc=\"Instructions for the Gonstead method.\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
-            + "</translationbundle>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE translationbundle>
+        <translationbundle lang="en-US">
+        	<translation id="0" key="MSG_DIALOG_OK_" source="lib/closure-library/closure/goog/ui/dialog.js" desc="Standard caption for the dialog 'OK' button.">OK</translation>
+             <translation id="1" key="MSG_VIEWER_MENU" source="src/js/box/dicom/viewer/toolbar.js" desc="Tooltip text for the &quot;More&quot; menu.">More</translation>
+             <translation id="2" key="MSG_GONSTEAD_STEP" source="src/js/box/dicom/viewer/gonsteaddialog.js" desc="Instructions for the Gonstead method.">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>
+        </translationbundle>""";
     String expectedContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<translationbundle lang=\"en-US\">\n"
-            + "	<translation desc=\"Standard caption for the dialog 'OK' button.\" id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\">OK</translation>\n"
-            + "     <translation desc=\"Tooltip text for the &quot;More&quot; menu.\" id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\">More</translation>\n"
-            + "     <translation desc=\"Instructions for the Gonstead method.\" id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
-            + "</translationbundle>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <translationbundle lang="en-US">
+        	<translation desc="Standard caption for the dialog 'OK' button." id="0" key="MSG_DIALOG_OK_" source="lib/closure-library/closure/goog/ui/dialog.js">OK</translation>
+             <translation desc="Tooltip text for the &quot;More&quot; menu." id="1" key="MSG_VIEWER_MENU" source="src/js/box/dicom/viewer/toolbar.js">More</translation>
+             <translation desc="Instructions for the Gonstead method." id="2" key="MSG_GONSTEAD_STEP" source="src/js/box/dicom/viewer/gonsteaddialog.js">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>
+        </translationbundle>""";
     createAsset(repo, "xtb/messages-en-US.xtb", assetContent);
     processAsset(repo, assetContent);
 
@@ -57,15 +59,19 @@ public class TMServiceXtbTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!DOCTYPE translationbundle>\n"
-            + "<translationbundle lang=\"en-US\">\n"
-            + "	<translation id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\" desc=\"Standard caption for the dialog 'OK' button.\">OK</translation>\n"
-            + "     <translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">More</translation>\n"
-            + "     <translation id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\" desc=\"Instructions for the Gonstead method.\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
-            + "</translationbundle>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE translationbundle>
+        <translationbundle lang="en-US">
+        	<translation id="0" key="MSG_DIALOG_OK_" source="lib/closure-library/closure/goog/ui/dialog.js" desc="Standard caption for the dialog 'OK' button.">OK</translation>
+             <translation id="1" key="MSG_VIEWER_MENU" source="src/js/box/dicom/viewer/toolbar.js" desc="Tooltip text for the &quot;More&quot; menu.">More</translation>
+             <translation id="2" key="MSG_GONSTEAD_STEP" source="src/js/box/dicom/viewer/gonsteaddialog.js" desc="Instructions for the Gonstead method.">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>
+        </translationbundle>""";
     String expectedContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<translationbundle />\n";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <translationbundle />
+        """;
 
     createAsset(repo, "xtb/messages-en-US.xtb", assetContent);
     processAsset(repo, assetContent);
@@ -75,11 +81,12 @@ public class TMServiceXtbTest extends TMServiceFileTypeTestBase {
     // assertEquals(expectedContent, localizedAsset);
 
     String forImport =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!DOCTYPE translationbundle>\n"
-            + "<translationbundle lang=\"ja-JP\">\n"
-            + "<translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">Plus</translation>\n"
-            + "</translationbundle>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE translationbundle>
+        <translationbundle lang="ja-JP">
+        <translation id="1" key="MSG_VIEWER_MENU" source="src/js/box/dicom/viewer/toolbar.js" desc="Tooltip text for the &quot;More&quot; menu.">Plus</translation>
+        </translationbundle>""";
 
     tmService
         .importLocalizedAssetAsync(

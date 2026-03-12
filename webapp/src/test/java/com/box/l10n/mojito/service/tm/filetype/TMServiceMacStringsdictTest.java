@@ -23,112 +23,115 @@ public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale_en = addLocale(repo, "en-GB");
 
     String assetContent =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>plural_recipe_cook_hours</key>\n"
-            + "<dict>\n"
-            + "    <key>NSStringLocalizedFormatKey</key>\n"
-            + "    <string>%#@hours@ to cook</string>\n"
-            + "    <key>hours</key>\n"
-            + "    <dict>\n"
-            + "        <key>NSStringFormatSpecTypeKey</key>\n"
-            + "        <string>NSStringPluralRuleType</string>\n"
-            + "        <key>NSStringFormatValueTypeKey</key>\n"
-            + "        <string>d</string>\n"
-            + "        <key>one</key>\n"
-            + "        <string>%d hour to cook</string>\n"
-            + "        <key>other</key>\n"
-            + "        <string>%d hours to cook</string>\n"
-            + "    </dict>\n"
-            + "</dict>\n"
-            + "<key>collaborators</key>\n"
-            + "<dict>\n"
-            + "    <key>NSStringLocalizedFormatKey</key>\n"
-            + "    <string>%#@collaborators@</string>\n"
-            + "    <key>collaborators</key>\n"
-            + "    <dict>\n"
-            + "        <key>NSStringFormatSpecTypeKey</key>\n"
-            + "        <string>NSStringPluralRuleType</string>\n"
-            + "        <key>NSStringFormatValueTypeKey</key>\n"
-            + "        <string>d</string>\n"
-            + "        <key>one</key>\n"
-            + "        <string>%d collaborator</string>\n"
-            + "        <key>other</key>\n"
-            + "        <string>%d collaborators</string>\n"
-            + "    </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>plural_recipe_cook_hours</key>
+        <dict>
+            <key>NSStringLocalizedFormatKey</key>
+            <string>%#@hours@ to cook</string>
+            <key>hours</key>
+            <dict>
+                <key>NSStringFormatSpecTypeKey</key>
+                <string>NSStringPluralRuleType</string>
+                <key>NSStringFormatValueTypeKey</key>
+                <string>d</string>
+                <key>one</key>
+                <string>%d hour to cook</string>
+                <key>other</key>
+                <string>%d hours to cook</string>
+            </dict>
+        </dict>
+        <key>collaborators</key>
+        <dict>
+            <key>NSStringLocalizedFormatKey</key>
+            <string>%#@collaborators@</string>
+            <key>collaborators</key>
+            <dict>
+                <key>NSStringFormatSpecTypeKey</key>
+                <string>NSStringPluralRuleType</string>
+                <key>NSStringFormatValueTypeKey</key>
+                <string>d</string>
+                <key>one</key>
+                <string>%d collaborator</string>
+                <key>other</key>
+                <string>%d collaborators</string>
+            </dict>
+        </dict>
+        </dict>
+        </plist>""";
     String expectedLocalizedAsset_jaJP =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>plural_recipe_cook_hours</key>\n"
-            + "<dict>\n"
-            + "    <key>NSStringLocalizedFormatKey</key>\n"
-            + "    <string>%#@hours@ to cook</string>\n"
-            + "    <key>hours</key>\n"
-            + "    <dict>\n"
-            + "        <key>NSStringFormatSpecTypeKey</key>\n"
-            + "        <string>NSStringPluralRuleType</string>\n"
-            + "        <key>NSStringFormatValueTypeKey</key>\n"
-            + "        <string>d</string>\n"
-            + "        <key>other</key>\n"
-            + "        <string>%d hours to cook</string>\n"
-            + "    </dict>\n"
-            + "</dict>\n"
-            + "<key>collaborators</key>\n"
-            + "<dict>\n"
-            + "    <key>NSStringLocalizedFormatKey</key>\n"
-            + "    <string>%#@collaborators@</string>\n"
-            + "    <key>collaborators</key>\n"
-            + "    <dict>\n"
-            + "        <key>NSStringFormatSpecTypeKey</key>\n"
-            + "        <string>NSStringPluralRuleType</string>\n"
-            + "        <key>NSStringFormatValueTypeKey</key>\n"
-            + "        <string>d</string>\n"
-            + "        <key>other</key>\n"
-            + "        <string>%d collaborators</string>\n"
-            + "    </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>plural_recipe_cook_hours</key>
+        <dict>
+            <key>NSStringLocalizedFormatKey</key>
+            <string>%#@hours@ to cook</string>
+            <key>hours</key>
+            <dict>
+                <key>NSStringFormatSpecTypeKey</key>
+                <string>NSStringPluralRuleType</string>
+                <key>NSStringFormatValueTypeKey</key>
+                <string>d</string>
+                <key>other</key>
+                <string>%d hours to cook</string>
+            </dict>
+        </dict>
+        <key>collaborators</key>
+        <dict>
+            <key>NSStringLocalizedFormatKey</key>
+            <string>%#@collaborators@</string>
+            <key>collaborators</key>
+            <dict>
+                <key>NSStringFormatSpecTypeKey</key>
+                <string>NSStringPluralRuleType</string>
+                <key>NSStringFormatValueTypeKey</key>
+                <string>d</string>
+                <key>other</key>
+                <string>%d collaborators</string>
+            </dict>
+        </dict>
+        </dict>
+        </plist>""";
     String expectedLocalizedAsset_enGB =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>plural_recipe_cook_hours</key>\n"
-            + "<dict>\n"
-            + "    <key>NSStringLocalizedFormatKey</key>\n"
-            + "    <string>%#@hours@ to cook</string>\n"
-            + "    <key>hours</key>\n"
-            + "    <dict>\n"
-            + "        <key>NSStringFormatSpecTypeKey</key>\n"
-            + "        <string>NSStringPluralRuleType</string>\n"
-            + "        <key>NSStringFormatValueTypeKey</key>\n"
-            + "        <string>d</string>\n"
-            + "        <key>one</key>\n"
-            + "        <string>%d hour to cook</string>\n"
-            + "        <key>other</key>\n"
-            + "        <string>%d hours to cook</string>\n"
-            + "    </dict>\n"
-            + "</dict>\n"
-            + "<key>collaborators</key>\n"
-            + "<dict>\n"
-            + "    <key>NSStringLocalizedFormatKey</key>\n"
-            + "    <string>%#@collaborators@</string>\n"
-            + "    <key>collaborators</key>\n"
-            + "    <dict>\n"
-            + "        <key>NSStringFormatSpecTypeKey</key>\n"
-            + "        <string>NSStringPluralRuleType</string>\n"
-            + "        <key>NSStringFormatValueTypeKey</key>\n"
-            + "        <string>d</string>\n"
-            + "        <key>one</key>\n"
-            + "        <string>%d collaborator</string>\n"
-            + "        <key>other</key>\n"
-            + "        <string>%d collaborators</string>\n"
-            + "    </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>plural_recipe_cook_hours</key>
+        <dict>
+            <key>NSStringLocalizedFormatKey</key>
+            <string>%#@hours@ to cook</string>
+            <key>hours</key>
+            <dict>
+                <key>NSStringFormatSpecTypeKey</key>
+                <string>NSStringPluralRuleType</string>
+                <key>NSStringFormatValueTypeKey</key>
+                <string>d</string>
+                <key>one</key>
+                <string>%d hour to cook</string>
+                <key>other</key>
+                <string>%d hours to cook</string>
+            </dict>
+        </dict>
+        <key>collaborators</key>
+        <dict>
+            <key>NSStringLocalizedFormatKey</key>
+            <string>%#@collaborators@</string>
+            <key>collaborators</key>
+            <dict>
+                <key>NSStringFormatSpecTypeKey</key>
+                <string>NSStringPluralRuleType</string>
+                <key>NSStringFormatValueTypeKey</key>
+                <string>d</string>
+                <key>one</key>
+                <string>%d collaborator</string>
+                <key>other</key>
+                <string>%d collaborators</string>
+            </dict>
+        </dict>
+        </dict>
+        </plist>""";
     createAsset(repo, "Localizable.stringsdict", assetContent);
     processAsset(repo, assetContent);
 
@@ -155,46 +158,48 @@ public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, bcp47Tag);
 
     String assetContent =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>%d file(s) remaining</key>\n"
-            + "<dict>\n"
-            + "   <key>NSStringLocalizedFormatKey</key>\n"
-            + "   <string>%#@files@</string>\n"
-            + "   <key>files</key>\n"
-            + "   <dict>\n"
-            + "       <key>NSStringFormatSpecTypeKey</key>\n"
-            + "       <string>NSStringPluralRuleType</string>\n"
-            + "       <key>NSStringFormatValueTypeKey</key>\n"
-            + "       <string>d</string>\n"
-            + "       <key>one</key>\n"
-            + "       <string>%d file remaining</string>\n"
-            + "       <key>other</key>\n"
-            + "       <string>%d files remaining</string>\n"
-            + "   </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>%d file(s) remaining</key>
+        <dict>
+           <key>NSStringLocalizedFormatKey</key>
+           <string>%#@files@</string>
+           <key>files</key>
+           <dict>
+               <key>NSStringFormatSpecTypeKey</key>
+               <string>NSStringPluralRuleType</string>
+               <key>NSStringFormatValueTypeKey</key>
+               <string>d</string>
+               <key>one</key>
+               <string>%d file remaining</string>
+               <key>other</key>
+               <string>%d files remaining</string>
+           </dict>
+        </dict>
+        </dict>
+        </plist>""";
 
     String expectedLocalizedAsset =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>%d file(s) remaining</key>\n"
-            + "<dict>\n"
-            + "   <key>NSStringLocalizedFormatKey</key>\n"
-            + "   <string>%#@files@</string>\n"
-            + "   <key>files</key>\n"
-            + "   <dict>\n"
-            + "       <key>NSStringFormatSpecTypeKey</key>\n"
-            + "       <string>NSStringPluralRuleType</string>\n"
-            + "       <key>NSStringFormatValueTypeKey</key>\n"
-            + "       <string>d</string>\n"
-            + "       <key>other</key>\n"
-            + "       <string>%d files remaining</string>\n"
-            + "   </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>%d file(s) remaining</key>
+        <dict>
+           <key>NSStringLocalizedFormatKey</key>
+           <string>%#@files@</string>
+           <key>files</key>
+           <dict>
+               <key>NSStringFormatSpecTypeKey</key>
+               <string>NSStringPluralRuleType</string>
+               <key>NSStringFormatValueTypeKey</key>
+               <string>d</string>
+               <key>other</key>
+               <string>%d files remaining</string>
+           </dict>
+        </dict>
+        </dict>
+        </plist>""";
 
     createAsset(repo, "Localizable.stringsdict", assetContent);
     processAsset(repo, assetContent);
@@ -210,24 +215,25 @@ public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>%d file(s) remaining</key>\n"
-            + "<dict>\n"
-            + "   <key>NSStringLocalizedFormatKey</key>\n"
-            + "   <string>%#@files@</string>\n"
-            + "   <key>files</key>\n"
-            + "   <dict>\n"
-            + "       <key>NSStringFormatSpecTypeKey</key>\n"
-            + "       <string>NSStringPluralRuleType</string>\n"
-            + "       <key>NSStringFormatValueTypeKey</key>\n"
-            + "       <string>d</string>\n"
-            + "       <key>other</key>\n"
-            + "       <string>%d files remaining-jp</string>\n"
-            + "   </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>%d file(s) remaining</key>
+        <dict>
+           <key>NSStringLocalizedFormatKey</key>
+           <string>%#@files@</string>
+           <key>files</key>
+           <dict>
+               <key>NSStringFormatSpecTypeKey</key>
+               <string>NSStringPluralRuleType</string>
+               <key>NSStringFormatValueTypeKey</key>
+               <string>d</string>
+               <key>other</key>
+               <string>%d files remaining-jp</string>
+           </dict>
+        </dict>
+        </dict>
+        </plist>""";
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -243,87 +249,90 @@ public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, bcp47Tag);
 
     String assetContent =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-            + "<plist version=\"1.0\">\n"
-            + "    <dict>\n"
-            + "        <key>%lld follower(s)</key>\n"
-            + "        <dict>\n"
-            + "            <key>NSStringLocalizedFormatKey</key>\n"
-            + "            <string>%#@followers@</string>\n"
-            + "            <key>followers</key>\n"
-            + "            <dict>\n"
-            + "                <key>NSStringFormatSpecTypeKey</key>\n"
-            + "                <string>NSStringPluralRuleType</string>\n"
-            + "                <key>NSStringFormatValueTypeKey</key>\n"
-            + "                <string>lld</string>\n"
-            + "                <key>one</key>\n"
-            + "                <string>%lld follower</string>\n"
-            + "                <key>other</key>\n"
-            + "                <string>%lld followers</string>\n"
-            + "            </dict>\n"
-            + "        </dict>\n"
-            + "        <key>%lld following(s)</key>\n"
-            + "        <dict>\n"
-            + "            <key>NSStringLocalizedFormatKey</key>\n"
-            + "            <string>%#@following@</string>\n"
-            + "            <key>following</key>\n"
-            + "            <dict>\n"
-            + "                <key>NSStringFormatSpecTypeKey</key>\n"
-            + "                <string>NSStringPluralRuleType</string>\n"
-            + "                <key>NSStringFormatValueTypeKey</key>\n"
-            + "                <string>lld</string>\n"
-            + "                <key>one</key>\n"
-            + "                <string>%lld following</string>\n"
-            + "                <key>other</key>\n"
-            + "                <string>%lld following</string>\n"
-            + "            </dict>\n"
-            + "        </dict>\n"
-            + "    </dict>\n"
-            + "</plist>\n";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+            <dict>
+                <key>%lld follower(s)</key>
+                <dict>
+                    <key>NSStringLocalizedFormatKey</key>
+                    <string>%#@followers@</string>
+                    <key>followers</key>
+                    <dict>
+                        <key>NSStringFormatSpecTypeKey</key>
+                        <string>NSStringPluralRuleType</string>
+                        <key>NSStringFormatValueTypeKey</key>
+                        <string>lld</string>
+                        <key>one</key>
+                        <string>%lld follower</string>
+                        <key>other</key>
+                        <string>%lld followers</string>
+                    </dict>
+                </dict>
+                <key>%lld following(s)</key>
+                <dict>
+                    <key>NSStringLocalizedFormatKey</key>
+                    <string>%#@following@</string>
+                    <key>following</key>
+                    <dict>
+                        <key>NSStringFormatSpecTypeKey</key>
+                        <string>NSStringPluralRuleType</string>
+                        <key>NSStringFormatValueTypeKey</key>
+                        <string>lld</string>
+                        <key>one</key>
+                        <string>%lld following</string>
+                        <key>other</key>
+                        <string>%lld following</string>
+                    </dict>
+                </dict>
+            </dict>
+        </plist>
+        """;
 
     createAsset(repo, "Localizable.stringsdict", assetContent);
     processAsset(repo, assetContent);
 
     // notice the doc type is gone
     String expectedLocalizedAsset =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<plist version=\"1.0\">\n"
-            + "    <dict>\n"
-            + "        <key>%lld follower(s)</key>\n"
-            + "        <dict>\n"
-            + "            <key>NSStringLocalizedFormatKey</key>\n"
-            + "            <string>%#@followers@</string>\n"
-            + "            <key>followers</key>\n"
-            + "            <dict>\n"
-            + "                <key>NSStringFormatSpecTypeKey</key>\n"
-            + "                <string>NSStringPluralRuleType</string>\n"
-            + "                <key>NSStringFormatValueTypeKey</key>\n"
-            + "                <string>lld</string>\n"
-            + "                <key>one</key>\n"
-            + "                <string>%lld follower</string>\n"
-            + "                <key>other</key>\n"
-            + "                <string>%lld followers</string>\n"
-            + "            </dict>\n"
-            + "        </dict>\n"
-            + "        <key>%lld following(s)</key>\n"
-            + "        <dict>\n"
-            + "            <key>NSStringLocalizedFormatKey</key>\n"
-            + "            <string>%#@following@</string>\n"
-            + "            <key>following</key>\n"
-            + "            <dict>\n"
-            + "                <key>NSStringFormatSpecTypeKey</key>\n"
-            + "                <string>NSStringPluralRuleType</string>\n"
-            + "                <key>NSStringFormatValueTypeKey</key>\n"
-            + "                <string>lld</string>\n"
-            + "                <key>one</key>\n"
-            + "                <string>%lld following</string>\n"
-            + "                <key>other</key>\n"
-            + "                <string>%lld following</string>\n"
-            + "            </dict>\n"
-            + "        </dict>\n"
-            + "    </dict>\n"
-            + "</plist>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <plist version="1.0">
+            <dict>
+                <key>%lld follower(s)</key>
+                <dict>
+                    <key>NSStringLocalizedFormatKey</key>
+                    <string>%#@followers@</string>
+                    <key>followers</key>
+                    <dict>
+                        <key>NSStringFormatSpecTypeKey</key>
+                        <string>NSStringPluralRuleType</string>
+                        <key>NSStringFormatValueTypeKey</key>
+                        <string>lld</string>
+                        <key>one</key>
+                        <string>%lld follower</string>
+                        <key>other</key>
+                        <string>%lld followers</string>
+                    </dict>
+                </dict>
+                <key>%lld following(s)</key>
+                <dict>
+                    <key>NSStringLocalizedFormatKey</key>
+                    <string>%#@following@</string>
+                    <key>following</key>
+                    <dict>
+                        <key>NSStringFormatSpecTypeKey</key>
+                        <string>NSStringPluralRuleType</string>
+                        <key>NSStringFormatValueTypeKey</key>
+                        <string>lld</string>
+                        <key>one</key>
+                        <string>%lld following</string>
+                        <key>other</key>
+                        <string>%lld following</string>
+                    </dict>
+                </dict>
+            </dict>
+        </plist>""";
 
     List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
 
@@ -348,52 +357,54 @@ public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
     RepositoryLocale repoLocale = addLocale(repo, bcp47Tag);
 
     String assetContent =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>%d file(s) remaining</key>\n"
-            + "<dict>\n"
-            + "   <key>NSStringLocalizedFormatKey</key>\n"
-            + "   <string>%#@files@</string>\n"
-            + "   <key>files</key>\n"
-            + "   <dict>\n"
-            + "       <key>NSStringFormatSpecTypeKey</key>\n"
-            + "       <string>NSStringPluralRuleType</string>\n"
-            + "       <key>NSStringFormatValueTypeKey</key>\n"
-            + "       <string>d</string>\n"
-            + "       <key>one</key>\n"
-            + "       <string>%d file remaining</string>\n"
-            + "       <key>other</key>\n"
-            + "       <string>%d files remaining</string>\n"
-            + "   </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>%d file(s) remaining</key>
+        <dict>
+           <key>NSStringLocalizedFormatKey</key>
+           <string>%#@files@</string>
+           <key>files</key>
+           <dict>
+               <key>NSStringFormatSpecTypeKey</key>
+               <string>NSStringPluralRuleType</string>
+               <key>NSStringFormatValueTypeKey</key>
+               <string>d</string>
+               <key>one</key>
+               <string>%d file remaining</string>
+               <key>other</key>
+               <string>%d files remaining</string>
+           </dict>
+        </dict>
+        </dict>
+        </plist>""";
 
     String expectedLocalizedAsset =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>%d file(s) remaining</key>\n"
-            + "<dict>\n"
-            + "   <key>NSStringLocalizedFormatKey</key>\n"
-            + "   <string>%#@files@</string>\n"
-            + "   <key>files</key>\n"
-            + "   <dict>\n"
-            + "       <key>NSStringFormatSpecTypeKey</key>\n"
-            + "       <string>NSStringPluralRuleType</string>\n"
-            + "       <key>NSStringFormatValueTypeKey</key>\n"
-            + "       <string>d</string>\n"
-            + "       <key>one</key>\n"
-            + "       <string>%d file remaining</string>\n"
-            + "       <key>few</key>\n"
-            + "       <string>%d files remaining</string>\n"
-            + "       <key>many</key>\n"
-            + "       <string>%d files remaining</string>\n"
-            + "       <key>other</key>\n"
-            + "       <string>%d files remaining</string>\n"
-            + "   </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>%d file(s) remaining</key>
+        <dict>
+           <key>NSStringLocalizedFormatKey</key>
+           <string>%#@files@</string>
+           <key>files</key>
+           <dict>
+               <key>NSStringFormatSpecTypeKey</key>
+               <string>NSStringPluralRuleType</string>
+               <key>NSStringFormatValueTypeKey</key>
+               <string>d</string>
+               <key>one</key>
+               <string>%d file remaining</string>
+               <key>few</key>
+               <string>%d files remaining</string>
+               <key>many</key>
+               <string>%d files remaining</string>
+               <key>other</key>
+               <string>%d files remaining</string>
+           </dict>
+        </dict>
+        </dict>
+        </plist>""";
 
     createAsset(repo, "Localizable.stringsdict", assetContent);
     processAsset(repo, assetContent);
@@ -409,30 +420,31 @@ public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
     assertEquals(expectedLocalizedAsset, localizedAsset);
 
     String forImport =
-        "<plist version=\"1.0\">\n"
-            + "<dict>\n"
-            + "<key>%d file(s) remaining</key>\n"
-            + "<dict>\n"
-            + "   <key>NSStringLocalizedFormatKey</key>\n"
-            + "   <string>%#@files@</string>\n"
-            + "   <key>files</key>\n"
-            + "   <dict>\n"
-            + "       <key>NSStringFormatSpecTypeKey</key>\n"
-            + "       <string>NSStringPluralRuleType</string>\n"
-            + "       <key>NSStringFormatValueTypeKey</key>\n"
-            + "       <string>d</string>\n"
-            + "       <key>one</key>\n"
-            + "       <string>%d file remaining-ru</string>\n"
-            + "       <key>few</key>\n"
-            + "       <string>%d files remaining-ru</string>\n"
-            + "       <key>many</key>\n"
-            + "       <string>%d files remaining-ru</string>\n"
-            + "       <key>other</key>\n"
-            + "       <string>%d files remaining-ru</string>\n"
-            + "   </dict>\n"
-            + "</dict>\n"
-            + "</dict>\n"
-            + "</plist>";
+        """
+        <plist version="1.0">
+        <dict>
+        <key>%d file(s) remaining</key>
+        <dict>
+           <key>NSStringLocalizedFormatKey</key>
+           <string>%#@files@</string>
+           <key>files</key>
+           <dict>
+               <key>NSStringFormatSpecTypeKey</key>
+               <string>NSStringPluralRuleType</string>
+               <key>NSStringFormatValueTypeKey</key>
+               <string>d</string>
+               <key>one</key>
+               <string>%d file remaining-ru</string>
+               <key>few</key>
+               <string>%d files remaining-ru</string>
+               <key>many</key>
+               <string>%d files remaining-ru</string>
+               <key>other</key>
+               <string>%d files remaining-ru</string>
+           </dict>
+        </dict>
+        </dict>
+        </plist>""";
 
     importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
 
