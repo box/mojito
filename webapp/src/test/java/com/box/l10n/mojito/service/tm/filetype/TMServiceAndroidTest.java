@@ -46,7 +46,7 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
         </resources>""";
     createAsset(repo, "res/values/strings.xml", assetContent);
 
-    processAsset(repo, assetContent, filterOptionOldEscaping);
+    processAsset(repo, assetContent, null, filterOptionOldEscaping);
 
     List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
     for (TextUnitDTO textUnitDTO : textUnitDTOs) {
@@ -54,7 +54,7 @@ public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
     }
 
     String localizedAsset =
-        generateLocalized(assetContent, repoLocale, "en-GB", filterOptionOldEscaping);
+        generateLocalized(assetContent, repoLocale, "en-GB", null, filterOptionOldEscaping);
     logger.debug("localized=\n{}", localizedAsset);
     assertEquals(assetContent, localizedAsset);
   }

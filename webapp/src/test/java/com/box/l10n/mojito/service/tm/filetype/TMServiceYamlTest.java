@@ -78,7 +78,7 @@ public class TMServiceYamlTest extends TMServiceFileTypeTestBase {
                 other: "Impossible d'enregistrer {{model}}: {{count}} erreurs.\"""";
 
     createAsset(repo, "translations.yaml", assetContent);
-    processAsset(repo, assetContent, filterOptions);
+    processAsset(repo, assetContent, null, filterOptions);
 
     List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
     for (TextUnitDTO textUnitDTO : textUnitDTOs) {

@@ -70,11 +70,6 @@ public abstract class TMServiceFileTypeTestBase extends ServiceTestBase {
     processAsset(repo, assetContent, null, null);
   }
 
-  protected void processAsset(Repository repo, String assetContent, List<String> filterOptions)
-      throws Exception {
-    processAsset(repo, assetContent, null, filterOptions);
-  }
-
   protected void processAsset(
       Repository repo,
       String assetContent,
@@ -102,25 +97,15 @@ public abstract class TMServiceFileTypeTestBase extends ServiceTestBase {
   }
 
   protected List<TextUnitDTO> searchTextUnits(Repository repo) {
-    return searchTextUnits(repo, StatusFilter.FOR_TRANSLATION);
-  }
-
-  protected List<TextUnitDTO> searchTextUnits(Repository repo, StatusFilter statusFilter) {
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
     textUnitSearcherParameters.setRepositoryIds(repo.getId());
-    textUnitSearcherParameters.setStatusFilter(statusFilter);
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
     return textUnitSearcher.search(textUnitSearcherParameters);
   }
 
   protected String generateLocalized(
       String assetContent, RepositoryLocale repoLocale, String bcp47Tag) throws Exception {
     return generateLocalized(assetContent, repoLocale, bcp47Tag, null, null);
-  }
-
-  protected String generateLocalized(
-      String assetContent, RepositoryLocale repoLocale, String bcp47Tag, List<String> filterOptions)
-      throws Exception {
-    return generateLocalized(assetContent, repoLocale, bcp47Tag, null, filterOptions);
   }
 
   protected String generateLocalized(

@@ -76,7 +76,7 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
     String expectedContent = assetContent;
 
     createAsset(repo, "strings.json", assetContent);
-    processAsset(repo, assetContent, jsonFilterOptions);
+    processAsset(repo, assetContent, null, jsonFilterOptions);
 
     List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
     assertEquals(2, textUnitDTOs.size());
@@ -86,7 +86,8 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
 
     assertEquals("hello_world/string", textUnitDTOs.get(0).getName());
 
-    String localizedAsset = generateLocalized(assetContent, repoLocale, "en-GB", jsonFilterOptions);
+    String localizedAsset =
+        generateLocalized(assetContent, repoLocale, "en-GB", null, jsonFilterOptions);
     logger.debug("localized=\n{}", localizedAsset);
     assertEquals(expectedContent, localizedAsset);
   }
@@ -121,7 +122,7 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
     String expectedContent = assetContent;
 
     createAsset(repo, "strings.json", assetContent);
-    processAsset(repo, assetContent, jsonFilterOptions);
+    processAsset(repo, assetContent, null, jsonFilterOptions);
 
     List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
     assertEquals(2, textUnitDTOs.size());
@@ -131,7 +132,8 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
 
     assertEquals("hello_world", textUnitDTOs.get(0).getName());
 
-    String localizedAsset = generateLocalized(assetContent, repoLocale, "en-GB", jsonFilterOptions);
+    String localizedAsset =
+        generateLocalized(assetContent, repoLocale, "en-GB", null, jsonFilterOptions);
     logger.debug("localized=\n{}", localizedAsset);
     assertEquals(expectedContent, localizedAsset);
   }
@@ -157,7 +159,7 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
 
     String expectedContent = assetContent;
     createAsset(repo, "strings.json", assetContent);
-    processAsset(repo, assetContent, jsonFilterOptions);
+    processAsset(repo, assetContent, null, jsonFilterOptions);
 
     List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
     assertEquals(1, textUnitDTOs.size());
@@ -166,7 +168,8 @@ public class TMServiceJsonTest extends TMServiceFileTypeTestBase {
       logger.info("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
     }
 
-    String localizedAsset = generateLocalized(assetContent, repoLocale, "en-GB", jsonFilterOptions);
+    String localizedAsset =
+        generateLocalized(assetContent, repoLocale, "en-GB", null, jsonFilterOptions);
     logger.debug("localized=\n{}", localizedAsset);
     assertEquals(expectedContent, localizedAsset);
   }
