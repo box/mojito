@@ -16,7 +16,9 @@ public class PropertiesFilterExtractionTest extends FilterExtractionTestBase {
     List<AssetExtractorTextUnit> units =
         extract(
             "test.properties",
-            "key1=value1\n" + "key2=value2",
+            """
+                key1=value1
+                key2=value2""",
             FilterConfigIdOverride.PROPERTIES_JAVA,
             null);
 

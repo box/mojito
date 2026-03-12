@@ -42,11 +42,12 @@ public class AssetExtractorTest {
     List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
         assetExtractor.getAssetExtractorTextUnitsForAsset(
             "test.html",
-            "<html>\n"
-                + "  <p>\n"
-                + "    Image in text <img src=\"image.jpg\" alt=\"Alt image\">.\n"
-                + "  </p>\n"
-                + "</html>",
+            """
+                <html>
+                  <p>
+                    Image in text <img src="image.jpg" alt="Alt image">.
+                  </p>
+                </html>""",
             FilterConfigIdOverride.HTML_ALPHA,
             Arrays.asList("processImageUrls=true"));
 
@@ -67,11 +68,12 @@ public class AssetExtractorTest {
     List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
         assetExtractor.getAssetExtractorTextUnitsForAsset(
             "test.html",
-            "<html>\n"
-                + "  <p>\n"
-                + "    Image in text <img src=\"image.jpg\" alt=\"Alt image\">.\n"
-                + "  </p>\n"
-                + "</html>",
+            """
+                <html>
+                  <p>
+                    Image in text <img src="image.jpg" alt="Alt image">.
+                  </p>
+                </html>""",
             FilterConfigIdOverride.HTML_ALPHA,
             null);
 
