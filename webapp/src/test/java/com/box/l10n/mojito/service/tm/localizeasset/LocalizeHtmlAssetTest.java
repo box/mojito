@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.tm.filetype;
+package com.box.l10n.mojito.service.tm.localizeasset;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,9 +11,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TMServiceHtmlTest extends TMServiceFileTypeTestBase {
+public class LocalizeHtmlAssetTest extends LocalizeAssetTestBase {
 
-  static Logger logger = LoggerFactory.getLogger(TMServiceHtmlTest.class);
+  static Logger logger = LoggerFactory.getLogger(LocalizeHtmlAssetTest.class);
 
   @Test
   public void testLocalizeHtmlFilter() throws Exception {
