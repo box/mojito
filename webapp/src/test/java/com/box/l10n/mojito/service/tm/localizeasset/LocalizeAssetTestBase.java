@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.tm.filetype;
+package com.box.l10n.mojito.service.tm.localizeasset;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 import org.junit.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class TMServiceFileTypeTestBase extends ServiceTestBase {
+public abstract class LocalizeAssetTestBase extends ServiceTestBase {
 
   @Autowired protected TMService tmService;
 

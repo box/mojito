@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.tm.filetype;
+package com.box.l10n.mojito.service.tm.localizeasset;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,9 +11,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TMServiceMacStringsdictTest extends TMServiceFileTypeTestBase {
+public class LocalizeMacStringsdictAssetTest extends LocalizeAssetTestBase {
 
-  static Logger logger = LoggerFactory.getLogger(TMServiceMacStringsdictTest.class);
+  static Logger logger = LoggerFactory.getLogger(LocalizeMacStringsdictAssetTest.class);
 
   @Test
   public void testMacStringsdict() throws Exception {

@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.tm.filetype;
+package com.box.l10n.mojito.service.tm.localizeasset;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,9 +11,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TMServiceYamlTest extends TMServiceFileTypeTestBase {
+public class LocalizeYamlAssetTest extends LocalizeAssetTestBase {
 
-  static Logger logger = LoggerFactory.getLogger(TMServiceYamlTest.class);
+  static Logger logger = LoggerFactory.getLogger(LocalizeYamlAssetTest.class);
 
   @Test
   public void testLocalizeYAMLFile() throws Exception {

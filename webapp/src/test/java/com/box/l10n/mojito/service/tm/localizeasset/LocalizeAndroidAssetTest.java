@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.tm.filetype;
+package com.box.l10n.mojito.service.tm.localizeasset;
 
 import static org.junit.Assert.assertEquals;
 
@@ -12,9 +12,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TMServiceAndroidTest extends TMServiceFileTypeTestBase {
+public class LocalizeAndroidAssetTest extends LocalizeAssetTestBase {
 
-  static Logger logger = LoggerFactory.getLogger(TMServiceAndroidTest.class);
+  static Logger logger = LoggerFactory.getLogger(LocalizeAndroidAssetTest.class);
 
   /**
    * This test is to test {@link com.box.l10n.mojito.okapi.filters.AndroidXMLEncoder} with option to
