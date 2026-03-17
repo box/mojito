@@ -279,4 +279,37 @@ public class POFilterExtractionTest extends FilterExtractionTestBase {
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
         .containsExactly(tuple("\\\\", "\\\\"));
   }
+
+  @Test
+  public void extractWithNoDoubleUnescaping() throws UnsupportedAssetFilterTypeException {
+    List<AssetExtractorTextUnit> units =
+        extract(
+            "test.pot",
+            // Actual source string in the localized application UI is:
+            // `Name cannot contain "/", "\", or characters outside the basic multilingual plane.`
+            // In PO file content, each double quote and backslash is escaped with another
+            // backslash.
+            // `msgid "Name cannot contain \"/\", \"\\\", or characters outside the basic
+            // multilingual plane."`
+            // Finally, in Java text block we must escape each backslash additionally
+            """
+                msgid "Name cannot contain \\"/\\", \\"\\\\\\", or characters outside the basic multilingual plane."
+                msgstr ""
+                """,
+            null,
+            null);
+
+    Assertions.assertThat(units)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            // Mojito should unescape correctly matching the actual UI string
+            // `Name cannot contain "/", "\", or characters outside the basic multilingual plane.`
+            tuple(
+                """
+                Name cannot contain "/", "\\", or characters outside the basic multilingual plane.\
+                """,
+                """
+                Name cannot contain "/", "\\", or characters outside the basic multilingual plane.\
+                """));
+  }
 }
