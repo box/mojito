@@ -668,4 +668,181 @@ public class LocalizePoAssetTest extends LocalizeAssetTestBase {
         """;
     importTranslations(repoLocale, localizedAssetContent, StatusForEqualTarget.APPROVED);
   }
+
+  @Test
+  public void testLocalizePoEscapedBackslashNewlineTab() throws Exception {
+    // based on:
+    // https://gitlab.com/okapiframework/Okapi/-/blob/v1.45.0/okapi/filters/po/src/test/java/net/sf/okapi/filters/po/POFilterTest.java#L241-251
+
+    Repository repo = createRepository();
+    RepositoryLocale repoLocale = addLocale(repo, "ja-JP");
+
+    String assetContent =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: src/main.py:10
+        msgid "Text \\\\ and \\" and \\n and \\t"
+        msgstr ""
+        """;
+
+    String expectedLocalizedAsset =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: src/main.py:10
+        msgid "Text \\\\ and \\" and \\n and \\t"
+        msgstr "Text \\\\ and \\" and \\n and \\t"
+        """;
+
+    createAsset(repo, "messages.pot", assetContent);
+    processAsset(repo, assetContent);
+
+    List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
+
+    assertEquals(1, textUnitDTOs.size());
+    TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
+    assertEquals("Text \\ and \" and \n and \t", textUnitDTO.getName());
+    assertEquals("Text \\ and \" and \n and \t", textUnitDTO.getSource());
+
+    String localizedAsset = generateLocalized(assetContent, repoLocale, "ja-JP");
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+
+    String forImport =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #. Comments
+        #: src/main.py:10
+        msgid "Text \\\\ and \\" and \\n and \\t"
+        msgstr "Text \\\\ and \\" and \\n and \\t jp"
+        """;
+
+    importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
+
+    localizedAsset = generateLocalized(assetContent, repoLocale, "ja-JP");
+    logger.debug("localized after import=\n{}", localizedAsset);
+    assertEquals(forImport, localizedAsset);
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+    textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+    textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+    assertEquals(1, textUnitDTOs.size());
+    textUnitDTO = textUnitDTOs.get(0);
+    assertEquals("Text \\ and \" and \n and \t", textUnitDTO.getName());
+    assertEquals("Text \\ and \" and \n and \t", textUnitDTO.getSource());
+    assertEquals("Text \\ and \" and \n and \t jp", textUnitDTO.getTarget());
+  }
+
+  @Test
+  public void testLocalizePoUnescapedRewrite() throws Exception {
+    // based on:
+    // https://gitlab.com/okapiframework/Okapi/-/blob/v1.45.0/okapi/filters/po/src/test/java/net/sf/okapi/filters/po/POFilterTest.java#L308-312
+
+    // Verifies parity with how Okapi handles malformed escaping in PO files
+
+    Repository repo = createRepository();
+    RepositoryLocale repoLocale = addLocale(repo, "ja-JP");
+
+    // Malformed PO: unescaped quote in middle of msgid string.
+    // PO Parser uses lastIndexOf('"') to find the closing delimiter,
+    // so given a PO snippet:
+    // `msgid "A " and a \"`
+    // the parsed string content after unescaping is:
+    // `A " and a \`
+    // (both an unescaped inner quote and the single trailing backslash are treated as literals)
+    String assetContent =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        msgid "A " and a \\"
+        msgstr ""
+        """;
+
+    // On localization (source copied to target), encoder should properly re-escape:
+    // `msgstr "A \" and a \\"
+    String expectedLocalizedAsset =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        msgid "A " and a \\"
+        msgstr "A \\" and a \\\\"
+        """;
+
+    createAsset(repo, "messages.pot", assetContent);
+    processAsset(repo, assetContent);
+
+    List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
+
+    assertEquals(1, textUnitDTOs.size());
+    TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
+    assertEquals(
+        """
+            A " and a \\""",
+        textUnitDTO.getName());
+    assertEquals(
+        """
+            A " and a \\""",
+        textUnitDTO.getSource());
+
+    String localizedAsset = generateLocalized(assetContent, repoLocale, "ja-JP");
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+  }
 }
