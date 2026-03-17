@@ -845,4 +845,127 @@ public class LocalizePoAssetTest extends LocalizeAssetTestBase {
     logger.debug("localized=\n{}", localizedAsset);
     assertEquals(expectedLocalizedAsset, localizedAsset);
   }
+
+  @Test
+  public void testLocalizePoEscapingSymmetry() throws Exception {
+
+    Repository repo = createRepository();
+    RepositoryLocale repoLocale = addLocale(repo, "ja-JP");
+
+    // Actual source string in the localized application UI is:
+    // `Name cannot contain "/", "\", or characters outside the basic multilingual plane.`
+    // `msgid "Name cannot contain \"/\", \"\\\", or characters outside the basic multilingual
+    // plane."`
+    // Finally, in Java text block we must escape each backslash additionally
+
+    String assetContent =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=2; plural=(n != 1);\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #: src/main.py:10
+        msgid "Name cannot contain \\"/\\", \\"\\\\\\", or characters outside the basic multilingual plane."
+        msgstr ""
+        """;
+
+    // Target string backfilled from source must match the source exactly,
+    // i.e. the unescaping when parsing and re-escaping when generating a localized asset
+    // must be symmetric
+    String expectedLocalizedAsset =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #: src/main.py:10
+        msgid "Name cannot contain \\"/\\", \\"\\\\\\", or characters outside the basic multilingual plane."
+        msgstr "Name cannot contain \\"/\\", \\"\\\\\\", or characters outside the basic multilingual plane."
+        """;
+
+    createAsset(repo, "messages.pot", assetContent);
+    processAsset(repo, assetContent);
+
+    List<TextUnitDTO> textUnitDTOs = searchTextUnits(repo);
+
+    assertEquals(1, textUnitDTOs.size());
+    TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
+    assertEquals(
+        """
+        Name cannot contain "/", "\\", or characters outside the basic multilingual plane.""",
+        textUnitDTO.getName());
+    assertEquals(
+        """
+        Name cannot contain "/", "\\", or characters outside the basic multilingual plane.""",
+        textUnitDTO.getSource());
+
+    // Verify source is copied to target with proper re-escaping
+    String localizedAsset = generateLocalized(assetContent, repoLocale, "ja-JP");
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+
+    // Import a translation where the target has a literal backslash.
+    // `Nazwa nie może zawierać „/”, „\”, ani znaków spoza podstawowej klawiatury wielojęzycznej.`
+    // (Note that in Polish translation those are different quote characters which don't need
+    // escaping)
+    // Translator should be able to type a literal target string in Mojito UI
+    // which should then be correctly escaped when generating a localized asset
+    // In PO file content, the backslash is escaped with another backslash:
+    // `msgstr "Nazwa nie może zawierać „/”, „\\\\”, ani znaków spoza podstawowej klawiatury
+    // wielojęzycznej."`
+    String forImport =
+        """
+        msgid ""
+        msgstr ""
+        "Project-Id-Version: PACKAGE VERSION\\n"
+        "Report-Msgid-Bugs-To: \\n"
+        "POT-Creation-Date: 2017-09-15 11:53-0500\\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
+        "Language-Team: LANGUAGE <LL@li.org>\\n"
+        "MIME-Version: 1.0\\n"
+        "Plural-Forms: nplurals=1; plural=0;\\n"
+        "Content-Type: text/plain; charset=utf-8\\n"
+        "Content-Transfer-Encoding: 8bit\\n"
+        #: src/main.py:10
+        msgid "Name cannot contain \\"/\\", \\"\\\\\\", or characters outside the basic multilingual plane."
+        msgstr "Nazwa nie może zawierać „/”, „\\\\”, ani znaków spoza podstawowej klawiatury wielojęzycznej."
+        """;
+
+    importTranslations(repoLocale, forImport, StatusForEqualTarget.TRANSLATION_NEEDED);
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+    textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+    textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+    assertEquals(1, textUnitDTOs.size());
+    textUnitDTO = textUnitDTOs.get(0);
+    // TM should store the unescaped target (single backslash)
+    assertEquals(
+        "Nazwa nie może zawierać „/”, „\\”, ani znaków spoza podstawowej klawiatury wielojęzycznej.",
+        textUnitDTO.getTarget());
+
+    // Re-generate localized PO — encoder should re-escape \ to \\
+    localizedAsset = generateLocalized(assetContent, repoLocale, "ja-JP");
+    logger.debug("localized after import=\n{}", localizedAsset);
+    assertEquals(forImport, localizedAsset);
+  }
 }
