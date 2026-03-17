@@ -64,7 +64,7 @@ public class POFilterExtractionTest extends FilterExtractionTestBase {
 
     Assertions.assertThat(units)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
-        .containsExactly(tuple("He said \\\"hello\\\"", "He said \"hello\""));
+        .containsExactly(tuple("He said \"hello\"", "He said \"hello\""));
   }
 
   @Test
@@ -81,7 +81,7 @@ public class POFilterExtractionTest extends FilterExtractionTestBase {
 
     Assertions.assertThat(units)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
-        .containsExactly(tuple("it\\'s a test", "it's a test"));
+        .containsExactly(tuple("it's a test", "it's a test"));
   }
 
   @Test
@@ -157,11 +157,11 @@ public class POFilterExtractionTest extends FilterExtractionTestBase {
             AssetExtractorTextUnit::getPluralForm,
             AssetExtractorTextUnit::getPluralFormOther)
         .containsExactly(
-            tuple("the \\\"item\\\" _zero", "the \"items\"", "zero", "the \\\"item\\\" _other"),
-            tuple("the \\\"item\\\" _one", "the \"item\"", "one", "the \\\"item\\\" _other"),
-            tuple("the \\\"item\\\" _two", "the \"items\"", "two", "the \\\"item\\\" _other"),
-            tuple("the \\\"item\\\" _few", "the \"items\"", "few", "the \\\"item\\\" _other"),
-            tuple("the \\\"item\\\" _many", "the \"items\"", "many", "the \\\"item\\\" _other"),
-            tuple("the \\\"item\\\" _other", "the \"items\"", "other", "the \\\"item\\\" _other"));
+            tuple("the \"item\" _zero", "the \"items\"", "zero", "the \"item\" _other"),
+            tuple("the \"item\" _one", "the \"item\"", "one", "the \"item\" _other"),
+            tuple("the \"item\" _two", "the \"items\"", "two", "the \"item\" _other"),
+            tuple("the \"item\" _few", "the \"items\"", "few", "the \"item\" _other"),
+            tuple("the \"item\" _many", "the \"items\"", "many", "the \"item\" _other"),
+            tuple("the \"item\" _other", "the \"items\"", "other", "the \"item\" _other"));
   }
 }

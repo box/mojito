@@ -246,7 +246,7 @@ public class LocalizePoAssetTest extends LocalizeAssetTestBase {
 
     assertEquals(1, textUnitDTOs.size());
     TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
-    assertEquals("repin \\\"{}\\\"", textUnitDTO.getName());
+    assertEquals("repin \"{}\"", textUnitDTO.getName());
     assertEquals("repin \"{}\"", textUnitDTO.getSource());
 
     String localizedAsset = generateLocalized(assetContent, repoLocale, "ja-JP");
@@ -286,7 +286,7 @@ public class LocalizePoAssetTest extends LocalizeAssetTestBase {
 
     assertEquals(1, textUnitDTOs.size());
     textUnitDTO = textUnitDTOs.get(0);
-    assertEquals("repin \\\"{}\\\"", textUnitDTO.getName());
+    assertEquals("repin \"{}\"", textUnitDTO.getName());
     assertEquals("repin \"{}\"", textUnitDTO.getSource());
     assertEquals("repin \"{}\" jp", textUnitDTO.getTarget());
   }
