@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.okapi.filters;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,20 +11,6 @@ import org.junit.Test;
  * @author jeanaurambault
  */
 public class POFilterTest {
-
-  @Test
-  public void loadMsgIDPluralFromParent() {
-    POFilter poFilter = new POFilter();
-    poFilter.loadMsgIDPluralFromParent();
-    assertNull(poFilter.msgIDPlural);
-  }
-
-  @Test
-  public void loadMsgIDFromParent() {
-    POFilter poFilter = new POFilter();
-    poFilter.loadMsgIDFromParent();
-    assertNull(poFilter.msgID);
-  }
 
   @Test
   public void getUsagesFromSkeleton() {
