@@ -68,7 +68,9 @@ public class POFilterExtractionTest extends FilterExtractionTestBase {
   }
 
   @Test
-  public void extractWithEscapedSingleQuotes() throws UnsupportedAssetFilterTypeException {
+  public void extractWithBackslashAndSingleQuote() throws UnsupportedAssetFilterTypeException {
+    // \' is not a standard PO escape sequence (PO uses double-quote delimiters),
+    // so the backslash is preserved as a literal character by Okapi's parser.
     List<AssetExtractorTextUnit> units =
         extract(
             "test.pot",
@@ -81,7 +83,7 @@ public class POFilterExtractionTest extends FilterExtractionTestBase {
 
     Assertions.assertThat(units)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
-        .containsExactly(tuple("it's a test", "it's a test"));
+        .containsExactly(tuple("it\\'s a test", "it\\'s a test"));
   }
 
   @Test
