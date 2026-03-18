@@ -212,17 +212,21 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
             ? textUnitEvents.get(1).getTextUnit().getSource().toString()
             : extractPluralSourceFromSkeleton(startGroupSkeleton);
 
+    // Text units whose PO form index has no CLDR mapping (e.g. form 1 for Japanese ONE_FORM)
+    // are filtered out
+    List<Event> filteredEvents = new ArrayList<>();
     for (int i = 0; i < textUnitEvents.size(); i++) {
-      ITextUnit textUnit = textUnitEvents.get(i).getTextUnit();
-      setTextUnitName(textUnit, singularSource);
       String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(i));
       if (cldrForm != null) {
+        ITextUnit textUnit = textUnitEvents.get(i).getTextUnit();
+        setTextUnitName(textUnit, singularSource);
         appendPluralFormToName(textUnit, cldrForm);
+        filteredEvents.add(textUnitEvents.get(i));
       }
     }
 
     PluralsHolder pluralsHolder = new PoPluralsHolder(singularSource, pluralSource);
-    pluralsHolder.loadEvents(textUnitEvents);
+    pluralsHolder.loadEvents(filteredEvents);
     List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
 
     for (Event e : completedForms) {
