@@ -86,7 +86,8 @@ public class LeveragingCommand extends Command {
       description =
           "Matching mode. "
               + "MD5 will perform matching based on the ID, content and comment. "
-              + "EXACT match is only using the content.",
+              + "EXACT match is only using the content. "
+              + "NAME match is only using the resource name.",
       converter = CopyTmConfigModeConverter.class)
   CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
 
