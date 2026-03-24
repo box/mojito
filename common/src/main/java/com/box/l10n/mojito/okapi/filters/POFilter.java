@@ -3,7 +3,6 @@ package com.box.l10n.mojito.okapi.filters;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.po.PoPluralRule;
 import com.google.common.collect.Multimap;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,7 +25,6 @@ import net.sf.okapi.common.skeleton.GenericSkeletonPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Extends {@link net.sf.okapi.filters.po.POFilter} to somehow support gettext
@@ -60,10 +58,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   PoPluralRule poPluralRule;
 
   boolean hasCopyFormsOnImport = false;
-
-  String msgIDPlural;
-
-  String msgID;
 
   @Override
   public String getName() {
@@ -120,7 +114,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     }
 
     Event event = super.next();
-    loadMsgIDFromParent();
 
     if (isPluralGroupStarting(event)) {
       processNextPluralGroup(event);
@@ -133,7 +126,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     if (event.isTextUnit()) {
       TextUnit textUnit = (TextUnit) event.getTextUnit();
-      setTextUnitName(textUnit, msgID);
+      setTextUnitName(textUnit, textUnit.getSource().toString());
       addUsagesToTextUnit(textUnit);
     }
 
@@ -155,31 +148,37 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     Set<String> usagesFromSkeleton =
         getUsagesFromSkeleton(startGroupEvent.getStartGroup().getSkeleton().toString());
 
-    loadMsgIDPluralFromParent();
     eventQueue.add(startGroupEvent);
 
     List<Event> textUnitEvents = new ArrayList<>();
-    int poFormIndex = 0;
-
     Event next = super.next();
-    loadMsgIDFromParent();
-
     while (next != null && !next.isEndGroup()) {
       if (next.isTextUnit()) {
-        ITextUnit textUnit = next.getTextUnit();
-        setTextUnitName(textUnit, msgID);
-        String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(poFormIndex));
-        if (cldrForm != null) {
-          appendPluralFormToName(textUnit, cldrForm);
-        }
         textUnitEvents.add(next);
-        poFormIndex++;
       }
       next = super.next();
-      loadMsgIDFromParent();
     }
 
-    PluralsHolder pluralsHolder = new PoPluralsHolder();
+    String singularSource = textUnitEvents.get(0).getTextUnit().getSource().toString();
+
+    // When nPlurals >= 2 the second text unit's source is the msgid_plural.
+    // When nPlurals == 1 (e.g. Japanese) there is only one text unit — the next commit
+    // adds extractPluralSourceFromSkeleton to handle that edge case correctly.
+    String pluralSource =
+        textUnitEvents.size() > 1
+            ? textUnitEvents.get(1).getTextUnit().getSource().toString()
+            : singularSource;
+
+    for (int i = 0; i < textUnitEvents.size(); i++) {
+      ITextUnit textUnit = textUnitEvents.get(i).getTextUnit();
+      setTextUnitName(textUnit, singularSource);
+      String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(i));
+      if (cldrForm != null) {
+        appendPluralFormToName(textUnit, cldrForm);
+      }
+    }
+
+    PluralsHolder pluralsHolder = new PoPluralsHolder(singularSource, pluralSource);
     pluralsHolder.loadEvents(textUnitEvents);
     List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
 
@@ -202,20 +201,26 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
   class PoPluralsHolder extends PluralsHolder {
 
+    private final String singularSource;
+    private final String pluralSource;
+
+    PoPluralsHolder(String singularSource, String pluralSource) {
+      this.singularSource = singularSource;
+      this.pluralSource = pluralSource;
+    }
+
     @Override
     public List<Event> getCompletedForms(LocaleId localeId) {
 
       if (other == null) {
         if (few != null) {
-          logger.debug(
-              "Other is not defined but few is, means it is for a language where few can be copied like Russian");
+          logger.debug("other is not defined, copying from few (e.g. Russian)");
           other = createCopyOf(few, "few", "other");
         } else if (zero != null) {
-          logger.debug(
-              "Other and few are not defined but one is, means it is for a language where few can be copied like Arabic");
+          logger.debug("other and few are not defined, copying from zero (e.g. Arabic)");
           other = createCopyOf(zero, "zero", "other");
         } else if (two != null) {
-          logger.debug("Other, few and zero are not defined but one is, copy from two.");
+          logger.debug("other, few and zero are not defined, copying from two");
           other = createCopyOf(two, "two", "other");
         }
       }
@@ -226,11 +231,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     @Override
     void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
       if ("one".equals(cldrPluralForm)) {
-        logger.debug("Set message singular: {}", msgID);
-        textUnit.setSource(new TextContainer(msgID));
+        textUnit.setSource(new TextContainer(singularSource));
       } else {
-        logger.debug("Set message plural: {}", msgIDPlural);
-        textUnit.setSource(new TextContainer(msgIDPlural));
+        textUnit.setSource(new TextContainer(pluralSource));
       }
     }
 
@@ -318,26 +321,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   void rewritePluralFormInHeader(DocumentPart documentPart) {
     if (targetLocale != null && !LocaleId.EMPTY.equals(targetLocale)) {
       documentPart.setProperty(new Property("pluralforms", poPluralRule.getRule()));
-    }
-  }
-
-  void loadMsgIDPluralFromParent() {
-    Field msgIDPluralParent =
-        ReflectionUtils.findField(net.sf.okapi.filters.po.POFilter.class, "msgIDPlural");
-    msgIDPlural = makeAccessibleAndGetString(msgIDPluralParent);
-  }
-
-  void loadMsgIDFromParent() {
-    Field msgIDParent = ReflectionUtils.findField(net.sf.okapi.filters.po.POFilter.class, "msgID");
-    msgID = makeAccessibleAndGetString(msgIDParent);
-  }
-
-  String makeAccessibleAndGetString(Field msgID) {
-    ReflectionUtils.makeAccessible(msgID);
-    try {
-      return (String) msgID.get(this);
-    } catch (IllegalAccessException | IllegalArgumentException e) {
-      throw new RuntimeException(e);
     }
   }
 
