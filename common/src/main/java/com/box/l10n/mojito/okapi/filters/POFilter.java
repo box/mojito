@@ -15,8 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
-import net.sf.okapi.common.MimeTypeMapper;
-import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
@@ -74,8 +72,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   String msgID;
 
   Integer poPluralForm;
-
-  EncoderManager encoderManager;
 
   @Override
   public String getName() {
@@ -423,16 +419,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     }
 
     return locations;
-  }
-
-  @Override
-  public EncoderManager getEncoderManager() {
-    if (encoderManager == null) {
-      encoderManager = new EncoderManager();
-      encoderManager.setMapping(
-          MimeTypeMapper.PO_MIME_TYPE, "com.box.l10n.mojito.okapi.filters.POEncoder");
-    }
-    return encoderManager;
   }
 
   static String removeUntranslated(String poFile) {
