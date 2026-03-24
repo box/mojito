@@ -65,8 +65,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
   String msgID;
 
-  Integer poPluralForm;
-
   @Override
   public String getName() {
     return FILTER_CONFIG_ID;
@@ -135,7 +133,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     if (event.isTextUnit()) {
       TextUnit textUnit = (TextUnit) event.getTextUnit();
-      renameTextUnitWithSourceAndContent(textUnit);
+      setTextUnitName(textUnit, msgID);
       addUsagesToTextUnit(textUnit);
     }
 
@@ -161,23 +159,25 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     eventQueue.add(startGroupEvent);
 
     List<Event> textUnitEvents = new ArrayList<>();
-    poPluralForm = 0;
+    int poFormIndex = 0;
 
     Event next = super.next();
     loadMsgIDFromParent();
 
     while (next != null && !next.isEndGroup()) {
       if (next.isTextUnit()) {
-        TextUnit textUnit = (TextUnit) next.getTextUnit();
-        renameTextUnitWithSourceAndContent(textUnit);
+        ITextUnit textUnit = next.getTextUnit();
+        setTextUnitName(textUnit, msgID);
+        String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(poFormIndex));
+        if (cldrForm != null) {
+          appendPluralFormToName(textUnit, cldrForm);
+        }
         textUnitEvents.add(next);
-        poPluralForm++;
+        poFormIndex++;
       }
       next = super.next();
       loadMsgIDFromParent();
     }
-
-    poPluralForm = null;
 
     PluralsHolder pluralsHolder = new PoPluralsHolder();
     pluralsHolder.loadEvents(textUnitEvents);
@@ -282,31 +282,32 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   }
 
   /**
-   * If context is present, add it to the text unit name. We keep the generated ID by Okapi for
-   * prefix of the text unit name allows to distinguish plural form easily.
+   * Sets the text unit name to the given base name, appending the msgctxt when present. Examples:
    *
-   * <p>Note: Decided not to go with empty string id only based the message context to have more
-   * consistent IDs and support plural forms. It has a little draw back when searching for string
-   * though as it prevents exact match on context.
-   *
-   * @param textUnit
+   * <ul>
+   *   <li>{@code "Hello"} — simple entry
+   *   <li>{@code "File --- menu"} — with msgctxt "menu"
+   * </ul>
    */
-  void renameTextUnitWithSourceAndContent(ITextUnit textUnit) {
-
+  void setTextUnitName(ITextUnit textUnit, String baseName) {
     Property property = textUnit.getProperty(POFilter.PROPERTY_CONTEXT);
 
-    StringBuilder newName = new StringBuilder(msgID);
+    StringBuilder newName = new StringBuilder(baseName);
 
     if (property != null) {
       newName.append(" --- ").append(property.getValue());
     }
 
-    if (poPluralForm != null) {
-      String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(poPluralForm));
-      newName.append(PLURAL_SEPARATOR).append(cldrForm);
-    }
-
     textUnit.setName(newName.toString());
+  }
+
+  /**
+   * Appends a CLDR plural form suffix to the text unit's current name, e.g. {@code "item"} becomes
+   * {@code "item _other"}. The suffix must be set before {@link PluralsHolder#loadEvents} so that
+   * {@link PluralsHolder#getCldrPluralFormOfEvent} can parse the form back from the name.
+   */
+  void appendPluralFormToName(ITextUnit textUnit, String cldrPluralForm) {
+    textUnit.setName(textUnit.getName() + PLURAL_SEPARATOR + cldrPluralForm);
   }
 
   /**
