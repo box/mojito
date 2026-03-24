@@ -82,8 +82,17 @@ public abstract class AbstractLeverager {
    * @param assetId
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
+    performLeveragingFor(tmTextUnits, sourceTmId, assetId, false);
+  }
 
-    logger.debug("Perform leveraging: {}", getType());
+  /**
+   * @param preserveStatus if {@code true}, the source translation's status is always preserved
+   *     regardless of the match precision
+   */
+  public void performLeveragingFor(
+      List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId, boolean preserveStatus) {
+
+    logger.debug("Perform leveraging: {}, preserveStatus: {}", getType(), preserveStatus);
 
     for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
         tmTextUnitsIterator.hasNext(); ) {
@@ -110,7 +119,8 @@ public abstract class AbstractLeverager {
             textUnitDTOsForLeveragingSize == textUnitDTOsForLeveraging.size();
 
         logger.debug("Determine if re-translation is needed for the strings that will be copied");
-        boolean translationNeeded = isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
+        boolean translationNeeded =
+            !preserveStatus && (isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched);
 
         addLeveragedTranslations(
             tmTextUnit, textUnitDTOsForLeveraging, translationNeeded, uniqueTMTextUnitMatched);

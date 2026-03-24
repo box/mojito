@@ -286,6 +286,76 @@ public class LeveragingCommandTest extends CLITestBase {
   }
 
   @Test
+  public void copyTMModeNamePreserveStatus() throws Exception {
+
+    Repository sourceRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+
+    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
+    repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
+    repositoryService.addRepositoryLocale(sourceRepository, "ja-JP");
+
+    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
+    repositoryService.addRepositoryLocale(targetRepository, "fr-CA", "fr-FR", false);
+    repositoryService.addRepositoryLocale(targetRepository, "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            sourceRepository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            targetRepository.getName(),
+            "-s",
+            getInputResourcesTestDir("source3").getAbsolutePath());
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "leveraging-copy-tm",
+            "-s",
+            sourceRepository.getName(),
+            "-t",
+            targetRepository.getName(),
+            "-m",
+            "NAME",
+            "--preserve-status",
+            "true");
+
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesOrderByContent(targetRepository)
+            .stream()
+            .filter(v -> !v.getLocale().getBcp47Tag().equals("en"))
+            .sorted(
+                Comparator.comparing(
+                        TMTextUnitVariant::getLocale, Comparator.comparing(Locale::getBcp47Tag))
+                    .thenComparing(TMTextUnitVariant::getContent))
+            .collect(Collectors.toList());
+
+    Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
+
+    for (TMTextUnitVariant variant : targetTranslations) {
+      Assert.assertEquals(
+          "Status should be preserved as APPROVED when --preserve-status is true",
+          TMTextUnitVariant.Status.APPROVED,
+          variant.getStatus());
+    }
+  }
+
+  @Test
   public void copyTMModeTUIDs() throws Exception {
 
     Repository sourceRepository =
