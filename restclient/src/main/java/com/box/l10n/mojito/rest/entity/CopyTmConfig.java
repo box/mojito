@@ -107,6 +107,10 @@ public class CopyTmConfig {
     MD5,
     /** Exact match means the content must be the same (message id and comment are not checked). */
     EXACT,
+    /**
+     * Name match means the resource name must be the same (content and comment are not checked).
+     */
+    NAME,
     /** Copy based on a map of source to target tmTextUnitId */
     TUIDS
   }

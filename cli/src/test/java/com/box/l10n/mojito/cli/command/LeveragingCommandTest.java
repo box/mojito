@@ -198,6 +198,94 @@ public class LeveragingCommandTest extends CLITestBase {
   }
 
   @Test
+  public void copyTMModeName() throws Exception {
+
+    Repository sourceRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+
+    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
+    repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
+    repositoryService.addRepositoryLocale(sourceRepository, "ja-JP");
+
+    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
+    repositoryService.addRepositoryLocale(targetRepository, "fr-CA", "fr-FR", false);
+    repositoryService.addRepositoryLocale(targetRepository, "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            sourceRepository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            targetRepository.getName(),
+            "-s",
+            getInputResourcesTestDir("source3").getAbsolutePath());
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    List<TMTextUnitVariant> initialTargetTranslations =
+        tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
+
+    assertEquals("There must be only english for now", 5, initialTargetTranslations.size());
+
+    getL10nJCommander()
+        .run(
+            "leveraging-copy-tm",
+            "-s",
+            sourceRepository.getName(),
+            "-t",
+            targetRepository.getName(),
+            "-m",
+            "NAME");
+
+    List<String> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesOrderByContent(targetRepository)
+            .stream()
+            .sorted(
+                Comparator.comparing(
+                        TMTextUnitVariant::getLocale, Comparator.comparing(Locale::getBcp47Tag))
+                    .thenComparing(TMTextUnitVariant::getContent))
+            .map(TMTextUnitVariant::getContent)
+            .peek(t -> logger.info("target translation: {}", t))
+            .collect(Collectors.toList());
+
+    List<String> expectedTargetTranslations =
+        Arrays.asList(
+            "1 hour",
+            "1 month",
+            "100 char limit:",
+            "15 min",
+            "one day",
+            "1 heure",
+            "1 jour",
+            "1 mois",
+            "15 min",
+            "Description de 100 caract\u00e8res\u00a0:",
+            "100\u6587\u5b57\u306e\u8aac\u660e\uff1a",
+            "15\u5206",
+            "1\u304b\u6708",
+            "1\u65e5",
+            "1\u6642\u9593");
+
+    Assert.assertEquals(
+        "All target text units should have translations leveraged by name",
+        expectedTargetTranslations,
+        targetTranslations);
+  }
+
+  @Test
   public void copyTMModeTUIDs() throws Exception {
 
     Repository sourceRepository =

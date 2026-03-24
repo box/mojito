@@ -265,6 +265,116 @@ public class LeveragingServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void copyAllTranslationsWithNameMatchBetweenRepositories()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+    Repository sourceRepository = tmTestDataSource.repository;
+
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+    TM tm = targetRepository.getTm();
+
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
+
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province",
+        "Different source content",
+        "DifferentComment");
+    tmService.addTMTextUnit(
+        tm.getId(), assetId, "TEST2", "Different Content2", "DifferentComment2");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> sourceTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                sourceRepository, "en");
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+
+    Iterator<TMTextUnitVariant> itSource = sourceTranslations.iterator();
+    Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
+
+    while (itTarget.hasNext()) {
+      TMTextUnitVariant next = itTarget.next();
+      Assert.assertEquals(
+          "translation in source and target must be the same",
+          itSource.next().getContent(),
+          next.getContent());
+    }
+
+    Assert.assertFalse(itSource.hasNext());
+  }
+
+  @Test
+  public void copyTranslationsWithNameMatchDoesNotMatchDifferentNames()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+    Repository sourceRepository = tmTestDataSource.repository;
+
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+    TM tm = targetRepository.getTm();
+
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
+
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "completely_different_name",
+        "Please enter a valid state, region or province",
+        "Comment1");
+    tmService.addTMTextUnit(tm.getId(), assetId, "another_different_name", "Content2", "Comment2");
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+
+    Assert.assertEquals(
+        "No translations should be copied when names don't match", 0, targetTranslations.size());
+  }
+
+  @Test
   public void copyAllTranslationsWithExactMatchBetweenRepositories()
       throws InterruptedException,
           ExecutionException,
