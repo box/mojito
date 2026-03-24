@@ -117,110 +117,82 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
   @Override
   public Event next() {
-    Event event;
-
-    if (eventQueue.isEmpty()) {
-      readNextEvents();
+    if (!eventQueue.isEmpty()) {
+      return eventQueue.remove(0);
     }
 
-    event = eventQueue.remove(0);
+    Event event = super.next();
+    loadMsgIDFromParent();
 
-    return event;
-  }
-
-  void readNextEvents() {
-    Event next = getNextWithProcess();
-
-    if (isPluralGroupStarting(next)) {
-      poPluralForm = 0;
-      readPlurals(next);
-    } else {
-      if (next.isDocumentPart()) {
-        rewritePluralFormInHeader(next.getDocumentPart());
-      }
-      eventQueue.add(next);
+    if (isPluralGroupStarting(event)) {
+      processNextPluralGroup(event);
+      return eventQueue.remove(0);
     }
-  }
 
-  void processTextUnit(Event event) {
-    if (event != null && event.isTextUnit()) {
+    if (event.isDocumentPart()) {
+      rewritePluralFormInHeader(event.getDocumentPart());
+    }
+
+    if (event.isTextUnit()) {
       TextUnit textUnit = (TextUnit) event.getTextUnit();
       renameTextUnitWithSourceAndContent(textUnit);
       addUsagesToTextUnit(textUnit);
     }
+
+    return event;
   }
 
-  boolean isPluralGroupStarting(Event event) {
+  private boolean isPluralGroupStarting(Event event) {
     return event != null
         && event.isStartGroup()
         && "x-gettext-plurals".equals(event.getStartGroup().getType());
   }
 
-  boolean isPluralGroupEnding(Event event) {
-    return poPluralForm != null && event != null && event.isEndGroup();
-  }
-
-  Event getNextWithProcess() {
-    Event next = super.next();
-    loadMsgIDFromParent();
-    processTextUnit(next);
-    return next;
-  }
-
-  void readPlurals(Event next) {
-
-    logger.debug("First event is the start group, load msgidplural from parent and move to next");
+  /**
+   * Consumes a complete plural group from the parent filter (START_GROUP -> TEXT_UNIT* ->
+   * END_GROUP), remaps PO form indices to CLDR plural forms, completes any missing forms for the
+   * target locale, and buffers all resulting events in {@link #eventQueue}.
+   */
+  void processNextPluralGroup(Event startGroupEvent) {
     Set<String> usagesFromSkeleton =
-        getUsagesFromSkeleton(next.getStartGroup().getSkeleton().toString());
+        getUsagesFromSkeleton(startGroupEvent.getStartGroup().getSkeleton().toString());
 
     loadMsgIDPluralFromParent();
-    eventQueue.add(next);
+    eventQueue.add(startGroupEvent);
 
-    List<Event> pluralEvents = new ArrayList<>();
-    next = getNextWithProcess();
+    List<Event> textUnitEvents = new ArrayList<>();
+    poPluralForm = 0;
 
-    // add the start event
-    pluralEvents.add(next);
+    Event next = super.next();
+    loadMsgIDFromParent();
 
-    poPluralForm++;
-    next = getNextWithProcess();
-
-    // read others until the end
-    while (next != null && !isPluralGroupEnding(next)) {
-      pluralEvents.add(next);
-      poPluralForm++;
-      next = getNextWithProcess();
+    while (next != null && !next.isEndGroup()) {
+      if (next.isTextUnit()) {
+        TextUnit textUnit = (TextUnit) next.getTextUnit();
+        renameTextUnitWithSourceAndContent(textUnit);
+        textUnitEvents.add(next);
+        poPluralForm++;
+      }
+      next = super.next();
+      loadMsgIDFromParent();
     }
 
     poPluralForm = null;
 
-    // that doesn't contain last
-    pluralEvents = adaptPlurals(pluralEvents, usagesFromSkeleton);
-
-    eventQueue.addAll(pluralEvents);
-
-    if (isPluralGroupStarting(next)) {
-      poPluralForm = 0;
-      readPlurals(next);
-    } else {
-      eventQueue.add(next);
-    }
-  }
-
-  List<Event> adaptPlurals(List<Event> pluralEvents, Set<String> usagesFromSkeleton) {
-    logger.debug("Adapt plural forms if needed");
     PluralsHolder pluralsHolder = new PoPluralsHolder();
-    pluralsHolder.loadEvents(pluralEvents);
+    pluralsHolder.loadEvents(textUnitEvents);
     List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
-    setUsagesOnTextUnits(completedForms, usagesFromSkeleton);
-    return completedForms;
-  }
 
-  private void setUsagesOnTextUnits(List<Event> pluralEvents, Set<String> usagesFromSkeleton) {
-    for (Event pluralEvent : pluralEvents) {
-      if (pluralEvent.isTextUnit()) {
-        setUsagesAnnotationOnTextUnit(usagesFromSkeleton, pluralEvent.getTextUnit());
+    for (Event e : completedForms) {
+      if (e.isTextUnit()) {
+        setUsagesAnnotationOnTextUnit(usagesFromSkeleton, e.getTextUnit());
       }
+    }
+
+    eventQueue.addAll(completedForms);
+
+    if (next != null) {
+      eventQueue.add(next);
     }
   }
 
