@@ -332,7 +332,7 @@ public class LeveragingCommandTest extends CLITestBase {
             "-m",
             "NAME",
             "--preserve-status",
-            "true");
+            "ANY");
 
     List<TMTextUnitVariant> targetTranslations =
         tmTextUnitVariantRepository
@@ -349,7 +349,7 @@ public class LeveragingCommandTest extends CLITestBase {
 
     for (TMTextUnitVariant variant : targetTranslations) {
       Assert.assertEquals(
-          "Status should be preserved as APPROVED when --preserve-status is true",
+          "Status should be preserved as APPROVED with ANY",
           TMTextUnitVariant.Status.APPROVED,
           variant.getStatus());
     }
