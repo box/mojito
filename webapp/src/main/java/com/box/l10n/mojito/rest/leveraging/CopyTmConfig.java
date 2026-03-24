@@ -22,6 +22,8 @@ public class CopyTmConfig {
 
   Mode mode = Mode.MD5;
 
+  boolean preserveStatus = false;
+
   PollableTask pollableTask;
 
   @JsonProperty
@@ -102,6 +104,14 @@ public class CopyTmConfig {
 
   public void setTargetBranchName(String targetBranchName) {
     this.targetBranchName = targetBranchName;
+  }
+
+  public boolean isPreserveStatus() {
+    return preserveStatus;
+  }
+
+  public void setPreserveStatus(boolean preserveStatus) {
+    this.preserveStatus = preserveStatus;
   }
 
   /** Matching mode for leveraging */

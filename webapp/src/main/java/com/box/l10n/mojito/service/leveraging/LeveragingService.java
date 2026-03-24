@@ -155,29 +155,46 @@ public class LeveragingService {
             copyTmConfig.getNameRegex(),
             copyTmConfig.getTargetBranchName());
 
+    boolean preserveStatus = copyTmConfig.isPreserveStatus();
+
     if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
       copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
     } else if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
       leveragerByMd5.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+          textUnitsForCopyTM,
+          sourceRepository.getTm().getId(),
+          copyTmConfig.getSourceAssetId(),
+          preserveStatus);
     } else if (CopyTmConfig.Mode.NAME.equals(copyTmConfig.getMode())) {
       logger.debug(
           "First perform leveraging by name and content (to give priority to strings with same content)");
       leveragerByNameAndContent.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+          textUnitsForCopyTM,
+          sourceRepository.getTm().getId(),
+          copyTmConfig.getSourceAssetId(),
+          preserveStatus);
 
       logger.debug("Now, perform leveraging only on the name");
       leveragerByName.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+          textUnitsForCopyTM,
+          sourceRepository.getTm().getId(),
+          copyTmConfig.getSourceAssetId(),
+          preserveStatus);
     } else {
       logger.debug(
           "First perform leveraging by name and content (to give priority to string with same tags");
       leveragerByNameAndContent.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+          textUnitsForCopyTM,
+          sourceRepository.getTm().getId(),
+          copyTmConfig.getSourceAssetId(),
+          preserveStatus);
 
       logger.debug("Now, perform leveraging only on the content");
       leveragerByContent.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+          textUnitsForCopyTM,
+          sourceRepository.getTm().getId(),
+          copyTmConfig.getSourceAssetId(),
+          preserveStatus);
     }
   }
 

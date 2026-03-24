@@ -328,6 +328,109 @@ public class LeveragingServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void copyWithNameMatchPreservesStatusWhenFlagSet()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+    Repository sourceRepository = tmTestDataSource.repository;
+
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+    TM tm = targetRepository.getTm();
+
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
+
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province",
+        "Different source content",
+        "DifferentComment");
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
+    copyTmConfig.setPreserveStatus(true);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+
+    Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
+    for (TMTextUnitVariant variant : targetTranslations) {
+      Assert.assertEquals(
+          "Status should be preserved as APPROVED when preserveStatus is true",
+          TMTextUnitVariant.Status.APPROVED,
+          variant.getStatus());
+    }
+  }
+
+  @Test
+  public void copyWithNameMatchSetsTranslationNeededWithoutPreserveStatus()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+    Repository sourceRepository = tmTestDataSource.repository;
+
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+    TM tm = targetRepository.getTm();
+
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
+
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province",
+        "Different source content",
+        "DifferentComment");
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+
+    Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
+    for (TMTextUnitVariant variant : targetTranslations) {
+      Assert.assertEquals(
+          "Status should be TRANSLATION_NEEDED when preserveStatus is false for NAME mode",
+          TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+          variant.getStatus());
+    }
+  }
+
+  @Test
   public void copyTranslationsWithNameMatchDoesNotMatchDifferentNames()
       throws InterruptedException,
           ExecutionException,

@@ -92,6 +92,15 @@ public class LeveragingCommand extends Command {
   CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
 
   @Parameter(
+      names = {"--preserve-status", "-ps"},
+      arity = 1,
+      required = false,
+      description =
+          "When true, keep the source translation's status (e.g. APPROVED) "
+              + "even if the matching mode would normally require re-translation")
+  boolean preserveStatus = false;
+
+  @Parameter(
       names = {"--tuids-mapping"},
       required = false,
       description =
@@ -145,6 +154,7 @@ public class LeveragingCommand extends Command {
       copyTmConfig.setTargetRepositoryId(targetRepository.getId());
       copyTmConfig.setNameRegex(nameRegexParam);
       copyTmConfig.setTargetBranchName(targetBranchNameParam);
+      copyTmConfig.setPreserveStatus(preserveStatus);
 
       if (mode != null) {
         copyTmConfig.setMode(mode);
