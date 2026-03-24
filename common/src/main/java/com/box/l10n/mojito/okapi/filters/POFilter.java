@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.po.PoPluralRule;
 import com.google.common.collect.Multimap;
@@ -26,7 +25,6 @@ import net.sf.okapi.common.skeleton.GenericSkeleton;
 import net.sf.okapi.common.skeleton.GenericSkeletonPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.ReflectionUtils;
 
@@ -54,10 +52,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   // see {@link ThirdPartySyncCommand} too.
   // Consider cleanup but that not that simple as it would require migrating data...
   static final String PLURAL_SEPARATOR = " _";
-
-  @Autowired TextUnitUtils textUnitUtils;
-
-  @Autowired UnescapeUtils unescapeUtils;
 
   List<Event> eventQueue = new ArrayList<>();
 
@@ -152,29 +146,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     if (event != null && event.isTextUnit()) {
       TextUnit textUnit = (TextUnit) event.getTextUnit();
       renameTextUnitWithSourceAndContent(textUnit);
-      unescpae(textUnit);
       addUsagesToTextUnit(textUnit);
-    }
-  }
-
-  void unescpae(TextUnit textUnit) {
-    unescapeSource(textUnit);
-    unescapeTarget(textUnit);
-  }
-
-  void unescapeSource(TextUnit textUnit) {
-    String sourceString = textUnitUtils.getSourceAsString(textUnit);
-    String unescapedSourceString = unescapeUtils.replaceEscapedQuotes(sourceString);
-    textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
-  }
-
-  void unescapeTarget(TextUnit textUnit) {
-    TextContainer target = textUnit.getTarget(targetLocale);
-    if (target != null) {
-      String targetString = target.toString();
-      String unescapedTargetString = unescapeUtils.replaceEscapedQuotes(targetString);
-      TextContainer newTarget = new TextContainer(unescapedTargetString);
-      textUnit.setTarget(targetLocale, newTarget);
     }
   }
 
@@ -281,18 +253,12 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     @Override
     void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
-
       if ("one".equals(cldrPluralForm)) {
-        // source should always be singular form for "one" form,
-        // this is needed for language with 6 entry like arabic
         logger.debug("Set message singular: {}", msgID);
-        textUnit.setSource(new TextContainer(unescapeUtils.replaceEscapedQuotes(msgID)));
+        textUnit.setSource(new TextContainer(msgID));
       } else {
-        // source should always be plural form unless for "one" form,
-        // this is needed for language with only one entry like
-        // japanese: [0] --> other
         logger.debug("Set message plural: {}", msgIDPlural);
-        textUnit.setSource(new TextContainer(unescapeUtils.replaceEscapedQuotes(msgIDPlural)));
+        textUnit.setSource(new TextContainer(msgIDPlural));
       }
     }
 
