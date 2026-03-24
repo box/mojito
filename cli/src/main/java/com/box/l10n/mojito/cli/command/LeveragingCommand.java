@@ -96,9 +96,12 @@ public class LeveragingCommand extends Command {
       arity = 1,
       required = false,
       description =
-          "When true, keep the source translation's status (e.g. APPROVED) "
-              + "even if the matching mode would normally require re-translation")
-  boolean preserveStatus = false;
+          "Controls whether to keep the source translation's status. "
+              + "NONE (default): the leverager decides based on match mode precision. "
+              + "UNIQUE: preserve the status only when the match is unique. Just a bit unsafe."
+              + "ANY: always preserve the status, even for non-unique matches. Unsafe!",
+      converter = PreserveStatusModeConverter.class)
+  CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.NONE;
 
   @Parameter(
       names = {"--tuids-mapping"},
@@ -154,7 +157,7 @@ public class LeveragingCommand extends Command {
       copyTmConfig.setTargetRepositoryId(targetRepository.getId());
       copyTmConfig.setNameRegex(nameRegexParam);
       copyTmConfig.setTargetBranchName(targetBranchNameParam);
-      copyTmConfig.setPreserveStatus(preserveStatus);
+      copyTmConfig.setPreserveStatusMode(preserveStatusMode);
 
       if (mode != null) {
         copyTmConfig.setMode(mode);

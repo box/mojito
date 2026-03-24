@@ -155,7 +155,7 @@ public class LeveragingService {
             copyTmConfig.getNameRegex(),
             copyTmConfig.getTargetBranchName());
 
-    boolean preserveStatus = copyTmConfig.isPreserveStatus();
+    CopyTmConfig.PreserveStatusMode preserveStatusMode = copyTmConfig.getPreserveStatusMode();
 
     if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
       copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
@@ -164,7 +164,7 @@ public class LeveragingService {
           textUnitsForCopyTM,
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
-          preserveStatus);
+          preserveStatusMode);
     } else if (CopyTmConfig.Mode.NAME.equals(copyTmConfig.getMode())) {
       logger.debug(
           "First perform leveraging by name and content (to give priority to strings with same content)");
@@ -172,14 +172,14 @@ public class LeveragingService {
           textUnitsForCopyTM,
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
-          preserveStatus);
+          preserveStatusMode);
 
       logger.debug("Now, perform leveraging only on the name");
       leveragerByName.performLeveragingFor(
           textUnitsForCopyTM,
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
-          preserveStatus);
+          preserveStatusMode);
     } else {
       logger.debug(
           "First perform leveraging by name and content (to give priority to string with same tags");
@@ -187,14 +187,14 @@ public class LeveragingService {
           textUnitsForCopyTM,
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
-          preserveStatus);
+          preserveStatusMode);
 
       logger.debug("Now, perform leveraging only on the content");
       leveragerByContent.performLeveragingFor(
           textUnitsForCopyTM,
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
-          preserveStatus);
+          preserveStatusMode);
     }
   }
 

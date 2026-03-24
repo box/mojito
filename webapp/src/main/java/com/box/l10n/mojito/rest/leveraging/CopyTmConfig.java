@@ -22,7 +22,7 @@ public class CopyTmConfig {
 
   Mode mode = Mode.MD5;
 
-  boolean preserveStatus = false;
+  PreserveStatusMode preserveStatusMode = PreserveStatusMode.NONE;
 
   PollableTask pollableTask;
 
@@ -106,12 +106,12 @@ public class CopyTmConfig {
     this.targetBranchName = targetBranchName;
   }
 
-  public boolean isPreserveStatus() {
-    return preserveStatus;
+  public PreserveStatusMode getPreserveStatusMode() {
+    return preserveStatusMode;
   }
 
-  public void setPreserveStatus(boolean preserveStatus) {
-    this.preserveStatus = preserveStatus;
+  public void setPreserveStatusMode(PreserveStatusMode preserveStatusMode) {
+    this.preserveStatusMode = preserveStatusMode;
   }
 
   /** Matching mode for leveraging */
@@ -124,5 +124,15 @@ public class CopyTmConfig {
     NAME,
     /** Copy based on a Map source to target tmTextUnitId */
     TUIDS
+  }
+
+  /** Controls whether the source translation's status is preserved during leveraging */
+  public enum PreserveStatusMode {
+    /** Default: the leverager decides based on match precision */
+    NONE,
+    /** Preserve the source status only when the match is unique (single TMTextUnit matched) */
+    UNIQUE,
+    /** Always preserve the source status, even for non-unique matches */
+    ANY
   }
 }

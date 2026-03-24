@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -82,17 +83,16 @@ public abstract class AbstractLeverager {
    * @param assetId
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
-    performLeveragingFor(tmTextUnits, sourceTmId, assetId, false);
+    performLeveragingFor(tmTextUnits, sourceTmId, assetId, PreserveStatusMode.NONE);
   }
 
-  /**
-   * @param preserveStatus if {@code true}, the source translation's status is always preserved
-   *     regardless of the match precision
-   */
   public void performLeveragingFor(
-      List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId, boolean preserveStatus) {
+      List<TMTextUnit> tmTextUnits,
+      Long sourceTmId,
+      Long assetId,
+      PreserveStatusMode preserveStatusMode) {
 
-    logger.debug("Perform leveraging: {}, preserveStatus: {}", getType(), preserveStatus);
+    logger.debug("Perform leveraging: {}, preserveStatusMode: {}", getType(), preserveStatusMode);
 
     for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
         tmTextUnitsIterator.hasNext(); ) {
@@ -120,7 +120,7 @@ public abstract class AbstractLeverager {
 
         logger.debug("Determine if re-translation is needed for the strings that will be copied");
         boolean translationNeeded =
-            !preserveStatus && (isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched);
+            computeTranslationNeeded(preserveStatusMode, uniqueTMTextUnitMatched);
 
         addLeveragedTranslations(
             tmTextUnit, textUnitDTOsForLeveraging, translationNeeded, uniqueTMTextUnitMatched);
@@ -128,6 +128,15 @@ public abstract class AbstractLeverager {
         logger.debug("No Match found for this TMTextUnit with name: {}", tmTextUnit.getName());
       }
     }
+  }
+
+  boolean computeTranslationNeeded(
+      PreserveStatusMode preserveStatusMode, boolean uniqueTMTextUnitMatched) {
+    return switch (preserveStatusMode) {
+      case ANY -> false;
+      case UNIQUE -> !uniqueTMTextUnitMatched;
+      case NONE -> isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
+    };
   }
 
   /**
