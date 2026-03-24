@@ -27,23 +27,39 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
- * Extends {@link net.sf.okapi.filters.po.POFilter} to somehow support gettext
- * plural and surface message context as part of the textunit name.
- * <p>
- * Maps po plural form to cldr using {@link PoPluralRuleHelper
+ * Extends {@link net.sf.okapi.filters.po.POFilter} to provide human-readable text unit names and
+ * add gettext plural support.
+ *
+ * <h3>Text Unit names</h3>
+ *
+ * Okapi's base filter produces text units with generated names. This subclass updates them on the
+ * fly, replacing them with human-readable data, i.e. the source string followed by msgctxt if
+ * present.
+ *
+ * <h3>Plural support</h3>
+ *
+ * <p>When parsing a plural group, Okapi's base filter simply emits one text unit per each target
+ * variant (msgstr line). This subclass intercepts the event stream to:
+ *
+ * <ul>
+ *   <li>Rewrite the Plural-Forms header to match rules for the target locale
+ *   <li>Map PO plural forms (from msgstr indices) to CLDR forms (zero, one, two, few, many, other)
+ *       (via {@link PoPluralRule}) and append to the text unit name
+ *   <li>Complete missing CLDR forms according to rules for the target locale
+ * </ul>
+ *
+ * <h3>Other notes</h3>
+ *
+ * <p>This filter also extracts source-code reference comments (#:) as usage annotations
  *
  * @author jaurambualt
  */
 @Configurable
 public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
-  /** logger */
   static Logger logger = LoggerFactory.getLogger(POFilter.class);
 
   public static final String FILTER_CONFIG_ID = "okf_po@mojito";
-
-  static final String USAGE_LOCATION_GROUP_NAME = "location";
-  static final String USAGE_LOCATION_PATTERN = "#: (?<location>.*)";
 
   // Having " _" as plural separator wasn't very wise... Android filter for example doesn't have a
   // space: "_".
@@ -51,12 +67,13 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
   // Consider cleanup but that not that simple as it would require migrating data...
   static final String PLURAL_SEPARATOR = " _";
 
+  static final String USAGE_LOCATION_GROUP_NAME = "location";
+  static final String USAGE_LOCATION_PATTERN = "#: (?<location>.*)";
+
   List<Event> eventQueue = new ArrayList<>();
 
   LocaleId targetLocale;
-
   PoPluralRule poPluralRule;
-
   boolean hasCopyFormsOnImport = false;
 
   @Override
@@ -107,6 +124,20 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     return !eventQueue.isEmpty() || super.hasNext();
   }
 
+  /**
+   * The event loop is overridden to intercept events from the parent Okapi POFilter and:
+   *
+   * <ul>
+   *   <li>Rewrite the Plural-Forms header when localizing to a target locale
+   *   <li>Set text unit names to the source content, with msgctxt appended when present
+   *   <li>Extract source-code reference comments (#:) as usage annotations
+   *   <li>Buffer and rewrite plural text unit groups via {@link POFilter#processNextPluralGroup}
+   * </ul>
+   *
+   * Non-plural events are processed and returned immediately. Plural groups consume multiple parent
+   * events at once and buffer the results in {@link #eventQueue} so they can be yielded one at a
+   * time by subsequent {@link #next()} calls.
+   */
   @Override
   public Event next() {
     if (!eventQueue.isEmpty()) {
@@ -143,10 +174,21 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
    * Consumes a complete plural group from the parent filter (START_GROUP -> TEXT_UNIT* ->
    * END_GROUP), remaps PO form indices to CLDR plural forms, completes any missing forms for the
    * target locale, and buffers all resulting events in {@link #eventQueue}.
+   *
+   * <p>The parent's Okapi POFilter emits one TEXT_UNIT per msgstr[N]. The source on form 0 is the
+   * msgid (singular), and on form 1+ it's msgid_plural. We capture these when processing the group
+   * to set the correct text unit name and source on each plural variant.
+   *
+   * <p>The name of every plural variant is derived from the singular source (msgid), not from the
+   * variant's own source — this keeps plural text unit names consistent across all forms.
+   *
+   * <p>The source must also be corrected to handle an edge case in how Okapi assigns sources when
+   * the file has more plural forms than the target locale needs. See {@link
+   * #extractPluralSourceFromSkeleton} for the workaround.
    */
   void processNextPluralGroup(Event startGroupEvent) {
-    Set<String> usagesFromSkeleton =
-        getUsagesFromSkeleton(startGroupEvent.getStartGroup().getSkeleton().toString());
+    String startGroupSkeleton = startGroupEvent.getStartGroup().getSkeleton().toString();
+    Set<String> usagesFromSkeleton = getUsagesFromSkeleton(startGroupSkeleton);
 
     eventQueue.add(startGroupEvent);
 
@@ -162,12 +204,13 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     String singularSource = textUnitEvents.get(0).getTextUnit().getSource().toString();
 
     // When nPlurals >= 2 the second text unit's source is the msgid_plural.
-    // When nPlurals == 1 (e.g. Japanese) there is only one text unit — the next commit
-    // adds extractPluralSourceFromSkeleton to handle that edge case correctly.
+    // When nPlurals == 1 (e.g. Japanese) there is no second text unit, but we still need
+    // msgid_plural — see extractPluralSourceFromSkeleton javadoc for details on the PO/CLDR
+    // mismatch.
     String pluralSource =
         textUnitEvents.size() > 1
             ? textUnitEvents.get(1).getTextUnit().getSource().toString()
-            : singularSource;
+            : extractPluralSourceFromSkeleton(startGroupSkeleton);
 
     for (int i = 0; i < textUnitEvents.size(); i++) {
       ITextUnit textUnit = textUnitEvents.get(i).getTextUnit();
@@ -230,6 +273,10 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     @Override
     void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
+      // It's ok to map EN `other` to every non-"one" target category regardless of the target
+      // language rules, because the UI i18n libraries themselves account for cross-language CLDR
+      // category mappings at render time. Mojito just needs to generate enough categories to
+      // satisfy the CLDR rules.
       if ("one".equals(cldrPluralForm)) {
         textUnit.setSource(new TextContainer(singularSource));
       } else {
@@ -313,14 +360,73 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     textUnit.setName(textUnit.getName() + PLURAL_SEPARATOR + cldrPluralForm);
   }
 
-  /**
-   * Rewrite the plural forms if processing a target locale.
-   *
-   * @param documentPart
-   */
   void rewritePluralFormInHeader(DocumentPart documentPart) {
     if (targetLocale != null && !LocaleId.EMPTY.equals(targetLocale)) {
       documentPart.setProperty(new Property("pluralforms", poPluralRule.getRule()));
+    }
+  }
+
+  /**
+   * Extracts and unescapes the {@code msgid_plural} value from the START_GROUP skeleton.
+   *
+   * <p>This is needed because of a mismatch between PO and CLDR plural models. Okapi assigns
+   * sources by PO index: {@code msgstr[0]} always gets {@code msgid} (singular) and {@code
+   * msgstr[1+]} gets {@code msgid_plural}. But CLDR's "other" form — which should have the plural
+   * source — can map to {@code msgstr[0]} for locales with a single plural form (e.g. Japanese
+   * nPlurals=1). In that case Okapi only emits one TEXT_UNIT with the singular source, yet we need
+   * the plural source to match the text unit that extraction stored in the database (extraction is
+   * locale-independent and always assigns {@code msgid_plural} as the source for the "other" form).
+   *
+   * <p>The skeleton always contains the raw {@code msgid_plural "..."} line(s) since that is what
+   * triggers the START_GROUP event in Okapi's POFilter. The raw quoted content is extracted here
+   * and unescaped via the parent's {@code unescape} method (accessed through reflection because it
+   * is private with no public alternative).
+   */
+  String extractPluralSourceFromSkeleton(String skeleton) {
+    StringBuilder raw = new StringBuilder();
+    boolean inMsgIdPlural = false;
+
+    for (String line : skeleton.split("\\R")) {
+      String trimmed = line.trim();
+      if (trimmed.startsWith("msgid_plural")) {
+        inMsgIdPlural = true;
+        appendQuotedContent(raw, line);
+      } else if (inMsgIdPlural && trimmed.startsWith("\"")) {
+        appendQuotedContent(raw, line);
+      } else if (inMsgIdPlural) {
+        break;
+      }
+    }
+
+    return unescapePo(raw.toString());
+  }
+
+  private static void appendQuotedContent(StringBuilder sb, String line) {
+    int first = line.indexOf('"');
+    int last = line.lastIndexOf('"');
+    if (first >= 0 && last > first) {
+      sb.append(line, first + 1, last);
+    }
+  }
+
+  /** Delegates to the parent's private {@code unescape} method via reflection. */
+  private String unescapePo(String text) {
+    try {
+      return (String) PARENT_UNESCAPE.invoke(this, text);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException("Failed to invoke Okapi POFilter.unescape", e);
+    }
+  }
+
+  private static final java.lang.reflect.Method PARENT_UNESCAPE;
+
+  static {
+    try {
+      PARENT_UNESCAPE =
+          net.sf.okapi.filters.po.POFilter.class.getDeclaredMethod("unescape", String.class);
+      PARENT_UNESCAPE.setAccessible(true);
+    } catch (NoSuchMethodException e) {
+      throw new ExceptionInInitializerError(e);
     }
   }
 
