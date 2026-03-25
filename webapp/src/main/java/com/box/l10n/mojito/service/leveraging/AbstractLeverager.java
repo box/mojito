@@ -6,14 +6,18 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.TargetStatusFilter;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,8 @@ public abstract class AbstractLeverager {
   @Autowired TMService tmService;
 
   @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
+
+  @Autowired TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
   /**
    * Gets {@link TextUnitDTO}s that matches the {@link TMTextUnit} based on different criteria
@@ -83,16 +89,21 @@ public abstract class AbstractLeverager {
    * @param assetId
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
-    performLeveragingFor(tmTextUnits, sourceTmId, assetId, PreserveStatusMode.NONE);
+    performLeveragingFor(tmTextUnits, sourceTmId, assetId, PreserveStatusMode.NONE, null);
   }
 
   public void performLeveragingFor(
       List<TMTextUnit> tmTextUnits,
       Long sourceTmId,
       Long assetId,
-      PreserveStatusMode preserveStatusMode) {
+      PreserveStatusMode preserveStatusMode,
+      TargetStatusFilter targetStatusFilter) {
 
-    logger.debug("Perform leveraging: {}, preserveStatusMode: {}", getType(), preserveStatusMode);
+    logger.debug(
+        "Perform leveraging: {}, preserveStatusMode: {}, targetStatusFilter: {}",
+        getType(),
+        preserveStatusMode,
+        targetStatusFilter);
 
     for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
         tmTextUnitsIterator.hasNext(); ) {
@@ -123,7 +134,11 @@ public abstract class AbstractLeverager {
             computeTranslationNeeded(preserveStatusMode, uniqueTMTextUnitMatched);
 
         addLeveragedTranslations(
-            tmTextUnit, textUnitDTOsForLeveraging, translationNeeded, uniqueTMTextUnitMatched);
+            tmTextUnit,
+            textUnitDTOsForLeveraging,
+            translationNeeded,
+            uniqueTMTextUnitMatched,
+            targetStatusFilter);
       } else {
         logger.debug("No Match found for this TMTextUnit with name: {}", tmTextUnit.getName());
       }
@@ -154,11 +169,24 @@ public abstract class AbstractLeverager {
       TMTextUnit tmTextUnit,
       List<TextUnitDTO> translations,
       boolean translationNeeded,
-      boolean uniqueTMTextUnitMatched) {
+      boolean uniqueTMTextUnitMatched,
+      TargetStatusFilter targetStatusFilter) {
 
     logger.debug("Add leveraged translations in tmTextUnit, id: {}", tmTextUnit.getId());
 
+    Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId =
+        buildCurrentStatusByLocaleId(tmTextUnit, targetStatusFilter);
+
     for (TextUnitDTO translation : translations) {
+
+      if (!shouldLeverageLocale(
+          currentStatusByLocaleId, translation.getLocaleId(), targetStatusFilter)) {
+        logger.debug(
+            "Skipping locale {} for tmTextUnit {} due to target status filter",
+            translation.getLocaleId(),
+            tmTextUnit.getId());
+        continue;
+      }
 
       AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult =
           tmService.addTMTextUnitCurrentVariantWithResult(
@@ -191,6 +219,36 @@ public abstract class AbstractLeverager {
 
       logger.debug("Added leveraged translation, id: {}", addTMTextUnitCurrentVariant.getId());
     }
+  }
+
+  private Map<Long, TMTextUnitVariant.Status> buildCurrentStatusByLocaleId(
+      TMTextUnit tmTextUnit, TargetStatusFilter targetStatusFilter) {
+    if (targetStatusFilter == null) {
+      return Map.of();
+    }
+    return tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
+        .collect(
+            Collectors.toMap(
+                cv -> cv.getLocale().getId(),
+                cv -> cv.getTmTextUnitVariant().getStatus(),
+                (s1, s2) -> s1));
+  }
+
+  private boolean shouldLeverageLocale(
+      Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
+      Long localeId,
+      TargetStatusFilter targetStatusFilter) {
+    if (targetStatusFilter == null) {
+      return true;
+    }
+    TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
+    return switch (targetStatusFilter) {
+      case UNTRANSLATED -> currentStatus == null;
+      case APPROVED -> currentStatus == TMTextUnitVariant.Status.APPROVED;
+      case REVIEW_NEEDED -> currentStatus == TMTextUnitVariant.Status.REVIEW_NEEDED;
+      case TRANSLATION_NEEDED ->
+          currentStatus == null || currentStatus == TMTextUnitVariant.Status.TRANSLATION_NEEDED;
+    };
   }
 
   private String getLeverageComment(TextUnitDTO translation, boolean uniqueTMTextUnitMatched) {

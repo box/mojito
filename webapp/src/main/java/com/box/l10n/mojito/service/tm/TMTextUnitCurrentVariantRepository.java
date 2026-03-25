@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
@@ -29,4 +31,9 @@ public interface TMTextUnitCurrentVariantRepository
       where ttucv.asset.id = ?1 and ttucv.locale.id = ?2
       """)
   List<TMTextUnitCurrentVariantDTO> findByAsset_idAndLocale_Id(Long assetId, Long localeId);
+
+  List<TMTextUnitCurrentVariant> findByTmTextUnit_IdIn(Collection<Long> tmTextUnitIds);
+
+  List<TMTextUnitCurrentVariant> findByTmTextUnit_IdInAndTmTextUnitVariant_Status(
+      Collection<Long> tmTextUnitIds, TMTextUnitVariant.Status status);
 }

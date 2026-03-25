@@ -97,11 +97,25 @@ public class LeveragingCommand extends Command {
       required = false,
       description =
           "Controls whether to keep the source translation's status. "
-              + "NONE (default): the leverager decides based on match mode precision. "
-              + "UNIQUE: preserve the status only when the match is unique. Just a bit unsafe."
-              + "ANY: always preserve the status, even for non-unique matches. Unsafe!",
+              + "NONE (default): the leverager decides based on match precision. "
+              + "UNIQUE: preserve the status only when the match is unique. "
+              + "ANY: always preserve the status, even for non-unique matches.",
       converter = PreserveStatusModeConverter.class)
   CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.NONE;
+
+  @Parameter(
+      names = {"--target-status", "-ts"},
+      arity = 1,
+      required = false,
+      description =
+          "Only leverage into target text units whose current translation matches this status. "
+              + "When not set, all target text units are eligible. "
+              + "UNTRANSLATED: no translation in any locale. "
+              + "TRANSLATION_NEEDED: at least one locale has TRANSLATION_NEEDED status. "
+              + "REVIEW_NEEDED: at least one locale has REVIEW_NEEDED status. "
+              + "APPROVED: at least one locale has APPROVED status.",
+      converter = TargetStatusFilterConverter.class)
+  CopyTmConfig.TargetStatusFilter targetStatusFilter;
 
   @Parameter(
       names = {"--tuids-mapping"},
@@ -158,6 +172,7 @@ public class LeveragingCommand extends Command {
       copyTmConfig.setNameRegex(nameRegexParam);
       copyTmConfig.setTargetBranchName(targetBranchNameParam);
       copyTmConfig.setPreserveStatusMode(preserveStatusMode);
+      copyTmConfig.setTargetStatusFilter(targetStatusFilter);
 
       if (mode != null) {
         copyTmConfig.setMode(mode);
