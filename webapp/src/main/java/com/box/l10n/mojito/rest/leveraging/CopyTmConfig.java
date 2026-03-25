@@ -24,6 +24,8 @@ public class CopyTmConfig {
 
   PreserveStatusMode preserveStatusMode = PreserveStatusMode.NONE;
 
+  TargetStatusFilter targetStatusFilter;
+
   PollableTask pollableTask;
 
   @JsonProperty
@@ -114,6 +116,14 @@ public class CopyTmConfig {
     this.preserveStatusMode = preserveStatusMode;
   }
 
+  public TargetStatusFilter getTargetStatusFilter() {
+    return targetStatusFilter;
+  }
+
+  public void setTargetStatusFilter(TargetStatusFilter targetStatusFilter) {
+    this.targetStatusFilter = targetStatusFilter;
+  }
+
   /** Matching mode for leveraging */
   public enum Mode {
     /** MD5 match means the message id, comment and content must be the same */
@@ -134,5 +144,19 @@ public class CopyTmConfig {
     UNIQUE,
     /** Always preserve the source status, even for non-unique matches */
     ANY
+  }
+
+  /**
+   * Filters target text units by their current translation status before leveraging.
+   *
+   * <p>UNTRANSLATED selects text units with no translation in any locale. The other values
+   * correspond to {@link com.box.l10n.mojito.entity.TMTextUnitVariant.Status} and select text units
+   * that have at least one translation with the given status.
+   */
+  public enum TargetStatusFilter {
+    UNTRANSLATED,
+    APPROVED,
+    REVIEW_NEEDED,
+    TRANSLATION_NEEDED
   }
 }

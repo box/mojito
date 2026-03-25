@@ -735,4 +735,91 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
     Assert.assertEquals(2, targetTranslations2.size());
   }
+
+  @Test
+  public void targetStatusFilterSkipsApprovedLocaleAndLeveragesOthers()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Locale koKR = localeService.findByBcp47Tag("ko-KR");
+    Locale frFR = localeService.findByBcp47Tag("fr-FR");
+
+    Repository sourceRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
+    repositoryService.addRepositoryLocale(sourceRepository, "ko-KR");
+    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
+
+    Asset sourceAsset =
+        assetService.createAssetWithContent(
+            sourceRepository.getId(), "fake_for_test", "fake for test");
+
+    TMTextUnit sourceTu =
+        tmService.addTMTextUnit(
+            sourceRepository.getTm().getId(),
+            sourceAsset.getId(),
+            "greeting",
+            "Hello",
+            "A greeting");
+    tmService.addCurrentTMTextUnitVariant(sourceTu.getId(), koKR.getId(), "안녕하세요");
+    tmService.addCurrentTMTextUnitVariant(sourceTu.getId(), frFR.getId(), "Bonjour");
+
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    repositoryService.addRepositoryLocale(targetRepository, "ko-KR");
+    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
+
+    Asset targetAsset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+
+    TMTextUnit targetTu =
+        tmService.addTMTextUnit(
+            targetRepository.getTm().getId(),
+            targetAsset.getId(),
+            "greeting",
+            "Hello",
+            "A greeting");
+
+    tmService.addCurrentTMTextUnitVariant(
+        targetTu.getId(),
+        koKR.getId(),
+        "existing ko-KR approved",
+        TMTextUnitVariant.Status.APPROVED,
+        true);
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
+    copyTmConfig.setTargetStatusFilter(CopyTmConfig.TargetStatusFilter.TRANSLATION_NEEDED);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+
+    Assert.assertEquals(2, targetTranslations.size());
+
+    Map<String, TMTextUnitVariant> byLocale = new HashMap<>();
+    for (TMTextUnitVariant v : targetTranslations) {
+      byLocale.put(v.getLocale().getBcp47Tag(), v);
+    }
+
+    Assert.assertEquals(
+        "ko-KR should keep existing approved translation",
+        "existing ko-KR approved",
+        byLocale.get("ko-KR").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byLocale.get("ko-KR").getStatus());
+
+    Assert.assertEquals(
+        "fr-FR should be leveraged since it had no translation",
+        "Bonjour",
+        byLocale.get("fr-FR").getContent());
+  }
 }
