@@ -97,13 +97,13 @@ public abstract class AbstractLeverager {
       Long sourceTmId,
       Long assetId,
       PreserveStatusMode preserveStatusMode,
-      TargetStatusFilter targetStatusFilter) {
+      List<TargetStatusFilter> targetStatusFilters) {
 
     logger.debug(
-        "Perform leveraging: {}, preserveStatusMode: {}, targetStatusFilter: {}",
+        "Perform leveraging: {}, preserveStatusMode: {}, targetStatusFilters: {}",
         getType(),
         preserveStatusMode,
-        targetStatusFilter);
+        targetStatusFilters);
 
     for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
         tmTextUnitsIterator.hasNext(); ) {
@@ -138,7 +138,7 @@ public abstract class AbstractLeverager {
             textUnitDTOsForLeveraging,
             translationNeeded,
             uniqueTMTextUnitMatched,
-            targetStatusFilter);
+            targetStatusFilters);
       } else {
         logger.debug("No Match found for this TMTextUnit with name: {}", tmTextUnit.getName());
       }
@@ -170,17 +170,17 @@ public abstract class AbstractLeverager {
       List<TextUnitDTO> translations,
       boolean translationNeeded,
       boolean uniqueTMTextUnitMatched,
-      TargetStatusFilter targetStatusFilter) {
+      List<TargetStatusFilter> targetStatusFilters) {
 
     logger.debug("Add leveraged translations in tmTextUnit, id: {}", tmTextUnit.getId());
 
     Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId =
-        buildCurrentStatusByLocaleId(tmTextUnit, targetStatusFilter);
+        buildCurrentStatusByLocaleId(tmTextUnit, targetStatusFilters);
 
     for (TextUnitDTO translation : translations) {
 
       if (!shouldLeverageLocale(
-          currentStatusByLocaleId, translation.getLocaleId(), targetStatusFilter)) {
+          currentStatusByLocaleId, translation.getLocaleId(), targetStatusFilters)) {
         logger.debug(
             "Skipping locale {} for tmTextUnit {} due to target status filter",
             translation.getLocaleId(),
@@ -222,8 +222,8 @@ public abstract class AbstractLeverager {
   }
 
   private Map<Long, TMTextUnitVariant.Status> buildCurrentStatusByLocaleId(
-      TMTextUnit tmTextUnit, TargetStatusFilter targetStatusFilter) {
-    if (targetStatusFilter == null) {
+      TMTextUnit tmTextUnit, List<TargetStatusFilter> targetStatusFilters) {
+    if (targetStatusFilters == null || targetStatusFilters.isEmpty()) {
       return Map.of();
     }
     return tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
@@ -237,12 +237,16 @@ public abstract class AbstractLeverager {
   private boolean shouldLeverageLocale(
       Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
       Long localeId,
-      TargetStatusFilter targetStatusFilter) {
-    if (targetStatusFilter == null) {
+      List<TargetStatusFilter> targetStatusFilters) {
+    if (targetStatusFilters == null || targetStatusFilters.isEmpty()) {
       return true;
     }
     TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
-    return switch (targetStatusFilter) {
+    return targetStatusFilters.stream().anyMatch(f -> matchesFilter(currentStatus, f));
+  }
+
+  private boolean matchesFilter(TMTextUnitVariant.Status currentStatus, TargetStatusFilter filter) {
+    return switch (filter) {
       case UNTRANSLATED -> currentStatus == null;
       case APPROVED -> currentStatus == TMTextUnitVariant.Status.APPROVED;
       case REVIEW_NEEDED -> currentStatus == TMTextUnitVariant.Status.REVIEW_NEEDED;

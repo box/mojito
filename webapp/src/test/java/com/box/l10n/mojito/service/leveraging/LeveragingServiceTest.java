@@ -795,7 +795,8 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setTargetStatusFilter(CopyTmConfig.TargetStatusFilter.TRANSLATION_NEEDED);
+    copyTmConfig.setTargetStatusFilters(
+        List.of(CopyTmConfig.TargetStatusFilter.TRANSLATION_NEEDED));
 
     leveragingService.copyTm(copyTmConfig).get();
 
