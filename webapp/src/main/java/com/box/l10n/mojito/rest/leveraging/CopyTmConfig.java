@@ -22,7 +22,7 @@ public class CopyTmConfig {
 
   Mode mode = Mode.MD5;
 
-  PreserveStatusMode preserveStatusMode = PreserveStatusMode.NONE;
+  PreserveStatusMode preserveStatusMode = PreserveStatusMode.DEFAULT;
 
   TargetStatusFilter targetStatusFilter;
 
@@ -139,7 +139,7 @@ public class CopyTmConfig {
   /** Controls whether the source translation's status is preserved during leveraging */
   public enum PreserveStatusMode {
     /** Default: the leverager decides based on match precision */
-    NONE,
+    DEFAULT,
     /** Preserve the source status only when the match is unique (single TMTextUnit matched) */
     UNIQUE,
     /** Always preserve the source status, even for non-unique matches */

@@ -89,7 +89,7 @@ public abstract class AbstractLeverager {
    * @param assetId
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
-    performLeveragingFor(tmTextUnits, sourceTmId, assetId, PreserveStatusMode.NONE, null);
+    performLeveragingFor(tmTextUnits, sourceTmId, assetId, PreserveStatusMode.DEFAULT, null);
   }
 
   public void performLeveragingFor(
@@ -150,7 +150,7 @@ public abstract class AbstractLeverager {
     return switch (preserveStatusMode) {
       case ANY -> false;
       case UNIQUE -> !uniqueTMTextUnitMatched;
-      case NONE -> isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
+      case DEFAULT -> isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
     };
   }
 
