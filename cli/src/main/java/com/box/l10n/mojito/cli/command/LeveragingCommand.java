@@ -11,6 +11,7 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.CopyTmConfig;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import java.util.List;
 import java.util.Map;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
@@ -105,17 +106,17 @@ public class LeveragingCommand extends Command {
 
   @Parameter(
       names = {"--target-status", "-ts"},
-      arity = 1,
+      variableArity = true,
       required = false,
       description =
-          "Only leverage into target text units whose current translation matches this status. "
-              + "When not set, all target text units are eligible. "
-              + "UNTRANSLATED: no translation in any locale. "
-              + "TRANSLATION_NEEDED: at least one locale has TRANSLATION_NEEDED status. "
-              + "REVIEW_NEEDED: at least one locale has REVIEW_NEEDED status. "
-              + "APPROVED: at least one locale has APPROVED status.",
+          "Only leverage into locales whose current translation matches one of the given statuses. "
+              + "Multiple values can be space-separated. When not set, all locales are eligible. "
+              + "UNTRANSLATED: locale has no translation. "
+              + "TRANSLATION_NEEDED: locale has TRANSLATION_NEEDED status (or no translation). "
+              + "REVIEW_NEEDED: locale has REVIEW_NEEDED status. "
+              + "APPROVED: locale has APPROVED status.",
       converter = TargetStatusFilterConverter.class)
-  CopyTmConfig.TargetStatusFilter targetStatusFilter;
+  List<CopyTmConfig.TargetStatusFilter> targetStatusFilters;
 
   @Parameter(
       names = {"--tuids-mapping"},
@@ -172,7 +173,7 @@ public class LeveragingCommand extends Command {
       copyTmConfig.setNameRegex(nameRegexParam);
       copyTmConfig.setTargetBranchName(targetBranchNameParam);
       copyTmConfig.setPreserveStatusMode(preserveStatusMode);
-      copyTmConfig.setTargetStatusFilter(targetStatusFilter);
+      copyTmConfig.setTargetStatusFilters(targetStatusFilters);
 
       if (mode != null) {
         copyTmConfig.setMode(mode);

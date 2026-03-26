@@ -153,7 +153,8 @@ public class LeveragingService {
     filterTextUnitsByNameRegex(textUnitsForCopyTM, copyTmConfig.getNameRegex());
 
     CopyTmConfig.PreserveStatusMode preserveStatusMode = copyTmConfig.getPreserveStatusMode();
-    CopyTmConfig.TargetStatusFilter targetStatusFilter = copyTmConfig.getTargetStatusFilter();
+    List<CopyTmConfig.TargetStatusFilter> targetStatusFilters =
+        copyTmConfig.getTargetStatusFilters();
 
     if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
       copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
@@ -163,7 +164,7 @@ public class LeveragingService {
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
-          targetStatusFilter);
+          targetStatusFilters);
     } else if (CopyTmConfig.Mode.NAME.equals(copyTmConfig.getMode())) {
       logger.debug(
           "First perform leveraging by name and content (to give priority to strings with same content)");
@@ -172,7 +173,7 @@ public class LeveragingService {
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
-          targetStatusFilter);
+          targetStatusFilters);
 
       logger.debug("Now, perform leveraging only on the name");
       leveragerByName.performLeveragingFor(
@@ -180,7 +181,7 @@ public class LeveragingService {
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
-          targetStatusFilter);
+          targetStatusFilters);
     } else {
       logger.debug(
           "First perform leveraging by name and content (to give priority to string with same tags");
@@ -189,7 +190,7 @@ public class LeveragingService {
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
-          targetStatusFilter);
+          targetStatusFilters);
 
       logger.debug("Now, perform leveraging only on the content");
       leveragerByContent.performLeveragingFor(
@@ -197,7 +198,7 @@ public class LeveragingService {
           sourceRepository.getTm().getId(),
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
-          targetStatusFilter);
+          targetStatusFilters);
     }
   }
 

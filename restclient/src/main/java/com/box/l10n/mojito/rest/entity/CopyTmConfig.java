@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,7 +24,7 @@ public class CopyTmConfig {
 
   PreserveStatusMode preserveStatusMode = PreserveStatusMode.DEFAULT;
 
-  TargetStatusFilter targetStatusFilter;
+  List<TargetStatusFilter> targetStatusFilters;
 
   PollableTask pollableTask;
 
@@ -113,12 +114,12 @@ public class CopyTmConfig {
     this.preserveStatusMode = preserveStatusMode;
   }
 
-  public TargetStatusFilter getTargetStatusFilter() {
-    return targetStatusFilter;
+  public List<TargetStatusFilter> getTargetStatusFilters() {
+    return targetStatusFilters;
   }
 
-  public void setTargetStatusFilter(TargetStatusFilter targetStatusFilter) {
-    this.targetStatusFilter = targetStatusFilter;
+  public void setTargetStatusFilters(List<TargetStatusFilter> targetStatusFilters) {
+    this.targetStatusFilters = targetStatusFilters;
   }
 
   /** Matching mode for leveraging */
