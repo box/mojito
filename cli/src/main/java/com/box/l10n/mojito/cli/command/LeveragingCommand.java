@@ -97,11 +97,11 @@ public class LeveragingCommand extends Command {
       required = false,
       description =
           "Controls whether to keep the source translation's status. "
-              + "NONE (default): the leverager decides based on match precision. "
+              + "DEFAULT: the leverager decides based on match precision. "
               + "UNIQUE: preserve the status only when the match is unique. "
               + "ANY: always preserve the status, even for non-unique matches.",
       converter = PreserveStatusModeConverter.class)
-  CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.NONE;
+  CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.DEFAULT;
 
   @Parameter(
       names = {"--target-status", "-ts"},
