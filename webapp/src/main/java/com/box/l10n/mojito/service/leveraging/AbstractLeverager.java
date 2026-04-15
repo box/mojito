@@ -5,8 +5,8 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.OverwriteMode;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
-import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.TargetStatusFilter;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -89,7 +89,8 @@ public abstract class AbstractLeverager {
    * @param assetId
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
-    performLeveragingFor(tmTextUnits, sourceTmId, assetId, PreserveStatusMode.DEFAULT, null);
+    performLeveragingFor(
+        tmTextUnits, sourceTmId, assetId, PreserveStatusMode.DEFAULT, OverwriteMode.ALL);
   }
 
   public void performLeveragingFor(
@@ -97,13 +98,13 @@ public abstract class AbstractLeverager {
       Long sourceTmId,
       Long assetId,
       PreserveStatusMode preserveStatusMode,
-      List<TargetStatusFilter> targetStatusFilters) {
+      OverwriteMode overwriteMode) {
 
     logger.debug(
-        "Perform leveraging: {}, preserveStatusMode: {}, targetStatusFilters: {}",
+        "Perform leveraging: {}, preserveStatusMode: {}, overwriteMode: {}",
         getType(),
         preserveStatusMode,
-        targetStatusFilters);
+        overwriteMode);
 
     for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
         tmTextUnitsIterator.hasNext(); ) {
@@ -138,7 +139,7 @@ public abstract class AbstractLeverager {
             textUnitDTOsForLeveraging,
             translationNeeded,
             uniqueTMTextUnitMatched,
-            targetStatusFilters);
+            overwriteMode);
       } else {
         logger.debug("No Match found for this TMTextUnit with name: {}", tmTextUnit.getName());
       }
@@ -170,19 +171,22 @@ public abstract class AbstractLeverager {
       List<TextUnitDTO> translations,
       boolean translationNeeded,
       boolean uniqueTMTextUnitMatched,
-      List<TargetStatusFilter> targetStatusFilters) {
+      OverwriteMode overwriteMode) {
 
     logger.debug("Add leveraged translations in tmTextUnit, id: {}", tmTextUnit.getId());
 
     Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId =
-        buildCurrentStatusByLocaleId(tmTextUnit, targetStatusFilters);
+        buildCurrentStatusByLocaleId(tmTextUnit, overwriteMode);
 
     for (TextUnitDTO translation : translations) {
 
+      TMTextUnitVariant.Status effectiveStatus =
+          translationNeeded ? TMTextUnitVariant.Status.TRANSLATION_NEEDED : translation.getStatus();
+
       if (!shouldLeverageLocale(
-          currentStatusByLocaleId, translation.getLocaleId(), targetStatusFilters)) {
+          currentStatusByLocaleId, translation.getLocaleId(), effectiveStatus, overwriteMode)) {
         logger.debug(
-            "Skipping locale {} for tmTextUnit {} due to target status filter",
+            "Skipping locale {} for tmTextUnit {} due to status overwrite mode",
             translation.getLocaleId(),
             tmTextUnit.getId());
         continue;
@@ -194,9 +198,7 @@ public abstract class AbstractLeverager {
               translation.getLocaleId(),
               translation.getTarget(),
               translation.getTargetComment(),
-              translationNeeded
-                  ? TMTextUnitVariant.Status.TRANSLATION_NEEDED
-                  : translation.getStatus(),
+              effectiveStatus,
               translation.isIncludedInLocalizedFile(),
               null);
 
@@ -222,8 +224,8 @@ public abstract class AbstractLeverager {
   }
 
   private Map<Long, TMTextUnitVariant.Status> buildCurrentStatusByLocaleId(
-      TMTextUnit tmTextUnit, List<TargetStatusFilter> targetStatusFilters) {
-    if (targetStatusFilters == null || targetStatusFilters.isEmpty()) {
+      TMTextUnit tmTextUnit, OverwriteMode overwriteMode) {
+    if (overwriteMode == OverwriteMode.ALL) {
       return Map.of();
     }
     return tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
@@ -237,21 +239,16 @@ public abstract class AbstractLeverager {
   private boolean shouldLeverageLocale(
       Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
       Long localeId,
-      List<TargetStatusFilter> targetStatusFilters) {
-    if (targetStatusFilters == null || targetStatusFilters.isEmpty()) {
-      return true;
-    }
+      TMTextUnitVariant.Status effectiveStatus,
+      OverwriteMode overwriteMode) {
     TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
-    return targetStatusFilters.stream().anyMatch(f -> matchesFilter(currentStatus, f));
-  }
-
-  private boolean matchesFilter(TMTextUnitVariant.Status currentStatus, TargetStatusFilter filter) {
-    return switch (filter) {
-      case UNTRANSLATED -> currentStatus == null;
-      case APPROVED -> currentStatus == TMTextUnitVariant.Status.APPROVED;
-      case REVIEW_NEEDED -> currentStatus == TMTextUnitVariant.Status.REVIEW_NEEDED;
-      case TRANSLATION_NEEDED ->
-          currentStatus == null || currentStatus == TMTextUnitVariant.Status.TRANSLATION_NEEDED;
+    return switch (overwriteMode) {
+      case UNTRANSLATED_ONLY -> currentStatus == null;
+      case HIGHER_STATUS ->
+          currentStatus == null || effectiveStatus.ordinal() > currentStatus.ordinal();
+      case HIGHER_OR_EQUAL_STATUS ->
+          currentStatus == null || effectiveStatus.ordinal() >= currentStatus.ordinal();
+      case ALL -> true;
     };
   }
 

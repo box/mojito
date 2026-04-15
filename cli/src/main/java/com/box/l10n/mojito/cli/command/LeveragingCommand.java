@@ -11,7 +11,6 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.CopyTmConfig;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
-import java.util.List;
 import java.util.Map;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
@@ -105,18 +104,18 @@ public class LeveragingCommand extends Command {
   CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.DEFAULT;
 
   @Parameter(
-      names = {"--target-status", "-ts"},
-      variableArity = true,
+      names = {"--overwrite-mode", "-om"},
+      arity = 1,
       required = false,
       description =
-          "Only leverage into locales whose current translation matches one of the given statuses. "
-              + "Multiple values can be space-separated. When not set, all locales are eligible. "
-              + "UNTRANSLATED: locale has no translation. "
-              + "TRANSLATION_NEEDED: locale has TRANSLATION_NEEDED status (or no translation). "
-              + "REVIEW_NEEDED: locale has REVIEW_NEEDED status. "
-              + "APPROVED: locale has APPROVED status.",
-      converter = TargetStatusFilterConverter.class)
-  List<CopyTmConfig.TargetStatusFilter> targetStatusFilters;
+          "Controls when existing translations may be overwritten based on status comparison. "
+              + "UNTRANSLATED_ONLY: only leverage into locales that have no translation. "
+              + "HIGHER_STATUS: overwrite only when the candidate status is strictly higher "
+              + "(e.g. TRANSLATION_NEEDED -> REVIEW_NEEDED, REVIEW_NEEDED -> APPROVED). "
+              + "HIGHER_OR_EQUAL_STATUS: same as HIGHER_STATUS but also overwrite when statuses are equal. "
+              + "ALL: overwrite regardless of status (default).",
+      converter = OverwriteModeConverter.class)
+  CopyTmConfig.OverwriteMode overwriteMode = CopyTmConfig.OverwriteMode.ALL;
 
   @Parameter(
       names = {"--tuids-mapping"},
@@ -173,7 +172,7 @@ public class LeveragingCommand extends Command {
       copyTmConfig.setNameRegex(nameRegexParam);
       copyTmConfig.setTargetBranchName(targetBranchNameParam);
       copyTmConfig.setPreserveStatusMode(preserveStatusMode);
-      copyTmConfig.setTargetStatusFilters(targetStatusFilters);
+      copyTmConfig.setOverwriteMode(overwriteMode);
 
       if (mode != null) {
         copyTmConfig.setMode(mode);
