@@ -22,7 +22,7 @@ public class CopyTmConfig {
 
   Mode mode = Mode.MD5;
 
-  PreserveStatusMode preserveStatusMode = PreserveStatusMode.DEFAULT;
+  PreserveStatusMode preserveStatusMode = PreserveStatusMode.PRECISION;
 
   OverwriteMode overwriteMode = OverwriteMode.ALL;
 
@@ -136,14 +136,26 @@ public class CopyTmConfig {
     TUIDS
   }
 
-  /** Controls whether the source translation's status is preserved during leveraging */
+  /**
+   * Controls whether to keep the leveraged translation's status or downgrade it to
+   * TRANSLATION_NEEDED.
+   */
   public enum PreserveStatusMode {
-    /** Default: the leverager decides based on match precision */
-    DEFAULT,
-    /** Preserve the source status only when the match is unique (single TMTextUnit matched) */
+    /**
+     * Preserve status based on the match precision (ID, content). Lowest risk of carrying over
+     * incorrect statuses.
+     */
+    PRECISION,
+    /**
+     * Preserve status when the match is unambiguous (single source text unit matched). Medium risk
+     * — trusts all unique matches regardless of their precition.
+     */
     UNIQUE,
-    /** Always preserve the source status, even for non-unique matches */
-    ANY
+    /**
+     * Always preserve the source status. Highest risk — ambiguous matches may copy an arbitrarily
+     * chosen translation at its original (possibly APPROVED) status.
+     */
+    ALL
   }
 
   /**

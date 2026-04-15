@@ -96,12 +96,15 @@ public class LeveragingCommand extends Command {
       arity = 1,
       required = false,
       description =
-          "Controls whether to keep the source translation's status. "
-              + "DEFAULT: the leverager decides based on match precision. "
-              + "UNIQUE: preserve the status only when the match is unique. "
-              + "ANY: always preserve the status, even for non-unique matches.",
+          "Controls whether to keep the leveraged translation's status or downgrade it to TRANSLATION_NEEDED. "
+              + "PRECISION (default): preserve status based on the match precision (ID, content)."
+              + " Lowest risk of carrying over incorrect statuses. "
+              + "UNIQUE: preserve status when the match is unambiguous (single source text unit matched)."
+              + " Medium risk — trusts all unique matches regardless of their precition. "
+              + "ALL: always preserve the source status. Highest risk — ambiguous matches may "
+              + "copy an arbitrarily chosen translation at its original (possibly APPROVED) status.",
       converter = PreserveStatusModeConverter.class)
-  CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.DEFAULT;
+  CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.PRECISION;
 
   @Parameter(
       names = {"--overwrite-mode", "-om"},
@@ -109,11 +112,11 @@ public class LeveragingCommand extends Command {
       required = false,
       description =
           "Controls when existing translations may be overwritten based on status comparison. "
+              + "ALL (default): overwrite regardless of status."
               + "UNTRANSLATED_ONLY: only leverage into locales that have no translation. "
               + "HIGHER_STATUS: overwrite only when the candidate status is strictly higher "
               + "(e.g. TRANSLATION_NEEDED -> REVIEW_NEEDED, REVIEW_NEEDED -> APPROVED). "
-              + "HIGHER_OR_EQUAL_STATUS: same as HIGHER_STATUS but also overwrite when statuses are equal. "
-              + "ALL: overwrite regardless of status (default).",
+              + "HIGHER_OR_EQUAL_STATUS: same as HIGHER_STATUS but also overwrite when statuses are equal. ",
       converter = OverwriteModeConverter.class)
   CopyTmConfig.OverwriteMode overwriteMode = CopyTmConfig.OverwriteMode.ALL;
 

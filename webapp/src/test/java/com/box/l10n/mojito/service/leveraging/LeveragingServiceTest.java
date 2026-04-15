@@ -365,7 +365,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ANY);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
 
     leveragingService.copyTm(copyTmConfig).get();
 
@@ -377,7 +377,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
     for (TMTextUnitVariant variant : targetTranslations) {
       Assert.assertEquals(
-          "Status should be preserved as APPROVED with ANY",
+          "Status should be preserved as APPROVED with ALL",
           TMTextUnitVariant.Status.APPROVED,
           variant.getStatus());
     }
@@ -429,7 +429,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
     for (TMTextUnitVariant variant : targetTranslations) {
       Assert.assertEquals(
-          "Status should be preserved as APPROVED for unique match with UNIQUE mode",
+          "Status should be preserved as APPROVED for unambiguous match with UNIQUE mode",
           TMTextUnitVariant.Status.APPROVED,
           variant.getStatus());
     }
@@ -480,7 +480,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
     for (TMTextUnitVariant variant : targetTranslations) {
       Assert.assertEquals(
-          "Status should be TRANSLATION_NEEDED with default NONE mode for NAME leveraging",
+          "Status should be TRANSLATION_NEEDED with PRECISION mode for NAME leveraging",
           TMTextUnitVariant.Status.TRANSLATION_NEEDED,
           variant.getStatus());
     }
@@ -972,7 +972,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ANY);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
     copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
 
     leveragingService.copyTm(copyTmConfig).get();
@@ -1055,7 +1055,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ANY);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
     copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
 
     leveragingService.copyTm(copyTmConfig).get();
@@ -1144,7 +1144,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ANY);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
     copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_OR_EQUAL_STATUS);
 
     leveragingService.copyTm(copyTmConfig).get();
@@ -1227,7 +1227,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ANY);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
     copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.ALL);
 
     leveragingService.copyTm(copyTmConfig).get();
@@ -1303,7 +1303,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.DEFAULT);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.PRECISION);
     copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
 
     leveragingService.copyTm(copyTmConfig).get();
@@ -1367,7 +1367,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ANY);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
     copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
 
     leveragingService.copyTm(copyTmConfig).get();

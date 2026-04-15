@@ -332,7 +332,7 @@ public class LeveragingCommandTest extends CLITestBase {
             "-m",
             "NAME",
             "--preserve-status",
-            "ANY");
+            "ALL");
 
     List<TMTextUnitVariant> targetTranslations =
         tmTextUnitVariantRepository
