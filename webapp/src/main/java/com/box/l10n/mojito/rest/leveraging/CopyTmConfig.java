@@ -3,7 +3,6 @@ package com.box.l10n.mojito.rest.leveraging;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +24,7 @@ public class CopyTmConfig {
 
   PreserveStatusMode preserveStatusMode = PreserveStatusMode.DEFAULT;
 
-  List<TargetStatusFilter> targetStatusFilters;
+  OverwriteMode overwriteMode = OverwriteMode.ALL;
 
   PollableTask pollableTask;
 
@@ -117,12 +116,12 @@ public class CopyTmConfig {
     this.preserveStatusMode = preserveStatusMode;
   }
 
-  public List<TargetStatusFilter> getTargetStatusFilters() {
-    return targetStatusFilters;
+  public OverwriteMode getOverwriteMode() {
+    return overwriteMode;
   }
 
-  public void setTargetStatusFilters(List<TargetStatusFilter> targetStatusFilters) {
-    this.targetStatusFilters = targetStatusFilters;
+  public void setOverwriteMode(OverwriteMode overwriteMode) {
+    this.overwriteMode = overwriteMode;
   }
 
   /** Matching mode for leveraging */
@@ -148,16 +147,19 @@ public class CopyTmConfig {
   }
 
   /**
-   * Filters target text units by their current translation status before leveraging.
+   * Controls when existing translations may be overwritten during leveraging, based on a comparison
+   * of the candidate's effective status against the target locale's current status.
    *
-   * <p>UNTRANSLATED selects text units with no translation in any locale. The other values
-   * correspond to {@link com.box.l10n.mojito.entity.TMTextUnitVariant.Status} and select text units
-   * that have at least one translation with the given status.
+   * <p>Status hierarchy (lowest to highest): TRANSLATION_NEEDED &lt; REVIEW_NEEDED &lt; APPROVED.
    */
-  public enum TargetStatusFilter {
-    UNTRANSLATED,
-    APPROVED,
-    REVIEW_NEEDED,
-    TRANSLATION_NEEDED
+  public enum OverwriteMode {
+    /** Only leverage into locales that have no translation at all. */
+    UNTRANSLATED_ONLY,
+    /** Overwrite only when the candidate's effective status is strictly higher. */
+    HIGHER_STATUS,
+    /** Overwrite when the candidate's effective status is higher or equal. */
+    HIGHER_OR_EQUAL_STATUS,
+    /** Always overwrite regardless of the current status. */
+    ALL
   }
 }
