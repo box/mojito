@@ -155,9 +155,7 @@ public class LeveragingService {
     CopyTmConfig.PreserveStatusMode preserveStatusMode = copyTmConfig.getPreserveStatusMode();
     CopyTmConfig.OverwriteMode overwriteMode = copyTmConfig.getOverwriteMode();
 
-    if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
-      copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
-    } else if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
+    if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
       leveragerByMd5.performLeveragingFor(
           textUnitsForCopyTM,
           sourceRepository.getTm().getId(),
@@ -181,7 +179,7 @@ public class LeveragingService {
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
           overwriteMode);
-    } else {
+    } else if (CopyTmConfig.Mode.EXACT.equals(copyTmConfig.getMode())) {
       logger.debug(
           "First perform leveraging by name and content (to give priority to string with same tags");
       leveragerByNameAndContent.performLeveragingFor(
@@ -198,6 +196,8 @@ public class LeveragingService {
           copyTmConfig.getSourceAssetId(),
           preserveStatusMode,
           overwriteMode);
+    } else {
+      throw new UnsupportedOperationException("Unexpected mode " + copyTmConfig.getMode());
     }
   }
 
