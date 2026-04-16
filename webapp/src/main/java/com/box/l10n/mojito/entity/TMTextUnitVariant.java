@@ -76,6 +76,14 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
     REVIEW_NEEDED,
     /** A string that doesn't need any work to be performed on it. */
     APPROVED;
+
+    public boolean isHigherThan(Status other) {
+      return this.ordinal() > other.ordinal();
+    }
+
+    public boolean isHigherOrEqualTo(Status other) {
+      return this.ordinal() >= other.ordinal();
+    }
   };
 
   @Column(name = "content", length = Integer.MAX_VALUE)
