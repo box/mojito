@@ -100,7 +100,7 @@ public class LeveragingCommand extends Command {
               + "PRECISION (default): preserve status based on the match precision (ID, content)."
               + " Lowest risk of carrying over incorrect statuses. "
               + "UNIQUE: preserve status when the match is unambiguous (single source text unit matched)."
-              + " Medium risk — trusts all unique matches regardless of their precition. "
+              + " Medium risk — trusts all unique matches regardless of their precision. "
               + "ALL: always preserve the source status. Highest risk — ambiguous matches may "
               + "copy an arbitrarily chosen translation at its original (possibly APPROVED) status.",
       converter = PreserveStatusModeConverter.class)
@@ -112,7 +112,7 @@ public class LeveragingCommand extends Command {
       required = false,
       description =
           "Controls when existing translations may be overwritten based on status comparison. "
-              + "ALL (default): overwrite regardless of status."
+              + "ALL (default): overwrite regardless of status. "
               + "UNTRANSLATED_ONLY: only leverage into locales that have no translation. "
               + "HIGHER_STATUS: overwrite only when the candidate status is strictly higher "
               + "(e.g. TRANSLATION_NEEDED -> REVIEW_NEEDED, REVIEW_NEEDED -> APPROVED). "
