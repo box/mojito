@@ -1244,7 +1244,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void higherStatusModeUsesEffectiveStatusNotCandidateStatus()
+  public void higherStatusModeUsesCandidateStatusNotEffectiveStatus()
       throws InterruptedException,
           ExecutionException,
           RepositoryNameAlreadyUsedException,
@@ -1313,14 +1313,17 @@ public class LeveragingServiceTest extends ServiceTestBase {
             .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
                 targetRepository, "en");
 
-    Assert.assertEquals(1, targetTranslations.size());
-    Assert.assertEquals(
-        "Should NOT overwrite: candidate is APPROVED but effective status is TRANSLATION_NEEDED "
-            + "(downgraded by NAME leveraging default), which is lower than existing REVIEW_NEEDED",
-        "existing review needed",
-        targetTranslations.get(0).getContent());
-    Assert.assertEquals(
-        TMTextUnitVariant.Status.REVIEW_NEEDED, targetTranslations.get(0).getStatus());
+    Assert.assertEquals(2, targetTranslations.size());
+    TMTextUnitVariant leveraged =
+        targetTranslations.stream()
+            .filter(v -> v.getContent().equals("Bonjour approved"))
+            .findFirst()
+            .orElse(null);
+    Assert.assertNotNull(
+        "Should overwrite: candidate's original status is APPROVED which is higher than "
+            + "existing REVIEW_NEEDED (effective status downgrade does not affect the decision)",
+        leveraged);
+    Assert.assertEquals(TMTextUnitVariant.Status.TRANSLATION_NEEDED, leveraged.getStatus());
   }
 
   @Test

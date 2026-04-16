@@ -179,12 +179,11 @@ public abstract class AbstractLeverager {
         buildCurrentStatusByLocaleId(tmTextUnit, overwriteMode);
 
     for (TextUnitDTO translation : translations) {
-
-      TMTextUnitVariant.Status effectiveStatus =
-          translationNeeded ? TMTextUnitVariant.Status.TRANSLATION_NEEDED : translation.getStatus();
-
       if (!shouldLeverageLocale(
-          currentStatusByLocaleId, translation.getLocaleId(), effectiveStatus, overwriteMode)) {
+          currentStatusByLocaleId,
+          translation.getLocaleId(),
+          translation.getStatus(),
+          overwriteMode)) {
         logger.debug(
             "Skipping locale {} for tmTextUnit {} due to status overwrite mode",
             translation.getLocaleId(),
@@ -198,7 +197,9 @@ public abstract class AbstractLeverager {
               translation.getLocaleId(),
               translation.getTarget(),
               translation.getTargetComment(),
-              effectiveStatus,
+              translationNeeded
+                  ? TMTextUnitVariant.Status.TRANSLATION_NEEDED
+                  : translation.getStatus(),
               translation.isIncludedInLocalizedFile(),
               null);
 
@@ -239,15 +240,15 @@ public abstract class AbstractLeverager {
   private boolean shouldLeverageLocale(
       Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
       Long localeId,
-      TMTextUnitVariant.Status effectiveStatus,
+      TMTextUnitVariant.Status candidateStatus,
       OverwriteMode overwriteMode) {
     TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
     return switch (overwriteMode) {
       case UNTRANSLATED_ONLY -> currentStatus == null;
       case HIGHER_STATUS ->
-          currentStatus == null || effectiveStatus.ordinal() > currentStatus.ordinal();
+          currentStatus == null || candidateStatus.ordinal() > currentStatus.ordinal();
       case HIGHER_OR_EQUAL_STATUS ->
-          currentStatus == null || effectiveStatus.ordinal() >= currentStatus.ordinal();
+          currentStatus == null || candidateStatus.ordinal() >= currentStatus.ordinal();
       case ALL -> true;
     };
   }
