@@ -245,10 +245,9 @@ public abstract class AbstractLeverager {
     TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
     return switch (overwriteMode) {
       case UNTRANSLATED_ONLY -> currentStatus == null;
-      case HIGHER_STATUS ->
-          currentStatus == null || candidateStatus.ordinal() > currentStatus.ordinal();
+      case HIGHER_STATUS -> currentStatus == null || candidateStatus.isHigherThan(currentStatus);
       case HIGHER_OR_EQUAL_STATUS ->
-          currentStatus == null || candidateStatus.ordinal() >= currentStatus.ordinal();
+          currentStatus == null || candidateStatus.isHigherOrEqualTo(currentStatus);
       case ALL -> true;
     };
   }
