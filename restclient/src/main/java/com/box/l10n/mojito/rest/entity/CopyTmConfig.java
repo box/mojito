@@ -159,16 +159,16 @@ public class CopyTmConfig {
 
   /**
    * Controls when existing translations may be overwritten during leveraging, based on a comparison
-   * of the candidate's effective status against the target locale's current status.
+   * of the candidate's original status against the target locale's current status.
    */
   public enum OverwriteMode {
     /** Overwrite regardless of the current status. */
     ALL,
     /** Only leverage into locales that have no translation. */
     UNTRANSLATED_ONLY,
-    /** Overwrite only when the candidate's effective status is strictly higher. */
+    /** Overwrite only when the candidate's original status is strictly higher. */
     HIGHER_STATUS,
-    /** Overwrite when the candidate's effective status is higher or equal. */
+    /** Overwrite when the candidate's original status is higher or equal. */
     HIGHER_OR_EQUAL_STATUS
   }
 }
