@@ -44,7 +44,7 @@ public class LeveragingCommandTest extends CLITestBase {
 
     Repository sourceRepository = createTestRepoUsingRepoService();
     Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repository"));
 
     repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
     repositoryService.addRepositoryLocale(targetRepository, "fr-CA", "fr-FR", false);
@@ -108,9 +108,9 @@ public class LeveragingCommandTest extends CLITestBase {
   public void copyTMModeExact() throws Exception {
 
     Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repository"));
     Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repository"));
 
     repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
     repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
@@ -201,9 +201,9 @@ public class LeveragingCommandTest extends CLITestBase {
   public void copyTMModeName() throws Exception {
 
     Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repository"));
     Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repository"));
 
     repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
     repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
@@ -289,9 +289,9 @@ public class LeveragingCommandTest extends CLITestBase {
   public void copyTMModeNamePreserveStatus() throws Exception {
 
     Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repository"));
     Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repository"));
 
     repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
     repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
@@ -349,7 +349,7 @@ public class LeveragingCommandTest extends CLITestBase {
 
     for (TMTextUnitVariant variant : targetTranslations) {
       Assert.assertEquals(
-          "Status should be preserved as APPROVED with ANY",
+          "Status should be preserved as APPROVED with ALL",
           TMTextUnitVariant.Status.APPROVED,
           variant.getStatus());
     }
@@ -359,9 +359,9 @@ public class LeveragingCommandTest extends CLITestBase {
   public void copyTMModeTUIDs() throws Exception {
 
     Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repository"));
     Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repository"));
 
     repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
     repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
@@ -456,9 +456,9 @@ public class LeveragingCommandTest extends CLITestBase {
   public void copyTMModeTargetBranchName() throws Exception {
 
     Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("source-repository"));
     Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+        repositoryService.createRepository(testIdWatcher.getEntityName("target-repository"));
 
     repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
     repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);

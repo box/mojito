@@ -147,7 +147,7 @@ public class CopyTmConfig {
     PRECISION,
     /**
      * Preserve status when the match is unambiguous (single source text unit matched). Medium risk
-     * — trusts all unique matches regardless of their precition.
+     * — trusts all unique matches regardless of their precision.
      */
     UNIQUE,
     /**
