@@ -84,10 +84,12 @@ public class LeveragingCommand extends Command {
       arity = 1,
       required = false,
       description =
-          "Matching mode. "
-              + "MD5 will perform matching based on the ID, content and comment. "
-              + "EXACT match is only using the content. "
-              + "NAME match is only using the resource name.",
+          """
+          Matching mode.
+          - MD5: match on all of the resource name, source content and comment.
+          - EXACT: match on the source (!) content.
+          - NAME: match on the resource name.
+          - TUIDS: only leverage between tmTextUnitIds specified in explicit mapping.""",
       converter = CopyTmConfigModeConverter.class)
   CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
 
@@ -96,13 +98,18 @@ public class LeveragingCommand extends Command {
       arity = 1,
       required = false,
       description =
-          "Controls whether to keep the leveraged translation's status or downgrade it to TRANSLATION_NEEDED. "
-              + "PRECISION (default): preserve status based on the match precision (ID, content)."
-              + " Lowest risk of carrying over incorrect statuses. "
-              + "UNIQUE: preserve status when the match is unambiguous (single source text unit matched)."
-              + " Medium risk — trusts all unique matches regardless of their precision. "
-              + "ALL: always preserve the source status. Highest risk — ambiguous matches may "
-              + "copy an arbitrarily chosen translation at its original (possibly APPROVED) status.",
+          """
+          Controls whether to keep the leveraged translation's original status or downgrade \
+          it to TRANSLATION_NEEDED.
+          A match is 'unique' when exactly one candidate text unit matched (no ambiguity). \
+          A match is 'high-precision' when matched on both name and content (or full MD5).
+          - PRECISION (default): preserve status only when the match is both unique and \
+              high-precision. Matches on name-only or content-only are always downgraded, \
+              even if unique. Low risk.
+          - UNIQUE: preserve status for any unique match, regardless of its precision. \
+              Useful when e.g. migrating between naming schemes. Medium risk.
+          - ALL: always preserve the original status, even for ambiguous matches. HIGH RISK - \
+              this will arbitrarily pick one of several candidates.""",
       converter = PreserveStatusModeConverter.class)
   CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.PRECISION;
 
@@ -111,12 +118,13 @@ public class LeveragingCommand extends Command {
       arity = 1,
       required = false,
       description =
-          "Controls when existing translations may be overwritten based on status comparison. "
-              + "ALL (default): overwrite regardless of status. "
-              + "UNTRANSLATED_ONLY: only leverage into locales that have no translation. "
-              + "HIGHER_STATUS: overwrite only when the candidate status is strictly higher "
-              + "(e.g. TRANSLATION_NEEDED -> REVIEW_NEEDED, REVIEW_NEEDED -> APPROVED). "
-              + "HIGHER_OR_EQUAL_STATUS: same as HIGHER_STATUS but also overwrite when statuses are equal. ",
+          """
+          Controls when existing translations may be overwritten based on status comparison.
+          - ALL (default): overwrite regardless of status.
+          - HIGHER_STATUS: overwrite only when the candidate status is strictly higher \
+              (e.g. TRANSLATION_NEEDED -> REVIEW_NEEDED, REVIEW_NEEDED -> APPROVED).
+          - HIGHER_OR_EQUAL_STATUS: same as HIGHER_STATUS but also overwrite when statuses are equal.
+          - UNTRANSLATED_ONLY: only leverage into locales that have no translation.""",
       converter = OverwriteModeConverter.class)
   CopyTmConfig.OverwriteMode overwriteMode = CopyTmConfig.OverwriteMode.ALL;
 
@@ -124,9 +132,10 @@ public class LeveragingCommand extends Command {
       names = {"--tuids-mapping"},
       required = false,
       description =
-          "Text unit mapping (by tmTextUnitId) for TUIDS mode, format: \"1001:2001;1002:2002\" "
-              + "(\"source_tm_text_unit_id:target_tm_text_unit_id;...\" with source_tm_text_unit_id unique. "
-              + "Use multiple calls to copy the same source to multiple targets)",
+          """
+          Text unit mapping (by tmTextUnitId) for TUIDS mode.
+          Format: "1001:2001;1002:2002" ("source_tm_text_unit_id:target_tm_text_unit_id;...").
+          Note: source_tm_text_unit_id should be unique. Use multiple calls to copy the same source to multiple targets.""",
       converter = TmTextUnitMappingConverter.class)
   Map<Long, Long> sourceToTargetTmTextUnitMapping;
 
