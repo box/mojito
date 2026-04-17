@@ -741,7 +741,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void untranslatedOnlyModeSkipsApprovedLocaleAndLeveragesOthers()
+  public void noneModeSkipsApprovedLocaleAndLeveragesOthers()
       throws InterruptedException,
           ExecutionException,
           RepositoryNameAlreadyUsedException,
@@ -799,7 +799,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.UNTRANSLATED_ONLY);
+    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.NONE);
 
     leveragingService.copyTm(copyTmConfig).get();
 
@@ -828,7 +828,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void untranslatedOnlyModeSkipsTranslationNeededLocale()
+  public void noneModeSkipsTranslationNeededLocale()
       throws InterruptedException,
           ExecutionException,
           RepositoryNameAlreadyUsedException,
@@ -883,7 +883,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
     copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.UNTRANSLATED_ONLY);
+    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.NONE);
 
     leveragingService.copyTm(copyTmConfig).get();
 
@@ -899,6 +899,107 @@ public class LeveragingServiceTest extends ServiceTestBase {
         targetTranslations.get(0).getContent());
     Assert.assertEquals(
         TMTextUnitVariant.Status.TRANSLATION_NEEDED, targetTranslations.get(0).getStatus());
+  }
+
+  @Test
+  public void forTranslationModeOverwritesTranslationNeededAndLeveragesUntranslated()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Locale frFR = localeService.findByBcp47Tag("fr-FR");
+    Locale koKR = localeService.findByBcp47Tag("ko-KR");
+    Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+
+    Repository sourceRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
+    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
+    repositoryService.addRepositoryLocale(sourceRepository, "ko-KR");
+    repositoryService.addRepositoryLocale(sourceRepository, "ja-JP");
+
+    Asset sourceAsset =
+        assetService.createAssetWithContent(
+            sourceRepository.getId(), "fake_for_test", "fake for test");
+
+    TMTextUnit sourceTu =
+        tmService.addTMTextUnit(
+            sourceRepository.getTm().getId(),
+            sourceAsset.getId(),
+            "greeting",
+            "Hello",
+            "A greeting");
+    tmService.addCurrentTMTextUnitVariant(
+        sourceTu.getId(), frFR.getId(), "Bonjour", TMTextUnitVariant.Status.APPROVED, true);
+    tmService.addCurrentTMTextUnitVariant(
+        sourceTu.getId(), koKR.getId(), "안녕하세요", TMTextUnitVariant.Status.APPROVED, true);
+    tmService.addCurrentTMTextUnitVariant(
+        sourceTu.getId(), jaJP.getId(), "こんにちは", TMTextUnitVariant.Status.APPROVED, true);
+
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
+    repositoryService.addRepositoryLocale(targetRepository, "ko-KR");
+    repositoryService.addRepositoryLocale(targetRepository, "ja-JP");
+
+    Asset targetAsset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+
+    TMTextUnit targetTu =
+        tmService.addTMTextUnit(
+            targetRepository.getTm().getId(),
+            targetAsset.getId(),
+            "greeting",
+            "Hello",
+            "A greeting");
+
+    tmService.addCurrentTMTextUnitVariant(
+        targetTu.getId(),
+        frFR.getId(),
+        "existing translation needed",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        true);
+    tmService.addCurrentTMTextUnitVariant(
+        targetTu.getId(),
+        koKR.getId(),
+        "existing approved ko",
+        TMTextUnitVariant.Status.APPROVED,
+        true);
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
+    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.FOR_TRANSLATION);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    TMTextUnitCurrentVariant frCV =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            frFR.getId(), targetTu.getId());
+    TMTextUnitCurrentVariant koCV =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            koKR.getId(), targetTu.getId());
+    TMTextUnitCurrentVariant jaCV =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            jaJP.getId(), targetTu.getId());
+
+    Assert.assertEquals(
+        "fr-FR should be overwritten because current status is TRANSLATION_NEEDED",
+        "Bonjour",
+        frCV.getTmTextUnitVariant().getContent());
+
+    Assert.assertEquals(
+        "ko-KR should NOT be overwritten because current status is APPROVED",
+        "existing approved ko",
+        koCV.getTmTextUnitVariant().getContent());
+
+    Assert.assertNotNull("ja-JP should be leveraged since it had no translation", jaCV);
+    Assert.assertEquals("こんにちは", jaCV.getTmTextUnitVariant().getContent());
   }
 
   @Test

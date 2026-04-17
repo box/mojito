@@ -244,7 +244,9 @@ public abstract class AbstractLeverager {
       OverwriteMode overwriteMode) {
     TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
     return switch (overwriteMode) {
-      case UNTRANSLATED_ONLY -> currentStatus == null;
+      case NONE -> currentStatus == null;
+      case FOR_TRANSLATION ->
+          currentStatus == null || currentStatus == TMTextUnitVariant.Status.TRANSLATION_NEEDED;
       case HIGHER_STATUS -> currentStatus == null || candidateStatus.isHigherThan(currentStatus);
       case HIGHER_OR_EQUAL_STATUS ->
           currentStatus == null || candidateStatus.isHigherOrEqualTo(currentStatus);

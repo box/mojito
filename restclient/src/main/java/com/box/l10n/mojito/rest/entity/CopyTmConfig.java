@@ -164,8 +164,13 @@ public class CopyTmConfig {
   public enum OverwriteMode {
     /** Overwrite regardless of the current status. */
     ALL,
-    /** Only leverage into locales that have no translation. */
-    UNTRANSLATED_ONLY,
+    /** Never overwrite; only leverage into locales that have no translation at all. */
+    NONE,
+    /**
+     * Leverage into locales that have no translation or whose current status is
+     * TRANSLATION_NEEDED.
+     */
+    FOR_TRANSLATION,
     /** Overwrite only when the candidate's original status is strictly higher. */
     HIGHER_STATUS,
     /** Overwrite when the candidate's original status is higher or equal. */
