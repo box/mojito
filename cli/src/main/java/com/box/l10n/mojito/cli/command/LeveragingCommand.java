@@ -124,7 +124,8 @@ public class LeveragingCommand extends Command {
           - HIGHER_STATUS: overwrite only when the candidate status is strictly higher \
               (e.g. TRANSLATION_NEEDED -> REVIEW_NEEDED, REVIEW_NEEDED -> APPROVED).
           - HIGHER_OR_EQUAL_STATUS: same as HIGHER_STATUS but also overwrite when statuses are equal.
-          - UNTRANSLATED_ONLY: only leverage into locales that have no translation.""",
+          - FOR_TRANSLATION: leverage into locales with no translation or with TRANSLATION_NEEDED status.
+          - NONE: never overwrite; only leverage into locales that have no translation at all.""",
       converter = OverwriteModeConverter.class)
   CopyTmConfig.OverwriteMode overwriteMode = CopyTmConfig.OverwriteMode.ALL;
 
