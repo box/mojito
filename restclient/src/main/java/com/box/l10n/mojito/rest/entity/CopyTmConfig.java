@@ -167,8 +167,7 @@ public class CopyTmConfig {
     /** Never overwrite; only leverage into locales that have no translation at all. */
     NONE,
     /**
-     * Leverage into locales that have no translation or whose current status is
-     * TRANSLATION_NEEDED.
+     * Leverage into locales that have no translation or whose current status is TRANSLATION_NEEDED.
      */
     FOR_TRANSLATION,
     /** Overwrite only when the candidate's original status is strictly higher. */
