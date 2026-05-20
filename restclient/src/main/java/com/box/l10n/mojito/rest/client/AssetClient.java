@@ -216,6 +216,16 @@ public class AssetClient extends BaseClient {
       String content,
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions) {
+    return getPseudoLocalizedAssetForContent(
+        assetId, content, filterConfigIdOverride, filterOptions, null);
+  }
+
+  public LocalizedAssetBody getPseudoLocalizedAssetForContent(
+      Long assetId,
+      String content,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      String substituteType) {
 
     UriComponentsBuilder uriBuilder =
         UriComponentsBuilder.fromPath(getBasePathForResource(assetId, "pseudo"));
@@ -225,6 +235,7 @@ public class AssetClient extends BaseClient {
     localizedAssetBody.setOutputBcp47tag(OUTPUT_BCP47_TAG);
     localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
     localizedAssetBody.setFilterOptions(filterOptions);
+    localizedAssetBody.setSubstituteType(substituteType);
 
     return authenticatedRestTemplate.postForObject(
         uriBuilder.toUriString(), localizedAssetBody, LocalizedAssetBody.class);
