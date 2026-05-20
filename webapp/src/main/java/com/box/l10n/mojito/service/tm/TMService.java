@@ -41,6 +41,7 @@ import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
@@ -1098,10 +1099,21 @@ public class TMService {
   public String generatePseudoLocalized(
       Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride)
       throws UnsupportedAssetFilterTypeException {
+    return generatePseudoLocalized(
+        asset, content, filterConfigIdOverride, PseudoLocalization.SubstituteType.RANDOM);
+  }
+
+  public String generatePseudoLocalized(
+      Asset asset,
+      String content,
+      FilterConfigIdOverride filterConfigIdOverride,
+      PseudoLocalization.SubstituteType substituteType)
+      throws UnsupportedAssetFilterTypeException {
 
     String bcp47tag = "en-x-psaccent";
 
-    BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep(asset);
+    BasePipelineStep pseudoLocalizedStep =
+        (BasePipelineStep) new PseudoLocalizeStep(asset, substituteType);
     return generateLocalizedBase(
         asset, content, filterConfigIdOverride, null, pseudoLocalizedStep, bcp47tag);
   }

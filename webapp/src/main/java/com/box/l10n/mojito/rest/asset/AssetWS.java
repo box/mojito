@@ -11,6 +11,7 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.View;
@@ -306,9 +307,17 @@ public class AssetWS {
     Asset asset = assetRepository.getOne(assetId);
     String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
+    PseudoLocalization.SubstituteType substituteType =
+        localizedAssetBody.getSubstituteType() != null
+            ? localizedAssetBody.getSubstituteType()
+            : PseudoLocalization.SubstituteType.RANDOM;
+
     String generateLocalized =
         tmService.generatePseudoLocalized(
-            asset, normalizedContent, localizedAssetBody.getFilterConfigIdOverride());
+            asset,
+            normalizedContent,
+            localizedAssetBody.getFilterConfigIdOverride(),
+            substituteType);
 
     localizedAssetBody.setContent(generateLocalized);
 

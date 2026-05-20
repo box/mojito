@@ -66,6 +66,8 @@ public class LocalizedAssetBody {
 
   Status status = Status.ALL;
 
+  String substituteType;
+
   public Long getAssetId() {
     return assetId;
   }
@@ -144,5 +146,13 @@ public class LocalizedAssetBody {
 
   public void setPullRunName(String pullRunName) {
     this.pullRunName = pullRunName;
+  }
+
+  public String getSubstituteType() {
+    return substituteType;
+  }
+
+  public void setSubstituteType(String substituteType) {
+    this.substituteType = substituteType;
   }
 }

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.pseudoloc;
 
 import static org.junit.Assert.*;
 
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization.SubstituteType;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.MessageFormatIntegrityChecker;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.WhitespaceIntegrityChecker;
@@ -148,5 +149,51 @@ public class PseudoLocalizationTest {
     assertFalse(
         "The plural text variation should be pseudolocalized while the placeholder should not",
         pseudoLocalized.contains("{# Comments or Tasks}"));
+  }
+
+  @Test
+  public void testConsistentSubstitutionIsDeterministic() {
+    PseudoLocalization ps = new PseudoLocalization();
+    String first = ps.convertAsciiToDiacritics("Hello World", SubstituteType.CONSISTENT);
+    String second = ps.convertAsciiToDiacritics("Hello World", SubstituteType.CONSISTENT);
+    assertEquals("Consistent substitution should produce identical results", first, second);
+  }
+
+  @Test
+  public void testConsistentSubstitutionProducesDiacritics() {
+    PseudoLocalization ps = new PseudoLocalization();
+    String result = ps.convertAsciiToDiacritics("Hello", SubstituteType.CONSISTENT);
+    assertNotEquals("Consistent substitution should still transform the string", "Hello", result);
+  }
+
+  @Test
+  public void testConsistentConvertStringToPseudoLoc() {
+    PseudoLocalization ps = new PseudoLocalization();
+    String first = ps.convertStringToPseudoLoc("English Sentence", SubstituteType.CONSISTENT);
+    String second = ps.convertStringToPseudoLoc("English Sentence", SubstituteType.CONSISTENT);
+    assertEquals(
+        "Consistent pseudolocalization should be deterministic across calls", first, second);
+  }
+
+  @Test
+  public void testConsistentConvertStringToPseudoLocWithCheckers() {
+    PseudoLocalization ps = new PseudoLocalization();
+    Set<TextUnitIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(new MessageFormatIntegrityChecker());
+    String first =
+        ps.convertStringToPseudoLoc("Hello {name}, welcome!", checkers, SubstituteType.CONSISTENT);
+    String second =
+        ps.convertStringToPseudoLoc("Hello {name}, welcome!", checkers, SubstituteType.CONSISTENT);
+    assertEquals("Consistent substitution with checkers should be deterministic", first, second);
+    assertTrue(
+        "Placeholders should be preserved with consistent substitution", first.contains("{name}"));
+  }
+
+  @Test
+  public void testConsistentDoesNotConvertUnmappedChars() {
+    PseudoLocalization ps = new PseudoLocalization();
+    String result = ps.convertAsciiToDiacritics("qQV", SubstituteType.CONSISTENT);
+    assertEquals(
+        "Unmapped chars should remain unchanged with consistent substitution", "qQV", result);
   }
 }

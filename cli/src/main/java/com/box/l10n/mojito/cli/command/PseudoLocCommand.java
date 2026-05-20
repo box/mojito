@@ -99,6 +99,15 @@ public class PseudoLocCommand extends Command {
       description = Param.DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION)
   List<String> directoriesExcludePatterns = null;
 
+  @Parameter(
+      names = {"--substitute"},
+      arity = 1,
+      required = false,
+      description =
+          "Character substitution mode: RANDOM picks a random diacritical replacement each time,"
+              + " CONSISTENT always maps to the same replacement")
+  String substituteType;
+
   @Autowired AssetClient assetClient;
 
   @Autowired CommandHelper commandHelper;
@@ -192,7 +201,8 @@ public class PseudoLocCommand extends Command {
               assetByPathAndRepositoryId.getId(),
               assetContent,
               sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-              filterOptions);
+              filterOptions,
+              substituteType);
 
       logger.trace("PseudoLocalizedAsset content = {}", pseudoLocalizedAsset.getContent());
       return pseudoLocalizedAsset;

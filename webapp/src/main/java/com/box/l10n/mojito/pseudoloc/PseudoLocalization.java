@@ -17,6 +17,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PseudoLocalization {
 
+  public enum SubstituteType {
+    RANDOM,
+    CONSISTENT
+  }
+
   /** Logger */
   static Logger logger = LoggerFactory.getLogger(PseudoLocalization.class);
 
@@ -87,15 +92,21 @@ public class PseudoLocalization {
    * @return pseudo localized string
    */
   public String convertStringToPseudoLoc(String string, Set<TextUnitIntegrityChecker> checkers) {
+    return convertStringToPseudoLoc(string, checkers, SubstituteType.RANDOM);
+  }
+
+  public String convertStringToPseudoLoc(
+      String string, Set<TextUnitIntegrityChecker> checkers, SubstituteType substituteType) {
     TextUnitIntegrityChecker checker = getIntegrityCheckerForPlaceholderProcessing(checkers);
 
     if (checker == null) {
       logger.debug("There is no checker for pseudolocalization placeholder processing.");
-      return convertStringToPseudoLoc(string);
+      return convertStringToPseudoLoc(string, substituteType);
     } else {
       logger.debug("Found checker for pseudolocalization placeholder processing.");
       LocalizableString localizableString = checker.extractNonLocalizableParts(string);
-      String pseudolocalized = convertStringToPseudoLoc(localizableString.getLocalizableString());
+      String pseudolocalized =
+          convertStringToPseudoLoc(localizableString.getLocalizableString(), substituteType);
       localizableString.setLocalizableString(pseudolocalized);
       return checker.restoreNonLocalizableParts(localizableString);
     }
@@ -108,10 +119,14 @@ public class PseudoLocalization {
    * @return pseudo localized string
    */
   public String convertStringToPseudoLoc(String string) {
+    return convertStringToPseudoLoc(string, SubstituteType.RANDOM);
+  }
+
+  public String convertStringToPseudoLoc(String string, SubstituteType substituteType) {
     StringBuilder sb = new StringBuilder();
 
     if (!Strings.isNullOrEmpty(string)) {
-      String str = convertAsciiToDiacritics(string);
+      String str = convertAsciiToDiacritics(string, substituteType);
       sb.append(expand(str));
       sb.insert(0, '⟦');
       sb.append('⟧');
@@ -159,36 +174,68 @@ public class PseudoLocalization {
    * @return
    */
   public String convertAsciiToDiacritics(String string) {
-    int stringLength = string.length();
+    return convertAsciiToDiacritics(string, SubstituteType.RANDOM);
+  }
 
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < stringLength; i++) {
-      char character = string.charAt(i);
-      sb.append(getMappingCharFromMap(character));
-    }
-
-    return sb.toString();
+  public String convertAsciiToDiacritics(String string, SubstituteType substituteType) {
+    return switch (substituteType) {
+      case RANDOM -> convertAsciiToDiacriticsRandom(string);
+      case CONSISTENT -> convertAsciiToDiacriticsConsistent(string);
+    };
   }
 
   /**
-   * Get a non ASCII character mapping to provided character or the character itself if there is no
-   * mapping
-   *
-   * @param character ASCII character to be mapped
-   * @return Non ASCII character or character itself
+   * Converts ASCII letters in the whole string into equivalent characters with accent/diacritics,
+   * selecting mapped characters consistently. This will always return the same mapped string for a
+   * given input.
    */
-  private char getMappingCharFromMap(char character) {
-    char mappedChar = character;
+  private String convertAsciiToDiacriticsConsistent(String string) {
+    StringBuilder builder = new StringBuilder();
 
-    String mappingCharsForChar = pseudoLocMap.get(mappedChar);
+    // keeps track of which mapped char we used last time
+    Map<Character, Integer> lastMappedIdx = new HashMap<>();
 
-    if (mappingCharsForChar != null) {
-      int maxIndex = mappingCharsForChar.length() - 1;
-      int randomIndex = (int) (Math.random() * maxIndex);
-      mappedChar = mappingCharsForChar.charAt(randomIndex);
+    for (char character : string.toCharArray()) {
+      String mappingsForChar = pseudoLocMap.get(character);
+
+      if (mappingsForChar == null) {
+        // don't replace if no mapping available
+        builder.append(character);
+        continue;
+      }
+
+      // pick next mapped char (or go back to the beginning if used all of them)
+      int mappedIdx = (1 + lastMappedIdx.getOrDefault(character, -1)) % mappingsForChar.length();
+      lastMappedIdx.put(character, mappedIdx);
+      char mappedCharacter = mappingsForChar.charAt(mappedIdx);
+
+      builder.append(mappedCharacter);
     }
+    return builder.toString();
+  }
 
-    return mappedChar;
+  /**
+   * Converts ASCII letters in the whole string into equivalent characters with accent/diacritics,
+   * selecting mapped characters at random. This will return different string every time, even if
+   * input does not change.
+   */
+  private String convertAsciiToDiacriticsRandom(String string) {
+    int stringLength = string.length();
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < stringLength; i++) {
+      char character = string.charAt(i);
+      String mappingCharsForChar = pseudoLocMap.get(character);
+
+      if (mappingCharsForChar != null) {
+        int maxIndex = mappingCharsForChar.length() - 1;
+        int randomIndex = (int) (Math.random() * maxIndex);
+        character = mappingCharsForChar.charAt(randomIndex);
+      }
+
+      sb.append(character);
+    }
+    return sb.toString();
   }
 
   /**

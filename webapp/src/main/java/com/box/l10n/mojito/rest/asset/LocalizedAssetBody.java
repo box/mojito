@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.asset;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 import java.util.List;
 
 /**
@@ -49,6 +50,8 @@ public class LocalizedAssetBody {
   InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
 
   Status status = Status.ALL;
+
+  PseudoLocalization.SubstituteType substituteType;
 
   public LocalizedAssetBody() {}
 
@@ -135,5 +138,13 @@ public class LocalizedAssetBody {
 
   public void setPullRunName(String pullRunName) {
     this.pullRunName = pullRunName;
+  }
+
+  public PseudoLocalization.SubstituteType getSubstituteType() {
+    return substituteType;
+  }
+
+  public void setSubstituteType(PseudoLocalization.SubstituteType substituteType) {
+    this.substituteType = substituteType;
   }
 }

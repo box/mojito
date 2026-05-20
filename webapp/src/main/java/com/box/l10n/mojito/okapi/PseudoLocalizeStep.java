@@ -2,6 +2,7 @@ package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization.SubstituteType;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -29,11 +30,17 @@ public class PseudoLocalizeStep extends BasePipelineStep {
   static Logger logger = LoggerFactory.getLogger(PseudoLocalizeStep.class);
 
   private Asset asset;
+  private SubstituteType substituteType;
   private LocaleId targetLocale;
   private Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
 
   public PseudoLocalizeStep(Asset asset) {
+    this(asset, SubstituteType.RANDOM);
+  }
+
+  public PseudoLocalizeStep(Asset asset, SubstituteType substituteType) {
     this.asset = asset;
+    this.substituteType = substituteType;
   }
 
   @Autowired IntegrityCheckerFactory integrityCheckerFactory;
@@ -81,7 +88,8 @@ public class PseudoLocalizeStep extends BasePipelineStep {
     if (textUnit.isTranslatable()) {
       String source = textUnitUtils.getSourceAsString(textUnit);
       String pseudoTranslation =
-          pseudoLocalization.convertStringToPseudoLoc(source, textUnitIntegrityCheckers);
+          pseudoLocalization.convertStringToPseudoLoc(
+              source, textUnitIntegrityCheckers, substituteType);
       textUnit.setTarget(targetLocale, new TextContainer(pseudoTranslation));
     }
 
