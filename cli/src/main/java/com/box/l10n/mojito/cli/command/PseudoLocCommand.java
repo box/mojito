@@ -104,9 +104,10 @@ public class PseudoLocCommand extends Command {
       arity = 1,
       required = false,
       description =
-          "Character substitution mode: RANDOM picks a random diacritical replacement each time,"
-              + " CONSISTENT always maps to the same replacement")
-  String substituteType;
+          "Character substitution mode: RANDOM (default) picks a random diacritical replacement each time,"
+              + " CONSISTENT always maps to the same replacement within a given string.",
+      converter = SubstituteTypeConverter.class)
+  LocalizedAssetBody.SubstituteType substituteType = LocalizedAssetBody.SubstituteType.RANDOM;
 
   @Autowired AssetClient assetClient;
 

@@ -17,8 +17,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PseudoLocalization {
 
+  /** Specifies how accent/diacritics characters that replace ASCII letters are chosen */
   public enum SubstituteType {
+    /** Replacement characters are picked at random. */
     RANDOM,
+    /** Replacement characters are picked consistently for a given string. */
     CONSISTENT
   }
 

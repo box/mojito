@@ -209,23 +209,15 @@ public class AssetClient extends BaseClient {
    * @param filterConfigIdOverride Optional, can be null. Allows to specify a specific Okapi filter
    *     to use to process the asset
    * @param filterOptions
+   * @param substituteType Allows to choose
    * @return the pseudoloocalized asset content
    */
   public LocalizedAssetBody getPseudoLocalizedAssetForContent(
       Long assetId,
       String content,
       FilterConfigIdOverride filterConfigIdOverride,
-      List<String> filterOptions) {
-    return getPseudoLocalizedAssetForContent(
-        assetId, content, filterConfigIdOverride, filterOptions, null);
-  }
-
-  public LocalizedAssetBody getPseudoLocalizedAssetForContent(
-      Long assetId,
-      String content,
-      FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions,
-      String substituteType) {
+      LocalizedAssetBody.SubstituteType substituteType) {
 
     UriComponentsBuilder uriBuilder =
         UriComponentsBuilder.fromPath(getBasePathForResource(assetId, "pseudo"));
