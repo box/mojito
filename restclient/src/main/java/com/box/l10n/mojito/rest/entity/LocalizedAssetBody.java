@@ -26,6 +26,17 @@ public class LocalizedAssetBody {
     ACCEPTED
   }
 
+  /**
+   * During pseudolocalization, specifies how accent/diacritics characters that replace ASCII
+   * letters are chosen.
+   */
+  public enum SubstituteType {
+    /** Replacement characters are picked at random. */
+    RANDOM,
+    /** Replacement characters are picked consistently for a given string. */
+    CONSISTENT
+  }
+
   /** Asset id */
   Long assetId;
 
@@ -66,7 +77,7 @@ public class LocalizedAssetBody {
 
   Status status = Status.ALL;
 
-  String substituteType;
+  SubstituteType substituteType;
 
   public Long getAssetId() {
     return assetId;
@@ -148,11 +159,11 @@ public class LocalizedAssetBody {
     this.pullRunName = pullRunName;
   }
 
-  public String getSubstituteType() {
+  public SubstituteType getSubstituteType() {
     return substituteType;
   }
 
-  public void setSubstituteType(String substituteType) {
+  public void setSubstituteType(SubstituteType substituteType) {
     this.substituteType = substituteType;
   }
 }
