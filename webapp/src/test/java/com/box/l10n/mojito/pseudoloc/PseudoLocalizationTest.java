@@ -29,6 +29,15 @@ public class PseudoLocalizationTest {
   }
 
   @Test
+  public void testStringIsConvertedToDiacriticsRandom() {
+    PseudoLocalization ps = new PseudoLocalization();
+    String first = ps.convertAsciiToDiacritics("English Sentence");
+    String second = ps.convertAsciiToDiacritics("English Sentence");
+    assertNotEquals(
+        "Default substitution should randomly select diacritics across calls", first, second);
+  }
+
+  @Test
   public void testStringIsNotConvertedToDiacritics() {
     // The chars q, Q, and V are not converted so they should not be converted
     // when we call the convert function
@@ -42,6 +51,15 @@ public class PseudoLocalizationTest {
     PseudoLocalization ps = new PseudoLocalization();
     String pseudoLocalized = ps.convertStringToPseudoLoc("English Sentence");
     assertNotEquals("The string should be pseudolocalized", "English Sentence", pseudoLocalized);
+  }
+
+  @Test
+  public void testconvertStringToPseudoLocRandom() {
+    PseudoLocalization ps = new PseudoLocalization();
+    String first = ps.convertStringToPseudoLoc("English Sentence");
+    String second = ps.convertStringToPseudoLoc("English Sentence");
+    assertNotEquals(
+        "Default pseudolocalization should substitute diacritics randomly", first, second);
   }
 
   @Test
