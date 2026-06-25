@@ -9,4 +9,17 @@ public record OpenAIProxyConfig(String host, Integer port, String user, String p
   public boolean isConfigured() {
     return host != null && !host.isBlank() && port != null;
   }
+
+  @Override
+  public String toString() {
+    return "OpenAIProxyConfig[host="
+        + host
+        + ", port="
+        + port
+        + ", user="
+        + (user == null ? "null" : "***")
+        + ", password="
+        + (password == null ? "null" : "***")
+        + "]";
+  }
 }

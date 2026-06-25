@@ -26,6 +26,19 @@ public class OpenAIHttpClientFactoryTest {
   }
 
   @Test
+  public void testOpenAIProxyConfigToStringRedactsCredentials() {
+    OpenAIProxyConfig proxyConfig =
+        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
+
+    assertEquals(
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=***, password=***]",
+        proxyConfig.toString());
+    assertEquals(
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=null, password=null]",
+        OpenAIProxyConfig.of("proxy.example.com", 3128, null, null).toString());
+  }
+
+  @Test
   public void testCreateHttpClientWithoutProxy() {
     assertNotNull(OpenAIHttpClientFactory.createHttpClient(null));
     assertNotNull(
