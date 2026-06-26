@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.oaireview;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
+import com.box.l10n.mojito.openai.OpenAIProxyConfig;
 import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,10 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClient.Builder().apiKey(openaiClientToken).build();
+    return OpenAIClient.builder()
+        .apiKey(openaiClientToken)
+        .proxyConfig(getProxyConfig(aiReviewConfigurationProperties))
+        .build();
   }
 
   @Bean("openAIClientPoolReview")
@@ -33,7 +37,20 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClientPool(10, 10, 5, aiReviewConfigurationProperties.getOpenaiClientToken());
+    return new OpenAIClientPool(
+        10,
+        10,
+        5,
+        aiReviewConfigurationProperties.getOpenaiClientToken(),
+        getProxyConfig(aiReviewConfigurationProperties));
+  }
+
+  static OpenAIProxyConfig getProxyConfig(AiReviewConfigurationProperties properties) {
+    return OpenAIProxyConfig.of(
+        properties.getProxyHost(),
+        properties.getProxyPort(),
+        properties.getProxyUser(),
+        properties.getProxyPassword());
   }
 
   @Bean("objectMapperReview")

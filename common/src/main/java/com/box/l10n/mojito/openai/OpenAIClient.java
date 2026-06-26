@@ -75,6 +75,8 @@ public class OpenAIClient {
 
     private Executor asyncExecutor;
 
+    private OpenAIProxyConfig proxyConfig;
+
     public Builder() {}
 
     public Builder apiKey(String apiKey) {
@@ -102,6 +104,11 @@ public class OpenAIClient {
       return this;
     }
 
+    public Builder proxyConfig(OpenAIProxyConfig proxyConfig) {
+      this.proxyConfig = proxyConfig;
+      return this;
+    }
+
     public OpenAIClient build() {
       if (apiKey == null) {
         throw new IllegalStateException("API key must be provided");
@@ -110,19 +117,15 @@ public class OpenAIClient {
       if (objectMapper == null) {
         objectMapper = createObjectMapper();
       }
-      if (httpClient == null) {
-        httpClient = createHttpClient();
-      }
 
       if (asyncExecutor == null) {
         asyncExecutor = ForkJoinPool.commonPool();
       }
+      if (httpClient == null) {
+        httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig, asyncExecutor);
+      }
 
       return new OpenAIClient(apiKey, host, objectMapper, httpClient, asyncExecutor);
-    }
-
-    private HttpClient createHttpClient() {
-      return HttpClient.newBuilder().build();
     }
 
     private ObjectMapper createObjectMapper() {
