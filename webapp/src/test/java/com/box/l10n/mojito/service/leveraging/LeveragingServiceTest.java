@@ -1888,4 +1888,117 @@ public class LeveragingServiceTest extends ServiceTestBase {
         translation.getContent());
     Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, translation.getStatus());
   }
+
+  @Test
+  public void uniqueModeDowngradesStatusForAmbiguousMatch()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // UNIQUE mode preserves status for unique matches but downgrades for ambiguous ones.
+    Repository sourceRepo = createRepository("source", "fr-FR");
+
+    // Two assets with identical TUs — creates ambiguity
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit tu1 = push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(tu1, "fr-FR", "Bonjour 1");
+
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit tu2 = push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(tu2, "fr-FR", "Bonjour 2");
+
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "UNIQUE mode should downgrade to TRANSLATION_NEEDED for ambiguous match",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        translations.get(0).getStatus());
+  }
+
+  @Test
+  public void precisionModePreservesStatusForNameAndContentMatch()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // NAME_AND_CONTENT is high-confidence — PRECISION mode should preserve APPROVED.
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    TMTextUnit sourceTu =
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "source comment")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour");
+
+    // Target has same name+content but different comment → NAME_AND_CONTENT match
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "different comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour", translations.get(0).getContent());
+    Assert.assertEquals(
+        "NAME_AND_CONTENT match with PRECISION mode should preserve APPROVED",
+        TMTextUnitVariant.Status.APPROVED,
+        translations.get(0).getStatus());
+  }
+
+  @Test
+  public void exactModeContentOnlyWithUniqueModePreservesStatus()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // UNIQUE mode + content-only match (which is low-confidence) but unique — UNIQUE mode
+    // only cares about uniqueness, not match level, so it preserves status.
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    TMTextUnit sourceTu =
+        push(sourceRepo, sourceAsset, tu("old.key", "Hello world", "comment")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour le monde");
+
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("new.key", "Hello world", "different comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.EXACT);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour le monde", translations.get(0).getContent());
+    Assert.assertEquals(
+        "UNIQUE mode preserves status for unique content-only match regardless of match level",
+        TMTextUnitVariant.Status.APPROVED,
+        translations.get(0).getStatus());
+  }
 }
