@@ -25,6 +25,7 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Predicate;
@@ -72,6 +73,91 @@ public class LeveragingServiceTest extends ServiceTestBase {
   @Autowired AssetMappingService assetMappingService;
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
+
+  @Autowired TMTextUnitVariantCommentRepository tmTextUnitVariantCommentRepository;
+
+  private static String[] tu(String name, String content, String comment) {
+    return new String[] {name, content, comment};
+  }
+
+  private Repository createRepository(String suffix, String... localeTags)
+      throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName(suffix));
+    for (String tag : localeTags) {
+      repositoryService.addRepositoryLocale(repo, tag);
+    }
+    return repo;
+  }
+
+  private Asset createAsset(Repository repo, String path) {
+    return assetService.createAssetWithContent(repo.getId(), path, "fake for test");
+  }
+
+  private List<TMTextUnit> push(Repository repo, Asset asset, String[]... textUnits) {
+    AssetExtraction extraction = new AssetExtraction();
+    extraction.setAsset(asset);
+    extraction = assetExtractionRepository.save(extraction);
+    for (String[] tu : textUnits) {
+      assetExtractionService.createAssetTextUnit(extraction, tu[0], tu[1], tu[2]);
+    }
+    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
+        extraction.getId(),
+        repo.getTm().getId(),
+        asset.getId(),
+        null,
+        PollableTask.INJECT_CURRENT_TASK);
+    assetExtractionService.markAssetExtractionAsLastSuccessful(asset, extraction);
+    return tmTextUnitRepository.findByAsset(asset);
+  }
+
+  private void translate(TMTextUnit tu, String localeTag, String translation) {
+    translate(tu, localeTag, translation, TMTextUnitVariant.Status.APPROVED);
+  }
+
+  private void translate(
+      TMTextUnit tu, String localeTag, String translation, TMTextUnitVariant.Status status) {
+    Locale locale = localeService.findByBcp47Tag(localeTag);
+    tmService.addCurrentTMTextUnitVariant(tu.getId(), locale.getId(), translation, status, true);
+  }
+
+  private void runCopyTm(CopyTmConfig config)
+      throws InterruptedException,
+          ExecutionException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+    leveragingService.copyTm(config).get();
+  }
+
+  private List<TMTextUnitVariant> getTranslations(Repository repo) {
+    return tmTextUnitVariantRepository
+        .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(repo, "en");
+  }
+
+  private TMTextUnitVariant getTranslation(TMTextUnit tu, String localeTag) {
+    Locale locale = localeService.findByBcp47Tag(localeTag);
+    TMTextUnitCurrentVariant cv =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            locale.getId(), tu.getId());
+    return cv == null ? null : cv.getTmTextUnitVariant();
+  }
+
+  private Map<String, TMTextUnitVariant> getTranslationsByLocale(Repository repo) {
+    Map<String, TMTextUnitVariant> byLocale = new HashMap<>();
+    for (TMTextUnitVariant v : getTranslations(repo)) {
+      byLocale.put(v.getLocale().getBcp47Tag(), v);
+    }
+    return byLocale;
+  }
+
+  private Map<String, TMTextUnitVariant> getTranslationsByName(Repository repo, Asset asset) {
+    Map<String, TMTextUnitVariant> byName = new HashMap<>();
+    for (TMTextUnitVariant v : getTranslations(repo)) {
+      if (v.getTmTextUnit().getAsset().getId().equals(asset.getId())) {
+        byName.put(v.getTmTextUnit().getName(), v);
+      }
+    }
+    return byName;
+  }
 
   @Test
   public void copyAllTranslationsWithMD5MatchBetweenRepositories()
@@ -763,71 +849,28 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale koKR = localeService.findByBcp47Tag("ko-KR");
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "ko-KR");
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "ko-KR", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(sourceTu.getId(), koKR.getId(), "안녕하세요");
-    tmService.addCurrentTMTextUnitVariant(sourceTu.getId(), frFR.getId(), "Bonjour");
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "ko-KR", "안녕하세요");
+    translate(sourceTu, "fr-FR", "Bonjour");
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "ko-KR");
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "ko-KR", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(targetTu, "ko-KR", "existing ko-KR approved");
 
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        koKR.getId(),
-        "existing ko-KR approved",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.NONE);
+    runCopyTm(config);
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.NONE);
-
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
-                targetRepository, "en");
-
-    Assert.assertEquals(2, targetTranslations.size());
-
-    Map<String, TMTextUnitVariant> byLocale = new HashMap<>();
-    for (TMTextUnitVariant v : targetTranslations) {
-      byLocale.put(v.getLocale().getBcp47Tag(), v);
-    }
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(2, byLocale.size());
 
     Assert.assertEquals(
         "ko-KR should keep existing approved translation",
@@ -850,69 +893,37 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), frFR.getId(), "Bonjour", TMTextUnitVariant.Status.APPROVED, true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour");
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(
+        targetTu,
+        "fr-FR",
         "existing translation needed",
-        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
-        true);
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED);
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.NONE);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.NONE);
+    runCopyTm(config);
 
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
-                targetRepository, "en");
-
-    Assert.assertEquals(1, targetTranslations.size());
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
     Assert.assertEquals(
         "Should keep existing TRANSLATION_NEEDED translation",
         "existing translation needed",
-        targetTranslations.get(0).getContent());
+        translations.get(0).getContent());
     Assert.assertEquals(
-        TMTextUnitVariant.Status.TRANSLATION_NEEDED, targetTranslations.get(0).getStatus());
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED, translations.get(0).getStatus());
   }
 
   @Test
@@ -924,96 +935,47 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-    Locale koKR = localeService.findByBcp47Tag("ko-KR");
-    Locale jaJP = localeService.findByBcp47Tag("ja-JP");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-    repositoryService.addRepositoryLocale(sourceRepository, "ko-KR");
-    repositoryService.addRepositoryLocale(sourceRepository, "ja-JP");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR", "ko-KR", "ja-JP");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), frFR.getId(), "Bonjour", TMTextUnitVariant.Status.APPROVED, true);
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), koKR.getId(), "안녕하세요", TMTextUnitVariant.Status.APPROVED, true);
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), jaJP.getId(), "こんにちは", TMTextUnitVariant.Status.APPROVED, true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour");
+    translate(sourceTu, "ko-KR", "안녕하세요");
+    translate(sourceTu, "ja-JP", "こんにちは");
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-    repositoryService.addRepositoryLocale(targetRepository, "ko-KR");
-    repositoryService.addRepositoryLocale(targetRepository, "ja-JP");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR", "ko-KR", "ja-JP");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(
+        targetTu,
+        "fr-FR",
         "existing translation needed",
-        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
-        true);
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        koKR.getId(),
-        "existing approved ko",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+    translate(targetTu, "ko-KR", "existing approved ko");
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.FOR_TRANSLATION);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.FOR_TRANSLATION);
+    runCopyTm(config);
 
-    leveragingService.copyTm(copyTmConfig).get();
-
-    TMTextUnitCurrentVariant frCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            frFR.getId(), targetTu.getId());
-    TMTextUnitCurrentVariant koCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            koKR.getId(), targetTu.getId());
-    TMTextUnitCurrentVariant jaCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            jaJP.getId(), targetTu.getId());
+    TMTextUnitVariant frTranslation = getTranslation(targetTu, "fr-FR");
+    TMTextUnitVariant koTranslation = getTranslation(targetTu, "ko-KR");
+    TMTextUnitVariant jaTranslation = getTranslation(targetTu, "ja-JP");
 
     Assert.assertEquals(
         "fr-FR should be overwritten because current status is TRANSLATION_NEEDED",
         "Bonjour",
-        frCV.getTmTextUnitVariant().getContent());
-
+        frTranslation.getContent());
     Assert.assertEquals(
         "ko-KR should NOT be overwritten because current status is APPROVED",
         "existing approved ko",
-        koCV.getTmTextUnitVariant().getContent());
-
-    Assert.assertNotNull("ja-JP should be leveraged since it had no translation", jaCV);
-    Assert.assertEquals("こんにちは", jaCV.getTmTextUnitVariant().getContent());
+        koTranslation.getContent());
+    Assert.assertNotNull("ja-JP should be leveraged since it had no translation", jaTranslation);
+    Assert.assertEquals("こんにちは", jaTranslation.getContent());
   }
 
   @Test
@@ -1025,89 +987,43 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-    Locale koKR = localeService.findByBcp47Tag("ko-KR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-    repositoryService.addRepositoryLocale(sourceRepository, "ko-KR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR", "ko-KR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(),
-        frFR.getId(),
-        "Bonjour approved",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), koKR.getId(), "안녕 approved", TMTextUnitVariant.Status.APPROVED, true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour approved");
+    translate(sourceTu, "ko-KR", "안녕 approved");
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-    repositoryService.addRepositoryLocale(targetRepository, "ko-KR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR", "ko-KR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(
+        targetTu,
+        "fr-FR",
         "existing translation needed",
-        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
-        true);
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        koKR.getId(),
-        "existing approved ko",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+    translate(targetTu, "ko-KR", "existing approved ko");
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    runCopyTm(config);
 
-    leveragingService.copyTm(copyTmConfig).get();
-
-    TMTextUnitCurrentVariant frCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            frFR.getId(), targetTu.getId());
-    TMTextUnitCurrentVariant koCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            koKR.getId(), targetTu.getId());
+    TMTextUnitVariant frTranslation = getTranslation(targetTu, "fr-FR");
+    TMTextUnitVariant koTranslation = getTranslation(targetTu, "ko-KR");
 
     Assert.assertEquals(
         "fr-FR should be overwritten because APPROVED > TRANSLATION_NEEDED",
         "Bonjour approved",
-        frCV.getTmTextUnitVariant().getContent());
-
+        frTranslation.getContent());
     Assert.assertEquals(
         "ko-KR should NOT be overwritten because APPROVED is not > APPROVED",
         "existing approved ko",
-        koCV.getTmTextUnitVariant().getContent());
+        koTranslation.getContent());
   }
 
   @Test
@@ -1119,73 +1035,33 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(),
-        frFR.getId(),
-        "Bonjour review",
-        TMTextUnitVariant.Status.REVIEW_NEEDED,
-        true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour review", TMTextUnitVariant.Status.REVIEW_NEEDED);
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(targetTu, "fr-FR", "existing approved");
 
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
-        "existing approved",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    runCopyTm(config);
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
-
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
-                targetRepository, "en");
-
-    Assert.assertEquals(1, targetTranslations.size());
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
     Assert.assertEquals(
         "Should keep existing APPROVED because REVIEW_NEEDED is not higher",
         "existing approved",
-        targetTranslations.get(0).getContent());
-    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, targetTranslations.get(0).getStatus());
+        translations.get(0).getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, translations.get(0).getStatus());
   }
 
   @Test
@@ -1197,89 +1073,39 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-    Locale koKR = localeService.findByBcp47Tag("ko-KR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-    repositoryService.addRepositoryLocale(sourceRepository, "ko-KR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR", "ko-KR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(),
-        frFR.getId(),
-        "Bonjour review",
-        TMTextUnitVariant.Status.REVIEW_NEEDED,
-        true);
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), koKR.getId(), "안녕 review", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour review", TMTextUnitVariant.Status.REVIEW_NEEDED);
+    translate(sourceTu, "ko-KR", "안녕 review", TMTextUnitVariant.Status.REVIEW_NEEDED);
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-    repositoryService.addRepositoryLocale(targetRepository, "ko-KR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR", "ko-KR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(targetTu, "fr-FR", "existing review fr", TMTextUnitVariant.Status.REVIEW_NEEDED);
+    translate(targetTu, "ko-KR", "existing approved ko");
 
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
-        "existing review fr",
-        TMTextUnitVariant.Status.REVIEW_NEEDED,
-        true);
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        koKR.getId(),
-        "existing approved ko",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_OR_EQUAL_STATUS);
+    runCopyTm(config);
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_OR_EQUAL_STATUS);
-
-    leveragingService.copyTm(copyTmConfig).get();
-
-    TMTextUnitCurrentVariant frCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            frFR.getId(), targetTu.getId());
-    TMTextUnitCurrentVariant koCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            koKR.getId(), targetTu.getId());
+    TMTextUnitVariant frTranslation = getTranslation(targetTu, "fr-FR");
+    TMTextUnitVariant koTranslation = getTranslation(targetTu, "ko-KR");
 
     Assert.assertEquals(
         "fr-FR should be overwritten because REVIEW_NEEDED == REVIEW_NEEDED",
         "Bonjour review",
-        frCV.getTmTextUnitVariant().getContent());
-
+        frTranslation.getContent());
     Assert.assertEquals(
         "ko-KR should NOT be overwritten because REVIEW_NEEDED < APPROVED",
         "existing approved ko",
-        koCV.getTmTextUnitVariant().getContent());
+        koTranslation.getContent());
   }
 
   @Test
@@ -1291,71 +1117,37 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(),
-        frFR.getId(),
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(
+        sourceTu,
+        "fr-FR",
         "Bonjour translation needed",
-        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
-        true);
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED);
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(targetTu, "fr-FR", "existing approved");
 
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
-        "existing approved",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.ALL);
+    runCopyTm(config);
 
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.ALL);
+    TMTextUnitVariant frTranslation = getTranslation(targetTu, "fr-FR");
 
-    leveragingService.copyTm(copyTmConfig).get();
-
-    TMTextUnitCurrentVariant frCV =
-        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
-            frFR.getId(), targetTu.getId());
-
-    Assert.assertNotNull("fr-FR should have a current variant", frCV);
+    Assert.assertNotNull("fr-FR should have a translation", frTranslation);
     Assert.assertEquals(
         "Should overwrite even though TRANSLATION_NEEDED < APPROVED",
         "Bonjour translation needed",
-        frCV.getTmTextUnitVariant().getContent());
+        frTranslation.getContent());
   }
 
   @Test
@@ -1367,77 +1159,37 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
     // Source repo has greeting="Hello" with APPROVED translation "Bonjour approved"
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(),
-        frFR.getId(),
-        "Bonjour approved",
-        TMTextUnitVariant.Status.APPROVED,
-        true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour approved");
 
     // Target repo has the same name "greeting" but different content and comment,
     // so it's a name-only match (not MD5). The existing translation is REVIEW_NEEDED.
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
     TMTextUnit targetTu =
-        tmService.addTMTextUnit(
-            targetRepository.getTm().getId(),
-            targetAsset.getId(),
-            "greeting",
-            "Hello updated",
-            "A greeting updated");
-
-    tmService.addCurrentTMTextUnitVariant(
-        targetTu.getId(),
-        frFR.getId(),
-        "existing review needed",
-        TMTextUnitVariant.Status.REVIEW_NEEDED,
-        true);
+        push(targetRepo, targetAsset, tu("greeting", "Hello updated", "A greeting updated")).get(0);
+    translate(targetTu, "fr-FR", "existing review needed", TMTextUnitVariant.Status.REVIEW_NEEDED);
 
     // Leverage by name with PRECISION + HIGHER_STATUS. The candidate's original status
     // (APPROVED) is higher than the target's existing status (REVIEW_NEEDED), so the
     // overwrite should happen. But since it's a name-only match, PRECISION mode downgrades
     // the effective status to TRANSLATION_NEEDED.
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.PRECISION);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.PRECISION);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    runCopyTm(config);
 
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
-                targetRepository, "en");
-
-    Assert.assertEquals(2, targetTranslations.size());
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(2, translations.size());
     TMTextUnitVariant leveraged =
-        targetTranslations.stream()
+        translations.stream()
             .filter(v -> v.getContent().equals("Bonjour approved"))
             .findFirst()
             .orElse(null);
@@ -1460,54 +1212,28 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
-    Repository sourceRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-    repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            sourceRepository.getId(), "fake_for_test", "fake for test");
-
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "fake_for_test");
     TMTextUnit sourceTu =
-        tmService.addTMTextUnit(
-            sourceRepository.getTm().getId(),
-            sourceAsset.getId(),
-            "greeting",
-            "Hello",
-            "A greeting");
-    tmService.addCurrentTMTextUnitVariant(
-        sourceTu.getId(), frFR.getId(), "Bonjour", TMTextUnitVariant.Status.APPROVED, true);
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour");
 
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
-    repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "fake_for_test");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting"));
 
-    Asset targetAsset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.MD5);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    runCopyTm(config);
 
-    tmService.addTMTextUnit(
-        targetRepository.getTm().getId(), targetAsset.getId(), "greeting", "Hello", "A greeting");
-
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
-    copyTmConfig.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
-
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
-                targetRepository, "en");
-
-    Assert.assertEquals(1, targetTranslations.size());
-    Assert.assertEquals("Bonjour", targetTranslations.get(0).getContent());
-    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, targetTranslations.get(0).getStatus());
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour", translations.get(0).getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, translations.get(0).getStatus());
   }
 
   @Test
@@ -1519,36 +1245,19 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    Locale frFR = localeService.findByBcp47Tag("fr-FR");
-
-    Repository repository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-    repositoryService.addRepositoryLocale(repository, "fr-FR");
-
-    Asset sourceAsset =
-        assetService.createAssetWithContent(
-            repository.getId(), "en-US.properties", "fake for test");
+    Repository repo = createRepository("repo", "fr-FR");
+    Asset sourceAsset = createAsset(repo, "en-US.properties");
 
     // Push #1: en-US.properties contains 3 strings:
     //   some.id.one=SOURCE ONE          #comment one
     //   some.id.two=SOURCE TWO          #comment two
     //   some.id.three=SOURCE THREE      #comment three
-    AssetExtraction extraction1 = new AssetExtraction();
-    extraction1.setAsset(sourceAsset);
-    extraction1 = assetExtractionRepository.save(extraction1);
-    assetExtractionService.createAssetTextUnit(
-        extraction1, "some.id.one", "SOURCE ONE", "comment one");
-    assetExtractionService.createAssetTextUnit(
-        extraction1, "some.id.two", "SOURCE TWO", "comment two");
-    assetExtractionService.createAssetTextUnit(
-        extraction1, "some.id.three", "SOURCE THREE", "comment three");
-    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
-        extraction1.getId(),
-        repository.getTm().getId(),
-        sourceAsset.getId(),
-        null,
-        PollableTask.INJECT_CURRENT_TASK);
-    assetExtractionService.markAssetExtractionAsLastSuccessful(sourceAsset, extraction1);
+    push(
+        repo,
+        sourceAsset,
+        tu("some.id.one", "SOURCE ONE", "comment one"),
+        tu("some.id.two", "SOURCE TWO", "comment two"),
+        tu("some.id.three", "SOURCE THREE", "comment three"));
 
     // Translate all 3 strings: TRANSLATION ONE, TRANSLATION TWO, TRANSLATION THREE
     Map<String, String> v1Translations = new HashMap<>();
@@ -1556,12 +1265,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     v1Translations.put("some.id.two", "TRANSLATION TWO");
     v1Translations.put("some.id.three", "TRANSLATION THREE");
     for (TMTextUnit tu : tmTextUnitRepository.findByAsset(sourceAsset)) {
-      tmService.addCurrentTMTextUnitVariant(
-          tu.getId(),
-          frFR.getId(),
-          v1Translations.get(tu.getName()),
-          TMTextUnitVariant.Status.APPROVED,
-          true);
+      translate(tu, "fr-FR", v1Translations.get(tu.getName()));
     }
 
     // Push #2: content changed for some.id.two and some.id.three:
@@ -1570,96 +1274,53 @@ public class LeveragingServiceTest extends ServiceTestBase {
     // UNUSED)
     //   some.id.three=NEW SOURCE THREE  #comment three        (content changed → old TU becomes
     // UNUSED)
-    AssetExtraction extraction2 = new AssetExtraction();
-    extraction2.setAsset(sourceAsset);
-    extraction2 = assetExtractionRepository.save(extraction2);
-    assetExtractionService.createAssetTextUnit(
-        extraction2, "some.id.one", "SOURCE ONE", "comment one");
-    assetExtractionService.createAssetTextUnit(
-        extraction2, "some.id.two", "NEW SOURCE TWO", "comment two");
-    assetExtractionService.createAssetTextUnit(
-        extraction2, "some.id.three", "NEW SOURCE THREE", "comment three");
-    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
-        extraction2.getId(),
-        repository.getTm().getId(),
-        sourceAsset.getId(),
-        null,
-        PollableTask.INJECT_CURRENT_TASK);
-    assetExtractionService.markAssetExtractionAsLastSuccessful(sourceAsset, extraction2);
+    push(
+        repo,
+        sourceAsset,
+        tu("some.id.one", "SOURCE ONE", "comment one"),
+        tu("some.id.two", "NEW SOURCE TWO", "comment two"),
+        tu("some.id.three", "NEW SOURCE THREE", "comment three"));
 
     // Translate the new TUs created by push #2: NEW TRANSLATION TWO, NEW TRANSLATION THREE.
-    // Source leveraging during mapAssetTextUnitAndCreateTMTextUnit already copied v1 translations
-    // onto the new TUs, so we overwrite with the correct v2 translations by matching on content.
+    // Source leveraging during push already copied v1 translations onto the new TUs,
+    // so we overwrite with the correct v2 translations by matching on content.
     Map<String, String> v2Translations = new HashMap<>();
     v2Translations.put("NEW SOURCE TWO", "NEW TRANSLATION TWO");
     v2Translations.put("NEW SOURCE THREE", "NEW TRANSLATION THREE");
     for (TMTextUnit tu : tmTextUnitRepository.findByAsset(sourceAsset)) {
       String v2 = v2Translations.get(tu.getContent());
       if (v2 != null) {
-        tmService.addCurrentTMTextUnitVariant(
-            tu.getId(), frFR.getId(), v2, TMTextUnitVariant.Status.APPROVED, true);
+        translate(tu, "fr-FR", v2);
       }
     }
 
     // Push #3: asset type migration. Empty push on en-US.properties makes ALL its TUs UNUSED.
-    // Simultaneously, new asset (project.xliff) is created in the SAME repo:
+    push(repo, sourceAsset);
+
+    // New asset (project.xliff) pushed in the SAME repo:
     //   some.id.one=SOURCE ONE            #comment one       → exactly as in latest
     // en-US.properties
     //   some.id.two=NEW SOURCE TWO        #comment two       → exactly as in latest
     // en-US.properties
-    //   some.id.three=XLIFF SOURCE THREE  #comment three     → content differs compared to latest
+    //   some.id.three=XLIFF SOURCE THREE  #comment three     → content differs from latest
     // en-US.properties
-    AssetExtraction extraction3 = new AssetExtraction();
-    extraction3.setAsset(sourceAsset);
-    extraction3 = assetExtractionRepository.save(extraction3);
-    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
-        extraction3.getId(),
-        repository.getTm().getId(),
-        sourceAsset.getId(),
-        null,
-        PollableTask.INJECT_CURRENT_TASK);
-    assetExtractionService.markAssetExtractionAsLastSuccessful(sourceAsset, extraction3);
-
-    Asset targetAsset =
-        assetService.createAssetWithContent(repository.getId(), "project.xliff", "fake for test");
-
-    AssetExtraction xliffExtraction = new AssetExtraction();
-    xliffExtraction.setAsset(targetAsset);
-    xliffExtraction = assetExtractionRepository.save(xliffExtraction);
-    assetExtractionService.createAssetTextUnit(
-        xliffExtraction, "some.id.one", "SOURCE ONE", "comment one");
-    assetExtractionService.createAssetTextUnit(
-        xliffExtraction, "some.id.two", "NEW SOURCE TWO", "comment two");
-    assetExtractionService.createAssetTextUnit(
-        xliffExtraction, "some.id.three", "XLIFF SOURCE THREE", "comment three");
-    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
-        xliffExtraction.getId(),
-        repository.getTm().getId(),
-        targetAsset.getId(),
-        null,
-        PollableTask.INJECT_CURRENT_TASK);
-    assetExtractionService.markAssetExtractionAsLastSuccessful(targetAsset, xliffExtraction);
+    Asset targetAsset = createAsset(repo, "project.xliff");
+    push(
+        repo,
+        targetAsset,
+        tu("some.id.one", "SOURCE ONE", "comment one"),
+        tu("some.id.two", "NEW SOURCE TWO", "comment two"),
+        tu("some.id.three", "XLIFF SOURCE THREE", "comment three"));
 
     // Leverage by name within the same repo (source asset → target asset)
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(repository.getId());
-    copyTmConfig.setTargetRepositoryId(repository.getId());
-    copyTmConfig.setTargetAssetId(targetAsset.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(repo.getId());
+    config.setTargetRepositoryId(repo.getId());
+    config.setTargetAssetId(targetAsset.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
 
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(repository, "en");
-
-    Map<String, TMTextUnitVariant> byName = new HashMap<>();
-    for (TMTextUnitVariant v : targetTranslations) {
-      if (v.getTmTextUnit().getAsset().getId().equals(targetAsset.getId())) {
-        byName.put(v.getTmTextUnit().getName(), v);
-      }
-    }
-
+    Map<String, TMTextUnitVariant> byName = getTranslationsByName(repo, targetAsset);
     Assert.assertEquals("All 3 target strings should be leveraged", 3, byName.size());
 
     // some.id.one: unchanged across pushes → should pick TRANSLATION ONE with high confidence
