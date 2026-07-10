@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.service.leveraging;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
@@ -11,6 +13,9 @@ import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
@@ -19,6 +24,7 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Predicate;
@@ -58,6 +64,14 @@ public class LeveragingServiceTest extends ServiceTestBase {
   @Autowired TMService tmService;
 
   @Autowired LocaleService localeService;
+
+  @Autowired AssetExtractionRepository assetExtractionRepository;
+
+  @Autowired AssetExtractionService assetExtractionService;
+
+  @Autowired AssetMappingService assetMappingService;
+
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
   @Test
   public void copyAllTranslationsWithMD5MatchBetweenRepositories()
@@ -1484,5 +1498,174 @@ public class LeveragingServiceTest extends ServiceTestBase {
     Assert.assertEquals(1, targetTranslations.size());
     Assert.assertEquals("Bonjour", targetTranslations.get(0).getContent());
     Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, targetTranslations.get(0).getStatus());
+  }
+
+  @Test
+  public void copyByNamePrefersHigherPrecisionEvenWhenAllUnused()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Locale frFR = localeService.findByBcp47Tag("fr-FR");
+
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    repositoryService.addRepositoryLocale(repository, "fr-FR");
+
+    Asset sourceAsset =
+        assetService.createAssetWithContent(
+            repository.getId(), "en-US.properties", "fake for test");
+
+    // Push #1: en-US.properties contains 3 strings:
+    //   some.id.one=SOURCE ONE          #comment one
+    //   some.id.two=SOURCE TWO          #comment two
+    //   some.id.three=SOURCE THREE      #comment three
+    AssetExtraction extraction1 = new AssetExtraction();
+    extraction1.setAsset(sourceAsset);
+    extraction1 = assetExtractionRepository.save(extraction1);
+    assetExtractionService.createAssetTextUnit(
+        extraction1, "some.id.one", "SOURCE ONE", "comment one");
+    assetExtractionService.createAssetTextUnit(
+        extraction1, "some.id.two", "SOURCE TWO", "comment two");
+    assetExtractionService.createAssetTextUnit(
+        extraction1, "some.id.three", "SOURCE THREE", "comment three");
+    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
+        extraction1.getId(),
+        repository.getTm().getId(),
+        sourceAsset.getId(),
+        null,
+        PollableTask.INJECT_CURRENT_TASK);
+    assetExtractionService.markAssetExtractionAsLastSuccessful(sourceAsset, extraction1);
+
+    // Translate all 3 strings: TRANSLATION ONE, TRANSLATION TWO, TRANSLATION THREE
+    Map<String, String> v1Translations = new HashMap<>();
+    v1Translations.put("some.id.one", "TRANSLATION ONE");
+    v1Translations.put("some.id.two", "TRANSLATION TWO");
+    v1Translations.put("some.id.three", "TRANSLATION THREE");
+    for (TMTextUnit tu : tmTextUnitRepository.findByAsset(sourceAsset)) {
+      tmService.addCurrentTMTextUnitVariant(
+          tu.getId(),
+          frFR.getId(),
+          v1Translations.get(tu.getName()),
+          TMTextUnitVariant.Status.APPROVED,
+          true);
+    }
+
+    // Push #2: content changed for some.id.two and some.id.three:
+    //   some.id.one=SOURCE ONE          #comment one          (unchanged)
+    //   some.id.two=NEW SOURCE TWO      #comment two          (content changed → old TU becomes
+    // UNUSED)
+    //   some.id.three=NEW SOURCE THREE  #comment three        (content changed → old TU becomes
+    // UNUSED)
+    AssetExtraction extraction2 = new AssetExtraction();
+    extraction2.setAsset(sourceAsset);
+    extraction2 = assetExtractionRepository.save(extraction2);
+    assetExtractionService.createAssetTextUnit(
+        extraction2, "some.id.one", "SOURCE ONE", "comment one");
+    assetExtractionService.createAssetTextUnit(
+        extraction2, "some.id.two", "NEW SOURCE TWO", "comment two");
+    assetExtractionService.createAssetTextUnit(
+        extraction2, "some.id.three", "NEW SOURCE THREE", "comment three");
+    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
+        extraction2.getId(),
+        repository.getTm().getId(),
+        sourceAsset.getId(),
+        null,
+        PollableTask.INJECT_CURRENT_TASK);
+    assetExtractionService.markAssetExtractionAsLastSuccessful(sourceAsset, extraction2);
+
+    // Translate the new TUs created by push #2: NEW TRANSLATION TWO, NEW TRANSLATION THREE.
+    // Source leveraging during mapAssetTextUnitAndCreateTMTextUnit already copied v1 translations
+    // onto the new TUs, so we overwrite with the correct v2 translations by matching on content.
+    Map<String, String> v2Translations = new HashMap<>();
+    v2Translations.put("NEW SOURCE TWO", "NEW TRANSLATION TWO");
+    v2Translations.put("NEW SOURCE THREE", "NEW TRANSLATION THREE");
+    for (TMTextUnit tu : tmTextUnitRepository.findByAsset(sourceAsset)) {
+      String v2 = v2Translations.get(tu.getContent());
+      if (v2 != null) {
+        tmService.addCurrentTMTextUnitVariant(
+            tu.getId(), frFR.getId(), v2, TMTextUnitVariant.Status.APPROVED, true);
+      }
+    }
+
+    // Push #3: asset type migration. Empty push on en-US.properties makes ALL its TUs UNUSED.
+    // Simultaneously, new asset (project.xliff) is created in the SAME repo:
+    //   some.id.one=SOURCE ONE            #comment one       → exactly as in latest
+    // en-US.properties
+    //   some.id.two=NEW SOURCE TWO        #comment two       → exactly as in latest
+    // en-US.properties
+    //   some.id.three=XLIFF SOURCE THREE  #comment three     → content differs compared to latest
+    // en-US.properties
+    AssetExtraction extraction3 = new AssetExtraction();
+    extraction3.setAsset(sourceAsset);
+    extraction3 = assetExtractionRepository.save(extraction3);
+    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
+        extraction3.getId(),
+        repository.getTm().getId(),
+        sourceAsset.getId(),
+        null,
+        PollableTask.INJECT_CURRENT_TASK);
+    assetExtractionService.markAssetExtractionAsLastSuccessful(sourceAsset, extraction3);
+
+    Asset targetAsset =
+        assetService.createAssetWithContent(repository.getId(), "project.xliff", "fake for test");
+
+    AssetExtraction xliffExtraction = new AssetExtraction();
+    xliffExtraction.setAsset(targetAsset);
+    xliffExtraction = assetExtractionRepository.save(xliffExtraction);
+    assetExtractionService.createAssetTextUnit(
+        xliffExtraction, "some.id.one", "SOURCE ONE", "comment one");
+    assetExtractionService.createAssetTextUnit(
+        xliffExtraction, "some.id.two", "NEW SOURCE TWO", "comment two");
+    assetExtractionService.createAssetTextUnit(
+        xliffExtraction, "some.id.three", "XLIFF SOURCE THREE", "comment three");
+    assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
+        xliffExtraction.getId(),
+        repository.getTm().getId(),
+        targetAsset.getId(),
+        null,
+        PollableTask.INJECT_CURRENT_TASK);
+    assetExtractionService.markAssetExtractionAsLastSuccessful(targetAsset, xliffExtraction);
+
+    // Leverage by name within the same repo (source asset → target asset)
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(repository.getId());
+    copyTmConfig.setTargetRepositoryId(repository.getId());
+    copyTmConfig.setTargetAssetId(targetAsset.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(repository, "en");
+
+    Map<String, TMTextUnitVariant> byName = new HashMap<>();
+    for (TMTextUnitVariant v : targetTranslations) {
+      if (v.getTmTextUnit().getAsset().getId().equals(targetAsset.getId())) {
+        byName.put(v.getTmTextUnit().getName(), v);
+      }
+    }
+
+    Assert.assertEquals("All 3 target strings should be leveraged", 3, byName.size());
+
+    // some.id.one: unchanged across pushes → should pick TRANSLATION ONE with high confidence
+    Assert.assertEquals("TRANSLATION ONE", byName.get("some.id.one").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byName.get("some.id.one").getStatus());
+
+    // some.id.two: push #2 updated the content, push #3 didn't change it
+    // → should pick NEW TRANSLATION TWO (over older TRANSLATION TWO) with high confidence
+    Assert.assertEquals("NEW TRANSLATION TWO", byName.get("some.id.two").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byName.get("some.id.two").getStatus());
+
+    // some.id.three: push #2 updated the content, push #3 changed it too
+    // → should still pick the newer NEW TRANSLATION THREE (over older TRANSLATION THREE),
+    // but downgrade its status due to low confidence (multiple matches on name-only)
+    Assert.assertEquals("NEW TRANSLATION THREE", byName.get("some.id.three").getContent());
+    Assert.assertEquals(
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED, byName.get("some.id.three").getStatus());
   }
 }
