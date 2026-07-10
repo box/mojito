@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.leveraging;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
@@ -49,13 +48,7 @@ public class LeveragingService {
 
   @Autowired LeveragerByNameForSourceLeveraging leveragerByNameForSourceLeveraging;
 
-  @Autowired LeveragerByMd5 leveragerByMd5;
-
-  @Autowired LeveragerByContent leveragerByContent;
-
-  @Autowired LeveragerByNameAndContent leveragerByNameAndContent;
-
-  @Autowired LeveragerByName leveragerByName;
+  @Autowired CopyTmLeverager copyTmLeverager;
 
   @Autowired RepositoryRepository repositoryRepository;
 
@@ -152,53 +145,13 @@ public class LeveragingService {
 
     filterTextUnitsByNameRegex(textUnitsForCopyTM, copyTmConfig.getNameRegex());
 
-    CopyTmConfig.PreserveStatusMode preserveStatusMode = copyTmConfig.getPreserveStatusMode();
-    CopyTmConfig.OverwriteMode overwriteMode = copyTmConfig.getOverwriteMode();
-
-    if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
-      leveragerByMd5.performLeveragingFor(
-          textUnitsForCopyTM,
-          sourceRepository.getTm().getId(),
-          copyTmConfig.getSourceAssetId(),
-          preserveStatusMode,
-          overwriteMode);
-    } else if (CopyTmConfig.Mode.NAME.equals(copyTmConfig.getMode())) {
-      logger.debug(
-          "First perform leveraging by name and content (to give priority to strings with same content)");
-      leveragerByNameAndContent.performLeveragingFor(
-          textUnitsForCopyTM,
-          sourceRepository.getTm().getId(),
-          copyTmConfig.getSourceAssetId(),
-          preserveStatusMode,
-          overwriteMode);
-
-      logger.debug("Now, perform leveraging only on the name");
-      leveragerByName.performLeveragingFor(
-          textUnitsForCopyTM,
-          sourceRepository.getTm().getId(),
-          copyTmConfig.getSourceAssetId(),
-          preserveStatusMode,
-          overwriteMode);
-    } else if (CopyTmConfig.Mode.EXACT.equals(copyTmConfig.getMode())) {
-      logger.debug(
-          "First perform leveraging by name and content (to give priority to string with same tags");
-      leveragerByNameAndContent.performLeveragingFor(
-          textUnitsForCopyTM,
-          sourceRepository.getTm().getId(),
-          copyTmConfig.getSourceAssetId(),
-          preserveStatusMode,
-          overwriteMode);
-
-      logger.debug("Now, perform leveraging only on the content");
-      leveragerByContent.performLeveragingFor(
-          textUnitsForCopyTM,
-          sourceRepository.getTm().getId(),
-          copyTmConfig.getSourceAssetId(),
-          preserveStatusMode,
-          overwriteMode);
-    } else {
-      throw new UnsupportedOperationException("Unexpected mode " + copyTmConfig.getMode());
-    }
+    copyTmLeverager.performLeveragingFor(
+        textUnitsForCopyTM,
+        sourceRepository.getTm().getId(),
+        copyTmConfig.getSourceAssetId(),
+        copyTmConfig.getMode(),
+        copyTmConfig.getPreserveStatusMode(),
+        copyTmConfig.getOverwriteMode());
   }
 
   void copyTranslationBetweenTextUnits(Map<Long, Long> sourceToTargetTmTextUnitId) {
