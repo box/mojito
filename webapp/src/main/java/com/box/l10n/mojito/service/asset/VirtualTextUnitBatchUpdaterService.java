@@ -13,6 +13,7 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
+import com.box.l10n.mojito.service.leveraging.LeveragingUtils;
 import com.box.l10n.mojito.service.leveraging.SourceLeverager;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
@@ -48,6 +49,8 @@ public class VirtualTextUnitBatchUpdaterService {
   @Autowired AssetExtractionRepository assetExtractionRepository;
 
   @Autowired SourceLeverager sourceLeverager;
+
+  @Autowired LeveragingUtils leveragingUtils;
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
@@ -142,8 +145,8 @@ public class VirtualTextUnitBatchUpdaterService {
       toBeLeveraged.add(entry.getKey());
 
       if (matchByName != null) {
-        new LeveragerByTmTextUnit(matchByName.getTmTextUnitId())
-            .performLeveragingFor(toBeLeveraged, null, null);
+        new LeveragerByTmTextUnit(matchByName.getTmTextUnitId(), leveragingUtils)
+            .performLeveragingFor(toBeLeveraged);
       } else if (matchByContent != null) {
         sourceLeverager.performLeveragingFor(toBeLeveraged);
       }

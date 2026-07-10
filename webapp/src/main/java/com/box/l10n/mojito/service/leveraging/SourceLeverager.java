@@ -1,25 +1,16 @@
 package com.box.l10n.mojito.service.leveraging;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
-import com.box.l10n.mojito.service.tm.TMService;
-import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Handles source leveraging — copying translations from existing text units in the same asset when
@@ -42,11 +33,7 @@ public class SourceLeverager {
 
   static Logger logger = LoggerFactory.getLogger(SourceLeverager.class);
 
-  @Autowired private TextUnitSearcher textUnitSearcher;
-
-  @Autowired private TMService tmService;
-
-  @Autowired private TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
+  @Autowired private LeveragingUtils leveragingUtils;
 
   /**
    * Performs source leveraging for newly created text units. Text units that get leveraged are
@@ -68,7 +55,7 @@ public class SourceLeverager {
 
       boolean translationNeeded = match.translationNeeded || !match.uniqueMatch;
 
-      addLeveragedTranslations(
+      leveragingUtils.addLeveragedTranslations(
           tmTextUnit, match.translations, translationNeeded, match.uniqueMatch, match.type);
     }
   }
@@ -111,7 +98,7 @@ public class SourceLeverager {
   private MatchResult toMatchResult(
       List<TextUnitDTO> candidates, boolean translationNeeded, String type) {
     int sizeBeforeFilter = candidates.size();
-    filterTextUnitDTOWithSameTMTextUnitId(candidates);
+    leveragingUtils.filterTextUnitDTOWithSameTMTextUnitId(candidates);
     boolean uniqueMatch = sizeBeforeFilter == candidates.size();
     return new MatchResult(candidates, translationNeeded, uniqueMatch, type);
   }
@@ -124,7 +111,7 @@ public class SourceLeverager {
     params.setStatusFilter(StatusFilter.TRANSLATED);
     params.setUsedFilter(usedFilter);
     params.setAssetId(assetId);
-    return textUnitSearcher.search(params);
+    return leveragingUtils.getTextUnitSearcher().search(params);
   }
 
   private List<TextUnitDTO> searchByName(TMTextUnit tmTextUnit, Long assetId) {
@@ -133,7 +120,7 @@ public class SourceLeverager {
     params.setStatusFilter(StatusFilter.TRANSLATED);
     params.setUsedFilter(UsedFilter.USED);
     params.setAssetId(assetId);
-    return textUnitSearcher.search(params);
+    return leveragingUtils.getTextUnitSearcher().search(params);
   }
 
   private List<TextUnitDTO> searchByContent(TMTextUnit tmTextUnit, Long assetId) {
@@ -147,62 +134,7 @@ public class SourceLeverager {
     } else {
       params.setPluralFormsExcluded(true);
     }
-    return textUnitSearcher.search(params);
-  }
-
-  /**
-   * Arbitrarily takes the first TMTextUnit ID in the list and filters to only translations from
-   * that TU, for consistency. Most of the time only one TU matches, but when multiple do, we need
-   * all locale translations to come from the same source.
-   */
-  private void filterTextUnitDTOWithSameTMTextUnitId(List<TextUnitDTO> textUnitDTOs) {
-    if (textUnitDTOs.size() <= 1) {
-      return;
-    }
-    Long tmTextUnitIdForLeveraging = textUnitDTOs.get(0).getTmTextUnitId();
-    textUnitDTOs.removeIf(dto -> !Objects.equals(dto.getTmTextUnitId(), tmTextUnitIdForLeveraging));
-  }
-
-  @Transactional
-  void addLeveragedTranslations(
-      TMTextUnit tmTextUnit,
-      List<TextUnitDTO> translations,
-      boolean translationNeeded,
-      boolean uniqueMatch,
-      String type) {
-
-    for (TextUnitDTO translation : translations) {
-      AddTMTextUnitCurrentVariantResult result =
-          tmService.addTMTextUnitCurrentVariantWithResult(
-              tmTextUnit.getId(),
-              translation.getLocaleId(),
-              translation.getTarget(),
-              translation.getTargetComment(),
-              translationNeeded
-                  ? TMTextUnitVariant.Status.TRANSLATION_NEEDED
-                  : translation.getStatus(),
-              translation.isIncludedInLocalizedFile(),
-              null);
-
-      TMTextUnitCurrentVariant currentVariant = result.getTmTextUnitCurrentVariant();
-
-      if (result.isTmTextUnitCurrentVariantUpdated()) {
-        tmTextUnitVariantCommentService.copyComments(
-            translation.getTmTextUnitVariantId(), currentVariant.getTmTextUnitVariant().getId());
-
-        tmTextUnitVariantCommentService.addComment(
-            currentVariant.getTmTextUnitVariant(),
-            TMTextUnitVariantComment.Type.LEVERAGING,
-            TMTextUnitVariantComment.Severity.INFO,
-            type
-                + " - leveraging from tmTextUnitId: "
-                + translation.getTmTextUnitId()
-                + ", tmTextUnitVariantId: "
-                + translation.getTmTextUnitVariantId()
-                + ", unique match: "
-                + uniqueMatch);
-      }
-    }
+    return leveragingUtils.getTextUnitSearcher().search(params);
   }
 
   private record MatchResult(

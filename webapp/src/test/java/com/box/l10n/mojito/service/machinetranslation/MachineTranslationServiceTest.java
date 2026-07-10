@@ -23,7 +23,7 @@ class MachineTranslationServiceTest {
 
   MachineTranslationServiceTest() {
     machineTranslationService =
-        spy(new MachineTranslationService(machineTranslationEngine, new TranslationMerger()));
+        spy(new MachineTranslationService(machineTranslationEngine, new TranslationMerger(), null));
 
     leveragerByContentAndRepositoryMock = mock(LeveragerByContentAndRepository.class);
     when(machineTranslationService.getLeveragerByContentAndRepository(null, null))

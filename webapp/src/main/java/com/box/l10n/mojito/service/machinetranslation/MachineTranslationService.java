@@ -4,6 +4,7 @@ import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentAndRepository;
+import com.box.l10n.mojito.service.leveraging.LeveragingUtils;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,10 +38,15 @@ public class MachineTranslationService {
 
   final TranslationMerger translationMerger;
 
+  final LeveragingUtils leveragingUtils;
+
   public MachineTranslationService(
-      MachineTranslationEngine machineTranslationEngine, TranslationMerger translationMerger) {
+      MachineTranslationEngine machineTranslationEngine,
+      TranslationMerger translationMerger,
+      LeveragingUtils leveragingUtils) {
     this.machineTranslationEngine = machineTranslationEngine;
     this.translationMerger = translationMerger;
+    this.leveragingUtils = leveragingUtils;
   }
 
   @Timed("MachineTranslationService.getTranslations")
@@ -239,7 +245,7 @@ public class MachineTranslationService {
 
   LeveragerByContentAndRepository getLeveragerByContentAndRepository(
       List<Long> repositoryIds, List<String> repositoryNames) {
-    return new LeveragerByContentAndRepository(repositoryIds, repositoryNames);
+    return new LeveragerByContentAndRepository(repositoryIds, repositoryNames, leveragingUtils);
   }
 
   private String getSourceBcp47TagOrDefault(String sourceBcp47Tag) {

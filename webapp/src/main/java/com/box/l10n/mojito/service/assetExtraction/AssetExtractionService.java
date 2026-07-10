@@ -38,6 +38,7 @@ import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
+import com.box.l10n.mojito.service.leveraging.LeveragingUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
@@ -152,6 +153,8 @@ public class AssetExtractionService {
   @Autowired AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
   @Autowired StructuredBlobStorage structuredBlobStorage;
+
+  @Autowired LeveragingUtils leveragingUtils;
 
   @Autowired MultiBranchStateService multiBranchStateService;
 
@@ -801,16 +804,14 @@ public class AssetExtractionService {
     matchesForSourceLeveraging.stream()
         .forEach(
             match -> {
-              LeveragerByTmTextUnit leveragerByTmTextUnit =
-                  new LeveragerByTmTextUnit(match.getMatch().getTmTextUnitId());
               if (match.getSource().getTmTextUnitId() == null) {
                 throw new RuntimeException(
                     "The source must be saved in the database when requesting leveraging");
               }
               TMTextUnit tmTextUnit =
                   tmTextUnitRepository.findById(match.getSource().getTmTextUnitId()).get();
-              leveragerByTmTextUnit.performLeveragingFor(
-                  new ArrayList<>(Arrays.asList(tmTextUnit)), null, null);
+              new LeveragerByTmTextUnit(match.getMatch().getTmTextUnitId(), leveragingUtils)
+                  .performLeveragingFor(new ArrayList<>(Arrays.asList(tmTextUnit)));
             });
   }
 

@@ -5,55 +5,39 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Configurable;
 
 /**
- * Performs leveraging based on the content and repository of the text units.
+ * Searches for leveraging matches based on content across specified repositories. Used by
+ * MachineTranslationService to find existing translations for machine translation candidates.
  *
  * @author garion
  */
-@Configurable
-public class LeveragerByContentAndRepository extends AbstractLeverager {
+public class LeveragerByContentAndRepository {
 
-  /** logger */
-  static Logger logger = LoggerFactory.getLogger(LeveragerByContentAndRepository.class);
+  private final List<Long> repositoryIds;
+  private final List<String> repositoryNames;
+  private final LeveragingUtils leveragingUtils;
 
-  List<Long> repositoryIds;
-  List<String> repositoryNames;
-
-  public LeveragerByContentAndRepository(List<Long> repositoryIds, List<String> repositoryNames) {
+  public LeveragerByContentAndRepository(
+      List<Long> repositoryIds, List<String> repositoryNames, LeveragingUtils leveragingUtils) {
     this.repositoryIds = repositoryIds;
     this.repositoryNames = repositoryNames;
+    this.leveragingUtils = leveragingUtils;
   }
 
-  @Override
   public List<TextUnitDTO> getLeveragingMatches(
       TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
-    logger.debug("Get TextUnitDTOs for leveraging by content and repository");
-
-    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setTmId(sourceTmId);
-    textUnitSearcherParameters.setRepositoryIds(repositoryIds);
-    textUnitSearcherParameters.setRepositoryNames(repositoryNames);
-    textUnitSearcherParameters.setSource(tmTextUnit.getContent());
-    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+    TextUnitSearcherParameters params = new TextUnitSearcherParameters();
+    params.setTmId(sourceTmId);
+    params.setRepositoryIds(repositoryIds);
+    params.setRepositoryNames(repositoryNames);
+    params.setSource(tmTextUnit.getContent());
+    params.setStatusFilter(StatusFilter.TRANSLATED);
     if (tmTextUnit.getPluralForm() != null) {
-      textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
+      params.setPluralFormId(tmTextUnit.getPluralForm().getId());
     } else {
-      textUnitSearcherParameters.setPluralFormsExcluded(true);
+      params.setPluralFormsExcluded(true);
     }
-    return textUnitSearcher.search(textUnitSearcherParameters);
-  }
-
-  @Override
-  public boolean isTranslationNeededIfUniqueMatch() {
-    return true;
-  }
-
-  @Override
-  public String getType() {
-    return "Leverage by content and repository";
+    return leveragingUtils.getTextUnitSearcher().search(params);
   }
 }
