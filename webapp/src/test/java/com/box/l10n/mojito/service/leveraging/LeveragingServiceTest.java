@@ -1852,10 +1852,9 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
     // Asset 1: MD5 match with target, but translated with REVIEW_NEEDED status.
     Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
-    TMTextUnit md5Tu =
-        push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "A greeting")).get(0);
-    translate(md5Tu, "fr-FR", "Bonjour (md5, review needed)",
-        TMTextUnitVariant.Status.REVIEW_NEEDED);
+    TMTextUnit md5Tu = push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(
+        md5Tu, "fr-FR", "Bonjour (md5, review needed)", TMTextUnitVariant.Status.REVIEW_NEEDED);
 
     // Asset 2: name-only match with target (different content), but APPROVED status.
     Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
