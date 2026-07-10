@@ -9,6 +9,7 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
@@ -1327,16 +1328,504 @@ public class LeveragingServiceTest extends ServiceTestBase {
     Assert.assertEquals("TRANSLATION ONE", byName.get("some.id.one").getContent());
     Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byName.get("some.id.one").getStatus());
 
-    // some.id.two: push #2 updated the content, push #3 didn't change it
-    // → should pick NEW TRANSLATION TWO (over older TRANSLATION TWO) with high confidence
+    // some.id.two: push #2 updated the content, push #3 kept name+content+comment identical
+    // → MD5 match with the v2 TU, should pick NEW TRANSLATION TWO (over older TRANSLATION TWO)
     Assert.assertEquals("NEW TRANSLATION TWO", byName.get("some.id.two").getContent());
     Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byName.get("some.id.two").getStatus());
 
     // some.id.three: push #2 updated the content, push #3 changed it too
-    // → should still pick the newer NEW TRANSLATION THREE (over older TRANSLATION THREE),
+    // → should still pick NEW TRANSLATION THREE (more recently translated) over TRANSLATION THREE,
     // but downgrade its status due to low confidence (multiple matches on name-only)
     Assert.assertEquals("NEW TRANSLATION THREE", byName.get("some.id.three").getContent());
     Assert.assertEquals(
         TMTextUnitVariant.Status.TRANSLATION_NEEDED, byName.get("some.id.three").getStatus());
+  }
+
+  @Test
+  public void copyByNamePrefersUsedOverUnused()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+
+    // Asset 1: push with greeting=Hello, then translate. This text unit is USED.
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit usedTu =
+        push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(usedTu, "fr-FR", "Bonjour (used)");
+
+    // Asset 2: same repo, push then empty-push to make it UNUSED.
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit unusedTu =
+        push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(unusedTu, "fr-FR", "Bonjour (unused)");
+    push(sourceRepo, sourceAsset2);
+
+    // Target repo
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Should pick translation from used text unit",
+        "Bonjour (used)",
+        translations.get(0).getContent());
+  }
+
+  @Test
+  public void copyByNamePrefersMostRecentTranslationAligned()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // When TU creation order and translation order are aligned (the typical case),
+    // the more recently created TU also has the more recent translation.
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+
+    // First push: creates TU A (lower ID)
+    push(sourceRepo, sourceAsset, tu("greeting", "Hello", "comment A"));
+    TMTextUnit tuA =
+        tmTextUnitRepository.findByAsset(sourceAsset).stream()
+            .filter(t -> t.getComment().equals("comment A"))
+            .findFirst()
+            .orElseThrow();
+
+    // Second push: creates TU B (higher ID), TU A becomes UNUSED
+    push(sourceRepo, sourceAsset, tu("greeting", "Hello", "comment B"));
+    TMTextUnit tuB =
+        tmTextUnitRepository.findByAsset(sourceAsset).stream()
+            .filter(t -> t.getComment().equals("comment B"))
+            .findFirst()
+            .orElseThrow();
+
+    // Translate in creation order: A first, then B.
+    // Both TU ID and translation timestamp point to B as "newer".
+    translate(tuA, "fr-FR", "translation A (older)");
+    translate(tuB, "fr-FR", "translation B (newer)");
+
+    push(sourceRepo, sourceAsset);
+
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Should pick the more recently translated variant (B)",
+        "translation B (newer)",
+        translations.get(0).getContent());
+  }
+
+  @Test
+  public void copyByNamePrefersMostRecentTranslationDiverged()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // When TU creation order and translation order diverge, the tiebreaker should use
+    // translation recency, not TU creation order. Here TU A is older but has the newer
+    // translation (e.g. a translator re-translated an old string after the new one was
+    // already translated).
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+
+    // First push: creates TU A (lower ID)
+    push(sourceRepo, sourceAsset, tu("greeting", "Hello", "comment A"));
+    TMTextUnit tuA =
+        tmTextUnitRepository.findByAsset(sourceAsset).stream()
+            .filter(t -> t.getComment().equals("comment A"))
+            .findFirst()
+            .orElseThrow();
+
+    // Second push: creates TU B (higher ID), TU A becomes UNUSED
+    push(sourceRepo, sourceAsset, tu("greeting", "Hello", "comment B"));
+    TMTextUnit tuB =
+        tmTextUnitRepository.findByAsset(sourceAsset).stream()
+            .filter(t -> t.getComment().equals("comment B"))
+            .findFirst()
+            .orElseThrow();
+
+    // Translate in REVERSE order: B first, then A.
+    // TU A (older TU) gets the newer translation, TU B (newer TU) has the older translation.
+    translate(tuB, "fr-FR", "translation B (older)");
+    translate(tuA, "fr-FR", "translation A (newer)");
+
+    push(sourceRepo, sourceAsset);
+
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Should pick TU A's translation (more recently translated), not TU B's "
+            + "(proves translation recency is used, not TU creation order)",
+        "translation A (newer)",
+        translations.get(0).getContent());
+  }
+
+  @Test
+  public void copyByNameMatchesMd5WithNoRetranslation()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Source repo has greeting=Hello with comment "A greeting", translated to "Bonjour"
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    TMTextUnit sourceTu =
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour");
+
+    // Target repo has identical text unit (same name, content, comment → MD5 match)
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting"));
+
+    // Even though mode is NAME, an MD5 match should be detected first and the translation
+    // should be leveraged with APPROVED status (no re-translation flag).
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour", translations.get(0).getContent());
+    Assert.assertEquals(
+        "MD5 match should preserve APPROVED status (no re-translation needed)",
+        TMTextUnitVariant.Status.APPROVED,
+        translations.get(0).getStatus());
+
+    TMTextUnitVariantComment comment =
+        tmTextUnitVariantCommentRepository
+            .findAllByTmTextUnitVariant_id(translations.get(0).getId())
+            .get(0);
+    Assert.assertTrue(
+        "Comment should indicate MD5 match level", comment.getContent().contains("MD5"));
+  }
+
+  @Test
+  public void copyByNameFallsBackToNameOnlyWithRetranslation()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Source repo has greeting="Hello world"
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    TMTextUnit sourceTu =
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello world", "comment")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour le monde");
+
+    // Target repo has same name "greeting" but different content "Hello everyone".
+    // Only the name matches — no MD5 or content match.
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello everyone", "different comment"));
+
+    // Should leverage the translation but flag as TRANSLATION_NEEDED since only name matched.
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour le monde", translations.get(0).getContent());
+    Assert.assertEquals(
+        "Name-only match should mark as TRANSLATION_NEEDED",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        translations.get(0).getStatus());
+  }
+
+  @Test
+  public void copyByExactMatchesContentOnly()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Source repo has name "old.key" and content "Hello world"
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    TMTextUnit sourceTu =
+        push(sourceRepo, sourceAsset, tu("old.key", "Hello world", "comment")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour le monde");
+
+    // Target repo has different name "new.key" but same content "Hello world".
+    // In EXACT mode, a content-only match should still leverage.
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("new.key", "Hello world", "different comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.EXACT);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour le monde", translations.get(0).getContent());
+    Assert.assertEquals(
+        "Content-only match should mark as TRANSLATION_NEEDED",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        translations.get(0).getStatus());
+  }
+
+  @Test
+  public void copyByExactPrefersHigherPrecisionEvenWhenAllUnused()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Source has 3 groups of TUs (all UNUSED after empty push), each matching one target
+    // string at a different precision level:
+    //
+    // For target's "key.one":
+    //   key.one=Hello/comment one        → MD5 match (name+content+comment all identical)
+    //   key.one=Hello/comment one alt    → NAME_AND_CONTENT match (same name+content, different
+    // comment)
+    //   other.one=Hello/comment one      → CONTENT_ONLY match (same content, different name)
+    //
+    // For target's "key.two":
+    //   key.two=World/comment two alt    → NAME_AND_CONTENT match (same name+content, different
+    // comment)
+    //   other.two=World/comment two      → CONTENT_ONLY match (same content, different name)
+    //
+    // For target's "key.three":
+    //   other.three=Goodbye/comment three → CONTENT_ONLY match (same content, different name)
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    push(
+        sourceRepo,
+        sourceAsset,
+        tu("key.one", "Hello", "comment one"),
+        tu("key.one", "Hello", "comment one alt"),
+        tu("other.one", "Hello", "comment one"),
+        tu("key.two", "World", "comment two alt"),
+        tu("other.two", "World", "comment two"),
+        tu("other.three", "Goodbye", "comment three"));
+    for (TMTextUnit tu : tmTextUnitRepository.findByAsset(sourceAsset)) {
+      translate(tu, "fr-FR", tu.getName() + "/" + tu.getComment());
+    }
+    push(sourceRepo, sourceAsset);
+
+    // Target has 3 strings, each exercising a different best match level
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(
+        targetRepo,
+        targetAsset,
+        tu("key.one", "Hello", "comment one"),
+        tu("key.two", "World", "comment two"),
+        tu("key.three", "Goodbye", "comment three"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.EXACT);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byName = getTranslationsByName(targetRepo, targetAsset);
+    Assert.assertEquals("All 3 target strings should be leveraged", 3, byName.size());
+
+    // key.one: MD5 match → APPROVED (no re-translation needed)
+    Assert.assertEquals("key.one/comment one", byName.get("key.one").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byName.get("key.one").getStatus());
+
+    // key.two: name+content match (best available) → APPROVED (name+content is high confidence)
+    Assert.assertEquals("key.two/comment two alt", byName.get("key.two").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byName.get("key.two").getStatus());
+
+    // key.three: content-only match (best available) → TRANSLATION_NEEDED
+    Assert.assertEquals("other.three/comment three", byName.get("key.three").getContent());
+    Assert.assertEquals(
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED, byName.get("key.three").getStatus());
+  }
+
+  @Test
+  public void copyByNameMatchLevelBeatsUsedStatus()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+
+    // Asset 1: name-only match with target (same name, different content). USED.
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit usedNameOnly =
+        push(sourceRepo, sourceAsset1, tu("greeting", "Hello world", "comment")).get(0);
+    translate(usedNameOnly, "fr-FR", "name-only used");
+
+    // Asset 2: name+content match with target. Push then empty-push → UNUSED.
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit unusedNameContent =
+        push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "different comment")).get(0);
+    translate(unusedNameContent, "fr-FR", "name+content unused");
+    push(sourceRepo, sourceAsset2);
+
+    // Target has name="greeting", content="Hello" — matches asset2 by name+content,
+    // asset1 by name-only. Even though asset1 is USED and asset2 is UNUSED,
+    // the higher-precision name+content match should win.
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Higher-precision unused name+content match should beat used name-only match",
+        "name+content unused",
+        translations.get(0).getContent());
+  }
+
+  @Test
+  public void copyByExactMatchLevelBeatsUsedStatus()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+
+    // Asset 1: content-only match with target (same content, different name). USED.
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit usedContentOnly =
+        push(sourceRepo, sourceAsset1, tu("old.key", "Hello", "comment")).get(0);
+    translate(usedContentOnly, "fr-FR", "content-only used");
+
+    // Asset 2: name+content match with target. Push then empty-push → UNUSED.
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit unusedNameContent =
+        push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "different comment")).get(0);
+    translate(unusedNameContent, "fr-FR", "name+content unused");
+    push(sourceRepo, sourceAsset2);
+
+    // Target has name="greeting", content="Hello" — matches asset2 by name+content,
+    // asset1 by content-only. Even though asset1 is USED and asset2 is UNUSED,
+    // the higher-precision name+content match should win.
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.EXACT);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Higher-precision unused name+content match should beat used content-only match",
+        "name+content unused",
+        translations.get(0).getContent());
+  }
+
+  @Test
+  public void copyByNameMd5MatchLevelBeatsUsedStatus()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+
+    // Asset 1: name+content match with target (same name+content, different comment). USED.
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit usedNameContent =
+        push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "used comment")).get(0);
+    translate(usedNameContent, "fr-FR", "name+content used");
+
+    // Asset 2: MD5 match with target (name+content+comment all match). Push then empty-push →
+    // UNUSED.
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit unusedMd5 =
+        push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "target comment")).get(0);
+    translate(unusedMd5, "fr-FR", "md5 unused");
+    push(sourceRepo, sourceAsset2);
+
+    // Target has name="greeting", content="Hello", comment="target comment" — matches
+    // asset2 at MD5 level (unused) and asset1 at name+content level (used).
+    // MD5 should win despite being unused.
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Higher-precision unused MD5 match should beat used name+content match",
+        "md5 unused",
+        translations.get(0).getContent());
   }
 }
