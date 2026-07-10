@@ -1369,6 +1369,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
     Locale frFR = localeService.findByBcp47Tag("fr-FR");
 
+    // Source repo has greeting="Hello" with APPROVED translation "Bonjour approved"
     Repository sourceRepository =
         repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
     repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
@@ -1391,6 +1392,8 @@ public class LeveragingServiceTest extends ServiceTestBase {
         TMTextUnitVariant.Status.APPROVED,
         true);
 
+    // Target repo has the same name "greeting" but different content and comment,
+    // so it's a name-only match (not MD5). The existing translation is REVIEW_NEEDED.
     Repository targetRepository =
         repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
     repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
@@ -1404,8 +1407,8 @@ public class LeveragingServiceTest extends ServiceTestBase {
             targetRepository.getTm().getId(),
             targetAsset.getId(),
             "greeting",
-            "Hello",
-            "A greeting");
+            "Hello updated",
+            "A greeting updated");
 
     tmService.addCurrentTMTextUnitVariant(
         targetTu.getId(),
@@ -1414,6 +1417,10 @@ public class LeveragingServiceTest extends ServiceTestBase {
         TMTextUnitVariant.Status.REVIEW_NEEDED,
         true);
 
+    // Leverage by name with PRECISION + HIGHER_STATUS. The candidate's original status
+    // (APPROVED) is higher than the target's existing status (REVIEW_NEEDED), so the
+    // overwrite should happen. But since it's a name-only match, PRECISION mode downgrades
+    // the effective status to TRANSLATION_NEEDED.
     CopyTmConfig copyTmConfig = new CopyTmConfig();
     copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
     copyTmConfig.setTargetRepositoryId(targetRepository.getId());
@@ -1438,7 +1445,10 @@ public class LeveragingServiceTest extends ServiceTestBase {
         "Should overwrite: candidate's original status is APPROVED which is higher than "
             + "existing REVIEW_NEEDED (effective status downgrade does not affect the decision)",
         leveraged);
-    Assert.assertEquals(TMTextUnitVariant.Status.TRANSLATION_NEEDED, leveraged.getStatus());
+    Assert.assertEquals(
+        "Name-only match with PRECISION mode downgrades to TRANSLATION_NEEDED",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        leveraged.getStatus());
   }
 
   @Test
