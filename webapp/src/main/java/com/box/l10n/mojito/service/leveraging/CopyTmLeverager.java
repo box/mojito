@@ -15,6 +15,8 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -227,10 +229,6 @@ public class CopyTmLeverager {
   }
 
   /**
-   * Selects the best TMTextUnit from the candidates at a given match level: used over unused, then
-   * most recently translated.
-   */
-  /**
    * When multiple TMTextUnits match at the same level, picks the best one:
    *
    * <ol>
@@ -262,7 +260,7 @@ public class CopyTmLeverager {
                         .map(TextUnitDTO::getCreatedDate)
                         .filter(Objects::nonNull)
                         .max(Comparator.naturalOrder())
-                        .orElse(ZonedDateTime.now()),
+                        .orElse(ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)),
                 Comparator.reverseOrder());
 
     List<Long> sortedIds = grouped.keySet().stream().sorted(comparator).toList();
