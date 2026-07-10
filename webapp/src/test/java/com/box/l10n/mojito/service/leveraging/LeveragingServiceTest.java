@@ -1828,4 +1828,65 @@ public class LeveragingServiceTest extends ServiceTestBase {
         "md5 unused",
         translations.get(0).getContent());
   }
+
+  @Test
+  public void higherStatusOverwriteDoesNotFallBackToLowerPrecisionMatch()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Precision ranking and overwrite mode are separate concerns:
+    // - Precision ranking decides WHICH source TU best represents the target string
+    // - Overwrite mode decides WHETHER to apply the leveraged translation
+    //
+    // If the highest-precision match is rejected by overwrite mode (e.g. its status is
+    // lower than the existing translation), we should NOT fall back to a lower-precision
+    // match that happens to have higher status. A name-only match could be a completely
+    // wrong translation for different source content — overwriting with it would be worse
+    // than leaving the existing translation alone.
+
+    Repository sourceRepo = createRepository("source", "fr-FR");
+
+    // Asset 1: MD5 match with target, but translated with REVIEW_NEEDED status.
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit md5Tu =
+        push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(md5Tu, "fr-FR", "Bonjour (md5, review needed)",
+        TMTextUnitVariant.Status.REVIEW_NEEDED);
+
+    // Asset 2: name-only match with target (different content), but APPROVED status.
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit nameOnlyTu =
+        push(sourceRepo, sourceAsset2, tu("greeting", "Hello world", "comment")).get(0);
+    translate(nameOnlyTu, "fr-FR", "Bonjour le monde (name-only, approved)");
+
+    // Target already has an APPROVED translation.
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    TMTextUnit targetTu =
+        push(targetRepo, targetAsset, tu("greeting", "Hello", "A greeting")).get(0);
+    translate(targetTu, "fr-FR", "existing approved");
+
+    // Leverage with HIGHER_STATUS: the MD5 match (REVIEW_NEEDED) is the best precision
+    // match, but its status is lower than the existing APPROVED. The leverager should NOT
+    // fall back to the name-only match (which has APPROVED status but wrong content).
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    config.setOverwriteMode(CopyTmConfig.OverwriteMode.HIGHER_STATUS);
+    runCopyTm(config);
+
+    TMTextUnitVariant translation = getTranslation(targetTu, "fr-FR");
+    Assert.assertEquals(
+        "Should keep existing translation — MD5 match rejected by HIGHER_STATUS, "
+            + "must not fall back to lower-precision name-only match",
+        "existing approved",
+        translation.getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, translation.getStatus());
+  }
 }
