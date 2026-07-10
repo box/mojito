@@ -38,7 +38,6 @@ public class LeveragerByNameAndContent extends AbstractLeverager {
     textUnitSearcherParameters.setName(tmTextUnit.getName());
     textUnitSearcherParameters.setSource(tmTextUnit.getContent());
     textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
-    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
 
     return textUnitSearcher.search(textUnitSearcherParameters);
   }
