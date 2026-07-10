@@ -23,7 +23,6 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitDTO;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
-import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -76,8 +75,6 @@ public class VirtualAssetService {
   @Autowired AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
   @Autowired AssetExtractionRepository assetExtractionRepository;
-
-  @Autowired LeveragerByContentForSourceLeveraging leveragerByContentForSourceLeveraging;
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 

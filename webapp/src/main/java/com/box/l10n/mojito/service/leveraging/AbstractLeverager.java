@@ -5,34 +5,31 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.OverwriteMode;
-import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
-import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
-import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Abstract class that performs leveraging. See {@link
- * AssetMappingService#performSourceLeveraging(java.util.List) }, for an explanation on leveraging
- * usage.
+ * Base class for simple leveraging strategies that match on a single criterion (e.g. by TmTextUnit
+ * ID, or by content+repository). Subclasses implement {@link #getLeveragingMatches} to define the
+ * search and {@link #isTranslationNeededIfUniqueMatch} to control status.
+ *
+ * <p>Used by {@link LeveragerByTmTextUnit} and {@link LeveragerByContentAndRepository}. Source
+ * leveraging and copyTm leveraging have their own dedicated classes ({@link SourceLeverager},
+ * {@link CopyTmLeverager}).
  *
  * @author jaurambault
  */
 public abstract class AbstractLeverager {
 
-  /** logger */
   static Logger logger = LoggerFactory.getLogger(AbstractLeverager.class);
 
   @Autowired protected TextUnitSearcher textUnitSearcher;
@@ -41,157 +38,68 @@ public abstract class AbstractLeverager {
 
   @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
 
-  @Autowired TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
-
   /**
-   * Gets {@link TextUnitDTO}s that matches the {@link TMTextUnit} based on different criteria
-   * defined by the implementing class.
-   *
-   * <p>Those matches potentially contain entries for all locales and there might be multiple
-   * results per locale (don't assume uniqueness in that case). The results can then be filter using
-   * {@link AbstractLeverager#filterTextUnitDTOWithSameTMTextUnitId(java.util.List) }.
+   * Gets {@link TextUnitDTO}s that match the {@link TMTextUnit} based on criteria defined by the
+   * implementing class.
    *
    * @param tmTextUnit the {@link TMTextUnit}
-   * @param sourceTmId the {@link TM#id} of TM to use to look for matches into (can be null)
-   * @param sourceAssetId the {@link Asset#id} to use to look for matches into (can be null)
+   * @param sourceTmId the {@link TM#id} of TM to look for matches in (can be null)
+   * @param sourceAssetId the Asset ID to look for matches in (can be null)
    * @return a list of {@link TextUnitDTO}s for leveraging
    */
   public abstract List<TextUnitDTO> getLeveragingMatches(
       TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId);
 
   /**
-   * Indicates if the translations must be re-translated regardless of if there is a unique match
-   * for leveraging or not.
-   *
-   * @return {@code true} if the translation must be translated else {@code false}
+   * Indicates if the translations must be flagged for re-translation regardless of whether the
+   * match is unique.
    */
   public abstract boolean isTranslationNeededIfUniqueMatch();
 
-  /**
-   * A string representation of the leveraging type.
-   *
-   * @return the leveraging type
-   */
   public abstract String getType();
 
   /**
-   * Performs leveraging for a list of {@link TMTextUnit}s.
+   * Performs leveraging for a list of {@link TMTextUnit}s. For each text unit, searches for
+   * matches, filters to a single source TMTextUnit, and copies translations. Text units that get
+   * leveraged are removed from the list.
    *
-   * <p>This process gets a list of candidate translations to be copied over for each {@link
-   * TMTextUnit}. If there are candidate translations, first filter them to make sure the copied
-   * translations will come from a unique {@link TMTextUnit}s and then copies them. The TMTextUnits
-   * for which translations were added are removed from the list to prevent further processing.
-   *
-   * @param tmTextUnits mutable list of {@link TMTextUnit}s that needs to be processed. {@link
-   *     TMTextUnit}s for which leveraged translations were found are removed from the list to
-   *     prevent further processing.
-   * @param sourceTmId the {@link TM#id} of TM to use to look for matches into (can be null)
-   * @param assetId
+   * <p>Always overwrites existing translations (no status checks) — this is appropriate for the
+   * remaining subclasses which leverage into newly created or explicitly targeted text units.
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
-    performLeveragingFor(
-        tmTextUnits, sourceTmId, assetId, PreserveStatusMode.PRECISION, OverwriteMode.ALL);
-  }
 
-  public void performLeveragingFor(
-      List<TMTextUnit> tmTextUnits,
-      Long sourceTmId,
-      Long assetId,
-      PreserveStatusMode preserveStatusMode,
-      OverwriteMode overwriteMode) {
+    logger.debug("Perform leveraging: {}", getType());
 
-    logger.debug(
-        "Perform leveraging: {}, preserveStatusMode: {}, overwriteMode: {}",
-        getType(),
-        preserveStatusMode,
-        overwriteMode);
+    for (Iterator<TMTextUnit> it = tmTextUnits.iterator(); it.hasNext(); ) {
+      TMTextUnit tmTextUnit = it.next();
 
-    for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
-        tmTextUnitsIterator.hasNext(); ) {
+      List<TextUnitDTO> candidates = getLeveragingMatches(tmTextUnit, sourceTmId, assetId);
 
-      TMTextUnit tmTextUnit = tmTextUnitsIterator.next();
-
-      logger.debug(
-          "Get list of TextUnitDTOs (contains translations to be copied) for name: {}",
-          tmTextUnit.getName());
-      List<TextUnitDTO> textUnitDTOsForLeveraging =
-          getLeveragingMatches(tmTextUnit, sourceTmId, assetId);
-
-      if (!textUnitDTOsForLeveraging.isEmpty()) {
-
-        logger.debug(
-            "Match found for this TMTextUnit with name: {}, remove from the list of TMTextUnit that needs leveraging",
-            tmTextUnit.getName());
-        tmTextUnitsIterator.remove();
-
-        logger.debug("Filters the translations and check for uniqueness of the matches");
-        int textUnitDTOsForLeveragingSize = textUnitDTOsForLeveraging.size();
-        filterTextUnitDTOWithSameTMTextUnitId(textUnitDTOsForLeveraging);
-        boolean uniqueTMTextUnitMatched =
-            textUnitDTOsForLeveragingSize == textUnitDTOsForLeveraging.size();
-
-        logger.debug("Determine if re-translation is needed for the strings that will be copied");
-        boolean translationNeeded =
-            computeTranslationNeeded(preserveStatusMode, uniqueTMTextUnitMatched);
-
-        addLeveragedTranslations(
-            tmTextUnit,
-            textUnitDTOsForLeveraging,
-            translationNeeded,
-            uniqueTMTextUnitMatched,
-            overwriteMode);
-      } else {
-        logger.debug("No Match found for this TMTextUnit with name: {}", tmTextUnit.getName());
+      if (candidates.isEmpty()) {
+        continue;
       }
+
+      it.remove();
+
+      int sizeBeforeFilter = candidates.size();
+      filterTextUnitDTOWithSameTMTextUnitId(candidates);
+      boolean uniqueMatch = sizeBeforeFilter == candidates.size();
+
+      boolean translationNeeded = isTranslationNeededIfUniqueMatch() || !uniqueMatch;
+
+      addLeveragedTranslations(tmTextUnit, candidates, translationNeeded, uniqueMatch);
     }
   }
 
-  boolean computeTranslationNeeded(
-      PreserveStatusMode preserveStatusMode, boolean uniqueTMTextUnitMatched) {
-    return switch (preserveStatusMode) {
-      case ALL -> false;
-      case UNIQUE -> !uniqueTMTextUnitMatched;
-      case PRECISION -> isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
-    };
-  }
-
-  /**
-   * Adds translations (potentially to be re-translated) into the {@link TMTextUnit}.
-   *
-   * @param tmTextUnit that will receive leveraged translations (if any matches)
-   * @param translations the translations to be copied over
-   * @param translationNeeded {@code true} if the translation needs to be send for translation
-   * @param uniqueTMTextUnitMatched {@link true} if there was a unique {@link TMTextUnit} match when
-   *     getting the translations. if {@code false} it could indicate that wrong translations were
-   *     picked up as it chooses arbitrarily the one to use for leveraging.
-   */
   @Transactional
   private void addLeveragedTranslations(
       TMTextUnit tmTextUnit,
       List<TextUnitDTO> translations,
       boolean translationNeeded,
-      boolean uniqueTMTextUnitMatched,
-      OverwriteMode overwriteMode) {
-
-    logger.debug("Add leveraged translations in tmTextUnit, id: {}", tmTextUnit.getId());
-
-    Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId =
-        buildCurrentStatusByLocaleId(tmTextUnit, overwriteMode);
+      boolean uniqueMatch) {
 
     for (TextUnitDTO translation : translations) {
-      if (!shouldLeverageLocale(
-          currentStatusByLocaleId,
-          translation.getLocaleId(),
-          translation.getStatus(),
-          overwriteMode)) {
-        logger.debug(
-            "Skipping locale {} for tmTextUnit {} due to status overwrite mode",
-            translation.getLocaleId(),
-            tmTextUnit.getId());
-        continue;
-      }
-
-      AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult =
+      AddTMTextUnitCurrentVariantResult result =
           tmService.addTMTextUnitCurrentVariantWithResult(
               tmTextUnit.getId(),
               translation.getLocaleId(),
@@ -203,101 +111,36 @@ public abstract class AbstractLeverager {
               translation.isIncludedInLocalizedFile(),
               null);
 
-      TMTextUnitCurrentVariant addTMTextUnitCurrentVariant =
-          addTMTextUnitCurrentVariantWithResult.getTmTextUnitCurrentVariant();
+      TMTextUnitCurrentVariant currentVariant = result.getTmTextUnitCurrentVariant();
 
-      if (addTMTextUnitCurrentVariantWithResult.isTmTextUnitCurrentVariantUpdated()) {
-        logger.debug(
-            "Changed were made to the TmTextUnitCurrentVariant, copy comments and add the leveraging info");
+      if (result.isTmTextUnitCurrentVariantUpdated()) {
         tmTextUnitVariantCommentService.copyComments(
-            translation.getTmTextUnitVariantId(),
-            addTMTextUnitCurrentVariant.getTmTextUnitVariant().getId());
+            translation.getTmTextUnitVariantId(), currentVariant.getTmTextUnitVariant().getId());
 
         tmTextUnitVariantCommentService.addComment(
-            addTMTextUnitCurrentVariant.getTmTextUnitVariant(),
+            currentVariant.getTmTextUnitVariant(),
             TMTextUnitVariantComment.Type.LEVERAGING,
             TMTextUnitVariantComment.Severity.INFO,
-            getLeverageComment(translation, uniqueTMTextUnitMatched));
+            getType()
+                + " - leveraging from tmTextUnitId: "
+                + translation.getTmTextUnitId()
+                + ", tmTextUnitVariantId: "
+                + translation.getTmTextUnitVariantId()
+                + ", unique match: "
+                + uniqueMatch);
       }
-
-      logger.debug("Added leveraged translation, id: {}", addTMTextUnitCurrentVariant.getId());
     }
-  }
-
-  private Map<Long, TMTextUnitVariant.Status> buildCurrentStatusByLocaleId(
-      TMTextUnit tmTextUnit, OverwriteMode overwriteMode) {
-    if (overwriteMode == OverwriteMode.ALL) {
-      return Map.of();
-    }
-    return tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
-        .collect(
-            Collectors.toMap(
-                cv -> cv.getLocale().getId(),
-                cv -> cv.getTmTextUnitVariant().getStatus(),
-                (s1, s2) -> s1));
-  }
-
-  private boolean shouldLeverageLocale(
-      Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
-      Long localeId,
-      TMTextUnitVariant.Status candidateStatus,
-      OverwriteMode overwriteMode) {
-    TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
-    return switch (overwriteMode) {
-      case NONE -> currentStatus == null;
-      case FOR_TRANSLATION ->
-          currentStatus == null || currentStatus == TMTextUnitVariant.Status.TRANSLATION_NEEDED;
-      case HIGHER_STATUS -> currentStatus == null || candidateStatus.isHigherThan(currentStatus);
-      case HIGHER_OR_EQUAL_STATUS ->
-          currentStatus == null || candidateStatus.isHigherOrEqualTo(currentStatus);
-      case ALL -> true;
-    };
-  }
-
-  private String getLeverageComment(TextUnitDTO translation, boolean uniqueTMTextUnitMatched) {
-    return getType()
-        + " - leveraging from tmTextUnitId: "
-        + translation.getTmTextUnitId()
-        + ", tmTextUnitVariantId: "
-        + translation.getTmTextUnitVariantId()
-        + ", unique match: "
-        + uniqueTMTextUnitMatched;
   }
 
   /**
-   * Arbitrarily take the first TMTextUnit id in the list and filters the {@link TextUnitDTO} list
-   * by this id.
-   *
-   * <p>For consistency we want to use translations that come only from a single TMTextUnit. Most of
-   * the time the dataset will contain translation only from a single TMTextUnit but it is not
-   * mandatory.
-   *
-   * @param textUnitDTOs list of {@link TextUnitDTO}s that needs to be filtered
+   * Arbitrarily takes the first TMTextUnit ID in the list and filters to only translations from
+   * that TU, for consistency.
    */
   protected void filterTextUnitDTOWithSameTMTextUnitId(List<TextUnitDTO> textUnitDTOs) {
-
-    logger.debug("Filter the TextUnitDTOs that have the same TMTextUnit id");
-
-    if (!textUnitDTOs.isEmpty()) {
-      logger.debug(
-          "Take arbitrarily the first TMTextUnit id as the one that will be used to perform leveraging");
-      Long tmTextUnitIdForLeveraging = textUnitDTOs.get(0).getTmTextUnitId();
-
-      for (Iterator<TextUnitDTO> iterator = textUnitDTOs.iterator(); iterator.hasNext(); ) {
-
-        TextUnitDTO textUnitDTO = iterator.next();
-
-        if (textUnitDTO.getTmTextUnitId().equals(tmTextUnitIdForLeveraging)) {
-          logger.debug(
-              "This translation comes from the same TMTextUnit: {}, keep it",
-              textUnitDTO.getTmTextUnitId());
-        } else {
-          logger.debug(
-              "This translation comes from another TMTextUnit: {}, for consistency skip it.",
-              textUnitDTO.getTmTextUnitId());
-          iterator.remove();
-        }
-      }
+    if (textUnitDTOs.size() <= 1) {
+      return;
     }
+    Long tmTextUnitIdForLeveraging = textUnitDTOs.get(0).getTmTextUnitId();
+    textUnitDTOs.removeIf(dto -> !dto.getTmTextUnitId().equals(tmTextUnitIdForLeveraging));
   }
 }
