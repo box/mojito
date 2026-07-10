@@ -6,7 +6,6 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
