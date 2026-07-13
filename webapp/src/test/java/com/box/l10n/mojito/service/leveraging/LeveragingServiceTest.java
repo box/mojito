@@ -2001,4 +2001,159 @@ public class LeveragingServiceTest extends ServiceTestBase {
         TMTextUnitVariant.Status.APPROVED,
         translations.get(0).getStatus());
   }
+
+  @Test
+  public void copyByNamePicksMostRecentTranslationPerLocale()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Per-locale tiebreaker hierarchy: used > status > recency.
+    // This test: both TUs are USED, both have APPROVED status for all locales (tie on #1
+    // and #2), but each has the more recently translated variant for a different locale.
+    //   TU A: fr-FR translated second (newer), de-DE translated first (older)
+    //   TU B: fr-FR translated first (older), de-DE translated second (newer)
+    //   Expected: fr-FR from TU A (recency), de-DE from TU B (recency)
+
+    Repository sourceRepo = createRepository("source", "fr-FR", "de-DE");
+
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit tuA = push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "comment A")).get(0);
+
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit tuB = push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "comment B")).get(0);
+
+    // Interleave translations so each TU wins recency for a different locale
+    translate(tuB, "fr-FR", "Bonjour (B, older)");
+    translate(tuA, "de-DE", "Hallo (A, older)");
+    translate(tuA, "fr-FR", "Bonjour (A, newer)");
+    translate(tuB, "de-DE", "Hallo (B, newer)");
+
+    Repository targetRepo = createRepository("target", "fr-FR", "de-DE");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(2, byLocale.size());
+
+    Assert.assertEquals(
+        "fr-FR should pick TU A's translation (more recently translated for this locale)",
+        "Bonjour (A, newer)",
+        byLocale.get("fr-FR").getContent());
+    Assert.assertEquals(
+        "de-DE should pick TU B's translation (more recently translated for this locale)",
+        "Hallo (B, newer)",
+        byLocale.get("de-DE").getContent());
+  }
+
+  @Test
+  public void copyByNamePicksTranslationsFromDifferentTUsWhenEachCoversADifferentLocale()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Per-locale selection considers each locale independently. If TU A only has fr-FR
+    // and TU B only has de-DE, both should be leveraged — a locale that's missing on the
+    // "winning" TU should not block leveraging from another TU that has it.
+
+    Repository sourceRepo = createRepository("source", "fr-FR", "de-DE");
+
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit tuA = push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "comment A")).get(0);
+    translate(tuA, "fr-FR", "Bonjour (from A)");
+
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit tuB = push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "comment B")).get(0);
+    translate(tuB, "de-DE", "Hallo (from B)");
+
+    Repository targetRepo = createRepository("target", "fr-FR", "de-DE");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(
+        "Both locales should be leveraged from different source TUs", 2, byLocale.size());
+    Assert.assertEquals(
+        "fr-FR should come from TU A (the only one with fr-FR)",
+        "Bonjour (from A)",
+        byLocale.get("fr-FR").getContent());
+    Assert.assertEquals(
+        "de-DE should come from TU B (the only one with de-DE)",
+        "Hallo (from B)",
+        byLocale.get("de-DE").getContent());
+  }
+
+  @Test
+  public void copyByNameUsedWinsPerLocaleThenGapsFilledFromUnused()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Per-locale tiebreaker: used > status > recency.
+    // TU A (USED): has fr-FR and de-DE translations
+    // TU B (UNUSED): has fr-FR, de-DE, and ja-JP translations
+    //
+    // For fr-FR and de-DE: TU A should win (USED beats UNUSED).
+    // For ja-JP: only TU B has it — should be leveraged despite TU B being UNUSED.
+
+    Repository sourceRepo = createRepository("source", "fr-FR", "de-DE", "ja-JP");
+
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit usedTu = push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "comment A")).get(0);
+    translate(usedTu, "fr-FR", "Bonjour (used)");
+    translate(usedTu, "de-DE", "Hallo (used)");
+
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit unusedTu =
+        push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "comment B")).get(0);
+    translate(unusedTu, "fr-FR", "Bonjour (unused)");
+    translate(unusedTu, "de-DE", "Hallo (unused)");
+    translate(unusedTu, "ja-JP", "Konnichiwa (unused)");
+    push(sourceRepo, sourceAsset2);
+
+    Repository targetRepo = createRepository("target", "fr-FR", "de-DE", "ja-JP");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals("All 3 locales should be leveraged", 3, byLocale.size());
+    Assert.assertEquals(
+        "fr-FR should come from USED TU A", "Bonjour (used)", byLocale.get("fr-FR").getContent());
+    Assert.assertEquals(
+        "de-DE should come from USED TU A", "Hallo (used)", byLocale.get("de-DE").getContent());
+    Assert.assertEquals(
+        "ja-JP should be filled from UNUSED TU B (only source with ja-JP)",
+        "Konnichiwa (unused)",
+        byLocale.get("ja-JP").getContent());
+  }
 }

@@ -15,16 +15,12 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +29,21 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Handles leveraging for the copyTm (target leveraging) flow. Replaces the previous approach of
- * chaining multiple AbstractLeverager subclasses.
+ * Handles leveraging for the copyTm (target leveraging) flow.
  *
- * <p>For each target TMTextUnit, queries are tried in descending precision order (MD5 first, then
- * name, then content) and the first level that yields results is used. Within that level, the best
- * TMTextUnit is selected by: used over unused, then most recently translated.
+ * <p>For each target TMTextUnit, the leveraging pipeline:
+ *
+ * <ol>
+ *   <li>Finds candidates for leveraging with the best possible precision (MD5 > name+content >
+ *       name-only/content-only)
+ *   <li>Determines effective status based on match precision and candidate TU uniqueness
+ *       (overridden by preserve status mode)
+ *   <li>Selects best available translation candidate per locale (tiebreaking by TU in-use status
+ *       and each translation's recency)
+ *   <li>Filters selected translation candidates comparing their statuses against existing
+ *       translation (overridden by overwrite mode)
+ *   <li>Writes the leveraged translations to DB
+ * </ol>
  *
  * @author wwawrzenczak
  */
@@ -73,40 +78,116 @@ public class CopyTmLeverager {
     for (Iterator<TMTextUnit> it = tmTextUnits.iterator(); it.hasNext(); ) {
       TMTextUnit tmTextUnit = it.next();
 
+      boolean didLeverage =
+          leverageUnit(
+              tmTextUnit, sourceTmId, sourceAssetId, mode, preserveStatusMode, overwriteMode);
+
+      if (didLeverage) {
+        it.remove();
+      }
+    }
+  }
+
+  @Transactional
+  private boolean leverageUnit(
+      TMTextUnit tmTextUnit,
+      Long sourceTmId,
+      Long sourceAssetId,
+      CopyTmConfig.Mode mode,
+      PreserveStatusMode preserveStatusMode,
+      OverwriteMode overwriteMode) {
+
+    logger.debug(
+        "Looking for leveraging candidates for TMTextUnit id: {}, name: {}",
+        tmTextUnit.getId(),
+        tmTextUnit.getName());
+
+    // Find candidates
+    MatchedCandidates matched = findBestMatchLevel(tmTextUnit, sourceTmId, sourceAssetId, mode);
+
+    if (matched.candidates.isEmpty()) {
       logger.debug(
-          "Looking for leveraging candidates for TMTextUnit id: {}, name: {}",
+          "No candidates found for TMTextUnit id: {}, name: {}",
           tmTextUnit.getId(),
           tmTextUnit.getName());
-
-      Optional<MatchedCandidates> matched =
-          findBestMatchLevel(tmTextUnit, sourceTmId, sourceAssetId, mode);
-
-      if (matched.isEmpty()) {
-        logger.debug("No candidates found for TMTextUnit name: {}", tmTextUnit.getName());
-        continue;
-      }
-
-      SelectionResult selection = selectBest(matched.get());
-
-      it.remove();
-
-      boolean translationNeeded =
-          computeCopyTmTranslationNeeded(
-              preserveStatusMode, selection.matchLevel, selection.uniqueMatch);
-
-      logger.debug(
-          "Leveraging TMTextUnit id: {} from tmTextUnitId: {}, matchLevel: {}, "
-              + "candidates: {}, tiebreaker: {}, translationNeeded: {}",
-          tmTextUnit.getId(),
-          selection.translations.get(0).getTmTextUnitId(),
-          selection.matchLevel,
-          selection.candidateCount,
-          selection.tiebreaker,
-          translationNeeded);
-
-      addLeveragedTranslations(
-          tmTextUnit, selection, translationNeeded, preserveStatusMode, overwriteMode);
+      return false;
     }
+
+    // Compute status based on match precision, uniqueness and preserve status mode
+    int candidateCount =
+        (int) matched.candidates.stream().map(TextUnitDTO::getTmTextUnitId).distinct().count();
+    boolean uniqueMatch = candidateCount == 1;
+    boolean translationNeeded =
+        computeTranslationNeeded(preserveStatusMode, matched.level, uniqueMatch);
+
+    List<LeveragingDecision> decisions = new ArrayList<>();
+
+    // Select best translation per locale, compute effective status and leveraging comment
+    Map<Long, List<TextUnitDTO>> byLocale =
+        matched.candidates.stream().collect(Collectors.groupingBy(TextUnitDTO::getLocaleId));
+
+    for (var entry : byLocale.entrySet()) {
+      SelectedTranslation selected = selectBest(entry.getValue());
+      TextUnitDTO translation = selected.translation;
+
+      TMTextUnitVariant.Status effectiveStatus =
+          translationNeeded ? TMTextUnitVariant.Status.TRANSLATION_NEEDED : translation.getStatus();
+
+      String comment =
+          buildLeverageComment(
+              translation,
+              matched.level,
+              candidateCount,
+              uniqueMatch,
+              selected.tiebreaker,
+              translationNeeded,
+              preserveStatusMode);
+
+      decisions.add(new LeveragingDecision(translation, effectiveStatus, comment));
+    }
+
+    // Filter by overwrite mode
+    if (overwriteMode != OverwriteMode.ALL) {
+      Map<Long, TMTextUnitVariant.Status> currentStatuses =
+          tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
+              .collect(
+                  Collectors.toMap(
+                      cv -> cv.getLocale().getId(),
+                      cv -> cv.getTmTextUnitVariant().getStatus(),
+                      (s1, s2) -> s1));
+
+      decisions.removeIf(
+          decision -> {
+            TMTextUnitVariant.Status current =
+                currentStatuses.get(decision.translation.getLocaleId());
+            if (current == null) {
+              return false;
+            }
+            TMTextUnitVariant.Status candidateStatus = decision.translation.getStatus();
+            boolean blocked =
+                switch (overwriteMode) {
+                  case NONE -> true;
+                  case FOR_TRANSLATION -> current != TMTextUnitVariant.Status.TRANSLATION_NEEDED;
+                  case HIGHER_STATUS -> !candidateStatus.isHigherThan(current);
+                  case HIGHER_OR_EQUAL_STATUS -> !candidateStatus.isHigherOrEqualTo(current);
+                  case ALL -> false;
+                };
+            if (blocked) {
+              logger.debug(
+                  "Skipping locale {} for tmTextUnit {} due to overwrite mode {}",
+                  decision.translation.getLocaleId(),
+                  tmTextUnit.getId(),
+                  overwriteMode);
+            }
+            return blocked;
+          });
+    }
+
+    for (LeveragingDecision decision : decisions) {
+      writeLeveragedTranslation(tmTextUnit, decision);
+    }
+
+    return true;
   }
 
   /**
@@ -116,81 +197,45 @@ public class CopyTmLeverager {
    * <p>MD5 matching uses the DB's MD5 field so the classification stays correct if the MD5
    * computation changes. Lower levels are classified by comparing individual fields in memory.
    */
-  Optional<MatchedCandidates> findBestMatchLevel(
+  MatchedCandidates findBestMatchLevel(
       TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId, CopyTmConfig.Mode mode) {
 
-    // Each mode defines which match levels to try, from highest to lowest precision.
-    // MD5 mode: only exact MD5 matches.
-    // NAME mode: MD5 → name+content (comment changed) → name-only (source text changed).
-    // EXACT mode: MD5 → name+content → content-only (key renamed but source text identical).
-    List<MatchLevel> levels =
-        switch (mode) {
-          case MD5 -> List.of(MatchLevel.MD5);
-          case NAME -> List.of(MatchLevel.MD5, MatchLevel.NAME_AND_CONTENT, MatchLevel.NAME_ONLY);
-          case EXACT ->
-              List.of(MatchLevel.MD5, MatchLevel.NAME_AND_CONTENT, MatchLevel.CONTENT_ONLY);
-          default -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
-        };
-
-    // NAME_AND_CONTENT and NAME_ONLY both come from a name-based search, so we cache the
-    // results to avoid querying twice.
-    List<TextUnitDTO> byNameResults = null;
-
-    for (MatchLevel level : levels) {
-      List<TextUnitDTO> candidates;
-      switch (level) {
-        case MD5 -> {
-          candidates = searchByMd5(tmTextUnit, sourceTmId, sourceAssetId);
-        }
-        case NAME_AND_CONTENT, NAME_ONLY -> {
-          if (byNameResults == null) {
-            byNameResults = searchByName(tmTextUnit, sourceTmId, sourceAssetId);
-            logger.debug(
-                "Name search for '{}' returned {} results",
-                tmTextUnit.getName(),
-                byNameResults.size());
-          }
-          candidates =
-              byNameResults.stream().filter(dto -> matchesLevel(dto, tmTextUnit, level)).toList();
-        }
-        case CONTENT_ONLY -> {
-          candidates =
-              searchByContent(tmTextUnit, sourceTmId, sourceAssetId).stream()
-                  .filter(dto -> matchesLevel(dto, tmTextUnit, level))
-                  .toList();
-        }
-        default -> throw new UnsupportedOperationException("Unsupported level: " + level);
-      }
-
-      logger.debug(
-          "Level {} for TMTextUnit '{}': {} candidates",
-          level,
-          tmTextUnit.getName(),
-          candidates.size());
-
-      if (!candidates.isEmpty()) {
-        return Optional.of(new MatchedCandidates(candidates, level));
-      }
+    List<TextUnitDTO> md5Matches = searchByMd5(tmTextUnit, sourceTmId, sourceAssetId);
+    if (!md5Matches.isEmpty()) {
+      return new MatchedCandidates(md5Matches, MatchLevel.MD5);
     }
 
-    return Optional.empty();
-  }
+    if (mode == CopyTmConfig.Mode.MD5) {
+      return new MatchedCandidates(List.of(), MatchLevel.MD5);
+    }
 
-  /**
-   * Checks whether a candidate matches the target at exactly the given level — not higher, not
-   * lower. For example, NAME_ONLY requires the name to match but the content to differ (otherwise
-   * it would be NAME_AND_CONTENT).
-   */
-  private boolean matchesLevel(TextUnitDTO candidate, TMTextUnit target, MatchLevel level) {
-    boolean nameMatches = Objects.equals(candidate.getName(), target.getName());
-    boolean contentMatches = Objects.equals(candidate.getSource(), target.getContent());
+    List<TextUnitDTO> modeMatches;
+    MatchLevel level;
+    switch (mode) {
+      case NAME -> {
+        modeMatches = searchByName(tmTextUnit, sourceTmId, sourceAssetId);
+        level = MatchLevel.NAME_ONLY;
+      }
+      case EXACT -> {
+        modeMatches = searchByContent(tmTextUnit, sourceTmId, sourceAssetId);
+        level = MatchLevel.CONTENT_ONLY;
+      }
+      default -> throw new UnsupportedOperationException("Unexpected match mode: " + mode);
+    }
 
-    return switch (level) {
-      case NAME_AND_CONTENT -> nameMatches && contentMatches;
-      case NAME_ONLY -> nameMatches && !contentMatches;
-      case CONTENT_ONLY -> contentMatches && !nameMatches;
-      case MD5 -> true;
-    };
+    List<TextUnitDTO> nameAndContentMatches =
+        modeMatches.stream()
+            .filter(
+                match ->
+                    Objects.equals(match.getName(), tmTextUnit.getName())
+                        && Objects.equals(match.getSource(), tmTextUnit.getContent()))
+            .toList();
+
+    if (!nameAndContentMatches.isEmpty()) {
+      return new MatchedCandidates(nameAndContentMatches, MatchLevel.NAME_AND_CONTENT);
+    }
+
+    return new MatchedCandidates(modeMatches, level);
   }
 
   private List<TextUnitDTO> searchByMd5(
@@ -229,199 +274,69 @@ public class CopyTmLeverager {
   }
 
   /**
-   * When multiple TMTextUnits match at the same level, picks the best one:
-   *
-   * <ol>
-   *   <li>USED text units (part of a current extraction) over UNUSED ones
-   *   <li>Among equal used-status, the one with the most recently created translation variant (not
-   *       the TU creation date — a translator may re-translate an older TU)
-   * </ol>
-   *
-   * <p>Also determines uniqueness: if only one TMTextUnit matched at this level, the match is
-   * unambiguous and status can be preserved. Multiple matches may indicate the "wrong" TU was
-   * picked, so PRECISION mode downgrades the status to TRANSLATION_NEEDED.
+   * From a list of candidate translations for a single locale, picks the best one: used over
+   * unused, then most recently translated.
    */
-  SelectionResult selectBest(MatchedCandidates matched) {
-    // Group all locale translations by their source TMTextUnit ID — each group represents
-    // one candidate TU with all of its locale translations.
-    Map<Long, List<TextUnitDTO>> grouped =
-        matched.candidates.stream().collect(Collectors.groupingBy(TextUnitDTO::getTmTextUnitId));
-
-    int candidateCount = grouped.size();
-
-    Comparator<Long> comparator =
-        Comparator
-            // Used TUs first (isUsed=true → false sorts after true, so negate)
-            .<Long, Boolean>comparing(id -> !grouped.get(id).stream().anyMatch(TextUnitDTO::isUsed))
-            // Most recently translated first (by variant createdDate, descending)
-            .thenComparing(
-                id ->
-                    grouped.get(id).stream()
-                        .map(TextUnitDTO::getCreatedDate)
-                        .filter(Objects::nonNull)
-                        .max(Comparator.naturalOrder())
-                        .orElse(ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)),
-                Comparator.reverseOrder());
-
-    List<Long> sortedIds = grouped.keySet().stream().sorted(comparator).toList();
-    Long bestId = sortedIds.get(0);
-    boolean selectedIsUsed = grouped.get(bestId).stream().anyMatch(TextUnitDTO::isUsed);
-
+  private SelectedTranslation selectBest(List<TextUnitDTO> localeCandidates) {
+    TextUnitDTO best = localeCandidates.get(0);
     String tiebreaker = null;
-    if (candidateCount > 1) {
-      Long secondId = sortedIds.get(1);
-      boolean secondIsUsed = grouped.get(secondId).stream().anyMatch(TextUnitDTO::isUsed);
-      tiebreaker =
-          (selectedIsUsed && !secondIsUsed) ? "used over unused" : "most recently translated";
-      logger.debug(
-          "Disambiguation among {} candidates at {}: selected tmTextUnitId {} ({}), "
-              + "runner-up tmTextUnitId {} ({})",
-          candidateCount,
-          matched.matchLevel,
-          bestId,
-          selectedIsUsed ? "used" : "unused",
-          secondId,
-          secondIsUsed ? "used" : "unused");
+
+    for (int i = 1; i < localeCandidates.size(); i++) {
+      TextUnitDTO candidate = localeCandidates.get(i);
+      if (candidate.isUsed() && !best.isUsed()) {
+        best = candidate;
+        tiebreaker = "used over unused";
+      } else if (candidate.isUsed() == best.isUsed()) {
+        ZonedDateTime cDate = candidate.getCreatedDate();
+        ZonedDateTime bDate = best.getCreatedDate();
+        if (cDate != null && (bDate == null || cDate.isAfter(bDate))) {
+          best = candidate;
+          tiebreaker = "most recently translated";
+        }
+      }
     }
 
-    return new SelectionResult(
-        grouped.get(bestId), matched.matchLevel, candidateCount == 1, candidateCount, tiebreaker);
+    return new SelectedTranslation(best, tiebreaker);
   }
 
-  /**
-   * Determines whether the leveraged translation should be flagged for re-translation.
-   *
-   * <p>ALL: never flag. UNIQUE: flag only if the match was ambiguous (multiple TUs at the same
-   * level). PRECISION: flag if the match level itself is low-confidence (name-only, content-only)
-   * OR if the match was ambiguous.
-   */
-  boolean computeCopyTmTranslationNeeded(
-      PreserveStatusMode preserveStatusMode,
-      MatchLevel matchLevel,
-      boolean uniqueTMTextUnitMatched) {
+  private boolean computeTranslationNeeded(
+      PreserveStatusMode preserveStatusMode, MatchLevel matchLevel, boolean uniqueMatch) {
     return switch (preserveStatusMode) {
       case ALL -> false;
-      case UNIQUE -> !uniqueTMTextUnitMatched;
-      case PRECISION -> matchLevel.isTranslationNeeded() || !uniqueTMTextUnitMatched;
-    };
-  }
-
-  /**
-   * Writes leveraged translations into the target TMTextUnit. For each locale, checks the overwrite
-   * mode against the target's existing translation status (per-locale). The overwrite decision uses
-   * the candidate's original status, not the potentially-downgraded effective status — so
-   * HIGHER_STATUS compares against what the source TU actually had.
-   */
-  @Transactional
-  void addLeveragedTranslations(
-      TMTextUnit tmTextUnit,
-      SelectionResult selection,
-      boolean translationNeeded,
-      PreserveStatusMode preserveStatusMode,
-      OverwriteMode overwriteMode) {
-
-    logger.debug(
-        "Add leveraged translations in tmTextUnit id: {}, matchLevel: {}",
-        tmTextUnit.getId(),
-        selection.matchLevel);
-
-    Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId =
-        buildCurrentStatusByLocaleId(tmTextUnit, overwriteMode);
-
-    for (TextUnitDTO translation : selection.translations) {
-      if (!shouldLeverageLocale(
-          currentStatusByLocaleId,
-          translation.getLocaleId(),
-          translation.getStatus(),
-          overwriteMode)) {
-        logger.debug(
-            "Skipping locale {} for tmTextUnit {} due to status overwrite mode",
-            translation.getLocaleId(),
-            tmTextUnit.getId());
-        continue;
-      }
-
-      AddTMTextUnitCurrentVariantResult result =
-          tmService.addTMTextUnitCurrentVariantWithResult(
-              tmTextUnit.getId(),
-              translation.getLocaleId(),
-              translation.getTarget(),
-              translation.getTargetComment(),
-              translationNeeded
-                  ? TMTextUnitVariant.Status.TRANSLATION_NEEDED
-                  : translation.getStatus(),
-              translation.isIncludedInLocalizedFile(),
-              null);
-
-      TMTextUnitCurrentVariant currentVariant = result.getTmTextUnitCurrentVariant();
-
-      if (result.isTmTextUnitCurrentVariantUpdated()) {
-        tmTextUnitVariantCommentService.copyComments(
-            translation.getTmTextUnitVariantId(), currentVariant.getTmTextUnitVariant().getId());
-
-        tmTextUnitVariantCommentService.addComment(
-            currentVariant.getTmTextUnitVariant(),
-            TMTextUnitVariantComment.Type.LEVERAGING,
-            TMTextUnitVariantComment.Severity.INFO,
-            buildLeverageComment(translation, selection, translationNeeded, preserveStatusMode));
-      }
-    }
-  }
-
-  private Map<Long, TMTextUnitVariant.Status> buildCurrentStatusByLocaleId(
-      TMTextUnit tmTextUnit, OverwriteMode overwriteMode) {
-    if (overwriteMode == OverwriteMode.ALL) {
-      return Map.of();
-    }
-    return tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
-        .collect(
-            Collectors.toMap(
-                cv -> cv.getLocale().getId(),
-                cv -> cv.getTmTextUnitVariant().getStatus(),
-                (s1, s2) -> s1));
-  }
-
-  private boolean shouldLeverageLocale(
-      Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
-      Long localeId,
-      TMTextUnitVariant.Status candidateStatus,
-      OverwriteMode overwriteMode) {
-    TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
-    return switch (overwriteMode) {
-      case NONE -> currentStatus == null;
-      case FOR_TRANSLATION ->
-          currentStatus == null || currentStatus == TMTextUnitVariant.Status.TRANSLATION_NEEDED;
-      case HIGHER_STATUS -> currentStatus == null || candidateStatus.isHigherThan(currentStatus);
-      case HIGHER_OR_EQUAL_STATUS ->
-          currentStatus == null || candidateStatus.isHigherOrEqualTo(currentStatus);
-      case ALL -> true;
+      case UNIQUE -> !uniqueMatch;
+      case PRECISION -> matchLevel.isTranslationNeeded() || !uniqueMatch;
     };
   }
 
   private String buildLeverageComment(
       TextUnitDTO translation,
-      SelectionResult selection,
+      MatchLevel matchLevel,
+      int candidateCount,
+      boolean uniqueMatch,
+      String tiebreaker,
       boolean translationNeeded,
       PreserveStatusMode preserveStatusMode) {
 
     StringBuilder sb = new StringBuilder();
-    sb.append("Leverage by ").append(selection.matchLevel);
+    sb.append("Leverage by ").append(matchLevel);
     sb.append(" - from tmTextUnitId: ").append(translation.getTmTextUnitId());
     sb.append(", tmTextUnitVariantId: ").append(translation.getTmTextUnitVariantId());
 
-    if (selection.candidateCount > 1) {
-      sb.append(", ").append(selection.candidateCount).append(" candidates");
-      sb.append(", selected by: ").append(selection.tiebreaker);
+    if (candidateCount > 1) {
+      sb.append(", ").append(candidateCount).append(" candidates");
+      if (tiebreaker != null) {
+        sb.append(", selected by: ").append(tiebreaker);
+      }
     } else {
       sb.append(", unique match");
     }
 
     if (translationNeeded) {
       List<String> reasons = new ArrayList<>();
-      if (selection.matchLevel.isTranslationNeeded()) reasons.add("low-confidence match level");
-      if (!selection.uniqueMatch) reasons.add("ambiguous");
+      if (matchLevel.isTranslationNeeded()) reasons.add("low-confidence match level");
+      if (!uniqueMatch) reasons.add("ambiguous");
       sb.append(", status downgraded (").append(String.join(", ", reasons)).append(")");
-    } else if (!selection.uniqueMatch) {
+    } else if (!uniqueMatch) {
       sb.append(", status preserved (preserveStatusMode=")
           .append(preserveStatusMode)
           .append(" despite ambiguous match)");
@@ -432,12 +347,37 @@ public class CopyTmLeverager {
     return sb.toString();
   }
 
-  record MatchedCandidates(List<TextUnitDTO> candidates, MatchLevel matchLevel) {}
+  private void writeLeveragedTranslation(TMTextUnit tmTextUnit, LeveragingDecision decision) {
+    TextUnitDTO translation = decision.translation;
 
-  record SelectionResult(
-      List<TextUnitDTO> translations,
-      MatchLevel matchLevel,
-      boolean uniqueMatch,
-      int candidateCount,
-      String tiebreaker) {}
+    AddTMTextUnitCurrentVariantResult result =
+        tmService.addTMTextUnitCurrentVariantWithResult(
+            tmTextUnit.getId(),
+            translation.getLocaleId(),
+            translation.getTarget(),
+            translation.getTargetComment(),
+            decision.effectiveStatus,
+            translation.isIncludedInLocalizedFile(),
+            null);
+
+    TMTextUnitCurrentVariant currentVariant = result.getTmTextUnitCurrentVariant();
+
+    if (result.isTmTextUnitCurrentVariantUpdated()) {
+      tmTextUnitVariantCommentService.copyComments(
+          translation.getTmTextUnitVariantId(), currentVariant.getTmTextUnitVariant().getId());
+
+      tmTextUnitVariantCommentService.addComment(
+          currentVariant.getTmTextUnitVariant(),
+          TMTextUnitVariantComment.Type.LEVERAGING,
+          TMTextUnitVariantComment.Severity.INFO,
+          decision.comment);
+    }
+  }
+
+  record MatchedCandidates(List<TextUnitDTO> candidates, MatchLevel level) {}
+
+  record SelectedTranslation(TextUnitDTO translation, String tiebreaker) {}
+
+  record LeveragingDecision(
+      TextUnitDTO translation, TMTextUnitVariant.Status effectiveStatus, String comment) {}
 }
