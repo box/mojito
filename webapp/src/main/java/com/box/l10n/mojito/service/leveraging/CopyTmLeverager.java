@@ -15,8 +15,8 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -275,25 +275,33 @@ public class CopyTmLeverager {
 
   /**
    * From a list of candidate translations for a single locale, picks the best one: used over
-   * unused, then most recently translated.
+   * unused, then higher status, then most recently translated.
    */
   private SelectedTranslation selectBest(List<TextUnitDTO> localeCandidates) {
-    TextUnitDTO best = localeCandidates.get(0);
-    String tiebreaker = null;
+    if (localeCandidates.size() == 1) {
+      return new SelectedTranslation(localeCandidates.get(0), null);
+    }
 
-    for (int i = 1; i < localeCandidates.size(); i++) {
-      TextUnitDTO candidate = localeCandidates.get(i);
-      if (candidate.isUsed() && !best.isUsed()) {
-        best = candidate;
-        tiebreaker = "used over unused";
-      } else if (candidate.isUsed() == best.isUsed()) {
-        ZonedDateTime cDate = candidate.getCreatedDate();
-        ZonedDateTime bDate = best.getCreatedDate();
-        if (cDate != null && (bDate == null || cDate.isAfter(bDate))) {
-          best = candidate;
-          tiebreaker = "most recently translated";
-        }
-      }
+    List<TextUnitDTO> sorted =
+        localeCandidates.stream()
+            .sorted(
+                Comparator.comparing((TextUnitDTO dto) -> !dto.isUsed())
+                    .thenComparing(dto -> -dto.getStatus().ordinal())
+                    .thenComparing(
+                        TextUnitDTO::getCreatedDate,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+            .toList();
+
+    TextUnitDTO best = sorted.get(0);
+    TextUnitDTO runnerUp = sorted.get(1);
+
+    String tiebreaker;
+    if (best.isUsed() != runnerUp.isUsed()) {
+      tiebreaker = "used over unused";
+    } else if (best.getStatus() != runnerUp.getStatus()) {
+      tiebreaker = "higher status";
+    } else {
+      tiebreaker = "most recently translated";
     }
 
     return new SelectedTranslation(best, tiebreaker);
