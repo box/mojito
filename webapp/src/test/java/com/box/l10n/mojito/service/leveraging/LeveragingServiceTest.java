@@ -2003,6 +2003,63 @@ public class LeveragingServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void copyByNamePicksBestStatusPerLocale()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Per-locale tiebreaker hierarchy: used > status > recency.
+    // Both TUs are USED (tie on #1), but each has the higher-status translation
+    // for a different locale. Per-locale selection should pick independently:
+    //   TU A: fr-FR APPROVED, de-DE TRANSLATION_NEEDED
+    //   TU B: fr-FR TRANSLATION_NEEDED, de-DE APPROVED
+    //   Expected: fr-FR from TU A, de-DE from TU B
+
+    Repository sourceRepo = createRepository("source", "fr-FR", "de-DE");
+
+    Asset sourceAsset1 = createAsset(sourceRepo, "asset1.properties");
+    TMTextUnit tuA = push(sourceRepo, sourceAsset1, tu("greeting", "Hello", "comment A")).get(0);
+    translate(tuA, "fr-FR", "Bonjour (A, approved)");
+    translate(
+        tuA, "de-DE", "Hallo (A, needs translation)", TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+
+    Asset sourceAsset2 = createAsset(sourceRepo, "asset2.properties");
+    TMTextUnit tuB = push(sourceRepo, sourceAsset2, tu("greeting", "Hello", "comment B")).get(0);
+    translate(
+        tuB,
+        "fr-FR",
+        "Bonjour (B, needs translation)",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+    translate(tuB, "de-DE", "Hallo (B, approved)");
+
+    Repository targetRepo = createRepository("target", "fr-FR", "de-DE");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.ALL);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(2, byLocale.size());
+
+    Assert.assertEquals(
+        "fr-FR should pick TU A's translation (APPROVED beats TRANSLATION_NEEDED)",
+        "Bonjour (A, approved)",
+        byLocale.get("fr-FR").getContent());
+    Assert.assertEquals(
+        "de-DE should pick TU B's translation (APPROVED beats TRANSLATION_NEEDED)",
+        "Hallo (B, approved)",
+        byLocale.get("de-DE").getContent());
+  }
+
+  @Test
   public void copyByNamePicksMostRecentTranslationPerLocale()
       throws InterruptedException,
           ExecutionException,
@@ -2136,7 +2193,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
     Repository targetRepo = createRepository("target", "fr-FR", "de-DE", "ja-JP");
     Asset targetAsset = createAsset(targetRepo, "target.properties");
-    push(targetRepo, targetAsset, tu("greeting", "Hello", "target comment"));
+    push(targetRepo, targetAsset, tu("greeting", "Name", "target comment"));
 
     CopyTmConfig config = new CopyTmConfig();
     config.setSourceRepositoryId(sourceRepo.getId());
