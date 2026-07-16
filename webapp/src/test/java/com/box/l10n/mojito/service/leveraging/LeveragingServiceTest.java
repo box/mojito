@@ -489,51 +489,39 @@ public class LeveragingServiceTest extends ServiceTestBase {
       throws InterruptedException,
           ExecutionException,
           RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+    // Cross-repo leveraging by name with UNIQUE preserve status mode.
+    // Source has a single TU with name "greeting" → unique name-only match.
+    // UNIQUE mode should preserve the candidate's APPROVED status.
+    Repository sourceRepo = createRepository("source", "fr-FR");
+    Asset sourceAsset = createAsset(sourceRepo, "source.properties");
+    TMTextUnit sourceTu =
+        push(sourceRepo, sourceAsset, tu("greeting", "Hello", "source comment")).get(0);
+    translate(sourceTu, "fr-FR", "Bonjour");
 
-    Repository sourceRepository = tmTestDataSource.repository;
+    // Target has same name but different content → name-only match
+    Repository targetRepo = createRepository("target", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.properties");
+    push(targetRepo, targetAsset, tu("greeting", "Hello updated", "target comment"));
 
-    logger.debug("Create the target repository");
-    Repository targetRepository =
-        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setSourceAssetId(sourceAsset.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
 
-    TM tm = targetRepository.getTm();
-
-    Asset asset =
-        assetService.createAssetWithContent(
-            targetRepository.getId(), "fake_for_test", "fake for test");
-    Long assetId = asset.getId();
-
-    tmService.addTMTextUnit(
-        tm.getId(),
-        assetId,
-        "zuora_error_message_verify_state_province",
-        "Different source content",
-        "DifferentComment");
-
-    CopyTmConfig copyTmConfig = new CopyTmConfig();
-    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-    copyTmConfig.setMode(CopyTmConfig.Mode.NAME);
-    copyTmConfig.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
-
-    leveragingService.copyTm(copyTmConfig).get();
-
-    List<TMTextUnitVariant> targetTranslations =
-        tmTextUnitVariantRepository
-            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
-                targetRepository, "en");
-
-    Assert.assertFalse("Should have copied translations", targetTranslations.isEmpty());
-    for (TMTextUnitVariant variant : targetTranslations) {
-      Assert.assertEquals(
-          "Status should be preserved as APPROVED for unambiguous match with UNIQUE mode",
-          TMTextUnitVariant.Status.APPROVED,
-          variant.getStatus());
-    }
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals("Bonjour", translations.get(0).getContent());
+    Assert.assertEquals(
+        "UNIQUE mode with unique name-only match should preserve APPROVED",
+        TMTextUnitVariant.Status.APPROVED,
+        translations.get(0).getStatus());
   }
 
   @Test
