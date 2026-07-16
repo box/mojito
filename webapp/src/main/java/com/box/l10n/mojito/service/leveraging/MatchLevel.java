@@ -12,18 +12,18 @@ package com.box.l10n.mojito.service.leveraging;
  * @author wwawrzenczak
  */
 public enum MatchLevel {
-  MD5(false),
-  NAME_AND_CONTENT(false),
-  NAME_ONLY(true),
-  CONTENT_ONLY(true);
+  MD5(true),
+  NAME_AND_CONTENT(true),
+  NAME_ONLY(false),
+  CONTENT_ONLY(false);
 
-  private final boolean translationNeeded;
+  private final boolean highPrecision;
 
-  MatchLevel(boolean translationNeeded) {
-    this.translationNeeded = translationNeeded;
+  MatchLevel(boolean highPrecision) {
+    this.highPrecision = highPrecision;
   }
 
-  public boolean isTranslationNeeded() {
-    return translationNeeded;
+  public boolean isHighPrecision() {
+    return highPrecision;
   }
 }
