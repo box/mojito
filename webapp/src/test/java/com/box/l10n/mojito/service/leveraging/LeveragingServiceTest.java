@@ -1184,7 +1184,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
             .orElse(null);
     Assert.assertNotNull(
         "Should overwrite: candidate's original status is APPROVED which is higher than "
-            + "existing REVIEW_NEEDED (effective status downgrade does not affect the reason)",
+            + "existing REVIEW_NEEDED (effective status downgrade does not affect the decision)",
         leveraged);
     Assert.assertEquals(
         "Name-only match with PRECISION mode downgrades to TRANSLATION_NEEDED",
@@ -1437,7 +1437,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // When TU creation order and translation order diverge, the reason should use
+    // When TU creation order and translation order diverge, the tiebreaker should use
     // translation recency, not TU creation order. Here TU A is older but has the newer
     // translation (e.g. a translator re-translated an old string after the new one was
     // already translated).
@@ -1999,7 +1999,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // Per-locale reason hierarchy: used > status > recency.
+    // Per-locale tiebreaker hierarchy: used > status > recency.
     // Both TUs are USED (tie on #1), but each has the higher-status translation
     // for a different locale. Per-locale selection should pick independently:
     //   TU A: fr-FR APPROVED, de-DE TRANSLATION_NEEDED
@@ -2056,7 +2056,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // Per-locale reason hierarchy: used > status > recency.
+    // Per-locale tiebreaker hierarchy: used > status > recency.
     // This test: both TUs are USED, both have APPROVED status for all locales (tie on #1
     // and #2), but each has the more recently translated variant for a different locale.
     //   TU A: fr-FR translated second (newer), de-DE translated first (older)
@@ -2157,7 +2157,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // Per-locale reason: used > status > recency.
+    // Per-locale tiebreaker: used > status > recency.
     // TU A (USED): has fr-FR and de-DE translations
     // TU B (UNUSED): has fr-FR, de-DE, and ja-JP translations
     //
