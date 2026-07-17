@@ -37,16 +37,7 @@ public class LeveragingService {
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-  @Autowired
-  LeveragerByNameAndContentForSourceLeveraging leveragerByNameAndContentForSourceLeveraging;
-
-  @Autowired
-  LeveragerByNameAndContentUnusedForSourceLeveraging
-      leveragerByNameAndContentUnusedForSourceLeveraging;
-
-  @Autowired LeveragerByContentForSourceLeveraging leveragerByContentForSourceLeveraging;
-
-  @Autowired LeveragerByNameForSourceLeveraging leveragerByNameForSourceLeveraging;
+  @Autowired SourceLeverager sourceLeverager;
 
   @Autowired CopyTmLeverager copyTmLeverager;
 
@@ -85,14 +76,7 @@ public class LeveragingService {
    *     processing.
    */
   public void performSourceLeveraging(List<TMTextUnit> tmTextUnits) {
-
-    logger.debug("Perform source leveraging for {} text units", tmTextUnits.size());
-
-    leveragerByNameAndContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
-    leveragerByNameForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
-    leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
-    leveragerByNameAndContentUnusedForSourceLeveraging.performLeveragingFor(
-        tmTextUnits, null, null);
+    sourceLeverager.performLeveragingFor(tmTextUnits);
   }
 
   /**

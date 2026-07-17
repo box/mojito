@@ -12,8 +12,9 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
-import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
+import com.box.l10n.mojito.service.leveraging.LeveragingUtils;
+import com.box.l10n.mojito.service.leveraging.SourceLeverager;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobScheduler;
@@ -47,7 +48,9 @@ public class VirtualTextUnitBatchUpdaterService {
 
   @Autowired AssetExtractionRepository assetExtractionRepository;
 
-  @Autowired LeveragerByContentForSourceLeveraging leveragerByContentForSourceLeveraging;
+  @Autowired SourceLeverager sourceLeverager;
+
+  @Autowired LeveragingUtils leveragingUtils;
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
@@ -84,18 +87,22 @@ public class VirtualTextUnitBatchUpdaterService {
 
     HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs = new HashMap<>();
     HashMap<String, TextUnitDTO> md5ToTextUnitDTOs = new HashMap<>();
-    HashMap<String, TextUnitDTO> contentToTextUnitDTOs = new HashMap<>();
 
     for (TextUnitDTO textUnitDTO : allAssetTextUnitDTOs) {
       String md5 =
           textUnitUtils.computeTextUnitMD5(
               textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getComment());
       md5ToTextUnitDTOs.put(md5, textUnitDTO);
-      contentToTextUnitDTOs.put(textUnitDTO.getSource(), textUnitDTO);
 
       if (textUnitDTO.isUsed()) {
         nameToUsedtextUnitDTOs.put(textUnitDTO.getName(), textUnitDTO);
       }
+    }
+
+    logger.debug("Build map by content for existing text units");
+    HashMap<String, TextUnitDTO> contentToTextUnitDTOs = new HashMap<>();
+    for (TextUnitDTO textUnitDTO : allAssetTextUnitDTOs) {
+      contentToTextUnitDTOs.put(textUnitDTO.getSource(), textUnitDTO);
     }
 
     logger.debug("Build map by md5 for text units to import");
@@ -120,24 +127,28 @@ public class VirtualTextUnitBatchUpdaterService {
     }
   }
 
+  /**
+   * Leverages translations for newly saved virtual text units. Uses pre-computed in-memory maps for
+   * name matching (since newly saved TUs may not be visible in DB queries within the same
+   * transaction), and falls back to SourceLeverager for content-only matching.
+   */
   void performLeveraging(
-      HashMap<TMTextUnit, VirtualAssetTextUnit> saveTextUnits,
+      HashMap<TMTextUnit, VirtualAssetTextUnit> savedTextUnits,
       HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs,
-      HashMap<String, TextUnitDTO> contentToUsedtextUnitDTOs) {
+      HashMap<String, TextUnitDTO> contentToTextUnitDTOs) {
 
-    for (Map.Entry<TMTextUnit, VirtualAssetTextUnit> entry : saveTextUnits.entrySet()) {
+    for (Map.Entry<TMTextUnit, VirtualAssetTextUnit> entry : savedTextUnits.entrySet()) {
       TextUnitDTO matchByName = nameToUsedtextUnitDTOs.get(entry.getValue().getName());
-      TextUnitDTO matchByContent = contentToUsedtextUnitDTOs.get(entry.getValue().getContent());
+      TextUnitDTO matchByContent = contentToTextUnitDTOs.get(entry.getValue().getContent());
+
       List<TMTextUnit> toBeLeveraged = new ArrayList<>();
       toBeLeveraged.add(entry.getKey());
 
       if (matchByName != null) {
-        logger.debug("Found previous version by name, apply leveraging");
-        new LeveragerByTmTextUnit(matchByName.getTmTextUnitId())
-            .performLeveragingFor(toBeLeveraged, null, null);
+        new LeveragerByTmTextUnit(matchByName.getTmTextUnitId(), leveragingUtils)
+            .performLeveragingFor(toBeLeveraged);
       } else if (matchByContent != null) {
-        logger.debug("Leverage by content");
-        leveragerByContentForSourceLeveraging.performLeveragingFor(toBeLeveraged, null, null);
+        sourceLeverager.performLeveragingFor(toBeLeveraged);
       }
     }
   }

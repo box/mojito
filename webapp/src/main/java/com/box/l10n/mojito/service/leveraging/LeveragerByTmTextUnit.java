@@ -4,48 +4,48 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import java.util.Iterator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Configurable;
 
 /**
- * Performs leveraging based using the provided TmTextUnit id
+ * Leverages translations from a specific TMTextUnit ID into target text units. Used by
+ * AssetExtractionService and VirtualTextUnitBatchUpdaterService when a name-based match has been
+ * identified through pre-computed in-memory lookups.
  *
  * @author jaurambault
  */
-@Configurable
-public class LeveragerByTmTextUnit extends AbstractLeverager {
+public class LeveragerByTmTextUnit {
 
-  /** logger */
-  static Logger logger = LoggerFactory.getLogger(LeveragerByTmTextUnit.class);
+  private final Long tmTextUnitId;
+  private final LeveragingUtils leveragingUtils;
 
-  Long tmTextUnitId;
-
-  public LeveragerByTmTextUnit(Long tmTextUnitId) {
+  public LeveragerByTmTextUnit(Long tmTextUnitId, LeveragingUtils leveragingUtils) {
     this.tmTextUnitId = tmTextUnitId;
+    this.leveragingUtils = leveragingUtils;
   }
 
-  @Override
-  public List<TextUnitDTO> getLeveragingMatches(
-      TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
-    logger.debug("Get TextUnitDTOs for leveraging with TmTextUnit");
+  public void performLeveragingFor(List<TMTextUnit> tmTextUnits) {
+    for (Iterator<TMTextUnit> it = tmTextUnits.iterator(); it.hasNext(); ) {
+      TMTextUnit tmTextUnit = it.next();
 
-    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-    textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
-    textUnitSearcherParameters.setAssetId(sourceAssetId);
-    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+      TextUnitSearcherParameters params = new TextUnitSearcherParameters();
+      params.setTmTextUnitIds(tmTextUnitId);
+      params.setStatusFilter(StatusFilter.TRANSLATED);
+      List<TextUnitDTO> candidates = leveragingUtils.getTextUnitSearcher().search(params);
 
-    return textUnitSearcher.search(textUnitSearcherParameters);
-  }
+      if (candidates.isEmpty()) {
+        continue;
+      }
 
-  @Override
-  public boolean isTranslationNeededIfUniqueMatch() {
-    return true;
-  }
+      it.remove();
 
-  @Override
-  public String getType() {
-    return "Leverage with TmTextUnit";
+      int sizeBeforeFilter = candidates.size();
+      leveragingUtils.filterTextUnitDTOWithSameTMTextUnitId(candidates);
+      boolean uniqueMatch = sizeBeforeFilter == candidates.size();
+      boolean translationNeeded = true;
+
+      leveragingUtils.addLeveragedTranslations(
+          tmTextUnit, candidates, translationNeeded, uniqueMatch, "Leverage with TmTextUnit");
+    }
   }
 }
