@@ -108,30 +108,41 @@ public class CopyTmLeverager {
       return false;
     }
 
-    long distinctTuCount =
+    // Count distinct TUs and distinct sources (used to determine effective status)
+    // note: this is intentionally counted across locales
+    // - we don't want to accidentally preserve status of mismatched translations
+    // even if they are effectively unambiguous within their locale
+    // Example:
+    // A: one.properties   application.greeting  "Hello"       DE "Hallo" FR null
+    // B: other.properties application.greeting  "Hello World" DE null    FR "Bonjour le monde"
+    long distinctTusCount =
         matched.candidates.stream().map(TextUnitDTO::getTmTextUnitId).distinct().count();
+    long distinctSourcesCount =
+        matched.candidates.stream().map(TextUnitDTO::getSource).distinct().count();
 
     List<LeveragingDecision> decisions = new ArrayList<>();
 
-    // Select best translation per locale, compute effective status and leveraging comment
     Map<Long, List<TextUnitDTO>> byLocale =
         matched.candidates.stream().collect(Collectors.groupingBy(TextUnitDTO::getLocaleId));
+    for (var matchesForLocale : byLocale.values()) {
+      SelectedTiebreaker selected = selectByTiebreaker(matchesForLocale);
+      // Count distinct candidates for current locale translations
+      long distinctTranslationsCount =
+          matchesForLocale.stream().map(TextUnitDTO::getTarget).distinct().count();
 
-    for (var entry : byLocale.entrySet()) {
-      SelectedTranslation selected = selectByTiebreaker(entry.getValue());
       TextUnitDTO translation = selected.translation;
 
       EffectiveStatus effectiveStatus =
           computeEffectiveStatus(
-              translation.getStatus(), preserveStatusMode, matched.level, distinctTuCount);
+              translation.getStatus(),
+              preserveStatusMode,
+              matched.level,
+              distinctTusCount,
+              distinctSourcesCount,
+              distinctTranslationsCount);
 
       String comment =
-          buildLeverageComment(
-              translation,
-              matched.level,
-              distinctTuCount,
-              selected.tiebreaker,
-              effectiveStatus.decision);
+          buildLeverageComment(translation, matched.level, selected.reason, effectiveStatus.reason);
 
       decisions.add(new LeveragingDecision(translation, effectiveStatus.status, comment));
     }
@@ -268,9 +279,9 @@ public class CopyTmLeverager {
    * From a list of candidate translations for a single locale, picks the best one: used over
    * unused, then higher status, then most recently translated.
    */
-  private SelectedTranslation selectByTiebreaker(List<TextUnitDTO> localeCandidates) {
+  private SelectedTiebreaker selectByTiebreaker(List<TextUnitDTO> localeCandidates) {
     if (localeCandidates.size() == 1) {
-      return new SelectedTranslation(localeCandidates.get(0), "unique");
+      return new SelectedTiebreaker(localeCandidates.get(0), "unique");
     }
 
     List<TextUnitDTO> sorted =
@@ -295,43 +306,56 @@ public class CopyTmLeverager {
       tiebreaker = "most recently translated";
     }
 
-    return new SelectedTranslation(best, tiebreaker);
+    return new SelectedTiebreaker(best, tiebreaker);
   }
 
   /**
    * Computes the effective status for a leveraged translation. Returns the candidate's original
    * status if the match is trustworthy, or TRANSLATION_NEEDED if it should be flagged for review.
+   *
+   * <p>When multiple TUs match, the "candidates agree" checks can prevent unnecessary downgrades:
+   *
+   * <ul>
+   *   <li>If all candidate TUs have the same source content AND translations for this locale agree
+   *       (or only one candidate has a translation), the match is effectively unambiguous.
+   *   <li>If candidate TUs have different source, or translations disagree, the match is ambiguous
+   *       and gets downgraded.
+   * </ul>
    */
   private EffectiveStatus computeEffectiveStatus(
       TMTextUnitVariant.Status candidateStatus,
       PreserveStatusMode preserveStatusMode,
       MatchLevel matchLevel,
-      long candidateCount) {
-    boolean uniqueMatch = candidateCount == 1;
+      long distinctTusCount,
+      long distinctSourcesCount,
+      long distinctTranslationsCount) {
+
+    boolean uniqueMatch = distinctTusCount == 1;
+    boolean effectivelyUnambiguous = distinctSourcesCount == 1 && distinctTranslationsCount == 1;
 
     return switch (preserveStatusMode) {
       case ALL -> new EffectiveStatus(candidateStatus, "preserved (forced)");
       case UNIQUE -> {
-        if (!uniqueMatch) {
-          yield new EffectiveStatus(
-              TMTextUnitVariant.Status.TRANSLATION_NEEDED, "downgraded (ambiguous)");
+        if (uniqueMatch) {
+          yield new EffectiveStatus(candidateStatus, "preserved (unique)");
         }
-        yield new EffectiveStatus(candidateStatus, "preserved (unique)");
+        if (effectivelyUnambiguous) {
+          yield new EffectiveStatus(candidateStatus, "preserved (effectively unambiguous)");
+        }
+        yield new EffectiveStatus(
+            TMTextUnitVariant.Status.TRANSLATION_NEEDED, "downgraded (ambiguous)");
       }
       case PRECISION -> {
-        if (!matchLevel.isHighPrecision() && !uniqueMatch) {
+        if (matchLevel.isHighPrecision()) {
+          if (uniqueMatch) {
+            yield new EffectiveStatus(candidateStatus, "preserved (high precision, unique)");
+          }
           yield new EffectiveStatus(
-              TMTextUnitVariant.Status.TRANSLATION_NEEDED, "downgraded (low precision, ambiguous)");
+              TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+              "downgraded (high precision, ambiguous)");
         }
-        if (!matchLevel.isHighPrecision()) {
-          yield new EffectiveStatus(
-              TMTextUnitVariant.Status.TRANSLATION_NEEDED, "downgraded (low precision)");
-        }
-        if (!uniqueMatch) {
-          yield new EffectiveStatus(
-              TMTextUnitVariant.Status.TRANSLATION_NEEDED, "downgraded (ambiguous)");
-        }
-        yield new EffectiveStatus(candidateStatus, "preserved");
+        yield new EffectiveStatus(
+            TMTextUnitVariant.Status.TRANSLATION_NEEDED, "downgraded (low precision)");
       }
     };
   }
@@ -339,8 +363,7 @@ public class CopyTmLeverager {
   private String buildLeverageComment(
       TextUnitDTO translation,
       MatchLevel matchLevel,
-      long candidateCount,
-      String tiebreaker,
+      String tiebreakerReason,
       String statusReason) {
 
     return "Leverage by "
@@ -349,10 +372,8 @@ public class CopyTmLeverager {
         + translation.getTmTextUnitId()
         + ", tmTextUnitVariantId: "
         + translation.getTmTextUnitVariantId()
-        + ", candidates: "
-        + candidateCount
         + ", tiebreaker: "
-        + tiebreaker
+        + tiebreakerReason
         + ", status: "
         + statusReason;
   }
@@ -386,9 +407,9 @@ public class CopyTmLeverager {
 
   record MatchedCandidates(List<TextUnitDTO> candidates, MatchLevel level) {}
 
-  record SelectedTranslation(TextUnitDTO translation, String tiebreaker) {}
+  record SelectedTiebreaker(TextUnitDTO translation, String reason) {}
 
-  record EffectiveStatus(TMTextUnitVariant.Status status, String decision) {}
+  record EffectiveStatus(TMTextUnitVariant.Status status, String reason) {}
 
   record LeveragingDecision(
       TextUnitDTO translation, TMTextUnitVariant.Status effectiveStatus, String comment) {}

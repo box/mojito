@@ -1184,7 +1184,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
             .orElse(null);
     Assert.assertNotNull(
         "Should overwrite: candidate's original status is APPROVED which is higher than "
-            + "existing REVIEW_NEEDED (effective status downgrade does not affect the decision)",
+            + "existing REVIEW_NEEDED (effective status downgrade does not affect the reason)",
         leveraged);
     Assert.assertEquals(
         "Name-only match with PRECISION mode downgrades to TRANSLATION_NEEDED",
@@ -1437,7 +1437,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // When TU creation order and translation order diverge, the tiebreaker should use
+    // When TU creation order and translation order diverge, the reason should use
     // translation recency, not TU creation order. Here TU A is older but has the newer
     // translation (e.g. a translator re-translated an old string after the new one was
     // already translated).
@@ -1999,7 +1999,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // Per-locale tiebreaker hierarchy: used > status > recency.
+    // Per-locale reason hierarchy: used > status > recency.
     // Both TUs are USED (tie on #1), but each has the higher-status translation
     // for a different locale. Per-locale selection should pick independently:
     //   TU A: fr-FR APPROVED, de-DE TRANSLATION_NEEDED
@@ -2056,7 +2056,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // Per-locale tiebreaker hierarchy: used > status > recency.
+    // Per-locale reason hierarchy: used > status > recency.
     // This test: both TUs are USED, both have APPROVED status for all locales (tie on #1
     // and #2), but each has the more recently translated variant for a different locale.
     //   TU A: fr-FR translated second (newer), de-DE translated first (older)
@@ -2157,7 +2157,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
           AssetWithIdNotFoundException,
           RepositoryWithIdNotFoundException {
 
-    // Per-locale tiebreaker: used > status > recency.
+    // Per-locale reason: used > status > recency.
     // TU A (USED): has fr-FR and de-DE translations
     // TU B (UNUSED): has fr-FR, de-DE, and ja-JP translations
     //
@@ -2200,5 +2200,185 @@ public class LeveragingServiceTest extends ServiceTestBase {
         "ja-JP should be filled from UNUSED TU B (only source with ja-JP)",
         "Konnichiwa (unused)",
         byLocale.get("ja-JP").getContent());
+  }
+
+  @Test
+  public void candidatesAgreeOnSourceAndTranslations_statusPreserved()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Two assets have a TU with the same name and content, both fully translated
+    // with identical translations. We're using the UNIQUE mode to upgrade unambiguous matches,
+    // and this match is effectively unambiguous — status preserved.
+    Repository sourceRepo = createRepository("source", "de-DE", "fr-FR");
+
+    Asset asset1 = createAsset(sourceRepo, "one.properties");
+    TMTextUnit tu1 =
+        push(sourceRepo, asset1, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu1, "de-DE", "Hallo");
+    translate(tu1, "fr-FR", "Bonjour");
+
+    Asset asset2 = createAsset(sourceRepo, "other.properties");
+    TMTextUnit tu2 =
+        push(sourceRepo, asset2, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu2, "de-DE", "Hallo");
+    translate(tu2, "fr-FR", "Bonjour");
+
+    Repository targetRepo = createRepository("target", "de-DE", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.xliff");
+    push(targetRepo, targetAsset, tu("application.greeting", "Hello", "comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(2, byLocale.size());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byLocale.get("de-DE").getStatus());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byLocale.get("fr-FR").getStatus());
+  }
+
+  @Test
+  public void candidatesAgreeOnSource_complementaryTranslations_statusPreserved()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Two assets have a TU with the same name and content, but each has a translation
+    // for a different locale. Candidates agree on source, translations are unique
+    // per locale (only one option each), so the match is effectively unambiguous - status
+    // preserved.
+    Repository sourceRepo = createRepository("source", "de-DE", "fr-FR");
+
+    Asset asset1 = createAsset(sourceRepo, "one.properties");
+    TMTextUnit tu1 =
+        push(sourceRepo, asset1, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu1, "de-DE", "Hallo");
+
+    Asset asset2 = createAsset(sourceRepo, "other.properties");
+    TMTextUnit tu2 =
+        push(sourceRepo, asset2, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu2, "fr-FR", "Bonjour");
+
+    Repository targetRepo = createRepository("target", "de-DE", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.xliff");
+    push(targetRepo, targetAsset, tu("application.greeting", "Hello", "comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(2, byLocale.size());
+    Assert.assertEquals("Hallo", byLocale.get("de-DE").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byLocale.get("de-DE").getStatus());
+    Assert.assertEquals("Bonjour", byLocale.get("fr-FR").getContent());
+    Assert.assertEquals(TMTextUnitVariant.Status.APPROVED, byLocale.get("fr-FR").getStatus());
+  }
+
+  @Test
+  public void candidatesAgreeOnSource_translationsDisagree_statusDowngraded()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Two assets have a TU with the same name and content, but their DE translations
+    // disagree ("Hallo!" vs "Hallo."). Candidates agree on source but translations differ
+    // for DE — DE status should be downgraded.
+    Repository sourceRepo = createRepository("source", "de-DE");
+
+    Asset asset1 = createAsset(sourceRepo, "one.properties");
+    TMTextUnit tu1 =
+        push(sourceRepo, asset1, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu1, "de-DE", "Hallo!");
+
+    Asset asset2 = createAsset(sourceRepo, "other.properties");
+    TMTextUnit tu2 =
+        push(sourceRepo, asset2, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu2, "de-DE", "Hallo.");
+
+    Repository targetRepo = createRepository("target", "de-DE");
+    Asset targetAsset = createAsset(targetRepo, "target.xliff");
+    push(targetRepo, targetAsset, tu("application.greeting", "Hello", "comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
+
+    List<TMTextUnitVariant> translations = getTranslations(targetRepo);
+    Assert.assertEquals(1, translations.size());
+    Assert.assertEquals(
+        "Translations disagree — should downgrade despite candidates agreeing on source",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        translations.get(0).getStatus());
+  }
+
+  @Test
+  public void candidatesDisagreeOnSource_statusDowngraded()
+      throws InterruptedException,
+          ExecutionException,
+          RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException,
+          AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
+
+    // Two assets have TUs with the same name but DIFFERENT content,
+    // and each has a translation for a different locale.
+    // Even though we're using UNIQUE mode to upgrade low-precision match statuses when there's only
+    // one match available, and each locale DOES have only one translation available,
+    // sources are different across candidates, so translations may be mismatched despite uniqueness
+    // — status downgraded.
+    Repository sourceRepo = createRepository("source", "de-DE", "fr-FR");
+
+    Asset asset1 = createAsset(sourceRepo, "one.properties");
+    TMTextUnit tu1 =
+        push(sourceRepo, asset1, tu("application.greeting", "Hello", "comment")).get(0);
+    translate(tu1, "de-DE", "Hallo");
+
+    Asset asset2 = createAsset(sourceRepo, "other.properties");
+    TMTextUnit tu2 =
+        push(sourceRepo, asset2, tu("application.greeting", "Hello World", "comment")).get(0);
+    translate(tu2, "fr-FR", "Bonjour le monde");
+
+    Repository targetRepo = createRepository("target", "de-DE", "fr-FR");
+    Asset targetAsset = createAsset(targetRepo, "target.xliff");
+    push(targetRepo, targetAsset, tu("application.greeting", "Hello { name }", "comment"));
+
+    CopyTmConfig config = new CopyTmConfig();
+    config.setSourceRepositoryId(sourceRepo.getId());
+    config.setTargetRepositoryId(targetRepo.getId());
+    config.setMode(CopyTmConfig.Mode.NAME);
+    config.setPreserveStatusMode(CopyTmConfig.PreserveStatusMode.UNIQUE);
+    runCopyTm(config);
+
+    Map<String, TMTextUnitVariant> byLocale = getTranslationsByLocale(targetRepo);
+    Assert.assertEquals(2, byLocale.size());
+    Assert.assertEquals(
+        "DE should be downgraded — source content differs across candidates",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        byLocale.get("de-DE").getStatus());
+    Assert.assertEquals(
+        "FR should be downgraded — source content differs across candidates",
+        TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+        byLocale.get("fr-FR").getStatus());
   }
 }
