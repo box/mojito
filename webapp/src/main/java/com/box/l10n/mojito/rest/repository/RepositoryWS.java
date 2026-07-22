@@ -159,10 +159,10 @@ public class RepositoryWS {
       throw new RepositoryWithIdNotFoundException(repositoryId);
     }
 
-    String normalizedContent =
-        NormalizationUtils.normalize(importRepositoryBody.getXliffContent());
+    String normalizedContent = NormalizationUtils.normalize(importRepositoryBody.getXliffContent());
     PollableFuture<Void> pollableFuture =
-        tmImportService.importXLIFF(repository, normalizedContent, importRepositoryBody.isUpdateTM());
+        tmImportService.importXLIFF(
+            repository, normalizedContent, importRepositoryBody.isUpdateTM());
 
     return pollableFuture.getPollableTask();
   }
