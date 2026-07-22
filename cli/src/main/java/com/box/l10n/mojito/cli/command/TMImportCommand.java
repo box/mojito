@@ -10,6 +10,7 @@ import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -123,23 +124,15 @@ public class TMImportCommand extends Command {
           .a(" - Importing file: ")
           .fg(Ansi.Color.MAGENTA)
           .a(relativeFilePath.toString())
-          .fg(Ansi.Color.YELLOW)
-          .a(" Running")
           .println();
 
-      repositoryClient.importRepository(
-          repository.getId(), getFileContent(fileMatch), updateTMParam);
+      PollableTask pollableTask =
+          repositoryClient.importRepository(
+              repository.getId(), getFileContent(fileMatch), updateTMParam);
 
-      consoleWriter.erasePreviouslyPrintedLines();
-      consoleWriter
-          .a(" - Importing file: ")
-          .fg(Ansi.Color.MAGENTA)
-          .a(relativeFilePath.toString())
-          .fg(Ansi.Color.GREEN)
-          .a(" Done")
-          .println();
+      commandHelper.waitForPollableTask(pollableTask.getId());
 
-    } catch (ResourceNotCreatedException e) {
+    } catch (ResourceNotCreatedException | CommandException e) {
       throw new CommandException(
           "Error importing ["
               + fileMatch.getPath().toString()

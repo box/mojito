@@ -20,6 +20,8 @@ public class ResttemplateConfig {
   String scheme = "http";
   String contextPath = "";
 
+  Integer readTimeoutSeconds;
+
   Authentication authentication = new Authentication();
 
   StatelessAuthentication stateless = new StatelessAuthentication();
@@ -224,5 +226,13 @@ public class ResttemplateConfig {
 
   public void setContextPath(String contextPath) {
     this.contextPath = contextPath;
+  }
+
+  public Integer getReadTimeoutSeconds() {
+    return readTimeoutSeconds;
+  }
+
+  public void setReadTimeoutSeconds(Integer readTimeoutSeconds) {
+    this.readTimeoutSeconds = readTimeoutSeconds;
   }
 }

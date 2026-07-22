@@ -137,7 +137,8 @@ public class RepositoryWS {
   }
 
   /**
-   * Imports an entire {@link Repository} given an XLIFF
+   * Imports an entire {@link Repository} given an XLIFF. The import runs asynchronously and a
+   * {@link PollableTask} is returned to track progress.
    *
    * @param repositoryId
    * @param importRepositoryBody
@@ -146,25 +147,24 @@ public class RepositoryWS {
   @RequestMapping(
       value = "/api/repositories/{repositoryId}/xliffImport",
       method = RequestMethod.POST)
-  public ResponseEntity importRepository(
-      @PathVariable Long repositoryId, @RequestBody ImportRepositoryBody importRepositoryBody) {
+  public PollableTask importRepository(
+      @PathVariable Long repositoryId, @RequestBody ImportRepositoryBody importRepositoryBody)
+      throws RepositoryWithIdNotFoundException {
 
     logger.info("Importing for repo: [{}]", repositoryId);
 
-    try {
-      String normalizedContent =
-          NormalizationUtils.normalize(importRepositoryBody.getXliffContent());
-      tmImportService.importXLIFF(
-          repositoryRepository.getOne(repositoryId),
-          normalizedContent,
-          importRepositoryBody.isUpdateTM());
+    Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
-      return new ResponseEntity(HttpStatus.CREATED);
-    } catch (RuntimeException exception) {
-      String msg = "Unable to import: " + exception.getMessage();
-      logger.debug(msg, exception);
-      return new ResponseEntity(msg, HttpStatus.CONFLICT);
+    if (repository == null) {
+      throw new RepositoryWithIdNotFoundException(repositoryId);
     }
+
+    String normalizedContent =
+        NormalizationUtils.normalize(importRepositoryBody.getXliffContent());
+    PollableFuture<Void> pollableFuture =
+        tmImportService.importXLIFF(repository, normalizedContent, importRepositoryBody.isUpdateTM());
+
+    return pollableFuture.getPollableTask();
   }
 
   /**
