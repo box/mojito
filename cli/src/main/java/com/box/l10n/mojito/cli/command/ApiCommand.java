@@ -96,8 +96,17 @@ public class ApiCommand extends Command {
 
   @Parameter(
       names = {"--paginate"},
-      description = "Fetch all pages for paginated (Spring Data Page) responses")
+      description =
+          "Fetch all pages of results automatically. "
+              + "Style is selected with --paginate-style (default: page).")
   boolean paginate = false;
+
+  @Parameter(
+      names = {"--paginate-style"},
+      description =
+          "Pagination style: 'page' (Spring Data page/size with hasNext envelope, default) "
+              + "or 'offset' (offset/limit with bare array response, used by text unit search).")
+  String paginateStyle = "page";
 
   @Parameter(
       names = {"--slurp"},
@@ -109,22 +118,23 @@ public class ApiCommand extends Command {
   @Parameter(
       names = {"--page-size"},
       description =
-          "Number of items per page when using --paginate (default: 100). "
-              + "Sets the 'size' query param.")
+          "Items per request when using --paginate (default: 100). "
+              + "Sets 'size' (page style) or 'limit' (offset style).")
   int pageSize = 100;
 
   @Parameter(
       names = {"--max-pages"},
       description =
-          "Maximum number of pages to fetch when using --paginate (default: 10). "
+          "Maximum number of requests when using --paginate (default: 10). "
               + "Set to 0 for no limit. "
-              + "When the cap is reached, prints the next page number to stderr for resuming.")
+              + "When the cap is reached, prints resume info to stderr.")
   int maxPages = 10;
 
   @Parameter(
       names = {"--start-page"},
       description =
-          "Page number to start from when using --paginate (default: 0). "
+          "Starting position when using --paginate (default: 0). "
+              + "In page style: page number. In offset style: batch number (offset = N * page-size). "
               + "Use to resume a previously capped paginated request.")
   int startPage = 0;
 
@@ -198,8 +208,10 @@ public class ApiCommand extends Command {
       headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
-    if (paginate) {
-      executePaginated(resolvedMethod, path, headers, body);
+    if (paginate && "offset".equalsIgnoreCase(paginateStyle)) {
+      executePaginatedOffset(resolvedMethod, path, headers, hasFields, methodSendsBody);
+    } else if (paginate) {
+      executePaginatedPage(resolvedMethod, path, headers, body);
     } else {
       ResponseEntity<String> response = executeRequest(resolvedMethod, path, headers, body);
       handleResponse(response);
@@ -224,6 +236,12 @@ public class ApiCommand extends Command {
 
     if (paginate && waitForPollableTask) {
       throw new CommandException("--paginate and --wait cannot be used together");
+    }
+
+    if (paginate
+        && !"page".equalsIgnoreCase(paginateStyle)
+        && !"offset".equalsIgnoreCase(paginateStyle)) {
+      throw new CommandException("--paginate-style must be 'page' or 'offset'");
     }
 
     if (pageSize <= 0) {
@@ -561,7 +579,7 @@ public class ApiCommand extends Command {
     }
   }
 
-  void executePaginated(String httpMethod, String path, HttpHeaders headers, String body)
+  void executePaginatedPage(String httpMethod, String path, HttpHeaders headers, String body)
       throws CommandException {
     List<JsonNode> allContent = slurp ? new ArrayList<>() : null;
     boolean isFirstPage = true;
@@ -642,6 +660,149 @@ public class ApiCommand extends Command {
         merged.add(item);
       }
       printJsonNode(merged);
+    }
+  }
+
+  /**
+   * Offset/limit pagination for endpoints that return bare arrays (e.g. text unit search). Manages
+   * offset and limit as body fields (POST) or query params (GET) and stops when the response array
+   * has fewer items than the limit.
+   */
+  void executePaginatedOffset(
+      String httpMethod,
+      String path,
+      HttpHeaders headers,
+      boolean hasFields,
+      boolean methodSendsBody)
+      throws CommandException {
+    List<JsonNode> allContent = slurp ? new ArrayList<>() : null;
+    boolean isFirstPage = true;
+    int currentOffset = startPage * pageSize;
+    int batchesFetched = 0;
+
+    while (true) {
+      String requestBody;
+      String requestPath = path;
+
+      if (methodSendsBody && hasFields) {
+        requestBody = buildFieldsBodyWithOffsetLimit(currentOffset, pageSize);
+        if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+          headers.setContentType(MediaType.APPLICATION_JSON);
+        }
+      } else {
+        requestBody = null;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path);
+        if (hasFields) {
+          addFieldsAsQueryParams(builder, rawFields);
+          addFieldsAsQueryParams(builder, typedFields);
+        }
+        builder.replaceQueryParam("offset", currentOffset);
+        builder.replaceQueryParam("limit", pageSize);
+        requestPath = builder.build(false).toUriString();
+      }
+
+      ResponseEntity<String> response =
+          executeRequest(httpMethod, requestPath, headers, requestBody);
+      int statusCode = response.getStatusCode().value();
+
+      if (statusCode >= 400) {
+        if (includeHeaders) {
+          printResponseHeaders(response);
+        }
+        if (!silent && response.getBody() != null) {
+          printBody(response.getBody());
+        }
+        throw new CommandWithExitStatusException(1);
+      }
+
+      if (isFirstPage && includeHeaders) {
+        printResponseHeaders(response);
+      }
+
+      String responseBody = response.getBody();
+      if (responseBody == null) {
+        break;
+      }
+
+      JsonNode root = parseJson(responseBody);
+      if (root == null || !root.isArray()) {
+        if (!silent) {
+          printBody(responseBody);
+        }
+        break;
+      }
+
+      int resultCount = root.size();
+
+      if (slurp) {
+        for (JsonNode item : root) {
+          allContent.add(item);
+        }
+      } else if (!silent) {
+        printJsonNode(root);
+      }
+
+      batchesFetched++;
+      currentOffset += resultCount;
+      isFirstPage = false;
+
+      boolean hasMore = resultCount >= pageSize;
+
+      if (maxPages > 0 && batchesFetched >= maxPages) {
+        if (hasMore) {
+          int nextBatch = startPage + batchesFetched;
+          System.err.println(
+              "mojito: stopped after "
+                  + batchesFetched
+                  + " batch(es), more results may be available. "
+                  + "Resume with --start-page "
+                  + nextBatch);
+        }
+        break;
+      }
+
+      if (!hasMore) {
+        break;
+      }
+    }
+
+    if (slurp && !silent) {
+      ArrayNode merged = objectMapper.createArrayNode();
+      for (JsonNode item : allContent) {
+        merged.add(item);
+      }
+      printJsonNode(merged);
+    }
+  }
+
+  /**
+   * Builds the JSON body from user fields, injecting/overriding offset and limit values for
+   * offset-style pagination.
+   */
+  String buildFieldsBodyWithOffsetLimit(int offset, int limit) throws CommandException {
+    ObjectNode root = objectMapper.createObjectNode();
+
+    if (rawFields != null) {
+      for (String field : rawFields) {
+        String[] kv = splitField(field);
+        setFieldValue(root, kv[0], kv[1], false);
+      }
+    }
+
+    if (typedFields != null) {
+      for (String field : typedFields) {
+        String[] kv = splitField(field);
+        setFieldValue(root, kv[0], kv[1], true);
+      }
+    }
+
+    root.put("offset", offset);
+    root.put("limit", limit);
+
+    try {
+      return objectMapper.writeValueAsString(root);
+    } catch (JsonProcessingException e) {
+      throw new CommandException("Failed to serialize request body: " + e.getMessage(), e);
     }
   }
 

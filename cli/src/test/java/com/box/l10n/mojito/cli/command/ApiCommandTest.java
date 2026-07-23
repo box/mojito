@@ -228,6 +228,38 @@ public class ApiCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testOffsetPaginationWithGet() throws Exception {
+    createTestRepoUsingRepoService();
+
+    L10nJCommander commander = getL10nJCommander();
+    commander.run(
+        "api",
+        "/api/textunits",
+        "--paginate",
+        "--paginate-style",
+        "offset",
+        "--page-size",
+        "5",
+        "--max-pages",
+        "2",
+        "-f",
+        "repositoryNames=" + testIdWatcher.getEntityName("repo"));
+
+    String stdout = getStdout();
+    assertEquals("Offset pagination on GET should succeed", 0, commander.getExitCode());
+  }
+
+  @Test
+  public void testInvalidPaginateStyle() throws Exception {
+    L10nJCommander commander = getL10nJCommander();
+    commander.run("api", "/api/repositories", "--paginate", "--paginate-style", "invalid");
+
+    assertTrue(
+        "Should error on invalid paginate style",
+        outputCapture.toString().contains("--paginate-style must be 'page' or 'offset'"));
+  }
+
+  @Test
   public void testSlurpRequiresPaginate() throws Exception {
     L10nJCommander commander = getL10nJCommander();
     commander.run("api", "/api/repositories", "--slurp");
