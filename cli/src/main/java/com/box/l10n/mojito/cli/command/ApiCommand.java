@@ -153,6 +153,11 @@ public class ApiCommand extends Command {
       description = "Do not print the response body")
   boolean silent = false;
 
+  @Parameter(
+      names = {"--spec"},
+      description = "Print the OpenAPI spec for the Mojito API and exit")
+  boolean printSpec = false;
+
   @Autowired AuthenticatedRestTemplate authenticatedRestTemplate;
 
   @Autowired PollableTaskClient pollableTaskClient;
@@ -166,6 +171,12 @@ public class ApiCommand extends Command {
 
   @Override
   protected void execute() throws CommandException {
+    if (printSpec) {
+      ResponseEntity<String> response = executeRequest("GET", "/api-docs", new HttpHeaders(), null);
+      handleResponse(response);
+      return;
+    }
+
     validateArgs();
 
     String path = normalizeEndpoint(endpoint.get(0));

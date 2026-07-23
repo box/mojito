@@ -141,7 +141,8 @@ public class WebSecurityConfig {
                 "/cli/**",
                 "/js/**",
                 "/css/**",
-                "/error"));
+                "/error",
+                "/api-docs/**"));
     if (extraPermitAllPatterns != null) {
       permitMatchers.addAll(extraPermitAllPatterns);
     }
