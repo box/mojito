@@ -244,7 +244,7 @@ public class ApiCommand extends Command {
       }
     } else if (hasFields && methodSendsBody) {
       body = buildFieldsBody();
-    } else if (hasFields) {
+    } else if (hasFields && !paginate) {
       path = appendFieldsToQueryString(path);
       body = null;
     } else {
@@ -549,7 +549,7 @@ public class ApiCommand extends Command {
   // --- Query string helpers ---
 
   String appendFieldsToQueryString(String path) {
-    UriComponentsBuilder builder = UriComponentsBuilder.fromPath(path);
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path);
     addFieldsAsQueryParams(builder, rawFields);
     addFieldsAsQueryParams(builder, typedFields);
     return builder.build(false).toUriString();
@@ -659,7 +659,7 @@ public class ApiCommand extends Command {
           offsetMode
               ? executeOffsetPageRequest(
                   httpMethod, path, headers, hasFields, methodSendsBody, currentOffset)
-              : executePageRequest(httpMethod, path, headers, null, pageNumber);
+              : executePageRequest(httpMethod, path, headers, hasFields, pageNumber);
       int statusCode = response.getStatusCode().value();
 
       if (statusCode >= 400) {
@@ -730,15 +730,17 @@ public class ApiCommand extends Command {
   }
 
   private ResponseEntity<String> executePageRequest(
-      String httpMethod, String path, HttpHeaders headers, String body, int pageNumber)
+      String httpMethod, String path, HttpHeaders headers, boolean hasFields, int pageNumber)
       throws CommandException {
-    String pagedPath =
+    UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(path)
             .replaceQueryParam("page", pageNumber)
-            .replaceQueryParam("size", pageSize)
-            .build(false)
-            .toUriString();
-    return executeRequest(httpMethod, pagedPath, headers, body);
+            .replaceQueryParam("size", pageSize);
+    if (hasFields) {
+      addFieldsAsQueryParams(builder, rawFields);
+      addFieldsAsQueryParams(builder, typedFields);
+    }
+    return executeRequest(httpMethod, builder.build(false).toUriString(), headers, null);
   }
 
   /**
@@ -894,7 +896,6 @@ public class ApiCommand extends Command {
       int statusCode = pollResponse.getStatusCode().value();
 
       if (statusCode >= 400) {
-        printErrorSummary(pollResponse.getBody(), statusCode);
         return pollResponse.getBody();
       }
 
