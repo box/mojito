@@ -399,4 +399,69 @@ public class ApiCommandTest extends CLITestBase {
     assertTrue("plainKey should be a string", json.get("plainKey").isTextual());
     assertEquals("world", json.get("plainKey").asText());
   }
+
+  @Test
+  public void testBuildFieldsWithArrays() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+    cmd.typedFields =
+        java.util.List.of("repositoryIds[]=1", "repositoryIds[]=2", "repositoryIds[]=3");
+
+    String body = cmd.buildFieldsBody();
+    JsonNode json = objectMapper.readTree(body);
+
+    assertTrue("repositoryIds should be an array", json.get("repositoryIds").isArray());
+    assertEquals(3, json.get("repositoryIds").size());
+    assertEquals(1, json.get("repositoryIds").get(0).asInt());
+    assertEquals(2, json.get("repositoryIds").get(1).asInt());
+    assertEquals(3, json.get("repositoryIds").get(2).asInt());
+  }
+
+  @Test
+  public void testBuildFieldsWithRawArrays() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+    cmd.rawFields = java.util.List.of("localeTags[]=fr-FR", "localeTags[]=ja-JP");
+
+    String body = cmd.buildFieldsBody();
+    JsonNode json = objectMapper.readTree(body);
+
+    assertTrue("localeTags should be an array", json.get("localeTags").isArray());
+    assertEquals(2, json.get("localeTags").size());
+    assertEquals("fr-FR", json.get("localeTags").get(0).asText());
+    assertEquals("ja-JP", json.get("localeTags").get(1).asText());
+  }
+
+  @Test
+  public void testBuildFieldsWithNestedKeys() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+    cmd.typedFields = java.util.List.of("filter[status]=TRANSLATED", "filter[used]=true");
+
+    String body = cmd.buildFieldsBody();
+    JsonNode json = objectMapper.readTree(body);
+
+    assertTrue("filter should be an object", json.get("filter").isObject());
+    assertEquals("TRANSLATED", json.get("filter").get("status").asText());
+    assertTrue(json.get("filter").get("used").asBoolean());
+  }
+
+  @Test
+  public void testBuildFieldsMixedArraysAndPlain() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+    cmd.typedFields =
+        java.util.List.of(
+            "repositoryIds[]=42",
+            "searchType=CONTAINS",
+            "localeTags[]=fr-FR",
+            "localeTags[]=en-GB",
+            "limit=100");
+
+    String body = cmd.buildFieldsBody();
+    JsonNode json = objectMapper.readTree(body);
+
+    assertTrue(json.get("repositoryIds").isArray());
+    assertEquals(42, json.get("repositoryIds").get(0).asInt());
+    assertEquals("CONTAINS", json.get("searchType").asText());
+    assertTrue(json.get("localeTags").isArray());
+    assertEquals(2, json.get("localeTags").size());
+    assertEquals(100, json.get("limit").asInt());
+  }
 }

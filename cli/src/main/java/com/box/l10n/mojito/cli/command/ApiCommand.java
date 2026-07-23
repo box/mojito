@@ -77,6 +77,14 @@ public class ApiCommand extends Command {
   String inputFile;
 
   @Parameter(
+      names = {"--binary"},
+      description =
+          "Read --input as raw bytes instead of UTF-8 text. "
+              + "Use for binary uploads (e.g. images). Sets Content-Type to "
+              + "application/octet-stream unless overridden with -H.")
+  boolean binaryInput = false;
+
+  @Parameter(
       names = {"-H", "--header"},
       description = "Add a HTTP request header in key:value format")
   List<String> requestHeaders;
@@ -157,6 +165,20 @@ public class ApiCommand extends Command {
 
     boolean methodSendsBody = !"GET".equals(resolvedMethod) && !"HEAD".equals(resolvedMethod);
 
+    if (binaryInput && inputFile != null) {
+      if (hasFields) {
+        path = appendFieldsToQueryString(path);
+      }
+      if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+      }
+      byte[] binaryBody = readInputFileAsBytes(inputFile);
+      ResponseEntity<String> response =
+          executeBinaryRequest(resolvedMethod, path, headers, binaryBody);
+      handleResponse(response);
+      return;
+    }
+
     String body;
     if (inputFile != null) {
       body = readInputFile(inputFile);
@@ -214,6 +236,10 @@ public class ApiCommand extends Command {
 
     if (startPage < 0) {
       throw new CommandException("--start-page must be 0 or a positive integer");
+    }
+
+    if (binaryInput && inputFile == null) {
+      throw new CommandException("--binary requires --input");
     }
 
     int stdinReaders = countStdinReaders();
@@ -282,24 +308,24 @@ public class ApiCommand extends Command {
   }
 
   String buildFieldsBody() throws CommandException {
-    ObjectNode node = objectMapper.createObjectNode();
+    ObjectNode root = objectMapper.createObjectNode();
 
     if (rawFields != null) {
       for (String field : rawFields) {
         String[] kv = splitField(field);
-        node.put(kv[0], kv[1]);
+        setFieldValue(root, kv[0], kv[1], false);
       }
     }
 
     if (typedFields != null) {
       for (String field : typedFields) {
         String[] kv = splitField(field);
-        setTypedValue(node, kv[0], kv[1]);
+        setFieldValue(root, kv[0], kv[1], true);
       }
     }
 
     try {
-      return objectMapper.writeValueAsString(node);
+      return objectMapper.writeValueAsString(root);
     } catch (JsonProcessingException e) {
       throw new CommandException("Failed to serialize request body: " + e.getMessage(), e);
     }
@@ -313,7 +339,81 @@ public class ApiCommand extends Command {
     return new String[] {field.substring(0, eqIdx), field.substring(eqIdx + 1)};
   }
 
-  void setTypedValue(ObjectNode node, String key, String value) throws CommandException {
+  /**
+   * Sets a field value in the JSON tree, supporting nested keys and arrays.
+   *
+   * <ul>
+   *   <li>{@code key=value} sets a top-level field
+   *   <li>{@code key[subkey]=value} sets a nested field: {@code {"key": {"subkey": value}}}
+   *   <li>{@code key[]=value} appends to an array: {@code {"key": [value]}}
+   * </ul>
+   */
+  void setFieldValue(ObjectNode root, String key, String value, boolean typed)
+      throws CommandException {
+    if (key.endsWith("[]")) {
+      String arrayKey = key.substring(0, key.length() - 2);
+      ArrayNode array = getOrCreateArray(root, arrayKey);
+      addValueToArray(array, value, typed);
+    } else if (key.contains("[") && key.endsWith("]")) {
+      int bracketStart = key.indexOf('[');
+      String outerKey = key.substring(0, bracketStart);
+      String innerKey = key.substring(bracketStart + 1, key.length() - 1);
+      ObjectNode nested = getOrCreateObject(root, outerKey);
+      setSimpleValue(nested, innerKey, value, typed);
+    } else {
+      setSimpleValue(root, key, value, typed);
+    }
+  }
+
+  private ArrayNode getOrCreateArray(ObjectNode parent, String key) {
+    JsonNode existing = parent.get(key);
+    if (existing != null && existing.isArray()) {
+      return (ArrayNode) existing;
+    }
+    ArrayNode array = objectMapper.createArrayNode();
+    parent.set(key, array);
+    return array;
+  }
+
+  private ObjectNode getOrCreateObject(ObjectNode parent, String key) {
+    JsonNode existing = parent.get(key);
+    if (existing != null && existing.isObject()) {
+      return (ObjectNode) existing;
+    }
+    ObjectNode obj = objectMapper.createObjectNode();
+    parent.set(key, obj);
+    return obj;
+  }
+
+  private void addValueToArray(ArrayNode array, String value, boolean typed)
+      throws CommandException {
+    if (!typed) {
+      array.add(value);
+      return;
+    }
+    if ("true".equals(value)) {
+      array.add(true);
+    } else if ("false".equals(value)) {
+      array.add(false);
+    } else if ("null".equals(value)) {
+      array.addNull();
+    } else if (value.startsWith("@")) {
+      array.add(readFieldFile(value.substring(1)));
+    } else {
+      try {
+        array.add(Long.parseLong(value));
+      } catch (NumberFormatException e) {
+        array.add(value);
+      }
+    }
+  }
+
+  private void setSimpleValue(ObjectNode node, String key, String value, boolean typed)
+      throws CommandException {
+    if (!typed) {
+      node.put(key, value);
+      return;
+    }
     if ("true".equals(value)) {
       node.put(key, true);
     } else if ("false".equals(value)) {
@@ -321,12 +421,10 @@ public class ApiCommand extends Command {
     } else if ("null".equals(value)) {
       node.putNull(key);
     } else if (value.startsWith("@")) {
-      String fileContent = readFieldFile(value.substring(1));
-      node.put(key, fileContent);
+      node.put(key, readFieldFile(value.substring(1)));
     } else {
       try {
-        long longValue = Long.parseLong(value);
-        node.put(key, longValue);
+        node.put(key, Long.parseLong(value));
       } catch (NumberFormatException e) {
         node.put(key, value);
       }
@@ -360,6 +458,44 @@ public class ApiCommand extends Command {
       return new String(System.in.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new CommandException("Failed to read from stdin: " + e.getMessage(), e);
+    }
+  }
+
+  byte[] readInputFileAsBytes(String path) throws CommandException {
+    if ("-".equals(path)) {
+      try {
+        return System.in.readAllBytes();
+      } catch (IOException e) {
+        throw new CommandException("Failed to read binary data from stdin: " + e.getMessage(), e);
+      }
+    }
+    try {
+      return Files.readAllBytes(Paths.get(path));
+    } catch (IOException e) {
+      throw new CommandException("Failed to read binary file: " + path + ": " + e.getMessage(), e);
+    }
+  }
+
+  ResponseEntity<String> executeBinaryRequest(
+      String httpMethod, String path, HttpHeaders headers, byte[] body) throws CommandException {
+    HttpMethod springMethod = HttpMethod.valueOf(httpMethod);
+    HttpEntity<byte[]> entity = new HttpEntity<>(body, headers);
+    String uri = authenticatedRestTemplate.getURIForResource(path);
+
+    try {
+      return authenticatedRestTemplate
+          .getRestTemplate()
+          .exchange(uri, springMethod, entity, String.class);
+    } catch (HttpStatusCodeException e) {
+      HttpHeaders responseHeaders = e.getResponseHeaders();
+      String responseBody = e.getResponseBodyAsString();
+      HttpStatusCode statusCode = e.getStatusCode();
+
+      printErrorSummary(responseBody, statusCode.value());
+
+      return ResponseEntity.status(statusCode)
+          .headers(responseHeaders != null ? responseHeaders : new HttpHeaders())
+          .body(responseBody);
     }
   }
 
@@ -515,6 +651,11 @@ public class ApiCommand extends Command {
       return responseBody;
     }
 
+    String pollingResult = maybeWaitForPollingToken(root);
+    if (pollingResult != null) {
+      return pollingResult;
+    }
+
     Long taskId = extractPollableTaskId(root);
     if (taskId == null) {
       return responseBody;
@@ -537,6 +678,70 @@ public class ApiCommand extends Command {
       return objectMapper.writeValueAsString(finalTask);
     } catch (JsonProcessingException e) {
       throw new CommandException("Failed to serialize pollable task result: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Handles the hybrid search polling pattern. If the response contains a {@code pollingToken} with
+   * a {@code requestId}, polls the results endpoint until the search completes.
+   *
+   * @return the final response body, or null if this is not a polling token response
+   */
+  String maybeWaitForPollingToken(JsonNode root) throws CommandException {
+    JsonNode pollingToken = root.get("pollingToken");
+    if (pollingToken == null || !pollingToken.has("requestId")) {
+      return null;
+    }
+
+    String requestId = pollingToken.get("requestId").asText();
+    long pollIntervalMs =
+        pollingToken.has("recommendedPollingDurationMillis")
+            ? pollingToken.get("recommendedPollingDurationMillis").asLong(1000)
+            : 1000;
+
+    System.err.println(
+        "mojito: search returned async, polling for results (id: " + requestId + ")...");
+
+    String resultPath = "/api/textunits/search-hybrid/results/" + requestId;
+    HttpHeaders headers = new HttpHeaders();
+
+    while (true) {
+      try {
+        Thread.sleep(pollIntervalMs);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new CommandException("Interrupted while waiting for search results", e);
+      }
+
+      ResponseEntity<String> pollResponse = executeRequest("GET", resultPath, headers, null);
+      int statusCode = pollResponse.getStatusCode().value();
+
+      if (statusCode >= 400) {
+        printErrorSummary(pollResponse.getBody(), statusCode);
+        return pollResponse.getBody();
+      }
+
+      String pollBody = pollResponse.getBody();
+      if (pollBody == null) {
+        continue;
+      }
+
+      JsonNode pollRoot = parseJson(pollBody);
+      if (pollRoot == null) {
+        return pollBody;
+      }
+
+      if (pollRoot.has("results") && !pollRoot.get("results").isNull()) {
+        System.err.println("mojito: search results ready");
+        return pollBody;
+      }
+
+      if (pollRoot.has("error") && !pollRoot.get("error").isNull()) {
+        System.err.println(
+            "mojito: search failed: "
+                + pollRoot.get("error").path("message").asText("unknown error"));
+        return pollBody;
+      }
     }
   }
 
