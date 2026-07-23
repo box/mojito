@@ -10,7 +10,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -47,6 +51,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class ApiCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(ApiCommand.class);
+
+  static final int DEFAULT_POLL_MAX_RETRIES = 120;
 
   @Parameter(description = "API endpoint path (e.g. /api/repositories or just repositories)")
   List<String> endpoint;
@@ -183,7 +189,6 @@ public class ApiCommand extends Command {
     boolean hasFields = hasFields();
     String resolvedMethod = resolveMethod(hasFields);
     HttpHeaders headers = buildHeaders();
-
     boolean methodSendsBody = !"GET".equals(resolvedMethod) && !"HEAD".equals(resolvedMethod);
 
     if (binaryInput && inputFile != null) {
@@ -193,16 +198,16 @@ public class ApiCommand extends Command {
       if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
       }
-      byte[] binaryBody = readInputFileAsBytes(inputFile);
-      ResponseEntity<String> response =
-          executeBinaryRequest(resolvedMethod, path, headers, binaryBody);
+      byte[] binaryBody = readFileAsBytes(inputFile);
+      HttpEntity<byte[]> entity = new HttpEntity<>(binaryBody, headers);
+      ResponseEntity<String> response = doExchange(resolvedMethod, path, entity);
       handleResponse(response);
       return;
     }
 
     String body;
     if (inputFile != null) {
-      body = readInputFile(inputFile);
+      body = readFileAsString(inputFile);
       if (hasFields) {
         path = appendFieldsToQueryString(path);
       }
@@ -220,14 +225,16 @@ public class ApiCommand extends Command {
     }
 
     if (paginate && "offset".equalsIgnoreCase(paginateStyle)) {
-      executePaginatedOffset(resolvedMethod, path, headers, hasFields, methodSendsBody);
+      executePaginated(resolvedMethod, path, headers, hasFields, methodSendsBody, true);
     } else if (paginate) {
-      executePaginatedPage(resolvedMethod, path, headers, body);
+      executePaginated(resolvedMethod, path, headers, hasFields, methodSendsBody, false);
     } else {
       ResponseEntity<String> response = executeRequest(resolvedMethod, path, headers, body);
       handleResponse(response);
     }
   }
+
+  // --- Argument validation ---
 
   void validateArgs() throws CommandException {
     if (endpoint == null || endpoint.isEmpty()) {
@@ -284,15 +291,25 @@ public class ApiCommand extends Command {
     if ("-".equals(inputFile)) {
       count++;
     }
-    if (typedFields != null) {
-      for (String field : typedFields) {
-        if (field.contains("=@-")) {
-          count++;
-        }
+    count += countStdinRefsInFields(typedFields);
+    count += countStdinRefsInFields(rawFields);
+    return count;
+  }
+
+  private int countStdinRefsInFields(List<String> fields) {
+    if (fields == null) {
+      return 0;
+    }
+    int count = 0;
+    for (String field : fields) {
+      if (field.contains("=@-")) {
+        count++;
       }
     }
     return count;
   }
+
+  // --- Path / method resolution ---
 
   String normalizeEndpoint(String rawEndpoint) {
     if (rawEndpoint.startsWith("http://") || rawEndpoint.startsWith("https://")) {
@@ -336,23 +353,34 @@ public class ApiCommand extends Command {
     return headers;
   }
 
-  String buildFieldsBody() throws CommandException {
-    ObjectNode root = objectMapper.createObjectNode();
+  // --- Field construction ---
 
+  String buildFieldsBody() throws CommandException {
+    return serializeFieldsToJson(buildFieldsNode());
+  }
+
+  ObjectNode buildFieldsNode() throws CommandException {
+    ObjectNode root = objectMapper.createObjectNode();
+    populateFields(root);
+    return root;
+  }
+
+  private void populateFields(ObjectNode root) throws CommandException {
     if (rawFields != null) {
       for (String field : rawFields) {
         String[] kv = splitField(field);
         setFieldValue(root, kv[0], kv[1], false);
       }
     }
-
     if (typedFields != null) {
       for (String field : typedFields) {
         String[] kv = splitField(field);
         setFieldValue(root, kv[0], kv[1], true);
       }
     }
+  }
 
+  String serializeFieldsToJson(ObjectNode root) throws CommandException {
     try {
       return objectMapper.writeValueAsString(root);
     } catch (JsonProcessingException e) {
@@ -382,15 +410,43 @@ public class ApiCommand extends Command {
     if (key.endsWith("[]")) {
       String arrayKey = key.substring(0, key.length() - 2);
       ArrayNode array = getOrCreateArray(root, arrayKey);
-      addValueToArray(array, value, typed);
+      array.add(coerceValue(value, typed));
     } else if (key.contains("[") && key.endsWith("]")) {
       int bracketStart = key.indexOf('[');
       String outerKey = key.substring(0, bracketStart);
       String innerKey = key.substring(bracketStart + 1, key.length() - 1);
       ObjectNode nested = getOrCreateObject(root, outerKey);
-      setSimpleValue(nested, innerKey, value, typed);
+      nested.set(innerKey, coerceValue(value, typed));
     } else {
-      setSimpleValue(root, key, value, typed);
+      root.set(key, coerceValue(value, typed));
+    }
+  }
+
+  /**
+   * Converts a string value to the appropriate Jackson JsonNode. For typed fields: true/false/null
+   * become JSON types, integers become numbers, @file reads from file. For raw fields: always
+   * returns a TextNode.
+   */
+  JsonNode coerceValue(String value, boolean typed) throws CommandException {
+    if (!typed) {
+      return TextNode.valueOf(value);
+    }
+    if ("true".equals(value)) {
+      return BooleanNode.TRUE;
+    }
+    if ("false".equals(value)) {
+      return BooleanNode.FALSE;
+    }
+    if ("null".equals(value)) {
+      return NullNode.getInstance();
+    }
+    if (value.startsWith("@")) {
+      return TextNode.valueOf(readFileAsString(value.substring(1)));
+    }
+    try {
+      return LongNode.valueOf(Long.parseLong(value));
+    } catch (NumberFormatException e) {
+      return TextNode.valueOf(value);
     }
   }
 
@@ -414,53 +470,9 @@ public class ApiCommand extends Command {
     return obj;
   }
 
-  private void addValueToArray(ArrayNode array, String value, boolean typed)
-      throws CommandException {
-    if (!typed) {
-      array.add(value);
-      return;
-    }
-    if ("true".equals(value)) {
-      array.add(true);
-    } else if ("false".equals(value)) {
-      array.add(false);
-    } else if ("null".equals(value)) {
-      array.addNull();
-    } else if (value.startsWith("@")) {
-      array.add(readFieldFile(value.substring(1)));
-    } else {
-      try {
-        array.add(Long.parseLong(value));
-      } catch (NumberFormatException e) {
-        array.add(value);
-      }
-    }
-  }
+  // --- File / stdin reading ---
 
-  private void setSimpleValue(ObjectNode node, String key, String value, boolean typed)
-      throws CommandException {
-    if (!typed) {
-      node.put(key, value);
-      return;
-    }
-    if ("true".equals(value)) {
-      node.put(key, true);
-    } else if ("false".equals(value)) {
-      node.put(key, false);
-    } else if ("null".equals(value)) {
-      node.putNull(key);
-    } else if (value.startsWith("@")) {
-      node.put(key, readFieldFile(value.substring(1)));
-    } else {
-      try {
-        node.put(key, Long.parseLong(value));
-      } catch (NumberFormatException e) {
-        node.put(key, value);
-      }
-    }
-  }
-
-  String readFieldFile(String path) throws CommandException {
+  String readFileAsString(String path) throws CommandException {
     if ("-".equals(path)) {
       return readStdin();
     }
@@ -471,18 +483,7 @@ public class ApiCommand extends Command {
     }
   }
 
-  String readInputFile(String path) throws CommandException {
-    if ("-".equals(path)) {
-      return readStdin();
-    }
-    try {
-      return Files.readString(Paths.get(path), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new CommandException("Failed to read input file: " + path + ": " + e.getMessage(), e);
-    }
-  }
-
-  String readStdin() throws CommandException {
+  private String readStdin() throws CommandException {
     try {
       return new String(System.in.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
@@ -490,7 +491,7 @@ public class ApiCommand extends Command {
     }
   }
 
-  byte[] readInputFileAsBytes(String path) throws CommandException {
+  byte[] readFileAsBytes(String path) throws CommandException {
     if ("-".equals(path)) {
       try {
         return System.in.readAllBytes();
@@ -505,28 +506,7 @@ public class ApiCommand extends Command {
     }
   }
 
-  ResponseEntity<String> executeBinaryRequest(
-      String httpMethod, String path, HttpHeaders headers, byte[] body) throws CommandException {
-    HttpMethod springMethod = HttpMethod.valueOf(httpMethod);
-    HttpEntity<byte[]> entity = new HttpEntity<>(body, headers);
-    String uri = authenticatedRestTemplate.getURIForResource(path);
-
-    try {
-      return authenticatedRestTemplate
-          .getRestTemplate()
-          .exchange(uri, springMethod, entity, String.class);
-    } catch (HttpStatusCodeException e) {
-      HttpHeaders responseHeaders = e.getResponseHeaders();
-      String responseBody = e.getResponseBodyAsString();
-      HttpStatusCode statusCode = e.getStatusCode();
-
-      printErrorSummary(responseBody, statusCode.value());
-
-      return ResponseEntity.status(statusCode)
-          .headers(responseHeaders != null ? responseHeaders : new HttpHeaders())
-          .body(responseBody);
-    }
-  }
+  // --- Query string helpers ---
 
   String appendFieldsToQueryString(String path) {
     UriComponentsBuilder builder = UriComponentsBuilder.fromPath(path);
@@ -544,11 +524,18 @@ public class ApiCommand extends Command {
     }
   }
 
+  // --- HTTP execution ---
+
   ResponseEntity<String> executeRequest(
       String httpMethod, String path, HttpHeaders headers, String body) throws CommandException {
-    HttpMethod springMethod = HttpMethod.valueOf(httpMethod);
     HttpEntity<String> entity =
         body != null ? new HttpEntity<>(body, headers) : new HttpEntity<>(headers);
+    return doExchange(httpMethod, path, entity);
+  }
+
+  private <T> ResponseEntity<String> doExchange(
+      String httpMethod, String path, HttpEntity<T> entity) throws CommandException {
+    HttpMethod springMethod = HttpMethod.valueOf(httpMethod);
     String uri = authenticatedRestTemplate.getURIForResource(path);
 
     try {
@@ -567,6 +554,8 @@ public class ApiCommand extends Command {
           .body(responseBody);
     }
   }
+
+  // --- Response handling ---
 
   void handleResponse(ResponseEntity<String> response) throws CommandException {
     int statusCode = response.getStatusCode().value();
@@ -590,140 +579,46 @@ public class ApiCommand extends Command {
     }
   }
 
-  void executePaginatedPage(String httpMethod, String path, HttpHeaders headers, String body)
-      throws CommandException {
-    List<JsonNode> allContent = slurp ? new ArrayList<>() : null;
-    boolean isFirstPage = true;
-    boolean hasNextPage = true;
-    int pageNumber = startPage;
-    int pagesFetched = 0;
-
-    while (hasNextPage) {
-      String pagedPath =
-          UriComponentsBuilder.fromUriString(path)
-              .replaceQueryParam("page", pageNumber)
-              .replaceQueryParam("size", pageSize)
-              .build(false)
-              .toUriString();
-
-      ResponseEntity<String> response = executeRequest(httpMethod, pagedPath, headers, body);
-      int statusCode = response.getStatusCode().value();
-
-      if (statusCode >= 400) {
-        if (includeHeaders) {
-          printResponseHeaders(response);
-        }
-        if (!silent && response.getBody() != null) {
-          printBody(response.getBody());
-        }
-        throw new CommandWithExitStatusException(1);
-      }
-
-      if (isFirstPage && includeHeaders) {
-        printResponseHeaders(response);
-      }
-
-      String responseBody = response.getBody();
-      if (responseBody == null) {
-        break;
-      }
-
-      JsonNode root = parseJson(responseBody);
-      if (root == null || !root.has("content") || !root.has("hasNext")) {
-        if (!silent) {
-          printBody(responseBody);
-        }
-        break;
-      }
-
-      JsonNode content = root.get("content");
-      if (slurp) {
-        if (content.isArray()) {
-          for (JsonNode item : content) {
-            allContent.add(item);
-          }
-        }
-      } else if (!silent) {
-        printJsonNode(content);
-      }
-
-      hasNextPage = root.path("hasNext").asBoolean(false);
-      pageNumber++;
-      pagesFetched++;
-      isFirstPage = false;
-
-      if (maxPages > 0 && pagesFetched >= maxPages) {
-        if (hasNextPage) {
-          System.err.println(
-              "mojito: stopped after "
-                  + pagesFetched
-                  + " page(s), more pages available. "
-                  + "Resume with --start-page "
-                  + pageNumber);
-        }
-        break;
-      }
+  private void handlePaginationError(ResponseEntity<String> response) throws CommandException {
+    if (includeHeaders) {
+      printResponseHeaders(response);
     }
-
-    if (slurp && !silent) {
-      ArrayNode merged = objectMapper.createArrayNode();
-      for (JsonNode item : allContent) {
-        merged.add(item);
-      }
-      printJsonNode(merged);
+    if (!silent && response.getBody() != null) {
+      printBody(response.getBody());
     }
+    throw new CommandWithExitStatusException(1);
   }
 
+  // --- Pagination (unified) ---
+
   /**
-   * Offset/limit pagination for endpoints that return bare arrays (e.g. text unit search). Manages
-   * offset and limit as body fields (POST) or query params (GET) and stops when the response array
-   * has fewer items than the limit.
+   * Unified pagination loop for both page/size and offset/limit styles. The {@code offsetMode} flag
+   * selects which style to use.
    */
-  void executePaginatedOffset(
+  void executePaginated(
       String httpMethod,
       String path,
       HttpHeaders headers,
       boolean hasFields,
-      boolean methodSendsBody)
+      boolean methodSendsBody,
+      boolean offsetMode)
       throws CommandException {
     List<JsonNode> allContent = slurp ? new ArrayList<>() : null;
     boolean isFirstPage = true;
+    int pageNumber = startPage;
     int currentOffset = startPage * pageSize;
     int batchesFetched = 0;
 
     while (true) {
-      String requestBody;
-      String requestPath = path;
-
-      if (methodSendsBody && hasFields) {
-        requestBody = buildFieldsBodyWithOffsetLimit(currentOffset, pageSize);
-        if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
-          headers.setContentType(MediaType.APPLICATION_JSON);
-        }
-      } else {
-        requestBody = null;
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path);
-        if (hasFields) {
-          addFieldsAsQueryParams(builder, rawFields);
-          addFieldsAsQueryParams(builder, typedFields);
-        }
-        builder.replaceQueryParam("offset", currentOffset);
-        builder.replaceQueryParam("limit", pageSize);
-        requestPath = builder.build(false).toUriString();
-      }
-
       ResponseEntity<String> response =
-          executeRequest(httpMethod, requestPath, headers, requestBody);
+          offsetMode
+              ? executeOffsetPageRequest(
+                  httpMethod, path, headers, hasFields, methodSendsBody, currentOffset)
+              : executePageRequest(httpMethod, path, headers, null, pageNumber);
       int statusCode = response.getStatusCode().value();
 
       if (statusCode >= 400) {
-        if (includeHeaders) {
-          printResponseHeaders(response);
-        }
-        if (!silent && response.getBody() != null) {
-          printBody(response.getBody());
-        }
-        throw new CommandWithExitStatusException(1);
+        handlePaginationError(response);
       }
 
       if (isFirstPage && includeHeaders) {
@@ -736,43 +631,46 @@ public class ApiCommand extends Command {
       }
 
       JsonNode root = parseJson(responseBody);
-      if (root == null || !root.isArray()) {
-        if (!silent) {
-          printBody(responseBody);
-        }
+      PaginationResult pageResult =
+          offsetMode
+              ? extractOffsetResult(root, responseBody)
+              : extractPageResult(root, responseBody);
+
+      if (pageResult == null) {
         break;
       }
 
-      int resultCount = root.size();
-
       if (slurp) {
-        for (JsonNode item : root) {
-          allContent.add(item);
+        if (pageResult.items.isArray()) {
+          for (JsonNode item : pageResult.items) {
+            allContent.add(item);
+          }
         }
       } else if (!silent) {
-        printJsonNode(root);
+        printJsonNode(pageResult.items);
       }
 
       batchesFetched++;
-      currentOffset += resultCount;
       isFirstPage = false;
 
-      boolean hasMore = resultCount >= pageSize;
+      if (offsetMode) {
+        currentOffset += pageResult.items.size();
+      } else {
+        pageNumber++;
+      }
 
-      if (maxPages > 0 && batchesFetched >= maxPages) {
-        if (hasMore) {
-          int nextBatch = startPage + batchesFetched;
-          System.err.println(
-              "mojito: stopped after "
-                  + batchesFetched
-                  + " batch(es), more results may be available. "
-                  + "Resume with --start-page "
-                  + nextBatch);
-        }
+      if (!pageResult.hasMore) {
         break;
       }
 
-      if (!hasMore) {
+      if (maxPages > 0 && batchesFetched >= maxPages) {
+        int nextBatch = offsetMode ? startPage + batchesFetched : pageNumber;
+        System.err.println(
+            "mojito: stopped after "
+                + batchesFetched
+                + " batch(es), more results may be available. "
+                + "Resume with --start-page "
+                + nextBatch);
         break;
       }
     }
@@ -786,36 +684,70 @@ public class ApiCommand extends Command {
     }
   }
 
-  /**
-   * Builds the JSON body from user fields, injecting/overriding offset and limit values for
-   * offset-style pagination.
-   */
-  String buildFieldsBodyWithOffsetLimit(int offset, int limit) throws CommandException {
-    ObjectNode root = objectMapper.createObjectNode();
-
-    if (rawFields != null) {
-      for (String field : rawFields) {
-        String[] kv = splitField(field);
-        setFieldValue(root, kv[0], kv[1], false);
-      }
-    }
-
-    if (typedFields != null) {
-      for (String field : typedFields) {
-        String[] kv = splitField(field);
-        setFieldValue(root, kv[0], kv[1], true);
-      }
-    }
-
-    root.put("offset", offset);
-    root.put("limit", limit);
-
-    try {
-      return objectMapper.writeValueAsString(root);
-    } catch (JsonProcessingException e) {
-      throw new CommandException("Failed to serialize request body: " + e.getMessage(), e);
-    }
+  private ResponseEntity<String> executePageRequest(
+      String httpMethod, String path, HttpHeaders headers, String body, int pageNumber)
+      throws CommandException {
+    String pagedPath =
+        UriComponentsBuilder.fromUriString(path)
+            .replaceQueryParam("page", pageNumber)
+            .replaceQueryParam("size", pageSize)
+            .build(false)
+            .toUriString();
+    return executeRequest(httpMethod, pagedPath, headers, body);
   }
+
+  private ResponseEntity<String> executeOffsetPageRequest(
+      String httpMethod,
+      String path,
+      HttpHeaders headers,
+      boolean hasFields,
+      boolean methodSendsBody,
+      int currentOffset)
+      throws CommandException {
+    if (methodSendsBody && hasFields) {
+      ObjectNode bodyNode = buildFieldsNode();
+      bodyNode.put("offset", currentOffset);
+      bodyNode.put("limit", pageSize);
+      String requestBody = serializeFieldsToJson(bodyNode);
+      if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+        headers.setContentType(MediaType.APPLICATION_JSON);
+      }
+      return executeRequest(httpMethod, path, headers, requestBody);
+    }
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path);
+    if (hasFields) {
+      addFieldsAsQueryParams(builder, rawFields);
+      addFieldsAsQueryParams(builder, typedFields);
+    }
+    builder.replaceQueryParam("offset", currentOffset);
+    builder.replaceQueryParam("limit", pageSize);
+    return executeRequest(httpMethod, builder.build(false).toUriString(), headers, null);
+  }
+
+  private record PaginationResult(JsonNode items, boolean hasMore) {}
+
+  private PaginationResult extractPageResult(JsonNode root, String rawBody) {
+    if (root == null || !root.has("content") || !root.has("hasNext")) {
+      if (!silent) {
+        printBody(rawBody);
+      }
+      return null;
+    }
+    return new PaginationResult(root.get("content"), root.path("hasNext").asBoolean(false));
+  }
+
+  private PaginationResult extractOffsetResult(JsonNode root, String rawBody) {
+    if (root == null || !root.isArray()) {
+      if (!silent) {
+        printBody(rawBody);
+      }
+      return null;
+    }
+    return new PaginationResult(root, root.size() >= pageSize);
+  }
+
+  // --- Async wait (PollableTask + hybrid search polling) ---
 
   String maybeWaitForPollableTask(String responseBody) throws CommandException {
     JsonNode root = parseJson(responseBody);
@@ -855,7 +787,8 @@ public class ApiCommand extends Command {
 
   /**
    * Handles the hybrid search polling pattern. If the response contains a {@code pollingToken} with
-   * a {@code requestId}, polls the results endpoint until the search completes.
+   * a {@code requestId}, polls the results endpoint until the search completes or the retry limit
+   * is reached.
    *
    * @return the final response body, or null if this is not a polling token response
    */
@@ -877,7 +810,7 @@ public class ApiCommand extends Command {
     String resultPath = "/api/textunits/search-hybrid/results/" + requestId;
     HttpHeaders headers = new HttpHeaders();
 
-    while (true) {
+    for (int attempt = 0; attempt < DEFAULT_POLL_MAX_RETRIES; attempt++) {
       try {
         Thread.sleep(pollIntervalMs);
       } catch (InterruptedException e) {
@@ -915,6 +848,13 @@ public class ApiCommand extends Command {
         return pollBody;
       }
     }
+
+    throw new CommandException(
+        "Timed out waiting for search results after "
+            + DEFAULT_POLL_MAX_RETRIES
+            + " attempts (id: "
+            + requestId
+            + ")");
   }
 
   /**
@@ -942,6 +882,8 @@ public class ApiCommand extends Command {
         && node.get("id").isNumber()
         && node.has("allFinished");
   }
+
+  // --- Output helpers ---
 
   void printResponseHeaders(ResponseEntity<String> response) {
     System.out.println("HTTP " + response.getStatusCode().value());

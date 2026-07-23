@@ -124,6 +124,7 @@ public class ApiCommandTest extends CLITestBase {
     L10nJCommander commander = getL10nJCommander();
     commander.run(
         "api", "/api/repositories",
+        "-X", "POST",
         "-f", "name=" + repoName,
         "-f", "description=Created via api command");
 
@@ -145,6 +146,7 @@ public class ApiCommandTest extends CLITestBase {
     L10nJCommander commander = getL10nJCommander();
     commander.run(
         "api", "/api/repositories",
+        "-X", "POST",
         "-F", "name=" + repoName,
         "-F", "checkSLA=true");
 
