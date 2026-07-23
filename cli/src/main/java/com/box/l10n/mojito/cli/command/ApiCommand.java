@@ -37,11 +37,30 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Makes authenticated HTTP requests to the Mojito API and prints the response. Similar to {@code gh
- * api} for the GitHub CLI.
+ * Makes authenticated HTTP requests to the Mojito API and prints the response. Modeled after {@code
+ * gh api} from the GitHub CLI, but with Mojito-specific adaptations.
  *
  * <p>Handles authentication, instance configuration, pollable task waiting, and pagination
  * transparently, providing a clean JSON interface for agentic orchestration.
+ *
+ * <h3>Output contract</h3>
+ *
+ * <ul>
+ *   <li><b>stdout</b>: response body only (clean JSON, no ANSI). Even on HTTP errors, the response
+ *       body goes to stdout so callers can parse error details.
+ *   <li><b>stderr</b>: diagnostics only -- error summaries ({@code mojito: message (HTTP status)}),
+ *       {@code --wait} progress, pagination resume hints.
+ * </ul>
+ *
+ * <h3>Key differences from {@code gh api}</h3>
+ *
+ * <ul>
+ *   <li>Default method is always GET, even with {@code -F}/{@code -f} fields. This avoids
+ *       accidental mutations since Mojito uses the same paths for GET (list) and POST (create).
+ *   <li>{@code --input} requires an explicit {@code -X} method for the same safety reason.
+ *   <li>Supports two pagination styles: Spring Data page/size and offset/limit.
+ *   <li>Detects both top-level and nested {@code pollableTask} fields for {@code --wait}.
+ * </ul>
  */
 @Component
 @Scope("prototype")
@@ -52,6 +71,7 @@ public class ApiCommand extends Command {
 
   static Logger logger = LoggerFactory.getLogger(ApiCommand.class);
 
+  /** At the default 1s poll interval, 120 retries = 2 minute timeout for hybrid search polling. */
   static final int DEFAULT_POLL_MAX_RETRIES = 120;
 
   @Parameter(description = "API endpoint path (e.g. /api/repositories or just repositories)")
@@ -175,6 +195,17 @@ public class ApiCommand extends Command {
     return true;
   }
 
+  /**
+   * Dispatch logic:
+   *
+   * <ol>
+   *   <li>{@code --spec}: short-circuit, fetch OpenAPI spec and exit
+   *   <li>{@code --binary --input}: raw byte upload path
+   *   <li>Otherwise: resolve body from {@code --input} or {@code -F/-f} fields. Fields go to the
+   *       request body for POST/PUT/PATCH/DELETE, or to the query string for GET/HEAD.
+   *   <li>Route to pagination (page or offset style) or single request
+   * </ol>
+   */
   @Override
   protected void execute() throws CommandException {
     if (printSpec) {
@@ -311,6 +342,10 @@ public class ApiCommand extends Command {
 
   // --- Path / method resolution ---
 
+  /**
+   * Normalizes the endpoint path. Bare names like "repositories" get prefixed with "/api/" for
+   * convenience. Paths starting with "/" or full URLs are passed through unchanged.
+   */
   String normalizeEndpoint(String rawEndpoint) {
     if (rawEndpoint.startsWith("http://") || rawEndpoint.startsWith("https://")) {
       return rawEndpoint;
@@ -326,6 +361,11 @@ public class ApiCommand extends Command {
         || (rawFields != null && !rawFields.isEmpty());
   }
 
+  /**
+   * Resolves the HTTP method. Always defaults to GET -- unlike {@code gh api} which auto-switches
+   * to POST when fields are present. This is intentional: Mojito uses the same paths for GET (list)
+   * and POST (create), so auto-POST would risk accidental mutations.
+   */
   String resolveMethod(boolean hasFields) throws CommandException {
     if (method != null) {
       return method.toUpperCase();
@@ -533,6 +573,11 @@ public class ApiCommand extends Command {
     return doExchange(httpMethod, path, entity);
   }
 
+  /**
+   * Executes the HTTP request. On HTTP errors (4xx/5xx), catches the exception and returns the
+   * error response as a normal ResponseEntity with the error body -- this allows callers to print
+   * the error body to stdout for structured consumers while the error summary goes to stderr.
+   */
   private <T> ResponseEntity<String> doExchange(
       String httpMethod, String path, HttpEntity<T> entity) throws CommandException {
     HttpMethod springMethod = HttpMethod.valueOf(httpMethod);
@@ -696,6 +741,11 @@ public class ApiCommand extends Command {
     return executeRequest(httpMethod, pagedPath, headers, body);
   }
 
+  /**
+   * Builds and executes a single offset-style page request. For POST/PUT/PATCH/DELETE with fields,
+   * injects offset and limit into the JSON body (overriding any user-supplied values). For GET,
+   * appends them as query parameters.
+   */
   private ResponseEntity<String> executeOffsetPageRequest(
       String httpMethod,
       String path,
@@ -727,6 +777,11 @@ public class ApiCommand extends Command {
 
   private record PaginationResult(JsonNode items, boolean hasMore) {}
 
+  /**
+   * Extracts page results from a Spring Data {@code Page<T>} envelope. Detects the envelope by
+   * checking for {@code content} and {@code hasNext} fields. If the response doesn't look like a
+   * Page, prints it as-is and returns null to stop pagination.
+   */
   private PaginationResult extractPageResult(JsonNode root, String rawBody) {
     if (root == null || !root.has("content") || !root.has("hasNext")) {
       if (!silent) {
@@ -737,6 +792,10 @@ public class ApiCommand extends Command {
     return new PaginationResult(root.get("content"), root.path("hasNext").asBoolean(false));
   }
 
+  /**
+   * Extracts results from a bare JSON array response (offset/limit style). Determines "has more" by
+   * checking if the array length equals the page size -- if it's less, we've reached the end.
+   */
   private PaginationResult extractOffsetResult(JsonNode root, String rawBody) {
     if (root == null || !root.isArray()) {
       if (!silent) {
@@ -749,6 +808,19 @@ public class ApiCommand extends Command {
 
   // --- Async wait (PollableTask + hybrid search polling) ---
 
+  /**
+   * Attempts to wait for an async operation to complete. Checks for two patterns in priority order:
+   *
+   * <ol>
+   *   <li>Hybrid search polling token ({@code pollingToken.requestId}) -- used by {@code
+   *       /api/textunits/search-hybrid}
+   *   <li>PollableTask ({@code id} + {@code allFinished}) -- used by most server-side async
+   *       operations. Also checks for a nested {@code pollableTask} field inside wrapper objects
+   *       like SourceAsset, CancelDropConfig, etc.
+   * </ol>
+   *
+   * If neither pattern matches, returns the response unchanged (not an error).
+   */
   String maybeWaitForPollableTask(String responseBody) throws CommandException {
     JsonNode root = parseJson(responseBody);
     if (root == null || !root.isObject()) {
@@ -875,6 +947,11 @@ public class ApiCommand extends Command {
     return null;
   }
 
+  /**
+   * Heuristic for detecting PollableTask responses. Requires both {@code id} (numeric) and {@code
+   * allFinished} fields to avoid false positives on other objects that happen to have an {@code
+   * id}.
+   */
   boolean looksLikePollableTask(JsonNode node) {
     return node != null
         && node.isObject()
