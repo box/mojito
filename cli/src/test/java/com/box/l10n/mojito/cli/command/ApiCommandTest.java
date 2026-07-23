@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.cli.CLITestBase;
@@ -497,5 +498,96 @@ public class ApiCommandTest extends CLITestBase {
     assertTrue(json.get("localeTags").isArray());
     assertEquals(2, json.get("localeTags").size());
     assertEquals(100, json.get("limit").asInt());
+  }
+
+  @Test
+  public void testCoerceValueTyped() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+
+    assertEquals("true should become BooleanNode", true, cmd.coerceValue("true", true).asBoolean());
+    assertEquals(
+        "false should become BooleanNode", false, cmd.coerceValue("false", true).asBoolean());
+    assertTrue("null should become NullNode", cmd.coerceValue("null", true).isNull());
+    assertEquals("integer should become LongNode", 42L, cmd.coerceValue("42", true).asLong());
+    assertEquals(
+        "non-integer string should become TextNode",
+        "hello",
+        cmd.coerceValue("hello", true).asText());
+  }
+
+  @Test
+  public void testCoerceValueRaw() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+
+    assertTrue("raw true should stay as text", cmd.coerceValue("true", false).isTextual());
+    assertEquals("true", cmd.coerceValue("true", false).asText());
+
+    assertTrue("raw 42 should stay as text", cmd.coerceValue("42", false).isTextual());
+    assertEquals("42", cmd.coerceValue("42", false).asText());
+  }
+
+  @Test
+  public void testTypedFieldFromFile() throws Exception {
+    java.io.File tempFile = java.io.File.createTempFile("mojito-api-test-", ".txt");
+    tempFile.deleteOnExit();
+    java.nio.file.Files.writeString(tempFile.toPath(), "file-content-here");
+
+    ApiCommand cmd = new ApiCommand();
+    cmd.typedFields = java.util.List.of("data=@" + tempFile.getAbsolutePath());
+
+    String body = cmd.buildFieldsBody();
+    JsonNode json = objectMapper.readTree(body);
+
+    assertEquals(
+        "@file should read the file content", "file-content-here", json.get("data").asText());
+  }
+
+  @Test
+  public void testMaybeWaitForPollingTokenNotPolling() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+
+    JsonNode noToken = objectMapper.readTree("{\"results\": [1,2,3]}");
+    String result = cmd.maybeWaitForPollingToken(noToken);
+    assertNull("Should return null when response has no pollingToken", result);
+  }
+
+  @Test
+  public void testMaybeWaitForPollingTokenWithError() throws Exception {
+    ApiCommand cmd = new ApiCommand();
+
+    JsonNode errorResponse =
+        objectMapper.readTree(
+            "{\"error\": {\"type\": \"RuntimeException\", \"message\": \"something broke\"}}");
+    String result = cmd.maybeWaitForPollingToken(errorResponse);
+    assertNull("Should return null when response has error but no pollingToken", result);
+  }
+
+  @Test
+  public void testPaginatedSlurpMergesContent() throws Exception {
+    createTestRepoUsingRepoService();
+
+    L10nJCommander commander = getL10nJCommander();
+    commander.run(
+        "api", "/api/drops", "--paginate", "--slurp", "--page-size", "1", "--max-pages", "2");
+
+    String stdout = getStdout();
+    assertFalse("Slurp output should not be empty", stdout.isBlank());
+
+    JsonNode json = objectMapper.readTree(stdout.trim());
+    assertTrue("Slurp should produce a single JSON array", json.isArray());
+  }
+
+  @Test
+  public void testCountStdinReadersCatchesRawFields() {
+    ApiCommand cmd = new ApiCommand();
+    cmd.rawFields = java.util.List.of("content=@-");
+    cmd.inputFile = "-";
+
+    try {
+      cmd.validateArgs();
+      org.junit.Assert.fail("Should reject multiple stdin readers");
+    } catch (CommandException e) {
+      assertTrue("Error should mention stdin", e.getMessage().contains("stdin"));
+    }
   }
 }
