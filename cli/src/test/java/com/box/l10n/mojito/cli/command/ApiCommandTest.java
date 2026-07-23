@@ -59,6 +59,20 @@ public class ApiCommandTest extends CLITestBase {
     return capturedErr.toString();
   }
 
+  /**
+   * Extracts JSON from stdout that may contain interleaved server log lines (only happens in tests
+   * where the server runs in-process). Finds the first line starting with '{' or '['.
+   */
+  private String extractJson(String output) {
+    for (String line : output.split("\n")) {
+      String trimmed = line.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        return trimmed;
+      }
+    }
+    return output.trim();
+  }
+
   @Test
   public void testGetRepositories() throws Exception {
     createTestRepoUsingRepoService();
@@ -132,7 +146,7 @@ public class ApiCommandTest extends CLITestBase {
     String stdout = getStdout();
     assertFalse("Response should not be empty", stdout.isBlank());
 
-    JsonNode json = objectMapper.readTree(stdout.trim());
+    JsonNode json = objectMapper.readTree(extractJson(stdout));
     assertTrue("Response should contain repo id", json.has("id"));
 
     Repository repo = repositoryRepository.findByName(repoName);
@@ -154,7 +168,7 @@ public class ApiCommandTest extends CLITestBase {
     String stdout = getStdout();
     assertFalse("Response should not be empty", stdout.isBlank());
 
-    JsonNode json = objectMapper.readTree(stdout.trim());
+    JsonNode json = objectMapper.readTree(extractJson(stdout));
     assertTrue("Response should contain repo id", json.has("id"));
 
     Repository repo = repositoryRepository.findByName(repoName);
@@ -259,7 +273,7 @@ public class ApiCommandTest extends CLITestBase {
 
     assertTrue(
         "Should error on invalid paginate style",
-        outputCapture.toString().contains("--paginate-style must be 'page' or 'offset'"));
+        getStdout().contains("--paginate-style must be 'page' or 'offset'"));
   }
 
   @Test
@@ -269,7 +283,7 @@ public class ApiCommandTest extends CLITestBase {
 
     assertTrue(
         "Should error when --slurp used without --paginate",
-        outputCapture.toString().contains("--slurp requires --paginate"));
+        getStdout().contains("--slurp requires --paginate"));
   }
 
   @Test
@@ -279,7 +293,7 @@ public class ApiCommandTest extends CLITestBase {
 
     assertTrue(
         "Should error when --paginate and --wait combined",
-        outputCapture.toString().contains("--paginate and --wait cannot be used together"));
+        getStdout().contains("--paginate and --wait cannot be used together"));
   }
 
   @Test
@@ -289,7 +303,7 @@ public class ApiCommandTest extends CLITestBase {
 
     assertTrue(
         "Should error when --input used without -X",
-        outputCapture.toString().contains("--input requires an explicit HTTP method"));
+        getStdout().contains("--input requires an explicit HTTP method"));
   }
 
   @Test
@@ -299,7 +313,7 @@ public class ApiCommandTest extends CLITestBase {
 
     assertTrue(
         "Should error when no endpoint provided",
-        outputCapture.toString().contains("endpoint path is required"));
+        getStdout().contains("endpoint path is required"));
   }
 
   @Test
@@ -580,6 +594,8 @@ public class ApiCommandTest extends CLITestBase {
   @Test
   public void testCountStdinReadersCatchesRawFields() {
     ApiCommand cmd = new ApiCommand();
+    cmd.endpoint = java.util.List.of("/api/test");
+    cmd.method = "POST";
     cmd.rawFields = java.util.List.of("content=@-");
     cmd.inputFile = "-";
 
