@@ -437,13 +437,9 @@ public class ApiCommand extends Command {
   }
 
   /**
-   * Sets a field value in the JSON tree, supporting nested keys and arrays.
-   *
-   * <ul>
-   *   <li>{@code key=value} sets a top-level field
-   *   <li>{@code key[subkey]=value} sets a nested field: {@code {"key": {"subkey": value}}}
-   *   <li>{@code key[]=value} appends to an array: {@code {"key": [value]}}
-   * </ul>
+   * Sets a field value in the JSON tree. Supports {@code key[]=value} for building arrays (e.g.
+   * {@code repositoryIds[]=1 repositoryIds[]=2}). For more complex nested structures, use {@code
+   * --input} with pre-constructed JSON instead.
    */
   void setFieldValue(ObjectNode root, String key, String value, boolean typed)
       throws CommandException {
@@ -451,12 +447,6 @@ public class ApiCommand extends Command {
       String arrayKey = key.substring(0, key.length() - 2);
       ArrayNode array = getOrCreateArray(root, arrayKey);
       array.add(coerceValue(value, typed));
-    } else if (key.contains("[") && key.endsWith("]")) {
-      int bracketStart = key.indexOf('[');
-      String outerKey = key.substring(0, bracketStart);
-      String innerKey = key.substring(bracketStart + 1, key.length() - 1);
-      ObjectNode nested = getOrCreateObject(root, outerKey);
-      nested.set(innerKey, coerceValue(value, typed));
     } else {
       root.set(key, coerceValue(value, typed));
     }
@@ -498,16 +488,6 @@ public class ApiCommand extends Command {
     ArrayNode array = objectMapper.createArrayNode();
     parent.set(key, array);
     return array;
-  }
-
-  private ObjectNode getOrCreateObject(ObjectNode parent, String key) {
-    JsonNode existing = parent.get(key);
-    if (existing != null && existing.isObject()) {
-      return (ObjectNode) existing;
-    }
-    ObjectNode obj = objectMapper.createObjectNode();
-    parent.set(key, obj);
-    return obj;
   }
 
   // --- File / stdin reading ---

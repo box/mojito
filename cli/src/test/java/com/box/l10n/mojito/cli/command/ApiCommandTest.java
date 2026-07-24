@@ -480,19 +480,6 @@ public class ApiCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testBuildFieldsWithNestedKeys() throws Exception {
-    ApiCommand cmd = new ApiCommand();
-    cmd.typedFields = java.util.List.of("filter[status]=TRANSLATED", "filter[used]=true");
-
-    String body = cmd.buildFieldsBody();
-    JsonNode json = objectMapper.readTree(body);
-
-    assertTrue("filter should be an object", json.get("filter").isObject());
-    assertEquals("TRANSLATED", json.get("filter").get("status").asText());
-    assertTrue(json.get("filter").get("used").asBoolean());
-  }
-
-  @Test
   public void testBuildFieldsMixedArraysAndPlain() throws Exception {
     ApiCommand cmd = new ApiCommand();
     cmd.typedFields =
