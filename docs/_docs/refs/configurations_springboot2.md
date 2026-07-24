@@ -238,9 +238,30 @@ You can also optionally use it in production by setting the following configurat
 
    Tips: Access the Box Account as the Admin of the enterprise using the credentials for the Box Developer Account you created.
 
+## Shared HTTP proxy (Box SDK, AI translation, AI review)
+
+Prefer a single shared proxy for outbound Box Public API and OpenAI traffic:
+
+    l10n.webproxy.host=proxy.example.com
+    l10n.webproxy.port=3128
+    l10n.webproxy.user=proxy-user
+    l10n.webproxy.password=${PROXY_PASSWORD}
+
+    # Opt-in when the proxy requires Basic auth on HTTPS CONNECT.
+    # The JDK disables Basic for tunneling by default.
+    l10n.webproxy.allowBasicTunneling=true
+
+Per-service settings still work and take precedence when host and port are both set:
+
+- `l10n.boxclient.proxyHost` / `proxyPort` / `proxyUser` / `proxyPassword`
+- `l10n.ai-translate.proxy-host` / `proxy-port` / `proxy-user` / `proxy-password`
+- `l10n.ai-review.proxy-host` / `proxy-port` / `proxy-user` / `proxy-password`
+
+`allowBasicTunneling` is read only by the OpenAI HTTP client (AI translation/review). The Box SDK uses its own proxy Basic auth and does not need this flag. The prefix is lowercase (`webproxy`, like `boxclient`) because Spring Boot requires `@ConfigurationProperties` prefixes to be canonical; field names remain camelCase.
+
 ## AI Translation and AI Review (OpenAI)
 
-AI translation and AI review use the OpenAI HTTP API. Configure an API token and, when required by your network, an optional HTTP proxy for outbound requests.
+AI translation and AI review use the OpenAI HTTP API. Configure an API token and, when required by your network, the shared HTTP proxy (or optional per-service overrides above).
 
 ### AI translation
 
@@ -250,12 +271,6 @@ AI translation and AI review use the OpenAI HTTP API. Configure an API token and
     # Optional. Default: gpt-4o-2024-08-06
     l10n.ai-translate.model-name=gpt-4o-2024-08-06
 
-    # Optional. HTTP proxy (host and port must both be set)
-    l10n.ai-translate.proxy-host=proxy.example.com
-    l10n.ai-translate.proxy-port=3128
-    l10n.ai-translate.proxy-user=proxy-user
-    l10n.ai-translate.proxy-password=${PROXY_PASSWORD}
-
     # Optional. Use a dedicated Quartz scheduler for AI translation jobs
     l10n.ai-translate.scheduler-name=ai-translate
 
@@ -263,13 +278,7 @@ Keep secrets such as the API token and proxy password out of source control.
 
 ### AI review
 
-AI review uses the same OpenAI client and proxy settings under the `l10n.ai-review.*` prefix:
-
     l10n.ai-review.openai-client-token=${OPENAI_API_KEY}
     l10n.ai-review.model-name=gpt-4o-2024-08-06
-    l10n.ai-review.proxy-host=proxy.example.com
-    l10n.ai-review.proxy-port=3128
-    l10n.ai-review.proxy-user=proxy-user
-    l10n.ai-review.proxy-password=${PROXY_PASSWORD}
 
 See also [Using AI Translations]({{ site.url }}/docs/guides/using-ai-translations/) for repository and CLI usage.
