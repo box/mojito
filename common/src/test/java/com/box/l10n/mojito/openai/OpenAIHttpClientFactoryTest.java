@@ -2,16 +2,24 @@ package com.box.l10n.mojito.openai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -31,11 +39,15 @@ public class OpenAIHttpClientFactoryTest {
         OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
 
     assertEquals(
-        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=***, password=***]",
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=***, password=***, allowBasicTunneling=false]",
         proxyConfig.toString());
     assertEquals(
-        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=null, password=null]",
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=null, password=null, allowBasicTunneling=false]",
         OpenAIProxyConfig.of("proxy.example.com", 3128, null, null).toString());
+    assertEquals(
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=***, password=***, allowBasicTunneling=true]",
+        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password", true)
+            .toString());
   }
 
   @Test
@@ -50,6 +62,52 @@ public class OpenAIHttpClientFactoryTest {
     OpenAIProxyConfig proxyConfig =
         OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
     assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+  }
+
+  @Test
+  public void testCreateHttpClientSetsDefaultConnectTimeout() {
+    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null);
+
+    assertEquals(
+        OpenAIHttpClientFactory.DEFAULT_CONNECT_TIMEOUT, httpClient.connectTimeout().orElseThrow());
+  }
+
+  @Test
+  public void testCreateHttpClientUsesCustomConnectTimeout() {
+    Duration connectTimeout = Duration.ofSeconds(5);
+    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null, null, connectTimeout);
+
+    assertEquals(connectTimeout, httpClient.connectTimeout().orElseThrow());
+  }
+
+  /**
+   * Guards against infinite hangs when a proxy/host is unreachable (the failure mode we hit when
+   * Basic tunneling was disabled and connect timeout was unset).
+   */
+  @Test
+  public void testConnectTimeoutFailsQuicklyAgainstUnreachableHost() throws Exception {
+    Duration connectTimeout = Duration.ofMillis(500);
+    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null, null, connectTimeout);
+
+    // TEST-NET-1 (RFC 5737) — should not be routable; connection establishment must time out.
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create("http://192.0.2.1:81/"))
+            .timeout(Duration.ofSeconds(5))
+            .GET()
+            .build();
+
+    long startedAt = System.nanoTime();
+    IOException thrown =
+        assertThrows(
+            IOException.class,
+            () -> httpClient.send(request, HttpResponse.BodyHandlers.discarding()));
+    long elapsedMs = Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
+
+    assertInstanceOf(HttpConnectTimeoutException.class, thrown);
+    assertTrue(
+        elapsedMs < 3_000,
+        "connect timeout should fail quickly, took " + elapsedMs + "ms (limit 3000ms)");
   }
 
   @Test
@@ -109,5 +167,43 @@ public class OpenAIHttpClientFactoryTest {
 
     assertEquals(1, proxies.size());
     assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+  }
+
+  @Test
+  public void testAllowBasicTunnelingClearsDisabledSchemes() {
+    String previous = System.getProperty("jdk.http.auth.tunneling.disabledSchemes");
+    try {
+      System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "Basic");
+      OpenAIProxyConfig proxyConfig =
+          OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password", true);
+
+      assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+      assertEquals("", System.getProperty("jdk.http.auth.tunneling.disabledSchemes"));
+    } finally {
+      if (previous == null) {
+        System.clearProperty("jdk.http.auth.tunneling.disabledSchemes");
+      } else {
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", previous);
+      }
+    }
+  }
+
+  @Test
+  public void testAllowBasicTunnelingFalseLeavesDisabledSchemes() {
+    String previous = System.getProperty("jdk.http.auth.tunneling.disabledSchemes");
+    try {
+      System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "Basic");
+      OpenAIProxyConfig proxyConfig =
+          OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password", false);
+
+      assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+      assertEquals("Basic", System.getProperty("jdk.http.auth.tunneling.disabledSchemes"));
+    } finally {
+      if (previous == null) {
+        System.clearProperty("jdk.http.auth.tunneling.disabledSchemes");
+      } else {
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", previous);
+      }
+    }
   }
 }

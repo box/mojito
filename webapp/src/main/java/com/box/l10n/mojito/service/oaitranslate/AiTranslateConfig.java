@@ -4,6 +4,8 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.openai.OpenAIProxyConfig;
+import com.box.l10n.mojito.proxy.ResolvedWebProxy;
+import com.box.l10n.mojito.proxy.WebProxyConfigurationProperties;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +17,13 @@ import reactor.util.retry.RetryBackoffSpec;
 public class AiTranslateConfig {
 
   AiTranslateConfigurationProperties aiTranslateConfigurationProperties;
+  WebProxyConfigurationProperties webProxyConfigurationProperties;
 
-  public AiTranslateConfig(AiTranslateConfigurationProperties aiTranslateConfigurationProperties) {
+  public AiTranslateConfig(
+      AiTranslateConfigurationProperties aiTranslateConfigurationProperties,
+      WebProxyConfigurationProperties webProxyConfigurationProperties) {
     this.aiTranslateConfigurationProperties = aiTranslateConfigurationProperties;
+    this.webProxyConfigurationProperties = webProxyConfigurationProperties;
   }
 
   @Bean
@@ -29,7 +35,7 @@ public class AiTranslateConfig {
     }
     return OpenAIClient.builder()
         .apiKey(openaiClientToken)
-        .proxyConfig(getProxyConfig(aiTranslateConfigurationProperties))
+        .proxyConfig(getProxyConfig())
         .build();
   }
 
@@ -45,15 +51,22 @@ public class AiTranslateConfig {
         100,
         1,
         aiTranslateConfigurationProperties.getOpenaiClientToken(),
-        getProxyConfig(aiTranslateConfigurationProperties));
+        getProxyConfig());
   }
 
-  static OpenAIProxyConfig getProxyConfig(AiTranslateConfigurationProperties properties) {
+  OpenAIProxyConfig getProxyConfig() {
+    ResolvedWebProxy resolved =
+        webProxyConfigurationProperties.resolve(
+            aiTranslateConfigurationProperties.getProxyHost(),
+            aiTranslateConfigurationProperties.getProxyPort(),
+            aiTranslateConfigurationProperties.getProxyUser(),
+            aiTranslateConfigurationProperties.getProxyPassword());
     return OpenAIProxyConfig.of(
-        properties.getProxyHost(),
-        properties.getProxyPort(),
-        properties.getProxyUser(),
-        properties.getProxyPassword());
+        resolved.host(),
+        resolved.port(),
+        resolved.user(),
+        resolved.password(),
+        webProxyConfigurationProperties.isAllowBasicTunneling());
   }
 
   @Bean

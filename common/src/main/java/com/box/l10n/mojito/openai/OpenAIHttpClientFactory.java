@@ -5,18 +5,32 @@ import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.ProxySelector;
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 public final class OpenAIHttpClientFactory {
 
+  /**
+   * Default TCP/proxy-CONNECT timeout. Without this, {@link HttpClient} waits indefinitely to
+   * establish a connection — which is what made misconfigured proxy Basic-auth tunneling look like
+   * a silent hang.
+   */
+  public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(30);
+
   private OpenAIHttpClientFactory() {}
 
   public static HttpClient createHttpClient(OpenAIProxyConfig proxyConfig) {
-    return createHttpClient(proxyConfig, null);
+    return createHttpClient(proxyConfig, null, DEFAULT_CONNECT_TIMEOUT);
   }
 
   public static HttpClient createHttpClient(OpenAIProxyConfig proxyConfig, Executor executor) {
+    return createHttpClient(proxyConfig, executor, DEFAULT_CONNECT_TIMEOUT);
+  }
+
+  public static HttpClient createHttpClient(
+      OpenAIProxyConfig proxyConfig, Executor executor, Duration connectTimeout) {
     HttpClient.Builder builder = HttpClient.newBuilder();
+    builder.connectTimeout(connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT);
     if (executor != null) {
       builder.executor(executor);
     }
@@ -28,6 +42,11 @@ public final class OpenAIHttpClientFactory {
     if (proxyConfig != null && proxyConfig.isConfigured()) {
       builder.proxy(createProxySelector(proxyConfig));
       if (proxyConfig.user() != null && proxyConfig.password() != null) {
+        // Opt-in via l10n.webproxy.allowBasicTunneling: JDK disables Basic auth for HTTPS CONNECT
+        // by default. Clear that only when the shared web-proxy config says Basic is required.
+        if (proxyConfig.allowBasicTunneling()) {
+          System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+        }
         builder.authenticator(createProxyAuthenticator(proxyConfig));
       }
     }

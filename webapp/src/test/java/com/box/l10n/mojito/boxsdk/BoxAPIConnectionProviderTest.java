@@ -2,9 +2,11 @@ package com.box.l10n.mojito.boxsdk;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.box.l10n.mojito.proxy.WebProxyConfigurationProperties;
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxDeveloperEditionAPIConnection;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -27,6 +29,12 @@ public class BoxAPIConnectionProviderTest {
   @Mock BoxSDKServiceConfigProvider boxSDKServiceConfigProvider;
 
   @Mock BoxSDKJWTProvider boxSDKJWTProvider;
+
+  @Before
+  public void setUp() {
+    boxAPIConnectionProvider.webProxyConfigurationProperties =
+        new WebProxyConfigurationProperties();
+  }
 
   public BoxAPIConnectionProvider getBoxAPIConnectionProviderMock() throws BoxSDKServiceException {
     BoxAPIConnection boxAPIConnection = Mockito.mock(BoxAPIConnection.class);
