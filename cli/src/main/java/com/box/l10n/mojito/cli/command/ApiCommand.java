@@ -750,12 +750,15 @@ public class ApiCommand extends Command {
     return null;
   }
 
-  /** Auto-detect: object with content+hasNext = page mode, array = offset mode, else null. */
+  /**
+   * Auto-detect: object with content + page metadata = page mode, array = offset mode, else null.
+   * Accepts both Mojito's custom PageView (hasNext) and Spring Data's standard Page (last).
+   */
   private Boolean detectPaginationMode(JsonNode root) {
     if (root == null) {
       return null;
     }
-    if (root.isObject() && root.has("content") && root.has("hasNext")) {
+    if (root.isObject() && root.has("content") && isPageEnvelope(root)) {
       return false;
     }
     if (root.isArray()) {
@@ -851,18 +854,28 @@ public class ApiCommand extends Command {
   private record PaginationResult(JsonNode items, boolean hasMore) {}
 
   /**
-   * Extracts page results from a Spring Data {@code Page<T>} envelope. Detects the envelope by
-   * checking for {@code content} and {@code hasNext} fields. If the response doesn't look like a
-   * Page, prints it as-is and returns null to stop pagination.
+   * Extracts page results from a Spring Data Page envelope. Supports both Mojito's {@code hasNext}
+   * (from PageView) and Spring Data's standard {@code last} field. If the response doesn't look
+   * like a Page, prints it as-is and returns null to stop pagination.
    */
   private PaginationResult extractPageResult(JsonNode root, String rawBody) {
-    if (root == null || !root.has("content") || !root.has("hasNext")) {
+    if (root == null || !root.has("content") || !isPageEnvelope(root)) {
       if (!silent) {
         printBody(rawBody);
       }
       return null;
     }
-    return new PaginationResult(root.get("content"), root.path("hasNext").asBoolean(false));
+    boolean hasMore;
+    if (root.has("hasNext")) {
+      hasMore = root.path("hasNext").asBoolean(false);
+    } else {
+      hasMore = !root.path("last").asBoolean(true);
+    }
+    return new PaginationResult(root.get("content"), hasMore);
+  }
+
+  private boolean isPageEnvelope(JsonNode root) {
+    return root.has("hasNext") || root.has("last");
   }
 
   /**
@@ -1112,7 +1125,7 @@ public class ApiCommand extends Command {
   private static ObjectMapper createObjectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    mapper.findAndRegisterModules();
+    mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
     return mapper;
   }
 }
