@@ -577,7 +577,7 @@ public class ApiCommandTest extends CLITestBase {
     ApiCommand cmd = new ApiCommand();
 
     JsonNode noToken = objectMapper.readTree("{\"results\": [1,2,3]}");
-    String result = cmd.maybeWaitForPollingToken(noToken);
+    String result = cmd.maybeWaitForPollingToken(noToken, "/api/test");
     assertNull("Should return null when response has no pollingToken", result);
   }
 
@@ -588,7 +588,7 @@ public class ApiCommandTest extends CLITestBase {
     JsonNode errorResponse =
         objectMapper.readTree(
             "{\"error\": {\"type\": \"RuntimeException\", \"message\": \"something broke\"}}");
-    String result = cmd.maybeWaitForPollingToken(errorResponse);
+    String result = cmd.maybeWaitForPollingToken(errorResponse, "/api/test");
     assertNull("Should return null when response has error but no pollingToken", result);
   }
 

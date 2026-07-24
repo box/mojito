@@ -234,7 +234,7 @@ public class ApiCommand extends Command {
       byte[] binaryBody = readFileAsBytes(inputFile);
       HttpEntity<byte[]> entity = new HttpEntity<>(binaryBody, headers);
       ResponseEntity<String> response = doExchange(resolvedMethod, path, entity);
-      handleResponse(response);
+      handleResponse(response, path);
       return;
     }
 
@@ -261,7 +261,7 @@ public class ApiCommand extends Command {
       executePaginated(resolvedMethod, path, headers, hasFields, methodSendsBody);
     } else {
       ResponseEntity<String> response = executeRequest(resolvedMethod, path, headers, body);
-      handleResponse(response);
+      handleResponse(response, path);
     }
   }
 
@@ -584,6 +584,10 @@ public class ApiCommand extends Command {
   // --- Response handling ---
 
   void handleResponse(ResponseEntity<String> response) throws CommandException {
+    handleResponse(response, null);
+  }
+
+  void handleResponse(ResponseEntity<String> response, String requestPath) throws CommandException {
     int statusCode = response.getStatusCode().value();
 
     if (includeHeaders) {
@@ -593,7 +597,7 @@ public class ApiCommand extends Command {
     String responseBody = response.getBody();
 
     if (waitForPollableTask && responseBody != null) {
-      responseBody = maybeWaitForPollableTask(responseBody);
+      responseBody = maybeWaitForPollableTask(responseBody, requestPath);
     }
 
     if (!silent && responseBody != null) {
@@ -881,22 +885,25 @@ public class ApiCommand extends Command {
    * Attempts to wait for an async operation to complete. Checks for two patterns in priority order:
    *
    * <ol>
-   *   <li>Hybrid search polling token ({@code pollingToken.requestId}) -- used by {@code
-   *       /api/textunits/search-hybrid}
+   *   <li>Polling token ({@code pollingToken.requestId}) -- generic pattern for endpoints that
+   *       return 202 with a token and a poll URL. Falls back to {@code requestPath/results/{id}} if
+   *       no explicit {@code pollUrl} is provided in the token.
    *   <li>PollableTask ({@code id} + {@code allFinished}) -- used by most server-side async
    *       operations. Also checks for a nested {@code pollableTask} field inside wrapper objects
    *       like SourceAsset, CancelDropConfig, etc.
    * </ol>
    *
    * If neither pattern matches, returns the response unchanged (not an error).
+   *
+   * @param requestPath the original request path, used to construct the fallback poll URL
    */
-  String maybeWaitForPollableTask(String responseBody) throws CommandException {
+  String maybeWaitForPollableTask(String responseBody, String requestPath) throws CommandException {
     JsonNode root = parseJson(responseBody);
     if (root == null || !root.isObject()) {
       return responseBody;
     }
 
-    String pollingResult = maybeWaitForPollingToken(root);
+    String pollingResult = maybeWaitForPollingToken(root, requestPath);
     if (pollingResult != null) {
       return pollingResult;
     }
@@ -927,13 +934,21 @@ public class ApiCommand extends Command {
   }
 
   /**
-   * Handles the hybrid search polling pattern. If the response contains a {@code pollingToken} with
-   * a {@code requestId}, polls the results endpoint until the search completes or the retry limit
-   * is reached.
+   * Generic polling-token handler. Detects responses that contain a {@code pollingToken} object
+   * with at least a {@code requestId} and a {@code pollUrl} (the endpoint to poll for results). If
+   * {@code pollUrl} is absent, falls back to constructing a URL by appending the requestId to the
+   * original request path with a {@code /results/} segment.
+   *
+   * <p>Polls until the response contains a non-null {@code results} field (success), a non-null
+   * {@code error} field (failure), or the retry limit is reached. The poll interval is taken from
+   * {@code pollingToken.recommendedPollingDurationMillis} (default: 1000ms).
+   *
+   * <p>Currently used by {@code /api/textunits/search-hybrid} but designed to work with any
+   * endpoint that adopts the same polling-token convention.
    *
    * @return the final response body, or null if this is not a polling token response
    */
-  String maybeWaitForPollingToken(JsonNode root) throws CommandException {
+  String maybeWaitForPollingToken(JsonNode root, String requestPath) throws CommandException {
     JsonNode pollingToken = root.get("pollingToken");
     if (pollingToken == null || !pollingToken.has("requestId")) {
       return null;
@@ -945,10 +960,14 @@ public class ApiCommand extends Command {
             ? pollingToken.get("recommendedPollingDurationMillis").asLong(1000)
             : 1000;
 
-    System.err.println(
-        "mojito: search returned async, polling for results (id: " + requestId + ")...");
+    String pollUrl =
+        pollingToken.has("pollUrl")
+            ? pollingToken.get("pollUrl").asText()
+            : requestPath + "/results/" + requestId;
 
-    String resultPath = "/api/textunits/search-hybrid/results/" + requestId;
+    System.err.println(
+        "mojito: response returned async, polling for results (id: " + requestId + ")...");
+
     HttpHeaders headers = new HttpHeaders();
 
     for (int attempt = 0; attempt < DEFAULT_POLL_MAX_RETRIES; attempt++) {
@@ -956,10 +975,10 @@ public class ApiCommand extends Command {
         Thread.sleep(pollIntervalMs);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        throw new CommandException("Interrupted while waiting for search results", e);
+        throw new CommandException("Interrupted while polling for results", e);
       }
 
-      ResponseEntity<String> pollResponse = executeRequest("GET", resultPath, headers, null);
+      ResponseEntity<String> pollResponse = executeRequest("GET", pollUrl, headers, null);
       int statusCode = pollResponse.getStatusCode().value();
 
       if (statusCode >= 400) {
@@ -977,20 +996,20 @@ public class ApiCommand extends Command {
       }
 
       if (pollRoot.has("results") && !pollRoot.get("results").isNull()) {
-        System.err.println("mojito: search results ready");
+        System.err.println("mojito: results ready");
         return pollBody;
       }
 
       if (pollRoot.has("error") && !pollRoot.get("error").isNull()) {
         System.err.println(
-            "mojito: search failed: "
+            "mojito: operation failed: "
                 + pollRoot.get("error").path("message").asText("unknown error"));
         return pollBody;
       }
     }
 
     throw new CommandException(
-        "Timed out waiting for search results after "
+        "Timed out polling for results after "
             + DEFAULT_POLL_MAX_RETRIES
             + " attempts (id: "
             + requestId
