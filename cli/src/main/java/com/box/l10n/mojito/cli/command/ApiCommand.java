@@ -124,15 +124,17 @@ public class ApiCommand extends Command {
       names = {"--paginate"},
       description =
           "Fetch all pages of results automatically. "
-              + "Style is selected with --paginate-style (default: page).")
+              + "Pagination style is auto-detected from the response shape, "
+              + "or can be forced with --paginate-style.")
   boolean paginate = false;
 
   @Parameter(
       names = {"--paginate-style"},
       description =
-          "Pagination style: 'page' (Spring Data page/size with hasNext envelope, default) "
-              + "or 'offset' (offset/limit with bare array response, used by text unit search).")
-  String paginateStyle = "page";
+          "Pagination style override: 'auto' (detect from response, default), "
+              + "'page' (Spring Data page/size with hasNext envelope), "
+              + "or 'offset' (offset/limit with bare array response).")
+  String paginateStyle = "auto";
 
   @Parameter(
       names = {"--slurp"},
@@ -144,9 +146,9 @@ public class ApiCommand extends Command {
   @Parameter(
       names = {"--page-size"},
       description =
-          "Items per request when using --paginate (default: 100). "
+          "Items per request when using --paginate (default: 10). "
               + "Sets 'size' (page style) or 'limit' (offset style).")
-  int pageSize = 100;
+  int pageSize = 10;
 
   @Parameter(
       names = {"--max-pages"},
@@ -255,10 +257,8 @@ public class ApiCommand extends Command {
       headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
-    if (paginate && "offset".equalsIgnoreCase(paginateStyle)) {
-      executePaginated(resolvedMethod, path, headers, hasFields, methodSendsBody, true);
-    } else if (paginate) {
-      executePaginated(resolvedMethod, path, headers, hasFields, methodSendsBody, false);
+    if (paginate) {
+      executePaginated(resolvedMethod, path, headers, hasFields, methodSendsBody);
     } else {
       ResponseEntity<String> response = executeRequest(resolvedMethod, path, headers, body);
       handleResponse(response);
@@ -288,9 +288,10 @@ public class ApiCommand extends Command {
     }
 
     if (paginate
+        && !"auto".equalsIgnoreCase(paginateStyle)
         && !"page".equalsIgnoreCase(paginateStyle)
         && !"offset".equalsIgnoreCase(paginateStyle)) {
-      throw new CommandException("--paginate-style must be 'page' or 'offset'");
+      throw new CommandException("--paginate-style must be 'auto', 'page', or 'offset'");
     }
 
     if (pageSize <= 0) {
@@ -617,16 +618,20 @@ public class ApiCommand extends Command {
   // --- Pagination (unified) ---
 
   /**
-   * Unified pagination loop for both page/size and offset/limit styles. The {@code offsetMode} flag
-   * selects which style to use.
+   * Unified pagination loop. When {@code --paginate-style} is "auto" (the default), the first
+   * response determines the style: a JSON object with "content" + "hasNext" selects page mode, a
+   * JSON array selects offset mode, anything else stops pagination (response printed as-is).
+   *
+   * <p>On the first request in auto mode, both page/size and offset/limit params are sent so the
+   * server uses whichever set it recognizes. Subsequent requests use only the detected style's
+   * params.
    */
   void executePaginated(
       String httpMethod,
       String path,
       HttpHeaders headers,
       boolean hasFields,
-      boolean methodSendsBody,
-      boolean offsetMode)
+      boolean methodSendsBody)
       throws CommandException {
     List<JsonNode> allContent = slurp ? new ArrayList<>() : null;
     boolean isFirstPage = true;
@@ -634,12 +639,22 @@ public class ApiCommand extends Command {
     int currentOffset = startPage * pageSize;
     int batchesFetched = 0;
 
+    Boolean offsetMode = resolveInitialPaginationMode();
+
     while (true) {
-      ResponseEntity<String> response =
-          offsetMode
-              ? executeOffsetPageRequest(
-                  httpMethod, path, headers, hasFields, methodSendsBody, currentOffset)
-              : executePageRequest(httpMethod, path, headers, hasFields, pageNumber);
+      ResponseEntity<String> response;
+      if (offsetMode == null) {
+        response =
+            executeAutoDetectFirstRequest(
+                httpMethod, path, headers, hasFields, methodSendsBody, pageNumber, currentOffset);
+      } else if (offsetMode) {
+        response =
+            executeOffsetPageRequest(
+                httpMethod, path, headers, hasFields, methodSendsBody, currentOffset);
+      } else {
+        response = executePageRequest(httpMethod, path, headers, hasFields, pageNumber);
+      }
+
       int statusCode = response.getStatusCode().value();
 
       if (statusCode >= 400) {
@@ -656,6 +671,17 @@ public class ApiCommand extends Command {
       }
 
       JsonNode root = parseJson(responseBody);
+
+      if (offsetMode == null) {
+        offsetMode = detectPaginationMode(root);
+        if (offsetMode == null) {
+          if (!silent) {
+            printBody(responseBody);
+          }
+          break;
+        }
+      }
+
       PaginationResult pageResult =
           offsetMode
               ? extractOffsetResult(root, responseBody)
@@ -707,6 +733,67 @@ public class ApiCommand extends Command {
       }
       printJsonNode(merged);
     }
+  }
+
+  /** Returns null for auto-detect, true for offset, false for page. */
+  private Boolean resolveInitialPaginationMode() {
+    if ("offset".equalsIgnoreCase(paginateStyle)) {
+      return true;
+    }
+    if ("page".equalsIgnoreCase(paginateStyle)) {
+      return false;
+    }
+    return null;
+  }
+
+  /** Auto-detect: object with content+hasNext = page mode, array = offset mode, else null. */
+  private Boolean detectPaginationMode(JsonNode root) {
+    if (root == null) {
+      return null;
+    }
+    if (root.isObject() && root.has("content") && root.has("hasNext")) {
+      return false;
+    }
+    if (root.isArray()) {
+      return true;
+    }
+    return null;
+  }
+
+  /**
+   * First request in auto-detect mode: sends both page/size and offset/limit params so the server
+   * uses whichever set it recognizes.
+   */
+  private ResponseEntity<String> executeAutoDetectFirstRequest(
+      String httpMethod,
+      String path,
+      HttpHeaders headers,
+      boolean hasFields,
+      boolean methodSendsBody,
+      int pageNumber,
+      int currentOffset)
+      throws CommandException {
+    if (methodSendsBody && hasFields) {
+      ObjectNode bodyNode = buildFieldsNode();
+      bodyNode.put("offset", currentOffset);
+      bodyNode.put("limit", pageSize);
+      String requestBody = serializeFieldsToJson(bodyNode);
+      if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+        headers.setContentType(MediaType.APPLICATION_JSON);
+      }
+      return executeRequest(httpMethod, path, headers, requestBody);
+    }
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path);
+    if (hasFields) {
+      addFieldsAsQueryParams(builder, rawFields);
+      addFieldsAsQueryParams(builder, typedFields);
+    }
+    builder.replaceQueryParam("page", pageNumber);
+    builder.replaceQueryParam("size", pageSize);
+    builder.replaceQueryParam("offset", currentOffset);
+    builder.replaceQueryParam("limit", pageSize);
+    return executeRequest(httpMethod, builder.build(false).toUriString(), headers, null);
   }
 
   private ResponseEntity<String> executePageRequest(

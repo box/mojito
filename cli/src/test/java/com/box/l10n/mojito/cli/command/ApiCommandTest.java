@@ -267,13 +267,42 @@ public class ApiCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testPaginateAutoDetectsPageStyle() throws Exception {
+    createTestRepoUsingRepoService();
+
+    L10nJCommander commander = getL10nJCommander();
+    commander.run("api", "/api/drops", "--paginate", "--page-size", "2", "--max-pages", "1");
+
+    assertEquals("Auto-detected page pagination should succeed", 0, commander.getExitCode());
+  }
+
+  @Test
+  public void testPaginateAutoDetectsOffsetStyle() throws Exception {
+    createTestRepoUsingRepoService();
+
+    L10nJCommander commander = getL10nJCommander();
+    commander.run(
+        "api",
+        "/api/textunits",
+        "--paginate",
+        "--page-size",
+        "5",
+        "--max-pages",
+        "1",
+        "-f",
+        "repositoryNames=" + testIdWatcher.getEntityName("repo"));
+
+    assertEquals("Auto-detected offset pagination should succeed", 0, commander.getExitCode());
+  }
+
+  @Test
   public void testInvalidPaginateStyle() throws Exception {
     L10nJCommander commander = getL10nJCommander();
     commander.run("api", "/api/repositories", "--paginate", "--paginate-style", "invalid");
 
     assertTrue(
         "Should error on invalid paginate style",
-        getStdout().contains("--paginate-style must be 'page' or 'offset'"));
+        getStdout().contains("--paginate-style must be 'auto', 'page', or 'offset'"));
   }
 
   @Test
