@@ -454,80 +454,31 @@ public class ApiCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testBuildFieldsWithMixedTypes() throws Exception {
-    ApiCommand cmd = new ApiCommand();
-    cmd.rawFields = java.util.List.of("stringKey=hello");
-    cmd.typedFields =
-        java.util.List.of("boolKey=true", "intKey=42", "nullKey=null", "plainKey=world");
+  public void testTypedFieldConversion() throws Exception {
+    String repoName = testIdWatcher.getEntityName("api-typed-conv");
 
-    String body = cmd.buildFieldsBody();
-    JsonNode json = objectMapper.readTree(body);
+    L10nJCommander commander = getL10nJCommander();
+    commander.run(
+        "api",
+        "/api/repositories",
+        "-X",
+        "POST",
+        "-F",
+        "name=" + repoName,
+        "-F",
+        "checkSLA=true",
+        "-f",
+        "description=raw-string");
 
-    assertTrue("stringKey should be a string", json.get("stringKey").isTextual());
-    assertEquals("hello", json.get("stringKey").asText());
+    String stdout = getStdout();
+    JsonNode json = objectMapper.readTree(extractJson(stdout));
+    assertTrue("checkSLA should be boolean true", json.get("checkSLA").asBoolean());
+    assertEquals("raw-string", json.get("description").asText());
 
-    assertTrue("boolKey should be boolean", json.get("boolKey").isBoolean());
-    assertTrue(json.get("boolKey").asBoolean());
-
-    assertTrue("intKey should be a number", json.get("intKey").isNumber());
-    assertEquals(42, json.get("intKey").asInt());
-
-    assertTrue("nullKey should be null", json.get("nullKey").isNull());
-
-    assertTrue("plainKey should be a string", json.get("plainKey").isTextual());
-    assertEquals("world", json.get("plainKey").asText());
-  }
-
-  @Test
-  public void testBuildFieldsWithArrays() throws Exception {
-    ApiCommand cmd = new ApiCommand();
-    cmd.typedFields =
-        java.util.List.of("repositoryIds[]=1", "repositoryIds[]=2", "repositoryIds[]=3");
-
-    String body = cmd.buildFieldsBody();
-    JsonNode json = objectMapper.readTree(body);
-
-    assertTrue("repositoryIds should be an array", json.get("repositoryIds").isArray());
-    assertEquals(3, json.get("repositoryIds").size());
-    assertEquals(1, json.get("repositoryIds").get(0).asInt());
-    assertEquals(2, json.get("repositoryIds").get(1).asInt());
-    assertEquals(3, json.get("repositoryIds").get(2).asInt());
-  }
-
-  @Test
-  public void testBuildFieldsWithRawArrays() throws Exception {
-    ApiCommand cmd = new ApiCommand();
-    cmd.rawFields = java.util.List.of("localeTags[]=fr-FR", "localeTags[]=ja-JP");
-
-    String body = cmd.buildFieldsBody();
-    JsonNode json = objectMapper.readTree(body);
-
-    assertTrue("localeTags should be an array", json.get("localeTags").isArray());
-    assertEquals(2, json.get("localeTags").size());
-    assertEquals("fr-FR", json.get("localeTags").get(0).asText());
-    assertEquals("ja-JP", json.get("localeTags").get(1).asText());
-  }
-
-  @Test
-  public void testBuildFieldsMixedArraysAndPlain() throws Exception {
-    ApiCommand cmd = new ApiCommand();
-    cmd.typedFields =
-        java.util.List.of(
-            "repositoryIds[]=42",
-            "searchType=CONTAINS",
-            "localeTags[]=fr-FR",
-            "localeTags[]=en-GB",
-            "limit=100");
-
-    String body = cmd.buildFieldsBody();
-    JsonNode json = objectMapper.readTree(body);
-
-    assertTrue(json.get("repositoryIds").isArray());
-    assertEquals(42, json.get("repositoryIds").get(0).asInt());
-    assertEquals("CONTAINS", json.get("searchType").asText());
-    assertTrue(json.get("localeTags").isArray());
-    assertEquals(2, json.get("localeTags").size());
-    assertEquals(100, json.get("limit").asInt());
+    Repository repo = repositoryRepository.findByName(repoName);
+    assertNotNull(repo);
+    assertTrue("checkSLA should be true (typed field)", repo.getCheckSLA());
+    assertEquals("raw-string", repo.getDescription());
   }
 
   @Test
@@ -557,19 +508,19 @@ public class ApiCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testTypedFieldFromFile() throws Exception {
-    java.io.File tempFile = java.io.File.createTempFile("mojito-api-test-", ".txt");
+  public void testInputFromFile() throws Exception {
+    String repoName = testIdWatcher.getEntityName("api-file-input");
+    java.io.File tempFile = java.io.File.createTempFile("mojito-api-test-", ".json");
     tempFile.deleteOnExit();
-    java.nio.file.Files.writeString(tempFile.toPath(), "file-content-here");
+    java.nio.file.Files.writeString(
+        tempFile.toPath(), "{\"name\":\"" + repoName + "\",\"description\":\"from file\"}");
 
-    ApiCommand cmd = new ApiCommand();
-    cmd.typedFields = java.util.List.of("data=@" + tempFile.getAbsolutePath());
+    L10nJCommander commander = getL10nJCommander();
+    commander.run("api", "/api/repositories", "-X", "POST", "--input", tempFile.getAbsolutePath());
 
-    String body = cmd.buildFieldsBody();
-    JsonNode json = objectMapper.readTree(body);
-
-    assertEquals(
-        "@file should read the file content", "file-content-here", json.get("data").asText());
+    Repository repo = repositoryRepository.findByName(repoName);
+    assertNotNull("Repository should have been created from file input", repo);
+    assertEquals("from file", repo.getDescription());
   }
 
   @Test

@@ -2,13 +2,12 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.LongNode;
@@ -190,7 +189,7 @@ public class ApiCommand extends Command {
 
   @Autowired PollableTaskClient pollableTaskClient;
 
-  private final ObjectMapper objectMapper = createObjectMapper();
+  @Autowired ObjectMapper objectMapper;
 
   @Override
   public boolean shouldShowInCommandList() {
@@ -1120,12 +1119,5 @@ public class ApiCommand extends Command {
     } catch (JsonProcessingException e) {
       return null;
     }
-  }
-
-  private static ObjectMapper createObjectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-    return mapper;
   }
 }
