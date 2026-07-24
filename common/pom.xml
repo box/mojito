@@ -457,6 +457,7 @@
                     <!-- Sets the VM argument line used when unit tests are run. -->
                     <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/common/
                         -Dspring.profiles.active=${user.name},test
+                        -Djdk.http.auth.tunneling.disabledSchemes=
                     </argLine>
                 </configuration>
             </plugin>
