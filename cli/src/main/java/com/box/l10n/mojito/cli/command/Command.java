@@ -5,9 +5,11 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Base class for Commands, provides basic support for usage display.
+ * Base class for Commands, provides basic support for usage display and the shared {@code --json}
+ * machine-readable output convention.
  *
  * @author jaurambault
  */
@@ -16,6 +18,11 @@ public abstract class Command {
   static final String HELP_LONG = "--help";
   static final String HELP_SHORT = "-h";
   static final String HELP_DESCRIPTION = "Show help";
+
+  public static final String JSON_LONG = "--json";
+  public static final String JSON_DESCRIPTION =
+      "Emit a single machine-readable JSON result on stdout instead of human console output";
+
   public List<String> originalArgs;
 
   @Parameter(
@@ -23,6 +30,14 @@ public abstract class Command {
       help = true,
       description = HELP_DESCRIPTION)
   private boolean help;
+
+  @Parameter(
+      names = {JSON_LONG},
+      description = JSON_DESCRIPTION)
+  private boolean jsonOutput;
+
+  @Autowired(required = false)
+  JsonOutput jsonOutputWriter;
 
   /**
    * Method to be overridden to implement the business logic of this command
@@ -57,6 +72,39 @@ public abstract class Command {
    */
   public boolean shouldShowUsage() {
     return help;
+  }
+
+  /**
+   * Whether this invocation requested machine-readable JSON on stdout ({@code --json}). When true,
+   * commands should suppress human console progress and emit a JSON envelope via {@link
+   * #writeJsonSuccess(Object)} / {@link #writeJsonFailure(String)}.
+   */
+  public boolean isJsonOutput() {
+    return jsonOutput;
+  }
+
+  /** Write a successful JSON envelope (only when {@link #isJsonOutput()} is true). */
+  protected void writeJsonSuccess(Object data) {
+    if (!isJsonOutput()) {
+      return;
+    }
+    requireJsonOutputWriter().writeSuccess(getName(), data);
+  }
+
+  /** Write a failure JSON envelope (only when {@link #isJsonOutput()} is true). */
+  protected void writeJsonFailure(String error) {
+    if (!isJsonOutput()) {
+      return;
+    }
+    requireJsonOutputWriter().writeFailure(getName(), error);
+  }
+
+  private JsonOutput requireJsonOutputWriter() {
+    if (jsonOutputWriter == null) {
+      throw new IllegalStateException(
+          "JsonOutput bean is not available; --json requires Spring wiring");
+    }
+    return jsonOutputWriter;
   }
 
   /** Shows the command usage. */

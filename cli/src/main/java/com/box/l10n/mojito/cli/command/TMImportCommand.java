@@ -12,7 +12,11 @@ import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,18 +83,23 @@ public class TMImportCommand extends Command {
 
   CommandDirectories commandDirectories;
 
+  List<Map<String, Object>> imported;
+
   @Override
   public void execute() throws CommandException {
 
-    consoleWriter
-        .newLine()
-        .a("Start importing for TM: ")
-        .fg(Ansi.Color.CYAN)
-        .a(repositoryParam)
-        .println(2);
+    if (!isJsonOutput()) {
+      consoleWriter
+          .newLine()
+          .a("Start importing for TM: ")
+          .fg(Ansi.Color.CYAN)
+          .a(repositoryParam)
+          .println(2);
+    }
 
     repository = commandHelper.findRepositoryByName(repositoryParam);
     commandDirectories = new CommandDirectories(sourceDirectoryParam);
+    imported = new ArrayList<>();
 
     FileType xliffFileType = new XliffFileType();
 
@@ -98,46 +107,65 @@ public class TMImportCommand extends Command {
       for (FileMatch sourceFileMatch :
           commandHelper.getSourceFileMatches(
               commandDirectories, Arrays.asList(xliffFileType), null, null, null, null)) {
-        doImportFileMatch(sourceFileMatch);
+        doImportFileMatch(sourceFileMatch, "source");
       }
     }
 
     for (FileMatch targetFileMatch :
         commandHelper.getTargetFileMatches(
             commandDirectories, Arrays.asList(xliffFileType), null, null, null, null)) {
-      doImportFileMatch(targetFileMatch);
+      doImportFileMatch(targetFileMatch, "target");
     }
 
-    consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+    if (isJsonOutput()) {
+      Map<String, Object> data = new LinkedHashMap<>();
+      data.put("repository", repositoryParam);
+      data.put("updateTm", Boolean.TRUE.equals(updateTMParam));
+      data.put("skipSource", Boolean.TRUE.equals(skipSourceImportParam));
+      data.put("imported", imported);
+      writeJsonSuccess(data);
+    } else {
+      consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+    }
   }
 
   /**
    * @param fileMatch
+   * @param role source or target file role for JSON reporting
    * @throws CommandException
    */
-  protected void doImportFileMatch(FileMatch fileMatch) throws CommandException {
+  protected void doImportFileMatch(FileMatch fileMatch, String role) throws CommandException {
     try {
       Path relativeFilePath = commandDirectories.relativizeWithUserDirectory(fileMatch.getPath());
 
-      consoleWriter
-          .a(" - Importing file: ")
-          .fg(Ansi.Color.MAGENTA)
-          .a(relativeFilePath.toString())
-          .fg(Ansi.Color.YELLOW)
-          .a(" Running")
-          .println();
+      if (!isJsonOutput()) {
+        consoleWriter
+            .a(" - Importing file: ")
+            .fg(Ansi.Color.MAGENTA)
+            .a(relativeFilePath.toString())
+            .fg(Ansi.Color.YELLOW)
+            .a(" Running")
+            .println();
+      }
 
       repositoryClient.importRepository(
           repository.getId(), getFileContent(fileMatch), updateTMParam);
 
-      consoleWriter.erasePreviouslyPrintedLines();
-      consoleWriter
-          .a(" - Importing file: ")
-          .fg(Ansi.Color.MAGENTA)
-          .a(relativeFilePath.toString())
-          .fg(Ansi.Color.GREEN)
-          .a(" Done")
-          .println();
+      Map<String, Object> importedFile = new LinkedHashMap<>();
+      importedFile.put("file", relativeFilePath.toString());
+      importedFile.put("role", role);
+      imported.add(importedFile);
+
+      if (!isJsonOutput()) {
+        consoleWriter.erasePreviouslyPrintedLines();
+        consoleWriter
+            .a(" - Importing file: ")
+            .fg(Ansi.Color.MAGENTA)
+            .a(relativeFilePath.toString())
+            .fg(Ansi.Color.GREEN)
+            .a(" Done")
+            .println();
+      }
 
     } catch (ResourceNotCreatedException e) {
       throw new CommandException(

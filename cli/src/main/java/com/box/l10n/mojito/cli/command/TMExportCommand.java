@@ -13,7 +13,10 @@ import com.box.l10n.mojito.rest.entity.XliffExportBody;
 import com.google.common.base.MoreObjects;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
@@ -76,12 +79,14 @@ public class TMExportCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    consoleWriter
-        .newLine()
-        .a("Export TM for repository: ")
-        .fg(Color.CYAN)
-        .a(repositoryParam)
-        .println(2);
+    if (!isJsonOutput()) {
+      consoleWriter
+          .newLine()
+          .a("Export TM for repository: ")
+          .fg(Color.CYAN)
+          .a(repositoryParam)
+          .println(2);
+    }
 
     commandDirectories = new CommandDirectories(null, targetDirectoryParam);
 
@@ -95,18 +100,23 @@ public class TMExportCommand extends Command {
     Set<RepositoryLocale> repositoryLocales = repository.getRepositoryLocales();
 
     long assetNumber = 0;
+    List<Map<String, Object>> exported = new ArrayList<>();
 
     for (Asset asset : assets) {
       assetNumber++;
 
-      consoleWriter.newLine().a("Asset: ").fg(Color.CYAN).a(asset.getPath()).println();
+      if (!isJsonOutput()) {
+        consoleWriter.newLine().a("Asset: ").fg(Color.CYAN).a(asset.getPath()).println();
+      }
 
       for (RepositoryLocale repositoryLocale : repositoryLocales) {
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
         if (bcp47tagsParam == null || bcp47tagsParam.contains(bcp47Tag)) {
-          consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
+          if (!isJsonOutput()) {
+            consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
+          }
 
           XliffExportBody xliffExport =
               assetClient.exportAssetAsXLIFFAsync(asset.getId(), bcp47Tag);
@@ -122,12 +132,29 @@ public class TMExportCommand extends Command {
           String export = assetClient.getExportedXLIFF(asset.getId(), xliffExport.getTmXliffId());
           commandHelper.writeFileContent(export, exportFile);
 
-          consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
+          Map<String, Object> exportedFile = new LinkedHashMap<>();
+          exportedFile.put("assetPath", asset.getPath());
+          exportedFile.put("locale", bcp47Tag);
+          exportedFile.put("file", exportFile.toAbsolutePath().toString());
+          exportedFile.put("pollableTaskId", pollableTaskId);
+          exported.add(exportedFile);
+
+          if (!isJsonOutput()) {
+            consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
+          }
         }
       }
     }
 
-    consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
+    if (isJsonOutput()) {
+      Map<String, Object> data = new LinkedHashMap<>();
+      data.put("repository", repositoryParam);
+      data.put("targetBasename", targetBasenameParam);
+      data.put("exported", exported);
+      writeJsonSuccess(data);
+    } else {
+      consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
+    }
   }
 
   /**

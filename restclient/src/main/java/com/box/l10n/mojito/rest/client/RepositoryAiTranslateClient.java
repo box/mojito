@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -73,6 +74,12 @@ public class RepositoryAiTranslateClient extends BaseClient {
       Integer timeoutSeconds) {}
 
   public record ProtoAiTranslateResponse(PollableTask pollableTask) {}
+
+  /**
+   * Output stored on the AI translate pollable task. {@code hasMore} is true when selection hit the
+   * per-locale max for at least one locale.
+   */
+  public record AiTranslateOutput(boolean hasMore, Map<String, Boolean> hasMoreByLocale) {}
 
   public record ProtoAiTranslateRetryImportRequest(long childPollableTaskId, boolean resume) {}
 

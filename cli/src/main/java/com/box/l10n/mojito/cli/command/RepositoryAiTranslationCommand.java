@@ -15,7 +15,9 @@ import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTransl
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,15 +221,35 @@ public class RepositoryAiTranslationCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
+    Map<String, Object> result = new LinkedHashMap<>();
+    result.put("repository", repositoryParam);
+    result.put("locales", locales);
+    result.put("useBatch", useBatch);
+    result.put("sourceTextMaxCount", sourceTextMaxCount);
+    result.put("dryRun", dryRun);
+    if (useModel != null) {
+      result.put("useModel", useModel);
+    }
+
+    Long watchedPollableTaskId = null;
+    List<String> reportPaths = new ArrayList<>();
+    String action = "translate";
+
     if (importJobId != null) {
-      consoleWriter
-          .a("Importing task id: ")
-          .fg(Color.MAGENTA)
-          .a(importJobId)
-          .a(" (resume: ")
-          .a(resume)
-          .a(")")
-          .println();
+      action = "retry-import";
+      result.put("importJobId", importJobId);
+      result.put("resume", resume);
+
+      if (!isJsonOutput()) {
+        consoleWriter
+            .a("Importing task id: ")
+            .fg(Color.MAGENTA)
+            .a(importJobId)
+            .a(" (resume: ")
+            .a(resume)
+            .a(")")
+            .println();
+      }
 
       Optional<PollableTask> lastForReimport =
           pollableTaskClient.getPollableTask(importJobId).getSubTasks().stream()
@@ -235,17 +257,33 @@ public class RepositoryAiTranslationCommand extends Command {
               .max(Comparator.comparing(PollableTask::getCreatedDate));
 
       if (lastForReimport.isEmpty()) {
-        consoleWriter
-            .fg(Color.YELLOW)
-            .a("No subtask found for task id: ")
-            .fg(Color.MAGENTA)
-            .a(importJobId)
-            .println();
+        if (isJsonOutput()) {
+          result.put("action", action);
+          result.put("aborted", true);
+          result.put("reason", "No subtask found for task id: " + importJobId);
+          writeJsonSuccess(result);
+        } else {
+          consoleWriter
+              .fg(Color.YELLOW)
+              .a("No subtask found for task id: ")
+              .fg(Color.MAGENTA)
+              .a(importJobId)
+              .println();
+          consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+        }
+        return;
+      }
 
-      } else {
-        PollableTask lastTask = lastForReimport.get();
+      PollableTask lastTask = lastForReimport.get();
 
-        if (!lastTask.isAllFinished()) {
+      if (!lastTask.isAllFinished()) {
+        if (isJsonOutput()) {
+          result.put("action", action);
+          result.put("aborted", true);
+          result.put("reason", "Last task " + lastTask.getId() + " is not finished");
+          result.put("lastTaskId", lastTask.getId());
+          writeJsonSuccess(result);
+        } else {
           consoleWriter
               .fg(Color.YELLOW)
               .a("Last task: ")
@@ -254,40 +292,52 @@ public class RepositoryAiTranslationCommand extends Command {
               .reset()
               .a(" is not finished. Aborting...")
               .println();
-        } else {
-          long pollableTaskId =
-              repositoryAiTranslateClient.retryImport(lastForReimport.get().getId(), resume);
-          consoleWriter
-              .a("New import task id: ")
-              .fg(Color.MAGENTA)
-              .a(pollableTaskId)
-              .reset()
-              .a(" to monitor progress, and eventually re-attach (--attach-job-id)")
-              .println();
-          waitForPollable(pollableTaskId);
+          consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
         }
+        return;
       }
+
+      long pollableTaskId =
+          repositoryAiTranslateClient.retryImport(lastForReimport.get().getId(), resume);
+      watchedPollableTaskId = pollableTaskId;
+      if (!isJsonOutput()) {
+        consoleWriter
+            .a("New import task id: ")
+            .fg(Color.MAGENTA)
+            .a(pollableTaskId)
+            .reset()
+            .a(" to monitor progress, and eventually re-attach (--attach-job-id)")
+            .println();
+      }
+      waitForPollable(pollableTaskId);
     } else if (attachJobId != null) {
-      consoleWriter.a("Attaching, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
+      action = "attach";
+      watchedPollableTaskId = attachJobId;
+      result.put("attachJobId", attachJobId);
+      if (!isJsonOutput()) {
+        consoleWriter.a("Attaching, task id: ").fg(Color.MAGENTA).a(attachJobId).println();
+      }
       waitForPollable(attachJobId);
     } else {
-      consoleWriter
-          .newLine()
-          .a("Ai translate repository: ")
-          .fg(Color.CYAN)
-          .a(repositoryParam)
-          .reset()
-          .a(", model: ")
-          .fg(Color.CYAN)
-          .a(useModel)
-          .reset()
-          .a(" for locales: ")
-          .fg(Color.CYAN)
-          .a(
-              locales == null
-                  ? "<all>"
-                  : locales.stream().collect(Collectors.joining(", ", "[", "]")))
-          .println(2);
+      if (!isJsonOutput()) {
+        consoleWriter
+            .newLine()
+            .a("Ai translate repository: ")
+            .fg(Color.CYAN)
+            .a(repositoryParam)
+            .reset()
+            .a(", model: ")
+            .fg(Color.CYAN)
+            .a(useModel)
+            .reset()
+            .a(" for locales: ")
+            .fg(Color.CYAN)
+            .a(
+                locales == null
+                    ? "<all>"
+                    : locales.stream().collect(Collectors.joining(", ", "[", "]")))
+            .println(2);
+      }
 
       ProtoAiTranslateResponse protoAiTranslateResponse =
           repositoryAiTranslateClient.translateRepository(
@@ -315,8 +365,11 @@ public class RepositoryAiTranslationCommand extends Command {
                   timeoutSeconds));
 
       PollableTask pollableTask = protoAiTranslateResponse.pollableTask();
+      watchedPollableTaskId = pollableTask.getId();
       if (useBatch) {
-        consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
+        if (!isJsonOutput()) {
+          consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
+        }
         waitForPollable(pollableTask.getId());
       } else {
         commandHelper.waitForPollableTask(pollableTask.getId());
@@ -331,13 +384,49 @@ public class RepositoryAiTranslationCommand extends Command {
             Path path = Path.of(reportLocaleUrl + ".json");
             Files.createDirectories(path.getParent());
             Files.write(path, reportLocale.content());
-            consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
+            reportPaths.add(path.toAbsolutePath().toString());
+            if (!isJsonOutput()) {
+              consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
+            }
           }
         }
       }
     }
 
-    consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+    if (isJsonOutput()) {
+      result.put("action", action);
+      result.put("aborted", false);
+      result.put("pollableTaskId", watchedPollableTaskId);
+      if (!reportPaths.isEmpty()) {
+        result.put("reportPaths", reportPaths);
+      }
+      if ("translate".equals(action) && watchedPollableTaskId != null) {
+        addHasMoreFromPollableOutput(result, watchedPollableTaskId);
+      }
+      writeJsonSuccess(result);
+    } else {
+      consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+    }
+  }
+
+  /**
+   * Reads {@link RepositoryAiTranslateClient.AiTranslateOutput} written by the server-side AI
+   * translate job and adds {@code hasMore} / {@code hasMoreByLocale} to the JSON result.
+   */
+  void addHasMoreFromPollableOutput(Map<String, Object> result, Long pollableTaskId) {
+    try {
+      String outputJson = pollableTaskClient.getPollableTaskOutput(pollableTaskId);
+      RepositoryAiTranslateClient.AiTranslateOutput output =
+          objectMapper.readValueUnchecked(
+              outputJson, RepositoryAiTranslateClient.AiTranslateOutput.class);
+      result.put("hasMore", output.hasMore());
+      result.put("hasMoreByLocale", output.hasMoreByLocale());
+    } catch (Exception e) {
+      logger.warn(
+          "Could not read AI translate hasMore from pollable task {}: {}",
+          pollableTaskId,
+          e.getMessage());
+    }
   }
 
   void waitForPollable(Long pollableTaskId) {
@@ -348,6 +437,10 @@ public class RepositoryAiTranslationCommand extends Command {
           pollableTaskId,
           PollableTaskClient.NO_TIMEOUT,
           pollableTask -> {
+            if (isJsonOutput()) {
+              return;
+            }
+
             Optional<PollableTask> lastFinishedForOutput =
                 pollableTask.getSubTasks().stream()
                     .filter(t -> t.getCreatedDate() != null)
