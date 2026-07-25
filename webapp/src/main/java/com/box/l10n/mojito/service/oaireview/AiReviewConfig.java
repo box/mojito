@@ -31,10 +31,7 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return OpenAIClient.builder()
-        .apiKey(openaiClientToken)
-        .proxyConfig(getProxyConfig())
-        .build();
+    return OpenAIClient.builder().apiKey(openaiClientToken).proxyConfig(getProxyConfig()).build();
   }
 
   @Bean("openAIClientPoolReview")
@@ -44,11 +41,7 @@ public class AiReviewConfig {
       return null;
     }
     return new OpenAIClientPool(
-        10,
-        10,
-        5,
-        aiReviewConfigurationProperties.getOpenaiClientToken(),
-        getProxyConfig());
+        10, 10, 5, aiReviewConfigurationProperties.getOpenaiClientToken(), getProxyConfig());
   }
 
   OpenAIProxyConfig getProxyConfig() {

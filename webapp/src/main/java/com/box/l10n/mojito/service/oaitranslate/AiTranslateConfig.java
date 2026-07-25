@@ -33,10 +33,7 @@ public class AiTranslateConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return OpenAIClient.builder()
-        .apiKey(openaiClientToken)
-        .proxyConfig(getProxyConfig())
-        .build();
+    return OpenAIClient.builder().apiKey(openaiClientToken).proxyConfig(getProxyConfig()).build();
   }
 
   @Bean
@@ -47,11 +44,7 @@ public class AiTranslateConfig {
       return null;
     }
     return new OpenAIClientPool(
-        20,
-        100,
-        1,
-        aiTranslateConfigurationProperties.getOpenaiClientToken(),
-        getProxyConfig());
+        20, 100, 1, aiTranslateConfigurationProperties.getOpenaiClientToken(), getProxyConfig());
   }
 
   OpenAIProxyConfig getProxyConfig() {
