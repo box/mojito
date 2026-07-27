@@ -12,8 +12,8 @@ public final class OpenAIHttpClientFactory {
 
   /**
    * Default TCP/proxy-CONNECT timeout. Without this, {@link HttpClient} waits indefinitely to
-   * establish a connection — which is what made misconfigured proxy Basic-auth tunneling look like
-   * a silent hang.
+   * establish a connection, which can look like a silent hang when a proxy or network path is
+   * misconfigured.
    */
   public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(30);
 
@@ -42,11 +42,6 @@ public final class OpenAIHttpClientFactory {
     if (proxyConfig != null && proxyConfig.isConfigured()) {
       builder.proxy(createProxySelector(proxyConfig));
       if (proxyConfig.user() != null && proxyConfig.password() != null) {
-        // Opt-in via l10n.webproxy.allowBasicTunneling: JDK disables Basic auth for HTTPS CONNECT
-        // by default. Clear that only when the shared web-proxy config says Basic is required.
-        if (proxyConfig.allowBasicTunneling()) {
-          System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-        }
         builder.authenticator(createProxyAuthenticator(proxyConfig));
       }
     }

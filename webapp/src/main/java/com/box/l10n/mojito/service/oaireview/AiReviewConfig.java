@@ -4,8 +4,6 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.openai.OpenAIProxyConfig;
-import com.box.l10n.mojito.proxy.ResolvedWebProxy;
-import com.box.l10n.mojito.proxy.WebProxyConfigurationProperties;
 import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,13 +14,9 @@ import reactor.util.retry.RetryBackoffSpec;
 public class AiReviewConfig {
 
   AiReviewConfigurationProperties aiReviewConfigurationProperties;
-  WebProxyConfigurationProperties webProxyConfigurationProperties;
 
-  public AiReviewConfig(
-      AiReviewConfigurationProperties aiReviewConfigurationProperties,
-      WebProxyConfigurationProperties webProxyConfigurationProperties) {
+  public AiReviewConfig(AiReviewConfigurationProperties aiReviewConfigurationProperties) {
     this.aiReviewConfigurationProperties = aiReviewConfigurationProperties;
-    this.webProxyConfigurationProperties = webProxyConfigurationProperties;
   }
 
   @Bean("openAIClientReview")
@@ -31,7 +25,10 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return OpenAIClient.builder().apiKey(openaiClientToken).proxyConfig(getProxyConfig()).build();
+    return OpenAIClient.builder()
+        .apiKey(openaiClientToken)
+        .proxyConfig(getProxyConfig(aiReviewConfigurationProperties))
+        .build();
   }
 
   @Bean("openAIClientPoolReview")
@@ -41,22 +38,19 @@ public class AiReviewConfig {
       return null;
     }
     return new OpenAIClientPool(
-        10, 10, 5, aiReviewConfigurationProperties.getOpenaiClientToken(), getProxyConfig());
+        10,
+        10,
+        5,
+        aiReviewConfigurationProperties.getOpenaiClientToken(),
+        getProxyConfig(aiReviewConfigurationProperties));
   }
 
-  OpenAIProxyConfig getProxyConfig() {
-    ResolvedWebProxy resolved =
-        webProxyConfigurationProperties.resolve(
-            aiReviewConfigurationProperties.getProxyHost(),
-            aiReviewConfigurationProperties.getProxyPort(),
-            aiReviewConfigurationProperties.getProxyUser(),
-            aiReviewConfigurationProperties.getProxyPassword());
+  static OpenAIProxyConfig getProxyConfig(AiReviewConfigurationProperties properties) {
     return OpenAIProxyConfig.of(
-        resolved.host(),
-        resolved.port(),
-        resolved.user(),
-        resolved.password(),
-        webProxyConfigurationProperties.isAllowBasicTunneling());
+        properties.getProxyHost(),
+        properties.getProxyPort(),
+        properties.getProxyUser(),
+        properties.getProxyPassword());
   }
 
   @Bean("objectMapperReview")

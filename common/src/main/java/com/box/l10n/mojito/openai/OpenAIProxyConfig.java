@@ -1,15 +1,9 @@
 package com.box.l10n.mojito.openai;
 
-public record OpenAIProxyConfig(
-    String host, Integer port, String user, String password, boolean allowBasicTunneling) {
+public record OpenAIProxyConfig(String host, Integer port, String user, String password) {
 
   public static OpenAIProxyConfig of(String host, Integer port, String user, String password) {
-    return of(host, port, user, password, false);
-  }
-
-  public static OpenAIProxyConfig of(
-      String host, Integer port, String user, String password, boolean allowBasicTunneling) {
-    return new OpenAIProxyConfig(host, port, user, password, allowBasicTunneling);
+    return new OpenAIProxyConfig(host, port, user, password);
   }
 
   public boolean isConfigured() {
@@ -26,8 +20,6 @@ public record OpenAIProxyConfig(
         + (user == null ? "null" : "***")
         + ", password="
         + (password == null ? "null" : "***")
-        + ", allowBasicTunneling="
-        + allowBasicTunneling
         + "]";
   }
 }

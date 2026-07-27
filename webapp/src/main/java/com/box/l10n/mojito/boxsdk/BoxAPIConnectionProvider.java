@@ -2,8 +2,6 @@ package com.box.l10n.mojito.boxsdk;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.box.l10n.mojito.proxy.ResolvedWebProxy;
-import com.box.l10n.mojito.proxy.WebProxyConfigurationProperties;
 import com.box.sdk.*;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -24,8 +22,6 @@ public class BoxAPIConnectionProvider {
   @Autowired BoxSDKServiceConfigProvider boxSDKServiceConfigProvider;
 
   @Autowired BoxSDKJWTProvider boxSDKJWTProvider;
-
-  @Autowired WebProxyConfigurationProperties webProxyConfigurationProperties;
 
   private BoxAPIConnection boxAPIConnection;
 
@@ -58,22 +54,20 @@ public class BoxAPIConnectionProvider {
     logger.debug("Getting a new App User Connection using the current config");
     BoxDeveloperEditionAPIConnection connection = createUserConnection();
 
-    ResolvedWebProxy proxy =
-        webProxyConfigurationProperties.resolve(
-            boxSDKServiceConfig.getProxyHost(),
-            boxSDKServiceConfig.getProxyPort(),
-            boxSDKServiceConfig.getProxyUser(),
-            boxSDKServiceConfig.getProxyPassword());
-
-    if (proxy.isConfigured()) {
+    if (boxSDKServiceConfig.getProxyHost() != null && boxSDKServiceConfig.getProxyPort() != null) {
       logger.debug("Setting proxy for Box API connection");
-      Proxy httpProxy =
-          new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy.host(), proxy.port()));
-      connection.setProxy(httpProxy);
+      Proxy proxy =
+          new Proxy(
+              Proxy.Type.HTTP,
+              new InetSocketAddress(
+                  boxSDKServiceConfig.getProxyHost(), boxSDKServiceConfig.getProxyPort()));
+      connection.setProxy(proxy);
 
-      if (proxy.user() != null && proxy.password() != null) {
+      if (boxSDKServiceConfig.getProxyUser() != null
+          && boxSDKServiceConfig.getProxyPassword() != null) {
         logger.debug("Setting proxy basic auth for Box API connection");
-        connection.setProxyBasicAuthentication(proxy.user(), proxy.password());
+        connection.setProxyBasicAuthentication(
+            boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
       }
     }
 
