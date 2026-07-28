@@ -4,14 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.net.Authenticator;
 import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -19,7 +16,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +30,33 @@ public class OpenAIHttpClientFactoryTest {
     assertFalse(OpenAIProxyConfig.of("   ", 3128, "user", "pass").isConfigured());
     assertFalse(OpenAIProxyConfig.of("proxy.example.com", null, "user", "pass").isConfigured());
     assertTrue(OpenAIProxyConfig.of("proxy.example.com", 3128, "user", "pass").isConfigured());
+  }
+
+  @Test
+  public void testOpenAIProxyConfigHasCredentials() {
+    assertTrue(OpenAIProxyConfig.of("proxy.example.com", 3128, "user", "pass").hasCredentials());
+    assertTrue(OpenAIProxyConfig.of("proxy.example.com", 3128, "user", "").hasCredentials());
+    assertFalse(OpenAIProxyConfig.of("proxy.example.com", 3128, null, "pass").hasCredentials());
+    assertFalse(OpenAIProxyConfig.of("proxy.example.com", 3128, "  ", "pass").hasCredentials());
+    assertFalse(OpenAIProxyConfig.of("proxy.example.com", 3128, "user", null).hasCredentials());
+  }
+
+  @Test
+  public void testOpenAIProxyConfigProxyAuthorizationHeaderValue() {
+    OpenAIProxyConfig proxyConfig =
+        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
+
+    String expected =
+        "Basic "
+            + Base64.getEncoder()
+                .encodeToString("proxy-user:proxy-password".getBytes(StandardCharsets.UTF_8));
+
+    assertEquals(expected, proxyConfig.proxyAuthorizationHeaderValue());
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            OpenAIProxyConfig.of("proxy.example.com", 3128, null, null)
+                .proxyAuthorizationHeaderValue());
   }
 
   @Test
@@ -57,7 +83,11 @@ public class OpenAIHttpClientFactoryTest {
   public void testCreateHttpClientWithProxy() {
     OpenAIProxyConfig proxyConfig =
         OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
-    assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig);
+
+    assertNotNull(httpClient);
+    // Must not register Authenticator — that strips Bearer auth on JDK < 24 (JDK-8326949).
+    assertTrue(httpClient.authenticator().isEmpty());
   }
 
   @Test
@@ -122,32 +152,6 @@ public class OpenAIHttpClientFactoryTest {
   }
 
   @Test
-  public void testGetProxyPasswordAuthenticationForProxyRequest() {
-    OpenAIProxyConfig proxyConfig =
-        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
-
-    PasswordAuthentication authentication =
-        OpenAIHttpClientFactory.getProxyPasswordAuthentication(
-            proxyConfig, Authenticator.RequestorType.PROXY);
-
-    assertNotNull(authentication);
-    assertEquals("proxy-user", authentication.getUserName());
-    assertEquals("proxy-password", new String(authentication.getPassword()));
-  }
-
-  @Test
-  public void testGetProxyPasswordAuthenticationReturnsNullForServerRequest() {
-    OpenAIProxyConfig proxyConfig =
-        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
-
-    PasswordAuthentication authentication =
-        OpenAIHttpClientFactory.getProxyPasswordAuthentication(
-            proxyConfig, Authenticator.RequestorType.SERVER);
-
-    assertNull(authentication);
-  }
-
-  @Test
   public void testConfigureProxySkipsIncompleteConfig() {
     assertNotNull(
         OpenAIHttpClientFactory.createHttpClient(
@@ -162,6 +166,8 @@ public class OpenAIHttpClientFactoryTest {
     List<Proxy> proxies = proxySelector.select(URI.create("https://api.openai.com/v1/models"));
 
     assertEquals(1, proxies.size());
-    assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig);
+    assertNotNull(httpClient);
+    assertTrue(httpClient.authenticator().isEmpty());
   }
 }

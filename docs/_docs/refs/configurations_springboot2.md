@@ -244,7 +244,7 @@ AI translation and AI review use the OpenAI HTTP API. Configure an API token and
 
 ### AI translation
 
-    # Required to enable AI translation features
+    # Required to enable AI translation features (secret — application-secrets)
     l10n.ai-translate.openai-client-token=${OPENAI_API_KEY}
 
     # Optional. Default: gpt-4o-2024-08-06
@@ -254,17 +254,70 @@ AI translation and AI review use the OpenAI HTTP API. Configure an API token and
     l10n.ai-translate.proxy-host=proxy.example.com
     l10n.ai-translate.proxy-port=3128
     l10n.ai-translate.proxy-user=proxy-user
+    # Secret — application-secrets (not committed application.properties)
     l10n.ai-translate.proxy-password=${PROXY_PASSWORD}
 
     # Optional. Use a dedicated Quartz scheduler for AI translation jobs
     l10n.ai-translate.scheduler-name=ai-translate
 
-Keep secrets such as the API token and proxy password out of source control.
+Put `openai-client-token` and `proxy-password` in secrets (for example
+`application-secrets.properties`). Do not commit real values in
+`application.properties`.
+
+When the proxy requires Basic authentication for HTTPS `CONNECT` (common for corporate
+outbound proxies), Mojito sends a preemptive `Proxy-Authorization` header on each OpenAI
+request and does **not** register a JDK `HttpClient` `Authenticator`. Registering an
+Authenticator on JDK versions before 24 strips the OpenAI `Authorization: Bearer` header
+([JDK-8326949](https://bugs.openjdk.org/browse/JDK-8326949)).
+
+#### JVM flags for authenticating HTTPS proxies (optional, environment-specific)
+
+Some corporate proxies require JDK Basic auth on HTTPS `CONNECT`. The JDK disables that by
+default (`jdk.http.auth.tunneling.disabledSchemes=Basic`). **Do not bake this into the
+open-source `pom.xml`** — many environments do not need it. Set it only where your network
+requires it, for example:
+
+    # shell / CI agent / deploy JVM (not committed to this repo)
+    export JAVA_TOOL_OPTIONS='-Djdk.http.auth.tunneling.disabledSchemes='
+    # or: export MAVEN_OPTS='-Djdk.http.auth.tunneling.disabledSchemes='
+
+On some JDK builds, if setting `Proxy-Authorization` is rejected as a restricted header, also set:
+
+    -Djdk.httpclient.allowRestrictedHeaders=Proxy-Authorization
+
+#### Corporate CA / truststore (optional, environment-specific)
+
+If traffic goes through a TLS-inspecting or private-CA proxy, the JVM must trust your
+organization's CA certificates. Import them into the JDK truststore (or point
+`javax.net.ssl.trustStore` at a custom store). **Open-source users must use their own
+company CAs** — Mojito does not ship corporate certificates. Without the right CAs you will
+typically see `SSLHandshakeException: PKIX path building failed`.
+
+### Live OpenAI smoke test
+
+`OpenAIClientIntegrationTest` in the `common` module calls the Responses API with a tiny
+prompt. It is skipped unless an API key is available, so default CI/unit runs stay offline.
+
+To exercise the same client path used in production (including optional proxy auth):
+
+1. Put `l10n.ai-translate.openai-client-token` (and proxy settings if needed) in
+   `~/.l10n/config/common/application-secrets.properties`, **or** export `OPENAI_API_KEY`
+   and optional `OPENAI_PROXY_HOST` / `OPENAI_PROXY_PORT` / `OPENAI_PROXY_USER` /
+   `OPENAI_PROXY_PASSWORD`.
+2. If your proxy needs Basic CONNECT auth and/or a private CA, set `JAVA_TOOL_OPTIONS` (or
+   `MAVEN_OPTS`) as described above — outside this repository.
+3. Run:
+
+        mvn -pl common -Dtest=OpenAIClientIntegrationTest test
+
+For a fuller end-to-end check (DB + AI translate service), see
+`AiTranslateServiceTest` in `webapp` (also skipped when the token is unset).
 
 ### AI review
 
 AI review uses the same OpenAI client and proxy settings under the `l10n.ai-review.*` prefix:
 
+    # openai-client-token and proxy-password: secrets — application-secrets
     l10n.ai-review.openai-client-token=${OPENAI_API_KEY}
     l10n.ai-review.model-name=gpt-4o-2024-08-06
     l10n.ai-review.proxy-host=proxy.example.com

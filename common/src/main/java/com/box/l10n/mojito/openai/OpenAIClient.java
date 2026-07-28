@@ -50,17 +50,22 @@ public class OpenAIClient {
 
   final Executor asyncExecutor;
 
+  /** Optional proxy settings; credentials are applied as preemptive Proxy-Authorization headers. */
+  final OpenAIProxyConfig proxyConfig;
+
   OpenAIClient(
       String apiKey,
       String host,
       ObjectMapper objectMapper,
       HttpClient httpClient,
-      Executor asyncExecutor) {
+      Executor asyncExecutor,
+      OpenAIProxyConfig proxyConfig) {
     this.apiKey = Objects.requireNonNull(apiKey);
     this.host = Objects.requireNonNull(host);
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.httpClient = Objects.requireNonNull(httpClient);
     this.asyncExecutor = Objects.requireNonNull(asyncExecutor);
+    this.proxyConfig = proxyConfig;
   }
 
   public static class Builder {
@@ -125,7 +130,7 @@ public class OpenAIClient {
         httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig, asyncExecutor);
       }
 
-      return new OpenAIClient(apiKey, host, objectMapper, httpClient, asyncExecutor);
+      return new OpenAIClient(apiKey, host, objectMapper, httpClient, asyncExecutor, proxyConfig);
     }
 
     private ObjectMapper createObjectMapper() {
@@ -141,6 +146,20 @@ public class OpenAIClient {
     return new Builder();
   }
 
+  /**
+   * Starts an {@link HttpRequest} with OpenAI Bearer auth and, when configured, preemptive proxy
+   * Basic auth. Prefer this over {@link HttpRequest#newBuilder()} so proxy credentials are not
+   * applied via {@link java.net.Authenticator} (JDK-8326949).
+   */
+  HttpRequest.Builder newRequestBuilder() {
+    HttpRequest.Builder builder =
+        HttpRequest.newBuilder().header("Authorization", "Bearer " + this.apiKey);
+    if (proxyConfig != null && proxyConfig.hasCredentials()) {
+      builder.header("Proxy-Authorization", proxyConfig.proxyAuthorizationHeaderValue());
+    }
+    return builder;
+  }
+
   public CompletableFuture<ResponsesResponse> getResponses(
       ResponsesRequest responsesRequest, Duration httpRequestTimeout) {
 
@@ -152,11 +171,10 @@ public class OpenAIClient {
     }
 
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .timeout(httpRequestTimeout)
             .uri(getUriForEndpoint(ResponsesRequest.ENDPOINT))
             .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
             .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
             .build();
 
@@ -419,11 +437,10 @@ public class OpenAIClient {
     }
 
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .timeout(httpRequestTimeout)
             .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
             .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
             .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
             .build();
 
@@ -465,10 +482,9 @@ public class OpenAIClient {
     }
 
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
             .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
             .POST(HttpRequest.BodyPublishers.ofString(requestPayload, StandardCharsets.UTF_8))
             .build();
 
@@ -829,10 +845,9 @@ public class OpenAIClient {
     }
 
     HttpRequest httpRequest =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .uri(getUriForEndpoint(EmbeddingRequest.ENDPOINT))
             .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build();
 
@@ -916,9 +931,8 @@ public class OpenAIClient {
     HttpRequest.BodyPublisher body = uploadFileRequest.getMultipartBodyPublisher(boundary);
 
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .uri(getUriForEndpoint(UploadFileRequest.ENDPOINT))
-            .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "multipart/form-data; boundary=" + boundary)
             .POST(body)
             .build();
@@ -1065,12 +1079,11 @@ public class OpenAIClient {
       DownloadFileContentRequest downloadFileContentRequest) {
     HttpResponse<String> response;
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .uri(
                 getUriForEndpoint(
                     DownloadFileContentRequest.ENDPOINT.formatted(
                         downloadFileContentRequest.fileId())))
-            .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "application/json")
             .GET()
             .build();
@@ -1107,9 +1120,8 @@ public class OpenAIClient {
     }
 
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .uri(getUriForEndpoint(CreateBatchRequest.ENDPOINT))
-            .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
             .build();
@@ -1172,11 +1184,10 @@ public class OpenAIClient {
 
   public RetrieveBatchResponse retrieveBatch(RetrieveBatchRequest retrieveBatchRequest) {
     HttpRequest request =
-        HttpRequest.newBuilder()
+        newRequestBuilder()
             .uri(
                 getUriForEndpoint(
                     RetrieveBatchRequest.ENDPOINT.formatted(retrieveBatchRequest.batchId())))
-            .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "application/json")
             .GET()
             .build();

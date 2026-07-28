@@ -1,8 +1,6 @@
 package com.box.l10n.mojito.openai;
 
-import java.net.Authenticator;
 import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
 import java.net.ProxySelector;
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -38,35 +36,20 @@ public final class OpenAIHttpClientFactory {
     return builder.build();
   }
 
+  /**
+   * Configures proxy host/port only. Proxy Basic credentials must be sent as a preemptive {@code
+   * Proxy-Authorization} header on each request (see {@link
+   * OpenAIProxyConfig#proxyAuthorizationHeaderValue()}). Do not register an {@link
+   * java.net.Authenticator}: on JDK &lt; 24 that strips user-set {@code Authorization} headers
+   * (JDK-8326949), which drops the OpenAI Bearer token.
+   */
   static void configureProxy(HttpClient.Builder builder, OpenAIProxyConfig proxyConfig) {
     if (proxyConfig != null && proxyConfig.isConfigured()) {
       builder.proxy(createProxySelector(proxyConfig));
-      if (proxyConfig.user() != null && proxyConfig.password() != null) {
-        builder.authenticator(createProxyAuthenticator(proxyConfig));
-      }
     }
   }
 
   static ProxySelector createProxySelector(OpenAIProxyConfig proxyConfig) {
     return ProxySelector.of(new InetSocketAddress(proxyConfig.host(), proxyConfig.port()));
-  }
-
-  static Authenticator createProxyAuthenticator(OpenAIProxyConfig proxyConfig) {
-    return new Authenticator() {
-      @Override
-      protected PasswordAuthentication getPasswordAuthentication() {
-        return getProxyPasswordAuthentication(proxyConfig, getRequestorType());
-      }
-    };
-  }
-
-  static PasswordAuthentication getProxyPasswordAuthentication(
-      OpenAIProxyConfig proxyConfig, Authenticator.RequestorType requestorType) {
-    if (requestorType == Authenticator.RequestorType.PROXY
-        && proxyConfig.user() != null
-        && proxyConfig.password() != null) {
-      return new PasswordAuthentication(proxyConfig.user(), proxyConfig.password().toCharArray());
-    }
-    return null;
   }
 }

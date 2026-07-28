@@ -49,6 +49,7 @@ public class OpenAIClientPool {
               OpenAIClient.builder()
                   .apiKey(apiKey)
                   .asyncExecutor(asyncExecutor)
+                  .proxyConfig(proxyConfig)
                   .httpClient(OpenAIHttpClientFactory.createHttpClient(proxyConfig, asyncExecutor))
                   .build(),
               new Semaphore(numberOfParallelRequestPerClient));
