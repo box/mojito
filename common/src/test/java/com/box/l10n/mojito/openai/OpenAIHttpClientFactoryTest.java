@@ -85,7 +85,10 @@ public class OpenAIHttpClientFactoryTest {
     Duration connectTimeout = Duration.ofMillis(500);
     HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null, null, connectTimeout);
 
-    // TEST-NET-1 (RFC 5737) — should not be routable; connection establishment must time out.
+    // 192.0.2.1 is from TEST-NET-1 (192.0.2.0/24, RFC 5737) — reserved for documentation
+    // examples, not for local/LAN use (unlike 192.168.x.x). It is intentionally non-routable
+    // so connection establishment must time out rather than reach a real host.
+    // https://www.rfc-editor.org/rfc/rfc5737
     HttpRequest request =
         HttpRequest.newBuilder()
             .uri(URI.create("http://192.0.2.1:81/"))
