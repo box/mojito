@@ -240,6 +240,8 @@ cd ${PROJECT_DIR}
 mvn test
 ```
 
+Some tests call external services (OpenAI, Smartling, Box, and others). Those usually **skip** when credentials are not configured, so a default `mvn test` stays offline. For the optional live OpenAI / HTTP-proxy smoke test, see [Live OpenAI smoke test]({{ site.url }}/docs/refs/configurations-springboot2/#live-openai-smoke-test-optional) in the configurations reference.
+
 ## Style guide
 Mojito uses the [Google Java Format](https://github.com/google/google-java-format) style guidelines, which is integrated to run alongside Maven's compile phase with [spotless](https://github.com/diffplug/spotless/tree/main/plugin-maven).
 

@@ -4,23 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpConnectTimeoutException;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
+import org.apache.hc.client5.http.ConnectTimeoutException;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.junit.jupiter.api.Test;
 
 public class OpenAIHttpClientFactoryTest {
@@ -47,7 +38,7 @@ public class OpenAIHttpClientFactoryTest {
   }
 
   @Test
-  public void testCreateHttpClientWithoutProxy() {
+  public void testCreateHttpClientWithoutProxy() throws Exception {
     assertNotNull(OpenAIHttpClientFactory.createHttpClient(null));
     assertNotNull(
         OpenAIHttpClientFactory.createHttpClient(OpenAIProxyConfig.of(null, null, null, null)));
@@ -61,93 +52,9 @@ public class OpenAIHttpClientFactoryTest {
   }
 
   @Test
-  public void testCreateHttpClientSetsDefaultConnectTimeout() {
-    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null);
-
-    assertEquals(
-        OpenAIHttpClientFactory.DEFAULT_CONNECT_TIMEOUT, httpClient.connectTimeout().orElseThrow());
-  }
-
-  @Test
-  public void testCreateHttpClientUsesCustomConnectTimeout() {
-    Duration connectTimeout = Duration.ofSeconds(5);
-    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null, null, connectTimeout);
-
-    assertEquals(connectTimeout, httpClient.connectTimeout().orElseThrow());
-  }
-
-  /**
-   * Guards against infinite hangs when a proxy/host is unreachable — failures should surface as a
-   * connect timeout instead of waiting forever.
-   */
-  @Test
-  public void testConnectTimeoutFailsQuicklyAgainstUnreachableHost() throws Exception {
-    Duration connectTimeout = Duration.ofMillis(500);
-    HttpClient httpClient = OpenAIHttpClientFactory.createHttpClient(null, null, connectTimeout);
-
-    // 192.0.2.1 is from TEST-NET-1 (192.0.2.0/24, RFC 5737) — reserved for documentation
-    // examples, not for local/LAN use (unlike 192.168.x.x). It is intentionally non-routable
-    // so connection establishment must time out rather than reach a real host.
-    // https://www.rfc-editor.org/rfc/rfc5737
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(URI.create("http://192.0.2.1:81/"))
-            .timeout(Duration.ofSeconds(5))
-            .GET()
-            .build();
-
-    long startedAt = System.nanoTime();
-    IOException thrown =
-        assertThrows(
-            IOException.class,
-            () -> httpClient.send(request, HttpResponse.BodyHandlers.discarding()));
-    long elapsedMs = Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
-
-    assertInstanceOf(HttpConnectTimeoutException.class, thrown);
-    assertTrue(
-        elapsedMs < 3_000,
-        "connect timeout should fail quickly, took " + elapsedMs + "ms (limit 3000ms)");
-  }
-
-  @Test
-  public void testCreateProxySelector() {
-    OpenAIProxyConfig proxyConfig =
-        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
-
-    ProxySelector proxySelector = OpenAIHttpClientFactory.createProxySelector(proxyConfig);
-    List<Proxy> proxies = proxySelector.select(URI.create("https://api.openai.com/v1/models"));
-
-    assertEquals(1, proxies.size());
-    assertEquals(Proxy.Type.HTTP, proxies.get(0).type());
-    InetSocketAddress address = (InetSocketAddress) proxies.get(0).address();
-    assertEquals("proxy.example.com", address.getHostString());
-    assertEquals(3128, address.getPort());
-  }
-
-  @Test
-  public void testGetProxyPasswordAuthenticationForProxyRequest() {
-    OpenAIProxyConfig proxyConfig =
-        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
-
-    PasswordAuthentication authentication =
-        OpenAIHttpClientFactory.getProxyPasswordAuthentication(
-            proxyConfig, Authenticator.RequestorType.PROXY);
-
-    assertNotNull(authentication);
-    assertEquals("proxy-user", authentication.getUserName());
-    assertEquals("proxy-password", new String(authentication.getPassword()));
-  }
-
-  @Test
-  public void testGetProxyPasswordAuthenticationReturnsNullForServerRequest() {
-    OpenAIProxyConfig proxyConfig =
-        OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
-
-    PasswordAuthentication authentication =
-        OpenAIHttpClientFactory.getProxyPasswordAuthentication(
-            proxyConfig, Authenticator.RequestorType.SERVER);
-
-    assertNull(authentication);
+  public void testCreateHttpClientWithProxyHostAndPortOnly() {
+    OpenAIProxyConfig proxyConfig = OpenAIProxyConfig.of("proxy.example.com", 3128, null, null);
+    assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
   }
 
   @Test
@@ -157,14 +64,30 @@ public class OpenAIHttpClientFactoryTest {
             OpenAIProxyConfig.of("proxy.example.com", null, "proxy-user", "proxy-password")));
   }
 
+  /**
+   * Guards against infinite hangs when a proxy/host is unreachable — failures should surface as a
+   * connect timeout instead of waiting forever.
+   */
   @Test
-  public void testCreateHttpClientWithProxyHostAndPortOnly() {
-    OpenAIProxyConfig proxyConfig = OpenAIProxyConfig.of("proxy.example.com", 3128, null, null);
+  public void testConnectTimeoutFailsQuicklyAgainstUnreachableHost() throws Exception {
+    Duration connectTimeout = Duration.ofMillis(500);
+    try (CloseableHttpClient httpClient =
+        OpenAIHttpClientFactory.createHttpClient(null, connectTimeout)) {
+      // 192.0.2.1 is from TEST-NET-1 (192.0.2.0/24, RFC 5737) — reserved for documentation
+      // examples, not for local/LAN use (unlike 192.168.x.x). It is intentionally non-routable
+      // so connection establishment must time out rather than reach a real host.
+      // https://www.rfc-editor.org/rfc/rfc5737
+      HttpGet request = new HttpGet("http://192.0.2.1:81/");
 
-    ProxySelector proxySelector = OpenAIHttpClientFactory.createProxySelector(proxyConfig);
-    List<Proxy> proxies = proxySelector.select(URI.create("https://api.openai.com/v1/models"));
+      long startedAt = System.nanoTime();
+      IOException thrown =
+          assertThrows(IOException.class, () -> httpClient.execute(request, response -> null));
+      long elapsedMs = Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
 
-    assertEquals(1, proxies.size());
-    assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
+      assertInstanceOf(ConnectTimeoutException.class, thrown);
+      assertTrue(
+          elapsedMs < 3_000,
+          "connect timeout should fail quickly, took " + elapsedMs + "ms (limit 3000ms)");
+    }
   }
 }

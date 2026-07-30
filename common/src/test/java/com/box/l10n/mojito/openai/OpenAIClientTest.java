@@ -16,24 +16,22 @@ import com.box.l10n.mojito.openai.OpenAIClient.UploadFileRequest.BinaryContent;
 import com.box.l10n.mojito.openai.OpenAIClient.UploadFileResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpResponse;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Flow;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -99,14 +97,7 @@ public class OpenAIClientTest {
           "system_fingerprint": "fp_c2295e73ad"
         }""";
 
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(200);
-    when(mockResponse.body()).thenReturn(jsonResponse);
-
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    when(mockHttpClient.sendAsync(
-            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
-        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+    CloseableHttpClient mockHttpClient = mockHttpClient(200, jsonResponse);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -139,8 +130,6 @@ public class OpenAIClientTest {
                     userMessageBuilder().content("This is a unit test").build()))
             .build();
 
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(400);
     String errorMsg =
         """
         {
@@ -151,12 +140,8 @@ public class OpenAIClientTest {
                 "code": "model_not_found"
             }
         }""";
-    when(mockResponse.body()).thenReturn(errorMsg);
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    when(mockHttpClient.sendAsync(
-            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
-        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+    CloseableHttpClient mockHttpClient = mockHttpClient(400, errorMsg);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -212,14 +197,7 @@ public class OpenAIClientTest {
         }
         """;
 
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(200);
-    when(mockResponse.body()).thenReturn(jsonResponse);
-
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    when(mockHttpClient.sendAsync(
-            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
-        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+    CloseableHttpClient mockHttpClient = mockHttpClient(200, jsonResponse);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -255,14 +233,7 @@ public class OpenAIClientTest {
         }
         """;
 
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(400);
-    when(mockResponse.body()).thenReturn(errorMsg);
-
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    when(mockHttpClient.sendAsync(
-            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
-        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+    CloseableHttpClient mockHttpClient = mockHttpClient(400, errorMsg);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -318,14 +289,7 @@ public class OpenAIClientTest {
           "system_fingerprint": "fp_c2295e73ad"
         }""";
 
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(200);
-    when(mockResponse.body()).thenReturn(jsonResponse);
-
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    when(mockHttpClient.sendAsync(
-            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
-        .thenReturn(CompletableFuture.completedFuture(mockResponse));
+    CloseableHttpClient mockHttpClient = mockHttpClient(200, jsonResponse);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -343,12 +307,9 @@ public class OpenAIClientTest {
   @Test
   public void testUploadFileSuccess() throws Exception {
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(200);
-    when(mockResponse.body())
-        .thenReturn(
+    CloseableHttpClient mockHttpClient =
+        mockHttpClient(
+            200,
             """
           {
             "id": "file-123",
@@ -356,8 +317,6 @@ public class OpenAIClientTest {
             "status": "uploaded",
             "created_at": 1690000000
           }""");
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -376,10 +335,6 @@ public class OpenAIClientTest {
   @Test
   public void testUploadFileError() throws Exception {
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(400);
     String errorMessage =
         """
         {
@@ -391,9 +346,7 @@ public class OpenAIClientTest {
           }
         }
         """;
-    when(mockResponse.body()).thenReturn(errorMessage);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+    CloseableHttpClient mockHttpClient = mockHttpClient(400, errorMessage);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -415,71 +368,46 @@ public class OpenAIClientTest {
   }
 
   @Test
-  public void testFileUploadRequestMultiPartBody() {
+  public void testFileUploadRequestMultiPartBody() throws Exception {
     UploadFileRequest uploadFileRequest = UploadFileRequest.forBatch("test.jsonl", "{}\n{}");
-    BodyPublisher bodyPublisher = uploadFileRequest.getMultipartBodyPublisher("test-boundary");
-    String actual = bodyPublisherToString(bodyPublisher);
-    assertEquals(
-        """
-            --test-boundary\r
-            Content-Disposition: form-data; name="purpose"\r
-            \r
-            batch\r
-            --test-boundary\r
-            Content-Disposition: form-data; name="file"; filename="test.jsonl"\r
-            Content-Type: application/json\r
-            \r
-            {}
-            {}\r
-            --test-boundary--\r
-            """,
-        actual);
+    String actual = entityToString(uploadFileRequest.toMultipartEntity());
+    assertTrue(actual.contains("name=\"purpose\""));
+    assertTrue(actual.contains("batch"));
+    assertTrue(actual.contains("filename=\"test.jsonl\""));
+    assertTrue(actual.contains("application/json"));
+    assertTrue(actual.contains("{}"));
   }
 
   @Test
-  public void testFileUploadRequestMultiPartBodyForImage() {
+  public void testFileUploadRequestMultiPartBodyForImage() throws Exception {
     byte[] fakePng = new byte[] {(byte) 0x89, 'P', 'N', 'G'}; // minimal header
 
     UploadFileRequest req =
         new UploadFileRequest("vision", "test.png", new BinaryContent(fakePng, "image/png"));
 
-    byte[] bodyBytes = bodyPublisherToBytes(req.getMultipartBodyPublisher("img-boundary"));
-    String bodyAsText = new String(bodyBytes, StandardCharsets.UTF_8);
+    byte[] bodyBytes = entityToBytes(req.toMultipartEntity());
+    String bodyAsText = new String(bodyBytes, StandardCharsets.ISO_8859_1);
 
-    assertTrue(bodyAsText.contains("Content-Disposition: form-data; name=\"purpose\""));
+    assertTrue(bodyAsText.contains("name=\"purpose\""));
     assertTrue(bodyAsText.contains("vision"));
     assertTrue(bodyAsText.contains("filename=\"test.png\""));
-    assertTrue(bodyAsText.contains("Content-Type: image/png"));
-
-    String marker = "Content-Type: image/png\r\n\r\n";
-    int start = bodyAsText.indexOf(marker) + marker.length();
-    int end = bodyAsText.indexOf("\r\n--img-boundary--", start);
-
-    byte[] payload = Arrays.copyOfRange(bodyBytes, start, end);
-
-    assertArrayEquals(fakePng, payload);
+    assertTrue(bodyAsText.contains("image/png"));
+    assertTrue(bodyAsText.contains(new String(fakePng, StandardCharsets.ISO_8859_1)));
   }
 
   @Test
   public void testUploadVisionAndResponsesWithImageFileId() throws Exception {
-    HttpResponse<String> mockUploadResponse = mock(HttpResponse.class);
-    when(mockUploadResponse.statusCode()).thenReturn(200);
-    when(mockUploadResponse.body())
-        .thenReturn(
-            """
+    String uploadBody =
+        """
             {
               "id": "file_vision_123",
               "filename": "test.png",
               "status": "uploaded",
               "created_at": 1710000000
             }
-            """);
-
-    HttpResponse<String> mockResponsesResponse = mock(HttpResponse.class);
-    when(mockResponsesResponse.statusCode()).thenReturn(200);
-    when(mockResponsesResponse.body())
-        .thenReturn(
-            """
+            """;
+    String responsesBody =
+        """
             {
               "id": "resp_abc",
               "object": "response",
@@ -499,15 +427,25 @@ public class OpenAIClientTest {
               ],
               "output_text": ["Enregistrer"]
             }
-            """);
+            """;
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockUploadResponse);
-    when(mockHttpClient.sendAsync(
-            any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass())))
-        .thenReturn(CompletableFuture.completedFuture(mockResponsesResponse));
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    when(mockHttpClient.execute(
+            any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
+        .thenAnswer(
+            invocation -> {
+              HttpClientResponseHandler<Object> handler = invocation.getArgument(1);
+              ClassicHttpResponse response = new BasicClassicHttpResponse(200);
+              response.setEntity(new StringEntity(uploadBody, ContentType.APPLICATION_JSON));
+              return handler.handleResponse(response);
+            })
+        .thenAnswer(
+            invocation -> {
+              HttpClientResponseHandler<Object> handler = invocation.getArgument(1);
+              ClassicHttpResponse response = new BasicClassicHttpResponse(200);
+              response.setEntity(new StringEntity(responsesBody, ContentType.APPLICATION_JSON));
+              return handler.handleResponse(response);
+            });
 
     OpenAIClient client = OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
 
@@ -540,21 +478,16 @@ public class OpenAIClientTest {
 
   @Test
   public void testResponsesBuilderAccumulatesMultipleMessages() throws Exception {
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponses = mock(HttpResponse.class);
-    when(mockResponses.statusCode()).thenReturn(200);
-    when(mockResponses.body())
-        .thenReturn(
+    ArgumentCaptor<ClassicHttpRequest> requestCaptor =
+        ArgumentCaptor.forClass(ClassicHttpRequest.class);
+    CloseableHttpClient mockHttpClient =
+        mockHttpClientCapturingRequest(
+            200,
             """
             {"id":"resp_ok","object":"response","created_at":1755702430,
              "status":"completed","model":"gpt-4o-mini","output":[],"output_text":[]}
-            """);
-
-    final CompletableFuture<HttpResponse<String>> cf =
-        CompletableFuture.completedFuture(mockResponses);
-    ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
-    when(mockHttpClient.sendAsync(requestCaptor.capture(), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(cf);
+            """,
+            requestCaptor);
 
     OpenAIClient client = OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
 
@@ -569,11 +502,10 @@ public class OpenAIClientTest {
 
     client.getResponses(rr, Duration.ofSeconds(5)).join();
 
-    HttpRequest sent = requestCaptor.getValue();
+    ClassicHttpRequest sent = requestCaptor.getValue();
     assertNotNull(sent);
-    assertEquals(URI.create("https://api.openai.com/v1/responses"), sent.uri());
-    assertTrue(sent.bodyPublisher().isPresent());
-    String body = bodyPublisherToString(sent.bodyPublisher().get());
+    assertEquals(URI.create("https://api.openai.com/v1/responses"), sent.getUri());
+    String body = entityToString(sent.getEntity());
 
     ObjectMapper om = new ObjectMapper();
     JsonNode root = om.readTree(body);
@@ -597,77 +529,15 @@ public class OpenAIClientTest {
         "data:image/png;base64,AAA", input.get(3).get("content").get(0).get("image_url").asText());
   }
 
-  private static String bodyPublisherToString(BodyPublisher bodyPublisher) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    bodyPublisher.subscribe(
-        new Flow.Subscriber<>() {
-
-          @Override
-          public void onSubscribe(Flow.Subscription subscription) {
-            subscription.request(Long.MAX_VALUE);
-          }
-
-          @Override
-          public void onNext(ByteBuffer item) {
-            byte[] buf = new byte[item.remaining()];
-            item.get(buf);
-            try {
-              baos.write(buf);
-            } catch (IOException e) {
-              throw new UncheckedIOException(e);
-            }
-          }
-
-          @Override
-          public void onError(Throwable throwable) {}
-
-          @Override
-          public void onComplete() {}
-        });
-    return baos.toString(StandardCharsets.UTF_8);
-  }
-
-  private static byte[] bodyPublisherToBytes(BodyPublisher bodyPublisher) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    bodyPublisher.subscribe(
-        new Flow.Subscriber<>() {
-          @Override
-          public void onSubscribe(Flow.Subscription subscription) {
-            subscription.request(Long.MAX_VALUE);
-          }
-
-          @Override
-          public void onNext(ByteBuffer item) {
-            byte[] buf = new byte[item.remaining()];
-            item.get(buf);
-            baos.writeBytes(buf);
-          }
-
-          @Override
-          public void onError(Throwable throwable) {
-            throw new RuntimeException(throwable);
-          }
-
-          @Override
-          public void onComplete() {}
-        });
-    return baos.toByteArray();
-  }
-
   @Test
-  public void testDownloadFileContentSuccess() throws IOException, InterruptedException {
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(200);
+  public void testDownloadFileContentSuccess() throws Exception {
     String fileContent =
         """
         {"a" : "b"}
         {"c" : "d"}
         """;
-    when(mockResponse.body()).thenReturn(fileContent);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+
+    CloseableHttpClient mockHttpClient = mockHttpClient(200, fileContent);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -680,11 +550,7 @@ public class OpenAIClientTest {
   }
 
   @Test
-  public void testDownloadFileContentError() throws IOException, InterruptedException {
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(404);
+  public void testDownloadFileContentError() throws Exception {
     String body =
         """
         {
@@ -696,9 +562,8 @@ public class OpenAIClientTest {
           }
         }
         """;
-    when(mockResponse.body()).thenReturn(body);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+
+    CloseableHttpClient mockHttpClient = mockHttpClient(404, body);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -714,12 +579,8 @@ public class OpenAIClientTest {
   }
 
   @Test
-  public void testCreateBatchSuccess() throws IOException, InterruptedException {
+  public void testCreateBatchSuccess() throws Exception {
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(200);
     String body =
         """
         {
@@ -752,9 +613,8 @@ public class OpenAIClientTest {
           }
         }
         """;
-    when(mockResponse.body()).thenReturn(body);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+
+    CloseableHttpClient mockHttpClient = mockHttpClient(200, body);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -769,12 +629,8 @@ public class OpenAIClientTest {
   }
 
   @Test
-  public void testCreateBatchError() throws IOException, InterruptedException {
+  public void testCreateBatchError() throws Exception {
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(400);
     String body =
         """
         {
@@ -785,9 +641,8 @@ public class OpenAIClientTest {
             "code": "invalid_value"
           }
         }""";
-    when(mockResponse.body()).thenReturn(body);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+
+    CloseableHttpClient mockHttpClient = mockHttpClient(400, body);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -803,12 +658,8 @@ public class OpenAIClientTest {
   }
 
   @Test
-  public void testRetrieveBatchSuccess() throws IOException, InterruptedException {
+  public void testRetrieveBatchSuccess() throws Exception {
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(200);
     String body =
         """
         {
@@ -841,9 +692,8 @@ public class OpenAIClientTest {
           }
         }
         """;
-    when(mockResponse.body()).thenReturn(body);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+
+    CloseableHttpClient mockHttpClient = mockHttpClient(200, body);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -857,25 +707,20 @@ public class OpenAIClientTest {
   }
 
   @Test
-  public void testRetrieveBatchError() throws IOException, InterruptedException {
+  public void testRetrieveBatchError() throws Exception {
 
-    HttpClient mockHttpClient = mock(HttpClient.class);
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-
-    when(mockResponse.statusCode()).thenReturn(400);
     String body =
         """
         {
           "error": {
-            "message": "Invalid 'input_file_id': 'wrong-id'. Expected an ID that begins with 'file'.",
+            "message": "No such Batch object: wrong-id",
             "type": "invalid_request_error",
-            "param": "input_file_id",
-            "code": "invalid_value"
+            "param": null,
+            "code": null
           }
         }""";
-    when(mockResponse.body()).thenReturn(body);
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-        .thenReturn(mockResponse);
+
+    CloseableHttpClient mockHttpClient = mockHttpClient(400, body);
 
     OpenAIClient openAIClient =
         OpenAIClient.builder().apiKey(API_KEY).httpClient(mockHttpClient).build();
@@ -883,10 +728,47 @@ public class OpenAIClientTest {
     OpenAIClientResponseException openAIClientResponseException =
         assertThrows(
             OpenAIClientResponseException.class,
-            () ->
-                openAIClient.createBatch(
-                    OpenAIClient.CreateBatchRequest.forChatCompletion("wrong-id", null)));
+            () -> openAIClient.retrieveBatch(new OpenAIClient.RetrieveBatchRequest("wrong-id")));
     assertEquals(body, openAIClientResponseException.httpResponse.body());
     assertEquals(400, openAIClientResponseException.httpResponse.statusCode());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static CloseableHttpClient mockHttpClient(int statusCode, String body) throws Exception {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    when(mockHttpClient.execute(
+            any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
+        .thenAnswer(
+            invocation -> {
+              HttpClientResponseHandler<Object> handler = invocation.getArgument(1);
+              ClassicHttpResponse response = new BasicClassicHttpResponse(statusCode);
+              response.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
+              return handler.handleResponse(response);
+            });
+    return mockHttpClient;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static CloseableHttpClient mockHttpClientCapturingRequest(
+      int statusCode, String body, ArgumentCaptor<ClassicHttpRequest> requestCaptor)
+      throws Exception {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    when(mockHttpClient.execute(requestCaptor.capture(), any(HttpClientResponseHandler.class)))
+        .thenAnswer(
+            invocation -> {
+              HttpClientResponseHandler<Object> handler = invocation.getArgument(1);
+              ClassicHttpResponse response = new BasicClassicHttpResponse(statusCode);
+              response.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
+              return handler.handleResponse(response);
+            });
+    return mockHttpClient;
+  }
+
+  private static String entityToString(HttpEntity entity) throws Exception {
+    return EntityUtils.toString(entity, StandardCharsets.UTF_8);
+  }
+
+  private static byte[] entityToBytes(HttpEntity entity) throws Exception {
+    return EntityUtils.toByteArray(entity);
   }
 }

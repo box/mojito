@@ -240,7 +240,7 @@ You can also optionally use it in production by setting the following configurat
 
 ## AI Translation and AI Review (OpenAI)
 
-AI translation and AI review use the OpenAI HTTP API. Configure an API token and, when required by your network, an optional HTTP proxy for outbound requests.
+AI translation and AI review use the OpenAI HTTP API (Apache HttpClient 5). Configure an API token and, when required by your network, an optional HTTP proxy for outbound requests. Proxy credentials are handled by HttpClient 5 separately from the OpenAI Bearer token.
 
 ### AI translation
 
@@ -273,3 +273,32 @@ AI review uses the same OpenAI client and proxy settings under the `l10n.ai-revi
     l10n.ai-review.proxy-password=${PROXY_PASSWORD}
 
 See also [Using AI Translations]({{ site.url }}/docs/guides/using-ai-translations/) for repository and CLI usage.
+
+### Live OpenAI smoke test (optional)
+
+`OpenAIClientIntegrationTest` in the `common` module calls the real OpenAI Responses API (optionally through an HTTP proxy). It is skipped unless an API key is available, so a normal `mvn test` run stays offline.
+
+**Enable the test** with one of:
+
+- Environment: `OPENAI_API_KEY`
+- System property: `-Dopenai.apiKey=...`
+- Local Mojito config (not committed): `l10n.ai-translate.openai-client-token` in `~/.l10n/config/common/application.properties` or `application-secrets.properties`
+
+**Optional proxy** (to smoke an authenticating corporate web proxy):
+
+- Environment: `OPENAI_PROXY_HOST`, `OPENAI_PROXY_PORT`, `OPENAI_PROXY_USER`, `OPENAI_PROXY_PASSWORD`
+- Or the same `l10n.ai-translate.proxy-*` keys in `~/.l10n/config/common/`
+
+**Truststore:** if your proxy or TLS inspection uses a private CA, point the JVM at a truststore that includes that CA, for example:
+
+```sh
+export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/path/to/truststore -Djavax.net.ssl.trustStorePassword=changeit"
+```
+
+**Run only this test:**
+
+```sh
+mvn -pl common -Dtest=OpenAIClientIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test
+```
+
+A successful run expects the model to reply with exactly `pong`. Many other Mojito tests that talk to external systems (Smartling, Box, GitHub, Slack, AI translate service tests, and so on) follow the same pattern: they run in the normal Surefire suite but skip via JUnit assumptions when credentials or clients are not configured.

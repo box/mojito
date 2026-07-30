@@ -80,6 +80,12 @@
             <artifactId>spring-web</artifactId>
         </dependency>
 
+        <!-- OpenAIClient HTTP transport (proxy auth separate from Bearer — avoids JDK-8326949) -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>

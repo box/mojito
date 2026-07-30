@@ -18,11 +18,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,9 +30,21 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +58,7 @@ public class OpenAIClient {
 
   final ObjectMapper objectMapper;
 
-  final HttpClient httpClient;
+  final CloseableHttpClient httpClient;
 
   final Executor asyncExecutor;
 
@@ -54,7 +66,7 @@ public class OpenAIClient {
       String apiKey,
       String host,
       ObjectMapper objectMapper,
-      HttpClient httpClient,
+      CloseableHttpClient httpClient,
       Executor asyncExecutor) {
     this.apiKey = Objects.requireNonNull(apiKey);
     this.host = Objects.requireNonNull(host);
@@ -71,7 +83,7 @@ public class OpenAIClient {
 
     private ObjectMapper objectMapper;
 
-    private HttpClient httpClient;
+    private CloseableHttpClient httpClient;
 
     private Executor asyncExecutor;
 
@@ -94,7 +106,7 @@ public class OpenAIClient {
       return this;
     }
 
-    public Builder httpClient(HttpClient httpClient) {
+    public Builder httpClient(CloseableHttpClient httpClient) {
       this.httpClient = Objects.requireNonNull(httpClient);
       return this;
     }
@@ -122,7 +134,7 @@ public class OpenAIClient {
         asyncExecutor = ForkJoinPool.commonPool();
       }
       if (httpClient == null) {
-        httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig, asyncExecutor);
+        httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig);
       }
 
       return new OpenAIClient(apiKey, host, objectMapper, httpClient, asyncExecutor);
@@ -151,34 +163,24 @@ public class OpenAIClient {
       throw new RuntimeException("Can't serialize ResponsesRequest", e);
     }
 
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .timeout(httpRequestTimeout)
-            .uri(getUriForEndpoint(ResponsesRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
-            .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-            .build();
+    HttpPost request =
+        newJsonPost(getUriForEndpoint(ResponsesRequest.ENDPOINT), payload, httpRequestTimeout);
 
-    CompletableFuture<ResponsesResponse> responsesResponse =
-        httpClient
-            .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApplyAsync(
-                httpResponse -> {
-                  if (httpResponse.statusCode() != 200) {
-                    throw new OpenAIClientResponseException("Responses API failed", httpResponse);
-                  } else {
-                    try {
-                      return objectMapper.readValue(httpResponse.body(), ResponsesResponse.class);
-                    } catch (JsonProcessingException e) {
-                      throw new OpenAIClientResponseException(
-                          "Can't deserialize ResponsesResponse", e, httpResponse);
-                    }
-                  }
-                },
-                asyncExecutor);
-
-    return responsesResponse;
+    return executeAsync(request)
+        .thenApplyAsync(
+            httpResponse -> {
+              if (httpResponse.statusCode() != 200) {
+                throw new OpenAIClientResponseException("Responses API failed", httpResponse);
+              } else {
+                try {
+                  return objectMapper.readValue(httpResponse.body(), ResponsesResponse.class);
+                } catch (JsonProcessingException e) {
+                  throw new OpenAIClientResponseException(
+                      "Can't deserialize ResponsesResponse", e, httpResponse);
+                }
+              }
+            },
+            asyncExecutor);
   }
 
   public record ResponsesRequest(
@@ -418,35 +420,25 @@ public class OpenAIClient {
       throw new RuntimeException("Can't serialize ChatCompletionsRequest", e);
     }
 
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .timeout(httpRequestTimeout)
-            .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
-            .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-            .build();
+    HttpPost request =
+        newJsonPost(
+            getUriForEndpoint(ChatCompletionsRequest.ENDPOINT), payload, httpRequestTimeout);
 
-    CompletableFuture<ChatCompletionsResponse> chatCompletionsResponse =
-        httpClient
-            .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApplyAsync(
-                httpResponse -> {
-                  if (httpResponse.statusCode() != 200) {
-                    throw new OpenAIClientResponseException("ChatCompletion failed", httpResponse);
-                  } else {
-                    try {
-                      return objectMapper.readValue(
-                          httpResponse.body(), ChatCompletionsResponse.class);
-                    } catch (JsonProcessingException e) {
-                      throw new OpenAIClientResponseException(
-                          "Can't deserialize ChatCompletionsResponse", e, httpResponse);
-                    }
-                  }
-                },
-                asyncExecutor);
-
-    return chatCompletionsResponse;
+    return executeAsync(request)
+        .thenApplyAsync(
+            httpResponse -> {
+              if (httpResponse.statusCode() != 200) {
+                throw new OpenAIClientResponseException("ChatCompletion failed", httpResponse);
+              } else {
+                try {
+                  return objectMapper.readValue(httpResponse.body(), ChatCompletionsResponse.class);
+                } catch (JsonProcessingException e) {
+                  throw new OpenAIClientResponseException(
+                      "Can't deserialize ChatCompletionsResponse", e, httpResponse);
+                }
+              }
+            },
+            asyncExecutor);
   }
 
   public CompletableFuture<Stream<ChatCompletionsStreamResponse>> streamChatCompletions(
@@ -464,50 +456,42 @@ public class OpenAIClient {
       throw new RuntimeException("Can't serialize ChatCompletionsRequest", e);
     }
 
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
-            .POST(HttpRequest.BodyPublishers.ofString(requestPayload, StandardCharsets.UTF_8))
-            .build();
+    HttpPost request =
+        newJsonPost(getUriForEndpoint(ChatCompletionsRequest.ENDPOINT), requestPayload, null);
 
-    CompletableFuture<Stream<ChatCompletionsStreamResponse>> streamCompletableFuture =
-        httpClient
-            .sendAsync(request, HttpResponse.BodyHandlers.ofLines())
-            .thenApply(
-                httpResponse -> {
-                  if (httpResponse.statusCode() != 200) {
-                    throw new OpenAIClientResponseException(
-                        "ChatCompletion stream failed", httpResponse);
-                  }
-                  return httpResponse
-                      .body()
-                      .takeWhile(s -> !"data: [DONE]".equals(s))
-                      .filter(Predicate.not(String::isBlank))
-                      .map(
-                          body -> {
-                            if (!body.startsWith("data: ")) {
-                              throw new OpenAIClientResponseException(
-                                  "Only support \"data\" lines in stream are supported, got: \"%s\""
-                                      .formatted(body),
-                                  httpResponse);
-                            }
+    return executeLinesAsync(request)
+        .thenApply(
+            httpResponse -> {
+              if (httpResponse.statusCode() != 200) {
+                throw new OpenAIClientResponseException(
+                    "ChatCompletion stream failed",
+                    new OpenAIHttpStringResponse(
+                        httpResponse.statusCode(), String.join("\n", httpResponse.lines())));
+              }
+              OpenAIHttpStringResponse errorContext =
+                  new OpenAIHttpStringResponse(httpResponse.statusCode(), "");
+              return httpResponse.lines().stream()
+                  .takeWhile(s -> !"data: [DONE]".equals(s))
+                  .filter(Predicate.not(String::isBlank))
+                  .map(
+                      body -> {
+                        if (!body.startsWith("data: ")) {
+                          throw new OpenAIClientResponseException(
+                              "Only support \"data\" lines in stream are supported, got: \"%s\""
+                                  .formatted(body),
+                              errorContext);
+                        }
 
-                            String jsonPart = body.substring(5);
-                            try {
-                              return objectMapper.readValue(
-                                  jsonPart, ChatCompletionsStreamResponse.class);
-                            } catch (JsonProcessingException e) {
-                              throw new OpenAIClientResponseException(
-                                  "Can't deserialize ChatCompletionsStreamResponse",
-                                  e,
-                                  httpResponse);
-                            }
-                          });
-                });
-
-    return streamCompletableFuture;
+                        String jsonPart = body.substring(5);
+                        try {
+                          return objectMapper.readValue(
+                              jsonPart, ChatCompletionsStreamResponse.class);
+                        } catch (JsonProcessingException e) {
+                          throw new OpenAIClientResponseException(
+                              "Can't deserialize ChatCompletionsStreamResponse", e, errorContext);
+                        }
+                      });
+            });
   }
 
   public record ChatCompletionsRequest(
@@ -828,31 +812,22 @@ public class OpenAIClient {
       throw new RuntimeException(e);
     }
 
-    HttpRequest httpRequest =
-        HttpRequest.newBuilder()
-            .uri(getUriForEndpoint(EmbeddingRequest.ENDPOINT))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + this.apiKey)
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-            .build();
+    HttpPost httpRequest =
+        newJsonPost(getUriForEndpoint(EmbeddingRequest.ENDPOINT), requestBody, null);
 
-    CompletableFuture<EmbeddingResponse> embeddingResponse =
-        httpClient
-            .sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
-            .thenApply(
-                httpResponse -> {
-                  try {
-                    if (httpResponse.statusCode() != 200) {
-                      throw new OpenAIClientResponseException("Embedding failed", httpResponse);
-                    }
-                    return objectMapper.readValue(httpResponse.body(), EmbeddingResponse.class);
-                  } catch (JsonProcessingException e) {
-                    throw new OpenAIClientResponseException(
-                        "Can't deserialize EmbeddingResponse", e, httpResponse);
-                  }
-                });
-
-    return embeddingResponse;
+    return executeAsync(httpRequest)
+        .thenApply(
+            httpResponse -> {
+              try {
+                if (httpResponse.statusCode() != 200) {
+                  throw new OpenAIClientResponseException("Embedding failed", httpResponse);
+                }
+                return objectMapper.readValue(httpResponse.body(), EmbeddingResponse.class);
+              } catch (JsonProcessingException e) {
+                throw new OpenAIClientResponseException(
+                    "Can't deserialize EmbeddingResponse", e, httpResponse);
+              }
+            });
   }
 
   public record EmbeddingRequest(String input, String model) {
@@ -910,37 +885,21 @@ public class OpenAIClient {
   }
 
   public UploadFileResponse uploadFile(UploadFileRequest uploadFileRequest) {
+    HttpPost request = new HttpPost(getUriForEndpoint(UploadFileRequest.ENDPOINT));
+    request.setHeader("Authorization", "Bearer " + apiKey);
+    request.setEntity(uploadFileRequest.toMultipartEntity());
 
-    final String boundary = UUID.randomUUID().toString();
-
-    HttpRequest.BodyPublisher body = uploadFileRequest.getMultipartBodyPublisher(boundary);
-
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(getUriForEndpoint(UploadFileRequest.ENDPOINT))
-            .header("Authorization", "Bearer " + apiKey)
-            .header("Content-Type", "multipart/form-data; boundary=" + boundary)
-            .POST(body)
-            .build();
-
-    HttpResponse<String> response;
-    try {
-      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    OpenAIHttpStringResponse response = execute(request);
 
     if (response.statusCode() != 200) {
       throw new OpenAIClientResponseException("Can't upload file", response);
     }
 
-    UploadFileResponse uploadFileResponse;
     try {
-      uploadFileResponse = objectMapper.readValue(response.body(), UploadFileResponse.class);
+      return objectMapper.readValue(response.body(), UploadFileResponse.class);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
-    return uploadFileResponse;
   }
 
   public record UploadFileRequest(String purpose, String filename, FileContent fileContent) {
@@ -996,39 +955,22 @@ public class OpenAIClient {
       }
     }
 
-    HttpRequest.BodyPublisher getMultipartBodyPublisher(String boundary) {
-      String part1 =
-          "--"
-              + boundary
-              + "\r\n"
-              + "Content-Disposition: form-data; name=\"purpose\"\r\n\r\n"
-              + purpose
-              + "\r\n";
-
-      String part2Header =
-          "--"
-              + boundary
-              + "\r\n"
-              + "Content-Disposition: form-data; name=\"file\"; filename=\""
-              + filename
-              + "\"\r\n"
-              + "Content-Type: "
-              + fileContent().contentType()
-              + "\r\n\r\n";
-
-      String ending = "\r\n--" + boundary + "--\r\n";
-
+    HttpEntity toMultipartEntity() {
+      MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+      builder.addTextBody("purpose", purpose);
       return switch (fileContent()) {
-        case TextContent t ->
-            HttpRequest.BodyPublishers.ofByteArrays(
-                List.of(
-                    part1.getBytes(),
-                    part2Header.getBytes(),
-                    t.value().getBytes(StandardCharsets.UTF_8),
-                    ending.getBytes()));
-        case BinaryContent b ->
-            HttpRequest.BodyPublishers.ofByteArrays(
-                List.of(part1.getBytes(), part2Header.getBytes(), b.value(), ending.getBytes()));
+        case TextContent t -> {
+          builder.addBinaryBody(
+              "file",
+              t.value().getBytes(StandardCharsets.UTF_8),
+              ContentType.create(t.contentType()),
+              filename);
+          yield builder.build();
+        }
+        case BinaryContent b -> {
+          builder.addBinaryBody("file", b.value(), ContentType.create(b.contentType()), filename);
+          yield builder.build();
+        }
       };
     }
   }
@@ -1063,21 +1005,16 @@ public class OpenAIClient {
 
   public DownloadFileContentResponse downloadFileContent(
       DownloadFileContentRequest downloadFileContentRequest) {
-    HttpResponse<String> response;
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(
-                getUriForEndpoint(
-                    DownloadFileContentRequest.ENDPOINT.formatted(
-                        downloadFileContentRequest.fileId())))
-            .header("Authorization", "Bearer " + apiKey)
-            .header("Content-Type", "application/json")
-            .GET()
-            .build();
+    HttpGet request =
+        newJsonGet(
+            getUriForEndpoint(
+                DownloadFileContentRequest.ENDPOINT.formatted(
+                    downloadFileContentRequest.fileId())));
 
+    OpenAIHttpStringResponse response;
     try {
-      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    } catch (IOException | InterruptedException e) {
+      response = execute(request);
+    } catch (RuntimeException e) {
       throw new RuntimeException(
           "Error while sending the request to download the file: "
               + downloadFileContentRequest.fileId(),
@@ -1106,33 +1043,19 @@ public class OpenAIClient {
       throw new RuntimeException(e);
     }
 
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(getUriForEndpoint(CreateBatchRequest.ENDPOINT))
-            .header("Authorization", "Bearer " + apiKey)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-            .build();
+    HttpPost request = newJsonPost(getUriForEndpoint(CreateBatchRequest.ENDPOINT), jsonBody, null);
 
-    HttpResponse<String> response;
-    try {
-      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    OpenAIHttpStringResponse response = execute(request);
 
     if (response.statusCode() != 200) {
       throw new OpenAIClientResponseException("Can't create batch", response);
     }
 
-    CreateBatchResponse createBatchResponse;
     try {
-      createBatchResponse = objectMapper.readValue(response.body(), CreateBatchResponse.class);
+      return objectMapper.readValue(response.body(), CreateBatchResponse.class);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
-
-    return createBatchResponse;
   }
 
   public record CreateBatchRequest(
@@ -1171,35 +1094,22 @@ public class OpenAIClient {
   }
 
   public RetrieveBatchResponse retrieveBatch(RetrieveBatchRequest retrieveBatchRequest) {
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(
-                getUriForEndpoint(
-                    RetrieveBatchRequest.ENDPOINT.formatted(retrieveBatchRequest.batchId())))
-            .header("Authorization", "Bearer " + apiKey)
-            .header("Content-Type", "application/json")
-            .GET()
-            .build();
+    HttpGet request =
+        newJsonGet(
+            getUriForEndpoint(
+                RetrieveBatchRequest.ENDPOINT.formatted(retrieveBatchRequest.batchId())));
 
-    HttpResponse<String> response;
-    try {
-      response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    OpenAIHttpStringResponse response = execute(request);
 
     if (response.statusCode() != 200) {
       throw new OpenAIClientResponseException("Can't retrieve batch", response);
     }
 
-    RetrieveBatchResponse retrieveBatchResponse;
     try {
-      retrieveBatchResponse = objectMapper.readValue(response.body(), RetrieveBatchResponse.class);
+      return objectMapper.readValue(response.body(), RetrieveBatchResponse.class);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
-
-    return retrieveBatchResponse;
   }
 
   public record RetrieveBatchRequest(String batchId) {
@@ -1235,39 +1145,99 @@ public class OpenAIClient {
     return URI.create(host).resolve(endpoint);
   }
 
-  public static class OpenAIClientResponseException extends RuntimeException {
-    HttpResponse<?> httpResponse;
+  private HttpPost newJsonPost(URI uri, String jsonBody, Duration responseTimeout) {
+    HttpPost request = new HttpPost(uri);
+    request.setHeader("Authorization", "Bearer " + apiKey);
+    request.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
+    applyResponseTimeout(request, responseTimeout);
+    return request;
+  }
 
-    public OpenAIClientResponseException(String message, HttpResponse<?> httpResponse) {
+  private HttpGet newJsonGet(URI uri) {
+    HttpGet request = new HttpGet(uri);
+    request.setHeader("Authorization", "Bearer " + apiKey);
+    request.setHeader("Content-Type", "application/json");
+    return request;
+  }
+
+  private static void applyResponseTimeout(HttpUriRequestBase request, Duration responseTimeout) {
+    if (responseTimeout == null) {
+      return;
+    }
+    request.setConfig(
+        RequestConfig.custom()
+            .setResponseTimeout(Timeout.of(responseTimeout.toMillis(), TimeUnit.MILLISECONDS))
+            .build());
+  }
+
+  private OpenAIHttpStringResponse execute(HttpUriRequestBase request) {
+    try {
+      return httpClient.execute(
+          request,
+          response -> {
+            HttpEntity entity = response.getEntity();
+            String body =
+                entity == null ? "" : EntityUtils.toString(entity, StandardCharsets.UTF_8);
+            return new OpenAIHttpStringResponse(response.getCode(), body);
+          });
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private CompletableFuture<OpenAIHttpStringResponse> executeAsync(HttpUriRequestBase request) {
+    return CompletableFuture.supplyAsync(() -> execute(request), asyncExecutor);
+  }
+
+  private CompletableFuture<OpenAIHttpLinesResponse> executeLinesAsync(HttpUriRequestBase request) {
+    return CompletableFuture.supplyAsync(
+        () -> {
+          try {
+            return httpClient.execute(
+                request,
+                response -> {
+                  HttpEntity entity = response.getEntity();
+                  if (entity == null) {
+                    return new OpenAIHttpLinesResponse(response.getCode(), List.of());
+                  }
+                  try (BufferedReader reader =
+                      new BufferedReader(
+                          new InputStreamReader(entity.getContent(), StandardCharsets.UTF_8))) {
+                    return new OpenAIHttpLinesResponse(
+                        response.getCode(), reader.lines().collect(Collectors.toList()));
+                  }
+                });
+          } catch (IOException e) {
+            throw new UncheckedIOException(e);
+          }
+        },
+        asyncExecutor);
+  }
+
+  public static class OpenAIClientResponseException extends RuntimeException {
+    OpenAIHttpStringResponse httpResponse;
+
+    public OpenAIClientResponseException(String message, OpenAIHttpStringResponse httpResponse) {
       super(message);
       this.httpResponse = Objects.requireNonNull(httpResponse);
     }
 
     public OpenAIClientResponseException(
-        String message, Exception e, HttpResponse<?> httpResponse) {
+        String message, Exception e, OpenAIHttpStringResponse httpResponse) {
       super(message, e);
       this.httpResponse = Objects.requireNonNull(httpResponse);
     }
 
     @Override
     public String toString() {
-
-      String bodyAsStr;
-      if (httpResponse.body() instanceof Stream) {
-        bodyAsStr =
-            ((Stream<?>) httpResponse.body()).map(Object::toString).collect(Collectors.joining());
-      } else {
-        bodyAsStr = httpResponse.body().toString();
-      }
-
       return "OpenAIHttpClientException{"
           + "message='"
           + getMessage()
           + '\''
-          + ", httpResponse="
-          + httpResponse
+          + ", httpResponse.statusCode="
+          + httpResponse.statusCode()
           + ", httpResponse.body="
-          + bodyAsStr
+          + httpResponse.body()
           + '}';
     }
   }
