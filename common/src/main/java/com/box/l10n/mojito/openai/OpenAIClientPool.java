@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.openai;
 
-import java.net.http.HttpClient;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class OpenAIClientPool {
               OpenAIClient.builder()
                   .apiKey(apiKey)
                   .asyncExecutor(asyncExecutor)
-                  .httpClient(HttpClient.newBuilder().executor(asyncExecutor).build())
+                  .httpClient(HttpClients.createDefault())
                   .build(),
               new Semaphore(numberOfParallelRequestPerClient));
     }
