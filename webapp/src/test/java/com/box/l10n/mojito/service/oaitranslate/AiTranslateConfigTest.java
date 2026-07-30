@@ -3,10 +3,12 @@ package com.box.l10n.mojito.service.oaitranslate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.openai.OpenAIClientPool;
 import com.box.l10n.mojito.openai.OpenAIProxyConfig;
+import java.util.List;
 import org.junit.Test;
 
 public class AiTranslateConfigTest {
@@ -63,5 +65,18 @@ public class AiTranslateConfigTest {
     assertEquals(Integer.valueOf(3128), proxyConfig.port());
     assertEquals("proxy-user", proxyConfig.user());
     assertEquals("proxy-password", proxyConfig.password());
+    assertTrue(proxyConfig.preferredAuthSchemes().isEmpty());
+  }
+
+  @Test
+  public void testGetProxyConfigPreferredAuthSchemes() {
+    AiTranslateConfigurationProperties properties = new AiTranslateConfigurationProperties();
+    properties.setProxyHost("proxy.example.com");
+    properties.setProxyPort(3128);
+    properties.setProxyPreferredAuthSchemes("Basic, Digest");
+
+    OpenAIProxyConfig proxyConfig = AiTranslateConfig.getProxyConfig(properties);
+
+    assertEquals(List.of("Basic", "Digest"), proxyConfig.preferredAuthSchemes());
   }
 }

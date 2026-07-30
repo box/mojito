@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -30,11 +31,28 @@ public class OpenAIHttpClientFactoryTest {
         OpenAIProxyConfig.of("proxy.example.com", 3128, "proxy-user", "proxy-password");
 
     assertEquals(
-        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=***, password=***]",
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=***, password=***, preferredAuthSchemes=[]]",
         proxyConfig.toString());
     assertEquals(
-        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=null, password=null]",
+        "OpenAIProxyConfig[host=proxy.example.com, port=3128, user=null, password=null, preferredAuthSchemes=[]]",
         OpenAIProxyConfig.of("proxy.example.com", 3128, null, null).toString());
+  }
+
+  @Test
+  public void testParsePreferredAuthSchemes() {
+    assertTrue(OpenAIProxyConfig.parsePreferredAuthSchemes(null).isEmpty());
+    assertTrue(OpenAIProxyConfig.parsePreferredAuthSchemes("  ").isEmpty());
+    assertEquals(
+        List.of("Basic", "Digest"), OpenAIProxyConfig.parsePreferredAuthSchemes("Basic, Digest"));
+  }
+
+  @Test
+  public void testCreateHttpClientWithPreferredAuthSchemes() {
+    OpenAIProxyConfig proxyConfig =
+        OpenAIProxyConfig.of(
+            "proxy.example.com", 3128, "proxy-user", "proxy-password", List.of("Basic", "Digest"));
+    assertTrue(proxyConfig.hasPreferredAuthSchemes());
+    assertNotNull(OpenAIHttpClientFactory.createHttpClient(proxyConfig));
   }
 
   @Test

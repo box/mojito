@@ -19,7 +19,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
       "l10n.ai-review.proxy-host=proxy.example.com",
       "l10n.ai-review.proxy-port=3128",
       "l10n.ai-review.proxy-user=proxy-user",
-      "l10n.ai-review.proxy-password=proxy-password"
+      "l10n.ai-review.proxy-password=proxy-password",
+      "l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest"
     })
 @EnableConfigurationProperties(AiReviewConfigurationProperties.class)
 public class AiReviewConfigurationPropertiesTest {
@@ -34,6 +35,7 @@ public class AiReviewConfigurationPropertiesTest {
     assertEquals(Integer.valueOf(3128), aiReviewConfigurationProperties.getProxyPort());
     assertEquals("proxy-user", aiReviewConfigurationProperties.getProxyUser());
     assertEquals("proxy-password", aiReviewConfigurationProperties.getProxyPassword());
+    assertEquals("Basic,Digest", aiReviewConfigurationProperties.getProxyPreferredAuthSchemes());
   }
 
   @Test
@@ -44,5 +46,6 @@ public class AiReviewConfigurationPropertiesTest {
     assertNull(properties.getProxyPort());
     assertNull(properties.getProxyUser());
     assertNull(properties.getProxyPassword());
+    assertNull(properties.getProxyPreferredAuthSchemes());
   }
 }

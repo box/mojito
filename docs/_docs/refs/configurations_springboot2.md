@@ -256,10 +256,27 @@ AI translation and AI review use the OpenAI HTTP API (Apache HttpClient 5). Conf
     l10n.ai-translate.proxy-user=proxy-user
     l10n.ai-translate.proxy-password=${PROXY_PASSWORD}
 
+    # Optional. Preferred proxy auth schemes (see below)
+    # l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
     # Optional. Use a dedicated Quartz scheduler for AI translation jobs
     l10n.ai-translate.scheduler-name=ai-translate
 
 Keep secrets such as the API token and proxy password out of source control.
+
+### Proxy preferred auth schemes
+
+When an HTTP proxy challenges with more than one authentication scheme (for example both Digest and Basic), Apache HttpClient 5 picks a scheme using its built-in preference order. Leave this property **unset** to keep those library defaults — that is the right choice for most open-source and corporate deployments.
+
+Set a comma-separated preference list only when your proxy’s advertised order does not work with HttpClient. A common case is a Squid (or similar) proxy that sends `Proxy-Authenticate: Digest` before `Basic`: HttpClient then tries Digest first, CONNECT can fail with `407 Proxy Authentication Required`, while Basic credentials would have succeeded.
+
+    # Prefer Basic when the proxy offers both Digest and Basic
+    l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Same option for AI review
+    l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+
+Scheme names are HttpClient 5 auth scheme names (for example `Basic`, `Digest`). Whitespace around commas is ignored. This setting does not replace username/password; it only controls which offered challenge Mojito tries first.
 
 ### AI review
 
@@ -271,6 +288,7 @@ AI review uses the same OpenAI client and proxy settings under the `l10n.ai-revi
     l10n.ai-review.proxy-port=3128
     l10n.ai-review.proxy-user=proxy-user
     l10n.ai-review.proxy-password=${PROXY_PASSWORD}
+    # l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
 
 See also [Using AI Translations]({{ site.url }}/docs/guides/using-ai-translations/) for repository and CLI usage.
 
@@ -282,12 +300,17 @@ See also [Using AI Translations]({{ site.url }}/docs/guides/using-ai-translation
 
 - Environment: `OPENAI_API_KEY`
 - System property: `-Dopenai.apiKey=...`
-- Local Mojito config (not committed): `l10n.ai-translate.openai-client-token` in `~/.l10n/config/common/application.properties` or `application-secrets.properties`
+- Local Mojito config (not committed), loaded in order (later overrides earlier):
+  - `~/.l10n/config/common/application.properties` / `application-secrets.properties`
+  - `~/.l10n/config/webapp/application.properties` / `application-secrets.properties` / `application-${user.name}.properties`
+    (same place a local ephemeral webapp typically keeps `l10n.ai-translate.*`)
 
 **Optional proxy** (to smoke an authenticating corporate web proxy):
 
-- Environment: `OPENAI_PROXY_HOST`, `OPENAI_PROXY_PORT`, `OPENAI_PROXY_USER`, `OPENAI_PROXY_PASSWORD`
-- Or the same `l10n.ai-translate.proxy-*` keys in `~/.l10n/config/common/`
+- Environment: `OPENAI_PROXY_HOST`, `OPENAI_PROXY_PORT`, `OPENAI_PROXY_USER`, `OPENAI_PROXY_PASSWORD`, optional `OPENAI_PROXY_PREFERRED_AUTH_SCHEMES` (same meaning as `l10n.ai-translate.proxy-preferred-auth-schemes`)
+- Or the same `l10n.ai-translate.proxy-*` keys in the local config files above (including optional `proxy-preferred-auth-schemes`)
+
+By default the proxy is optional (a direct OpenAI call still counts as a smoke). To **require** the proxy path — so a missing proxy config cannot silently skip CONNECT/auth coverage — set `OPENAI_REQUIRE_PROXY=true` or `-Dopenai.requireProxy=true`.
 
 **Truststore:** if your proxy or TLS inspection uses a private CA, point the JVM at a truststore that includes that CA, for example:
 
@@ -298,7 +321,7 @@ export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/path/to/truststore -Djavax
 **Run only this test:**
 
 ```sh
-mvn -pl common -Dtest=OpenAIClientIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test
+OPENAI_REQUIRE_PROXY=true mvn -pl common -Dtest=OpenAIClientIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
 A successful run expects the model to reply with exactly `pong`. Many other Mojito tests that talk to external systems (Smartling, Box, GitHub, Slack, AI translate service tests, and so on) follow the same pattern: they run in the normal Surefire suite but skip via JUnit assumptions when credentials or clients are not configured.

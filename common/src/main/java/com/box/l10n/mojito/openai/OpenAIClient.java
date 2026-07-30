@@ -62,17 +62,25 @@ public class OpenAIClient {
 
   final Executor asyncExecutor;
 
+  /**
+   * Client-level defaults. Per-request configs must {@link RequestConfig#copy} this so proxy auth
+   * preferences (and other defaults) are not dropped.
+   */
+  final RequestConfig defaultRequestConfig;
+
   OpenAIClient(
       String apiKey,
       String host,
       ObjectMapper objectMapper,
       CloseableHttpClient httpClient,
-      Executor asyncExecutor) {
+      Executor asyncExecutor,
+      RequestConfig defaultRequestConfig) {
     this.apiKey = Objects.requireNonNull(apiKey);
     this.host = Objects.requireNonNull(host);
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.httpClient = Objects.requireNonNull(httpClient);
     this.asyncExecutor = Objects.requireNonNull(asyncExecutor);
+    this.defaultRequestConfig = Objects.requireNonNull(defaultRequestConfig);
   }
 
   public static class Builder {
@@ -137,7 +145,11 @@ public class OpenAIClient {
         httpClient = OpenAIHttpClientFactory.createHttpClient(proxyConfig);
       }
 
-      return new OpenAIClient(apiKey, host, objectMapper, httpClient, asyncExecutor);
+      RequestConfig defaultRequestConfig =
+          OpenAIHttpClientFactory.defaultRequestConfig(proxyConfig);
+
+      return new OpenAIClient(
+          apiKey, host, objectMapper, httpClient, asyncExecutor, defaultRequestConfig);
     }
 
     private ObjectMapper createObjectMapper() {
@@ -1160,12 +1172,13 @@ public class OpenAIClient {
     return request;
   }
 
-  private static void applyResponseTimeout(HttpUriRequestBase request, Duration responseTimeout) {
+  private void applyResponseTimeout(HttpUriRequestBase request, Duration responseTimeout) {
     if (responseTimeout == null) {
       return;
     }
+    // Must copy client defaults — RequestConfig.custom() alone drops preferred proxy auth schemes.
     request.setConfig(
-        RequestConfig.custom()
+        RequestConfig.copy(defaultRequestConfig)
             .setResponseTimeout(Timeout.of(responseTimeout.toMillis(), TimeUnit.MILLISECONDS))
             .build());
   }

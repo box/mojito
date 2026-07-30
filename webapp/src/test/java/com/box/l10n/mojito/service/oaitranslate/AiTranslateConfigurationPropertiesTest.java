@@ -19,7 +19,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
       "l10n.ai-translate.proxy-host=proxy.example.com",
       "l10n.ai-translate.proxy-port=3128",
       "l10n.ai-translate.proxy-user=proxy-user",
-      "l10n.ai-translate.proxy-password=proxy-password"
+      "l10n.ai-translate.proxy-password=proxy-password",
+      "l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest"
     })
 @EnableConfigurationProperties(AiTranslateConfigurationProperties.class)
 public class AiTranslateConfigurationPropertiesTest {
@@ -34,6 +35,7 @@ public class AiTranslateConfigurationPropertiesTest {
     assertEquals(Integer.valueOf(3128), aiTranslateConfigurationProperties.getProxyPort());
     assertEquals("proxy-user", aiTranslateConfigurationProperties.getProxyUser());
     assertEquals("proxy-password", aiTranslateConfigurationProperties.getProxyPassword());
+    assertEquals("Basic,Digest", aiTranslateConfigurationProperties.getProxyPreferredAuthSchemes());
   }
 
   @Test
@@ -44,5 +46,6 @@ public class AiTranslateConfigurationPropertiesTest {
     assertNull(properties.getProxyPort());
     assertNull(properties.getProxyUser());
     assertNull(properties.getProxyPassword());
+    assertNull(properties.getProxyPreferredAuthSchemes());
   }
 }

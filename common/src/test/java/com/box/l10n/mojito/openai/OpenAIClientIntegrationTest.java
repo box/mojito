@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,17 +24,20 @@ import org.slf4j.LoggerFactory;
  * available so normal unit-test runs stay offline.
  *
  * <p>Enable by setting {@code OPENAI_API_KEY}, or {@code -Dopenai.apiKey=...}, or putting {@code
- * l10n.ai-translate.openai-client-token} in {@code
- * ~/.l10n/config/common/application-secrets.properties} (or {@code application.properties}).
+ * l10n.ai-translate.openai-client-token} in local Mojito config (see {@link #loadLocalConfig()}).
  *
  * <p>Optional proxy (recommended to smoke an authenticating corporate webproxy before deploy):
  *
  * <ul>
  *   <li>Env: {@code OPENAI_PROXY_HOST}, {@code OPENAI_PROXY_PORT}, {@code OPENAI_PROXY_USER},
- *       {@code OPENAI_PROXY_PASSWORD}
- *   <li>Or Mojito properties in {@code ~/.l10n/config/common/}: {@code
- *       l10n.ai-translate.proxy-host|proxy-port|proxy-user|proxy-password}
+ *       {@code OPENAI_PROXY_PASSWORD}, optional {@code OPENAI_PROXY_PREFERRED_AUTH_SCHEMES}
+ *   <li>Or the same {@code l10n.ai-translate.proxy-*} keys in local Mojito config
  * </ul>
+ *
+ * <p>By default the proxy is optional (direct OpenAI calls still count as a smoke). To force the
+ * proxy path — and fail the assumption if proxy host/port are missing — set {@code
+ * OPENAI_REQUIRE_PROXY=true} or {@code -Dopenai.requireProxy=true}. Use that when validating an
+ * authenticating webproxy (CONNECT / 407 / preferred auth schemes).
  *
  * <p>OpenAI uses Apache HttpClient 5; proxy credentials are handled via a credentials provider
  * (separate from the Bearer token). If the proxy (or TLS inspection) uses a private CA, import your
@@ -51,6 +56,7 @@ public class OpenAIClientIntegrationTest {
   static String apiKey;
   static OpenAIProxyConfig proxyConfig;
   static String model;
+  static boolean requireProxy;
 
   @BeforeAll
   static void resolveConfig() {
@@ -80,12 +86,23 @@ public class OpenAIClientIntegrationTest {
             System.getenv("OPENAI_PROXY_PASSWORD"),
             System.getProperty("openai.proxyPassword"),
             LOCAL_CONFIG.getProperty("l10n.ai-translate.proxy-password"));
+    String preferredAuthSchemes =
+        firstNonBlank(
+            System.getenv("OPENAI_PROXY_PREFERRED_AUTH_SCHEMES"),
+            System.getProperty("openai.proxyPreferredAuthSchemes"),
+            LOCAL_CONFIG.getProperty("l10n.ai-translate.proxy-preferred-auth-schemes"));
 
     Integer port = null;
     if (proxyPort != null) {
       port = Integer.valueOf(proxyPort);
     }
-    proxyConfig = OpenAIProxyConfig.of(proxyHost, port, proxyUser, proxyPassword);
+    proxyConfig =
+        OpenAIProxyConfig.of(
+            proxyHost,
+            port,
+            proxyUser,
+            proxyPassword,
+            OpenAIProxyConfig.parsePreferredAuthSchemes(preferredAuthSchemes));
 
     model =
         firstNonBlank(
@@ -93,6 +110,13 @@ public class OpenAIClientIntegrationTest {
             System.getProperty("openai.model"),
             LOCAL_CONFIG.getProperty("l10n.ai-translate.model-name"),
             "gpt-4o-mini");
+
+    requireProxy =
+        Boolean.parseBoolean(
+            firstNonBlank(
+                System.getenv("OPENAI_REQUIRE_PROXY"),
+                System.getProperty("openai.requireProxy"),
+                "false"));
   }
 
   @Test
@@ -100,6 +124,13 @@ public class OpenAIClientIntegrationTest {
     assumeTrue(
         apiKey != null && !apiKey.isBlank(),
         "Set OPENAI_API_KEY (or local l10n.ai-translate.openai-client-token) to run live OpenAI smoke test");
+
+    if (requireProxy) {
+      assumeTrue(
+          proxyConfig.isConfigured(),
+          "OPENAI_REQUIRE_PROXY=true but proxy host/port are not configured "
+              + "(set OPENAI_PROXY_* or l10n.ai-translate.proxy-host/port in local Mojito config)");
+    }
 
     OpenAIClient.Builder builder = OpenAIClient.builder().apiKey(apiKey);
     if (proxyConfig.isConfigured()) {
@@ -125,18 +156,36 @@ public class OpenAIClientIntegrationTest {
     String output = response.outputText();
     assertNotNull(output);
     assertEquals("pong", output.trim(), "Expected exact model reply 'pong'");
-    logger.info("OpenAI smoke OK: model={}, output={}", response.model(), output.trim());
+    logger.info(
+        "OpenAI smoke OK: model={}, proxyConfigured={}, output={}",
+        response.model(),
+        proxyConfig.isConfigured(),
+        output.trim());
   }
 
+  /**
+   * Loads local Mojito config the same places developers typically keep AI settings: {@code
+   * ~/.l10n/config/common/} and {@code ~/.l10n/config/webapp/} (including {@code
+   * application-${user.name}.properties}). Later files override earlier keys.
+   */
   static Properties loadLocalConfig() {
     Properties properties = new Properties();
-    Path dir = Path.of(System.getProperty("user.home"), ".l10n", "config", "common");
-    for (String name : new String[] {"application.properties", "application-secrets.properties"}) {
-      Path file = dir.resolve(name);
+    Path homeConfig = Path.of(System.getProperty("user.home"), ".l10n", "config");
+    List<Path> files = new ArrayList<>();
+    for (String module : new String[] {"common", "webapp"}) {
+      Path dir = homeConfig.resolve(module);
+      files.add(dir.resolve("application.properties"));
+      files.add(dir.resolve("application-secrets.properties"));
+      String user = System.getProperty("user.name");
+      if (user != null && !user.isBlank()) {
+        files.add(dir.resolve("application-" + user + ".properties"));
+      }
+    }
+    for (Path file : files) {
       if (Files.isRegularFile(file)) {
         try (InputStream in = Files.newInputStream(file)) {
           properties.load(in);
-          logger.debug("Loaded local OpenAI IT config from {}", file);
+          logger.info("Loaded local OpenAI IT config from {}", file);
         } catch (IOException e) {
           logger.warn("Could not read {}", file, e);
         }

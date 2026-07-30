@@ -50,7 +50,8 @@ public class AiReviewConfig {
         properties.getProxyHost(),
         properties.getProxyPort(),
         properties.getProxyUser(),
-        properties.getProxyPassword());
+        properties.getProxyPassword(),
+        OpenAIProxyConfig.parsePreferredAuthSchemes(properties.getProxyPreferredAuthSchemes()));
   }
 
   @Bean("objectMapperReview")

@@ -23,6 +23,10 @@ import org.apache.hc.core5.util.Timeout;
  * authentication (including non-Basic schemes the client can negotiate) separate from the OpenAI
  * {@code Authorization: Bearer} header, avoiding JDK {@code java.net.http.HttpClient} issue
  * JDK-8326949.
+ *
+ * <p>Auth scheme preference is left to HttpClient defaults unless {@link
+ * OpenAIProxyConfig#preferredAuthSchemes()} is set (deployment-specific, e.g. prefer {@code Basic}
+ * when a proxy advertises Digest before Basic but Digest CONNECT fails).
  */
 public final class OpenAIHttpClientFactory {
 
@@ -50,16 +54,37 @@ public final class OpenAIHttpClientFactory {
                 ConnectionConfig.custom().setConnectTimeout(connect).build())
             .build();
 
-    RequestConfig requestConfig =
-        RequestConfig.custom().setConnectionRequestTimeout(connect).build();
-
     HttpClientBuilder builder =
         HttpClients.custom()
             .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(requestConfig);
+            .setDefaultRequestConfig(defaultRequestConfig(proxyConfig, effectiveConnectTimeout));
 
     configureProxy(builder, proxyConfig);
     return builder.build();
+  }
+
+  /**
+   * Builds the same default {@link RequestConfig} used by {@link #createHttpClient}. Callers that
+   * set a per-request config (e.g. response timeout) must copy this rather than {@code
+   * RequestConfig.custom()}, or preferred proxy auth schemes and other defaults are dropped.
+   */
+  public static RequestConfig defaultRequestConfig(OpenAIProxyConfig proxyConfig) {
+    return defaultRequestConfig(proxyConfig, DEFAULT_CONNECT_TIMEOUT);
+  }
+
+  public static RequestConfig defaultRequestConfig(
+      OpenAIProxyConfig proxyConfig, Duration connectTimeout) {
+    Duration effectiveConnectTimeout =
+        connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT;
+    Timeout connect = Timeout.of(effectiveConnectTimeout.toMillis(), TimeUnit.MILLISECONDS);
+
+    RequestConfig.Builder requestConfigBuilder =
+        RequestConfig.custom().setConnectionRequestTimeout(connect);
+
+    if (proxyConfig != null && proxyConfig.hasPreferredAuthSchemes()) {
+      requestConfigBuilder.setProxyPreferredAuthSchemes(proxyConfig.preferredAuthSchemes());
+    }
+    return requestConfigBuilder.build();
   }
 
   static void configureProxy(HttpClientBuilder builder, OpenAIProxyConfig proxyConfig) {

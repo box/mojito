@@ -15,6 +15,9 @@ public class AiTranslateConfigurationProperties {
   String proxyUser;
   String proxyPassword;
 
+  /** Optional comma-separated HttpClient proxy auth schemes, e.g. {@code Basic,Digest}. */
+  String proxyPreferredAuthSchemes;
+
   public String getOpenaiClientToken() {
     return openaiClientToken;
   }
@@ -69,5 +72,13 @@ public class AiTranslateConfigurationProperties {
 
   public void setProxyPassword(String proxyPassword) {
     this.proxyPassword = proxyPassword;
+  }
+
+  public String getProxyPreferredAuthSchemes() {
+    return proxyPreferredAuthSchemes;
+  }
+
+  public void setProxyPreferredAuthSchemes(String proxyPreferredAuthSchemes) {
+    this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
   }
 }
