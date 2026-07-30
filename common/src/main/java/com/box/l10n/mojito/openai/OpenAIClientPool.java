@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.openai;
 
+import java.net.http.HttpClient;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,15 +32,6 @@ public class OpenAIClientPool {
       int numberOfParallelRequestPerClient,
       int sizeOfAsyncProcessors,
       String apiKey) {
-    this(numberOfClients, numberOfParallelRequestPerClient, sizeOfAsyncProcessors, apiKey, null);
-  }
-
-  public OpenAIClientPool(
-      int numberOfClients,
-      int numberOfParallelRequestPerClient,
-      int sizeOfAsyncProcessors,
-      String apiKey,
-      OpenAIProxyConfig proxyConfig) {
     ExecutorService asyncExecutor = Executors.newWorkStealingPool(sizeOfAsyncProcessors);
     this.numberOfClients = numberOfClients;
     this.openAIClientWithSemaphores = new OpenAIClientWithSemaphore[numberOfClients];
@@ -49,7 +41,7 @@ public class OpenAIClientPool {
               OpenAIClient.builder()
                   .apiKey(apiKey)
                   .asyncExecutor(asyncExecutor)
-                  .httpClient(OpenAIHttpClientFactory.createHttpClient(proxyConfig, asyncExecutor))
+                  .httpClient(HttpClient.newBuilder().executor(asyncExecutor).build())
                   .build(),
               new Semaphore(numberOfParallelRequestPerClient));
     }
