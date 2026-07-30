@@ -187,8 +187,13 @@ public class AiReviewService {
 
     logger.info(objectMapper.writeValueAsStringUnchecked(chatCompletionsRequest));
 
+    OpenAIClient openAIClient =
+        OpenAIClient.builder()
+            .apiKey(aiReviewConfigurationProperties.getOpenaiClientToken())
+            .build();
+
     OpenAIClient.ChatCompletionsResponse chatCompletionsResponse =
-        getOpenAIClient()
+        openAIClient
             .getChatCompletions(chatCompletionsRequest, Duration.of(15, ChronoUnit.SECONDS))
             .join();
 
