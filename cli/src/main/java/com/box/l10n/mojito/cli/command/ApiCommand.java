@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -343,17 +344,41 @@ public class ApiCommand extends Command {
   // --- Path / method resolution ---
 
   /**
-   * Normalizes the endpoint path. Bare names like "repositories" get prefixed with "/api/" for
-   * convenience. Paths starting with "/" or full URLs are passed through unchanged.
+   * Normalizes the endpoint to always target {@code /api/...}. Accepts bare resource names ({@code
+   * repositories}), paths with an optional leading slash and/or {@code api/} prefix ({@code
+   * /api/repositories}), and coerces them all to {@code /api/repositories}. Rejects full URLs,
+   * hostnames, and malformed URIs.
    */
   String normalizeEndpoint(String rawEndpoint) {
-    if (rawEndpoint.startsWith("http://") || rawEndpoint.startsWith("https://")) {
-      return rawEndpoint;
+    try {
+      URI uri = URI.create(rawEndpoint);
+      if (uri.getScheme() != null || uri.getHost() != null) {
+        throw new CommandException(
+            "Endpoint must be a path, not a URL. "
+                + "Use a path like /api/repositories or repositories instead.");
+      }
+      if (uri.getRawQuery() != null || uri.getRawFragment() != null) {
+        throw new CommandException(
+            "Endpoint must be a pure path without query string or fragment. "
+                + "Use -f/-F flags to pass parameters.");
+      }
+    } catch (IllegalArgumentException e) {
+      throw new CommandException("Invalid endpoint path: " + rawEndpoint);
     }
-    if (!rawEndpoint.startsWith("/")) {
-      rawEndpoint = "/api/" + rawEndpoint;
+
+    String path = rawEndpoint;
+
+    while (path.startsWith("/")) {
+      path = path.substring(1);
     }
-    return rawEndpoint;
+
+    if (path.startsWith("api/")) {
+      path = path.substring(4);
+    } else if (path.equals("api")) {
+      path = "";
+    }
+
+    return "/api/" + path;
   }
 
   boolean hasFields() {

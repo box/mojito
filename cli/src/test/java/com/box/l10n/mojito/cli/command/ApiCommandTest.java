@@ -374,25 +374,34 @@ public class ApiCommandTest extends CLITestBase {
   public void testNormalizeEndpointPaths() {
     ApiCommand cmd = new ApiCommand();
 
-    assertEquals(
-        "Leading slash path should be kept as-is",
-        "/api/repositories",
-        cmd.normalizeEndpoint("/api/repositories"));
+    assertEquals("/api/repositories", cmd.normalizeEndpoint("repositories"));
+    assertEquals("/api/repositories", cmd.normalizeEndpoint("api/repositories"));
+    assertEquals("/api/repositories", cmd.normalizeEndpoint("/repositories"));
+    assertEquals("/api/repositories", cmd.normalizeEndpoint("/api/repositories"));
+    assertEquals("/api/drops/export", cmd.normalizeEndpoint("drops/export"));
+    assertEquals("/api/drops/export", cmd.normalizeEndpoint("/api/drops/export"));
+  }
 
-    assertEquals(
-        "Bare name should get /api/ prefix",
-        "/api/repositories",
-        cmd.normalizeEndpoint("repositories"));
+  @Test
+  public void testNormalizeEndpointRejectsUrls() {
+    ApiCommand cmd = new ApiCommand();
 
-    assertEquals(
-        "Bare nested path should get /api/ prefix",
-        "/api/drops/export",
-        cmd.normalizeEndpoint("drops/export"));
+    assertNormalizeEndpointThrows(cmd, "http://localhost:8080/api/repositories");
+    assertNormalizeEndpointThrows(cmd, "https://other-host/api/repositories");
+    assertNormalizeEndpointThrows(cmd, "http://localhost/repositories");
+    assertNormalizeEndpointThrows(cmd, "//host/path");
+    assertNormalizeEndpointThrows(cmd, "/api/repositories?name=foo");
+    assertNormalizeEndpointThrows(cmd, "repositories?limit=10");
+    assertNormalizeEndpointThrows(cmd, "/api/repositories#section");
+  }
 
-    assertEquals(
-        "Full URL should be kept as-is",
-        "http://localhost:8080/api/repositories",
-        cmd.normalizeEndpoint("http://localhost:8080/api/repositories"));
+  private void assertNormalizeEndpointThrows(ApiCommand cmd, String endpoint) {
+    try {
+      cmd.normalizeEndpoint(endpoint);
+      org.junit.Assert.fail("Should reject endpoint: " + endpoint);
+    } catch (CommandException e) {
+      // expected
+    }
   }
 
   @Test
