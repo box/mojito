@@ -30,14 +30,19 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -84,6 +89,12 @@ public class OpenAIClient {
 
     private Executor asyncExecutor;
 
+    private String proxyHost;
+    private Integer proxyPort;
+    private String proxyUser;
+    private String proxyPassword;
+    private List<String> proxyPreferredAuthSchemes;
+
     public Builder() {}
 
     public Builder apiKey(String apiKey) {
@@ -111,6 +122,31 @@ public class OpenAIClient {
       return this;
     }
 
+    public Builder proxyHost(String proxyHost) {
+      this.proxyHost = proxyHost;
+      return this;
+    }
+
+    public Builder proxyPort(Integer proxyPort) {
+      this.proxyPort = proxyPort;
+      return this;
+    }
+
+    public Builder proxyUser(String proxyUser) {
+      this.proxyUser = proxyUser;
+      return this;
+    }
+
+    public Builder proxyPassword(String proxyPassword) {
+      this.proxyPassword = proxyPassword;
+      return this;
+    }
+
+    public Builder proxyPreferredAuthSchemes(List<String> proxyPreferredAuthSchemes) {
+      this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
+      return this;
+    }
+
     public OpenAIClient build() {
       if (apiKey == null) {
         throw new IllegalStateException("API key must be provided");
@@ -131,7 +167,38 @@ public class OpenAIClient {
     }
 
     private CloseableHttpClient createHttpClient() {
-      return HttpClients.createDefault();
+
+      if (proxyHost == null) {
+        return HttpClients.createDefault();
+      }
+      HttpHost proxy = new HttpHost("http", proxyHost, proxyPort != null ? proxyPort : 3128);
+      var builder = HttpClients.custom().setProxy(proxy);
+      if (proxyUser != null && proxyPassword != null) {
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(
+            new AuthScope(proxy),
+            new UsernamePasswordCredentials(proxyUser, proxyPassword.toCharArray()));
+        builder.setDefaultCredentialsProvider(credsProvider);
+
+        if (proxyPreferredAuthSchemes != null && !proxyPreferredAuthSchemes.isEmpty()) {
+          List<String> preferredOrder =
+              proxyPreferredAuthSchemes.stream().map(String::toLowerCase).toList();
+          builder.setProxyAuthenticationStrategy(
+              // make sure that preferred schemes are tried before others
+              (challengeType, challenges, context) ->
+                  DefaultAuthenticationStrategy.INSTANCE
+                      .select(challengeType, challenges, context)
+                      .stream()
+                      .sorted(
+                          Comparator.comparingInt(
+                              s -> {
+                                int idx = preferredOrder.indexOf(s.getName().toLowerCase());
+                                return idx >= 0 ? idx : preferredOrder.size();
+                              }))
+                      .toList());
+        }
+      }
+      return builder.build();
     }
 
     private ObjectMapper createObjectMapper() {

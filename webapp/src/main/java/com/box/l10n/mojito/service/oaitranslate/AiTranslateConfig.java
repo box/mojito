@@ -26,7 +26,15 @@ public class AiTranslateConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClient.Builder().apiKey(openaiClientToken).build();
+    return new OpenAIClient.Builder()
+        .apiKey(openaiClientToken)
+        .proxyHost(aiTranslateConfigurationProperties.getProxyHost())
+        .proxyPort(aiTranslateConfigurationProperties.getProxyPort())
+        .proxyUser(aiTranslateConfigurationProperties.getProxyUser())
+        .proxyPassword(aiTranslateConfigurationProperties.getProxyPassword())
+        .proxyPreferredAuthSchemes(
+            aiTranslateConfigurationProperties.getProxyPreferredAuthSchemes())
+        .build();
   }
 
   @Bean
@@ -37,7 +45,15 @@ public class AiTranslateConfig {
       return null;
     }
     return new OpenAIClientPool(
-        20, 100, 1, aiTranslateConfigurationProperties.getOpenaiClientToken());
+        20,
+        100,
+        1,
+        aiTranslateConfigurationProperties.getOpenaiClientToken(),
+        aiTranslateConfigurationProperties.getProxyHost(),
+        aiTranslateConfigurationProperties.getProxyPort(),
+        aiTranslateConfigurationProperties.getProxyUser(),
+        aiTranslateConfigurationProperties.getProxyPassword(),
+        aiTranslateConfigurationProperties.getProxyPreferredAuthSchemes());
   }
 
   @Bean

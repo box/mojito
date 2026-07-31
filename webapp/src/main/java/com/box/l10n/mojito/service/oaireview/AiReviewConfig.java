@@ -24,7 +24,14 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClient.Builder().apiKey(openaiClientToken).build();
+    return new OpenAIClient.Builder()
+        .apiKey(openaiClientToken)
+        .proxyHost(aiReviewConfigurationProperties.getProxyHost())
+        .proxyPort(aiReviewConfigurationProperties.getProxyPort())
+        .proxyUser(aiReviewConfigurationProperties.getProxyUser())
+        .proxyPassword(aiReviewConfigurationProperties.getProxyPassword())
+        .proxyPreferredAuthSchemes(aiReviewConfigurationProperties.getProxyPreferredAuthSchemes())
+        .build();
   }
 
   @Bean("openAIClientPoolReview")
@@ -33,7 +40,16 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClientPool(10, 10, 5, aiReviewConfigurationProperties.getOpenaiClientToken());
+    return new OpenAIClientPool(
+        10,
+        10,
+        5,
+        aiReviewConfigurationProperties.getOpenaiClientToken(),
+        aiReviewConfigurationProperties.getProxyHost(),
+        aiReviewConfigurationProperties.getProxyPort(),
+        aiReviewConfigurationProperties.getProxyUser(),
+        aiReviewConfigurationProperties.getProxyPassword(),
+        aiReviewConfigurationProperties.getProxyPreferredAuthSchemes());
   }
 
   @Bean("objectMapperReview")

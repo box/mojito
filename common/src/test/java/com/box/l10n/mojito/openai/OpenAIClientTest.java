@@ -52,6 +52,68 @@ public class OpenAIClientTest {
   }
 
   @Test
+  public void testBuilderWithProxyCreatesClient() {
+    OpenAIClient client =
+        OpenAIClient.builder()
+            .apiKey(API_KEY)
+            .proxyHost("proxy.example.com")
+            .proxyPort(3128)
+            .proxyUser("user")
+            .proxyPassword("pass")
+            .build();
+    assertNotNull(client);
+    assertNotNull(client.httpClient);
+  }
+
+  @Test
+  public void testBuilderWithProxyHostOnlyCreatesClient() {
+    OpenAIClient client =
+        OpenAIClient.builder().apiKey(API_KEY).proxyHost("proxy.example.com").build();
+    assertNotNull(client);
+    assertNotNull(client.httpClient);
+  }
+
+  @Test
+  public void testProxyClientCanExecuteRequest() throws Exception {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    CloseableHttpResponse mockResponse = mock(CloseableHttpResponse.class);
+    when(mockResponse.getCode()).thenReturn(200);
+    when(mockResponse.getEntity())
+        .thenReturn(
+            new StringEntity(
+                """
+            {"id":"resp_proxy","object":"response","created_at":1755702430,
+             "status":"completed","model":"gpt-4o-mini","output":[
+               {"id":"msg_1","type":"message","status":"completed",
+                "content":[{"type":"output_text","text":"OK"}],"role":"assistant"}
+             ]}
+            """,
+                ContentType.APPLICATION_JSON));
+    when(mockHttpClient.execute(any(ClassicHttpRequest.class))).thenReturn(mockResponse);
+
+    OpenAIClient client =
+        OpenAIClient.builder()
+            .apiKey(API_KEY)
+            .proxyHost("proxy.example.com")
+            .proxyPort(8080)
+            .httpClient(mockHttpClient)
+            .build();
+
+    OpenAIClient.ResponsesResponse response =
+        client
+            .getResponses(
+                OpenAIClient.ResponsesRequest.builder()
+                    .model("gpt-4o-mini")
+                    .addUserText("test")
+                    .build(),
+                Duration.ofSeconds(5))
+            .join();
+
+    assertEquals("resp_proxy", response.id());
+    assertEquals("OK", response.outputText());
+  }
+
+  @Test
   public void testGetChatCompletionsSuccess() throws Exception {
     OpenAIClient.ChatCompletionsRequest chatCompletionsRequest =
         chatCompletionsRequest()
