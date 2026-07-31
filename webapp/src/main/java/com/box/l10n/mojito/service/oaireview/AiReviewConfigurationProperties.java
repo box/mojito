@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.oaireview;
 
 import com.box.l10n.mojito.quartz.QuartzSchedulerManager;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,11 @@ public class AiReviewConfigurationProperties {
   String openaiClientToken;
   String schedulerName = QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
   String modelName = "gpt-4o-2024-08-06";
+  String proxyHost;
+  Integer proxyPort;
+  String proxyUser;
+  String proxyPassword;
+  List<String> proxyPreferredAuthSchemes;
 
   public String getOpenaiClientToken() {
     return openaiClientToken;
@@ -33,5 +39,45 @@ public class AiReviewConfigurationProperties {
 
   public void setModelName(String modelName) {
     this.modelName = modelName;
+  }
+
+  public String getProxyHost() {
+    return proxyHost;
+  }
+
+  public void setProxyHost(String proxyHost) {
+    this.proxyHost = proxyHost;
+  }
+
+  public Integer getProxyPort() {
+    return proxyPort;
+  }
+
+  public void setProxyPort(Integer proxyPort) {
+    this.proxyPort = proxyPort;
+  }
+
+  public String getProxyUser() {
+    return proxyUser;
+  }
+
+  public void setProxyUser(String proxyUser) {
+    this.proxyUser = proxyUser;
+  }
+
+  public String getProxyPassword() {
+    return proxyPassword;
+  }
+
+  public void setProxyPassword(String proxyPassword) {
+    this.proxyPassword = proxyPassword;
+  }
+
+  public List<String> getProxyPreferredAuthSchemes() {
+    return proxyPreferredAuthSchemes;
+  }
+
+  public void setProxyPreferredAuthSchemes(List<String> proxyPreferredAuthSchemes) {
+    this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
   }
 }

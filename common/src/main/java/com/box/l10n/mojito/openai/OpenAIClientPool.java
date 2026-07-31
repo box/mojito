@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.openai;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +32,48 @@ public class OpenAIClientPool {
       int numberOfParallelRequestPerClient,
       int sizeOfAsyncProcessors,
       String apiKey) {
+    this(
+        numberOfClients,
+        numberOfParallelRequestPerClient,
+        sizeOfAsyncProcessors,
+        apiKey,
+        null,
+        null,
+        null,
+        null);
+  }
+
+  public OpenAIClientPool(
+      int numberOfClients,
+      int numberOfParallelRequestPerClient,
+      int sizeOfAsyncProcessors,
+      String apiKey,
+      String proxyHost,
+      Integer proxyPort,
+      String proxyUser,
+      String proxyPassword) {
+    this(
+        numberOfClients,
+        numberOfParallelRequestPerClient,
+        sizeOfAsyncProcessors,
+        apiKey,
+        proxyHost,
+        proxyPort,
+        proxyUser,
+        proxyPassword,
+        null);
+  }
+
+  public OpenAIClientPool(
+      int numberOfClients,
+      int numberOfParallelRequestPerClient,
+      int sizeOfAsyncProcessors,
+      String apiKey,
+      String proxyHost,
+      Integer proxyPort,
+      String proxyUser,
+      String proxyPassword,
+      List<String> proxyPreferredAuthSchemes) {
     ExecutorService asyncExecutor = Executors.newWorkStealingPool(sizeOfAsyncProcessors);
     this.numberOfClients = numberOfClients;
     this.openAIClientWithSemaphores = new OpenAIClientWithSemaphore[numberOfClients];
@@ -41,7 +83,11 @@ public class OpenAIClientPool {
               OpenAIClient.builder()
                   .apiKey(apiKey)
                   .asyncExecutor(asyncExecutor)
-                  .httpClient(HttpClients.createDefault())
+                  .proxyHost(proxyHost)
+                  .proxyPort(proxyPort)
+                  .proxyUser(proxyUser)
+                  .proxyPassword(proxyPassword)
+                  .proxyPreferredAuthSchemes(proxyPreferredAuthSchemes)
                   .build(),
               new Semaphore(numberOfParallelRequestPerClient));
     }
