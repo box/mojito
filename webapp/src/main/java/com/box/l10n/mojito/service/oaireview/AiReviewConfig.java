@@ -24,7 +24,7 @@ public class AiReviewConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClient.Builder()
+    return OpenAIClient.builder()
         .apiKey(openaiClientToken)
         .proxyHost(aiReviewConfigurationProperties.getProxyHost())
         .proxyPort(aiReviewConfigurationProperties.getProxyPort())
