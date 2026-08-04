@@ -26,7 +26,7 @@ public class AiTranslateConfig {
     if (openaiClientToken == null) {
       return null;
     }
-    return new OpenAIClient.Builder()
+    return OpenAIClient.builder()
         .apiKey(openaiClientToken)
         .proxyHost(aiTranslateConfigurationProperties.getProxyHost())
         .proxyPort(aiTranslateConfigurationProperties.getProxyPort())
