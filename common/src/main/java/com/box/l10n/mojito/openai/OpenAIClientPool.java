@@ -10,7 +10,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OpenAIClientPool {
+public class OpenAIClientPool implements java.io.Closeable {
 
   static Logger logger = LoggerFactory.getLogger(OpenAIClientPool.class);
 
@@ -126,6 +126,13 @@ public class OpenAIClientPool {
         Thread.currentThread().interrupt();
         throw new RuntimeException("Can't submit task to the OpenAIClientPool", e);
       }
+    }
+  }
+
+  @Override
+  public void close() throws java.io.IOException {
+    for (OpenAIClientWithSemaphore entry : openAIClientWithSemaphores) {
+      entry.openAIClient().close();
     }
   }
 
