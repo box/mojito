@@ -18,7 +18,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -544,40 +546,75 @@ public class OpenAIClient {
           post.setHeader("Authorization", "Bearer " + apiKey);
           post.setEntity(new StringEntity(requestPayload, ContentType.APPLICATION_JSON));
 
-          try (CloseableHttpResponse response = httpClient.execute(post)) {
-            int statusCode = response.getCode();
-            String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-            if (statusCode != 200) {
-              throw new OpenAIClientResponseException(
-                  "ChatCompletion stream failed", statusCode, body);
-            }
-            return body.lines()
-                .takeWhile(s -> !"data: [DONE]".equals(s))
-                .filter(Predicate.not(String::isBlank))
-                .map(
-                    line -> {
-                      if (!line.startsWith("data: ")) {
-                        throw new OpenAIClientResponseException(
-                            "Only support \"data\" lines in stream are supported, got: \"%s\""
-                                .formatted(line),
-                            statusCode,
-                            body);
-                      }
-
-                      String jsonPart = line.substring(5);
-                      try {
-                        return objectMapper.readValue(
-                            jsonPart, ChatCompletionsStreamResponse.class);
-                      } catch (JsonProcessingException e) {
-                        throw new OpenAIClientResponseException(
-                            "Can't deserialize ChatCompletionsStreamResponse", e, statusCode, body);
-                      }
-                    });
-          } catch (OpenAIClientResponseException e) {
-            throw e;
-          } catch (IOException | ParseException e) {
+          CloseableHttpResponse response;
+          try {
+            response = httpClient.execute(post);
+          } catch (IOException e) {
             throw new RuntimeException(e);
           }
+
+          int statusCode = response.getCode();
+          if (statusCode != 200) {
+            try {
+              String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+              throw new OpenAIClientResponseException(
+                  "ChatCompletion stream failed", statusCode, body);
+            } catch (OpenAIClientResponseException e) {
+              throw e;
+            } catch (IOException | ParseException e) {
+              throw new OpenAIClientResponseException(
+                  "ChatCompletion stream failed", statusCode, "");
+            } finally {
+              try {
+                response.close();
+              } catch (IOException ignored) {
+              }
+            }
+          }
+
+          BufferedReader reader;
+          try {
+            reader =
+                new BufferedReader(
+                    new InputStreamReader(
+                        response.getEntity().getContent(), StandardCharsets.UTF_8));
+          } catch (IOException e) {
+            try {
+              response.close();
+            } catch (IOException ignored) {
+            }
+            throw new RuntimeException(e);
+          }
+
+          return reader
+              .lines()
+              .takeWhile(s -> !"data: [DONE]".equals(s))
+              .filter(Predicate.not(String::isBlank))
+              .map(
+                  line -> {
+                    if (!line.startsWith("data: ")) {
+                      throw new OpenAIClientResponseException(
+                          "Only support \"data\" lines in stream are supported, got: \"%s\""
+                              .formatted(line),
+                          statusCode,
+                          "");
+                    }
+
+                    String jsonPart = line.substring(5);
+                    try {
+                      return objectMapper.readValue(jsonPart, ChatCompletionsStreamResponse.class);
+                    } catch (JsonProcessingException e) {
+                      throw new OpenAIClientResponseException(
+                          "Can't deserialize ChatCompletionsStreamResponse", e, statusCode, "");
+                    }
+                  })
+              .onClose(
+                  () -> {
+                    try {
+                      response.close();
+                    } catch (IOException ignored) {
+                    }
+                  });
         },
         asyncExecutor);
   }
