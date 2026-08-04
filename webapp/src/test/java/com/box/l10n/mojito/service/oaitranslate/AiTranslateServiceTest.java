@@ -1,12 +1,16 @@
 package com.box.l10n.mojito.service.oaitranslate;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.openai.OpenAIClient;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assume;
 import org.junit.Rule;
@@ -26,6 +30,26 @@ public class AiTranslateServiceTest extends ServiceTestBase {
   @Autowired AiTranslateConfigurationProperties aiTranslateConfigurationProperties;
 
   @Autowired RepositoryService repositoryService;
+
+  @Test
+  public void connectionTest() throws ExecutionException, InterruptedException {
+    Assume.assumeNotNull(aiTranslateConfigurationProperties.getOpenaiClientToken());
+
+    String model = aiTranslateConfigurationProperties.getModelName();
+
+    var request =
+        OpenAIClient.ResponsesRequest.builder()
+            .model(model)
+            .instructions("Reply with exactly the single word: pong")
+            .addUserText("ping")
+            .build();
+
+    var response =
+        aiTranslateService.openAIClient.getResponses(request, Duration.ofSeconds(60)).get();
+
+    var responseText = response.outputText().trim();
+    assertEquals("pong", responseText, "Should receive response from the model");
+  }
 
   @Test
   public void aiTranslateBatch() throws ExecutionException, InterruptedException {
