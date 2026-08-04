@@ -52,7 +52,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OpenAIClient {
+public class OpenAIClient implements java.io.Closeable {
 
   static Logger logger = LoggerFactory.getLogger(OpenAIClient.class);
 
@@ -77,6 +77,11 @@ public class OpenAIClient {
     this.objectMapper = Objects.requireNonNull(objectMapper);
     this.httpClient = Objects.requireNonNull(httpClient);
     this.asyncExecutor = Objects.requireNonNull(asyncExecutor);
+  }
+
+  @Override
+  public void close() throws IOException {
+    httpClient.close();
   }
 
   public static class Builder {
