@@ -237,3 +237,57 @@ You can also optionally use it in production by setting the following configurat
    Follow instructions [here](https://community.box.com/t5/For-Admins/How-Do-I-Share-Files-And-Folders-From-The-Admin-Console/ta-p/211) to share with collaborators.
 
    Tips: Access the Box Account as the Admin of the enterprise using the credentials for the Box Developer Account you created.
+
+## AI Translation and AI Review (OpenAI)
+
+AI translation and AI review use the OpenAI HTTP API. Configure an API token and, when required by your network, an optional HTTP proxy for outbound requests. Proxy credentials are handled by HttpClient 5 separately from the OpenAI Bearer token.
+
+### AI translation
+
+    # Required to enable AI translation features
+    l10n.ai-translate.openai-client-token=${OPENAI_API_KEY}
+
+    # Optional. Default: gpt-4o-2024-08-06
+    l10n.ai-translate.model-name=gpt-4o-2024-08-06
+
+    # Optional. HTTP proxy (host and port must both be set)
+    l10n.ai-translate.proxy-host=proxy.example.com
+    l10n.ai-translate.proxy-port=3128
+    l10n.ai-translate.proxy-user=proxy-user
+    l10n.ai-translate.proxy-password=${PROXY_PASSWORD}
+
+    # Optional. Preferred proxy auth schemes (see below)
+    # l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Optional. Use a dedicated Quartz scheduler for AI translation jobs
+    l10n.ai-translate.scheduler-name=ai-translate
+
+Keep secrets such as the API token and proxy password out of source control.
+
+### Proxy preferred auth schemes
+
+When an HTTP proxy challenges with more than one authentication scheme (for example both Digest and Basic), Apache HttpClient 5 picks a scheme using its built-in preference order. Leave this property **unset** to keep those library defaults — that is the right choice for most deployments.
+
+Set a comma-separated preference list only when your proxy's advertised order does not work with HttpClient. A common case is a Squid (or similar) proxy that sends `Proxy-Authenticate: Digest` before `Basic`: HttpClient then tries Digest first, CONNECT can fail with `407 Proxy Authentication Required`, while Basic credentials would have succeeded.
+
+    # Prefer Basic when the proxy offers both Digest and Basic
+    l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Same option for AI review
+    l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+
+Scheme names are HttpClient 5 auth scheme names (for example `Basic`, `Digest`). Whitespace around commas is ignored.
+
+### AI review
+
+AI review uses the same OpenAI client and proxy settings under the `l10n.ai-review.*` prefix:
+
+    l10n.ai-review.openai-client-token=${OPENAI_API_KEY}
+    l10n.ai-review.model-name=gpt-4o-2024-08-06
+    l10n.ai-review.proxy-host=proxy.example.com
+    l10n.ai-review.proxy-port=3128
+    l10n.ai-review.proxy-user=proxy-user
+    l10n.ai-review.proxy-password=${PROXY_PASSWORD}
+    # l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+
+See also [Using AI Translations]({{ site.url }}/docs/guides/using-ai-translations/) for repository and CLI usage.
