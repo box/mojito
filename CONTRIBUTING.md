@@ -16,8 +16,9 @@ This project adheres to the [Box Open Code of Conduct](http://opensource.box.com
 
 ## How to contribute
 
-* **File an issue** - if you found a bug, want to request an enhancement, or want to implement something (bug fix or feature).
-* **Send a pull request** - if you want to contribute code. Please be sure to file an issue first.
+1. **Set up your environment** — follow the [Open Source Contributors](https://www.mojito.global/docs/guides/open-source-contributors/) guide.
+2. **Pick something to work on** — see the [project roadmap](docs/ROADMAP.md) for planned areas of future development, or file an issue for a bug or enhancement.
+3. **Send a pull request** — if you want to contribute code. Please be sure to file an issue first.
 
 ## Pull request best practices
 

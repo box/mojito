@@ -20,6 +20,9 @@ For instruction to jump start
 ## [Full Documentation](http://opensource.box.com/mojito/docs/)
 For full documentation, examples, and other information.
 
+## [Roadmap](docs/ROADMAP.md)
+Planned areas of future development.
+
 ## Support
 
 Need to contact us directly? 
@@ -36,7 +39,7 @@ Need to contact us directly?
 
 ## Copyright and License
 
-Copyright 2016 Box, Inc. All rights reserved.
+Copyright 2016-2026 Box, Inc. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

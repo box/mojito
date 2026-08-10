@@ -4,6 +4,9 @@ title: Documentation
 permalink: /docs/
 ---
 
+<h3>Roadmap</h3>
+<a class="page-link" href="{{ site.url }}/docs/roadmap/">Roadmap</a>
+
 <h3>Guides</h3>
 {% assign docs=site.docs | sort: 'path' %}
 {% for my_page in docs %}
