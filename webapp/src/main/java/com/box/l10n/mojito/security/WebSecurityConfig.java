@@ -58,6 +58,8 @@ public class WebSecurityConfig {
 
   @Autowired ActuatorHealthLegacyConfig actuatorHealthLegacyConfig;
 
+  @Autowired ActuatorHealthConfig actuatorHealthConfig;
+
   @Autowired UserDetailsContextMapperImpl userDetailsContextMapperImpl;
 
   @Autowired UserService userService;
@@ -139,7 +141,8 @@ public class WebSecurityConfig {
                 "/cli/**",
                 "/js/**",
                 "/css/**",
-                "/error"));
+                "/error",
+                "/api-docs/**"));
     if (extraPermitAllPatterns != null) {
       permitMatchers.addAll(extraPermitAllPatterns);
     }
@@ -217,8 +220,13 @@ public class WebSecurityConfig {
     http.csrf()
         .ignoringRequestMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation");
 
-    setAuthorizationRequests(
-        http, getHealthcheckPatterns(actuatorHealthLegacyConfig.isForwarding()));
+    List<String> extraPermitAllPatterns =
+        new ArrayList<>(getHealthcheckPatterns(actuatorHealthLegacyConfig.isForwarding()));
+    if (actuatorHealthConfig.getAllowInsecureKubernetesProbes()) {
+      extraPermitAllPatterns.add("/actuator/health/liveness");
+      extraPermitAllPatterns.add("/actuator/health/readiness");
+    }
+    setAuthorizationRequests(http, extraPermitAllPatterns);
 
     logger.debug("For APIs, we don't redirect to login page. Instead we return a 401");
     http.exceptionHandling()

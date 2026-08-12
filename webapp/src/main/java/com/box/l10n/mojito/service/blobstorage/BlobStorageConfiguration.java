@@ -6,8 +6,11 @@ import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorage;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorageCleanupJob;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorageConfigurationProperties;
 import com.box.l10n.mojito.service.blobstorage.database.MBlobRepository;
+import com.box.l10n.mojito.service.blobstorage.gcs.GCSBlobStorage;
+import com.box.l10n.mojito.service.blobstorage.gcs.GCSBlobStorageConfigurationProperties;
 import com.box.l10n.mojito.service.blobstorage.s3.S3BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.s3.S3BlobStorageConfigurationProperties;
+import com.google.cloud.storage.Storage;
 import java.time.Duration;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -28,8 +31,14 @@ import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
  * <p>{@link DatabaseBlobStorage} is the default implementation but it should be use only for
  * testing or deployments with limited load.
  *
- * <p>Consider using {@link S3BlobStorage} for larger deployment. An {@link AmazonS3} client must be
- * configured first, and then the storage enabled with the `l10n.blob-storage.type=s3` property
+ * <p>Consider using one of the following alternatives for larger deployment:
+ *
+ * <ul>
+ *   <li>{@link S3BlobStorage} with {@link AmazonS3} client
+ *   <li>{@link GCSBlobStorage} with Google Cloud {@link Storage} client
+ * </ul>
+ *
+ * <p>The `l10n.blob-storage.type` property can be set switch between the desired implementation.
  */
 @Configuration
 public class BlobStorageConfiguration {
@@ -48,6 +57,21 @@ public class BlobStorageConfiguration {
     public S3BlobStorage s3BlobStorage() {
       logger.info("Configure S3BlobStorage");
       return new S3BlobStorage(amazonS3, s3BlobStorageConfigurationProperties);
+    }
+  }
+
+  @ConditionalOnProperty(value = "l10n.blob-storage.type", havingValue = "gcs")
+  @Configuration
+  static class GCSBlobStorageConfiguration {
+
+    @Autowired Storage storage;
+
+    @Autowired GCSBlobStorageConfigurationProperties gcsBlobStorageConfigurationProperties;
+
+    @Bean
+    public GCSBlobStorage gcsBlobStorage() {
+      logger.info("Configure GCSBlobStorage");
+      return new GCSBlobStorage(storage, gcsBlobStorageConfigurationProperties);
     }
   }
 

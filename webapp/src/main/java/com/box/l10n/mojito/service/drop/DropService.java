@@ -28,14 +28,17 @@ import com.box.l10n.mojito.service.tm.UpdateTMWithXLIFFResult;
 import com.box.l10n.mojito.service.translationkit.TranslationKitAsXliff;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.exceptions.OkapiIOException;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -224,7 +227,13 @@ public class DropService {
 
     logger.debug("Start importing drop");
 
-    Drop drop = getDropInTX(dropId);
+    Drop drop;
+    try {
+      drop = getDropInTX(dropId);
+    } catch (NoSuchElementException e) {
+      throw new ImportDropException("Drop with ID [" + dropId + "] does not exist", e);
+    }
+
     drop.setLastImportedDate(JSR310Migration.newDateTimeEmptyCtor());
     drop.setImportPollableTask(currentTask);
     drop.setImportFailed(null);
@@ -417,7 +426,12 @@ public class DropService {
       throws DropExporterException, CancelDropException {
 
     logger.debug("Canceling Drop: {}", dropId);
-    Drop drop = getDropInTX(dropId);
+    Drop drop;
+    try {
+      drop = getDropInTX(dropId);
+    } catch (NoSuchElementException e) {
+      throw new CancelDropException("Drop with ID [" + dropId + "] does not exist", e);
+    }
 
     if (isDropBeingProcessed(drop)) {
       throw new CancelDropException(
@@ -440,8 +454,8 @@ public class DropService {
   }
 
   @Transactional
-  Drop getDropInTX(Long dropId) {
-    final Drop drop = dropRepository.findById(dropId).orElse(null);
+  Drop getDropInTX(Long dropId) throws NoSuchElementException {
+    final Drop drop = dropRepository.findById(dropId).orElseThrow();
     if (drop.getExportPollableTask() != null) {
       pollableTaskService.fetchSubTasks(drop.getExportPollableTask());
     }
@@ -482,5 +496,39 @@ public class DropService {
   public void completeDrop(Drop drop) {
     drop.setPartiallyImported(Boolean.FALSE);
     dropRepository.save(drop);
+  }
+
+  /**
+   * Cannot use an EntityGraph with pagination as it triggers the following warning: HHH90003004:
+   * firstResult/maxResults specified with collection fetch; applying in memory
+   *
+   * @param spec
+   * @param pageable
+   */
+  public Page<Drop> findAll(Specification<Drop> spec, Pageable pageable) {
+    final Page<Drop> drops = dropRepository.findAll(spec, pageable);
+    drops.forEach(
+        drop -> {
+          Stream.ofNullable(drop.getRepository())
+              .peek(Hibernate::initialize)
+              .map(Repository::getCreatedByUser)
+              .forEach(Hibernate::initialize);
+
+          Stream.of(drop.getImportPollableTask(), drop.getExportPollableTask())
+              .filter(Objects::nonNull)
+              .peek(Hibernate::initialize)
+              .map(PollableTask::getSubTasks)
+              .forEach(Hibernate::initialize);
+
+          Stream.ofNullable(drop.getTranslationKits())
+              .peek(Hibernate::initialize)
+              .flatMap(Collection::stream)
+              .filter(Objects::nonNull)
+              .map(TranslationKit::getLocale)
+              .forEach(Hibernate::initialize);
+
+          Stream.ofNullable(drop.getCreatedByUser()).forEach(Hibernate::initialize);
+        });
+    return drops;
   }
 }

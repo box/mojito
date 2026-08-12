@@ -17,6 +17,7 @@ import com.box.sdk.BoxAPIException;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxSharedLink;
 import com.box.sdk.BoxUser;
+import com.box.sdk.sharedlink.BoxSharedLinkRequest;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +108,11 @@ public class BoxSDKServiceConfigEntityService {
             boxSDKServiceConfig.getPublicKeyId(),
             boxSDKServiceConfig.getPrivateKey(),
             boxSDKServiceConfig.getPrivateKeyPassword(),
-            boxSDKServiceConfig.getEnterpriseId());
+            boxSDKServiceConfig.getEnterpriseId(),
+            boxSDKServiceConfig.getProxyHost(),
+            boxSDKServiceConfig.getProxyPort(),
+            boxSDKServiceConfig.getProxyUser(),
+            boxSDKServiceConfig.getProxyPassword());
 
     boxSDKServiceConfig.setAppUserId(appUser.getID());
 
@@ -252,7 +257,8 @@ public class BoxSDKServiceConfigEntityService {
       BoxAPIConnection apiConnection = boxAPIConnectionProvider.getConnection();
       BoxFolder mojitoFolder = new BoxFolder(apiConnection, boxSDKServiceConfig.getRootFolderId());
       BoxSharedLink sharedLink =
-          mojitoFolder.createSharedLink(BoxSharedLink.Access.COLLABORATORS, null, null);
+          mojitoFolder.createSharedLink(
+              new BoxSharedLinkRequest().access(BoxSharedLink.Access.COLLABORATORS));
 
       boxSDKServiceConfig.setRootFolderUrl(sharedLink.getURL());
       boxSDKServiceConfig.setValidated(true);

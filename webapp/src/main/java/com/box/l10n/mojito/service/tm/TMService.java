@@ -41,13 +41,15 @@ import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
-import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.DocumentIntegrityCheckStep;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
@@ -887,11 +889,14 @@ public class TMService {
     logger.debug("Configuring pipeline for localized XLIFF processing");
 
     IPipelineDriver driver = new PipelineDriver();
+
+    driver.addStep(new DocumentIntegrityCheckStep());
+
     driver.addStep(new RawDocumentToFilterEventsStep(new XLIFFFilter()));
 
+    driver.addStep(new TextUnitIntegrityCheckStep());
+
     driver.addStep(getConfiguredQualityStep());
-    IntegrityCheckStep integrityCheckStep = new IntegrityCheckStep();
-    driver.addStep(integrityCheckStep);
 
     abstractImportTranslationsStep.setImportWithStatus(importStatus);
     driver.addStep(abstractImportTranslationsStep);
@@ -1094,10 +1099,21 @@ public class TMService {
   public String generatePseudoLocalized(
       Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride)
       throws UnsupportedAssetFilterTypeException {
+    return generatePseudoLocalized(
+        asset, content, filterConfigIdOverride, PseudoLocalization.SubstituteType.RANDOM);
+  }
+
+  public String generatePseudoLocalized(
+      Asset asset,
+      String content,
+      FilterConfigIdOverride filterConfigIdOverride,
+      PseudoLocalization.SubstituteType substituteType)
+      throws UnsupportedAssetFilterTypeException {
 
     String bcp47tag = "en-x-psaccent";
 
-    BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep(asset);
+    BasePipelineStep pseudoLocalizedStep =
+        (BasePipelineStep) new PseudoLocalizeStep(asset, substituteType);
     return generateLocalizedBase(
         asset, content, filterConfigIdOverride, null, pseudoLocalizedStep, bcp47tag);
   }

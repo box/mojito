@@ -2,11 +2,9 @@ package com.box.l10n.mojito.boxsdk;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.box.sdk.BoxAPIConnection;
-import com.box.sdk.BoxDeveloperEditionAPIConnection;
-import com.box.sdk.IAccessTokenCache;
-import com.box.sdk.InMemoryLRUAccessTokenCache;
-import com.box.sdk.JWTEncryptionPreferences;
+import com.box.sdk.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,13 +52,37 @@ public class BoxAPIConnectionProvider {
    */
   protected BoxAPIConnection createBoxAPIConnection() throws BoxSDKServiceException {
     logger.debug("Getting a new App User Connection using the current config");
+    BoxDeveloperEditionAPIConnection connection = createUserConnection();
 
-    BoxSDKServiceConfig boxSDKServiceConfig = boxSDKServiceConfigProvider.getConfig();
+    if (boxSDKServiceConfig.getProxyHost() != null && boxSDKServiceConfig.getProxyPort() != null) {
+      logger.debug("Setting proxy for Box API connection");
+      Proxy proxy =
+          new Proxy(
+              Proxy.Type.HTTP,
+              new InetSocketAddress(
+                  boxSDKServiceConfig.getProxyHost(), boxSDKServiceConfig.getProxyPort()));
+      connection.setProxy(proxy);
+
+      if (boxSDKServiceConfig.getProxyUser() != null
+          && boxSDKServiceConfig.getProxyPassword() != null) {
+        logger.debug("Setting proxy basic auth for Box API connection");
+        connection.setProxyBasicAuthentication(
+            boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
+      }
+    }
+
+    connection.authenticate();
+
+    return connection;
+  }
+
+  protected BoxDeveloperEditionAPIConnection createUserConnection() {
     JWTEncryptionPreferences encryptionPref =
         boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
 
-    return BoxDeveloperEditionAPIConnection.getAppUserConnection(
+    return new BoxDeveloperEditionAPIConnection(
         boxSDKServiceConfig.getAppUserId(),
+        DeveloperEditionEntityType.USER,
         boxSDKServiceConfig.getClientId(),
         boxSDKServiceConfig.getClientSecret(),
         encryptionPref,

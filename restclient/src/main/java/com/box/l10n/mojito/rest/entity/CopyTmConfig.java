@@ -21,6 +21,10 @@ public class CopyTmConfig {
 
   Mode mode = Mode.MD5;
 
+  PreserveStatusMode preserveStatusMode = PreserveStatusMode.PRECISION;
+
+  OverwriteMode overwriteMode = OverwriteMode.ALL;
+
   PollableTask pollableTask;
 
   @JsonProperty
@@ -101,13 +105,74 @@ public class CopyTmConfig {
     this.targetBranchName = targetBranchName;
   }
 
+  public PreserveStatusMode getPreserveStatusMode() {
+    return preserveStatusMode;
+  }
+
+  public void setPreserveStatusMode(PreserveStatusMode preserveStatusMode) {
+    this.preserveStatusMode = preserveStatusMode;
+  }
+
+  public OverwriteMode getOverwriteMode() {
+    return overwriteMode;
+  }
+
+  public void setOverwriteMode(OverwriteMode overwriteMode) {
+    this.overwriteMode = overwriteMode;
+  }
+
   /** Matching mode for leveraging */
   public enum Mode {
     /** MD5 match means the message id, comment and content must be the same */
     MD5,
     /** Exact match means the content must be the same (message id and comment are not checked). */
     EXACT,
+    /**
+     * Name match means the resource name must be the same (content and comment are not checked).
+     */
+    NAME,
     /** Copy based on a map of source to target tmTextUnitId */
     TUIDS
+  }
+
+  /**
+   * Controls whether to keep the leveraged translation's status or downgrade it to
+   * TRANSLATION_NEEDED.
+   */
+  public enum PreserveStatusMode {
+    /**
+     * Preserve status based on the match precision (ID, content). Lowest risk of carrying over
+     * incorrect statuses.
+     */
+    PRECISION,
+    /**
+     * Preserve status when the match is unambiguous (single source text unit matched). Medium risk
+     * — trusts all unique matches regardless of their precision.
+     */
+    UNIQUE,
+    /**
+     * Always preserve the source status. Highest risk — ambiguous matches may copy an arbitrarily
+     * chosen translation at its original (possibly APPROVED) status.
+     */
+    ALL
+  }
+
+  /**
+   * Controls when existing translations may be overwritten during leveraging, based on a comparison
+   * of the candidate's original status against the target locale's current status.
+   */
+  public enum OverwriteMode {
+    /** Overwrite regardless of the current status. */
+    ALL,
+    /** Never overwrite; only leverage into locales that have no translation at all. */
+    NONE,
+    /**
+     * Leverage into locales that have no translation or whose current status is TRANSLATION_NEEDED.
+     */
+    FOR_TRANSLATION,
+    /** Overwrite only when the candidate's original status is strictly higher. */
+    HIGHER_STATUS,
+    /** Overwrite when the candidate's original status is higher or equal. */
+    HIGHER_OR_EQUAL_STATUS
   }
 }

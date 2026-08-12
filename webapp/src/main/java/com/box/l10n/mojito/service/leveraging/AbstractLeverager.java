@@ -5,14 +5,19 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.OverwriteMode;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +40,8 @@ public abstract class AbstractLeverager {
   @Autowired TMService tmService;
 
   @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
+
+  @Autowired TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
   /**
    * Gets {@link TextUnitDTO}s that matches the {@link TMTextUnit} based on different criteria
@@ -82,8 +89,22 @@ public abstract class AbstractLeverager {
    * @param assetId
    */
   public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
+    performLeveragingFor(
+        tmTextUnits, sourceTmId, assetId, PreserveStatusMode.PRECISION, OverwriteMode.ALL);
+  }
 
-    logger.debug("Perform leveraging: {}", getType());
+  public void performLeveragingFor(
+      List<TMTextUnit> tmTextUnits,
+      Long sourceTmId,
+      Long assetId,
+      PreserveStatusMode preserveStatusMode,
+      OverwriteMode overwriteMode) {
+
+    logger.debug(
+        "Perform leveraging: {}, preserveStatusMode: {}, overwriteMode: {}",
+        getType(),
+        preserveStatusMode,
+        overwriteMode);
 
     for (Iterator<TMTextUnit> tmTextUnitsIterator = tmTextUnits.iterator();
         tmTextUnitsIterator.hasNext(); ) {
@@ -110,14 +131,28 @@ public abstract class AbstractLeverager {
             textUnitDTOsForLeveragingSize == textUnitDTOsForLeveraging.size();
 
         logger.debug("Determine if re-translation is needed for the strings that will be copied");
-        boolean translationNeeded = isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
+        boolean translationNeeded =
+            computeTranslationNeeded(preserveStatusMode, uniqueTMTextUnitMatched);
 
         addLeveragedTranslations(
-            tmTextUnit, textUnitDTOsForLeveraging, translationNeeded, uniqueTMTextUnitMatched);
+            tmTextUnit,
+            textUnitDTOsForLeveraging,
+            translationNeeded,
+            uniqueTMTextUnitMatched,
+            overwriteMode);
       } else {
         logger.debug("No Match found for this TMTextUnit with name: {}", tmTextUnit.getName());
       }
     }
+  }
+
+  boolean computeTranslationNeeded(
+      PreserveStatusMode preserveStatusMode, boolean uniqueTMTextUnitMatched) {
+    return switch (preserveStatusMode) {
+      case ALL -> false;
+      case UNIQUE -> !uniqueTMTextUnitMatched;
+      case PRECISION -> isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
+    };
   }
 
   /**
@@ -135,11 +170,26 @@ public abstract class AbstractLeverager {
       TMTextUnit tmTextUnit,
       List<TextUnitDTO> translations,
       boolean translationNeeded,
-      boolean uniqueTMTextUnitMatched) {
+      boolean uniqueTMTextUnitMatched,
+      OverwriteMode overwriteMode) {
 
     logger.debug("Add leveraged translations in tmTextUnit, id: {}", tmTextUnit.getId());
 
+    Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId =
+        buildCurrentStatusByLocaleId(tmTextUnit, overwriteMode);
+
     for (TextUnitDTO translation : translations) {
+      if (!shouldLeverageLocale(
+          currentStatusByLocaleId,
+          translation.getLocaleId(),
+          translation.getStatus(),
+          overwriteMode)) {
+        logger.debug(
+            "Skipping locale {} for tmTextUnit {} due to status overwrite mode",
+            translation.getLocaleId(),
+            tmTextUnit.getId());
+        continue;
+      }
 
       AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult =
           tmService.addTMTextUnitCurrentVariantWithResult(
@@ -172,6 +222,36 @@ public abstract class AbstractLeverager {
 
       logger.debug("Added leveraged translation, id: {}", addTMTextUnitCurrentVariant.getId());
     }
+  }
+
+  private Map<Long, TMTextUnitVariant.Status> buildCurrentStatusByLocaleId(
+      TMTextUnit tmTextUnit, OverwriteMode overwriteMode) {
+    if (overwriteMode == OverwriteMode.ALL) {
+      return Map.of();
+    }
+    return tmTextUnitCurrentVariantRepository.findByTmTextUnit_Id(tmTextUnit.getId()).stream()
+        .collect(
+            Collectors.toMap(
+                cv -> cv.getLocale().getId(),
+                cv -> cv.getTmTextUnitVariant().getStatus(),
+                (s1, s2) -> s1));
+  }
+
+  private boolean shouldLeverageLocale(
+      Map<Long, TMTextUnitVariant.Status> currentStatusByLocaleId,
+      Long localeId,
+      TMTextUnitVariant.Status candidateStatus,
+      OverwriteMode overwriteMode) {
+    TMTextUnitVariant.Status currentStatus = currentStatusByLocaleId.get(localeId);
+    return switch (overwriteMode) {
+      case NONE -> currentStatus == null;
+      case FOR_TRANSLATION ->
+          currentStatus == null || currentStatus == TMTextUnitVariant.Status.TRANSLATION_NEEDED;
+      case HIGHER_STATUS -> currentStatus == null || candidateStatus.isHigherThan(currentStatus);
+      case HIGHER_OR_EQUAL_STATUS ->
+          currentStatus == null || candidateStatus.isHigherOrEqualTo(currentStatus);
+      case ALL -> true;
+    };
   }
 
   private String getLeverageComment(TextUnitDTO translation, boolean uniqueTMTextUnitMatched) {

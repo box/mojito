@@ -209,13 +209,15 @@ public class AssetClient extends BaseClient {
    * @param filterConfigIdOverride Optional, can be null. Allows to specify a specific Okapi filter
    *     to use to process the asset
    * @param filterOptions
+   * @param substituteType Allows to choose
    * @return the pseudoloocalized asset content
    */
   public LocalizedAssetBody getPseudoLocalizedAssetForContent(
       Long assetId,
       String content,
       FilterConfigIdOverride filterConfigIdOverride,
-      List<String> filterOptions) {
+      List<String> filterOptions,
+      LocalizedAssetBody.SubstituteType substituteType) {
 
     UriComponentsBuilder uriBuilder =
         UriComponentsBuilder.fromPath(getBasePathForResource(assetId, "pseudo"));
@@ -225,6 +227,7 @@ public class AssetClient extends BaseClient {
     localizedAssetBody.setOutputBcp47tag(OUTPUT_BCP47_TAG);
     localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
     localizedAssetBody.setFilterOptions(filterOptions);
+    localizedAssetBody.setSubstituteType(substituteType);
 
     return authenticatedRestTemplate.postForObject(
         uriBuilder.toUriString(), localizedAssetBody, LocalizedAssetBody.class);

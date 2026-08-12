@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.leveraging;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
@@ -19,8 +18,6 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -51,11 +48,7 @@ public class LeveragingService {
 
   @Autowired LeveragerByNameForSourceLeveraging leveragerByNameForSourceLeveraging;
 
-  @Autowired LeveragerByMd5 leveragerByMd5;
-
-  @Autowired LeveragerByContent leveragerByContent;
-
-  @Autowired LeveragerByNameAndContent leveragerByNameAndContent;
+  @Autowired CopyTmLeverager copyTmLeverager;
 
   @Autowired RepositoryRepository repositoryRepository;
 
@@ -148,26 +141,17 @@ public class LeveragingService {
 
     List<TMTextUnit> textUnitsForCopyTM =
         getTextUnitsForCopyTM(
-            targetRepository,
-            copyTmConfig.getTargetAssetId(),
-            copyTmConfig.getNameRegex(),
-            copyTmConfig.getTargetBranchName());
+            targetRepository, copyTmConfig.getTargetAssetId(), copyTmConfig.getTargetBranchName());
 
-    if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
-      copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
-    } else if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
-      leveragerByMd5.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
-    } else {
-      logger.debug(
-          "First perform leveraging by name and content (to give priority to string with same tags");
-      leveragerByNameAndContent.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+    filterTextUnitsByNameRegex(textUnitsForCopyTM, copyTmConfig.getNameRegex());
 
-      logger.debug("Now, perform leveraging only on the name");
-      leveragerByContent.performLeveragingFor(
-          textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
-    }
+    copyTmLeverager.performLeveragingFor(
+        textUnitsForCopyTM,
+        sourceRepository.getTm().getId(),
+        copyTmConfig.getSourceAssetId(),
+        copyTmConfig.getMode(),
+        copyTmConfig.getPreserveStatusMode(),
+        copyTmConfig.getOverwriteMode());
   }
 
   void copyTranslationBetweenTextUnits(Map<Long, Long> sourceToTargetTmTextUnitId) {
@@ -222,39 +206,31 @@ public class LeveragingService {
   }
 
   List<TMTextUnit> getTextUnitsForCopyTM(
-      Repository targetRepository, Long targetAssetId, String nameRegex, String branchName) {
+      Repository targetRepository, Long targetAssetId, String branchName) {
     logger.debug("Get TmTextUnit that must be processed");
-    List<TMTextUnit> tmTextUnits;
 
     if (targetAssetId != null) {
       logger.debug("Process a single asset");
-      tmTextUnits = tmTextUnitRepository.findByAssetId(targetAssetId);
+      return tmTextUnitRepository.findByAssetId(targetAssetId);
     } else if (branchName != null) {
       logger.debug("Process a branch");
       List<Long> tmTextUnitIdsInBranch =
           assetTextUnitToTMTextUnitRepository.findByBranchName(branchName);
-      tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
+      return tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
     } else {
       logger.debug("Process the whole TM");
-      tmTextUnits = tmTextUnitRepository.findByTm_id(targetRepository.getTm().getId());
+      return tmTextUnitRepository.findByTm_id(targetRepository.getTm().getId());
     }
-    removeTmTextUnitsIfNameMatches(tmTextUnits, nameRegex);
-    return tmTextUnits;
   }
 
-  void removeTmTextUnitsIfNameMatches(List<TMTextUnit> tmTextUnits, String tmTextUnitNameRegex) {
-
-    if (tmTextUnitNameRegex != null) {
-      final Pattern pattern = Pattern.compile(tmTextUnitNameRegex);
-
-      Iterables.removeIf(
-          tmTextUnits,
-          new Predicate<TMTextUnit>() {
-            @Override
-            public boolean apply(TMTextUnit tmTextUnit) {
-              return !pattern.matcher(tmTextUnit.getName()).matches();
-            }
-          });
+  void filterTextUnitsByNameRegex(List<TMTextUnit> tmTextUnits, String nameRegex) {
+    if (nameRegex == null) {
+      return;
     }
+
+    logger.debug("Filtering target text units by name regex: {}", nameRegex);
+
+    Pattern pattern = Pattern.compile(nameRegex);
+    tmTextUnits.removeIf(tu -> !pattern.matcher(tu.getName()).matches());
   }
 }

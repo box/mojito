@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.openai;
 
-import java.net.http.HttpClient;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,7 +10,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OpenAIClientPool {
+public class OpenAIClientPool implements java.io.Closeable {
 
   static Logger logger = LoggerFactory.getLogger(OpenAIClientPool.class);
 
@@ -32,6 +32,48 @@ public class OpenAIClientPool {
       int numberOfParallelRequestPerClient,
       int sizeOfAsyncProcessors,
       String apiKey) {
+    this(
+        numberOfClients,
+        numberOfParallelRequestPerClient,
+        sizeOfAsyncProcessors,
+        apiKey,
+        null,
+        null,
+        null,
+        null);
+  }
+
+  public OpenAIClientPool(
+      int numberOfClients,
+      int numberOfParallelRequestPerClient,
+      int sizeOfAsyncProcessors,
+      String apiKey,
+      String proxyHost,
+      Integer proxyPort,
+      String proxyUser,
+      String proxyPassword) {
+    this(
+        numberOfClients,
+        numberOfParallelRequestPerClient,
+        sizeOfAsyncProcessors,
+        apiKey,
+        proxyHost,
+        proxyPort,
+        proxyUser,
+        proxyPassword,
+        null);
+  }
+
+  public OpenAIClientPool(
+      int numberOfClients,
+      int numberOfParallelRequestPerClient,
+      int sizeOfAsyncProcessors,
+      String apiKey,
+      String proxyHost,
+      Integer proxyPort,
+      String proxyUser,
+      String proxyPassword,
+      List<String> proxyPreferredAuthSchemes) {
     ExecutorService asyncExecutor = Executors.newWorkStealingPool(sizeOfAsyncProcessors);
     this.numberOfClients = numberOfClients;
     this.openAIClientWithSemaphores = new OpenAIClientWithSemaphore[numberOfClients];
@@ -41,7 +83,11 @@ public class OpenAIClientPool {
               OpenAIClient.builder()
                   .apiKey(apiKey)
                   .asyncExecutor(asyncExecutor)
-                  .httpClient(HttpClient.newBuilder().executor(asyncExecutor).build())
+                  .proxyHost(proxyHost)
+                  .proxyPort(proxyPort)
+                  .proxyUser(proxyUser)
+                  .proxyPassword(proxyPassword)
+                  .proxyPreferredAuthSchemes(proxyPreferredAuthSchemes)
                   .build(),
               new Semaphore(numberOfParallelRequestPerClient));
     }
@@ -80,6 +126,13 @@ public class OpenAIClientPool {
         Thread.currentThread().interrupt();
         throw new RuntimeException("Can't submit task to the OpenAIClientPool", e);
       }
+    }
+  }
+
+  @Override
+  public void close() throws java.io.IOException {
+    for (OpenAIClientWithSemaphore entry : openAIClientWithSemaphores) {
+      entry.openAIClient().close();
     }
   }
 

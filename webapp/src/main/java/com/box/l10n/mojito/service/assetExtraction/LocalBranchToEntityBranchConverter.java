@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class LocalBranchToEntityBranchConverter {
 
   public static final String NULL_BRANCH_TEXT_PLACEHOLDER = "$$MOJITO_DEFAULT$$";
-  public static final ZonedDateTime NULL_BRANCH_DATE_PLACEHODLER =
+  public static final ZonedDateTime NULL_BRANCH_DATE_PLACEHOLDER =
       JSR310Migration.newDateTimeCtorAtEpoch();
 
   /** logger */
@@ -31,16 +31,27 @@ public class LocalBranchToEntityBranchConverter {
         : entityBranchNameToLocalBranchName(branch.getName());
   }
 
+  public ZonedDateTime entityBranchCreatedDateToLocalBranchCreatedDate(
+      ZonedDateTime localBranchCreatedDate) {
+    return localBranchCreatedDate == null ? NULL_BRANCH_DATE_PLACEHOLDER : localBranchCreatedDate;
+  }
+
+  public ZonedDateTime branchEntityToLocalCreatedDate(com.box.l10n.mojito.entity.Branch branch) {
+    return branch == null
+        ? NULL_BRANCH_DATE_PLACEHOLDER
+        : entityBranchCreatedDateToLocalBranchCreatedDate(branch.getCreatedDate());
+  }
+
   public Branch convertEntityBranchToLocaleBranch(com.box.l10n.mojito.entity.Branch b) {
     Branch.Builder builder = Branch.builder();
 
     if (b == null) {
       // This currently can be null in test, shouldn't be in real case
-      builder.name(NULL_BRANCH_TEXT_PLACEHOLDER).createdAt(NULL_BRANCH_DATE_PLACEHODLER);
+      builder.name(NULL_BRANCH_TEXT_PLACEHOLDER).createdAt(NULL_BRANCH_DATE_PLACEHOLDER);
     } else {
       String branchName = b.getName() == null ? NULL_BRANCH_TEXT_PLACEHOLDER : b.getName();
       ZonedDateTime createdDate =
-          b.getCreatedDate() != null ? b.getCreatedDate() : NULL_BRANCH_DATE_PLACEHODLER;
+          b.getCreatedDate() != null ? b.getCreatedDate() : NULL_BRANCH_DATE_PLACEHOLDER;
       builder.name(branchName).createdAt(createdDate);
     }
 

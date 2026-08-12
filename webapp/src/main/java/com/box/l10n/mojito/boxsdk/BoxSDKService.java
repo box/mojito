@@ -7,6 +7,7 @@ import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
 import com.box.sdk.BoxSharedLink;
+import com.box.sdk.sharedlink.BoxSharedLinkRequest;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.io.ByteArrayOutputStream;
@@ -82,7 +83,7 @@ public class BoxSDKService {
     BoxFolder createFolder = createFolder(folderName, parentId);
 
     try {
-      createFolder.createSharedLink(BoxSharedLink.Access.OPEN, null, null);
+      createFolder.createSharedLink(new BoxSharedLinkRequest().access(BoxSharedLink.Access.OPEN));
       return createFolder;
     } catch (BoxAPIException e) {
       throw new BoxSDKServiceException(
@@ -151,7 +152,7 @@ public class BoxSDKService {
         logger.debug("Uploaded new file, id: " + uploadFile.getID() + ", name: " + filename);
       } else {
         logger.debug("Upload a new version of file named: {} to folder: {}", filename, folderId);
-        uploadFile.uploadVersion(IOUtils.toInputStream(filecontent, StandardCharsets.UTF_8));
+        uploadFile.uploadNewVersion(IOUtils.toInputStream(filecontent, StandardCharsets.UTF_8));
 
         logger.debug(
             "Uploaded new version of file, id: " + uploadFile.getID() + ", name: " + filename);
