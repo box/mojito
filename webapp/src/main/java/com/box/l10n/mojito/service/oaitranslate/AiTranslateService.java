@@ -202,9 +202,16 @@ public class AiTranslateService {
       boolean dryRun,
       Integer timeoutSeconds) {}
 
-  public PollableFuture<Void> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
+  /**
+   * Result of an AI translate job. {@code hasMore} is true when at least one locale had more
+   * matching text units than {@link AiTranslateInput#sourceTextMaxCountPerLocale()} at selection
+   * time (so another run may still have work).
+   */
+  public record AiTranslateOutput(boolean hasMore, Map<String, Boolean> hasMoreByLocale) {}
 
-    QuartzJobInfo<AiTranslateInput, Void> quartzJobInfo =
+  public PollableFuture<AiTranslateOutput> aiTranslateAsync(AiTranslateInput aiTranslateInput) {
+
+    QuartzJobInfo<AiTranslateInput, AiTranslateOutput> quartzJobInfo =
         QuartzJobInfo.newBuilder(AiTranslateJob.class)
             .withInlineInput(false)
             .withInput(aiTranslateInput)
@@ -269,12 +276,12 @@ public class AiTranslateService {
     return groups;
   }
 
-  public void aiTranslate(AiTranslateInput aiTranslateInput, PollableTask currentTask)
+  public AiTranslateOutput aiTranslate(AiTranslateInput aiTranslateInput, PollableTask currentTask)
       throws AiTranslateException {
     if (aiTranslateInput.useBatch()) {
-      aiTranslateBatch(aiTranslateInput, currentTask);
+      return aiTranslateBatch(aiTranslateInput, currentTask);
     } else {
-      aiTranslateNoBatch(aiTranslateInput, currentTask);
+      return aiTranslateNoBatch(aiTranslateInput, currentTask);
     }
   }
 
@@ -293,7 +300,8 @@ public class AiTranslateService {
       TextUnitDTO textUnitDTO,
       CompletableFuture<ResponsesResponse> responsesResponseCompletableFuture) {}
 
-  public void aiTranslateNoBatch(AiTranslateInput aiTranslateInput, PollableTask currentTask) {
+  public AiTranslateOutput aiTranslateNoBatch(
+      AiTranslateInput aiTranslateInput, PollableTask currentTask) {
     Repository repository = getRepository(aiTranslateInput);
 
     logger.info("Start AI Translation (no batch) for repository: {}", repository.getName());
@@ -307,6 +315,7 @@ public class AiTranslateService {
 
     Stopwatch stopwatchForTotal = Stopwatch.createStarted();
 
+    Map<String, Boolean> hasMoreByLocale = new LinkedHashMap<>();
     List<String> reportFilenames = new ArrayList<>();
     for (RepositoryLocale repositoryLocale : filteredRepositoryLocales) {
       String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
@@ -317,13 +326,16 @@ public class AiTranslateService {
 
       Stopwatch stopwatchForLocale = Stopwatch.createStarted();
 
-      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
+      TextUnitDTOSelection textUnitDTOSelection =
           getTextUnitDTOS(
               repository,
               aiTranslateInput.sourceTextMaxCountPerLocale(),
               aiTranslateInput.tmTextUnitIds(),
               repositoryLocale,
               StatusFilter.valueOf(aiTranslateInput.statusFilter()));
+      hasMoreByLocale.put(bcp47Tag, textUnitDTOSelection.hasMore());
+      List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
+          textUnitDTOSelection.textUnits();
 
       if (textUnitDTOWithVariantCommentsList.isEmpty()) {
         logger.debug("Nothing to translate for locale: {}", bcp47Tag);
@@ -630,6 +642,9 @@ public class AiTranslateService {
         "Done with AI Translation (no batch) for repository: {}, total time: {}",
         repository.getName(),
         stopwatchForTotal);
+
+    boolean hasMore = hasMoreByLocale.values().stream().anyMatch(Boolean::booleanValue);
+    return new AiTranslateOutput(hasMore, hasMoreByLocale);
   }
 
   void putReportContent(PollableTask currentTask, List<String> reportFilenames) {
@@ -775,12 +790,14 @@ public class AiTranslateService {
     return cause instanceof IOException || cause instanceof TimeoutException;
   }
 
-  public void aiTranslateBatch(AiTranslateInput aiTranslateInput, PollableTask currentTask)
-      throws AiTranslateException {
+  public AiTranslateOutput aiTranslateBatch(
+      AiTranslateInput aiTranslateInput, PollableTask currentTask) throws AiTranslateException {
 
     Repository repository = getRepository(aiTranslateInput);
 
     logger.debug("Start AI Translation for repository: {}", repository.getName());
+
+    Map<String, Boolean> hasMoreByLocale = new LinkedHashMap<>();
 
     try {
 
@@ -798,8 +815,9 @@ public class AiTranslateService {
               RelatedStringsProvider.Type.fromString(aiTranslateInput.relatedStringsType()));
 
       for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale) {
+        String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
         try {
-          CreateBatchResponse createBatchResponse =
+          CreateBatchResult createBatchResult =
               createBatchForRepositoryLocale(
                   repositoryLocale,
                   repository,
@@ -819,17 +837,19 @@ public class AiTranslateService {
                   aiTranslateInput.glossaryTermCaseSensitive(),
                   aiTranslateInput.glossaryOnlyMatchedTextUnits());
 
-          if (createBatchResponse != null) {
-            createdBatches.add(createBatchResponse);
+          hasMoreByLocale.put(bcp47Tag, createBatchResult.hasMore());
+
+          if (createBatchResult.createBatchResponse() != null) {
+            createdBatches.add(createBatchResult.createBatchResponse());
           } else {
-            skippedLocales.add(repositoryLocale.getLocale().getBcp47Tag());
+            skippedLocales.add(bcp47Tag);
           }
         } catch (Throwable t) {
           String errorMessage =
-              "Can't create batch for locale: %s. Error: %s"
-                  .formatted(repositoryLocale.getLocale().getBcp47Tag(), t.getMessage());
+              "Can't create batch for locale: %s. Error: %s".formatted(bcp47Tag, t.getMessage());
           logger.error(errorMessage, t);
           batchCreationErrors.add(errorMessage);
+          hasMoreByLocale.putIfAbsent(bcp47Tag, false);
         }
       }
 
@@ -857,6 +877,9 @@ public class AiTranslateService {
           openAIClientResponseException);
       throw new AiTranslateException(openAIClientResponseException);
     }
+
+    boolean hasMore = hasMoreByLocale.values().stream().anyMatch(Boolean::booleanValue);
+    return new AiTranslateOutput(hasMore, hasMoreByLocale);
   }
 
   private Set<RepositoryLocale> getFilteredRepositoryLocales(
@@ -1064,7 +1087,7 @@ public class AiTranslateService {
     return new PollableFutureTaskResult<>();
   }
 
-  CreateBatchResponse createBatchForRepositoryLocale(
+  CreateBatchResult createBatchForRepositoryLocale(
       RepositoryLocale repositoryLocale,
       Repository repository,
       int sourceTextMaxCountPerLocale,
@@ -1083,9 +1106,11 @@ public class AiTranslateService {
       boolean glossaryTermCaseSensitive,
       boolean glossaryOnlyMatchedTextUnits) {
 
-    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
+    TextUnitDTOSelection textUnitDTOSelection =
         getTextUnitDTOS(
             repository, sourceTextMaxCountPerLocale, tmTextUnitIds, repositoryLocale, statusFilter);
+    List<TextUnitDTOWithVariantComments> textUnitDTOWithVariantCommentsList =
+        textUnitDTOSelection.textUnits();
 
     GlossaryTrie glossaryTrie =
         getGlossaryTrieForLocale(
@@ -1137,14 +1162,24 @@ public class AiTranslateService {
     }
 
     logger.info(
-        "Created batch for locale: {} with {} text units",
+        "Created batch for locale: {} with {} text units (hasMore={})",
         repositoryLocale.getLocale().getBcp47Tag(),
-        textUnitDTOWithVariantCommentsList.size());
+        textUnitDTOWithVariantCommentsList.size(),
+        textUnitDTOSelection.hasMore());
 
-    return createBatchResponse;
+    return new CreateBatchResult(createBatchResponse, textUnitDTOSelection.hasMore());
   }
 
-  private List<TextUnitDTOWithVariantComments> getTextUnitDTOS(
+  record CreateBatchResult(CreateBatchResponse createBatchResponse, boolean hasMore) {}
+
+  record TextUnitDTOSelection(List<TextUnitDTOWithVariantComments> textUnits, boolean hasMore) {}
+
+  /**
+   * Selects text units for AI translate. When {@code tmTextUnitIds} is unset, requests one more
+   * than {@code sourceTextMaxCountPerLocale} so {@link TextUnitDTOSelection#hasMore()} reflects
+   * whether another run may still have work for this locale.
+   */
+  private TextUnitDTOSelection getTextUnitDTOS(
       Repository repository,
       int sourceTextMaxCountPerLocale,
       List<Long> tmTextUnitIds,
@@ -1161,6 +1196,7 @@ public class AiTranslateService {
     textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
     textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
 
+    boolean hasMore = false;
     if (tmTextUnitIds != null) {
       logger.debug(
           "Using tmTextUnitIds: {} for ai translate repository: {}",
@@ -1168,10 +1204,17 @@ public class AiTranslateService {
           repository.getName());
       textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
     } else {
-      textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale);
+      // Fetch one extra to detect truncation without a separate count query.
+      textUnitSearcherParameters.setLimit(sourceTextMaxCountPerLocale + 1);
     }
 
     List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+    if (tmTextUnitIds == null && textUnitDTOS.size() > sourceTextMaxCountPerLocale) {
+      hasMore = true;
+      textUnitDTOS = new ArrayList<>(textUnitDTOS.subList(0, sourceTextMaxCountPerLocale));
+    }
+
     List<Long> tmTextUnitVariantIds =
         textUnitDTOS.stream()
             .map(TextUnitDTO::getTmTextUnitVariantId)
@@ -1192,7 +1235,7 @@ public class AiTranslateService {
                         textUnitDTO, variantMap.get(textUnitDTO.getTmTextUnitVariantId())))
             .toList();
 
-    return textUnitDTOWithVariantComments;
+    return new TextUnitDTOSelection(textUnitDTOWithVariantComments, hasMore);
   }
 
   record TextUnitDTOWithVariantComments(

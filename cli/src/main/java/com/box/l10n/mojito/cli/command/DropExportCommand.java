@@ -13,7 +13,9 @@ import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
@@ -76,12 +78,14 @@ public class DropExportCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    consoleWriter
-        .newLine()
-        .a("Export a Drop from repository: ")
-        .fg(Color.CYAN)
-        .a(repositoryParam)
-        .println(2);
+    if (!isJsonOutput()) {
+      consoleWriter
+          .newLine()
+          .a("Export a Drop from repository: ")
+          .fg(Color.CYAN)
+          .a(repositoryParam)
+          .println(2);
+    }
 
     Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
@@ -89,27 +93,53 @@ public class DropExportCommand extends Command {
       throw new CommandException("--use-inheritance can only be used with --type REVIEW");
     }
 
+    List<String> locales = getBcp47TagsForExport(repository);
+
     if (typeParam == ExportDropConfig.Type.REVIEW || shouldCreateDrop(repository)) {
       ExportDropConfig exportDropConfig = new ExportDropConfig();
       exportDropConfig.setRepositoryId(repository.getId());
       exportDropConfig.setType(typeParam);
-      exportDropConfig.setBcp47Tags(getBcp47TagsForExport(repository));
+      exportDropConfig.setBcp47Tags(locales);
       exportDropConfig.setUseInheritance(useInheritance);
 
       exportDropConfig = dropClient.exportDrop(exportDropConfig);
 
-      consoleWriter.a("Drop id: ").fg(Color.CYAN).a(exportDropConfig.getDropId()).print();
+      if (!isJsonOutput()) {
+        consoleWriter.a("Drop id: ").fg(Color.CYAN).a(exportDropConfig.getDropId()).print();
+      }
 
       PollableTask pollableTask = exportDropConfig.getPollableTask();
       commandHelper.waitForPollableTask(pollableTask.getId());
 
-      consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+      if (isJsonOutput()) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("repository", repositoryParam);
+        data.put("created", true);
+        data.put("dropId", exportDropConfig.getDropId());
+        data.put("pollableTaskId", pollableTask.getId());
+        data.put("locales", locales);
+        if (typeParam != null) {
+          data.put("type", typeParam.name());
+        }
+        writeJsonSuccess(data);
+      } else {
+        consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+      }
     } else {
-      consoleWriter
-          .newLine()
-          .fg(Color.GREEN)
-          .a("Repository is already fully translated")
-          .println(2);
+      if (isJsonOutput()) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("repository", repositoryParam);
+        data.put("created", false);
+        data.put("locales", locales);
+        data.put("reason", "Repository is already fully translated");
+        writeJsonSuccess(data);
+      } else {
+        consoleWriter
+            .newLine()
+            .fg(Color.GREEN)
+            .a("Repository is already fully translated")
+            .println(2);
+      }
     }
   }
 

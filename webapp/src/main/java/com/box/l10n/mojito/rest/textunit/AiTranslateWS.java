@@ -41,7 +41,7 @@ public class AiTranslateWS {
   public ProtoAiTranslateResponse aiTranslate(
       @RequestBody ProtoAiTranslateRequest protoAiTranslateRequest) {
 
-    PollableFuture<Void> pollableFuture =
+    PollableFuture<AiTranslateService.AiTranslateOutput> pollableFuture =
         aiTranslateService.aiTranslateAsync(
             new AiTranslateInput(
                 protoAiTranslateRequest.repositoryName(),

@@ -43,6 +43,8 @@ public class L10nJCommander {
 
   @Autowired AuthenticatedRestTemplate authenticatedRestTemplate;
 
+  @Autowired JsonOutput jsonOutput;
+
   static final String PROGRAM_NAME = "mojito";
 
   boolean systemExitEnabled = true;
@@ -105,15 +107,18 @@ public class L10nJCommander {
     }
 
     String parsedCommand = jCommander.getParsedCommand();
+    boolean jsonRequested = isJsonRequested(args, parsedCommand);
 
     if (parsingException != null) {
       logger.debug("Parsing failed, show help");
-      printErrorMessage(parsingException.getMessage());
+      printErrorMessage(parsingException.getMessage(), parsedCommand, jsonRequested);
 
-      if (parsedCommand == null) {
-        usage();
-      } else {
-        usage(parsedCommand);
+      if (!jsonRequested) {
+        if (parsedCommand == null) {
+          usage();
+        } else {
+          usage(parsedCommand);
+        }
       }
       exitWithError();
     } else {
@@ -125,19 +130,23 @@ public class L10nJCommander {
         command.run();
       } catch (SessionAuthenticationException ae) {
         logger.debug("Exit with Invalid username or password", ae);
-        printErrorMessage("Invalid username or password");
+        printErrorMessage(
+            "Invalid username or password", command.getName(), command.isJsonOutput());
         exitWithError();
       } catch (CommandWithExitStatusException cwese) {
         logger.error("Exit with error for command: " + command.getName(), cwese);
+        if (command.isJsonOutput()) {
+          printErrorMessage(cwese.getMessage(), command.getName(), true);
+        }
         exitWithError(cwese.getExitCode());
       } catch (CommandException ce) {
-        printErrorMessage(ce.getMessage());
+        printErrorMessage(ce.getMessage(), command.getName(), command.isJsonOutput());
         logger.error("Exit with error for command: " + command.getName(), ce);
         exitWithError();
       } catch (ResourceAccessException rae) {
         String msg =
             "Is a server running on: " + authenticatedRestTemplate.getURIForResource("") + "?";
-        printErrorMessage(msg);
+        printErrorMessage(msg, command.getName(), command.isJsonOutput());
         logger.error(msg, rae);
         exitWithError();
       } catch (HttpClientErrorException | HttpServerErrorException e) {
@@ -148,17 +157,31 @@ public class L10nJCommander {
                 + ExceptionUtils.getStackTrace(e)
                 + "\n"
                 + e.getResponseBodyAsString();
-        printErrorMessage(msg);
+        printErrorMessage(msg, command.getName(), command.isJsonOutput());
         logger.error("Unexpected error", e);
         logger.error(e.getResponseBodyAsString());
         exitWithError();
       } catch (Throwable t) {
         String msg = "Unexpected error: " + t.getMessage() + "\n" + ExceptionUtils.getStackTrace(t);
-        printErrorMessage(msg);
+        printErrorMessage(msg, command.getName(), command.isJsonOutput());
         logger.error("Unexpected error", t);
         exitWithError();
       }
     }
+  }
+
+  /**
+   * Whether this run should emit JSON errors. Prefer the parsed command's flag; fall back to
+   * scanning argv (e.g. parse failures before the command object is fully usable).
+   */
+  boolean isJsonRequested(String[] args, String parsedCommand) {
+    if (parsedCommand != null) {
+      Command command = getCommand(parsedCommand);
+      if (command != null && command.isJsonOutput()) {
+        return true;
+      }
+    }
+    return Arrays.asList(args).contains(Command.JSON_LONG);
   }
 
   /** Display the usage in the appLogger (instead of System.out). */
@@ -249,12 +272,19 @@ public class L10nJCommander {
   }
 
   /**
-   * Prints the error message with ANSI escape codee.
+   * Prints the error message. In {@code --json} mode, emits a failure envelope on stdout; otherwise
+   * prints a human ANSI error on the console.
    *
    * @param errorMsg the error message
+   * @param commandName the command name (may be null)
+   * @param json whether to emit JSON
    */
-  private void printErrorMessage(String errorMsg) {
-    consoleWriter.newLine().fg(Ansi.Color.RED).a(errorMsg).println(2);
+  private void printErrorMessage(String errorMsg, String commandName, boolean json) {
+    if (json) {
+      jsonOutput.writeFailure(commandName, errorMsg);
+    } else {
+      consoleWriter.newLine().fg(Ansi.Color.RED).a(errorMsg).println(2);
+    }
   }
 
   public boolean isSystemExitEnabled() {

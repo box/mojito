@@ -68,17 +68,55 @@ public abstract class ProcessDropCommand extends Command {
 
     if (numberedAvailableDrops.isEmpty()) {
       // command should not error when no drops are available
-      consoleWriter.newLine().a("No drop available").println();
+      if (!isJsonOutput()) {
+        consoleWriter.newLine().a("No drop available").println();
+      }
       return Collections.emptyList();
     }
 
-    consoleWriter.newLine().a("Drops available").println();
-    displayAvailableDrops(numberedAvailableDrops);
+    if (!isJsonOutput()) {
+      consoleWriter.newLine().a("Drops available").println();
+      displayAvailableDrops(numberedAvailableDrops);
+    }
 
     if (Boolean.TRUE.equals(allFetched)) {
       return getAllFetchedDropIds(numberedAvailableDrops);
     }
+
+    // --json is non-interactive: listing only (caller uses --drop-id / --import-fetched to act)
+    if (isJsonOutput()) {
+      return Collections.emptyList();
+    }
+
     return getFromConsoleDropIds(numberedAvailableDrops);
+  }
+
+  /** Available drops for the repository, keyed by display number (1-based). */
+  protected Map<Long, Drop> fetchNumberedAvailableDrops() {
+    Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+    return getNumberedAvailableDrops(repository.getId());
+  }
+
+  /** Machine-readable view of a drop for {@code --json} output. */
+  protected Map<String, Object> toDropJson(Drop drop) {
+    Map<String, Object> dropJson = new LinkedHashMap<>();
+    dropJson.put("id", drop.getId());
+    dropJson.put("name", drop.getName());
+    dropJson.put("status", dropStatus(drop));
+    if (drop.getLastImportedDate() != null) {
+      dropJson.put("lastImportedDate", drop.getLastImportedDate().toString());
+    }
+    return dropJson;
+  }
+
+  protected String dropStatus(Drop drop) {
+    if (Boolean.TRUE.equals(drop.getCanceled())) {
+      return "CANCELED";
+    }
+    if (drop.getLastImportedDate() == null) {
+      return "NEW";
+    }
+    return "IMPORTED";
   }
 
   protected void displayAvailableDrops(Map<Long, Drop> numberedAvailableDrops) {

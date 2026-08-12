@@ -45,6 +45,40 @@ public class RepoCreateCommandTest extends CLITestBase {
     assertCreatedRepositoryHas6Locales(testRepoName, testDescription, false);
   }
 
+  @Test
+  public void testCreateTestRepoJsonOutput() throws Exception {
+    String testRepoName = testIdWatcher.getEntityName("repository-json");
+    String testDescription = testRepoName + " description";
+
+    List<String> args = new ArrayList<>();
+    args.add("repo-create");
+    args.add(Param.REPOSITORY_NAME_SHORT);
+    args.add(testRepoName);
+    args.add(Param.REPOSITORY_DESCRIPTION_SHORT);
+    args.add(testDescription);
+    args.add(Param.REPOSITORY_LOCALES_SHORT);
+    args.add("fr-FR");
+    args.add("hi-IN");
+    args.add(Command.JSON_LONG);
+
+    getL10nJCommander().run(args.toArray(new String[0]));
+
+    String output = outputCapture.toString();
+    assertTrue(
+        "Expected JSON successful=true in output:\n" + output,
+        output.contains("\"successful\" : true") || output.contains("\"successful\": true"));
+    assertTrue(output.contains("\"command\"") && output.contains("repo-create"));
+    assertTrue(output.contains(testRepoName));
+    assertTrue(output.contains("\"hi-IN\"") || output.contains("hi-IN"));
+    assertFalse(
+        "Human console message should be suppressed with --json",
+        output.contains("Create repository:"));
+
+    Repository repository = repositoryRepository.findByName(testRepoName);
+    assertNotNull(repository);
+    assertEquals(testDescription, repository.getDescription());
+  }
+
   protected void createTestRepoWith6Locales(
       String testRepoName, String testDescription, Boolean hasIntegrityChecker) throws Exception {
     logger.debug("Creating repo with name: {}", testRepoName);

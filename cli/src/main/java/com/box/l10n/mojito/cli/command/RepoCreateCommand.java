@@ -11,8 +11,12 @@ import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,13 +100,17 @@ public class RepoCreateCommand extends RepoCommand {
 
   @Override
   public void execute() throws CommandException {
-    consoleWriter.a("Create repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
+    boolean printHuman = !isJsonOutput();
+
+    if (printHuman) {
+      consoleWriter.a("Create repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
+    }
 
     try {
       Set<RepositoryLocale> repositoryLocales =
-          localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
+          localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, printHuman);
       Set<IntegrityChecker> integrityCheckers =
-          extractIntegrityCheckersFromInput(integrityCheckParam, true);
+          extractIntegrityCheckersFromInput(integrityCheckParam, printHuman);
 
       Locale sourceLocale = null;
 
@@ -118,14 +126,36 @@ public class RepoCreateCommand extends RepoCommand {
               repositoryLocales,
               integrityCheckers,
               checkSLA);
-      consoleWriter
-          .newLine()
-          .a("created --> repository id: ")
-          .fg(Ansi.Color.MAGENTA)
-          .a(repository.getId())
-          .println();
+
+      if (isJsonOutput()) {
+        writeJsonSuccess(toJsonData(repository));
+      } else {
+        consoleWriter
+            .newLine()
+            .a("created --> repository id: ")
+            .fg(Ansi.Color.MAGENTA)
+            .a(repository.getId())
+            .println();
+      }
     } catch (ParameterException | ResourceNotCreatedException | LocaleNotFoundException ex) {
       throw new CommandException(ex.getMessage(), ex);
     }
+  }
+
+  /** Payload under the shared {@code data} key for {@code --json} output. */
+  Map<String, Object> toJsonData(Repository repository) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    data.put("repo", repository.getName());
+    data.put("description", repository.getDescription());
+    data.put("id", repository.getId());
+    data.put(
+        "locales",
+        repository.getRepositoryLocales() == null
+            ? List.of()
+            : repository.getRepositoryLocales().stream()
+                .map(rl -> rl.getLocale().getBcp47Tag())
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList()));
+    return data;
   }
 }
