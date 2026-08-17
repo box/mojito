@@ -1,7 +1,24 @@
+/**
+ * Copyright 2026 Box, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { describe, expect, test } from "@jest/globals";
+import { readFileSync } from "node:fs";
 import type { CliRunResult, CliRunner } from "../src/cli-runner.js";
 import { MojitoCliError } from "../src/errors.js";
-import { MojitoCliClient } from "../src/mojito-client.js";
+import { MojitoCliClient, parseEncodedRepositoryLocale } from "../src/mojito-client.js";
 
 function mockRunner(
     handler: (argv: string[]) => Promise<CliRunResult> | CliRunResult,
@@ -21,6 +38,153 @@ function okJson(body: unknown): CliRunResult {
 }
 
 const config = { cliBinary: "mojito-prod", timeoutMs: 60_000 };
+
+describe("parseEncodedRepositoryLocale", () => {
+    test("fully translated locale with no parent", () => {
+        expect(parseEncodedRepositoryLocale("fr-FR")).toEqual({
+            locale: { bcp47Tag: "fr-FR" },
+            toBeFullyTranslated: true,
+        });
+    });
+
+    test("not fully translated locale with parentheses", () => {
+        expect(parseEncodedRepositoryLocale("(en-GB)")).toEqual({
+            locale: { bcp47Tag: "en-GB" },
+            toBeFullyTranslated: false,
+        });
+    });
+
+    test("inherits from parent and is not fully translated", () => {
+        expect(parseEncodedRepositoryLocale("(fr-CA)->fr-FR")).toEqual({
+            locale: { bcp47Tag: "fr-CA" },
+            toBeFullyTranslated: false,
+            parentLocale: {
+                locale: { bcp47Tag: "fr-FR" },
+            },
+        });
+    });
+
+    test("inherits from parent while remaining fully translated", () => {
+        expect(parseEncodedRepositoryLocale("fr-CA->fr-FR")).toEqual({
+            locale: { bcp47Tag: "fr-CA" },
+            toBeFullyTranslated: true,
+            parentLocale: {
+                locale: { bcp47Tag: "fr-FR" },
+            },
+        });
+    });
+
+    test("builds a multi-level parent chain", () => {
+        expect(parseEncodedRepositoryLocale("fr-CA->fr-FR->en-US")).toEqual({
+            locale: { bcp47Tag: "fr-CA" },
+            toBeFullyTranslated: true,
+            parentLocale: {
+                locale: { bcp47Tag: "fr-FR" },
+                parentLocale: {
+                    locale: { bcp47Tag: "en-US" },
+                },
+            },
+        });
+    });
+
+    test("parentheses on any segment mark the locale as not fully translated", () => {
+        expect(parseEncodedRepositoryLocale("fr-CA->(fr-FR)")).toEqual({
+            locale: { bcp47Tag: "fr-CA" },
+            toBeFullyTranslated: false,
+            parentLocale: {
+                locale: { bcp47Tag: "fr-FR" },
+            },
+        });
+    });
+
+    test("trims whitespace around segments and the arrow", () => {
+        expect(parseEncodedRepositoryLocale("  (fr-CA)  ->  fr-FR  ")).toEqual({
+            locale: { bcp47Tag: "fr-CA" },
+            toBeFullyTranslated: false,
+            parentLocale: {
+                locale: { bcp47Tag: "fr-FR" },
+            },
+        });
+    });
+
+    test("accepts simple language tags without region", () => {
+        expect(parseEncodedRepositoryLocale("ja")).toEqual({
+            locale: { bcp47Tag: "ja" },
+            toBeFullyTranslated: true,
+        });
+    });
+
+    test("throws on empty string", () => {
+        expect(() => parseEncodedRepositoryLocale("")).toThrow(MojitoCliError);
+        expect(() => parseEncodedRepositoryLocale("")).toThrow(/Invalid encoded repository locale/);
+    });
+
+    test("throws on whitespace-only string", () => {
+        expect(() => parseEncodedRepositoryLocale("   ")).toThrow(MojitoCliError);
+    });
+
+    test("throws when the child segment before -> is empty", () => {
+        expect(() => parseEncodedRepositoryLocale("->fr-FR")).toThrow(MojitoCliError);
+    });
+
+    test("unbalanced parentheses are treated as a literal bcp47 tag", () => {
+        expect(parseEncodedRepositoryLocale("(fr-FR")).toEqual({
+            locale: { bcp47Tag: "(fr-FR" },
+            toBeFullyTranslated: true,
+        });
+        expect(parseEncodedRepositoryLocale("fr-FR)")).toEqual({
+            locale: { bcp47Tag: "fr-FR)" },
+            toBeFullyTranslated: true,
+        });
+    });
+
+    test("nested parentheses strip only the outer pair", () => {
+        expect(parseEncodedRepositoryLocale("((fr-FR))")).toEqual({
+            locale: { bcp47Tag: "(fr-FR)" },
+            toBeFullyTranslated: false,
+        });
+    });
+
+    test("empty parent segment after -> becomes an empty-tag parent node", () => {
+        expect(parseEncodedRepositoryLocale("fr-FR->")).toEqual({
+            locale: { bcp47Tag: "fr-FR" },
+            toBeFullyTranslated: true,
+            parentLocale: {
+                locale: { bcp47Tag: "" },
+            },
+        });
+    });
+
+    test("parentheses at more than one level of a derived chain", () => {
+        expect(parseEncodedRepositoryLocale("(es-MX)->(es-ES)->en-US")).toEqual({
+            locale: { bcp47Tag: "es-MX" },
+            toBeFullyTranslated: false,
+            parentLocale: {
+                locale: { bcp47Tag: "es-ES" },
+                parentLocale: {
+                    locale: { bcp47Tag: "en-US" },
+                },
+            },
+        });
+    });
+
+    test("comma is not a separator: a comma-separated list stays one literal tag", () => {
+        expect(parseEncodedRepositoryLocale("de-DE,fr-FR")).toEqual({
+            locale: { bcp47Tag: "de-DE,fr-FR" },
+            toBeFullyTranslated: true,
+        });
+    });
+
+    test("commas inside a derived chain stay part of each segment's tag", () => {
+        expect(parseEncodedRepositoryLocale("(fr-CA,fr-BE)->fr-FR")).toEqual({
+            locale: { bcp47Tag: "fr-CA,fr-BE" },
+            toBeFullyTranslated: false,
+            parentLocale: {
+                locale: { bcp47Tag: "fr-FR" },
+            },
+        });
+    });
+});
 
 describe("MojitoCliClient (CLI argv contracts)", () => {
     test("probeHelp runs --help and succeeds on exit 0", async () => {
@@ -76,6 +240,54 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
             expect.arrayContaining(["/api/repositories", "-X", "POST"]),
         );
         expect(runner.calls[0]).toEqual(expect.arrayContaining(["-f", "name=r"]));
+    });
+
+    test("repoCreate sends a list of locales with several derived locales as JSON body", async () => {
+        let body: Record<string, unknown> | undefined;
+        // The temp body file is deleted once the call returns, so read it inside the runner.
+        const runner = mockRunner((argv) => {
+            const file = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+            return okJson({ id: 1, name: "multi" });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.repoCreate({
+            name: "multi",
+            sourceLocale: "en-US",
+            repositoryLocales: [
+                "de-DE",
+                "(en-GB)",
+                "(fr-CA)->fr-FR",
+                "(es-MX)->es-ES",
+                "(pt-BR)->pt-PT->en-US",
+            ],
+        });
+
+        expect(runner.calls[0]).toEqual(expect.arrayContaining(["--input"]));
+        expect(body?.sourceLocale).toEqual({ bcp47Tag: "en-US" });
+        expect(body?.repositoryLocales).toEqual([
+            { locale: { bcp47Tag: "de-DE" }, toBeFullyTranslated: true },
+            { locale: { bcp47Tag: "en-GB" }, toBeFullyTranslated: false },
+            {
+                locale: { bcp47Tag: "fr-CA" },
+                toBeFullyTranslated: false,
+                parentLocale: { locale: { bcp47Tag: "fr-FR" } },
+            },
+            {
+                locale: { bcp47Tag: "es-MX" },
+                toBeFullyTranslated: false,
+                parentLocale: { locale: { bcp47Tag: "es-ES" } },
+            },
+            {
+                locale: { bcp47Tag: "pt-BR" },
+                toBeFullyTranslated: false,
+                parentLocale: {
+                    locale: { bcp47Tag: "pt-PT" },
+                    parentLocale: { locale: { bcp47Tag: "en-US" } },
+                },
+            },
+        ]);
     });
 
     test("repoDelete uses -X DELETE", async () => {
