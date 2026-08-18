@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
  * Business logic for creating, reading, updating, and deleting {@link RepoType} records and their
  * integrity checkers.
  *
- * <p>Assigning a type to a {@link com.box.l10n.mojito.entity.Repository} is out of scope here (see
- * LXP-2068). Until that link exists, delete is a hard delete of the type and its checkers.
+ * <p>Assigning a type to a {@link com.box.l10n.mojito.entity.Repository} is out of scope here.
+ * Until that link exists, delete is a hard delete of the type and its checkers.
  */
 @Service
 public class RepoTypeService {
@@ -116,9 +116,9 @@ public class RepoTypeService {
   /**
    * Hard-deletes a repo type and all of its integrity checkers.
    *
-   * <p>Until repositories can reference a type (LXP-2068), there is no “type in use” guard. After
-   * that link exists, delete should refuse (or require clearing assignments) when any repository
-   * still references the type.
+   * <p>Until repositories can reference a type, there is no “type in use” guard. After that link
+   * exists, delete should refuse (or require clearing assignments) when any repository still
+   * references the type.
    *
    * @param repoTypeId id of the type to delete
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
