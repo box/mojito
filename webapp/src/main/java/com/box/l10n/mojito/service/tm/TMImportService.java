@@ -8,6 +8,9 @@ import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
@@ -43,18 +46,22 @@ public class TMImportService {
   @Autowired ImportExportTextUnitUtils importExportTextUnitUtils;
 
   /**
-   * Import the exported XLIFF using Okapi driver into repository.
+   * Import the exported XLIFF using Okapi driver into repository asynchronously.
    *
    * @param repository
    * @param xliffContent
    * @param updateTM indicates if the TM should be updated or if the translation can be imported
    *     assuming that there is no translation yet.
+   * @return a {@link PollableFuture} to track the import progress
    */
-  public void importXLIFF(Repository repository, String xliffContent, boolean updateTM) {
+  @Pollable(async = true, message = "Importing XLIFF")
+  public PollableFuture<Void> importXLIFF(
+      Repository repository, String xliffContent, boolean updateTM) {
 
     ImportExportedXliffStep importExportedXliffStep =
         new ImportExportedXliffStep(repository, xliffContent, updateTM);
-    importXLIFF(importExportedXliffStep, xliffContent);
+    doImportXLIFF(importExportedXliffStep, xliffContent);
+    return new PollableFutureTaskResult<>();
   }
 
   /**
@@ -69,11 +76,11 @@ public class TMImportService {
     Asset asset = assetRepository.findById(assetId).orElse(null);
     ImportExportedXliffStep importExportedXliffStep =
         new ImportExportedXliffStep(asset, xliffContent, updateTM);
-    importXLIFF(importExportedXliffStep, xliffContent);
+    doImportXLIFF(importExportedXliffStep, xliffContent);
   }
 
   @Transactional
-  private void importXLIFF(ImportExportedXliffStep importExportedXliffStep, String xliffContent) {
+  private void doImportXLIFF(ImportExportedXliffStep importExportedXliffStep, String xliffContent) {
 
     IPipelineDriver driver = new PipelineDriver();
     XLIFFFilter xliffFilter = new XLIFFFilter();

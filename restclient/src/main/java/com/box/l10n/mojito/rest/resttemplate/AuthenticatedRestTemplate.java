@@ -72,6 +72,11 @@ public class AuthenticatedRestTemplate {
     makeRestTemplateWithCustomObjectMapper(restTemplate);
     setErrorHandlerWithLogging(restTemplate);
 
+    if (resttemplateConfig.getReadTimeoutSeconds() != null) {
+      restTemplate.setCookieStoreAndUpdateRequestFactory(
+          restTemplate.getCookieStore(), resttemplateConfig.getReadTimeoutSeconds());
+    }
+
     ResttemplateConfig.AuthenticationMode mode = resttemplateConfig.getAuthenticationMode();
 
     switch (mode) {

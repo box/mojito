@@ -140,10 +140,11 @@ public class RepositoryClient extends BaseClient {
    * @param exportedXliffContent
    * @param updateTM indicates if the TM should be updated or if the translation can be imported
    *     assuming that there is no translation yet.
-   * @return
+   * @return a {@link PollableTask} to track the import progress
    * @throws ResourceNotCreatedException
    */
-  public void importRepository(Long repositoryId, String exportedXliffContent, boolean updateTM)
+  public PollableTask importRepository(
+      Long repositoryId, String exportedXliffContent, boolean updateTM)
       throws ResourceNotCreatedException {
 
     String pathToImport = getBasePathForResource(repositoryId, "xliffImport");
@@ -153,8 +154,8 @@ public class RepositoryClient extends BaseClient {
     importRepositoryBody.setUpdateTM(updateTM);
 
     try {
-      authenticatedRestTemplate.postForEntity(pathToImport, importRepositoryBody, Void.class);
-
+      return authenticatedRestTemplate.postForObject(
+          pathToImport, importRepositoryBody, PollableTask.class);
     } catch (HttpClientErrorException exception) {
       if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
         throw new ResourceNotCreatedException(
