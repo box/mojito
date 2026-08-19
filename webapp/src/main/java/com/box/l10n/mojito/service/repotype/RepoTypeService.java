@@ -3,12 +3,18 @@ package com.box.l10n.mojito.service.repotype;
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.rest.repotype.RepoTypeWithIdNotFoundException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Business logic for creating, reading, updating, and deleting {@link RepoType} records and their
@@ -44,13 +50,35 @@ public class RepoTypeService {
    * @return the persisted type including generated id and checkers
    * @throws RepoTypeNameAlreadyUsedException if {@code name} is already taken
    */
+  @Transactional
   public RepoType createRepoType(
       String name,
       String description,
       String aiPrompt,
       Set<RepoTypeIntegrityChecker> integrityCheckers)
       throws RepoTypeNameAlreadyUsedException {
-    throw new UnsupportedOperationException("Not implemented");
+
+    logger.debug("Check no repo type with name: {} exists", name);
+
+    if (repoTypeRepository.findByName(name) != null) {
+      throw new RepoTypeNameAlreadyUsedException(name + " is used by another repo type");
+    }
+
+    logger.debug("Create a RepoType with name: {}", name);
+
+    RepoType repoType = new RepoType();
+    repoType.setName(name);
+    repoType.setDescription(description);
+    repoType.setAiPrompt(aiPrompt != null ? aiPrompt : "");
+    repoType.setIntegrityCheckers(new HashSet<>());
+    repoType = repoTypeRepository.save(repoType);
+
+    if (integrityCheckers != null && !integrityCheckers.isEmpty()) {
+      updateIntegrityCheckers(repoType, integrityCheckers);
+    }
+
+    logger.debug("Created repo type id: {} (name: {})", repoType.getId(), name);
+    return repoTypeRepository.findById(repoType.getId()).orElse(repoType);
   }
 
   /**
@@ -60,8 +88,13 @@ public class RepoTypeService {
    * @return the type
    * @throws RepoTypeWithIdNotFoundException if no type exists with that id
    */
+  @Transactional
   public RepoType getRepoTypeById(Long repoTypeId) throws RepoTypeWithIdNotFoundException {
-    throw new UnsupportedOperationException("Not implemented");
+    RepoType repoType = repoTypeRepository.findById(repoTypeId).orElse(null);
+    if (repoType == null) {
+      throw new RepoTypeWithIdNotFoundException(repoTypeId);
+    }
+    return repoType;
   }
 
   /**
@@ -76,8 +109,17 @@ public class RepoTypeService {
    * @param name optional exact name filter
    * @return matching types; never {@code null}
    */
+  @Transactional
   public List<RepoType> getRepoTypes(String name) {
-    throw new UnsupportedOperationException("Not implemented");
+    if (StringUtils.isBlank(name)) {
+      return repoTypeRepository.findAllByOrderByNameAsc();
+    }
+
+    RepoType repoType = repoTypeRepository.findByName(name);
+    if (repoType == null) {
+      return Collections.emptyList();
+    }
+    return Collections.singletonList(repoType);
   }
 
   /**
@@ -103,6 +145,7 @@ public class RepoTypeService {
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
    * @throws RepoTypeNameAlreadyUsedException if the new name conflicts with another type
    */
+  @Transactional
   public RepoType updateRepoType(
       Long repoTypeId,
       String name,
@@ -110,7 +153,32 @@ public class RepoTypeService {
       String aiPrompt,
       Set<RepoTypeIntegrityChecker> integrityCheckers)
       throws RepoTypeWithIdNotFoundException, RepoTypeNameAlreadyUsedException {
-    throw new UnsupportedOperationException("Not implemented");
+
+    RepoType repoType = getRepoTypeById(repoTypeId);
+
+    if (name != null) {
+      RepoType existing = repoTypeRepository.findByName(name);
+      if (existing != null && !repoType.getId().equals(existing.getId())) {
+        throw new RepoTypeNameAlreadyUsedException(name + " is used by another repo type");
+      }
+      repoType.setName(name);
+    }
+    if (description != null) {
+      repoType.setDescription(description);
+    }
+    if (aiPrompt != null) {
+      repoType.setAiPrompt(aiPrompt);
+    }
+
+    if (name != null || description != null || aiPrompt != null) {
+      repoType = repoTypeRepository.save(repoType);
+    }
+
+    if (integrityCheckers != null) {
+      updateIntegrityCheckers(repoType, integrityCheckers);
+    }
+
+    return repoTypeRepository.findById(repoType.getId()).orElse(repoType);
   }
 
   /**
@@ -123,8 +191,12 @@ public class RepoTypeService {
    * @param repoTypeId id of the type to delete
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
    */
+  @Transactional
   public void deleteRepoType(Long repoTypeId) throws RepoTypeWithIdNotFoundException {
-    throw new UnsupportedOperationException("Not implemented");
+    RepoType repoType = getRepoTypeById(repoTypeId);
+    logger.debug("Delete repo type with name: {}", repoType.getName());
+    repoTypeIntegrityCheckerRepository.deleteByRepoType(repoType);
+    repoTypeRepository.delete(repoType);
   }
 
   /**
@@ -144,8 +216,62 @@ public class RepoTypeService {
    * @param repoType type whose checkers are being replaced
    * @param integrityCheckers desired full set after the update
    */
+  @Transactional
   public void updateIntegrityCheckers(
       RepoType repoType, Set<RepoTypeIntegrityChecker> integrityCheckers) {
-    throw new UnsupportedOperationException("Not implemented");
+
+    if (integrityCheckers == null || integrityCheckers.isEmpty()) {
+      logger.debug("Clearing all integrity checkers for repo type id: {}", repoType.getId());
+      repoTypeIntegrityCheckerRepository.deleteByRepoType(repoType);
+      repoType.setIntegrityCheckers(new HashSet<>());
+      return;
+    }
+
+    Set<RepoTypeIntegrityChecker> existingCheckers =
+        repoTypeIntegrityCheckerRepository.findByRepoType(repoType);
+    Map<String, Map<String, RepoTypeIntegrityChecker>> existingToDelete =
+        getIntegrityCheckerMap(existingCheckers);
+
+    for (RepoTypeIntegrityChecker integrityChecker : integrityCheckers) {
+      logger.debug(
+          "Setting repo type for integrity checker: {}", integrityChecker.getAssetExtension());
+      integrityChecker.setRepoType(repoType);
+      Map<String, RepoTypeIntegrityChecker> existingForExtension =
+          existingToDelete.get(integrityChecker.getAssetExtension());
+      if (existingForExtension != null) {
+        RepoTypeIntegrityChecker existing =
+            existingForExtension.get(integrityChecker.getIntegrityCheckerType().name());
+        if (existing != null) {
+          logger.debug("Reusing existing integrity checker id: {}", existing.getId());
+          integrityChecker.setId(existing.getId());
+          existingForExtension.remove(integrityChecker.getIntegrityCheckerType().name());
+          if (existingForExtension.isEmpty()) {
+            existingToDelete.remove(integrityChecker.getAssetExtension());
+          }
+        }
+      }
+    }
+
+    logger.debug("Deleting unused integrity checkers for repo type id: {}", repoType.getId());
+    for (Map<String, RepoTypeIntegrityChecker> byType : existingToDelete.values()) {
+      for (RepoTypeIntegrityChecker toDelete : byType.values()) {
+        repoTypeIntegrityCheckerRepository.delete(toDelete);
+      }
+    }
+
+    repoTypeIntegrityCheckerRepository.saveAll(integrityCheckers);
+    repoType.setIntegrityCheckers(integrityCheckers);
+    logger.debug("Updated integrity checkers: {}", integrityCheckers.size());
+  }
+
+  private Map<String, Map<String, RepoTypeIntegrityChecker>> getIntegrityCheckerMap(
+      Set<RepoTypeIntegrityChecker> integrityCheckers) {
+    Map<String, Map<String, RepoTypeIntegrityChecker>> map = new HashMap<>();
+    for (RepoTypeIntegrityChecker integrityChecker : integrityCheckers) {
+      Map<String, RepoTypeIntegrityChecker> byType =
+          map.computeIfAbsent(integrityChecker.getAssetExtension(), k -> new HashMap<>());
+      byType.put(integrityChecker.getIntegrityCheckerType().name(), integrityChecker);
+    }
+    return map;
   }
 }

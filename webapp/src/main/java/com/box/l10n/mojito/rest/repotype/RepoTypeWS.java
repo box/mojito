@@ -2,12 +2,14 @@ package com.box.l10n.mojito.rest.repotype;
 
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.rest.View;
+import com.box.l10n.mojito.service.repotype.RepoTypeNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +46,7 @@ public class RepoTypeWS {
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.GET)
   public RepoType getRepoTypeById(@PathVariable Long repoTypeId)
       throws RepoTypeWithIdNotFoundException {
-    throw new UnsupportedOperationException("Not implemented");
+    return repoTypeService.getRepoTypeById(repoTypeId);
   }
 
   /**
@@ -62,7 +64,7 @@ public class RepoTypeWS {
   @RequestMapping(value = "/api/repo-types", method = RequestMethod.GET)
   public List<RepoType> getRepoTypes(
       @RequestParam(value = "name", required = false) String name) {
-    throw new UnsupportedOperationException("Not implemented");
+    return repoTypeService.getRepoTypes(name);
   }
 
   /**
@@ -80,8 +82,22 @@ public class RepoTypeWS {
    */
   @JsonView(View.IdAndName.class)
   @RequestMapping(value = "/api/repo-types", method = RequestMethod.POST)
-  public ResponseEntity<RepoType> createRepoType(@RequestBody RepoType repoType) {
-    throw new UnsupportedOperationException("Not implemented");
+  public ResponseEntity<?> createRepoType(@RequestBody RepoType repoType) {
+    logger.info("Creating repo type");
+
+    try {
+      RepoType created =
+          repoTypeService.createRepoType(
+              repoType.getName(),
+              repoType.getDescription(),
+              repoType.getAiPrompt(),
+              repoType.getIntegrityCheckers());
+      return new ResponseEntity<>(created, HttpStatus.CREATED);
+    } catch (RepoTypeNameAlreadyUsedException e) {
+      logger.debug("Cannot create the repo type", e);
+      return new ResponseEntity<>(
+          "RepoType with name [" + repoType.getName() + "] already exists", HttpStatus.CONFLICT);
+    }
   }
 
   /**
@@ -105,10 +121,25 @@ public class RepoTypeWS {
    */
   @JsonView(View.IdAndName.class)
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.PATCH)
-  public ResponseEntity<RepoType> updateRepoType(
+  public ResponseEntity<?> updateRepoType(
       @PathVariable Long repoTypeId, @RequestBody RepoType repoType)
       throws RepoTypeWithIdNotFoundException {
-    throw new UnsupportedOperationException("Not implemented");
+    logger.info("Updating repo type [{}]", repoTypeId);
+
+    try {
+      RepoType updated =
+          repoTypeService.updateRepoType(
+              repoTypeId,
+              repoType.getName(),
+              repoType.getDescription(),
+              repoType.getAiPrompt(),
+              repoType.getIntegrityCheckers());
+      return new ResponseEntity<>(updated, HttpStatus.OK);
+    } catch (RepoTypeNameAlreadyUsedException e) {
+      logger.debug("Cannot update the repo type", e);
+      return new ResponseEntity<>(
+          "RepoType with name [" + repoType.getName() + "] already exists", HttpStatus.CONFLICT);
+    }
   }
 
   /**
@@ -122,6 +153,7 @@ public class RepoTypeWS {
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.DELETE)
   public void deleteRepoType(@PathVariable Long repoTypeId)
       throws RepoTypeWithIdNotFoundException {
-    throw new UnsupportedOperationException("Not implemented");
+    logger.info("Deleting repo type [{}]", repoTypeId);
+    repoTypeService.deleteRepoType(repoTypeId);
   }
 }

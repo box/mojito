@@ -1,9 +1,14 @@
 package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.entity.RepoType;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +39,9 @@ public class RepoTypeClient extends BaseClient {
    *     exist
    */
   public RepoType getRepoTypeById(Long repoTypeId) {
-    throw new UnsupportedOperationException("Not implemented");
+    logger.debug("Getting repo type by id = [{}]", repoTypeId);
+    return authenticatedRestTemplate.getForObject(
+        getBasePathForResource(repoTypeId), RepoType.class);
   }
 
   /**
@@ -44,7 +51,12 @@ public class RepoTypeClient extends BaseClient {
    * @return matching types; empty list if none (never {@code null})
    */
   public List<RepoType> getRepoTypes(String name) {
-    throw new UnsupportedOperationException("Not implemented");
+    Map<String, String> filterParams = new HashMap<>();
+    if (name != null) {
+      filterParams.put("name", name);
+    }
+    return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
+        getBasePathForEntity(), RepoType[].class, filterParams);
   }
 
   /**
@@ -55,7 +67,9 @@ public class RepoTypeClient extends BaseClient {
    * @throws org.springframework.web.client.HttpClientErrorException.Conflict on duplicate name
    */
   public RepoType createRepoType(RepoType repoType) {
-    throw new UnsupportedOperationException("Not implemented");
+    logger.debug("Creating repo type with name = {}", repoType.getName());
+    return authenticatedRestTemplate.postForObject(
+        getBasePathForEntity(), repoType, RepoType.class);
   }
 
   /**
@@ -68,7 +82,16 @@ public class RepoTypeClient extends BaseClient {
    * @throws org.springframework.web.client.HttpClientErrorException.Conflict on name conflict
    */
   public RepoType updateRepoType(Long repoTypeId, RepoType repoType) {
-    throw new UnsupportedOperationException("Not implemented");
+    logger.debug("Updating repo type id = [{}]", repoTypeId);
+    ResponseEntity<RepoType> response =
+        authenticatedRestTemplate
+            .getRestTemplate()
+            .exchange(
+                authenticatedRestTemplate.getURIForResource(getBasePathForResource(repoTypeId)),
+                HttpMethod.PATCH,
+                new HttpEntity<>(repoType),
+                RepoType.class);
+    return response.getBody();
   }
 
   /**
@@ -78,6 +101,7 @@ public class RepoTypeClient extends BaseClient {
    * @throws org.springframework.web.client.HttpClientErrorException.NotFound if missing
    */
   public void deleteRepoType(Long repoTypeId) {
-    throw new UnsupportedOperationException("Not implemented");
+    logger.debug("Deleting repo type id = [{}]", repoTypeId);
+    authenticatedRestTemplate.delete(getBasePathForResource(repoTypeId));
   }
 }

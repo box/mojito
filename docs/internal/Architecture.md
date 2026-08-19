@@ -119,7 +119,7 @@ Until repositories can reference a type, deleting a type is an unconditional har
 | Entities | `webapp/.../entity/RepoType.java`, `RepoTypeIntegrityChecker.java` |
 | Service + Spring Data | `webapp/.../service/repotype/` |
 | REST | `webapp/.../rest/repotype/` |
-| Schema | Flyway `V69__…` (or next free version) — not yet in skeleton |
+| Schema | Flyway `V69__Add_repo_type.sql` |
 
 Follows existing Mojito layout (`Repository` / `RepositoryService` / `RepositoryWS`).
 
@@ -265,7 +265,7 @@ Caller must pass a persisted `RepoType`.
 | `rest/repotype/RepoTypeWS.java` | HTTP API |
 | `rest/repotype/RepoTypeWithIdNotFoundException.java` | → HTTP 404 |
 
-Method bodies are intentionally unimplemented until tests exist (TDD): contracts live in JavaDoc and **this document**.
+Contracts live in JavaDoc and **this document**; implementations must match them.
 
 ---
 
@@ -297,7 +297,7 @@ Skeleton client and DTOs mirror the server contract in [Server → Repo Types](#
 | `rest/entity/RepoType.java` | DTO mirror of server `RepoType` JSON |
 | `rest/entity/RepoTypeIntegrityChecker.java` | DTO for `integrityCheckers[]` elements |
 
-`RepoTypeClient` methods (get by id, list, create, update, delete) correspond 1:1 with `RepoTypeWS`. Method bodies are unimplemented pending TDD; behavior must match the [REST API contract](#rest-api-contract) above (including 404 / 409 mapping via HTTP errors).
+`RepoTypeClient` methods (get by id, list, create, update, delete) correspond 1:1 with `RepoTypeWS`. Behavior must match the [REST API contract](#rest-api-contract) above (including 404 / 409 mapping via HTTP errors).
 
 ---
 
