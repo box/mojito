@@ -132,8 +132,8 @@ public class RepoTypeService {
    *   <li>{@code name}, {@code description}, {@code aiPrompt}: {@code null} leaves the field
    *       unchanged; a non-null value (including empty string) replaces it
    *   <li>{@code integrityCheckers}: {@code null} leaves the existing checkers unchanged; a
-   *       non-null set (including empty) replaces the full set via {@link
-   *       #updateIntegrityCheckers} — empty clears all checkers
+   *       non-null set (including empty) replaces the full set via {@link #updateIntegrityCheckers}
+   *       — empty clears all checkers
    * </ul>
    *
    * @param repoTypeId id of the type to update

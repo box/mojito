@@ -62,8 +62,7 @@ public class RepoTypeWS {
    */
   @JsonView(View.IdAndName.class)
   @RequestMapping(value = "/api/repo-types", method = RequestMethod.GET)
-  public List<RepoType> getRepoTypes(
-      @RequestParam(value = "name", required = false) String name) {
+  public List<RepoType> getRepoTypes(@RequestParam(value = "name", required = false) String name) {
     return repoTypeService.getRepoTypes(name);
   }
 
@@ -151,8 +150,7 @@ public class RepoTypeWS {
    * @throws RepoTypeWithIdNotFoundException if missing → HTTP 404
    */
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.DELETE)
-  public void deleteRepoType(@PathVariable Long repoTypeId)
-      throws RepoTypeWithIdNotFoundException {
+  public void deleteRepoType(@PathVariable Long repoTypeId) throws RepoTypeWithIdNotFoundException {
     logger.info("Deleting repo type [{}]", repoTypeId);
     repoTypeService.deleteRepoType(repoTypeId);
   }

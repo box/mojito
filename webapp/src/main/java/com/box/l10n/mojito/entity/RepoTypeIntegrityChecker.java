@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
  * Persistence row for an integrity checker owned by a {@link RepoType}.
  *
  * <p>This is a separate JPA entity from {@link AssetIntegrityChecker} only because the parent FK
- * differs ({@code repo_type_id} vs {@code repository_id}). At runtime, both expose the same
- * logical identity — {@code (assetExtension, integrityCheckerType)} using the shared {@link
+ * differs ({@code repo_type_id} vs {@code repository_id}). At runtime, both expose the same logical
+ * identity — {@code (assetExtension, integrityCheckerType)} using the shared {@link
  * IntegrityCheckerType} enum — so a push/import can take the <em>superset</em> of type-level and
  * repo-level checkers by that pair.
  *
@@ -67,32 +67,44 @@ public class RepoTypeIntegrityChecker extends BaseEntity {
   @JsonView(View.IdAndName.class)
   private IntegrityCheckerType integrityCheckerType;
 
-  /** @return owning {@link RepoType} */
+  /**
+   * @return owning {@link RepoType}
+   */
   public RepoType getRepoType() {
     return repoType;
   }
 
-  /** @param repoType owning type; must be set before save */
+  /**
+   * @param repoType owning type; must be set before save
+   */
   public void setRepoType(RepoType repoType) {
     this.repoType = repoType;
   }
 
-  /** @return asset extension this checker applies to */
+  /**
+   * @return asset extension this checker applies to
+   */
   public String getAssetExtension() {
     return assetExtension;
   }
 
-  /** @param assetExtension extension without leading dot; must be non-null when persisted */
+  /**
+   * @param assetExtension extension without leading dot; must be non-null when persisted
+   */
   public void setAssetExtension(String assetExtension) {
     this.assetExtension = assetExtension;
   }
 
-  /** @return checker type enum value */
+  /**
+   * @return checker type enum value
+   */
   public IntegrityCheckerType getIntegrityCheckerType() {
     return integrityCheckerType;
   }
 
-  /** @param integrityCheckerType shared enum used by repo-level checkers as well */
+  /**
+   * @param integrityCheckerType shared enum used by repo-level checkers as well
+   */
   public void setIntegrityCheckerType(IntegrityCheckerType integrityCheckerType) {
     this.integrityCheckerType = integrityCheckerType;
   }

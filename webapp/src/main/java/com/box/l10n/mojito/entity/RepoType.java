@@ -25,8 +25,8 @@ import java.util.Set;
  *       repository-level checkers when a push or import runs
  * </ul>
  *
- * <p>Names are unique. Extends {@link AuditableEntity} for {@code created_date} /
- * {@code last_modified_date} only; this entity is not Envers-audited.
+ * <p>Names are unique. Extends {@link AuditableEntity} for {@code created_date} / {@code
+ * last_modified_date} only; this entity is not Envers-audited.
  */
 @Entity
 @Table(
@@ -36,7 +36,9 @@ public class RepoType extends AuditableEntity {
 
   public static final int NAME_MAX_LENGTH = 255;
 
-  /** Unique display name of the type (e.g. {@code React}). Required; max {@link #NAME_MAX_LENGTH}. */
+  /**
+   * Unique display name of the type (e.g. {@code React}). Required; max {@link #NAME_MAX_LENGTH}.
+   */
   @Basic(optional = false)
   @Column(name = "name", length = NAME_MAX_LENGTH)
   @JsonView(View.IdAndName.class)
@@ -51,7 +53,7 @@ public class RepoType extends AuditableEntity {
    * Shared type-layer AI prompt. Defaults to empty string on create. Empty means “no type-layer
    * instructions”; {@code null} should be normalized to empty when persisting.
    *
-   * Defaults to {@code null} so omitted JSON on PATCH deserializes as “leave unchanged”. Create
+   * <p>Defaults to {@code null} so omitted JSON on PATCH deserializes as “leave unchanged”. Create
    * normalizes {@code null} to empty string before persist.
    */
   @Lob
@@ -72,27 +74,37 @@ public class RepoType extends AuditableEntity {
   @JsonView(View.IdAndName.class)
   private Set<RepoTypeIntegrityChecker> integrityCheckers;
 
-  /** @return unique name of this repo type */
+  /**
+   * @return unique name of this repo type
+   */
   public String getName() {
     return name;
   }
 
-  /** @param name unique name; must be non-null and unique among all repo types */
+  /**
+   * @param name unique name; must be non-null and unique among all repo types
+   */
   public void setName(String name) {
     this.name = name;
   }
 
-  /** @return description, or {@code null} if unset */
+  /**
+   * @return description, or {@code null} if unset
+   */
   public String getDescription() {
     return description;
   }
 
-  /** @param description optional description; {@code null} and empty are both allowed */
+  /**
+   * @param description optional description; {@code null} and empty are both allowed
+   */
   public void setDescription(String description) {
     this.description = description;
   }
 
-  /** @return type-layer AI prompt; never expected to be {@code null} after create (defaults to "") */
+  /**
+   * @return type-layer AI prompt; never expected to be {@code null} after create (defaults to "")
+   */
   public String getAiPrompt() {
     return aiPrompt;
   }

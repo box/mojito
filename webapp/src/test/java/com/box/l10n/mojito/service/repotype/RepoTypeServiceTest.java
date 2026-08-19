@@ -54,8 +54,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   @Test
   public void testCreateRepoTypePersistsDescription() throws Exception {
     String name = testIdWatcher.getEntityName("WithDescription");
-    RepoType created =
-        repoTypeService.createRepoType(name, "Android strings.xml", "", null);
+    RepoType created = repoTypeService.createRepoType(name, "Android strings.xml", "", null);
 
     assertEquals("Android strings.xml", created.getDescription());
   }
@@ -193,8 +192,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     RepoType created =
         repoTypeService.createRepoType(name, "original desc", "original prompt", checkers);
 
-    RepoType updated =
-        repoTypeService.updateRepoType(created.getId(), null, null, null, null);
+    RepoType updated = repoTypeService.updateRepoType(created.getId(), null, null, null, null);
 
     assertEquals(name, updated.getName());
     assertEquals("original desc", updated.getDescription());
@@ -208,8 +206,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     String name = testIdWatcher.getEntityName("ClearPrompt");
     RepoType created = repoTypeService.createRepoType(name, null, "non-empty", null);
 
-    RepoType updated =
-        repoTypeService.updateRepoType(created.getId(), null, null, "", null);
+    RepoType updated = repoTypeService.updateRepoType(created.getId(), null, null, "", null);
 
     assertEquals("", updated.getAiPrompt());
   }
@@ -221,8 +218,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     checkers.add(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
     RepoType created = repoTypeService.createRepoType(name, null, "", checkers);
 
-    RepoType leftAlone =
-        repoTypeService.updateRepoType(created.getId(), null, null, null, null);
+    RepoType leftAlone = repoTypeService.updateRepoType(created.getId(), null, null, null, null);
 
     assertEquals(1, leftAlone.getIntegrityCheckers().size());
   }
@@ -235,8 +231,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     RepoType created = repoTypeService.createRepoType(name, null, "", checkers);
 
     RepoType cleared =
-        repoTypeService.updateRepoType(
-            created.getId(), null, null, null, new HashSet<>());
+        repoTypeService.updateRepoType(created.getId(), null, null, null, new HashSet<>());
 
     assertTrue(cleared.getIntegrityCheckers().isEmpty());
     assertTrue(repoTypeIntegrityCheckerRepository.findByRepoType(cleared).isEmpty());
@@ -247,8 +242,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     String name = testIdWatcher.getEntityName("SameName");
     RepoType type = repoTypeService.createRepoType(name, null, "", null);
 
-    RepoType updated =
-        repoTypeService.updateRepoType(type.getId(), name, "desc", null, null);
+    RepoType updated = repoTypeService.updateRepoType(type.getId(), name, "desc", null, null);
 
     assertEquals(name, updated.getName());
     assertEquals("desc", updated.getDescription());

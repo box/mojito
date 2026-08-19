@@ -5,8 +5,8 @@ import com.box.l10n.mojito.rest.EntityWithIdNotFoundException;
 /**
  * Thrown when a {@link com.box.l10n.mojito.entity.RepoType} cannot be found by id.
  *
- * <p>Inherited {@link org.springframework.web.bind.annotation.ResponseStatus} maps this to HTTP
- * 404 Not Found.
+ * <p>Inherited {@link org.springframework.web.bind.annotation.ResponseStatus} maps this to HTTP 404
+ * Not Found.
  */
 public class RepoTypeWithIdNotFoundException extends EntityWithIdNotFoundException {
 
