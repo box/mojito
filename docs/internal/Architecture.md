@@ -50,7 +50,7 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 | Concern | Notes |
 |--------|--------|
 | Assign / clear a type on a repository | Add optional FK from `repository` to `repo_type` |
-| CLI commands | See [CLI → Repo Types](#repo-types-1) |
+| CLI commands | Implemented; see [CLI → Repo Types](#repo-types-1) |
 | Prompt / integrity UI | See [Frontend → Repo Types](#repo-types-2) |
 | Layered prompt assembly (global → type → repo → request) | Prompt builder wiring type `aiPrompt` into AI runs |
 | Runtime superset of type + repo checkers on push/import | Union by `(assetExtension, integrityCheckerType)` |
@@ -330,7 +330,72 @@ JCommander commands that talk to a running Mojito server through `restclient`.
 
 #### Repo Types
 
-Not implemented yet. Follow-up work will add commands such as `repo-type-create`, `repo-type-update`, `repo-type-delete`, and `repo-type-view` that call `/api/repo-types` via `RepoTypeClient`. Until then, operators use the REST API (or tests use the client) directly.
+Name/description CLI for repo types. Commands are JCommander `Command` beans in `cli/.../command/`, same pattern as `repo-create` / `repo-update` / `repo-delete` / `repo-view`. They talk to the server only through `RepoTypeClient` (never through `RepoTypeService` in production code). Integration tests extend `CLITestBase` and then assert via `RepoTypeRepository` / `RepoTypeService`.
+
+**In scope**
+
+- `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`
+- Setting **name** and **description** only
+
+**Out of scope (follow-up)**
+
+- CLI for `aiPrompt` and `integrityCheckers` (separate stories)
+- Listing all types (no `repo-type-list`; view is by exact name)
+
+##### Commands
+
+| Command | Role | Required flags | Optional flags |
+|---------|------|----------------|----------------|
+| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d` |
+| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d` |
+| `repo-type-delete` | DELETE `/api/repo-types/{id}` | `--name` / `-n` | — |
+| `repo-type-view` | GET list filtered by name | `--name` / `-n` | — |
+
+Flag constants live in `cli/.../command/param/Param.java` (`REPO_TYPE_*`). Help text comes from those descriptions.
+
+##### Lookup by name
+
+Update, delete, and view resolve the type with `RepoTypeClient.getRepoTypes(name)` (exact `?name=`). If the list size is not exactly `1`, the command fails with `Repo type with name [<name>] is not found` (`CommandException`). There is no dedicated get-by-name client method.
+
+##### Create
+
+- Body: `name` required; `description` may be omitted (`null`).
+- Does not send `aiPrompt` or `integrityCheckers` (server defaults: empty prompt, no checkers).
+- HTTP 409 → `Repo type with name [<name>] already exists`.
+- Success prints `created --> repo type id: <id>`.
+
+##### Update
+
+- At least one of `--new-name` or `--description` is required; otherwise `Must provide at least one of the following options: --new-name, --description`.
+- PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#5-patch-null-means-leave-unchanged)).
+- `integrityCheckers` is sent as `null` so checkers are not replaced. (A non-null empty set would clear them.)
+- HTTP 409 on rename conflict → `Repo type with name [<new-name>] already exists`.
+- Success prints `updated --> repo type id: <id>`.
+
+##### Delete
+
+- Resolves by name, then `deleteRepoType(id)`.
+- Success prints `deleted --> repo type name: <name>`.
+- Until repositories can reference a type, delete is an unconditional hard delete (same as the server).
+
+##### View
+
+Prints three fields for an existing type:
+
+- `Repo type id --> <id>`
+- `Name --> <name>`
+- `Description --> <description>` (`null` description prints as empty)
+
+##### Package layout (CLI)
+
+| File | Role |
+|------|------|
+| `cli/.../command/RepoTypeCreateCommand.java` | Create |
+| `cli/.../command/RepoTypeUpdateCommand.java` | Update |
+| `cli/.../command/RepoTypeDeleteCommand.java` | Delete |
+| `cli/.../command/RepoTypeViewCommand.java` | View |
+| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` constants |
+| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags) |
 
 ---
 
@@ -362,7 +427,7 @@ Web UI served from `webapp` (React / Flux-style JS under `webapp/src/main/resour
 
 #### Repo Types
 
-No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is API-only (and later CLI).
+No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name/description only on the CLI).
 
 ---
 

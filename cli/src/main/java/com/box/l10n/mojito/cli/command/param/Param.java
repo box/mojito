@@ -67,6 +67,19 @@ public class Param {
   public static final String REPOSITORY_DESCRIPTION_DESCRIPTION =
       "Description of the repository to create or update";
 
+  public static final String REPO_TYPE_NAME_LONG = "--name";
+  public static final String REPO_TYPE_NAME_SHORT = "-n";
+  public static final String REPO_TYPE_NAME_DESCRIPTION = "Name of the repo type";
+
+  public static final String REPO_TYPE_NEW_NAME_LONG = "--new-name";
+  public static final String REPO_TYPE_NEW_NAME_SHORT = "-nn";
+  public static final String REPO_TYPE_NEW_NAME_DESCRIPTION = "New name for the repo type";
+
+  public static final String REPO_TYPE_DESCRIPTION_LONG = "--description";
+  public static final String REPO_TYPE_DESCRIPTION_SHORT = "-d";
+  public static final String REPO_TYPE_DESCRIPTION_DESCRIPTION =
+      "Description of the repo type to create or update";
+
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
   public static final String REPOSITORY_LOCALES_DESCRIPTION =
