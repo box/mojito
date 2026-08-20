@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -154,6 +155,7 @@ public class RepoTypeWS {
    * @param repoTypeId id of the type to delete
    * @throws RepoTypeWithIdNotFoundException if missing → HTTP 404
    */
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.DELETE)
   public void deleteRepoType(@PathVariable Long repoTypeId) throws RepoTypeWithIdNotFoundException {
     logger.info("Deleting repo type [{}]", repoTypeId);

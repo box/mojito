@@ -22,6 +22,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
@@ -396,7 +397,15 @@ public class RepoTypeWSTest extends WSTestBase {
     toCreate.setName(testIdWatcher.getEntityName("DeleteMe"));
     RepoType created = repoTypeClient.createRepoType(toCreate);
 
-    repoTypeClient.deleteRepoType(created.getId());
+    ResponseEntity<Void> response =
+        authenticatedRestTemplate
+            .getRestTemplate()
+            .exchange(
+                authenticatedRestTemplate.getURIForResource("/api/repo-types/" + created.getId()),
+                HttpMethod.DELETE,
+                null,
+                Void.class);
+    assertEquals(204, response.getStatusCodeValue());
 
     try {
       repoTypeClient.getRepoTypeById(created.getId());
