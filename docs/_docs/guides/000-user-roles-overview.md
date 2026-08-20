@@ -14,8 +14,8 @@ permalink: /docs/guides/user-roles-overview/
 |------|-------------|-----------------|
 | **User** | Basic access | View repositories, workbench, branches, screenshots. Search and browse. No edits. |
 | **Translator** | Translation team member | Everything User can do, plus edit translations in Workbench for your assigned locales. Export, import, share searches. |
-| **Project Manager (PM)** | Coordinates translation work | Everything Translator can do, plus create/import/cancel project requests, manage screenshots, manage users. |
-| **Admin** | System administrator | Everything PM can do, plus AI Translate, database monitoring, Box integration. |
+| **Project Manager (PM)** | Coordinates translation work | Everything Translator can do, plus create/import/cancel project requests, manage screenshots, manage users, and configure Box integration. |
+| **Admin** | System administrator | Everything PM can do, plus AI Translate and database monitoring. |
 
 ---
 
@@ -37,7 +37,7 @@ permalink: /docs/guides/user-roles-overview/
 - Access AI Translate (Admin only)
 - Access database monitoring (Admin only)
 - Manage users (PM or Admin only)
-- Configure Box integration (Admin only)
+- Configure Box integration (PM or Admin only)
 
 If you can't edit a translation, or if you get an error when importing, your role or locale assignment may not include that permission. Ask your project manager or admin.
 
@@ -51,11 +51,11 @@ If you can't edit a translation, or if you get an error when importing, your rol
 - Cancel project requests
 - Add and manage screenshots in the [legacy screenshot dashboard]({{ site.url }}/docs/guides/branching/#collecting-screenshots)
 - Manage users (add, update roles) via **Settings → User Management**
+- Configure [Box integration]({{ site.url }}/docs/guides/integrating-with-box/) for project requests via **Settings → Box Integration**
 
 **You cannot:**
 - Access [AI Translate]({{ site.url }}/docs/guides/ai-translate/) (Admin only)
 - Access [database monitoring]({{ site.url }}/docs/refs/monitoring/) (Admin only)
-- Configure Box integration (Admin only)
 
 ---
 
@@ -64,7 +64,6 @@ If you can't edit a translation, or if you get an error when importing, your rol
 **You can do everything Project Managers can, plus:**
 - Use [AI Translate]({{ site.url }}/docs/guides/ai-translate/) to batch-translate repositories with AI
 - Access [database latency monitoring]({{ site.url }}/docs/refs/monitoring/) (User menu → Monitoring)
-- Configure [Box integration]({{ site.url }}/docs/guides/integrating-with-box/) for project requests (Settings → Box Integration)
 
 The **AI Translate** link appears in the main navigation only for Admins. The **Monitoring** link appears in your user menu (top right) only for Admins.
 
@@ -85,7 +84,7 @@ The **AI Translate** link appears in the main navigation only for Admins. The **
 | User management | — | — | ✓ | ✓ |
 | AI Translate | — | — | — | ✓ |
 | Monitoring | — | — | — | ✓ |
-| Box integration (Settings) | — | — | — | ✓ |
+| Box integration (Settings) | — | — | ✓ | ✓ |
 
 ---
 

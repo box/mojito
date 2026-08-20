@@ -6,7 +6,7 @@ categories: guides
 permalink: /docs/guides/integrating-with-box/
 ---
 
-> **Who can configure Box:** Admins only. Box integration is configured under Settings → Box Integration. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/).
+> **Who can configure Box:** Project Managers and Admins. Box integration is configured under Settings → Box Integration. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/).
 
 Adding Box Platform Integration will allow project requests to be sent to the cloud.  This is a great way to exchange translation files with vendors.  When a translation request is made, XLIFFs will be sent to a Box folder where translation vendors can start their process.  When they've completed the translations, {{ site.mojito_green }} can import the translated files from Box.
 

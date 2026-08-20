@@ -138,22 +138,59 @@ When translators are done, translated xliff files should be put in the `Localize
 You can override this default configuration and have project requests to be managed on Box instead of local file system.  Refer to [Integrating with Box]({{ site.url }}/docs/guides/integrating-with-box/).
 
 
-### AI Translation Configuration
+### AI Translation and AI Review (OpenAI)
 
-AI Translate uses the OpenAI API to batch-translate repositories. To enable it, set the OpenAI API key:
+AI translation and AI review use the OpenAI HTTP API. Configure an API token and, when required by your network, an optional HTTP proxy for outbound requests. Proxy credentials are handled separately from the OpenAI Bearer token.
 
+#### AI translation
+
+    # Required to enable AI translation features
     l10n.ai-translate.openai-client-token=${OPENAI_API_KEY}
 
-Optional settings:
-
+    # Optional. Default: gpt-4o-2024-08-06
     l10n.ai-translate.model-name=gpt-4o-2024-08-06
-    l10n.ai-translate.scheduler-name=default
 
-- `openai-client-token`: Required. Your OpenAI API key. Without it, the AI Translate page is disabled.
-- `model-name`: Default model for translation (default: `gpt-4o-2024-08-06`). Can be overridden per run in the UI.
-- `scheduler-name`: Quartz scheduler for AI translation jobs. Use a dedicated scheduler name when running multiple Quartz schedulers (e.g. `l10n.ai-translate.scheduler-name=ai-translate`).
+    # Optional. HTTP proxy (host and port must both be set)
+    l10n.ai-translate.proxy-host=proxy.example.com
+    l10n.ai-translate.proxy-port=3128
+    l10n.ai-translate.proxy-user=proxy-user
+    l10n.ai-translate.proxy-password=${PROXY_PASSWORD}
 
-For AI Review (translation quality review), use the `l10n.ai-review.*` prefix with the same properties: `openai-client-token`, `model-name`, `scheduler-name`.
+    # Optional. Preferred proxy auth schemes (see below)
+    # l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Optional. Use a dedicated Quartz scheduler for AI translation jobs
+    l10n.ai-translate.scheduler-name=ai-translate
+
+Keep secrets such as the API token and proxy password out of source control.
+
+#### Proxy preferred auth schemes
+
+When an HTTP proxy challenges with more than one authentication scheme, Apache HttpClient 5 selects a scheme using its built-in preference order. Leave this property unset to keep those defaults, which is the right choice for most deployments.
+
+Set a comma-separated preference list only when the proxy's advertised order does not work with HttpClient. For example, if a proxy advertises Digest before Basic but only Basic succeeds:
+
+    l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Same option for AI review
+    l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+
+Scheme names are HttpClient 5 authentication scheme names, such as `Basic` and `Digest`. Whitespace around commas is ignored.
+
+#### AI review
+
+AI review uses the same OpenAI client and proxy settings under the `l10n.ai-review.*` prefix:
+
+    l10n.ai-review.openai-client-token=${OPENAI_API_KEY}
+    l10n.ai-review.model-name=gpt-4o-2024-08-06
+    l10n.ai-review.proxy-host=proxy.example.com
+    l10n.ai-review.proxy-port=3128
+    l10n.ai-review.proxy-user=proxy-user
+    l10n.ai-review.proxy-password=${PROXY_PASSWORD}
+    # l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+    l10n.ai-review.scheduler-name=default
+
+See also [AI Translate]({{ site.url }}/docs/guides/ai-translate/) for web and CLI usage.
 
 
 ### Database Authentication

@@ -37,7 +37,7 @@ Use Workbench to fix bugs, communicate context to translation teams and manage g
       - `All` - includes all text units regardless of their status
       - `Translated` - includes all text units that have a translation
       - `Untranslated` - includes text units with no translation
-      - `Needs Translation` - includes text units marked for translation (e.g. previously translated but sent for retranslation)
+      - `Needs Translation` - includes text units with no translation, text units marked for translation, and rejected text units
       - `Needs Review` - includes text units marked as 'needs review'
       - `Rejected` - includes text units marked 'rejected' (won't be included in localized files)
       - `Accepted` - includes text units that are approved and not rejected

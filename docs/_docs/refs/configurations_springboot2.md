@@ -1,6 +1,6 @@
 ---
 layout: doc
-title:  "Configurations (Spring Boot 2 on master)"
+title:  "Configurations (Spring Boot 2, legacy)"
 date:   2016-02-17 15:25:25 -0800
 categories: refs
 permalink: /docs/refs/configurations-springboot2/
@@ -290,4 +290,4 @@ AI review uses the same OpenAI client and proxy settings under the `l10n.ai-revi
     l10n.ai-review.proxy-password=${PROXY_PASSWORD}
     # l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
 
-See also [Using AI Translations]({{ site.url }}/docs/guides/using-ai-translations/) for repository and CLI usage.
+See also [AI Translate]({{ site.url }}/docs/guides/ai-translate/) for web and CLI usage.

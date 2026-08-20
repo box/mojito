@@ -65,6 +65,29 @@ Enable **Dry run** to test your configuration without importing translations. Th
 
 If you enable **Download JSON report**, after the job finishes you can download a JSON report for each locale. The report contains details about the translation run for that locale.
 
+## Command-line usage
+
+Administrators and automated jobs can run the same workflow with the `repository-ai-translate` CLI command. This advanced command is hidden from the main CLI command list.
+
+```bash
+mojito repository-ai-translate -r MyRepo -l fr-FR de-DE \
+    --source-text-max-count 100 \
+    --translate-type TARGET_ONLY_NEW \
+    --status-filter FOR_TRANSLATION \
+    --import-status REVIEW_NEEDED \
+    --download-report
+```
+
+The CLI supports the same model, prompt, related-string, timeout, dry-run, and text-unit ID options as the web page. It also supports:
+
+- `--use-batch true` to use the OpenAI Batch API
+- `--glossary-name` and the `--glossary-term-*` options to supply glossary context
+- `--glossary-only-matched-text-units` to process only text units matched by the glossary
+- `--attach-job-id` to monitor an existing batch job
+- `--import-job-id` with `--resume` to retry or resume an import
+
+The CLI defaults `--translate-type` to `WITH_REVIEW`, while the web page defaults to `TARGET_ONLY_NEW`. Set it explicitly in automation when the distinction matters. `--download-report` is available only in non-batch mode.
+
 ## Requirements
 
 AI Translate requires an AI translation service to be configured on the server. Contact your administrator if the feature is not available or jobs fail.
