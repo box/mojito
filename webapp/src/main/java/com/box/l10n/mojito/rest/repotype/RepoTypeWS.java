@@ -9,6 +9,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * requires an authenticated user.
  *
  * <p>Request and response bodies use the JPA {@link RepoType} entity directly. Integrity checkers
- * appear as the JSON array {@code integrityCheckers} ({@code id}, {@code assetExtension}, {@code
+ * appear as the JSON array {@code integrityCheckers} ({@code assetExtension}, {@code
  * integrityCheckerType}).
  */
 @RestController
@@ -71,6 +72,7 @@ public class RepoTypeWS {
    *
    * <ul>
    *   <li>Success → HTTP 201 with the created entity
+   *   <li>Missing / blank {@code name}, or name/description longer than 255 characters → HTTP 400
    *   <li>Duplicate name → HTTP 409 with a short message body
    *   <li>Omitted / null {@code aiPrompt} → stored as empty string
    *   <li>Omitted / null {@code integrityCheckers} → no checkers
@@ -92,7 +94,7 @@ public class RepoTypeWS {
               repoType.getAiPrompt(),
               repoType.getIntegrityCheckers());
       return new ResponseEntity<>(created, HttpStatus.CREATED);
-    } catch (RepoTypeNameAlreadyUsedException e) {
+    } catch (RepoTypeNameAlreadyUsedException | DataIntegrityViolationException e) {
       logger.debug("Cannot create the repo type", e);
       return new ResponseEntity<>(
           "RepoType with name [" + repoType.getName() + "] already exists", HttpStatus.CONFLICT);
@@ -105,6 +107,7 @@ public class RepoTypeWS {
    *
    * <ul>
    *   <li>Unknown id → HTTP 404
+   *   <li>Blank {@code name} or over-length name/description → HTTP 400
    *   <li>Name conflict with another type → HTTP 409
    *   <li>Success → HTTP 200 with the updated entity
    *   <li>Omitted or null {@code name}, {@code description}, {@code aiPrompt}, or {@code
@@ -134,7 +137,7 @@ public class RepoTypeWS {
               repoType.getAiPrompt(),
               repoType.getIntegrityCheckers());
       return new ResponseEntity<>(updated, HttpStatus.OK);
-    } catch (RepoTypeNameAlreadyUsedException e) {
+    } catch (RepoTypeNameAlreadyUsedException | DataIntegrityViolationException e) {
       logger.debug("Cannot update the repo type", e);
       return new ResponseEntity<>(
           "RepoType with name [" + repoType.getName() + "] already exists", HttpStatus.CONFLICT);

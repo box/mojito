@@ -2,58 +2,35 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import java.util.Objects;
 
 /**
- * Persistence row for an integrity checker owned by a {@link RepoType}.
+ * One integrity checker on a {@link RepoType}: an {@code (assetExtension, integrityCheckerType)}
+ * pair.
  *
- * <p>This is a separate JPA entity from {@link AssetIntegrityChecker} only because the parent FK
- * differs ({@code repo_type_id} vs {@code repository_id}). At runtime, both expose the same logical
- * identity — {@code (assetExtension, integrityCheckerType)} using the shared {@link
- * IntegrityCheckerType} enum — so a push/import can take the <em>superset</em> of type-level and
- * repo-level checkers by that pair.
+ * <p>This is not a JPA entity. Parent FK and any table row id are owned by {@link RepoType}'s
+ * element collection; they are not part of this type and are not exposed in JSON. Clients get and
+ * send de-duplicated sets of this pair only.
  *
- * <p>Multiple checkers may share the same {@code assetExtension} as long as their {@link
- * IntegrityCheckerType} values differ. There is no unique constraint on extension alone.
+ * <p>Logical identity matches repository checkers so a push/import can later take the superset of
+ * type-level and repo-level checkers by that pair. Multiple checkers may share the same {@code
+ * assetExtension} as long as their {@link IntegrityCheckerType} values differ.
  */
-@Entity
-@Table(
-    name = "repo_type_integrity_checker",
-    indexes = {
-      @Index(
-          name = "I__REPO_TYPE_INTEGRITY_CHECKER__REPO_TYPE_ID__ASSET_EXTENSION",
-          columnList = "repo_type_id, asset_extension",
-          unique = false)
-    })
-public class RepoTypeIntegrityChecker extends BaseEntity {
-
-  /** Owning repo type. Required; omitted from JSON via {@link JsonBackReference}. */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JsonBackReference("integrityCheckers")
-  @JoinColumn(
-      name = "repo_type_id",
-      foreignKey = @ForeignKey(name = "FK__REPO_TYPE_INTEGRITY_CHECKER__REPO_TYPE__ID"),
-      nullable = false)
-  private RepoType repoType;
+@Embeddable
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class RepoTypeIntegrityChecker {
 
   /**
    * Asset file extension this checker applies to (e.g. {@code properties}, {@code resw}), without a
    * leading dot. Required.
    */
-  @Basic(optional = false)
-  @Column(name = "asset_extension")
+  @Column(name = "asset_extension", nullable = false)
   @JsonView(View.IdAndName.class)
   private String assetExtension;
 
@@ -61,25 +38,10 @@ public class RepoTypeIntegrityChecker extends BaseEntity {
    * Which integrity checker implementation to run. Same enum values as repository checkers.
    * Required.
    */
-  @Basic(optional = false)
-  @Column(name = "integrity_checker_type")
+  @Column(name = "integrity_checker_type", nullable = false)
   @Enumerated(EnumType.STRING)
   @JsonView(View.IdAndName.class)
   private IntegrityCheckerType integrityCheckerType;
-
-  /**
-   * @return owning {@link RepoType}
-   */
-  public RepoType getRepoType() {
-    return repoType;
-  }
-
-  /**
-   * @param repoType owning type; must be set before save
-   */
-  public void setRepoType(RepoType repoType) {
-    this.repoType = repoType;
-  }
 
   /**
    * @return asset extension this checker applies to
@@ -107,5 +69,22 @@ public class RepoTypeIntegrityChecker extends BaseEntity {
    */
   public void setIntegrityCheckerType(IntegrityCheckerType integrityCheckerType) {
     this.integrityCheckerType = integrityCheckerType;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RepoTypeIntegrityChecker that)) {
+      return false;
+    }
+    return Objects.equals(assetExtension, that.assetExtension)
+        && integrityCheckerType == that.integrityCheckerType;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(assetExtension, integrityCheckerType);
   }
 }

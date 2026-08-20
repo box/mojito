@@ -1,15 +1,17 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.Basic;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.Set;
 
@@ -35,6 +37,7 @@ import java.util.Set;
 public class RepoType extends AuditableEntity {
 
   public static final int NAME_MAX_LENGTH = 255;
+  public static final int DESCRIPTION_MAX_LENGTH = 255;
 
   /**
    * Unique display name of the type (e.g. {@code React}). Required; max {@link #NAME_MAX_LENGTH}.
@@ -45,7 +48,7 @@ public class RepoType extends AuditableEntity {
   private String name;
 
   /** Optional human-readable description of what this type is for. May be {@code null} or empty. */
-  @Column(name = "description")
+  @Column(name = "description", length = DESCRIPTION_MAX_LENGTH)
   @JsonView(View.IdAndName.class)
   private String description;
 
@@ -62,15 +65,23 @@ public class RepoType extends AuditableEntity {
   private String aiPrompt;
 
   /**
-   * Integrity checkers owned by this type. Serialized in JSON as {@code integrityCheckers}.
+   * Integrity checkers owned by this type. Serialized in JSON as {@code integrityCheckers}: each
+   * element is only {@code assetExtension} and {@code integrityCheckerType}. Parent FK and row ids
+   * stay in the join table and are not part of the JSON contract.
    *
-   * <p>Multiple checkers per asset extension are allowed; the logical key is {@code
-   * (assetExtension, integrityCheckerType)}. After load/create, never {@code null} — use an empty
-   * set when none are configured. Field defaults to {@code null} so omitted JSON on PATCH means
-   * leave checkers unchanged.
+   * <p>Multiple checkers per asset extension are allowed; uniqueness is {@code (assetExtension,
+   * integrityCheckerType)}. After load/create, never {@code null} — use an empty set when none are
+   * configured. Field defaults to {@code null} so omitted JSON on PATCH means leave checkers
+   * unchanged.
    */
-  @JsonManagedReference("integrityCheckers")
-  @OneToMany(mappedBy = "repoType", fetch = FetchType.EAGER)
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "repo_type_integrity_checker",
+      joinColumns =
+          @JoinColumn(
+              name = "repo_type_id",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "FK__REPO_TYPE_INTEGRITY_CHECKER__REPO_TYPE__ID")))
   @JsonView(View.IdAndName.class)
   private Set<RepoTypeIntegrityChecker> integrityCheckers;
 

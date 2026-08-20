@@ -3,9 +3,11 @@ package com.box.l10n.mojito.service.repotype;
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.rest.repotype.RepoTypeWithIdNotFoundException;
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,14 +32,15 @@ public class RepoTypeService {
 
   @Autowired RepoTypeRepository repoTypeRepository;
 
-  @Autowired RepoTypeIntegrityCheckerRepository repoTypeIntegrityCheckerRepository;
-
   /**
    * Creates a new repo type and optionally its integrity checkers.
    *
    * <ul>
+   *   <li>{@code name} is required (non-blank) and at most {@link RepoType#NAME_MAX_LENGTH}
+   *       characters; otherwise {@link RepoTypeInvalidException}
    *   <li>{@code name} must be unique; otherwise {@link RepoTypeNameAlreadyUsedException}
-   *   <li>{@code description} may be {@code null} or empty
+   *   <li>{@code description} may be {@code null} or empty, and at most {@link
+   *       RepoType#DESCRIPTION_MAX_LENGTH} characters
    *   <li>{@code aiPrompt} {@code null} is treated as empty string
    *   <li>{@code integrityCheckers} {@code null} or empty means no checkers; otherwise each row is
    *       associated with the new type and saved
@@ -48,6 +51,7 @@ public class RepoTypeService {
    * @param aiPrompt shared type-layer prompt (translation and review)
    * @param integrityCheckers checkers to attach, or {@code null}/empty for none
    * @return the persisted type including generated id and checkers
+   * @throws RepoTypeInvalidException if {@code name} is blank or a field exceeds its max length
    * @throws RepoTypeNameAlreadyUsedException if {@code name} is already taken
    */
   @Transactional
@@ -57,6 +61,9 @@ public class RepoTypeService {
       String aiPrompt,
       Set<RepoTypeIntegrityChecker> integrityCheckers)
       throws RepoTypeNameAlreadyUsedException {
+
+    validateName(name);
+    validateDescription(description);
 
     logger.debug("Check no repo type with name: {} exists", name);
 
@@ -71,7 +78,10 @@ public class RepoTypeService {
     repoType.setDescription(description);
     repoType.setAiPrompt(aiPrompt != null ? aiPrompt : "");
     repoType.setIntegrityCheckers(new HashSet<>());
-    repoType = repoTypeRepository.save(repoType);
+    // Flush now so a unique-name race fails here (DataIntegrityViolationException). The WS
+    // maps that to 409 after this @Transactional method has rolled back — do not catch it
+    // inside the transaction (session is then unusable; a checked wrap can attempt commit).
+    repoType = repoTypeRepository.saveAndFlush(repoType);
 
     if (integrityCheckers != null && !integrityCheckers.isEmpty()) {
       updateIntegrityCheckers(repoType, integrityCheckers);
@@ -127,13 +137,18 @@ public class RepoTypeService {
    *
    * <ul>
    *   <li>Unknown {@code repoTypeId} → {@link RepoTypeWithIdNotFoundException}
+   *   <li>Non-null {@code name} that is blank or longer than {@link RepoType#NAME_MAX_LENGTH} →
+   *       {@link RepoTypeInvalidException}
+   *   <li>Non-null {@code description} longer than {@link RepoType#DESCRIPTION_MAX_LENGTH} → {@link
+   *       RepoTypeInvalidException}
    *   <li>Renaming to a name used by a <em>different</em> type → {@link
    *       RepoTypeNameAlreadyUsedException}; renaming to the same name is a no-op for uniqueness
    *   <li>{@code name}, {@code description}, {@code aiPrompt}: {@code null} leaves the field
-   *       unchanged; a non-null value (including empty string) replaces it
+   *       unchanged; a non-null value (including empty string for description/prompt) replaces it
    *   <li>{@code integrityCheckers}: {@code null} leaves the existing checkers unchanged; a
    *       non-null set (including empty) replaces the full set via {@link #updateIntegrityCheckers}
-   *       — empty clears all checkers
+   *       — empty clears all checkers. Replacing checkers also updates {@code lastModifiedDate} on
+   *       the type, even when name/description/prompt are omitted.
    * </ul>
    *
    * @param repoTypeId id of the type to update
@@ -143,6 +158,7 @@ public class RepoTypeService {
    * @param integrityCheckers new checker set, or {@code null} to leave unchanged
    * @return the updated type
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
+   * @throws RepoTypeInvalidException if a provided {@code name} is blank or a field is too long
    * @throws RepoTypeNameAlreadyUsedException if the new name conflicts with another type
    */
   @Transactional
@@ -157,6 +173,7 @@ public class RepoTypeService {
     RepoType repoType = getRepoTypeById(repoTypeId);
 
     if (name != null) {
+      validateName(name);
       RepoType existing = repoTypeRepository.findByName(name);
       if (existing != null && !repoType.getId().equals(existing.getId())) {
         throw new RepoTypeNameAlreadyUsedException(name + " is used by another repo type");
@@ -164,6 +181,7 @@ public class RepoTypeService {
       repoType.setName(name);
     }
     if (description != null) {
+      validateDescription(description);
       repoType.setDescription(description);
     }
     if (aiPrompt != null) {
@@ -171,7 +189,7 @@ public class RepoTypeService {
     }
 
     if (name != null || description != null || aiPrompt != null) {
-      repoType = repoTypeRepository.save(repoType);
+      repoType = repoTypeRepository.saveAndFlush(repoType);
     }
 
     if (integrityCheckers != null) {
@@ -195,19 +213,19 @@ public class RepoTypeService {
   public void deleteRepoType(Long repoTypeId) throws RepoTypeWithIdNotFoundException {
     RepoType repoType = getRepoTypeById(repoTypeId);
     logger.debug("Delete repo type with name: {}", repoType.getName());
-    repoTypeIntegrityCheckerRepository.deleteByRepoType(repoType);
     repoTypeRepository.delete(repoType);
   }
 
   /**
    * Replaces the integrity checker set on a repo type.
    *
-   * <p>Behavior mirrors {@code RepositoryService#updateAssetIntegrityCheckers}:
+   * <p>Checkers are an element collection on {@link RepoType}. Identity is {@code (assetExtension,
+   * integrityCheckerType)} only; there is no checker id or parent on the value type.
    *
    * <ul>
-   *   <li>Match existing rows by {@code (assetExtension, integrityCheckerType)} and reuse their ids
-   *   <li>Delete rows that are no longer in the incoming set
-   *   <li>Insert new rows for pairs that did not exist
+   *   <li>A non-null incoming set fully replaces the collection (Hibernate inserts/deletes join
+   *       table rows as needed)
+   *   <li>Duplicate incoming pairs collapse to one row (last occurrence wins)
    *   <li>{@code null} or empty incoming set removes all checkers for the type
    * </ul>
    *
@@ -220,58 +238,58 @@ public class RepoTypeService {
   public void updateIntegrityCheckers(
       RepoType repoType, Set<RepoTypeIntegrityChecker> integrityCheckers) {
 
-    if (integrityCheckers == null || integrityCheckers.isEmpty()) {
-      logger.debug("Clearing all integrity checkers for repo type id: {}", repoType.getId());
-      repoTypeIntegrityCheckerRepository.deleteByRepoType(repoType);
-      repoType.setIntegrityCheckers(new HashSet<>());
-      return;
+    Set<RepoTypeIntegrityChecker> replacement = new HashSet<>();
+    if (integrityCheckers != null && !integrityCheckers.isEmpty()) {
+      replacement.addAll(uniqueByExtensionAndType(integrityCheckers));
     }
 
-    Set<RepoTypeIntegrityChecker> existingCheckers =
-        repoTypeIntegrityCheckerRepository.findByRepoType(repoType);
-    Map<String, Map<String, RepoTypeIntegrityChecker>> existingToDelete =
-        getIntegrityCheckerMap(existingCheckers);
+    logger.debug(
+        "Replacing integrity checkers for repo type id: {} (count: {})",
+        repoType.getId(),
+        replacement.size());
 
-    for (RepoTypeIntegrityChecker integrityChecker : integrityCheckers) {
-      logger.debug(
-          "Setting repo type for integrity checker: {}", integrityChecker.getAssetExtension());
-      integrityChecker.setRepoType(repoType);
-      Map<String, RepoTypeIntegrityChecker> existingForExtension =
-          existingToDelete.get(integrityChecker.getAssetExtension());
-      if (existingForExtension != null) {
-        RepoTypeIntegrityChecker existing =
-            existingForExtension.get(integrityChecker.getIntegrityCheckerType().name());
-        if (existing != null) {
-          logger.debug("Reusing existing integrity checker id: {}", existing.getId());
-          integrityChecker.setId(existing.getId());
-          existingForExtension.remove(integrityChecker.getIntegrityCheckerType().name());
-          if (existingForExtension.isEmpty()) {
-            existingToDelete.remove(integrityChecker.getAssetExtension());
-          }
-        }
-      }
+    RepoType managed = repoTypeRepository.findById(repoType.getId()).orElse(repoType);
+    Set<RepoTypeIntegrityChecker> current = managed.getIntegrityCheckers();
+    if (current == null) {
+      managed.setIntegrityCheckers(replacement);
+    } else {
+      current.clear();
+      current.addAll(replacement);
     }
-
-    logger.debug("Deleting unused integrity checkers for repo type id: {}", repoType.getId());
-    for (Map<String, RepoTypeIntegrityChecker> byType : existingToDelete.values()) {
-      for (RepoTypeIntegrityChecker toDelete : byType.values()) {
-        repoTypeIntegrityCheckerRepository.delete(toDelete);
-      }
-    }
-
-    repoTypeIntegrityCheckerRepository.saveAll(integrityCheckers);
-    repoType.setIntegrityCheckers(integrityCheckers);
-    logger.debug("Updated integrity checkers: {}", integrityCheckers.size());
+    // Element-collection changes do not dirty the parent row, so @LastModifiedDate would not
+    // move. Stamp it so a checkers-only PATCH still updates repo_type.last_modified_date.
+    managed.setLastModifiedDate(ZonedDateTime.now());
+    repoTypeRepository.save(managed);
   }
 
-  private Map<String, Map<String, RepoTypeIntegrityChecker>> getIntegrityCheckerMap(
+  /**
+   * Collapses checkers that share {@code (assetExtension, integrityCheckerType)} to a single
+   * instance. Last occurrence wins so a later duplicate in the request body is what we persist.
+   */
+  private Set<RepoTypeIntegrityChecker> uniqueByExtensionAndType(
       Set<RepoTypeIntegrityChecker> integrityCheckers) {
-    Map<String, Map<String, RepoTypeIntegrityChecker>> map = new HashMap<>();
-    for (RepoTypeIntegrityChecker integrityChecker : integrityCheckers) {
-      Map<String, RepoTypeIntegrityChecker> byType =
-          map.computeIfAbsent(integrityChecker.getAssetExtension(), k -> new HashMap<>());
-      byType.put(integrityChecker.getIntegrityCheckerType().name(), integrityChecker);
+    Map<String, RepoTypeIntegrityChecker> unique = new LinkedHashMap<>();
+    for (RepoTypeIntegrityChecker checker : integrityCheckers) {
+      String key = checker.getAssetExtension() + ":" + checker.getIntegrityCheckerType().name();
+      unique.put(key, checker);
     }
-    return map;
+    return new LinkedHashSet<>(unique.values());
+  }
+
+  private void validateName(String name) {
+    if (StringUtils.isBlank(name)) {
+      throw new RepoTypeInvalidException("name is required");
+    }
+    if (name.length() > RepoType.NAME_MAX_LENGTH) {
+      throw new RepoTypeInvalidException(
+          "name must be at most " + RepoType.NAME_MAX_LENGTH + " characters");
+    }
+  }
+
+  private void validateDescription(String description) {
+    if (description != null && description.length() > RepoType.DESCRIPTION_MAX_LENGTH) {
+      throw new RepoTypeInvalidException(
+          "description must be at most " + RepoType.DESCRIPTION_MAX_LENGTH + " characters");
+    }
   }
 }

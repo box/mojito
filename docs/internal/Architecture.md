@@ -68,20 +68,21 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 **Not decided here:** Global or per-request layers may still distinguish translation vs review (follow-up work). Hardcoded base prompts remain in `AiTranslateType` / `AiReviewType` enums; the type prompt is an additional *layer*, not a replacement for those modes.
 
-###### 2. Integrity checkers mirror repos, with a separate persistence entity
+###### 2. Integrity checkers are a value set on the type, not their own entity
 
 **Decision:**
 
 - Same logical identity as repository checkers: `(assetExtension, IntegrityCheckerType)`.
 - Same enum: `IntegrityCheckerType`.
 - Multiple checkers per extension allowed (no unique constraint on extension alone — same as repos after V10).
-- Separate JPA entity `RepoTypeIntegrityChecker` and table `repo_type_integrity_checker` (FK `repo_type_id`), not reuse of `AssetIntegrityChecker` (FK `repository_id`).
+- Persist as a JPA `@ElementCollection` of embeddable `RepoTypeIntegrityChecker` in table `repo_type_integrity_checker` (FK `repo_type_id`), not reuse of `AssetIntegrityChecker` (FK `repository_id`).
+- The checker type has **only** `assetExtension` and `integrityCheckerType`. Parent and row ids are join-table housekeeping owned by `RepoType` and are **not** in JSON.
 
-**Why separate entity:** JPA maps one parent FK per association. A row owned by a type cannot use `AssetIntegrityChecker`’s required `repository_id`.
+**Why not `AssetIntegrityChecker`:** JPA maps one parent FK per association. A row owned by a type cannot use `AssetIntegrityChecker`’s required `repository_id`.
 
 **Why still “the same” for runtime:** Push/import will later build a **superset** by projecting both type-level and repo-level rows to `(assetExtension, integrityCheckerType)` and unioning. The Java class of the parent entity does not matter at apply time.
 
-**JSON name:** The collection is exposed as `integrityCheckers` (not `assetIntegrityCheckers`) to keep the repo-type API clear while keeping the element shape identical (`id`, `assetExtension`, `integrityCheckerType`).
+**JSON name:** The collection is exposed as `integrityCheckers` (not `assetIntegrityCheckers`) to keep the repo-type API clear. Element shape is `{ assetExtension, integrityCheckerType }` only — clients get and send de-duplicated sets of that pair.
 
 ###### 3. `AuditableEntity` without Hibernate Envers `@Audited`
 
@@ -134,14 +135,13 @@ repo_type
   ai_prompt         longtext, default empty
 
 repo_type_integrity_checker
-  id
   repo_type_id      FK → repo_type.id  (NOT NULL)
   asset_extension
   integrity_checker_type   (enum string, same values as asset_integrity_checker)
-  INDEX (repo_type_id, asset_extension)  -- non-unique
+  PRIMARY KEY (repo_type_id, asset_extension, integrity_checker_type)
 ```
 
-Logical uniqueness of a checker on a type: `(repo_type_id, asset_extension, integrity_checker_type)` (enforced in service upsert logic; DB unique constraint optional later).
+Uniqueness of a checker on a type is that primary key. Clients never see checker ids or parent.
 
 ##### Component flow
 
@@ -154,8 +154,7 @@ RepoTypeClient (restclient) / future CLI
         ▼
  RepoTypeService
         │
-        ├── RepoTypeRepository
-        └── RepoTypeIntegrityCheckerRepository
+        └── RepoTypeRepository
                 │
                 ▼
          MySQL tables
@@ -172,8 +171,8 @@ Base path: `/api/repo-types`
 | GET | `/{id}` | 200 + body | 404 if missing |
 | GET | `/` | 200 + list (by name asc) | — |
 | GET | `/?name=` | 200 + list (0 or 1); **not** 404 if unknown name | — |
-| POST | `/` | 201 + body | 409 duplicate name |
-| PATCH | `/{id}` | 200 + body | 404 missing; 409 name conflict |
+| POST | `/` | 201 + body | 400 invalid name/description; 409 duplicate name |
+| PATCH | `/{id}` | 200 + body | 400 invalid name/description; 404 missing; 409 name conflict |
 | DELETE | `/{id}` | 204 (void) | 404 missing |
 
 **Create body**
@@ -191,12 +190,10 @@ Base path: `/api/repo-types`
   "aiPrompt": "This stack uses ICU MessageFormat. Preserve {placeholders} and plural/select skeletons.",
   "integrityCheckers": [
     {
-      "id": 10,
       "assetExtension": "properties",
       "integrityCheckerType": "MESSAGE_FORMAT"
     },
     {
-      "id": 11,
       "assetExtension": "properties",
       "integrityCheckerType": "TRAILING_WHITESPACE"
     }
@@ -210,7 +207,9 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 
 ###### `createRepoType`
 
-- Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException`.
+- Rejects blank {@code name} (null, empty, whitespace) → `RepoTypeInvalidException` (HTTP 400).
+- Rejects {@code name} / {@code description} longer than 255 characters → `RepoTypeInvalidException`.
+- Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException` (HTTP 409). Concurrent creates/renames that both pass `findByName` still fail on `UK__REPO_TYPE__NAME`; `saveAndFlush` surfaces that as `DataIntegrityViolationException`, which rolls back the service transaction and is mapped to 409 in `RepoTypeWS` (must not be caught inside `@Transactional`).
 - Persists `description` as given (`null` allowed).
 - Persists `aiPrompt`; `null` → `""`.
 - Attaches checkers when the set is non-null and non-empty; otherwise no checker rows.
@@ -229,10 +228,11 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 ###### `updateRepoType` (PATCH)
 
 - Missing id → `RepoTypeWithIdNotFoundException`.
-- Rename to another type’s name → `RepoTypeNameAlreadyUsedException`.
+- Non-null blank {@code name}, or over-length name/description → `RepoTypeInvalidException`.
+- Rename to another type’s name → `RepoTypeNameAlreadyUsedException` (same flush-time catch as create).
 - Rename to the **same** name → allowed (no conflict).
 - Field-level `null` vs replace as in the table above.
-- Non-null `integrityCheckers` → full replace via `updateIntegrityCheckers`.
+- Non-null `integrityCheckers` → full replace via `updateIntegrityCheckers`. That also updates `last_modified_date` on `repo_type` (checker rows live in a join table, so a parent save alone may not dirty the type).
 
 ###### `deleteRepoType`
 
@@ -242,13 +242,11 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 
 ###### `updateIntegrityCheckers`
 
-Mirrors `RepositoryService.updateAssetIntegrityCheckers`:
+Replaces the type's checker collection (element collection on `RepoType`):
 
-1. Load existing checkers for the type.
-2. Key by `(assetExtension, integrityCheckerType.name())`.
-3. For each incoming checker: set parent type; if a matching pair exists, reuse that row’s `id`; otherwise insert.
-4. Delete existing pairs not present in the incoming set.
-5. `null` or empty incoming set → delete all checkers for the type.
+1. De-duplicate incoming pairs on `(assetExtension, integrityCheckerType)` (last occurrence wins).
+2. Replace the collection with that set. Hibernate inserts/deletes join-table rows; there is no checker `id` to reuse or to accept from the client.
+3. `null` or empty incoming set → delete all checkers for the type.
 
 Caller must pass a persisted `RepoType`.
 
@@ -257,11 +255,11 @@ Caller must pass a persisted `RepoType`.
 | File | Role |
 |------|------|
 | `entity/RepoType.java` | Aggregate root |
-| `entity/RepoTypeIntegrityChecker.java` | Child checker rows |
+| `entity/RepoTypeIntegrityChecker.java` | Embeddable checker pair (extension + type) |
 | `service/repotype/RepoTypeService.java` | Business rules (above) |
 | `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc` |
-| `service/repotype/RepoTypeIntegrityCheckerRepository.java` | `findByRepoType`, `deleteByRepoType` |
 | `service/repotype/RepoTypeNameAlreadyUsedException.java` | → HTTP 409 |
+| `service/repotype/RepoTypeInvalidException.java` | → HTTP 400 |
 | `rest/repotype/RepoTypeWS.java` | HTTP API |
 | `rest/repotype/RepoTypeWithIdNotFoundException.java` | → HTTP 404 |
 

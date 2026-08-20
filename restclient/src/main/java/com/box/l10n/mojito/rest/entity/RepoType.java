@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.rest.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 
@@ -19,12 +18,11 @@ public class RepoType {
 
   /**
    * Integrity checkers for this type. JSON property name is {@code integrityCheckers} (same shape
-   * as server: {@code id}, {@code assetExtension}, {@code integrityCheckerType}).
+   * as server: {@code assetExtension}, {@code integrityCheckerType} only).
    *
    * <p>Defaults to {@code null} so PATCH omits the field (leave unchanged). Set an empty set to
    * clear all checkers; responses from the server use an empty set when none are configured.
    */
-  @JsonManagedReference("integrityCheckers")
   @JsonProperty("integrityCheckers")
   private Set<RepoTypeIntegrityChecker> integrityCheckers;
 

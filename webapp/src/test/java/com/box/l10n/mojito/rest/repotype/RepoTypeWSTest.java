@@ -80,6 +80,41 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testCreateRepoTypeMissingNameReturns400() {
+    RepoType toCreate = new RepoType();
+    try {
+      repoTypeClient.createRepoType(toCreate);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeBlankNameReturns400() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName("   ");
+    try {
+      repoTypeClient.createRepoType(toCreate);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeNameTooLongReturns400() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName("n".repeat(256));
+    try {
+      repoTypeClient.createRepoType(toCreate);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
   public void testGetRepoTypeByIdReturnsType() {
     RepoType toCreate = new RepoType();
     toCreate.setName(testIdWatcher.getEntityName("ById"));

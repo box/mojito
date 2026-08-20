@@ -12,7 +12,10 @@ import com.box.l10n.mojito.rest.repotype.RepoTypeWithIdNotFoundException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,8 +32,6 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   @Autowired RepoTypeService repoTypeService;
 
   @Autowired RepoTypeRepository repoTypeRepository;
-
-  @Autowired RepoTypeIntegrityCheckerRepository repoTypeIntegrityCheckerRepository;
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -93,6 +94,40 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testCreateRepoTypeDedupesIdenticalCheckerPairs() throws Exception {
+    String name = testIdWatcher.getEntityName("DupCheckers");
+    Set<RepoTypeIntegrityChecker> checkers =
+        Collections.newSetFromMap(new IdentityHashMap<>());
+    checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    assertEquals(
+        "identity-based Set can hold two instances of the same pair before service de-dupe",
+        2,
+        checkers.size());
+
+    RepoType created = repoTypeService.createRepoType(name, null, "", checkers);
+
+    assertEquals(1, created.getIntegrityCheckers().size());
+    assertCheckerPresent(created, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
+  }
+
+  @Test
+  public void testUpdateIntegrityCheckersDedupesIdenticalCheckerPairs() throws Exception {
+    String name = testIdWatcher.getEntityName("DupCheckersPatch");
+    RepoType created = repoTypeService.createRepoType(name, null, "", null);
+
+    Set<RepoTypeIntegrityChecker> checkers =
+        Collections.newSetFromMap(new IdentityHashMap<>());
+    checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    repoTypeService.updateIntegrityCheckers(created, checkers);
+
+    RepoType afterUpdate = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(1, afterUpdate.getIntegrityCheckers().size());
+    assertCheckerPresent(afterUpdate, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
+  }
+
+  @Test
   public void testCreateRepoTypeDuplicateNameThrows() throws Exception {
     String name = testIdWatcher.getEntityName("Duplicate");
     repoTypeService.createRepoType(name, null, "", null);
@@ -103,6 +138,63 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     } catch (RepoTypeNameAlreadyUsedException expected) {
       assertNotNull(expected.getMessage());
     }
+  }
+
+  @Test
+  public void testCreateRepoTypeNullNameThrows() throws Exception {
+    try {
+      repoTypeService.createRepoType(null, null, "", null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("name is required"));
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeBlankNameThrows() throws Exception {
+    try {
+      repoTypeService.createRepoType("   ", null, "", null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("name is required"));
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeNameTooLongThrows() throws Exception {
+    String tooLong = "n".repeat(RepoType.NAME_MAX_LENGTH + 1);
+    try {
+      repoTypeService.createRepoType(tooLong, null, "", null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("name"));
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeDescriptionTooLongThrows() throws Exception {
+    String name = testIdWatcher.getEntityName("LongDesc");
+    String tooLong = "d".repeat(RepoType.DESCRIPTION_MAX_LENGTH + 1);
+    try {
+      repoTypeService.createRepoType(name, tooLong, "", null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("description"));
+    }
+  }
+
+  @Test
+  public void testUpdateRepoTypeBlankNameThrows() throws Exception {
+    String name = testIdWatcher.getEntityName("KeepName");
+    RepoType created = repoTypeService.createRepoType(name, null, "", null);
+
+    try {
+      repoTypeService.updateRepoType(created.getId(), "  ", null, null, null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("name is required"));
+    }
+    assertEquals(name, repoTypeService.getRepoTypeById(created.getId()).getName());
   }
 
   @Test
@@ -234,7 +326,6 @@ public class RepoTypeServiceTest extends ServiceTestBase {
         repoTypeService.updateRepoType(created.getId(), null, null, null, new HashSet<>());
 
     assertTrue(cleared.getIntegrityCheckers().isEmpty());
-    assertTrue(repoTypeIntegrityCheckerRepository.findByRepoType(cleared).isEmpty());
   }
 
   @Test
@@ -274,23 +365,44 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
-  public void testUpdateIntegrityCheckersReusesIdForSamePair() throws Exception {
-    String name = testIdWatcher.getEntityName("ReuseId");
-    Set<RepoTypeIntegrityChecker> initial = new HashSet<>();
-    initial.add(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
-    RepoType created = repoTypeService.createRepoType(name, null, "", initial);
-    Long messageFormatId =
-        findChecker(created, "properties", IntegrityCheckerType.MESSAGE_FORMAT).getId();
+  public void testUpdateRepoTypeCheckersOnlyBumpsLastModifiedDate() throws Exception {
+    String name = testIdWatcher.getEntityName("CheckerTimestamp");
+    RepoType created = repoTypeService.createRepoType(name, null, "", null);
+    ZonedDateTime originalModified = created.getLastModifiedDate();
+    assertNotNull(originalModified);
 
-    Set<RepoTypeIntegrityChecker> withExtra = new HashSet<>();
-    withExtra.add(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
-    withExtra.add(checker("properties", IntegrityCheckerType.TRAILING_WHITESPACE));
-    repoTypeService.updateIntegrityCheckers(created, withExtra);
+    Thread.sleep(20);
 
-    RepoType afterAdd = repoTypeService.getRepoTypeById(created.getId());
-    assertEquals(
-        messageFormatId,
-        findChecker(afterAdd, "properties", IntegrityCheckerType.MESSAGE_FORMAT).getId());
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
+    RepoType updated =
+        repoTypeService.updateRepoType(created.getId(), null, null, null, checkers);
+
+    assertNotNull(updated.getLastModifiedDate());
+    assertTrue(updated.getLastModifiedDate().isAfter(originalModified));
+    assertEquals(created.getCreatedDate().toInstant(), updated.getCreatedDate().toInstant());
+    assertEquals(1, updated.getIntegrityCheckers().size());
+  }
+
+  @Test
+  public void testCopyingCheckersToAnotherTypeDoesNotRemoveThemFromOriginal() throws Exception {
+    Set<RepoTypeIntegrityChecker> typeACheckers = new HashSet<>();
+    typeACheckers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    RepoType typeA =
+        repoTypeService.createRepoType(testIdWatcher.getEntityName("TypeA"), null, "", typeACheckers);
+    RepoType typeB =
+        repoTypeService.createRepoType(testIdWatcher.getEntityName("TypeB"), null, "", null);
+
+    Set<RepoTypeIntegrityChecker> typeBCheckers = new HashSet<>();
+    typeBCheckers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    repoTypeService.updateIntegrityCheckers(typeB, typeBCheckers);
+
+    RepoType typeAAfter = repoTypeService.getRepoTypeById(typeA.getId());
+    RepoType typeBAfter = repoTypeService.getRepoTypeById(typeB.getId());
+    assertEquals(1, typeAAfter.getIntegrityCheckers().size());
+    assertCheckerPresent(typeAAfter, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
+    assertEquals(1, typeBAfter.getIntegrityCheckers().size());
+    assertCheckerPresent(typeBAfter, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
   }
 
   @Test
@@ -360,7 +472,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
 
     repoTypeService.deleteRepoType(created.getId());
 
-    assertTrue(repoTypeIntegrityCheckerRepository.findByRepoType(created).isEmpty());
+    assertNull(repoTypeRepository.findById(created.getId()).orElse(null));
   }
 
   @Test
