@@ -42,8 +42,10 @@ public class RepoTypeService {
    *   <li>{@code description} may be {@code null} or empty, and at most {@link
    *       RepoType#DESCRIPTION_MAX_LENGTH} characters
    *   <li>{@code aiPrompt} {@code null} is treated as empty string
-   *   <li>{@code integrityCheckers} {@code null} or empty means no checkers; otherwise each row is
-   *       associated with the new type and saved
+   *   <li>{@code integrityCheckers} {@code null} or empty means no checkers; otherwise each checker
+   *       must have a non-blank {@code assetExtension} and a non-null {@code integrityCheckerType}
+   *       ({@link RepoTypeInvalidException}). Extensions are trimmed and a leading {@code .} is
+   *       stripped before persist.
    * </ul>
    *
    * @param name unique name
@@ -51,7 +53,8 @@ public class RepoTypeService {
    * @param aiPrompt shared type-layer prompt (translation and review)
    * @param integrityCheckers checkers to attach, or {@code null}/empty for none
    * @return the persisted type including generated id and checkers
-   * @throws RepoTypeInvalidException if {@code name} is blank or a field exceeds its max length
+   * @throws RepoTypeInvalidException if {@code name} is blank, a field exceeds its max length, or a
+   *     checker is missing {@code assetExtension} / {@code integrityCheckerType}
    * @throws RepoTypeNameAlreadyUsedException if {@code name} is already taken
    */
   @Transactional
@@ -147,8 +150,9 @@ public class RepoTypeService {
    *       unchanged; a non-null value (including empty string for description/prompt) replaces it
    *   <li>{@code integrityCheckers}: {@code null} leaves the existing checkers unchanged; a
    *       non-null set (including empty) replaces the full set via {@link #updateIntegrityCheckers}
-   *       — empty clears all checkers. Replacing checkers also updates {@code lastModifiedDate} on
-   *       the type, even when name/description/prompt are omitted.
+   *       — empty clears all checkers. Present checkers are validated/normalized the same way as
+   *       create. Replacing checkers also updates {@code lastModifiedDate} on the type, even when
+   *       name/description/prompt are omitted.
    * </ul>
    *
    * @param repoTypeId id of the type to update
@@ -158,7 +162,8 @@ public class RepoTypeService {
    * @param integrityCheckers new checker set, or {@code null} to leave unchanged
    * @return the updated type
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
-   * @throws RepoTypeInvalidException if a provided {@code name} is blank or a field is too long
+   * @throws RepoTypeInvalidException if a provided {@code name} is blank, a field is too long, or a
+   *     checker is missing required fields
    * @throws RepoTypeNameAlreadyUsedException if the new name conflicts with another type
    */
   @Transactional
@@ -225,6 +230,10 @@ public class RepoTypeService {
    * <ul>
    *   <li>A non-null incoming set fully replaces the collection (Hibernate inserts/deletes join
    *       table rows as needed)
+   *   <li>Each non-empty incoming checker must have a non-blank {@code assetExtension} and a
+   *       non-null {@code integrityCheckerType}; otherwise {@link RepoTypeInvalidException}
+   *   <li>{@code assetExtension} is trimmed and a single leading {@code .} is stripped so {@code
+   *       json}, {@code json }, and {@code .json} are the same pair
    *   <li>Duplicate incoming pairs collapse to one row (last occurrence wins)
    *   <li>{@code null} or empty incoming set removes all checkers for the type
    * </ul>
@@ -265,15 +274,39 @@ public class RepoTypeService {
   /**
    * Collapses checkers that share {@code (assetExtension, integrityCheckerType)} to a single
    * instance. Last occurrence wins so a later duplicate in the request body is what we persist.
+   * Validates and normalizes each checker first so the de-dupe key matches what is stored.
    */
   private Set<RepoTypeIntegrityChecker> uniqueByExtensionAndType(
       Set<RepoTypeIntegrityChecker> integrityCheckers) {
     Map<String, RepoTypeIntegrityChecker> unique = new LinkedHashMap<>();
     for (RepoTypeIntegrityChecker checker : integrityCheckers) {
+      normalizeChecker(checker);
       String key = checker.getAssetExtension() + ":" + checker.getIntegrityCheckerType().name();
       unique.put(key, checker);
     }
     return new LinkedHashSet<>(unique.values());
+  }
+
+  /**
+   * Requires both checker fields and normalizes {@code assetExtension} (trim, strip one leading
+   * {@code .}) so lookup and persist use the same pair.
+   */
+  private void normalizeChecker(RepoTypeIntegrityChecker checker) {
+    if (checker.getIntegrityCheckerType() == null) {
+      throw new RepoTypeInvalidException("integrityCheckerType is required");
+    }
+    String extension = checker.getAssetExtension();
+    if (StringUtils.isBlank(extension)) {
+      throw new RepoTypeInvalidException("assetExtension is required");
+    }
+    extension = extension.trim();
+    if (extension.startsWith(".")) {
+      extension = extension.substring(1).trim();
+    }
+    if (StringUtils.isBlank(extension)) {
+      throw new RepoTypeInvalidException("assetExtension is required");
+    }
+    checker.setAssetExtension(extension);
   }
 
   private void validateName(String name) {

@@ -112,6 +112,60 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testCreateRepoTypeNullCheckerTypeThrows() throws Exception {
+    String name = testIdWatcher.getEntityName("NullCheckerType");
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker("properties", null));
+    try {
+      repoTypeService.createRepoType(name, null, "", checkers);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("integrityCheckerType"));
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeNullAssetExtensionThrows() throws Exception {
+    String name = testIdWatcher.getEntityName("NullExtension");
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker(null, IntegrityCheckerType.MESSAGE_FORMAT));
+    try {
+      repoTypeService.createRepoType(name, null, "", checkers);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("assetExtension"));
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeBlankAssetExtensionThrows() throws Exception {
+    String name = testIdWatcher.getEntityName("BlankExtension");
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker("   ", IntegrityCheckerType.MESSAGE_FORMAT));
+    try {
+      repoTypeService.createRepoType(name, null, "", checkers);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("assetExtension"));
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeNormalizesAssetExtension() throws Exception {
+    String name = testIdWatcher.getEntityName("NormExt");
+    Set<RepoTypeIntegrityChecker> checkers =
+        Collections.newSetFromMap(new IdentityHashMap<>());
+    checkers.add(checker("json ", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    checkers.add(checker(".json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+
+    RepoType created = repoTypeService.createRepoType(name, null, "", checkers);
+
+    assertEquals(1, created.getIntegrityCheckers().size());
+    assertCheckerPresent(created, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
+  }
+
+  @Test
   public void testUpdateIntegrityCheckersDedupesIdenticalCheckerPairs() throws Exception {
     String name = testIdWatcher.getEntityName("DupCheckersPatch");
     RepoType created = repoTypeService.createRepoType(name, null, "", null);

@@ -72,7 +72,8 @@ public class RepoTypeWS {
    *
    * <ul>
    *   <li>Success → HTTP 201 with the created entity
-   *   <li>Missing / blank {@code name}, or name/description longer than 255 characters → HTTP 400
+   *   <li>Missing / blank {@code name}, over-length name/description, or a checker missing {@code
+   *       assetExtension} / {@code integrityCheckerType} → HTTP 400
    *   <li>Duplicate name → HTTP 409 with a short message body
    *   <li>Omitted / null {@code aiPrompt} → stored as empty string
    *   <li>Omitted / null {@code integrityCheckers} → no checkers
@@ -107,7 +108,8 @@ public class RepoTypeWS {
    *
    * <ul>
    *   <li>Unknown id → HTTP 404
-   *   <li>Blank {@code name} or over-length name/description → HTTP 400
+   *   <li>Blank {@code name}, over-length name/description, or a checker missing {@code
+   *       assetExtension} / {@code integrityCheckerType} → HTTP 400
    *   <li>Name conflict with another type → HTTP 409
    *   <li>Success → HTTP 200 with the updated entity
    *   <li>Omitted or null {@code name}, {@code description}, {@code aiPrompt}, or {@code

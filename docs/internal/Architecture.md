@@ -171,8 +171,8 @@ Base path: `/api/repo-types`
 | GET | `/{id}` | 200 + body | 404 if missing |
 | GET | `/` | 200 + list (by name asc) | — |
 | GET | `/?name=` | 200 + list (0 or 1); **not** 404 if unknown name | — |
-| POST | `/` | 201 + body | 400 invalid name/description; 409 duplicate name |
-| PATCH | `/{id}` | 200 + body | 400 invalid name/description; 404 missing; 409 name conflict |
+| POST | `/` | 201 + body | 400 invalid name/description/checkers; 409 duplicate name |
+| PATCH | `/{id}` | 200 + body | 400 invalid name/description/checkers; 404 missing; 409 name conflict |
 | DELETE | `/{id}` | 204 (void) | 404 missing |
 
 **Create body**
@@ -212,7 +212,9 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 - Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException` (HTTP 409). Concurrent creates/renames that both pass `findByName` still fail on `UK__REPO_TYPE__NAME`; `saveAndFlush` surfaces that as `DataIntegrityViolationException`, which rolls back the service transaction and is mapped to 409 in `RepoTypeWS` (must not be caught inside `@Transactional`).
 - Persists `description` as given (`null` allowed).
 - Persists `aiPrompt`; `null` → `""`.
-- Attaches checkers when the set is non-null and non-empty; otherwise no checker rows.
+- Attaches checkers when the set is non-null and non-empty; otherwise no checker rows. Each checker
+  requires {@code assetExtension} and {@code integrityCheckerType} ({@code RepoTypeInvalidException}).
+  Extensions are trimmed and a leading {@code .} is stripped.
 - Returns persisted entity with generated `id` and loaded checkers.
 
 ###### `getRepoTypeById`
@@ -244,9 +246,11 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 
 Replaces the type's checker collection (element collection on `RepoType`):
 
-1. De-duplicate incoming pairs on `(assetExtension, integrityCheckerType)` (last occurrence wins).
-2. Replace the collection with that set. Hibernate inserts/deletes join-table rows; there is no checker `id` to reuse or to accept from the client.
-3. `null` or empty incoming set → delete all checkers for the type.
+1. Validate each checker: {@code integrityCheckerType} required; {@code assetExtension} required
+   after trim and stripping one leading {@code .}. Missing fields → `RepoTypeInvalidException`.
+2. De-duplicate incoming pairs on `(assetExtension, integrityCheckerType)` (last occurrence wins).
+3. Replace the collection with that set. Hibernate inserts/deletes join-table rows; there is no checker `id` to reuse or to accept from the client.
+4. `null` or empty incoming set → delete all checkers for the type.
 
 Caller must pass a persisted `RepoType`.
 

@@ -18,6 +18,10 @@ import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
@@ -272,6 +276,84 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testCreateRepoTypeMissingCheckerTypeReturns400() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("MissingCheckerType"));
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(clientChecker("properties", null));
+    toCreate.setIntegrityCheckers(checkers);
+    try {
+      repoTypeClient.createRepoType(toCreate);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeMissingAssetExtensionReturns400() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("MissingExtension"));
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(clientChecker(null, IntegrityCheckerType.MESSAGE_FORMAT));
+    toCreate.setIntegrityCheckers(checkers);
+    try {
+      repoTypeClient.createRepoType(toCreate);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeUnknownCheckerTypeReturns400() {
+    String name = testIdWatcher.getEntityName("BadChecker");
+    String body =
+        "{\"name\":\""
+            + name
+            + "\",\"integrityCheckers\":[{\"assetExtension\":\"properties\","
+            + "\"integrityCheckerType\":\"NOT_A_CHECKER\"}]}";
+    try {
+      postRepoTypeJson(body);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testUpdateRepoTypeUnknownCheckerTypeReturns400() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("PatchBadChecker"));
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    String body =
+        "{\"integrityCheckers\":[{\"assetExtension\":\"properties\","
+            + "\"integrityCheckerType\":\"NOT_A_CHECKER\"}]}";
+    try {
+      patchRepoTypeJson(created.getId(), body);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testCreateAndGetRepoTypeWithFluentChecker() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("Fluent"));
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(clientChecker("ftl", IntegrityCheckerType.FLUENT));
+    toCreate.setIntegrityCheckers(checkers);
+
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+    RepoType loaded = repoTypeClient.getRepoTypeById(created.getId());
+
+    assertEquals(1, loaded.getIntegrityCheckers().size());
+    assertClientCheckerPresent(loaded, "ftl", IntegrityCheckerType.FLUENT);
+  }
+
+  @Test
   public void testUpdateRepoTypeReplacesIntegrityCheckers() {
     RepoType toCreate = new RepoType();
     toCreate.setName(testIdWatcher.getEntityName("ReplaceCheckers"));
@@ -332,6 +414,31 @@ public class RepoTypeWSTest extends WSTestBase {
     } catch (HttpClientErrorException e) {
       assertEquals(404, e.getRawStatusCode());
     }
+  }
+
+  private void postRepoTypeJson(String jsonBody) {
+    authenticatedRestTemplate
+        .getRestTemplate()
+        .postForEntity(
+            authenticatedRestTemplate.getURIForResource("/api/repo-types"),
+            jsonEntity(jsonBody),
+            String.class);
+  }
+
+  private void patchRepoTypeJson(Long repoTypeId, String jsonBody) {
+    authenticatedRestTemplate
+        .getRestTemplate()
+        .exchange(
+            authenticatedRestTemplate.getURIForResource("/api/repo-types/" + repoTypeId),
+            HttpMethod.PATCH,
+            jsonEntity(jsonBody),
+            String.class);
+  }
+
+  private static HttpEntity<String> jsonEntity(String jsonBody) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    return new HttpEntity<>(jsonBody, headers);
   }
 
   private static RepoTypeIntegrityChecker clientChecker(
