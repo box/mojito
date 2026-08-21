@@ -73,8 +73,8 @@ public class RepoTypeWS {
    *
    * <ul>
    *   <li>Success → HTTP 201 with the created entity
-   *   <li>Missing / blank {@code name}, over-length name/description, or a checker missing {@code
-   *       assetExtension} / {@code integrityCheckerType} → HTTP 400
+   *   <li>Missing / blank {@code name}, over-length name/description, a {@code null} checker, or a
+   *       checker missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400
    *   <li>Duplicate name → HTTP 409 with a short message body
    *   <li>Omitted / null {@code aiPrompt} → stored as empty string
    *   <li>Omitted / null {@code integrityCheckers} → no checkers
@@ -98,8 +98,7 @@ public class RepoTypeWS {
       return new ResponseEntity<>(created, HttpStatus.CREATED);
     } catch (RepoTypeNameAlreadyUsedException | DataIntegrityViolationException e) {
       logger.debug("Cannot create the repo type", e);
-      return new ResponseEntity<>(
-          "RepoType with name [" + repoType.getName() + "] already exists", HttpStatus.CONFLICT);
+      return nameAlreadyUsed(repoType.getName());
     }
   }
 
@@ -109,8 +108,8 @@ public class RepoTypeWS {
    *
    * <ul>
    *   <li>Unknown id → HTTP 404
-   *   <li>Blank {@code name}, over-length name/description, or a checker missing {@code
-   *       assetExtension} / {@code integrityCheckerType} → HTTP 400
+   *   <li>Blank {@code name}, over-length name/description, a {@code null} checker, or a checker
+   *       missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400
    *   <li>Name conflict with another type → HTTP 409
    *   <li>Success → HTTP 200 with the updated entity
    *   <li>Omitted or null {@code name}, {@code description}, {@code aiPrompt}, or {@code
@@ -142,8 +141,7 @@ public class RepoTypeWS {
       return new ResponseEntity<>(updated, HttpStatus.OK);
     } catch (RepoTypeNameAlreadyUsedException | DataIntegrityViolationException e) {
       logger.debug("Cannot update the repo type", e);
-      return new ResponseEntity<>(
-          "RepoType with name [" + repoType.getName() + "] already exists", HttpStatus.CONFLICT);
+      return nameAlreadyUsed(repoType.getName());
     }
   }
 
@@ -160,5 +158,15 @@ public class RepoTypeWS {
   public void deleteRepoType(@PathVariable Long repoTypeId) throws RepoTypeWithIdNotFoundException {
     logger.info("Deleting repo type [{}]", repoTypeId);
     repoTypeService.deleteRepoType(repoTypeId);
+  }
+
+  /**
+   * HTTP 409 body quotes the trimmed name so it matches uniqueness (the service strips surrounding
+   * whitespace before persist).
+   */
+  private static ResponseEntity<String> nameAlreadyUsed(String name) {
+    String conflictName = name == null ? null : name.trim();
+    return new ResponseEntity<>(
+        "RepoType with name [" + conflictName + "] already exists", HttpStatus.CONFLICT);
   }
 }

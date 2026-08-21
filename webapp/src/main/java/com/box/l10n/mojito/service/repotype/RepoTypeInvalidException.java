@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * Thrown when a {@link com.box.l10n.mojito.entity.RepoType} create or update is rejected because a
- * field is missing or too long (including required checker fields).
+ * field is missing or too long (including a null checker or required checker fields).
  *
  * <p>{@link ResponseStatus} maps this to HTTP 400 Bad Request.
  */

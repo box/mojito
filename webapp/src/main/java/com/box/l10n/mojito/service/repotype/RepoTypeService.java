@@ -44,9 +44,9 @@ public class RepoTypeService {
    *       RepoType#DESCRIPTION_MAX_LENGTH} characters
    *   <li>{@code aiPrompt} {@code null} is treated as empty string
    *   <li>{@code integrityCheckers} {@code null} or empty means no checkers; otherwise each checker
-   *       must have a non-blank {@code assetExtension} and a non-null {@code integrityCheckerType}
-   *       ({@link RepoTypeInvalidException}). Extensions are trimmed and a leading {@code .} is
-   *       stripped before persist.
+   *       must be non-null and have a non-blank {@code assetExtension} and a non-null {@code
+   *       integrityCheckerType} ({@link RepoTypeInvalidException}). Extensions are trimmed and a
+   *       leading {@code .} is stripped before persist.
    * </ul>
    *
    * @param name unique name
@@ -54,8 +54,9 @@ public class RepoTypeService {
    * @param aiPrompt shared type-layer prompt (translation and review)
    * @param integrityCheckers checkers to attach, or {@code null}/empty for none
    * @return the persisted type including generated id and checkers
-   * @throws RepoTypeInvalidException if {@code name} is blank, a field exceeds its max length, or a
-   *     checker is missing {@code assetExtension} / {@code integrityCheckerType}
+   * @throws RepoTypeInvalidException if {@code name} is blank, a field exceeds its max length, a
+   *     checker is {@code null}, or a checker is missing {@code assetExtension} / {@code
+   *     integrityCheckerType}
    * @throws RepoTypeNameAlreadyUsedException if {@code name} is already taken
    */
   @Transactional
@@ -163,8 +164,8 @@ public class RepoTypeService {
    * @param integrityCheckers new checker set, or {@code null} to leave unchanged
    * @return the updated type
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
-   * @throws RepoTypeInvalidException if a provided {@code name} is blank, a field is too long, or a
-   *     checker is missing required fields
+   * @throws RepoTypeInvalidException if a provided {@code name} is blank, a field is too long, a
+   *     checker is {@code null}, or a checker is missing required fields
    * @throws RepoTypeNameAlreadyUsedException if the new name conflicts with another type
    */
   @Transactional
@@ -231,7 +232,7 @@ public class RepoTypeService {
    * <ul>
    *   <li>A non-null incoming set fully replaces the collection (Hibernate inserts/deletes join
    *       table rows as needed)
-   *   <li>Each non-empty incoming checker must have a non-blank {@code assetExtension} and a
+   *   <li>Each incoming checker must be non-null and have a non-blank {@code assetExtension} and a
    *       non-null {@code integrityCheckerType}; otherwise {@link RepoTypeInvalidException}
    *   <li>{@code assetExtension} is trimmed and a single leading {@code .} is stripped so {@code
    *       json}, {@code json }, and {@code .json} are the same pair
@@ -289,10 +290,13 @@ public class RepoTypeService {
   }
 
   /**
-   * Requires both checker fields and normalizes {@code assetExtension} (trim, strip one leading
-   * {@code .}) so lookup and persist use the same pair.
+   * Requires a non-null checker with both fields set, and normalizes {@code assetExtension} (trim,
+   * strip one leading {@code .}) so lookup and persist use the same pair.
    */
   private void normalizeChecker(RepoTypeIntegrityChecker checker) {
+    if (checker == null) {
+      throw new RepoTypeInvalidException("integrity checker must not be null");
+    }
     if (checker.getIntegrityCheckerType() == null) {
       throw new RepoTypeInvalidException("integrityCheckerType is required");
     }

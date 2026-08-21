@@ -87,6 +87,25 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testCreateRepoTypePaddedDuplicateNameReturns409WithTrimmedName() {
+    String name = testIdWatcher.getEntityName("Conflict");
+    RepoType first = new RepoType();
+    first.setName(name);
+    repoTypeClient.createRepoType(first);
+
+    RepoType duplicate = new RepoType();
+    duplicate.setName(name + " ");
+    try {
+      repoTypeClient.createRepoType(duplicate);
+      fail("HTTP 409 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(409, e.getRawStatusCode());
+      assertEquals(
+          "RepoType with name [" + name + "] already exists", e.getResponseBodyAsString());
+    }
+  }
+
+  @Test
   public void testCreateRepoTypeMissingNameReturns400() {
     RepoType toCreate = new RepoType();
     try {
@@ -264,6 +283,29 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testUpdateRepoTypePaddedRenameConflictReturns409WithTrimmedName() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("Patch"));
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    RepoType other = new RepoType();
+    other.setName(testIdWatcher.getEntityName("Other"));
+    RepoType otherCreated = repoTypeClient.createRepoType(other);
+
+    RepoType renameConflict = new RepoType();
+    renameConflict.setName(otherCreated.getName() + " ");
+    try {
+      repoTypeClient.updateRepoType(created.getId(), renameConflict);
+      fail("HTTP 409 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(409, e.getRawStatusCode());
+      assertEquals(
+          "RepoType with name [" + otherCreated.getName() + "] already exists",
+          e.getResponseBodyAsString());
+    }
+  }
+
+  @Test
   public void testUpdateRepoTypeMissingReturns404() {
     RepoType patchDesc = new RepoType();
     patchDesc.setDescription("after");
@@ -315,6 +357,32 @@ public class RepoTypeWSTest extends WSTestBase {
     toCreate.setIntegrityCheckers(checkers);
     try {
       repoTypeClient.createRepoType(toCreate);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testCreateRepoTypeNullCheckerReturns400() {
+    String name = testIdWatcher.getEntityName("NullChecker");
+    String body = "{\"name\":\"" + name + "\",\"integrityCheckers\":[null]}";
+    try {
+      postRepoTypeJson(body);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testUpdateRepoTypeNullCheckerReturns400() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("PatchNullChecker"));
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    try {
+      patchRepoTypeJson(created.getId(), "{\"integrityCheckers\":[null]}");
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());

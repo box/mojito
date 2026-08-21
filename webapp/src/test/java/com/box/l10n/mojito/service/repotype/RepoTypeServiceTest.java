@@ -132,6 +132,19 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testCreateRepoTypeNullCheckerThrows() throws Exception {
+    String name = testIdWatcher.getEntityName("NullChecker");
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(null);
+    try {
+      repoTypeService.createRepoType(name, null, "", checkers);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertTrue(expected.getMessage().contains("integrity checker"));
+    }
+  }
+
+  @Test
   public void testCreateRepoTypeNullCheckerTypeThrows() throws Exception {
     String name = testIdWatcher.getEntityName("NullCheckerType");
     Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
