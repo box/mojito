@@ -116,8 +116,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   @Test
   public void testCreateRepoTypeDedupesIdenticalCheckerPairs() throws Exception {
     String name = testIdWatcher.getEntityName("DupCheckers");
-    Set<RepoTypeIntegrityChecker> checkers =
-        Collections.newSetFromMap(new IdentityHashMap<>());
+    Set<RepoTypeIntegrityChecker> checkers = Collections.newSetFromMap(new IdentityHashMap<>());
     checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     assertEquals(
@@ -173,8 +172,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   @Test
   public void testCreateRepoTypeNormalizesAssetExtension() throws Exception {
     String name = testIdWatcher.getEntityName("NormExt");
-    Set<RepoTypeIntegrityChecker> checkers =
-        Collections.newSetFromMap(new IdentityHashMap<>());
+    Set<RepoTypeIntegrityChecker> checkers = Collections.newSetFromMap(new IdentityHashMap<>());
     checkers.add(checker("json ", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     checkers.add(checker(".json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
@@ -190,8 +188,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     String name = testIdWatcher.getEntityName("DupCheckersPatch");
     RepoType created = repoTypeService.createRepoType(name, null, "", null);
 
-    Set<RepoTypeIntegrityChecker> checkers =
-        Collections.newSetFromMap(new IdentityHashMap<>());
+    Set<RepoTypeIntegrityChecker> checkers = Collections.newSetFromMap(new IdentityHashMap<>());
     checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     repoTypeService.updateIntegrityCheckers(created, checkers);
@@ -469,8 +466,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
 
     Thread.sleep(20);
 
-    RepoType updated =
-        repoTypeService.updateRepoType(created.getId(), null, null, "after", null);
+    RepoType updated = repoTypeService.updateRepoType(created.getId(), null, null, "after", null);
 
     assertEquals("after", updated.getAiPrompt());
     assertNotNull(updated.getLastModifiedDate());
@@ -489,8 +485,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
 
     Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
     checkers.add(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
-    RepoType updated =
-        repoTypeService.updateRepoType(created.getId(), null, null, null, checkers);
+    RepoType updated = repoTypeService.updateRepoType(created.getId(), null, null, null, checkers);
 
     assertNotNull(updated.getLastModifiedDate());
     assertTrue(updated.getLastModifiedDate().isAfter(originalModified));
@@ -503,7 +498,8 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     Set<RepoTypeIntegrityChecker> typeACheckers = new HashSet<>();
     typeACheckers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
     RepoType typeA =
-        repoTypeService.createRepoType(testIdWatcher.getEntityName("TypeA"), null, "", typeACheckers);
+        repoTypeService.createRepoType(
+            testIdWatcher.getEntityName("TypeA"), null, "", typeACheckers);
     RepoType typeB =
         repoTypeService.createRepoType(testIdWatcher.getEntityName("TypeB"), null, "", null);
 
