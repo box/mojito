@@ -212,6 +212,7 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 ###### `createRepoType`
 
 - Rejects blank {@code name} (null, empty, whitespace) → `RepoTypeInvalidException` (HTTP 400).
+  Names are trimmed before uniqueness and persist (`"React "` is stored as `"React"`).
 - Rejects {@code name} / {@code description} longer than 255 characters → `RepoTypeInvalidException`.
 - Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException` (HTTP 409). Concurrent creates/renames that both pass `findByName` still fail on `UK__REPO_TYPE__NAME`; `saveAndFlush` surfaces that as `DataIntegrityViolationException`, which rolls back the service transaction and is mapped to 409 in `RepoTypeWS` (must not be caught inside `@Transactional`).
 - Persists `description` as given (`null` allowed).
@@ -229,12 +230,13 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 ###### `getRepoTypes`
 
 - `name` null or blank → all types, ordered by name ascending; never `null` (empty list OK).
-- `name` set → exact match; empty list if none (no exception).
+- `name` set → trim, then exact match; empty list if none (no exception).
 
 ###### `updateRepoType` (PATCH)
 
 - Missing id → `RepoTypeWithIdNotFoundException`.
-- Non-null blank {@code name}, or over-length name/description → `RepoTypeInvalidException`.
+- Non-null blank {@code name} (after trim), or over-length name/description → `RepoTypeInvalidException`.
+  Non-null names are trimmed before uniqueness and persist.
 - Rename to another type’s name → `RepoTypeNameAlreadyUsedException` (same flush-time catch as create).
 - Rename to the **same** name → allowed (no conflict).
 - Field-level `null` vs replace as in the table above.

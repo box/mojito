@@ -114,7 +114,8 @@ public class RepoType {
   }
 
   /**
-   * @return integrity checkers; never {@code null} after construction
+   * @return integrity checkers, or {@code null} when unset. {@code null} is omitted from PATCH
+   *     (leave checkers unchanged). An empty set serializes as {@code []} and clears all checkers.
    */
   public Set<RepoTypeIntegrityChecker> getIntegrityCheckers() {
     return integrityCheckers;

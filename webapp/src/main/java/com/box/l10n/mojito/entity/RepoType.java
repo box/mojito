@@ -128,7 +128,8 @@ public class RepoType extends AuditableEntity {
   }
 
   /**
-   * @return integrity checkers for this type; never {@code null} (may be empty)
+   * @return integrity checkers, or {@code null} when the field was never set (omitted JSON on PATCH
+   *     means leave checkers unchanged). After load/create this is a set, possibly empty.
    */
   public Set<RepoTypeIntegrityChecker> getIntegrityCheckers() {
     return integrityCheckers;

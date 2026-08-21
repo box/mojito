@@ -45,6 +45,26 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testCreateRepoTypeTrimsName() throws Exception {
+    String name = testIdWatcher.getEntityName("React");
+    RepoType created = repoTypeService.createRepoType("  " + name + "  ", null, null, null);
+
+    assertEquals(name, created.getName());
+  }
+
+  @Test
+  public void testCreateRepoTypePaddedNameConflictsWithTrimmed() throws Exception {
+    String name = testIdWatcher.getEntityName("DupType");
+    repoTypeService.createRepoType(name, null, "", null);
+    try {
+      repoTypeService.createRepoType(name + "   ", null, "", null);
+      fail("Expected RepoTypeNameAlreadyUsedException");
+    } catch (RepoTypeNameAlreadyUsedException expected) {
+      assertNotNull(expected.getMessage());
+    }
+  }
+
+  @Test
   public void testCreateRepoTypeNullAiPromptStoredAsEmptyString() throws Exception {
     String name = testIdWatcher.getEntityName("Android");
     RepoType created = repoTypeService.createRepoType(name, null, null, null);
@@ -320,6 +340,17 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testGetRepoTypesByNameTrimsFilter() throws Exception {
+    String name = testIdWatcher.getEntityName("Exact");
+    repoTypeService.createRepoType(name, null, "prompt", null);
+
+    List<RepoType> found = repoTypeService.getRepoTypes(name + " ");
+
+    assertEquals(1, found.size());
+    assertEquals(name, found.get(0).getName());
+  }
+
+  @Test
   public void testGetRepoTypesByUnknownNameReturnsEmptyList() throws Exception {
     String name = testIdWatcher.getEntityName("Exact");
     repoTypeService.createRepoType(name, null, "prompt", null);
@@ -391,6 +422,17 @@ public class RepoTypeServiceTest extends ServiceTestBase {
 
     assertEquals(name, updated.getName());
     assertEquals("desc", updated.getDescription());
+  }
+
+  @Test
+  public void testUpdateRepoTypeTrimsName() throws Exception {
+    String name = testIdWatcher.getEntityName("TrimPatch");
+    RepoType created = repoTypeService.createRepoType(name, null, "", null);
+
+    RepoType updated =
+        repoTypeService.updateRepoType(created.getId(), name + "  ", null, null, null);
+
+    assertEquals(name, updated.getName());
   }
 
   @Test

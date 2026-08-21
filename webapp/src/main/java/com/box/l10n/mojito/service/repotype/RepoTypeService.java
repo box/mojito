@@ -36,8 +36,9 @@ public class RepoTypeService {
    * Creates a new repo type and optionally its integrity checkers.
    *
    * <ul>
-   *   <li>{@code name} is required (non-blank) and at most {@link RepoType#NAME_MAX_LENGTH}
-   *       characters; otherwise {@link RepoTypeInvalidException}
+   *   <li>{@code name} is required (non-blank after trim) and at most {@link
+   *       RepoType#NAME_MAX_LENGTH} characters; otherwise {@link RepoTypeInvalidException}. Leading
+   *       and trailing whitespace is stripped before uniqueness checks and persist.
    *   <li>{@code name} must be unique; otherwise {@link RepoTypeNameAlreadyUsedException}
    *   <li>{@code description} may be {@code null} or empty, and at most {@link
    *       RepoType#DESCRIPTION_MAX_LENGTH} characters
@@ -65,7 +66,7 @@ public class RepoTypeService {
       Set<RepoTypeIntegrityChecker> integrityCheckers)
       throws RepoTypeNameAlreadyUsedException {
 
-    validateName(name);
+    validateName(name = trimName(name));
     validateDescription(description);
 
     logger.debug("Check no repo type with name: {} exists", name);
@@ -115,8 +116,8 @@ public class RepoTypeService {
    *
    * <ul>
    *   <li>If {@code name} is {@code null} or blank, returns all types ordered by name
-   *   <li>If {@code name} is set, returns a list with the single matching type, or an empty list if
-   *       none match (does not throw)
+   *   <li>If {@code name} is set, trims it and returns a list with the single matching type, or an
+   *       empty list if none match (does not throw)
    * </ul>
    *
    * @param name optional exact name filter
@@ -128,7 +129,7 @@ public class RepoTypeService {
       return repoTypeRepository.findAllByOrderByNameAsc();
     }
 
-    RepoType repoType = repoTypeRepository.findByName(name);
+    RepoType repoType = repoTypeRepository.findByName(name.trim());
     if (repoType == null) {
       return Collections.emptyList();
     }
@@ -140,8 +141,8 @@ public class RepoTypeService {
    *
    * <ul>
    *   <li>Unknown {@code repoTypeId} → {@link RepoTypeWithIdNotFoundException}
-   *   <li>Non-null {@code name} that is blank or longer than {@link RepoType#NAME_MAX_LENGTH} →
-   *       {@link RepoTypeInvalidException}
+   *   <li>Non-null {@code name} is trimmed, then rejected if blank or longer than {@link
+   *       RepoType#NAME_MAX_LENGTH} → {@link RepoTypeInvalidException}
    *   <li>Non-null {@code description} longer than {@link RepoType#DESCRIPTION_MAX_LENGTH} → {@link
    *       RepoTypeInvalidException}
    *   <li>Renaming to a name used by a <em>different</em> type → {@link
@@ -178,7 +179,7 @@ public class RepoTypeService {
     RepoType repoType = getRepoTypeById(repoTypeId);
 
     if (name != null) {
-      validateName(name);
+      validateName(name = trimName(name));
       RepoType existing = repoTypeRepository.findByName(name);
       if (existing != null && !repoType.getId().equals(existing.getId())) {
         throw new RepoTypeNameAlreadyUsedException(name + " is used by another repo type");
@@ -307,6 +308,10 @@ public class RepoTypeService {
       throw new RepoTypeInvalidException("assetExtension is required");
     }
     checker.setAssetExtension(extension);
+  }
+
+  private static String trimName(String name) {
+    return name == null ? null : name.trim();
   }
 
   private void validateName(String name) {

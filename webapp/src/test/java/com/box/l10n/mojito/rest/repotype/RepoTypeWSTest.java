@@ -187,6 +187,19 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testGetRepoTypesByNameTrimsFilter() {
+    String name = testIdWatcher.getEntityName("Exact");
+    RepoType toCreate = new RepoType();
+    toCreate.setName(name);
+    repoTypeClient.createRepoType(toCreate);
+
+    List<RepoType> byName = repoTypeClient.getRepoTypes(name + " ");
+
+    assertEquals(1, byName.size());
+    assertEquals(name, byName.get(0).getName());
+  }
+
+  @Test
   public void testGetRepoTypesByUnknownNameReturnsEmptyList() {
     String name = testIdWatcher.getEntityName("Exact");
     RepoType toCreate = new RepoType();
