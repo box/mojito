@@ -100,8 +100,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 409 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(409, e.getRawStatusCode());
-      assertEquals(
-          "RepoType with name [" + name + "] already exists", e.getResponseBodyAsString());
+      assertEquals("RepoType with name [" + name + "] already exists", e.getResponseBodyAsString());
     }
   }
 
