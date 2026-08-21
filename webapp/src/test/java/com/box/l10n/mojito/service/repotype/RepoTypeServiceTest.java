@@ -12,6 +12,7 @@ import com.box.l10n.mojito.rest.repotype.RepoTypeWithIdNotFoundException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -471,7 +472,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     assertEquals("after", updated.getAiPrompt());
     assertNotNull(updated.getLastModifiedDate());
     assertTrue(updated.getLastModifiedDate().isAfter(originalModified));
-    assertEquals(created.getCreatedDate().toInstant(), updated.getCreatedDate().toInstant());
+    assertCreatedDateUnchanged(created, updated);
   }
 
   @Test
@@ -489,7 +490,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
 
     assertNotNull(updated.getLastModifiedDate());
     assertTrue(updated.getLastModifiedDate().isAfter(originalModified));
-    assertEquals(created.getCreatedDate().toInstant(), updated.getCreatedDate().toInstant());
+    assertCreatedDateUnchanged(created, updated);
     assertEquals(1, updated.getIntegrityCheckers().size());
   }
 
@@ -593,6 +594,22 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     } catch (RepoTypeWithIdNotFoundException expected) {
       assertTrue(expected.getMessage().contains("987654321"));
     }
+  }
+
+  /**
+   * {@code createdDate} is the same logical instant, but the in-memory auditing value can have
+   * nanosecond precision while the value read back from the database is rounded or truncated to the
+   * column's precision. A 1ms window covers that without depending on exact truncation.
+   */
+  private static void assertCreatedDateUnchanged(RepoType before, RepoType after) {
+    assertNotNull(before.getCreatedDate());
+    assertNotNull(after.getCreatedDate());
+    Duration delta =
+        Duration.between(before.getCreatedDate().toInstant(), after.getCreatedDate().toInstant())
+            .abs();
+    assertTrue(
+        "createdDate drifted by " + delta + ", expected only storage-precision differences",
+        delta.compareTo(Duration.ofMillis(1)) < 0);
   }
 
   private static RepoTypeIntegrityChecker checker(
