@@ -44,6 +44,8 @@ public class RepoTypeWSTest extends WSTestBase {
 
     assertNotNull(created.getId());
     assertEquals(toCreate.getName(), created.getName());
+    assertNotNull(created.getCreatedDate());
+    assertNotNull(created.getLastModifiedDate());
   }
 
   @Test

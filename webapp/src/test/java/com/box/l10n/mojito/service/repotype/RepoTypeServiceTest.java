@@ -419,6 +419,24 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testUpdateRepoTypePromptBumpsLastModifiedDate() throws Exception {
+    String name = testIdWatcher.getEntityName("PromptTimestamp");
+    RepoType created = repoTypeService.createRepoType(name, null, "before", null);
+    ZonedDateTime originalModified = created.getLastModifiedDate();
+    assertNotNull(originalModified);
+
+    Thread.sleep(20);
+
+    RepoType updated =
+        repoTypeService.updateRepoType(created.getId(), null, null, "after", null);
+
+    assertEquals("after", updated.getAiPrompt());
+    assertNotNull(updated.getLastModifiedDate());
+    assertTrue(updated.getLastModifiedDate().isAfter(originalModified));
+    assertEquals(created.getCreatedDate().toInstant(), updated.getCreatedDate().toInstant());
+  }
+
+  @Test
   public void testUpdateRepoTypeCheckersOnlyBumpsLastModifiedDate() throws Exception {
     String name = testIdWatcher.getEntityName("CheckerTimestamp");
     RepoType created = repoTypeService.createRepoType(name, null, "", null);

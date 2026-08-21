@@ -44,7 +44,7 @@ public class RepoTypeWS {
    * @return the type including {@code integrityCheckers}
    * @throws RepoTypeWithIdNotFoundException if missing → HTTP 404
    */
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.GET)
   public RepoType getRepoTypeById(@PathVariable Long repoTypeId)
       throws RepoTypeWithIdNotFoundException {
@@ -62,7 +62,7 @@ public class RepoTypeWS {
    * @param name optional exact name filter
    * @return matching types
    */
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   @RequestMapping(value = "/api/repo-types", method = RequestMethod.GET)
   public List<RepoType> getRepoTypes(@RequestParam(value = "name", required = false) String name) {
     return repoTypeService.getRepoTypes(name);
@@ -83,7 +83,7 @@ public class RepoTypeWS {
    * @param repoType body with at least {@code name}; other fields optional
    * @return 201 + created type, or 409 on name conflict
    */
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   @RequestMapping(value = "/api/repo-types", method = RequestMethod.POST)
   public ResponseEntity<?> createRepoType(@RequestBody RepoType repoType) {
     logger.info("Creating repo type");
@@ -124,7 +124,7 @@ public class RepoTypeWS {
    * @return 200 + updated type, or 409 on name conflict
    * @throws RepoTypeWithIdNotFoundException if missing → HTTP 404
    */
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.PATCH)
   public ResponseEntity<?> updateRepoType(
       @PathVariable Long repoTypeId, @RequestBody RepoType repoType)

@@ -186,6 +186,8 @@ Base path: `/api/repo-types`
 {
   "id": 1,
   "name": "React",
+  "createdDate": "2026-08-20T23:00:00Z",
+  "lastModifiedDate": "2026-08-20T23:00:00Z",
   "description": "FormatJS / react-intl apps",
   "aiPrompt": "This stack uses ICU MessageFormat. Preserve {placeholders} and plural/select skeletons.",
   "integrityCheckers": [
@@ -200,6 +202,8 @@ Base path: `/api/repo-types`
   ]
 }
 ```
+
+GET/POST/PATCH serialize with {@code View.RepoType}: {@code id} and {@code name} stay on {@code View.IdAndName} so a nested summary can omit prompt and checkers; timestamps use {@code IdAndNameAndCreated} / {@code Modified}.
 
 ##### Service behavior
 
@@ -264,7 +268,7 @@ Caller must pass a persisted `RepoType`.
 | `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc` |
 | `service/repotype/RepoTypeNameAlreadyUsedException.java` | → HTTP 409 |
 | `service/repotype/RepoTypeInvalidException.java` | → HTTP 400 |
-| `rest/repotype/RepoTypeWS.java` | HTTP API |
+| `rest/View.java` | `View.RepoType` for `/api/repo-types` payloads |
 | `rest/repotype/RepoTypeWithIdNotFoundException.java` | → HTTP 404 |
 
 Contracts live in JavaDoc and **this document**; implementations must match them.

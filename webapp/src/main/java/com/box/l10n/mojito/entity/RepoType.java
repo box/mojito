@@ -49,7 +49,7 @@ public class RepoType extends AuditableEntity {
 
   /** Optional human-readable description of what this type is for. May be {@code null} or empty. */
   @Column(name = "description", length = DESCRIPTION_MAX_LENGTH)
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   private String description;
 
   /**
@@ -61,7 +61,7 @@ public class RepoType extends AuditableEntity {
    */
   @Lob
   @Column(name = "ai_prompt", length = Integer.MAX_VALUE)
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   private String aiPrompt;
 
   /**
@@ -82,7 +82,7 @@ public class RepoType extends AuditableEntity {
               name = "repo_type_id",
               nullable = false,
               foreignKey = @ForeignKey(name = "FK__REPO_TYPE_INTEGRITY_CHECKER__REPO_TYPE__ID")))
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   private Set<RepoTypeIntegrityChecker> integrityCheckers;
 
   /**

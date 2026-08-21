@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 /**
@@ -15,6 +16,8 @@ public class RepoType {
   private String name;
   private String description;
   private String aiPrompt;
+  private ZonedDateTime createdDate;
+  private ZonedDateTime lastModifiedDate;
 
   /**
    * Integrity checkers for this type. JSON property name is {@code integrityCheckers} (same shape
@@ -80,6 +83,34 @@ public class RepoType {
    */
   public void setAiPrompt(String aiPrompt) {
     this.aiPrompt = aiPrompt;
+  }
+
+  /**
+   * @return create timestamp from the server, or {@code null} if omitted
+   */
+  public ZonedDateTime getCreatedDate() {
+    return createdDate;
+  }
+
+  /**
+   * @param createdDate server-assigned created date
+   */
+  public void setCreatedDate(ZonedDateTime createdDate) {
+    this.createdDate = createdDate;
+  }
+
+  /**
+   * @return last modified timestamp from the server, or {@code null} if omitted
+   */
+  public ZonedDateTime getLastModifiedDate() {
+    return lastModifiedDate;
+  }
+
+  /**
+   * @param lastModifiedDate server-assigned last modified date
+   */
+  public void setLastModifiedDate(ZonedDateTime lastModifiedDate) {
+    this.lastModifiedDate = lastModifiedDate;
   }
 
   /**

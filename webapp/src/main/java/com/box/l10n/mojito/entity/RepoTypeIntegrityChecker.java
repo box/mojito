@@ -31,7 +31,7 @@ public class RepoTypeIntegrityChecker {
    * leading dot. Required.
    */
   @Column(name = "asset_extension", nullable = false)
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   private String assetExtension;
 
   /**
@@ -40,7 +40,7 @@ public class RepoTypeIntegrityChecker {
    */
   @Column(name = "integrity_checker_type", nullable = false)
   @Enumerated(EnumType.STRING)
-  @JsonView(View.IdAndName.class)
+  @JsonView(View.RepoType.class)
   private IntegrityCheckerType integrityCheckerType;
 
   /**
