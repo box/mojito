@@ -78,8 +78,7 @@ public class RepoTypeUpdateCommand extends Command {
           .println();
     } catch (HttpClientErrorException ex) {
       if (ex.getStatusCode().equals(HttpStatus.CONFLICT)) {
-        throw new CommandException(
-            "Repo type with name [" + newNameParam + "] already exists", ex);
+        throw new CommandException("Repo type with name [" + newNameParam + "] already exists", ex);
       }
       throw ex;
     }
