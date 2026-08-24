@@ -75,7 +75,7 @@ public class RepoTypeService {
     logger.debug("Check no repo type with name: {} exists", name);
 
     if (repoTypeRepository.findByName(name) != null) {
-      throw new RepoTypeNameAlreadyUsedException(name + " is used by another repo type");
+      throw new RepoTypeNameAlreadyUsedException(name);
     }
 
     logger.debug("Create a RepoType with name: {}", name);
@@ -185,7 +185,7 @@ public class RepoTypeService {
       validateName(name = trimName(name));
       RepoType existing = repoTypeRepository.findByName(name);
       if (existing != null && !repoType.getId().equals(existing.getId())) {
-        throw new RepoTypeNameAlreadyUsedException(name + " is used by another repo type");
+        throw new RepoTypeNameAlreadyUsedException(name);
       }
       repoType.setName(name);
     }

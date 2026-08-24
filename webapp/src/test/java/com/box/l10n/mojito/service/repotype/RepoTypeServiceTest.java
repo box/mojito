@@ -62,7 +62,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name + "   ", null, "", null);
       fail("Expected RepoTypeNameAlreadyUsedException");
     } catch (RepoTypeNameAlreadyUsedException expected) {
-      assertNotNull(expected.getMessage());
+      assertEquals(name + " is used by another repo type", expected.getMessage());
     }
   }
 
@@ -153,7 +153,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name, null, "", checkers);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("integrity checker"));
+      assertEquals("integrity checker must not be null", expected.getMessage());
     }
   }
 
@@ -166,7 +166,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name, null, "", checkers);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("integrityCheckerType"));
+      assertEquals("integrityCheckerType is required", expected.getMessage());
     }
   }
 
@@ -179,7 +179,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name, null, "", checkers);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("assetExtension"));
+      assertEquals("assetExtension is required", expected.getMessage());
     }
   }
 
@@ -192,7 +192,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name, null, "", checkers);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("assetExtension"));
+      assertEquals("assetExtension is required", expected.getMessage());
     }
   }
 
@@ -234,7 +234,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name, "again", "", null);
       fail("Expected RepoTypeNameAlreadyUsedException");
     } catch (RepoTypeNameAlreadyUsedException expected) {
-      assertNotNull(expected.getMessage());
+      assertEquals(name + " is used by another repo type", expected.getMessage());
     }
   }
 
@@ -244,7 +244,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(null, null, "", null);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("name is required"));
+      assertEquals("name is required", expected.getMessage());
     }
   }
 
@@ -254,7 +254,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType("   ", null, "", null);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("name is required"));
+      assertEquals("name is required", expected.getMessage());
     }
   }
 
@@ -265,7 +265,9 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(tooLong, null, "", null);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("name"));
+      assertEquals(
+          "name must be at most " + RepoType.NAME_MAX_LENGTH + " characters",
+          expected.getMessage());
     }
   }
 
@@ -277,7 +279,9 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.createRepoType(name, tooLong, "", null);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("description"));
+      assertEquals(
+          "description must be at most " + RepoType.DESCRIPTION_MAX_LENGTH + " characters",
+          expected.getMessage());
     }
   }
 
@@ -290,7 +294,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.updateRepoType(created.getId(), "  ", null, null, null);
       fail("Expected RepoTypeInvalidException");
     } catch (RepoTypeInvalidException expected) {
-      assertTrue(expected.getMessage().contains("name is required"));
+      assertEquals("name is required", expected.getMessage());
     }
     assertEquals(name, repoTypeService.getRepoTypeById(created.getId()).getName());
   }
@@ -312,7 +316,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.getRepoTypeById(987654321L);
       fail("Expected RepoTypeWithIdNotFoundException");
     } catch (RepoTypeWithIdNotFoundException expected) {
-      assertTrue(expected.getMessage().contains("987654321"));
+      assertEquals("RepoType with id: 987654321 not found", expected.getMessage());
     }
   }
 
@@ -486,7 +490,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.updateRepoType(typeA.getId(), nameB, null, null, null);
       fail("Expected RepoTypeNameAlreadyUsedException");
     } catch (RepoTypeNameAlreadyUsedException expected) {
-      assertNotNull(expected.getMessage());
+      assertEquals(nameB + " is used by another repo type", expected.getMessage());
     }
   }
 
@@ -496,7 +500,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.updateRepoType(987654321L, "x", null, null, null);
       fail("Expected RepoTypeWithIdNotFoundException");
     } catch (RepoTypeWithIdNotFoundException expected) {
-      assertTrue(expected.getMessage().contains("987654321"));
+      assertEquals("RepoType with id: 987654321 not found", expected.getMessage());
     }
   }
 
@@ -634,7 +638,7 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       repoTypeService.deleteRepoType(987654321L);
       fail("Expected RepoTypeWithIdNotFoundException");
     } catch (RepoTypeWithIdNotFoundException expected) {
-      assertTrue(expected.getMessage().contains("987654321"));
+      assertEquals("RepoType with id: 987654321 not found", expected.getMessage());
     }
   }
 

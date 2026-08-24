@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.repotype;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -97,7 +99,43 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 409 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(409, e.getRawStatusCode());
+      assertEquals("RepoType with name [" + name + "] already exists", e.getResponseBodyAsString());
     }
+  }
+
+  @Test
+  public void testOnlyNameUniqueConstraintIsMappedTo409() {
+    DataIntegrityViolationException nameConstraint =
+        new DataIntegrityViolationException(
+            "duplicate name",
+            new org.hibernate.exception.ConstraintViolationException(
+                "duplicate name", new java.sql.SQLException("dup"), "UK__REPO_TYPE__NAME"));
+    assertTrue(RepoTypeWS.isRepoTypeNameUniqueConstraint(nameConstraint));
+
+    DataIntegrityViolationException checkerPk =
+        new DataIntegrityViolationException(
+            "duplicate checker",
+            new org.hibernate.exception.ConstraintViolationException(
+                "duplicate checker", new java.sql.SQLException("dup"), "PRIMARY"));
+    assertFalse(RepoTypeWS.isRepoTypeNameUniqueConstraint(checkerPk));
+
+    try {
+      RepoTypeWS.nameConflictOrRethrow(null, checkerPk);
+      fail("Non-name integrity failures must not be mapped to 409");
+    } catch (DataIntegrityViolationException expected) {
+      // checkers-only PATCH with a null request name must not become
+      // "RepoType with name [null] already exists"
+    }
+
+    try {
+      RepoTypeWS.nameConflictOrRethrow(null, nameConstraint);
+      fail("A name-constraint race with no persist name must not quote [null]");
+    } catch (DataIntegrityViolationException expected) {
+    }
+
+    ResponseEntity<String> conflict = RepoTypeWS.nameConflictOrRethrow("React ", nameConstraint);
+    assertEquals(409, conflict.getStatusCodeValue());
+    assertEquals("RepoType with name [React] already exists", conflict.getBody());
   }
 
   @Test
@@ -143,6 +181,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("name is required", e.getResponseBodyAsString());
     }
   }
 
@@ -155,6 +194,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("name is required", e.getResponseBodyAsString());
     }
   }
 
@@ -167,6 +207,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("name must be at most 255 characters", e.getResponseBodyAsString());
     }
   }
 
@@ -194,8 +235,8 @@ public class RepoTypeWSTest extends WSTestBase {
     } catch (HttpClientErrorException e) {
       assertEquals(404, e.getRawStatusCode());
       assertTrue(
-          e.getResponseBodyAsString().contains("RepoType with id: 987654321 not found")
-              || e.getResponseBodyAsString().contains("987654321"));
+          e.getResponseBodyAsString()
+              .contains("\"message\":\"RepoType with id: 987654321 not found\""));
     }
   }
 
@@ -309,6 +350,9 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 409 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(409, e.getRawStatusCode());
+      assertEquals(
+          "RepoType with name [" + otherCreated.getName() + "] already exists",
+          e.getResponseBodyAsString());
     }
   }
 
@@ -364,6 +408,9 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 404 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(404, e.getRawStatusCode());
+      assertTrue(
+          e.getResponseBodyAsString()
+              .contains("\"message\":\"RepoType with id: 987654321 not found\""));
     }
   }
 
@@ -395,6 +442,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("integrityCheckerType is required", e.getResponseBodyAsString());
     }
   }
 
@@ -410,6 +458,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("assetExtension is required", e.getResponseBodyAsString());
     }
   }
 
@@ -422,6 +471,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("integrity checker must not be null", e.getResponseBodyAsString());
     }
   }
 
@@ -436,6 +486,7 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 400 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(400, e.getRawStatusCode());
+      assertEquals("integrity checker must not be null", e.getResponseBodyAsString());
     }
   }
 
@@ -530,6 +581,9 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 404 is expected after delete");
     } catch (HttpClientErrorException e) {
       assertEquals(404, e.getRawStatusCode());
+      assertTrue(
+          e.getResponseBodyAsString()
+              .contains("\"message\":\"RepoType with id: " + created.getId() + " not found\""));
     }
   }
 
@@ -540,6 +594,9 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 404 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(404, e.getRawStatusCode());
+      assertTrue(
+          e.getResponseBodyAsString()
+              .contains("\"message\":\"RepoType with id: 987654321 not found\""));
     }
   }
 

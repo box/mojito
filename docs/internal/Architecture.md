@@ -187,6 +187,15 @@ Base path: `/api/repo-types`
 | PATCH | `/{id}` | 200 + body | 400 invalid name/description/checkers; 403 USER; 404 missing; 409 name conflict |
 | DELETE | `/{id}` | 204 (void) | 403 USER; 404 missing |
 
+**Error bodies**
+
+- 409 name conflict: `RepoType with name [<trimmed name>] already exists`. Only
+  `RepoTypeNameAlreadyUsedException` and `UK__REPO_TYPE__NAME`. Other
+  `DataIntegrityViolationException`s are not labeled as a name conflict.
+- 400 validation: the `RepoTypeInvalidException` message (e.g. `name is required`,
+  `integrity checker must not be null`, `assetExtension is required`,
+  `integrityCheckerType is required`).
+
 **Create body**
 
 - Required: `name`
@@ -229,8 +238,11 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 - Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException` (HTTP 409). Uniqueness is
   **case-sensitive** (`React` does not block `react`). Concurrent creates/renames that both pass
   `findByName` still fail on `UK__REPO_TYPE__NAME`; `saveAndFlush` surfaces that as
-  `DataIntegrityViolationException`, which rolls back the service transaction and is mapped to 409
-  in `RepoTypeWS` (must not be caught inside `@Transactional`).
+  `DataIntegrityViolationException`, which rolls back the service transaction. `RepoTypeWS` maps
+  that to 409 **only** when the constraint is `UK__REPO_TYPE__NAME`, and the body quotes the
+  trimmed name that was actually persisted (not a null request field). Other integrity failures
+  (e.g. the checker table composite primary key) are not labeled as a name conflict (HTTP 500).
+  Do not catch the exception inside `@Transactional`.
 - Persists `description` as given (`null` allowed).
 - Persists `aiPrompt`; `null` → `""`.
 - Attaches checkers when the set is non-null and non-empty; otherwise no checker rows. Each checker

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.repotype;
 
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.rest.View;
+import com.box.l10n.mojito.service.repotype.RepoTypeInvalidException;
 import com.box.l10n.mojito.service.repotype.RepoTypeNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -74,8 +75,11 @@ public class RepoTypeWS {
    * <ul>
    *   <li>Success → HTTP 201 with the created entity
    *   <li>Missing / blank {@code name}, over-length name/description, a {@code null} checker, or a
-   *       checker missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400
-   *   <li>Duplicate name → HTTP 409 with a short message body
+   *       checker missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400 with a
+   *       message that names the invalid field
+   *   <li>Duplicate name → HTTP 409 {@code RepoType with name [<trimmed name>] already exists}.
+   *       Only the name unique constraint ({@code UK__REPO_TYPE__NAME}) is mapped this way; other
+   *       integrity failures are not labeled as a name conflict.
    *   <li>Omitted / null {@code aiPrompt} → stored as empty string
    *   <li>Omitted / null {@code integrityCheckers} → no checkers
    * </ul>
@@ -96,9 +100,15 @@ public class RepoTypeWS {
               repoType.getAiPrompt(),
               repoType.getIntegrityCheckers());
       return new ResponseEntity<>(created, HttpStatus.CREATED);
-    } catch (RepoTypeNameAlreadyUsedException | DataIntegrityViolationException e) {
+    } catch (RepoTypeInvalidException e) {
       logger.debug("Cannot create the repo type", e);
-      return nameAlreadyUsed(repoType.getName());
+      return badRequest(e.getMessage());
+    } catch (RepoTypeNameAlreadyUsedException e) {
+      logger.debug("Cannot create the repo type", e);
+      return nameAlreadyUsed(e.getName());
+    } catch (DataIntegrityViolationException e) {
+      logger.debug("Cannot create the repo type", e);
+      return nameConflictOrRethrow(repoType.getName(), e);
     }
   }
 
@@ -109,8 +119,11 @@ public class RepoTypeWS {
    * <ul>
    *   <li>Unknown id → HTTP 404
    *   <li>Blank {@code name}, over-length name/description, a {@code null} checker, or a checker
-   *       missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400
-   *   <li>Name conflict with another type → HTTP 409
+   *       missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400 with a message
+   *       that names the invalid field
+   *   <li>Name conflict with another type → HTTP 409 {@code RepoType with name [<trimmed name>]
+   *       already exists} (name unique constraint only; a checkers-only PATCH does not quote a null
+   *       request name as a name conflict)
    *   <li>Success → HTTP 200 with the updated entity
    *   <li>Omitted or null {@code name}, {@code description}, {@code aiPrompt}, or {@code
    *       integrityCheckers} → leave that field unchanged
@@ -139,9 +152,15 @@ public class RepoTypeWS {
               repoType.getAiPrompt(),
               repoType.getIntegrityCheckers());
       return new ResponseEntity<>(updated, HttpStatus.OK);
-    } catch (RepoTypeNameAlreadyUsedException | DataIntegrityViolationException e) {
+    } catch (RepoTypeInvalidException e) {
       logger.debug("Cannot update the repo type", e);
-      return nameAlreadyUsed(repoType.getName());
+      return badRequest(e.getMessage());
+    } catch (RepoTypeNameAlreadyUsedException e) {
+      logger.debug("Cannot update the repo type", e);
+      return nameAlreadyUsed(e.getName());
+    } catch (DataIntegrityViolationException e) {
+      logger.debug("Cannot update the repo type", e);
+      return nameConflictOrRethrow(repoType.getName(), e);
     }
   }
 
@@ -168,5 +187,40 @@ public class RepoTypeWS {
     String conflictName = name == null ? null : name.trim();
     return new ResponseEntity<>(
         "RepoType with name [" + conflictName + "] already exists", HttpStatus.CONFLICT);
+  }
+
+  private static ResponseEntity<String> badRequest(String message) {
+    return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+  }
+
+  /**
+   * Maps a unique-name race ({@code UK__REPO_TYPE__NAME}) to HTTP 409. Any other integrity failure
+   * (e.g. the checker table composite primary key) is rethrown so it is not labeled as a name
+   * conflict. A checkers-only PATCH has a null request name; that must not produce {@code name
+   * [null] already exists}.
+   */
+  static ResponseEntity<String> nameConflictOrRethrow(
+      String name, DataIntegrityViolationException e) {
+    if (!isRepoTypeNameUniqueConstraint(e)) {
+      throw e;
+    }
+    if (name == null || name.trim().isEmpty()) {
+      throw e;
+    }
+    return nameAlreadyUsed(name);
+  }
+
+  static boolean isRepoTypeNameUniqueConstraint(DataIntegrityViolationException e) {
+    for (Throwable t = e; t != null; t = t.getCause()) {
+      if (t instanceof org.hibernate.exception.ConstraintViolationException cve
+          && cve.getConstraintName() != null
+          && cve.getConstraintName().contains("UK__REPO_TYPE__NAME")) {
+        return true;
+      }
+      if (t.getMessage() != null && t.getMessage().contains("UK__REPO_TYPE__NAME")) {
+        return true;
+      }
+    }
+    return false;
   }
 }
