@@ -14,7 +14,7 @@ Core Mojito orchestration for AI-assisted translation.
 
 1. Add Repo Types
 2. Prompt Layer per Repo Type
-3. Prompt Layer per Project
+3. Prompt Layer per Repo
 4. Integrity checks per Repo Type
 5. Glossary awareness in AI translation flows (approved terms in prompts)
 6. Derived-locale AI adaptation (parent → regional variant)
@@ -24,6 +24,16 @@ Core Mojito orchestration for AI-assisted translation.
 10. Workbench free-text / TM search (filters by repo, locale, status)
 11. MQM-style quality measurement (segment-level scoring, batch scorecards, rollups)
 12. Automatic translation within Mojito (triggered on push / status changes), instead of kicking off translations externally via the CLI
+
+### A Few Definitions
+
+"Repo Types" are a classification of repos that allows you to create an AI prompt or a list of integrity checkers just once and then assign this type to new repos you create. The new repos then inherit the AI prompts and the integrity checks. It also allows you to modify the AI prompt or integrity checks for all repos of the same type at once.
+
+"Layered Prompts" refers to dynamic construction of AI prompts. The final prompt is constructed by taking the system prompt, adding the repo type prompt, then the repo prompt, and finally the per-request prompt from the CLI command-line. This offers more flexibiity to describe the strings being translated in a better way without putting all the possibly irrelevant info into every single prompt.
+
+"Derived Locales" are locales where the translations are mostly inherited from another parent locale. For example, French for Canada is derived from French for France. French for Canada only has small changes needed from France French, so it makes sense to translate once for France French and the derived the Canadian French from it. That increases the consistency and at the same time makes French for Canada be adapted properly for Canada. In the mojito CLI, this is usually denoted with the parentheses in locale lists:  `mojito-cli repo-create -n MyNewRepo -l fr-FR,(fr-CA)->fr-FR`
+
+"MQM means "Multidimensional Quality Metrics" which is an industry standard way of measuring translation quality. There is a rubric of 20 or so questions that you ask of each translation to score it, and then you combine the scores of individual translations together to create the overall score for a whole batch. See [The MQM](https://www.themqm.org/) for more details.
 
 ## Glossary Management
 
