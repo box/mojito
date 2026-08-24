@@ -10,12 +10,12 @@ Items are ordered roughly by dependency where that applies; ordering within a to
 
 ## AI Translations
 
-Core Mojito orchestration for AI-assisted translation (PRD-AI-Translations).
+Core Mojito orchestration for AI-assisted translation.
 
-1. Add Project Types
-2. Prompt Layer per Project Type
+1. Add Repo Types
+2. Prompt Layer per Repo Type
 3. Prompt Layer per Project
-4. Integrity checks per Project Type
+4. Integrity checks per Repo Type
 5. Glossary awareness in AI translation flows (approved terms in prompts)
 6. Derived-locale AI adaptation (parent → regional variant)
 7. Derived-locale prompt layers
