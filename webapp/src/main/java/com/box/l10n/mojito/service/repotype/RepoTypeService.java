@@ -38,8 +38,10 @@ public class RepoTypeService {
    * <ul>
    *   <li>{@code name} is required (non-blank after trim) and at most {@link
    *       RepoType#NAME_MAX_LENGTH} characters; otherwise {@link RepoTypeInvalidException}. Leading
-   *       and trailing whitespace is stripped before uniqueness checks and persist.
-   *   <li>{@code name} must be unique; otherwise {@link RepoTypeNameAlreadyUsedException}
+   *       and trailing whitespace is stripped before uniqueness checks and persist. There is no
+   *       other grammar (open string, not a Java enum; same idea as repository names).
+   *   <li>{@code name} must be unique <em>case-sensitively</em>; otherwise {@link
+   *       RepoTypeNameAlreadyUsedException} ({@code React} and {@code react} can both exist)
    *   <li>{@code description} may be {@code null} or empty, and at most {@link
    *       RepoType#DESCRIPTION_MAX_LENGTH} characters
    *   <li>{@code aiPrompt} {@code null} is treated as empty string

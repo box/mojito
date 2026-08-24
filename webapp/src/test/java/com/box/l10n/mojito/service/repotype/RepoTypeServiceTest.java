@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Rule;
@@ -63,6 +65,18 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     } catch (RepoTypeNameAlreadyUsedException expected) {
       assertNotNull(expected.getMessage());
     }
+  }
+
+  @Test
+  public void testCreateRepoTypeSameLettersDifferentCaseAreDistinct() throws Exception {
+    String name = testIdWatcher.getEntityName("React");
+    String otherCase = name.toLowerCase(Locale.ROOT);
+    repoTypeService.createRepoType(name, null, "", null);
+    RepoType other = repoTypeService.createRepoType(otherCase, null, "", null);
+
+    assertEquals(otherCase, other.getName());
+    assertEquals(1, repoTypeService.getRepoTypes(name).size());
+    assertEquals(1, repoTypeService.getRepoTypes(otherCase).size());
   }
 
   @Test
@@ -444,6 +458,22 @@ public class RepoTypeServiceTest extends ServiceTestBase {
         repoTypeService.updateRepoType(created.getId(), name + "  ", null, null, null);
 
     assertEquals(name, updated.getName());
+  }
+
+  @Test
+  public void testUpdateRepoTypeRenamesAndLookupFollowsNewName() throws Exception {
+    String original = testIdWatcher.getEntityName("React");
+    String renamed = testIdWatcher.getEntityName("React-ICU");
+    RepoType created = repoTypeService.createRepoType(original, null, "", null);
+
+    RepoType updated = repoTypeService.updateRepoType(created.getId(), renamed, null, null, null);
+
+    assertEquals(renamed, updated.getName());
+    assertEquals(renamed, repoTypeService.getRepoTypeById(created.getId()).getName());
+    assertTrue(repoTypeService.getRepoTypes(original).isEmpty());
+    List<RepoType> byNewName = repoTypeService.getRepoTypes(renamed);
+    assertEquals(1, byNewName.size());
+    assertEquals(created.getId(), byNewName.get(0).getId());
   }
 
   @Test

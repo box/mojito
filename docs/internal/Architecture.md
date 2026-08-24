@@ -124,6 +124,18 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 Follows existing Mojito layout (`Repository` / `RepositoryService` / `RepositoryWS`).
 
+###### 8. Name is an open string (same rules as repository names)
+
+**Decision:** `name` is a free-form string, not a Java enum and not a closed catalog. Operators can add `Django`, `Flutter`, etc. without a code change. A recommended list can be seed data later; it is not part of this API.
+
+Rules (same idea as repository names):
+
+- Required: non-empty after trim
+- Trim leading/trailing whitespace before uniqueness and persist (`"React "` → `"React"`)
+- Max 255 characters
+- Unique, **case-sensitive** (`React` and `react` are different types; the DB uses `utf8_bin`, same as repository names)
+- No required charset, PascalCase rule, or separator
+
 ##### Data model
 
 ```
@@ -214,7 +226,11 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 - Rejects blank {@code name} (null, empty, whitespace) → `RepoTypeInvalidException` (HTTP 400).
   Names are trimmed before uniqueness and persist (`"React "` is stored as `"React"`).
 - Rejects {@code name} / {@code description} longer than 255 characters → `RepoTypeInvalidException`.
-- Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException` (HTTP 409). Concurrent creates/renames that both pass `findByName` still fail on `UK__REPO_TYPE__NAME`; `saveAndFlush` surfaces that as `DataIntegrityViolationException`, which rolls back the service transaction and is mapped to 409 in `RepoTypeWS` (must not be caught inside `@Transactional`).
+- Rejects duplicate `name` → `RepoTypeNameAlreadyUsedException` (HTTP 409). Uniqueness is
+  **case-sensitive** (`React` does not block `react`). Concurrent creates/renames that both pass
+  `findByName` still fail on `UK__REPO_TYPE__NAME`; `saveAndFlush` surfaces that as
+  `DataIntegrityViolationException`, which rolls back the service transaction and is mapped to 409
+  in `RepoTypeWS` (must not be caught inside `@Transactional`).
 - Persists `description` as given (`null` allowed).
 - Persists `aiPrompt`; `null` → `""`.
 - Attaches checkers when the set is non-null and non-empty; otherwise no checker rows. Each checker

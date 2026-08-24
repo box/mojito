@@ -40,7 +40,8 @@ public class RepoType extends AuditableEntity {
   public static final int DESCRIPTION_MAX_LENGTH = 255;
 
   /**
-   * Unique display name of the type (e.g. {@code React}). Required; max {@link #NAME_MAX_LENGTH}.
+   * Unique display name of the type (e.g. {@code React}). Open string, not an enum. Required,
+   * trimmed, max {@link #NAME_MAX_LENGTH}; uniqueness is case-sensitive (same as repository names).
    */
   @Basic(optional = false)
   @Column(name = "name", length = NAME_MAX_LENGTH)

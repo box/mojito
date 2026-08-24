@@ -13,6 +13,7 @@ import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Rule;
@@ -84,6 +85,23 @@ public class RepoTypeWSTest extends WSTestBase {
     } catch (HttpClientErrorException e) {
       assertEquals(409, e.getRawStatusCode());
     }
+  }
+
+  @Test
+  public void testCreateRepoTypeSameLettersDifferentCaseAreDistinct() {
+    String name = testIdWatcher.getEntityName("React");
+    String otherCase = name.toLowerCase(Locale.ROOT);
+    RepoType first = new RepoType();
+    first.setName(name);
+    repoTypeClient.createRepoType(first);
+
+    RepoType second = new RepoType();
+    second.setName(otherCase);
+    RepoType createdOtherCase = repoTypeClient.createRepoType(second);
+
+    assertEquals(otherCase, createdOtherCase.getName());
+    assertEquals(1, repoTypeClient.getRepoTypes(name).size());
+    assertEquals(1, repoTypeClient.getRepoTypes(otherCase).size());
   }
 
   @Test
@@ -279,6 +297,26 @@ public class RepoTypeWSTest extends WSTestBase {
     } catch (HttpClientErrorException e) {
       assertEquals(409, e.getRawStatusCode());
     }
+  }
+
+  @Test
+  public void testUpdateRepoTypeRenamesAndLookupFollowsNewName() {
+    RepoType toCreate = new RepoType();
+    String original = testIdWatcher.getEntityName("React");
+    String renamed = testIdWatcher.getEntityName("React-ICU");
+    toCreate.setName(original);
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    RepoType patch = new RepoType();
+    patch.setName(renamed);
+    RepoType updated = repoTypeClient.updateRepoType(created.getId(), patch);
+
+    assertEquals(renamed, updated.getName());
+    assertEquals(renamed, repoTypeClient.getRepoTypeById(created.getId()).getName());
+    assertTrue(repoTypeClient.getRepoTypes(original).isEmpty());
+    List<RepoType> byNewName = repoTypeClient.getRepoTypes(renamed);
+    assertEquals(1, byNewName.size());
+    assertEquals(created.getId(), byNewName.get(0).getId());
   }
 
   @Test
