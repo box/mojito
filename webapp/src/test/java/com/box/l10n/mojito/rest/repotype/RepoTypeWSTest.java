@@ -422,21 +422,6 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
-  public void testCreateAndGetRepoTypeWithFluentChecker() {
-    RepoType toCreate = new RepoType();
-    toCreate.setName(testIdWatcher.getEntityName("Fluent"));
-    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
-    checkers.add(clientChecker("ftl", IntegrityCheckerType.FLUENT));
-    toCreate.setIntegrityCheckers(checkers);
-
-    RepoType created = repoTypeClient.createRepoType(toCreate);
-    RepoType loaded = repoTypeClient.getRepoTypeById(created.getId());
-
-    assertEquals(1, loaded.getIntegrityCheckers().size());
-    assertClientCheckerPresent(loaded, "ftl", IntegrityCheckerType.FLUENT);
-  }
-
-  @Test
   public void testUpdateRepoTypeReplacesIntegrityCheckers() {
     RepoType toCreate = new RepoType();
     toCreate.setName(testIdWatcher.getEntityName("ReplaceCheckers"));

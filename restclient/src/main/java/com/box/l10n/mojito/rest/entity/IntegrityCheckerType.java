@@ -7,7 +7,6 @@ package com.box.l10n.mojito.rest.entity;
  */
 public enum IntegrityCheckerType {
   MESSAGE_FORMAT,
-  FLUENT,
   MESSAGE_FORMAT_DOUBLE_BRACES,
   PRINTF_LIKE,
   PRINTF_LIKE_IGNORE_PERCENTAGE_AFTER_BRACKETS,
