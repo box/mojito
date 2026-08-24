@@ -7,14 +7,21 @@ import static org.junit.Assert.fail;
 
 import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.client.RepoTypeClient;
+import com.box.l10n.mojito.rest.client.UserClient;
+import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.IntegrityCheckerType;
 import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
+import com.box.l10n.mojito.rest.entity.Role;
+import com.box.l10n.mojito.rest.resttemplate.CookieStoreRestTemplate;
+import com.box.l10n.mojito.rest.resttemplate.FormLoginConfig;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,6 +31,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
@@ -35,6 +44,10 @@ public class RepoTypeWSTest extends WSTestBase {
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
   @Autowired RepoTypeClient repoTypeClient;
+
+  @Autowired UserClient userClient;
+
+  @Autowired FormLoginConfig formLoginConfig;
 
   @Test
   public void testCreateRepoTypeReturnsCreatedWithIdAndName() {
@@ -527,6 +540,114 @@ public class RepoTypeWSTest extends WSTestBase {
       fail("HTTP 404 is expected");
     } catch (HttpClientErrorException e) {
       assertEquals(404, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  public void testUserRoleCanGetAndIsForbiddenToMutate() throws ResourceNotCreatedException {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("UserGet"));
+    toCreate.setDescription("before");
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    // PRINCIPAL_NAME on SPRING_SESSION_V2 is VARCHAR(100); TestIdWatcher names exceed that.
+    String username = "u" + Integer.toHexString(testIdWatcher.getEntityName("u").hashCode());
+    String password = "test";
+    userClient.createUser(username, password, Role.ROLE_USER, "User", "Test", "Test User");
+    UserSession user = loginAs(username, password);
+
+    ResponseEntity<String> getResponse =
+        user.restTemplate.getForEntity(
+            authenticatedRestTemplate.getURIForResource("/api/repo-types/" + created.getId()),
+            String.class);
+    assertEquals(200, getResponse.getStatusCodeValue());
+    assertTrue(getResponse.getBody().contains(created.getName()));
+
+    String attemptedName = testIdWatcher.getEntityName("UserCreate");
+    assertUserForbidden(
+        user,
+        HttpMethod.POST,
+        authenticatedRestTemplate.getURIForResource("/api/repo-types"),
+        jsonEntityWithCsrf("{\"name\":\"" + attemptedName + "\"}", user.csrfToken));
+    assertTrue(repoTypeClient.getRepoTypes(attemptedName).isEmpty());
+
+    assertUserForbidden(
+        user,
+        HttpMethod.PATCH,
+        authenticatedRestTemplate.getURIForResource("/api/repo-types/" + created.getId()),
+        jsonEntityWithCsrf("{\"description\":\"after\"}", user.csrfToken));
+    assertEquals("before", repoTypeClient.getRepoTypeById(created.getId()).getDescription());
+
+    assertUserForbidden(
+        user,
+        HttpMethod.DELETE,
+        authenticatedRestTemplate.getURIForResource("/api/repo-types/" + created.getId()),
+        jsonEntityWithCsrf(null, user.csrfToken));
+    assertEquals(created.getName(), repoTypeClient.getRepoTypeById(created.getId()).getName());
+  }
+
+  /**
+   * Logs in as the given user on a RestTemplate that does not re-authenticate on 403. The shared
+   * {@link com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate} interceptor treats 403
+   * as a stale session, so it cannot assert USER authorization failures.
+   */
+  private UserSession loginAs(String username, String password) {
+    CookieStoreRestTemplate userRestTemplate = new CookieStoreRestTemplate();
+    String loginUrl =
+        authenticatedRestTemplate.getURIForResource(formLoginConfig.getLoginFormPath());
+    String loginHtml = userRestTemplate.getForObject(loginUrl, String.class);
+    String loginCsrf = csrfTokenFromLoginHtml(loginHtml);
+
+    HttpHeaders loginHeaders = new HttpHeaders();
+    loginHeaders.set("X-CSRF-TOKEN", loginCsrf);
+    loginHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+    form.add("username", username);
+    form.add("password", password);
+    userRestTemplate.postForEntity(loginUrl, new HttpEntity<>(form, loginHeaders), String.class);
+
+    String csrfUrl =
+        authenticatedRestTemplate.getURIForResource(formLoginConfig.getCsrfTokenPath());
+    ResponseEntity<String> csrfResponse = userRestTemplate.getForEntity(csrfUrl, String.class);
+    assertEquals(200, csrfResponse.getStatusCodeValue());
+    assertNotNull(csrfResponse.getBody());
+    return new UserSession(userRestTemplate, csrfResponse.getBody());
+  }
+
+  private static String csrfTokenFromLoginHtml(String loginHtml) {
+    Matcher matcher = Pattern.compile("CSRF_TOKEN = '(.*?)';").matcher(loginHtml);
+    if (!matcher.find()) {
+      fail("Could not find CSRF_TOKEN on the login page");
+    }
+    return matcher.group(1);
+  }
+
+  private static void assertUserForbidden(
+      UserSession user, HttpMethod method, String url, HttpEntity<String> entity) {
+    try {
+      user.restTemplate.exchange(url, method, entity, String.class);
+      fail("HTTP 403 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(403, e.getRawStatusCode());
+    }
+  }
+
+  private static HttpEntity<String> jsonEntityWithCsrf(String jsonBody, String csrfToken) {
+    HttpHeaders headers = new HttpHeaders();
+    if (jsonBody != null) {
+      headers.setContentType(MediaType.APPLICATION_JSON);
+    }
+    headers.set("X-CSRF-TOKEN", csrfToken);
+    return new HttpEntity<>(jsonBody, headers);
+  }
+
+  private static final class UserSession {
+    final CookieStoreRestTemplate restTemplate;
+    final String csrfToken;
+
+    UserSession(CookieStoreRestTemplate restTemplate, String csrfToken) {
+      this.restTemplate = restTemplate;
+      this.csrfToken = csrfToken;
     }
   }
 

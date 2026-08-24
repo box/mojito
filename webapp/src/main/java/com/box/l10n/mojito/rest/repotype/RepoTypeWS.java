@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST API for {@link RepoType} CRUD under {@code /api/repo-types}.
  *
- * <p>Mutating methods inherit the default {@code /api/**} security rules (PM or ADMIN). GET
- * requires an authenticated user.
+ * <p>Mutating methods inherit the default {@code /api/**} security rules (PM or ADMIN; USER → 403).
+ * GET requires an authenticated user (USER included).
  *
  * <p>Request and response bodies use the JPA {@link RepoType} entity directly. Integrity checkers
  * appear as the JSON array {@code integrityCheckers} ({@code assetExtension}, {@code

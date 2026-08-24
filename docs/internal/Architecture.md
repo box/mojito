@@ -172,7 +172,7 @@ RepoTypeClient (restclient) / future CLI
          MySQL tables
 ```
 
-Auth (existing `WebSecurityConfig`): authenticated GET; mutating `/api/**` requires PM or ADMIN.
+Auth (existing `WebSecurityConfig`): authenticated GET (USER included → 200); mutating `/api/**` requires PM or ADMIN (USER → 403).
 
 ##### REST API contract
 
@@ -183,9 +183,9 @@ Base path: `/api/repo-types`
 | GET | `/{id}` | 200 + body | 404 if missing |
 | GET | `/` | 200 + list (by name asc) | — |
 | GET | `/?name=` | 200 + list (0 or 1); **not** 404 if unknown name | — |
-| POST | `/` | 201 + body | 400 invalid name/description/checkers; 409 duplicate name |
-| PATCH | `/{id}` | 200 + body | 400 invalid name/description/checkers; 404 missing; 409 name conflict |
-| DELETE | `/{id}` | 204 (void) | 404 missing |
+| POST | `/` | 201 + body | 400 invalid name/description/checkers; 403 USER; 409 duplicate name |
+| PATCH | `/{id}` | 200 + body | 400 invalid name/description/checkers; 403 USER; 404 missing; 409 name conflict |
+| DELETE | `/{id}` | 204 (void) | 403 USER; 404 missing |
 
 **Create body**
 
