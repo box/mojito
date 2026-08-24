@@ -285,6 +285,8 @@ Replaces the type's checker collection (element collection on `RepoType`):
 2. De-duplicate incoming pairs on `(assetExtension, integrityCheckerType)` (last occurrence wins).
 3. Replace the collection with that set. Hibernate inserts/deletes join-table rows; there is no checker `id` to reuse or to accept from the client.
 4. `null` or empty incoming set → delete all checkers for the type.
+5. Missing type id → `RepoTypeWithIdNotFoundException`. Never save the caller's instance when
+   the row is gone (that would re-insert a deleted type).
 
 Caller must pass a persisted `RepoType`.
 

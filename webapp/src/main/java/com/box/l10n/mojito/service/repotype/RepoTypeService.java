@@ -60,6 +60,7 @@ public class RepoTypeService {
    *     checker is {@code null}, or a checker is missing {@code assetExtension} / {@code
    *     integrityCheckerType}
    * @throws RepoTypeNameAlreadyUsedException if {@code name} is already taken
+   * @throws RepoTypeWithIdNotFoundException if the row cannot be reloaded after persist
    */
   @Transactional
   public RepoType createRepoType(
@@ -67,7 +68,7 @@ public class RepoTypeService {
       String description,
       String aiPrompt,
       Set<RepoTypeIntegrityChecker> integrityCheckers)
-      throws RepoTypeNameAlreadyUsedException {
+      throws RepoTypeNameAlreadyUsedException, RepoTypeWithIdNotFoundException {
 
     validateName(name = trimName(name));
     validateDescription(description);
@@ -95,7 +96,7 @@ public class RepoTypeService {
     }
 
     logger.debug("Created repo type id: {} (name: {})", repoType.getId(), name);
-    return repoTypeRepository.findById(repoType.getId()).orElse(repoType);
+    return getRepoTypeById(repoType.getId());
   }
 
   /**
@@ -107,11 +108,9 @@ public class RepoTypeService {
    */
   @Transactional
   public RepoType getRepoTypeById(Long repoTypeId) throws RepoTypeWithIdNotFoundException {
-    RepoType repoType = repoTypeRepository.findById(repoTypeId).orElse(null);
-    if (repoType == null) {
-      throw new RepoTypeWithIdNotFoundException(repoTypeId);
-    }
-    return repoType;
+    return repoTypeRepository
+        .findById(repoTypeId)
+        .orElseThrow(() -> new RepoTypeWithIdNotFoundException(repoTypeId));
   }
 
   /**
@@ -205,7 +204,7 @@ public class RepoTypeService {
       updateIntegrityCheckers(repoType, integrityCheckers);
     }
 
-    return repoTypeRepository.findById(repoType.getId()).orElse(repoType);
+    return getRepoTypeById(repoType.getId());
   }
 
   /**
@@ -242,14 +241,20 @@ public class RepoTypeService {
    *   <li>{@code null} or empty incoming set removes all checkers for the type
    * </ul>
    *
-   * <p>Does not validate that {@code repoType} is managed; caller must pass a persisted entity.
+   * <p>If no row exists for {@code repoType.getId()}, throws {@link
+   * RepoTypeWithIdNotFoundException}. Does not save the caller's instance when the id is gone —
+   * that would re-insert a deleted type.
    *
-   * @param repoType type whose checkers are being replaced
+   * @param repoType type whose checkers are being replaced; must have a persisted id
    * @param integrityCheckers desired full set after the update
+   * @throws RepoTypeWithIdNotFoundException if the type id does not exist
    */
   @Transactional
   public void updateIntegrityCheckers(
-      RepoType repoType, Set<RepoTypeIntegrityChecker> integrityCheckers) {
+      RepoType repoType, Set<RepoTypeIntegrityChecker> integrityCheckers)
+      throws RepoTypeWithIdNotFoundException {
+
+    RepoType managed = getRepoTypeById(repoType.getId());
 
     Set<RepoTypeIntegrityChecker> replacement = new HashSet<>();
     if (integrityCheckers != null && !integrityCheckers.isEmpty()) {
@@ -261,7 +266,6 @@ public class RepoTypeService {
         repoType.getId(),
         replacement.size());
 
-    RepoType managed = repoTypeRepository.findById(repoType.getId()).orElse(repoType);
     Set<RepoTypeIntegrityChecker> current = managed.getIntegrityCheckers();
     if (current == null) {
       managed.setIntegrityCheckers(replacement);

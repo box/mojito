@@ -610,6 +610,46 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testUpdateRepoTypeAfterDeleteThrowsAndDoesNotResurrect() throws Exception {
+    String name = testIdWatcher.getEntityName("GoneForPatch");
+    RepoType created = repoTypeService.createRepoType(name, "before", "", null);
+    Long id = created.getId();
+
+    repoTypeService.deleteRepoType(id);
+
+    try {
+      repoTypeService.updateRepoType(id, null, "after", null, null);
+      fail("Expected RepoTypeWithIdNotFoundException");
+    } catch (RepoTypeWithIdNotFoundException expected) {
+      assertEquals("RepoType with id: " + id + " not found", expected.getMessage());
+    }
+
+    assertNull(repoTypeRepository.findById(id).orElse(null));
+    assertTrue(repoTypeService.getRepoTypes(name).isEmpty());
+  }
+
+  @Test
+  public void testUpdateIntegrityCheckersAfterDeleteThrowsAndDoesNotResurrect() throws Exception {
+    String name = testIdWatcher.getEntityName("GoneForCheckers");
+    RepoType created = repoTypeService.createRepoType(name, null, "", null);
+    Long id = created.getId();
+
+    repoTypeService.deleteRepoType(id);
+
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
+    try {
+      repoTypeService.updateIntegrityCheckers(created, checkers);
+      fail("Expected RepoTypeWithIdNotFoundException");
+    } catch (RepoTypeWithIdNotFoundException expected) {
+      assertEquals("RepoType with id: " + id + " not found", expected.getMessage());
+    }
+
+    assertNull(repoTypeRepository.findById(id).orElse(null));
+    assertTrue(repoTypeService.getRepoTypes(name).isEmpty());
+  }
+
+  @Test
   public void testDeleteRepoTypeRemovesType() throws Exception {
     String name = testIdWatcher.getEntityName("ToDelete");
     RepoType created = repoTypeService.createRepoType(name, null, "prompt", null);

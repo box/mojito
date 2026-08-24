@@ -89,7 +89,8 @@ public class RepoTypeWS {
    */
   @JsonView(View.RepoType.class)
   @RequestMapping(value = "/api/repo-types", method = RequestMethod.POST)
-  public ResponseEntity<?> createRepoType(@RequestBody RepoType repoType) {
+  public ResponseEntity<?> createRepoType(@RequestBody RepoType repoType)
+      throws RepoTypeWithIdNotFoundException {
     logger.info("Creating repo type");
 
     try {
