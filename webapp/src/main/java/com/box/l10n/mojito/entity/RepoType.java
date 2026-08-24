@@ -13,6 +13,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.Set;
 
 /**
@@ -71,8 +72,9 @@ public class RepoType extends AuditableEntity {
    * stay in the join table and are not part of the JSON contract.
    *
    * <p>Multiple checkers per asset extension are allowed; uniqueness is {@code (assetExtension,
-   * integrityCheckerType)}. After load/create, never {@code null} — use an empty set when none are
-   * configured. Field defaults to {@code null} so omitted JSON on PATCH means leave checkers
+   * integrityCheckerType)} — the same triple as V69's primary key, declared here so Hibernate's
+   * test schema matches MySQL. After load/create, never {@code null} — use an empty set when none
+   * are configured. Field defaults to {@code null} so omitted JSON on PATCH means leave checkers
    * unchanged.
    */
   @ElementCollection(fetch = FetchType.EAGER)
@@ -82,7 +84,11 @@ public class RepoType extends AuditableEntity {
           @JoinColumn(
               name = "repo_type_id",
               nullable = false,
-              foreignKey = @ForeignKey(name = "FK__REPO_TYPE_INTEGRITY_CHECKER__REPO_TYPE__ID")))
+              foreignKey = @ForeignKey(name = "FK__REPO_TYPE_INTEGRITY_CHECKER__REPO_TYPE__ID")),
+      uniqueConstraints =
+          @UniqueConstraint(
+              name = "UK__REPO_TYPE_INTEGRITY_CHECKER",
+              columnNames = {"repo_type_id", "asset_extension", "integrity_checker_type"}))
   @JsonView(View.RepoType.class)
   private Set<RepoTypeIntegrityChecker> integrityCheckers;
 

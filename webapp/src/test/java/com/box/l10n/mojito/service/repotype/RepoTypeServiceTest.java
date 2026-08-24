@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Contract tests for {@link RepoTypeService}. Behavior under test is defined in JavaDoc and {@code
@@ -34,6 +36,8 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   @Autowired RepoTypeService repoTypeService;
 
   @Autowired RepoTypeRepository repoTypeRepository;
+
+  @Autowired JdbcTemplate jdbcTemplate;
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -208,6 +212,34 @@ public class RepoTypeServiceTest extends ServiceTestBase {
 
     assertEquals(1, created.getIntegrityCheckers().size());
     assertCheckerPresent(created, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
+  }
+
+  /**
+   * Pins the schema unique key, not Java de-dupe. Distinct pairs are written through {@link
+   * RepoTypeService}. The colliding pair is inserted on the join table so service collapse cannot
+   * keep this green. Same uniqueness is V69's primary key on MySQL and {@code
+   * UK__REPO_TYPE_INTEGRITY_CHECKER} on Hibernate/HSQL — one test, no DB skip.
+   */
+  @Test
+  public void testDuplicateCheckerPairRejectedByDatabaseConstraint() throws Exception {
+    String name = testIdWatcher.getEntityName("DbUniqueCheckers");
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker("json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    checkers.add(checker("json", IntegrityCheckerType.MESSAGE_FORMAT));
+    checkers.add(checker("properties", IntegrityCheckerType.SIMPLE_PRINTF_LIKE));
+    RepoType created = repoTypeService.createRepoType(name, null, "", checkers);
+    Long id = created.getId();
+
+    assertEquals(3, created.getIntegrityCheckers().size());
+    assertEquals(3, repoTypeService.getRepoTypeById(id).getIntegrityCheckers().size());
+
+    try {
+      insertDuplicateCheckerRow(id, "json", IntegrityCheckerType.SIMPLE_PRINTF_LIKE.name());
+      fail("Expected DataIntegrityViolationException");
+    } catch (DataIntegrityViolationException expected) {
+      // schema unique key; the service would have de-duped this pair before persist
+    }
+    assertEquals(3, repoTypeService.getRepoTypeById(id).getIntegrityCheckers().size());
   }
 
   @Test
@@ -696,6 +728,22 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     assertTrue(
         "createdDate drifted by " + delta + ", expected only storage-precision differences",
         delta.compareTo(Duration.ofMillis(1)) < 0);
+  }
+
+  /**
+   * SQL on purpose — do not persist a {@link RepoType} / {@link RepoTypeIntegrityChecker} here.
+   * Service de-dupe and {@code equals}/{@code hashCode} on the embeddable collapse a duplicate pair
+   * in memory, so Spring would never insert a second row and this would not exercise the unique
+   * key.
+   */
+  private void insertDuplicateCheckerRow(
+      Long repoTypeId, String assetExtension, String checkerType) {
+    jdbcTemplate.update(
+        "INSERT INTO repo_type_integrity_checker"
+            + " (repo_type_id, asset_extension, integrity_checker_type) VALUES (?, ?, ?)",
+        repoTypeId,
+        assetExtension,
+        checkerType);
   }
 
   private static RepoTypeIntegrityChecker checker(

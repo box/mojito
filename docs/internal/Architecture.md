@@ -76,6 +76,7 @@ Until repositories can reference a type, deleting a type is an unconditional har
 - Same enum: `IntegrityCheckerType`.
 - Multiple checkers per extension allowed (no unique constraint on extension alone — same as repos after V10).
 - Persist as a JPA `@ElementCollection` of embeddable `RepoTypeIntegrityChecker` in table `repo_type_integrity_checker` (FK `repo_type_id`), not reuse of `AssetIntegrityChecker` (FK `repository_id`).
+- Uniqueness is `(repo_type_id, asset_extension, integrity_checker_type)`: V69 primary key on MySQL, and `@CollectionTable` `UK__REPO_TYPE_INTEGRITY_CHECKER` so Hibernate's test schema (HSQL, Flyway off) enforces the same rule. Application de-dupe is not the only backstop.
 - The checker type has **only** `assetExtension` and `integrityCheckerType`. Parent and row ids are join-table housekeeping owned by `RepoType` and are **not** in JSON.
 
 **Why not `AssetIntegrityChecker`:** JPA maps one parent FK per association. A row owned by a type cannot use `AssetIntegrityChecker`’s required `repository_id`.
@@ -153,7 +154,8 @@ repo_type_integrity_checker
   PRIMARY KEY (repo_type_id, asset_extension, integrity_checker_type)
 ```
 
-Uniqueness of a checker on a type is that primary key. Clients never see checker ids or parent.
+Uniqueness of a checker on a type is that primary key (JPA `UK__REPO_TYPE_INTEGRITY_CHECKER` on
+the collection table so tests match). Clients never see checker ids or parent.
 
 ##### Component flow
 
