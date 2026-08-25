@@ -64,6 +64,15 @@ public class View {
   public interface Modified {}
   ;
 
+  /**
+   * Full {@code RepoType} payload for {@code /api/repo-types}. Extends {@link IdAndName} so {@code
+   * id} and {@code name} stay available under summary views, plus created/modified timestamps.
+   * Description, prompt, and checkers are on this view only so they do not serialize when a type is
+   * nested under {@link IdAndName} (e.g. a future repository summary).
+   */
+  public interface RepoType extends IdAndName, IdAndNameAndCreated, Modified {}
+  ;
+
   /** This is used to restrict Commit information returned */
   public interface Commit extends IdAndNameAndCreated, Modified, Pageable {}
   ;
