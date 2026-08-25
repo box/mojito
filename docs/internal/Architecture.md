@@ -368,7 +368,7 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 - At least one of `--new-name` or `--description` is required; otherwise `Must provide at least one of the following options: --new-name, --description`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#6-patch-null-means-leave-unchanged)).
-- `integrityCheckers` is sent as `null` so checkers are not replaced. (A non-null empty set would clear them.)
+- `integrityCheckers` is sent as `null` so checkers are not replaced. (A non-null empty set would clear them.) {@code aiPrompt} is never set (stays `null`). A description-only update must leave prompt and checkers as they were.
 - HTTP 400 and 409 → same mapping as create (response body, or the 400/409 fallbacks).
 - Success prints `updated --> repo type id: <id>`.
 
@@ -395,7 +395,7 @@ Prints three fields for an existing type:
 | `cli/.../command/RepoTypeDeleteCommand.java` | Delete |
 | `cli/.../command/RepoTypeViewCommand.java` | View |
 | `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` constants |
-| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags) |
+| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, description/rename must not clear prompt or checkers) |
 
 ---
 

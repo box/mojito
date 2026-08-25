@@ -63,13 +63,9 @@ public class RepoTypeUpdateCommand extends Command {
     RepoType existing = commandHelper.findRepoTypeByName(nameParam);
 
     try {
-      RepoType toUpdate = new RepoType();
-      toUpdate.setName(newNameParam);
-      toUpdate.setDescription(descriptionParam);
-      // Leave integrity checkers unchanged (DTO defaults to empty set, which would clear them)
-      toUpdate.setIntegrityCheckers(null);
-
-      RepoType updated = repoTypeClient.updateRepoType(existing.getId(), toUpdate);
+      RepoType updated =
+          repoTypeClient.updateRepoType(
+              existing.getId(), nameAndDescriptionPatch(newNameParam, descriptionParam));
       consoleWriter
           .newLine()
           .a("updated --> repo type id: ")
@@ -79,5 +75,19 @@ public class RepoTypeUpdateCommand extends Command {
     } catch (HttpClientErrorException ex) {
       throw CommandHelper.repoTypeClientError(ex);
     }
+  }
+
+  /**
+   * PATCH body for name and/or description only. {@code integrityCheckers} is explicitly {@code
+   * null} so the field is omitted (leave unchanged). Do not set {@code aiPrompt}; it stays {@code
+   * null} and is omitted. A non-null empty checker set serializes as {@code []} and would clear
+   * checkers on the server.
+   */
+  static RepoType nameAndDescriptionPatch(String newName, String description) {
+    RepoType patch = new RepoType();
+    patch.setName(newName);
+    patch.setDescription(description);
+    patch.setIntegrityCheckers(null);
+    return patch;
   }
 }
