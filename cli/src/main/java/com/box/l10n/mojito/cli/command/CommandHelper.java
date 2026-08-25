@@ -133,8 +133,7 @@ public class CommandHelper {
           ex.getStatusCode().equals(HttpStatus.CONFLICT)
               ? "Repo type already exists"
               : "Invalid repo type";
-      return new CommandException(
-          (body != null && !body.isBlank()) ? body : fallback, ex);
+      return new CommandException(!body.isBlank() ? body : fallback, ex);
     }
     throw ex;
   }

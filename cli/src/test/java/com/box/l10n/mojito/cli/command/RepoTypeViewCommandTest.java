@@ -7,6 +7,7 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
+import java.util.regex.Pattern;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,23 @@ public class RepoTypeViewCommandTest extends CLITestBase {
     assertTrue(
         "Repo type description is missing or incorrect from output",
         output.contains("Description --> " + description));
+  }
+
+  @Test
+  public void testViewRepoTypeWithNullDescription() throws Exception {
+    String name = testIdWatcher.getEntityName("NoDesc");
+
+    repoTypeService.createRepoType(name, null, null, null);
+
+    getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, name);
+
+    String output = outputCapture.toString();
+    assertFalse(
+        "Null description must not print the string \"null\"",
+        output.contains("Description --> null"));
+    assertTrue(
+        "Null description must print an empty value after the label",
+        Pattern.compile("Description --> $", Pattern.MULTILINE).matcher(output).find());
   }
 
   @Test

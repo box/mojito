@@ -188,8 +188,8 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     String name1 = testIdWatcher.getEntityName("TypeA");
     String name2 = testIdWatcher.getEntityName("TypeB");
 
-    repoTypeService.createRepoType(name1, null, null, null);
-    repoTypeService.createRepoType(name2, null, null, null);
+    RepoType typeA = repoTypeService.createRepoType(name1, null, null, null);
+    RepoType typeB = repoTypeService.createRepoType(name2, null, null, null);
 
     getL10nJCommander()
         .run(
@@ -206,6 +206,16 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     assertFalse(
         "Mapped 409 must not go through L10nJCommander's Unexpected error stack dump",
         output.contains("Unexpected error"));
+
+    RepoType stillA = repoTypeRepository.findByName(name1);
+    assertNotNull("Rejected rename must leave the source type under its original name", stillA);
+    assertEquals(typeA.getId(), stillA.getId());
+    assertEquals(name1, stillA.getName());
+
+    RepoType stillB = repoTypeRepository.findByName(name2);
+    assertNotNull("Rejected rename must not overwrite the target type", stillB);
+    assertEquals(typeB.getId(), stillB.getId());
+    assertEquals(name2, stillB.getName());
   }
 
   @Test
