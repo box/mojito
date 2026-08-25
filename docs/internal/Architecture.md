@@ -355,7 +355,7 @@ Flag constants live in `cli/.../command/param/Param.java` (`REPO_TYPE_*`). Help 
 
 ##### Lookup by name
 
-Update, delete, and view resolve the type with `RepoTypeClient.getRepoTypes(name)` (exact `?name=`). If the list size is not exactly `1`, the command fails with `Repo type with name [<name>] is not found` (`CommandException`). There is no dedicated get-by-name client method.
+Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName`. A blank `-n` is rejected with `Repo type name is required` before calling the API — the server treats a blank `?name=` as list-all, so a single existing type would otherwise be selected. Non-blank names are trimmed and looked up with `RepoTypeClient.getRepoTypes(name)`. If the list size is not exactly `1`, the command fails with `Repo type with name [<name>] is not found` (`CommandException`). There is no dedicated get-by-name client method.
 
 ##### Create
 

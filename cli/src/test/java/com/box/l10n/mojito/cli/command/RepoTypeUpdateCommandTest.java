@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -133,5 +134,33 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     assertTrue(
         "Expecting error from renaming to an existing repo type name",
         outputCapture.toString().contains("Repo type with name [" + name2 + "] already exists"));
+  }
+
+  @Test
+  public void testUpdateBlankNameDoesNotSelectTheOnlyType() throws Exception {
+    String name = testIdWatcher.getEntityName("OnlyType");
+    String description = "must stay";
+
+    repoTypeService.createRepoType(name, description, null, null);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            " ",
+            Param.REPO_TYPE_DESCRIPTION_SHORT,
+            "oops");
+
+    String output = outputCapture.toString();
+    assertTrue(
+        "Blank -n must fail with a required-name error, not list-all lookup",
+        output.contains("Repo type name is required"));
+    assertFalse(
+        "Must not fall through to not-found from a list-all of size != 1",
+        output.contains("is not found"));
+
+    RepoType unchanged = repoTypeRepository.findByName(name);
+    assertNotNull(unchanged);
+    assertEquals(description, unchanged.getDescription());
   }
 }

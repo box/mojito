@@ -6,7 +6,6 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.entity.RepoType;
-import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +25,8 @@ public class RepoTypeDeleteCommand extends Command {
 
   @Autowired ConsoleWriter consoleWriter;
 
+  @Autowired CommandHelper commandHelper;
+
   @Autowired RepoTypeClient repoTypeClient;
 
   @Parameter(
@@ -39,7 +40,7 @@ public class RepoTypeDeleteCommand extends Command {
   protected void execute() throws CommandException {
     consoleWriter.a("Delete repo type: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
-    RepoType existing = getRepoTypeByName(nameParam);
+    RepoType existing = commandHelper.findRepoTypeByName(nameParam);
     repoTypeClient.deleteRepoType(existing.getId());
 
     consoleWriter
@@ -48,13 +49,5 @@ public class RepoTypeDeleteCommand extends Command {
         .fg(Ansi.Color.MAGENTA)
         .a(nameParam)
         .println();
-  }
-
-  private RepoType getRepoTypeByName(String name) throws CommandException {
-    List<RepoType> repoTypes = repoTypeClient.getRepoTypes(name);
-    if (repoTypes.size() != 1) {
-      throw new CommandException("Repo type with name [" + name + "] is not found");
-    }
-    return repoTypes.get(0);
   }
 }

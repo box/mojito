@@ -4,9 +4,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.entity.RepoType;
-import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +24,7 @@ public class RepoTypeViewCommand extends Command {
 
   @Autowired ConsoleWriter consoleWriter;
 
-  @Autowired RepoTypeClient repoTypeClient;
+  @Autowired CommandHelper commandHelper;
 
   @Parameter(
       names = {Param.REPO_TYPE_NAME_LONG, Param.REPO_TYPE_NAME_SHORT},
@@ -39,7 +37,7 @@ public class RepoTypeViewCommand extends Command {
   protected void execute() throws CommandException {
     consoleWriter.a("View repo type: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
-    RepoType repoType = getRepoTypeByName(nameParam);
+    RepoType repoType = commandHelper.findRepoTypeByName(nameParam);
     String description = repoType.getDescription() != null ? repoType.getDescription() : "";
 
     consoleWriter
@@ -51,13 +49,5 @@ public class RepoTypeViewCommand extends Command {
     consoleWriter.a("Name --> ").fg(Ansi.Color.MAGENTA).a(repoType.getName()).println();
     consoleWriter.a("Description --> ").fg(Ansi.Color.MAGENTA).a(description).println();
     consoleWriter.println();
-  }
-
-  private RepoType getRepoTypeByName(String name) throws CommandException {
-    List<RepoType> repoTypes = repoTypeClient.getRepoTypes(name);
-    if (repoTypes.size() != 1) {
-      throw new CommandException("Repo type with name [" + name + "] is not found");
-    }
-    return repoTypes.get(0);
   }
 }

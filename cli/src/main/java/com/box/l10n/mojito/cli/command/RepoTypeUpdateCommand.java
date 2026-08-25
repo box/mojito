@@ -6,7 +6,6 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.entity.RepoType;
-import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,8 @@ public class RepoTypeUpdateCommand extends Command {
   static Logger logger = LoggerFactory.getLogger(RepoTypeUpdateCommand.class);
 
   @Autowired ConsoleWriter consoleWriter;
+
+  @Autowired CommandHelper commandHelper;
 
   @Autowired RepoTypeClient repoTypeClient;
 
@@ -60,7 +61,7 @@ public class RepoTypeUpdateCommand extends Command {
           "Must provide at least one of the following options: --new-name, --description");
     }
 
-    RepoType existing = getRepoTypeByName(nameParam);
+    RepoType existing = commandHelper.findRepoTypeByName(nameParam);
 
     try {
       RepoType toUpdate = new RepoType();
@@ -82,13 +83,5 @@ public class RepoTypeUpdateCommand extends Command {
       }
       throw ex;
     }
-  }
-
-  private RepoType getRepoTypeByName(String name) throws CommandException {
-    List<RepoType> repoTypes = repoTypeClient.getRepoTypes(name);
-    if (repoTypes.size() != 1) {
-      throw new CommandException("Repo type with name [" + name + "] is not found");
-    }
-    return repoTypes.get(0);
   }
 }
