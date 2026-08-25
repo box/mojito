@@ -13,20 +13,6 @@ import org.springframework.web.client.HttpClientErrorException;
 public class CommandHelperRepoTypeClientErrorTest {
 
   @Test
-  public void mapsForbiddenToNotAllowedWhenBodyBlank() {
-    HttpClientErrorException ex = exception(HttpStatus.FORBIDDEN, "");
-    CommandException mapped = CommandHelper.repoTypeClientError(ex);
-    assertEquals("Not allowed", mapped.getMessage());
-    assertSame(ex, mapped.getCause());
-  }
-
-  @Test
-  public void mapsForbiddenBodyWhenPresent() {
-    HttpClientErrorException ex = exception(HttpStatus.FORBIDDEN, "Access Denied");
-    assertEquals("Access Denied", CommandHelper.repoTypeClientError(ex).getMessage());
-  }
-
-  @Test
   public void mapsNotFoundBodyWhenPresent() {
     HttpClientErrorException ex = exception(HttpStatus.NOT_FOUND, "RepoType with id: 9 not found");
     assertEquals(
@@ -51,13 +37,21 @@ public class CommandHelperRepoTypeClientErrorTest {
   }
 
   @Test
-  public void unmappedClientErrorIsRethrown() {
-    HttpClientErrorException ex = exception(HttpStatus.UNAUTHORIZED, "nope");
+  public void forbiddenAndUnauthorizedAreRethrown() {
+    HttpClientErrorException forbidden = exception(HttpStatus.FORBIDDEN, "Access Denied");
     try {
-      CommandHelper.repoTypeClientError(ex);
+      CommandHelper.repoTypeClientError(forbidden);
       fail("expected rethrow");
     } catch (HttpClientErrorException rethrown) {
-      assertSame(ex, rethrown);
+      assertSame(forbidden, rethrown);
+    }
+
+    HttpClientErrorException unauthorized = exception(HttpStatus.UNAUTHORIZED, "nope");
+    try {
+      CommandHelper.repoTypeClientError(unauthorized);
+      fail("expected rethrow");
+    } catch (HttpClientErrorException rethrown) {
+      assertSame(unauthorized, rethrown);
     }
   }
 

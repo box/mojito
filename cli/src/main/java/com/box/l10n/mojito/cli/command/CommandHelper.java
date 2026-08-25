@@ -123,8 +123,13 @@ public class CommandHelper {
   }
 
   /**
-   * Maps HTTP 400, 403, 404, and 409 to {@link CommandException} using the API response body.
-   * Other client errors are rethrown so {@code L10nJCommander} handles them.
+   * Maps HTTP 400, 404, and 409 to {@link CommandException} using the API response body. Other
+   * client errors are rethrown so {@code L10nJCommander} handles them.
+   *
+   * <p>HTTP 403 is not mapped. {@code AuthenticatedRestTemplate} treats 403 as a stale session
+   * ({@code FormLoginAuthenticationCsrfTokenInterceptor}): a USER mutate is retried, then thrown as
+   * {@code RestClientException}, never as {@link HttpClientErrorException}. Same dump as other
+   * mutating CLI commands (e.g. {@code repo-create}).
    */
   public static CommandException repoTypeClientError(HttpClientErrorException ex) {
     String fallback = repoTypeClientErrorFallback(ex.getStatusCode());
@@ -138,9 +143,6 @@ public class CommandHelper {
   static String repoTypeClientErrorFallback(HttpStatusCode status) {
     if (status.equals(HttpStatus.BAD_REQUEST)) {
       return "Invalid repo type";
-    }
-    if (status.equals(HttpStatus.FORBIDDEN)) {
-      return "Not allowed";
     }
     if (status.equals(HttpStatus.NOT_FOUND)) {
       return "Repo type is not found";
