@@ -17,6 +17,8 @@ import com.box.l10n.mojito.rest.entity.Role;
 import com.box.l10n.mojito.rest.resttemplate.CookieStoreRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.FormLoginConfig;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -62,6 +64,21 @@ public class RepoTypeWSTest extends WSTestBase {
     assertEquals(toCreate.getName(), created.getName());
     assertNotNull(created.getCreatedDate());
     assertNotNull(created.getLastModifiedDate());
+  }
+
+  @Test
+  public void testCreateRepoTypeReturns201() {
+    String name = testIdWatcher.getEntityName("CreatedStatus");
+    ResponseEntity<String> response =
+        authenticatedRestTemplate
+            .getRestTemplate()
+            .postForEntity(
+                authenticatedRestTemplate.getURIForResource("/api/repo-types"),
+                jsonEntity("{\"name\":\"" + name + "\"}"),
+                String.class);
+
+    assertEquals(201, response.getStatusCodeValue());
+    assertTrue(response.getBody().contains("\"name\":\"" + name + "\""));
   }
 
   @Test
@@ -240,6 +257,56 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testGetRepoTypeByIdJsonShape() throws Exception {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("JsonShape"));
+    toCreate.setDescription("FormatJS / react-intl apps");
+    toCreate.setAiPrompt("Preserve {placeholders}.");
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(clientChecker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
+    checkers.add(clientChecker("properties", IntegrityCheckerType.TRAILING_WHITESPACE));
+    toCreate.setIntegrityCheckers(checkers);
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    ResponseEntity<String> response =
+        authenticatedRestTemplate
+            .getRestTemplate()
+            .getForEntity(
+                authenticatedRestTemplate.getURIForResource("/api/repo-types/" + created.getId()),
+                String.class);
+    assertEquals(200, response.getStatusCodeValue());
+
+    JsonNode root = new ObjectMapper().readTree(response.getBody());
+    assertEquals(
+        Set.of(
+            "id",
+            "name",
+            "createdDate",
+            "lastModifiedDate",
+            "description",
+            "aiPrompt",
+            "integrityCheckers"),
+        fieldNames(root));
+    assertEquals(created.getId().longValue(), root.get("id").asLong());
+    assertEquals(created.getName(), root.get("name").asText());
+    assertEquals("FormatJS / react-intl apps", root.get("description").asText());
+    assertEquals("Preserve {placeholders}.", root.get("aiPrompt").asText());
+
+    JsonNode checkersJson = root.get("integrityCheckers");
+    assertTrue(checkersJson.isArray());
+    assertEquals(2, checkersJson.size());
+    Set<String> pairs = new HashSet<>();
+    for (JsonNode checker : checkersJson) {
+      assertEquals(Set.of("assetExtension", "integrityCheckerType"), fieldNames(checker));
+      pairs.add(
+          checker.get("assetExtension").asText()
+              + ":"
+              + checker.get("integrityCheckerType").asText());
+    }
+    assertEquals(Set.of("properties:MESSAGE_FORMAT", "properties:TRAILING_WHITESPACE"), pairs);
+  }
+
+  @Test
   public void testGetRepoTypeByIdMissingReturns404() {
     try {
       repoTypeClient.getRepoTypeById(987654321L);
@@ -332,6 +399,67 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testUpdateRepoTypeReturns200() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("PatchStatus"));
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    ResponseEntity<String> response =
+        authenticatedRestTemplate
+            .getRestTemplate()
+            .exchange(
+                authenticatedRestTemplate.getURIForResource("/api/repo-types/" + created.getId()),
+                HttpMethod.PATCH,
+                jsonEntity("{\"description\":\"after\"}"),
+                String.class);
+
+    assertEquals(200, response.getStatusCodeValue());
+    assertTrue(response.getBody().contains("\"description\":\"after\""));
+  }
+
+  @Test
+  public void testUpdateRepoTypeNameTooLongReturns400AndLeavesNameUnchanged() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("KeepName"));
+    toCreate.setDescription("desc");
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    RepoType patch = new RepoType();
+    patch.setName("n".repeat(256));
+    try {
+      repoTypeClient.updateRepoType(created.getId(), patch);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+      assertEquals("name must be at most 255 characters", e.getResponseBodyAsString());
+    }
+    RepoType stored = repoTypeClient.getRepoTypeById(created.getId());
+    assertEquals(created.getName(), stored.getName());
+    assertEquals("desc", stored.getDescription());
+  }
+
+  @Test
+  public void testUpdateRepoTypeDescriptionTooLongReturns400AndLeavesDescriptionUnchanged() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("KeepDesc"));
+    toCreate.setDescription("original");
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    RepoType patch = new RepoType();
+    patch.setDescription("d".repeat(256));
+    try {
+      repoTypeClient.updateRepoType(created.getId(), patch);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+      assertEquals("description must be at most 255 characters", e.getResponseBodyAsString());
+    }
+    RepoType stored = repoTypeClient.getRepoTypeById(created.getId());
+    assertEquals(created.getName(), stored.getName());
+    assertEquals("original", stored.getDescription());
+  }
+
+  @Test
   public void testUpdateRepoTypeEmptyAiPromptClearsPrompt() {
     RepoType toCreate = new RepoType();
     toCreate.setName(testIdWatcher.getEntityName("ClearPrompt"));
@@ -386,6 +514,30 @@ public class RepoTypeWSTest extends WSTestBase {
     List<RepoType> byNewName = repoTypeClient.getRepoTypes(renamed);
     assertEquals(1, byNewName.size());
     assertEquals(created.getId(), byNewName.get(0).getId());
+  }
+
+  @Test
+  public void testUpdateRepoTypeInvalidCheckerLeavesNameUnchanged() {
+    String original = testIdWatcher.getEntityName("Keep");
+    String renamed = testIdWatcher.getEntityName("Renamed");
+    RepoType toCreate = new RepoType();
+    toCreate.setName(original);
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    RepoType patch = new RepoType();
+    patch.setName(renamed);
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(clientChecker("properties", null));
+    patch.setIntegrityCheckers(checkers);
+    try {
+      repoTypeClient.updateRepoType(created.getId(), patch);
+      fail("HTTP 400 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(400, e.getRawStatusCode());
+      assertEquals("integrityCheckerType is required", e.getResponseBodyAsString());
+    }
+    assertEquals(original, repoTypeClient.getRepoTypeById(created.getId()).getName());
+    assertTrue(repoTypeClient.getRepoTypes(renamed).isEmpty());
   }
 
   @Test
@@ -485,6 +637,7 @@ public class RepoTypeWSTest extends WSTestBase {
       assertEquals(400, e.getRawStatusCode());
       assertEquals("integrity checker must not be null", e.getResponseBodyAsString());
     }
+    assertTrue(repoTypeClient.getRepoTypes(name).isEmpty());
   }
 
   @Test
@@ -743,6 +896,12 @@ public class RepoTypeWSTest extends WSTestBase {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     return new HttpEntity<>(jsonBody, headers);
+  }
+
+  private static Set<String> fieldNames(JsonNode node) {
+    Set<String> names = new HashSet<>();
+    node.fieldNames().forEachRemaining(names::add);
+    return names;
   }
 
   private static RepoTypeIntegrityChecker clientChecker(

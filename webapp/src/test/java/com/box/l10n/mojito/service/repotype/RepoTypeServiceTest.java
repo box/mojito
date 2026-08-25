@@ -172,6 +172,8 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     } catch (RepoTypeInvalidException expected) {
       assertEquals("integrity checker must not be null", expected.getMessage());
     }
+    // Parent is saveAndFlush'd before checker validation; the transaction must still roll back.
+    assertNull(repoTypeRepository.findByName(name));
   }
 
   @Test
@@ -342,6 +344,45 @@ public class RepoTypeServiceTest extends ServiceTestBase {
       assertEquals("name is required", expected.getMessage());
     }
     assertEquals(name, repoTypeService.getRepoTypeById(created.getId()).getName());
+  }
+
+  @Test
+  public void testUpdateRepoTypeNameTooLongThrowsLeavesNameUnchanged() throws Exception {
+    String name = testIdWatcher.getEntityName("KeepName");
+    RepoType created = repoTypeService.createRepoType(name, "desc", "", null);
+    String tooLong = "n".repeat(RepoType.NAME_MAX_LENGTH + 1);
+
+    try {
+      repoTypeService.updateRepoType(created.getId(), tooLong, null, null, null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertEquals(
+          "name must be at most " + RepoType.NAME_MAX_LENGTH + " characters",
+          expected.getMessage());
+    }
+    RepoType stored = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(name, stored.getName());
+    assertEquals("desc", stored.getDescription());
+  }
+
+  @Test
+  public void testUpdateRepoTypeDescriptionTooLongThrowsLeavesDescriptionUnchanged()
+      throws Exception {
+    String name = testIdWatcher.getEntityName("KeepDesc");
+    RepoType created = repoTypeService.createRepoType(name, "original", "", null);
+    String tooLong = "d".repeat(RepoType.DESCRIPTION_MAX_LENGTH + 1);
+
+    try {
+      repoTypeService.updateRepoType(created.getId(), null, tooLong, null, null);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertEquals(
+          "description must be at most " + RepoType.DESCRIPTION_MAX_LENGTH + " characters",
+          expected.getMessage());
+    }
+    RepoType stored = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(name, stored.getName());
+    assertEquals("original", stored.getDescription());
   }
 
   @Test
@@ -552,6 +593,24 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testUpdateRepoTypeInvalidCheckerLeavesNameUnchanged() throws Exception {
+    String original = testIdWatcher.getEntityName("Keep");
+    String renamed = testIdWatcher.getEntityName("Renamed");
+    RepoType created = repoTypeService.createRepoType(original, null, "", null);
+
+    Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
+    checkers.add(checker("properties", null));
+    try {
+      repoTypeService.updateRepoType(created.getId(), renamed, null, null, checkers);
+      fail("Expected RepoTypeInvalidException");
+    } catch (RepoTypeInvalidException expected) {
+      assertEquals("integrityCheckerType is required", expected.getMessage());
+    }
+    assertEquals(original, repoTypeService.getRepoTypeById(created.getId()).getName());
+    assertNull(repoTypeRepository.findByName(renamed));
+  }
+
+  @Test
   public void testUpdateRepoTypeMissingIdThrows() throws Exception {
     try {
       repoTypeService.updateRepoType(987654321L, "x", null, null, null);
@@ -727,6 +786,12 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     repoTypeService.deleteRepoType(created.getId());
 
     assertNull(repoTypeRepository.findById(created.getId()).orElse(null));
+    Number checkerRows =
+        jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM repo_type_integrity_checker WHERE repo_type_id = ?",
+            Number.class,
+            created.getId());
+    assertEquals(0, checkerRows.intValue());
   }
 
   @Test
