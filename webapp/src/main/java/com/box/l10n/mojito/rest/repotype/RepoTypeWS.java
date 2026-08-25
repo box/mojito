@@ -76,7 +76,7 @@ public class RepoTypeWS {
    *   <li>Success → HTTP 201 with the created entity
    *   <li>Missing / blank {@code name}, over-length name/description, a {@code null} checker, or a
    *       checker missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400 with a
-   *       message that names the invalid field
+   *       message that names the invalid field. {@code aiPrompt} has no application max length.
    *   <li>Duplicate name → HTTP 409 {@code RepoType with name [<trimmed name>] already exists}.
    *       Only the name unique constraint ({@code UK__REPO_TYPE__NAME}) is mapped this way; other
    *       integrity failures are not labeled as a name conflict.
@@ -121,7 +121,7 @@ public class RepoTypeWS {
    *   <li>Unknown id → HTTP 404
    *   <li>Blank {@code name}, over-length name/description, a {@code null} checker, or a checker
    *       missing {@code assetExtension} / {@code integrityCheckerType} → HTTP 400 with a message
-   *       that names the invalid field
+   *       that names the invalid field. {@code aiPrompt} has no application max length.
    *   <li>Name conflict with another type → HTTP 409 {@code RepoType with name [<trimmed name>]
    *       already exists} (name unique constraint only; a checkers-only PATCH does not quote a null
    *       request name as a name conflict)

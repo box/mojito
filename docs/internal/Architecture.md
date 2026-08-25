@@ -68,7 +68,18 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 **Not decided here:** Global or per-request layers may still distinguish translation vs review (follow-up work). Hardcoded base prompts remain in `AiTranslateType` / `AiReviewType` enums; the type prompt is an additional *layer*, not a replacement for those modes.
 
-###### 2. Integrity checkers are a value set on the type, not their own entity
+###### 2. `aiPrompt` has no application max length
+
+**Decision:** Persist as unbounded long text. No service 400 for over-length `aiPrompt`.
+
+- DB: V69 `longtext`. JPA: `@Column(name = "ai_prompt", length = Integer.MAX_VALUE)` only — **not** `@Lob`.
+- `@Lob` in this codebase is for binary blobs (`Image`, `MBlob`, `ApplicationCache`). Long strings (`TMTextUnit.content`, `AssetContent`, `AiReviewProto`) use the same bare `@Column(..., length = Integer.MAX_VALUE)` pattern.
+
+**Why no cap:** A Mojito instance has on the order of tens of types, not thousands. Operators keep prompts short themselves because this text is later injected into every AI call for every repo of that type — more text is more tokens and more cost. An arbitrary 64KiB / 1MiB product limit would not buy safety we need.
+
+**Practical ceilings** (not Mojito 400s): HTTP body size, JVM heap, MySQL `max_allowed_packet`. Name and description stay capped at 255.
+
+###### 3. Integrity checkers are a value set on the type, not their own entity
 
 **Decision:**
 
@@ -85,19 +96,19 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 **JSON name:** The collection is exposed as `integrityCheckers` (not `assetIntegrityCheckers`) to keep the repo-type API clear. Element shape is `{ assetExtension, integrityCheckerType }` only — clients get and send de-duplicated sets of that pair.
 
-###### 3. `AuditableEntity` without Hibernate Envers `@Audited`
+###### 4. `AuditableEntity` without Hibernate Envers `@Audited`
 
 **Decision:** Extend `AuditableEntity` for `created_date` / `last_modified_date`. Do **not** use `@Audited` / `*_aud` tables for repo types.
 
 **Why:** Timestamps match other Mojito config entities and are cheap. Full revision history (Envers) is unused for this config unless product asks for it later; skipping it keeps the Flyway migration smaller.
 
-###### 4. Entity-as-DTO REST, same pattern as repositories
+###### 5. Entity-as-DTO REST, same pattern as repositories
 
 **Decision:** `RepoTypeWS` accepts and returns the JPA `RepoType` entity. No separate request/response DTO classes in webapp.
 
 **Why:** Consistent with `RepositoryWS` / `Repository` in this codebase. Client-side mirrors live in `restclient` (see [REST API client → Repo Types](#repo-types-3)).
 
-###### 5. PATCH: `null` means leave unchanged
+###### 6. PATCH: `null` means leave unchanged
 
 **Decision:** On update, every optional argument treats `null` as “do not change”:
 
@@ -108,13 +119,13 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 **Why:** Fixed in the contract before implementation so REST and service behave the same way. Omitted JSON fields deserialize to `null` and therefore leave values unchanged.
 
-###### 6. Hard delete for now
+###### 7. Hard delete for now
 
 **Decision:** `deleteRepoType` removes the type and all of its checker rows.
 
 **Why:** No FK from `repository` yet. When repositories gain an optional `repo_type_id`, delete must gain a “type in use” guard (refuse or require clearing assignments first).
 
-###### 7. Package layout (server)
+###### 8. Package layout (server)
 
 | Layer | Location |
 |-------|----------|
@@ -125,7 +136,7 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 Follows existing Mojito layout (`Repository` / `RepositoryService` / `RepositoryWS`).
 
-###### 8. Name is an open string (same rules as repository names)
+###### 9. Name is an open string (same rules as repository names)
 
 **Decision:** `name` is a free-form string, not a Java enum and not a closed catalog. Operators can add `Django`, `Flutter`, etc. without a code change. A recommended list can be seed data later; it is not part of this API.
 
@@ -145,7 +156,7 @@ repo_type
   created_date, last_modified_date
   name              UNIQUE
   description
-  ai_prompt         longtext, default empty
+  ai_prompt         longtext, default empty; no application max length
 
 repo_type_integrity_checker
   repo_type_id      FK → repo_type.id  (NOT NULL)
@@ -195,8 +206,9 @@ Base path: `/api/repo-types`
   `RepoTypeNameAlreadyUsedException` and `UK__REPO_TYPE__NAME`. Other
   `DataIntegrityViolationException`s are not labeled as a name conflict.
 - 400 validation: the `RepoTypeInvalidException` message (e.g. `name is required`,
+  `name must be at most 255 characters`, `description must be at most 255 characters`,
   `integrity checker must not be null`, `assetExtension is required`,
-  `integrityCheckerType is required`).
+  `integrityCheckerType is required`). There is no 400 for over-length `aiPrompt`.
 
 **Create body**
 
@@ -246,7 +258,7 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
   (e.g. the checker table composite primary key) are not labeled as a name conflict (HTTP 500).
   Do not catch the exception inside `@Transactional`.
 - Persists `description` as given (`null` allowed).
-- Persists `aiPrompt`; `null` → `""`.
+- Persists `aiPrompt`; `null` → `""`. No application max length (see decision 2).
 - Attaches checkers when the set is non-null and non-empty; otherwise no checker rows. Each checker
   requires {@code assetExtension} and {@code integrityCheckerType} ({@code RepoTypeInvalidException}).
   Extensions are trimmed and a leading {@code .} is stripped.
@@ -269,7 +281,8 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
   Non-null names are trimmed before uniqueness and persist.
 - Rename to another type’s name → `RepoTypeNameAlreadyUsedException` (same flush-time catch as create).
 - Rename to the **same** name → allowed (no conflict).
-- Field-level `null` vs replace as in the table above.
+- Field-level `null` vs replace as in the table above. Non-null {@code aiPrompt} is stored as
+  given (including empty string); there is no application max length.
 - Non-null `integrityCheckers` → full replace via `updateIntegrityCheckers`. That also updates `last_modified_date` on `repo_type` (checker rows live in a join table, so a parent save alone may not dirty the type).
 
 ###### `deleteRepoType`

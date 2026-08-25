@@ -72,7 +72,7 @@ public class RepoType {
   }
 
   /**
-   * @return shared type-layer AI prompt
+   * @return shared type-layer AI prompt; no application max length
    */
   public String getAiPrompt() {
     return aiPrompt;

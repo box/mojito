@@ -118,6 +118,19 @@ public class RepoTypeServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testCreateRepoTypePersistsAiPromptLongerThanNameMax() throws Exception {
+    String name = testIdWatcher.getEntityName("LongPrompt");
+    // No application max on aiPrompt (unlike name/description at 255). This size only proves we do
+    // not reuse NAME_MAX_LENGTH and that dropping @Lob still persists long text on HSQL.
+    String prompt = "p".repeat(10_000);
+
+    RepoType created = repoTypeService.createRepoType(name, null, prompt, null);
+
+    assertEquals(10_000, created.getAiPrompt().length());
+    assertEquals(prompt, created.getAiPrompt());
+  }
+
+  @Test
   public void testCreateRepoTypePersistsMultipleCheckersForSameExtension() throws Exception {
     String name = testIdWatcher.getEntityName("WithCheckers");
     Set<RepoTypeIntegrityChecker> checkers = new HashSet<>();
@@ -446,6 +459,18 @@ public class RepoTypeServiceTest extends ServiceTestBase {
     RepoType updated = repoTypeService.updateRepoType(created.getId(), null, null, "", null);
 
     assertEquals("", updated.getAiPrompt());
+  }
+
+  @Test
+  public void testUpdateRepoTypePersistsAiPromptLongerThanNameMax() throws Exception {
+    String name = testIdWatcher.getEntityName("PatchLongPrompt");
+    RepoType created = repoTypeService.createRepoType(name, null, "short", null);
+    String prompt = "p".repeat(10_000);
+
+    RepoType updated = repoTypeService.updateRepoType(created.getId(), null, null, prompt, null);
+
+    assertEquals(10_000, updated.getAiPrompt().length());
+    assertEquals(prompt, updated.getAiPrompt());
   }
 
   @Test

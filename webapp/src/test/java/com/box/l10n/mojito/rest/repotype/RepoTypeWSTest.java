@@ -75,6 +75,18 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testCreateRepoTypePersistsAiPromptLongerThanNameMax() {
+    RepoType toCreate = new RepoType();
+    toCreate.setName(testIdWatcher.getEntityName("LongPrompt"));
+    toCreate.setAiPrompt("p".repeat(10_000));
+
+    RepoType created = repoTypeClient.createRepoType(toCreate);
+
+    assertEquals(10_000, created.getAiPrompt().length());
+    assertEquals(toCreate.getAiPrompt(), created.getAiPrompt());
+  }
+
+  @Test
   public void testCreateRepoTypeOmittingCheckersCreatesNone() {
     RepoType toCreate = new RepoType();
     toCreate.setName(testIdWatcher.getEntityName("NoCheckers"));

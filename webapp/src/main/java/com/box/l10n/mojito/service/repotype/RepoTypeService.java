@@ -44,7 +44,8 @@ public class RepoTypeService {
    *       RepoTypeNameAlreadyUsedException} ({@code React} and {@code react} can both exist)
    *   <li>{@code description} may be {@code null} or empty, and at most {@link
    *       RepoType#DESCRIPTION_MAX_LENGTH} characters
-   *   <li>{@code aiPrompt} {@code null} is treated as empty string
+   *   <li>{@code aiPrompt} {@code null} is treated as empty string. There is no application max
+   *       length (stored as unbounded long text).
    *   <li>{@code integrityCheckers} {@code null} or empty means no checkers; otherwise each checker
    *       must be non-null and have a non-blank {@code assetExtension} and a non-null {@code
    *       integrityCheckerType} ({@link RepoTypeInvalidException}). Extensions are trimmed and a
@@ -56,9 +57,9 @@ public class RepoTypeService {
    * @param aiPrompt shared type-layer prompt (translation and review)
    * @param integrityCheckers checkers to attach, or {@code null}/empty for none
    * @return the persisted type including generated id and checkers
-   * @throws RepoTypeInvalidException if {@code name} is blank, a field exceeds its max length, a
-   *     checker is {@code null}, or a checker is missing {@code assetExtension} / {@code
-   *     integrityCheckerType}
+   * @throws RepoTypeInvalidException if {@code name} is blank, {@code name} or {@code description}
+   *     exceeds its max length, a checker is {@code null}, or a checker is missing {@code
+   *     assetExtension} / {@code integrityCheckerType}
    * @throws RepoTypeNameAlreadyUsedException if {@code name} is already taken
    * @throws RepoTypeWithIdNotFoundException if the row cannot be reloaded after persist
    */
@@ -165,8 +166,9 @@ public class RepoTypeService {
    * @param integrityCheckers new checker set, or {@code null} to leave unchanged
    * @return the updated type
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
-   * @throws RepoTypeInvalidException if a provided {@code name} is blank, a field is too long, a
-   *     checker is {@code null}, or a checker is missing required fields
+   * @throws RepoTypeInvalidException if a provided {@code name} is blank, {@code name} or {@code
+   *     description} is too long, a checker is {@code null}, or a checker is missing required
+   *     fields. {@code aiPrompt} has no application max length.
    * @throws RepoTypeNameAlreadyUsedException if the new name conflicts with another type
    */
   @Transactional

@@ -11,7 +11,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.Set;
@@ -58,10 +57,15 @@ public class RepoType extends AuditableEntity {
    * Shared type-layer AI prompt. Defaults to empty string on create. Empty means “no type-layer
    * instructions”; {@code null} should be normalized to empty when persisting.
    *
+   * <p>No application max length (unlike {@link #name} / {@link #description}). Stored as unbounded
+   * long text — {@code @Column(length = Integer.MAX_VALUE)} matching other Mojito string columns,
+   * not {@code @Lob} (that annotation is for binary blobs in this codebase). Practical ceilings are
+   * HTTP body size, heap, and MySQL {@code max_allowed_packet}. Operators keep prompts short
+   * themselves: more text is more tokens on every AI call.
+   *
    * <p>Defaults to {@code null} so omitted JSON on PATCH deserializes as “leave unchanged”. Create
    * normalizes {@code null} to empty string before persist.
    */
-  @Lob
   @Column(name = "ai_prompt", length = Integer.MAX_VALUE)
   @JsonView(View.RepoType.class)
   private String aiPrompt;
