@@ -54,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -122,20 +123,32 @@ public class CommandHelper {
   }
 
   /**
-   * Maps HTTP 400 and 409 to {@link CommandException} using the API response body. Other client
-   * errors are rethrown so {@code L10nJCommander} handles them.
+   * Maps HTTP 400, 403, 404, and 409 to {@link CommandException} using the API response body.
+   * Other client errors are rethrown so {@code L10nJCommander} handles them.
    */
   public static CommandException repoTypeClientError(HttpClientErrorException ex) {
-    if (ex.getStatusCode().equals(HttpStatus.BAD_REQUEST)
-        || ex.getStatusCode().equals(HttpStatus.CONFLICT)) {
-      String body = ex.getResponseBodyAsString();
-      String fallback =
-          ex.getStatusCode().equals(HttpStatus.CONFLICT)
-              ? "Repo type already exists"
-              : "Invalid repo type";
-      return new CommandException(!body.isBlank() ? body : fallback, ex);
+    String fallback = repoTypeClientErrorFallback(ex.getStatusCode());
+    if (fallback == null) {
+      throw ex;
     }
-    throw ex;
+    String body = ex.getResponseBodyAsString();
+    return new CommandException(!body.isBlank() ? body : fallback, ex);
+  }
+
+  static String repoTypeClientErrorFallback(HttpStatusCode status) {
+    if (status.equals(HttpStatus.BAD_REQUEST)) {
+      return "Invalid repo type";
+    }
+    if (status.equals(HttpStatus.FORBIDDEN)) {
+      return "Not allowed";
+    }
+    if (status.equals(HttpStatus.NOT_FOUND)) {
+      return "Repo type is not found";
+    }
+    if (status.equals(HttpStatus.CONFLICT)) {
+      return "Repo type already exists";
+    }
+    return null;
   }
 
   /**

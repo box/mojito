@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 /** Deletes an existing repo type by name. */
 @Component
@@ -41,7 +42,11 @@ public class RepoTypeDeleteCommand extends Command {
     consoleWriter.a("Delete repo type: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
     RepoType existing = commandHelper.findRepoTypeByName(nameParam);
-    repoTypeClient.deleteRepoType(existing.getId());
+    try {
+      repoTypeClient.deleteRepoType(existing.getId());
+    } catch (HttpClientErrorException ex) {
+      throw CommandHelper.repoTypeClientError(ex);
+    }
 
     consoleWriter
         .newLine()
