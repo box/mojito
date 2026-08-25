@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -62,7 +63,26 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
     getL10nJCommander().run("repo-type-create", Param.REPO_TYPE_NAME_SHORT, name);
     getL10nJCommander().run("repo-type-create", Param.REPO_TYPE_NAME_SHORT, name);
 
+    String output = outputCapture.toString();
+    assertTrue(output.contains("RepoType with name [" + name + "] already exists"));
+    assertFalse(
+        "Mapped 409 must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
+  }
+
+  @Test
+  public void testCreateNameLongerThanMaxIsAShortError() throws Exception {
+    String name = "A".repeat(RepoType.NAME_MAX_LENGTH + 1);
+
+    getL10nJCommander().run("repo-type-create", Param.REPO_TYPE_NAME_SHORT, name);
+
+    String output = outputCapture.toString();
     assertTrue(
-        outputCapture.toString().contains("Repo type with name [" + name + "] already exists"));
+        "400 body must be shown as a CommandException, not a generic HTTP dump",
+        output.contains("name must be at most " + RepoType.NAME_MAX_LENGTH + " characters"));
+    assertFalse(
+        "Mapped 400 must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
+    assertNull(repoTypeRepository.findByName(name));
   }
 }

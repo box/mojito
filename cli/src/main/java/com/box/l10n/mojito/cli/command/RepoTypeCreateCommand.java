@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -60,10 +59,7 @@ public class RepoTypeCreateCommand extends Command {
           .a(created.getId())
           .println();
     } catch (HttpClientErrorException ex) {
-      if (ex.getStatusCode().equals(HttpStatus.CONFLICT)) {
-        throw new CommandException("Repo type with name [" + nameParam + "] already exists", ex);
-      }
-      throw ex;
+      throw CommandHelper.repoTypeClientError(ex);
     }
   }
 }

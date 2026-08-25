@@ -53,7 +53,9 @@ import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author wyau
@@ -117,6 +119,24 @@ public class CommandHelper {
       throw new CommandException("Repo type with name [" + name + "] is not found");
     }
     return repoTypes.get(0);
+  }
+
+  /**
+   * Maps HTTP 400 and 409 to {@link CommandException} using the API response body. Other client
+   * errors are rethrown so {@code L10nJCommander} handles them.
+   */
+  public static CommandException repoTypeClientError(HttpClientErrorException ex) {
+    if (ex.getStatusCode().equals(HttpStatus.BAD_REQUEST)
+        || ex.getStatusCode().equals(HttpStatus.CONFLICT)) {
+      String body = ex.getResponseBodyAsString();
+      String fallback =
+          ex.getStatusCode().equals(HttpStatus.CONFLICT)
+              ? "Repo type already exists"
+              : "Invalid repo type";
+      return new CommandException(
+          (body != null && !body.isBlank()) ? body : fallback, ex);
+    }
+    throw ex;
   }
 
   /**

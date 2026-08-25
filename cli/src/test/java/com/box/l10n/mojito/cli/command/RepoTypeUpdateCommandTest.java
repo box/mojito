@@ -131,9 +131,13 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
             Param.REPO_TYPE_NEW_NAME_SHORT,
             name2);
 
+    String output = outputCapture.toString();
     assertTrue(
         "Expecting error from renaming to an existing repo type name",
-        outputCapture.toString().contains("Repo type with name [" + name2 + "] already exists"));
+        output.contains("RepoType with name [" + name2 + "] already exists"));
+    assertFalse(
+        "Mapped 409 must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
   }
 
   @Test
@@ -162,5 +166,34 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     RepoType unchanged = repoTypeRepository.findByName(name);
     assertNotNull(unchanged);
     assertEquals(description, unchanged.getDescription());
+  }
+
+  @Test
+  public void testUpdateDescriptionLongerThanMaxIsAShortError() throws Exception {
+    String name = testIdWatcher.getEntityName("TooLong");
+    String originalDescription = "keep me";
+
+    repoTypeService.createRepoType(name, originalDescription, null, null);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_DESCRIPTION_SHORT,
+            "B".repeat(RepoType.DESCRIPTION_MAX_LENGTH + 1));
+
+    String output = outputCapture.toString();
+    assertTrue(
+        "400 body must be shown as a CommandException, not a generic HTTP dump",
+        output.contains(
+            "description must be at most " + RepoType.DESCRIPTION_MAX_LENGTH + " characters"));
+    assertFalse(
+        "Mapped 400 must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
+
+    RepoType unchanged = repoTypeRepository.findByName(name);
+    assertNotNull(unchanged);
+    assertEquals(originalDescription, unchanged.getDescription());
   }
 }

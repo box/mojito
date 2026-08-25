@@ -361,7 +361,7 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 - Body: `name` required; `description` may be omitted (`null`).
 - Does not send `aiPrompt` or `integrityCheckers` (server defaults: empty prompt, no checkers).
-- HTTP 409 → `Repo type with name [<name>] already exists`.
+- HTTP 400 and 409 → the response body as a `CommandException` (e.g. `name must be at most 255 characters`, `RepoType with name [<trimmed name>] already exists`). Empty body falls back to `Invalid repo type` (400) or `Repo type already exists` (409). Unmapped client errors still dump as `Unexpected error` in `L10nJCommander`.
 - Success prints `created --> repo type id: <id>`.
 
 ##### Update
@@ -369,7 +369,7 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 - At least one of `--new-name` or `--description` is required; otherwise `Must provide at least one of the following options: --new-name, --description`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#5-patch-null-means-leave-unchanged)).
 - `integrityCheckers` is sent as `null` so checkers are not replaced. (A non-null empty set would clear them.)
-- HTTP 409 on rename conflict → `Repo type with name [<new-name>] already exists`.
+- HTTP 400 and 409 → same mapping as create (response body, or the 400/409 fallbacks).
 - Success prints `updated --> repo type id: <id>`.
 
 ##### Delete
