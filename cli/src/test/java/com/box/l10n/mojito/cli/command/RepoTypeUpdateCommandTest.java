@@ -140,7 +140,8 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
   //  }
   //
   //  private static void assertPromptAndCheckerUnchanged(
-  //      RepoType updated, String prompt, String assetExtension, IntegrityCheckerType checkerType) {
+  //      RepoType updated, String prompt, String assetExtension, IntegrityCheckerType checkerType)
+  // {
   //    assertEquals(prompt, updated.getAiPrompt());
   //    assertEquals(1, updated.getIntegrityCheckers().size());
   //    RepoTypeIntegrityChecker remaining = updated.getIntegrityCheckers().iterator().next();
