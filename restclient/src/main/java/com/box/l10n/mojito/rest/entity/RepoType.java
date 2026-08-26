@@ -72,18 +72,14 @@ public class RepoType {
   }
 
   /**
-   * @return shared type-layer AI prompt; no application max length. {@code null} means unset on this
-   *     DTO. Empty string is an empty prompt value.
+   * @return shared type-layer AI prompt; no application max length
    */
   public String getAiPrompt() {
     return aiPrompt;
   }
 
   /**
-   * @param aiPrompt type-layer prompt. This setter only assigns the field. Wire omit vs include is
-   *     the CLI RestTemplate {@code NON_NULL} mapper: {@code null} is omitted (PATCH leave
-   *     unchanged); empty string is included and clears the stored prompt. On create, omitted/{@code
-   *     null} is stored as empty by the server.
+   * @param aiPrompt type-layer prompt; empty string clears it
    */
   public void setAiPrompt(String aiPrompt) {
     this.aiPrompt = aiPrompt;

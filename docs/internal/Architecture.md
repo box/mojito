@@ -369,7 +369,9 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 - At least one of `--new-name`, `--description`, or `--ai-prompt` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#6-patch-null-means-leave-unchanged)).
-- `integrityCheckers` is left Java `null` so `NON_NULL` omits the property (checkers unchanged). A non-null empty set would serialize as `[]` and clear them. Omitted `--ai-prompt` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` includes `"aiPrompt":""` and clears the prompt. A description-only or rename update must leave prompt and checkers as they were.
+- Checkers: `integrityCheckers` is left Java `null` so `NON_NULL` omits the property (unchanged). A non-null empty set would serialize as `[]` and clear them. There is no checkers CLI flag yet.
+- Prompt: omitted `--ai-prompt` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` includes `"aiPrompt":""` and clears the prompt.
+- A description-only or rename update must leave prompt and checkers as they were.
 - HTTP 400, 404, and 409 → same mapping as create (response body, or the 400/404/409 fallbacks). HTTP 403 is the same session-retry dump as create.
 - Success prints `updated --> repo type id: <id>`.
 
