@@ -34,7 +34,8 @@ public class RepoTypeViewCommandTest extends CLITestBase {
     assertLabeledLine(output, "Description --> ", description);
     assertLabeledLine(output, "AI prompt --> ", "");
     assertFalse(
-        "Empty AI prompt must not print the string \"null\"", output.contains("AI prompt --> null"));
+        "Empty AI prompt must not print the string \"null\"",
+        output.contains("AI prompt --> null"));
   }
 
   @Test
@@ -66,7 +67,8 @@ public class RepoTypeViewCommandTest extends CLITestBase {
         "Null description must print an empty value after the label",
         Pattern.compile("Description --> $", Pattern.MULTILINE).matcher(output).find());
     assertFalse(
-        "Empty AI prompt must not print the string \"null\"", output.contains("AI prompt --> null"));
+        "Empty AI prompt must not print the string \"null\"",
+        output.contains("AI prompt --> null"));
     assertTrue(
         "Empty AI prompt must print an empty value after the label",
         Pattern.compile("AI prompt --> $", Pattern.MULTILINE).matcher(output).find());

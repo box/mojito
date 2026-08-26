@@ -180,8 +180,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     RepoType created =
         repoTypeService.createRepoType(name, "desc", "prompt to clear", Set.of(checker));
 
-    getL10nJCommander()
-        .run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, "");
+    getL10nJCommander().run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, "");
 
     assertUpdatedIdLine(created.getId());
 
