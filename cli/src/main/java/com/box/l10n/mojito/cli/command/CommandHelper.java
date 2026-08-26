@@ -10,11 +10,13 @@ import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
+import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Preconditions;
@@ -46,11 +48,15 @@ import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author wyau
@@ -72,6 +78,8 @@ public class CommandHelper {
   };
 
   @Autowired RepositoryClient repositoryClient;
+
+  @Autowired RepoTypeClient repoTypeClient;
 
   @Autowired PollableTaskClient pollableTaskClient;
 
@@ -97,6 +105,52 @@ public class CommandHelper {
     } catch (RestClientException e) {
       throw new CommandException("Repository [" + repositoryName + "] is not found", e);
     }
+  }
+
+  /**
+   * Looks up a repo type by name for update, delete, and view. Rejects a blank name so it is not
+   * sent as a list-all filter.
+   */
+  public RepoType findRepoTypeByName(String name) throws CommandException {
+    if (StringUtils.isBlank(name)) {
+      throw new CommandException("Repo type name is required");
+    }
+    List<RepoType> repoTypes = repoTypeClient.getRepoTypes(name.trim());
+    if (repoTypes.size() != 1) {
+      throw new CommandException("Repo type with name [" + name + "] is not found");
+    }
+    return repoTypes.get(0);
+  }
+
+  /**
+   * Maps HTTP 400, 404, and 409 to {@link CommandException} using the API response body. Other
+   * client errors are rethrown so {@code L10nJCommander} handles them.
+   *
+   * <p>HTTP 403 is not mapped. {@code AuthenticatedRestTemplate} treats 403 as a stale session
+   * ({@code FormLoginAuthenticationCsrfTokenInterceptor}): a USER mutate is retried, then thrown as
+   * {@code RestClientException}, never as {@link HttpClientErrorException}. Same dump as other
+   * mutating CLI commands (e.g. {@code repo-create}).
+   */
+  public static CommandException repoTypeClientError(HttpClientErrorException ex) {
+    String fallback = repoTypeClientErrorFallback(ex.getStatusCode());
+    if (fallback == null) {
+      throw ex;
+    }
+    String body = ex.getResponseBodyAsString();
+    return new CommandException(!body.isBlank() ? body : fallback, ex);
+  }
+
+  static String repoTypeClientErrorFallback(HttpStatusCode status) {
+    if (status.equals(HttpStatus.BAD_REQUEST)) {
+      return "Invalid repo type";
+    }
+    if (status.equals(HttpStatus.NOT_FOUND)) {
+      return "Repo type is not found";
+    }
+    if (status.equals(HttpStatus.CONFLICT)) {
+      return "Repo type already exists";
+    }
+    return null;
   }
 
   /**
