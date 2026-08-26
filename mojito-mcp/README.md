@@ -2,11 +2,15 @@
 
 MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — search strings, inspect repositories, add translations, update review status, and more.
 
-**Authentication and server URL are not configured in this package.** The server shells out to your existing Mojito CLI (`mojito api …`). If the CLI can reach Mojito, the MCP tools can too.
-
 This directory is a **standalone npm package** (not a Maven module). You need **Node 18+** and a working Mojito CLI on your `PATH`.
 
 Internal design notes for implementers: see [Architecture.md](./Architecture.md).
+
+## Why it shells out to the Mojito CLI
+
+Mojito’s REST APIs sit behind the same Java authentication the CLI already implements (form login, MSAL, Cloudflare Access headers, cookies, and per-instance Spring config). Reproducing that in Node for MCP would be fragile and would duplicate host/credential setup.
+
+So this server does **not** talk to Mojito over HTTP itself and does **not** take `MOJITO_AUTH_TOKEN` or a base URL. It runs your existing CLI (`mojito api …`). If the CLI can reach Mojito, the MCP tools can too. Auth and instance URL stay in the CLI config you already maintain.
 
 ## Prerequisites: Mojito CLI
 
