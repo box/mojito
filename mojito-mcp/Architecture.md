@@ -1,4 +1,4 @@
-# mojito-mcp design: CLI-backed MCP server
+# mojito-mcp architecture: CLI-backed MCP server
 
 ## Goal
 

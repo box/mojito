@@ -22,6 +22,7 @@
     "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.mjs"
   },
   "files": [
+    "LICENSE",
     "dist",
     "README.md",
     "SKILL.md"
