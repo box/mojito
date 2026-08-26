@@ -131,8 +131,17 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testUpdateAiPrompt() throws Exception {
-    String name = testIdWatcher.getEntityName("PromptUpdate");
+  public void testUpdateAiPromptLongFlag() throws Exception {
+    updateAiPrompt(Param.REPO_TYPE_AI_PROMPT_LONG, "PromptUpdateLong");
+  }
+
+  @Test
+  public void testUpdateAiPromptShortFlag() throws Exception {
+    updateAiPrompt(Param.REPO_TYPE_AI_PROMPT_SHORT, "PromptUpdateShort");
+  }
+
+  private void updateAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
+    String name = testIdWatcher.getEntityName(entityKey);
     String newPrompt = "Updated type prompt";
     RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
     checker.setAssetExtension("json");
@@ -141,12 +150,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     RepoType created = repoTypeService.createRepoType(name, "desc", "old prompt", Set.of(checker));
 
     getL10nJCommander()
-        .run(
-            "repo-type-update",
-            Param.REPO_TYPE_NAME_SHORT,
-            name,
-            Param.REPO_TYPE_AI_PROMPT_SHORT,
-            newPrompt);
+        .run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, newPrompt);
 
     assertUpdatedIdLine(created.getId());
 
@@ -158,8 +162,17 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testClearAiPrompt() throws Exception {
-    String name = testIdWatcher.getEntityName("PromptClear");
+  public void testClearAiPromptLongFlag() throws Exception {
+    clearAiPrompt(Param.REPO_TYPE_AI_PROMPT_LONG, "PromptClearLong");
+  }
+
+  @Test
+  public void testClearAiPromptShortFlag() throws Exception {
+    clearAiPrompt(Param.REPO_TYPE_AI_PROMPT_SHORT, "PromptClearShort");
+  }
+
+  private void clearAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
+    String name = testIdWatcher.getEntityName(entityKey);
     RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
     checker.setAssetExtension("properties");
     checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
@@ -168,12 +181,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
         repoTypeService.createRepoType(name, "desc", "prompt to clear", Set.of(checker));
 
     getL10nJCommander()
-        .run(
-            "repo-type-update",
-            Param.REPO_TYPE_NAME_SHORT,
-            name,
-            Param.REPO_TYPE_AI_PROMPT_SHORT,
-            "");
+        .run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, "");
 
     assertUpdatedIdLine(created.getId());
 

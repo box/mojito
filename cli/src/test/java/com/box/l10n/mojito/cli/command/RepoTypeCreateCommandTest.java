@@ -44,17 +44,21 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testCreateRepoTypeWithAiPrompt() throws Exception {
-    String name = testIdWatcher.getEntityName("ReactPrompt");
+  public void testCreateRepoTypeWithAiPromptLongFlag() throws Exception {
+    createWithAiPrompt(Param.REPO_TYPE_AI_PROMPT_LONG, "ReactPromptLong");
+  }
+
+  @Test
+  public void testCreateRepoTypeWithAiPromptShortFlag() throws Exception {
+    createWithAiPrompt(Param.REPO_TYPE_AI_PROMPT_SHORT, "ReactPromptShort");
+  }
+
+  private void createWithAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
+    String name = testIdWatcher.getEntityName(entityKey);
     String prompt = "You are a React i18n expert";
 
     getL10nJCommander()
-        .run(
-            "repo-type-create",
-            Param.REPO_TYPE_NAME_SHORT,
-            name,
-            Param.REPO_TYPE_AI_PROMPT_LONG,
-            prompt);
+        .run("repo-type-create", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, prompt);
 
     RepoType created = repoTypeRepository.findByName(name);
     assertNotNull(created);
