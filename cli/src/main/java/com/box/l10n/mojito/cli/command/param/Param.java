@@ -80,6 +80,11 @@ public class Param {
   public static final String REPO_TYPE_DESCRIPTION_DESCRIPTION =
       "Description of the repo type to create or update";
 
+  public static final String REPO_TYPE_AI_PROMPT_LONG = "--ai-prompt";
+  public static final String REPO_TYPE_AI_PROMPT_SHORT = "-ap";
+  public static final String REPO_TYPE_AI_PROMPT_DESCRIPTION =
+      "Type-layer AI prompt for translation and review; on update, pass an empty value to clear";
+
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
   public static final String REPOSITORY_LOCALES_DESCRIPTION =

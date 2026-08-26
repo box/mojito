@@ -9,8 +9,12 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
+import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
+import java.util.Set;
+import java.util.regex.Pattern;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +44,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
             Param.REPO_TYPE_NEW_NAME_SHORT,
             newName);
 
-    assertTrue(
-        "Repo type is not updated successfully",
-        outputCapture.toString().contains("updated --> repo type id: "));
+    assertUpdatedIdLine(created.getId());
 
     assertNull("Should not find repo type by old name", repoTypeRepository.findByName(name));
 
@@ -68,9 +70,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
             Param.REPO_TYPE_DESCRIPTION_SHORT,
             newDescription);
 
-    assertTrue(
-        "Repo type is not updated successfully",
-        outputCapture.toString().contains("updated --> repo type id: "));
+    assertUpdatedIdLine(created.getId());
 
     RepoType updated = repoTypeRepository.findByName(name);
     assertNotNull(updated);
@@ -78,76 +78,129 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     assertEquals(newDescription, updated.getDescription());
   }
 
-  // Prompt/checker coverage is for a follow-up story; leave these tests here but disabled for this
-  // PR.
-  //
-  //  @Test
-  //  public void testUpdateDescriptionDoesNotClearPromptOrCheckers() throws Exception {
-  //    String name = testIdWatcher.getEntityName("React");
-  //    String prompt = "You are a React i18n expert";
-  //    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
-  //    checker.setAssetExtension("json");
-  //    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
-  //
-  //    RepoType created = repoTypeService.createRepoType(name, "old", prompt, Set.of(checker));
-  //
-  //    getL10nJCommander()
-  //        .run(
-  //            "repo-type-update",
-  //            Param.REPO_TYPE_NAME_SHORT,
-  //            name,
-  //            Param.REPO_TYPE_DESCRIPTION_SHORT,
-  //            "new desc");
-  //
-  //    assertTrue(
-  //        "Repo type is not updated successfully",
-  //        outputCapture.toString().contains("updated --> repo type id: "));
-  //
-  //    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
-  //    assertEquals("new desc", updated.getDescription());
-  //    assertPromptAndCheckerUnchanged(
-  //        updated, prompt, "json", IntegrityCheckerType.MESSAGE_FORMAT);
-  //  }
-  //
-  //  @Test
-  //  public void testUpdateNameDoesNotClearPromptOrCheckers() throws Exception {
-  //    String name = testIdWatcher.getEntityName("Android");
-  //    String newName = name + "_renamed";
-  //    String prompt = "You are an Android i18n expert";
-  //    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
-  //    checker.setAssetExtension("xml");
-  //    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
-  //
-  //    RepoType created = repoTypeService.createRepoType(name, "old", prompt, Set.of(checker));
-  //
-  //    getL10nJCommander()
-  //        .run(
-  //            "repo-type-update",
-  //            Param.REPO_TYPE_NAME_SHORT,
-  //            name,
-  //            Param.REPO_TYPE_NEW_NAME_SHORT,
-  //            newName);
-  //
-  //    assertTrue(
-  //        "Repo type is not updated successfully",
-  //        outputCapture.toString().contains("updated --> repo type id: "));
-  //
-  //    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
-  //    assertEquals(newName, updated.getName());
-  //    assertEquals("old", updated.getDescription());
-  //    assertPromptAndCheckerUnchanged(
-  //        updated, prompt, "xml", IntegrityCheckerType.MESSAGE_FORMAT);
-  //  }
-  //
-  //  private static void assertPromptAndCheckerUnchanged(
-  //      RepoType updated, String prompt, String assetExtension, IntegrityCheckerType checkerType)
-  // {
-  //    assertEquals(prompt, updated.getAiPrompt());
-  //    assertEquals(1, updated.getIntegrityCheckers().size());
-  //    RepoTypeIntegrityChecker remaining = updated.getIntegrityCheckers().iterator().next();
-  //    assertEquals(assetExtension, remaining.getAssetExtension());
-  //    assertEquals(checkerType, remaining.getIntegrityCheckerType());
-  //  }
+  @Test
+  public void testUpdateDescriptionDoesNotClearPromptOrCheckers() throws Exception {
+    String name = testIdWatcher.getEntityName("React");
+    String prompt = "You are a React i18n expert";
+    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
+    checker.setAssetExtension("json");
+    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
+
+    RepoType created = repoTypeService.createRepoType(name, "old", prompt, Set.of(checker));
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_DESCRIPTION_SHORT,
+            "new desc");
+
+    assertUpdatedIdLine(created.getId());
+
+    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals("new desc", updated.getDescription());
+    assertPromptAndCheckerUnchanged(updated, prompt, "json", IntegrityCheckerType.MESSAGE_FORMAT);
+  }
+
+  @Test
+  public void testUpdateNameDoesNotClearPromptOrCheckers() throws Exception {
+    String name = testIdWatcher.getEntityName("Android");
+    String newName = name + "_renamed";
+    String prompt = "You are an Android i18n expert";
+    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
+    checker.setAssetExtension("xml");
+    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
+
+    RepoType created = repoTypeService.createRepoType(name, "old", prompt, Set.of(checker));
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_NEW_NAME_SHORT,
+            newName);
+
+    assertUpdatedIdLine(created.getId());
+
+    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(newName, updated.getName());
+    assertEquals("old", updated.getDescription());
+    assertPromptAndCheckerUnchanged(updated, prompt, "xml", IntegrityCheckerType.MESSAGE_FORMAT);
+  }
+
+  @Test
+  public void testUpdateAiPrompt() throws Exception {
+    String name = testIdWatcher.getEntityName("PromptUpdate");
+    String newPrompt = "Updated type prompt";
+    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
+    checker.setAssetExtension("json");
+    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
+
+    RepoType created = repoTypeService.createRepoType(name, "desc", "old prompt", Set.of(checker));
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_SHORT,
+            newPrompt);
+
+    assertUpdatedIdLine(created.getId());
+
+    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(name, updated.getName());
+    assertEquals("desc", updated.getDescription());
+    assertPromptAndCheckerUnchanged(
+        updated, newPrompt, "json", IntegrityCheckerType.MESSAGE_FORMAT);
+  }
+
+  @Test
+  public void testClearAiPrompt() throws Exception {
+    String name = testIdWatcher.getEntityName("PromptClear");
+    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
+    checker.setAssetExtension("properties");
+    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
+
+    RepoType created =
+        repoTypeService.createRepoType(name, "desc", "prompt to clear", Set.of(checker));
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_SHORT,
+            "");
+
+    assertUpdatedIdLine(created.getId());
+
+    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(name, updated.getName());
+    assertEquals("desc", updated.getDescription());
+    assertPromptAndCheckerUnchanged(updated, "", "properties", IntegrityCheckerType.MESSAGE_FORMAT);
+  }
+
+  private void assertUpdatedIdLine(Long id) {
+    assertTrue(
+        "Repo type is not updated successfully",
+        Pattern.compile(
+                "updated --> repo type id: " + Pattern.quote(String.valueOf(id)) + "$",
+                Pattern.MULTILINE)
+            .matcher(outputCapture.toString())
+            .find());
+  }
+
+  private static void assertPromptAndCheckerUnchanged(
+      RepoType updated, String prompt, String assetExtension, IntegrityCheckerType checkerType) {
+    assertEquals(prompt, updated.getAiPrompt());
+    assertEquals(1, updated.getIntegrityCheckers().size());
+    RepoTypeIntegrityChecker remaining = updated.getIntegrityCheckers().iterator().next();
+    assertEquals(assetExtension, remaining.getAssetExtension());
+    assertEquals(checkerType, remaining.getIntegrityCheckerType());
+  }
 
   @Test
   public void testUpdateWithoutNewNameOrDescription() throws Exception {
@@ -158,11 +211,11 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     getL10nJCommander().run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name);
 
     assertTrue(
-        "Expecting error when neither --new-name nor --description is provided",
+        "Expecting error when no optional update flags are provided",
         outputCapture
             .toString()
             .contains(
-                "Must provide at least one of the following options: --new-name, --description"));
+                "Must provide at least one of the following options: --new-name, --description, --ai-prompt"));
 
     RepoType unchanged = repoTypeRepository.findByName(name);
     assertNotNull(unchanged);

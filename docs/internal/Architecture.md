@@ -330,24 +330,24 @@ JCommander commands that talk to a running Mojito server through `restclient`.
 
 #### Repo Types
 
-Name/description CLI for repo types. Commands are JCommander `Command` beans in `cli/.../command/`, same pattern as `repo-create` / `repo-update` / `repo-delete` / `repo-view`. They talk to the server only through `RepoTypeClient` (never through `RepoTypeService` in production code). Integration tests extend `CLITestBase` and then assert via `RepoTypeRepository` / `RepoTypeService`.
+Name, description, and AI-prompt CLI for repo types. Commands are JCommander `Command` beans in `cli/.../command/`, same pattern as `repo-create` / `repo-update` / `repo-delete` / `repo-view`. They talk to the server only through `RepoTypeClient` (never through `RepoTypeService` in production code). Integration tests extend `CLITestBase` and then assert via `RepoTypeRepository` / `RepoTypeService`.
 
 **In scope**
 
 - `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`
-- Setting **name** and **description** only
+- Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`)
 
 **Out of scope (follow-up)**
 
-- CLI for `aiPrompt` and `integrityCheckers` (separate stories)
+- CLI for `integrityCheckers` (separate story)
 - Listing all types (no `repo-type-list`; view is by exact name)
 
 ##### Commands
 
 | Command | Role | Required flags | Optional flags |
 |---------|------|----------------|----------------|
-| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d` |
-| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d` |
+| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d`, `--ai-prompt` / `-ap` |
+| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap` |
 | `repo-type-delete` | DELETE `/api/repo-types/{id}` | `--name` / `-n` | — |
 | `repo-type-view` | GET list filtered by name | `--name` / `-n` | — |
 
@@ -359,16 +359,17 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 ##### Create
 
-- Body: `name` required; `description` may be omitted (`null`).
-- Does not send `aiPrompt` or `integrityCheckers` (server defaults: empty prompt, no checkers).
+- Body: `name` required; `description` and `aiPrompt` may be omitted (`null`).
+- Omitted `--ai-prompt` leaves Java `aiPrompt` `null`; `AuthenticatedRestTemplate` `NON_NULL` omits the property from JSON (it is not sent as JSON `null`). The server treats a missing field as `null` and stores `""`. Passing `--ai-prompt` sets the type-layer prompt at create time.
+- Does not send `integrityCheckers` (server default: no checkers).
 - HTTP 400, 404, and 409 → the response body as a `CommandException` (e.g. `name must be at most 255 characters`, `RepoType with name [<trimmed name>] already exists`). Empty body falls back to `Invalid repo type` (400), `Repo type is not found` (404), or `Repo type already exists` (409). HTTP 403 is **not** mapped: `AuthenticatedRestTemplate` treats 403 as a stale session, retries login, then throws `RestClientException` (`Tried to re-authenticate but the response remains to be unauthenticated`). That is the same dump as other mutating CLI commands (e.g. `repo-create`). Unmapped client errors still dump as `Unexpected error` in `L10nJCommander`.
 - Success prints `created --> repo type id: <id>`.
 
 ##### Update
 
-- At least one of `--new-name` or `--description` is required; otherwise `Must provide at least one of the following options: --new-name, --description`.
+- At least one of `--new-name`, `--description`, or `--ai-prompt` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#6-patch-null-means-leave-unchanged)).
-- `integrityCheckers` is sent as `null` so checkers are not replaced. (A non-null empty set would clear them.) {@code aiPrompt} is never set (stays `null`). A description-only update must leave prompt and checkers as they were.
+- `integrityCheckers` is left Java `null` so `NON_NULL` omits the property (checkers unchanged). A non-null empty set would serialize as `[]` and clear them. Omitted `--ai-prompt` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` includes `"aiPrompt":""` and clears the prompt. A description-only or rename update must leave prompt and checkers as they were.
 - HTTP 400, 404, and 409 → same mapping as create (response body, or the 400/404/409 fallbacks). HTTP 403 is the same session-retry dump as create.
 - Success prints `updated --> repo type id: <id>`.
 
@@ -380,11 +381,12 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 ##### View
 
-Prints three fields for an existing type:
+Prints four fields for an existing type:
 
 - `Repo type id --> <id>`
 - `Name --> <name>`
 - `Description --> <description>` (`null` description prints as empty)
+- `AI prompt --> <aiPrompt>` (`null` prompt prints as empty)
 
 ##### Package layout (CLI)
 
@@ -394,8 +396,8 @@ Prints three fields for an existing type:
 | `cli/.../command/RepoTypeUpdateCommand.java` | Update |
 | `cli/.../command/RepoTypeDeleteCommand.java` | Delete |
 | `cli/.../command/RepoTypeViewCommand.java` | View |
-| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` constants |
-| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, description/rename must not clear prompt or checkers) |
+| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` / `--ai-prompt` constants |
+| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt`, description/rename/prompt-only updates must not clear checkers) |
 
 ---
 
@@ -427,7 +429,7 @@ Web UI served from `webapp` (React / Flux-style JS under `webapp/src/main/resour
 
 #### Repo Types
 
-No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name/description only on the CLI).
+No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name, description, and `aiPrompt` on the CLI).
 
 ---
 

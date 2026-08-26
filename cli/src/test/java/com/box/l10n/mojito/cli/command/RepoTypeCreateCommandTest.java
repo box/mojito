@@ -10,6 +10,7 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
+import java.util.regex.Pattern;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +35,33 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
             Param.REPO_TYPE_DESCRIPTION_SHORT,
             description);
 
-    assertTrue(outputCapture.toString().contains("created --> repo type id: "));
+    RepoType created = repoTypeRepository.findByName(name);
+    assertNotNull(created);
+    assertCreatedIdLine(created.getId());
+    assertEquals(name, created.getName());
+    assertEquals(description, created.getDescription());
+    assertEquals("", created.getAiPrompt());
+  }
+
+  @Test
+  public void testCreateRepoTypeWithAiPrompt() throws Exception {
+    String name = testIdWatcher.getEntityName("ReactPrompt");
+    String prompt = "You are a React i18n expert";
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_LONG,
+            prompt);
 
     RepoType created = repoTypeRepository.findByName(name);
     assertNotNull(created);
+    assertCreatedIdLine(created.getId());
     assertEquals(name, created.getName());
-    assertEquals(description, created.getDescription());
+    assertNull(created.getDescription());
+    assertEquals(prompt, created.getAiPrompt());
   }
 
   @Test
@@ -48,12 +70,21 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
 
     getL10nJCommander().run("repo-type-create", Param.REPO_TYPE_NAME_SHORT, name);
 
-    assertTrue(outputCapture.toString().contains("created --> repo type id: "));
-
     RepoType created = repoTypeRepository.findByName(name);
     assertNotNull(created);
+    assertCreatedIdLine(created.getId());
     assertEquals(name, created.getName());
     assertNull(created.getDescription());
+    assertEquals("", created.getAiPrompt());
+  }
+
+  private void assertCreatedIdLine(Long id) {
+    assertTrue(
+        Pattern.compile(
+                "created --> repo type id: " + Pattern.quote(String.valueOf(id)) + "$",
+                Pattern.MULTILINE)
+            .matcher(outputCapture.toString())
+            .find());
   }
 
   @Test
