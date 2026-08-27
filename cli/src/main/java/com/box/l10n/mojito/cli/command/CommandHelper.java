@@ -151,9 +151,9 @@ public class CommandHelper {
   }
 
   /**
-   * UTF-8 text file to prompt: drop a leading BOM and one trailing newline ({@code \n} or {@code
-   * \r\n}). Newlines inside the file are kept so {@code --ai-prompt hello} and a file {@code
-   * hello\n} store the same value.
+   * UTF-8 plain-text file to prompt: drop a leading BOM and one trailing newline ({@code \n} or
+   * {@code \r\n}). Extension is not checked. Newlines inside the file are kept so {@code
+   * --ai-prompt hello} and a file {@code hello\n} store the same value.
    */
   static String normalizeRepoTypeAiPromptFileContents(String raw) {
     String text = raw.startsWith("\uFEFF") ? raw.substring(1) : raw;

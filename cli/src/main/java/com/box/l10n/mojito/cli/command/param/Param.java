@@ -90,10 +90,10 @@ public class Param {
   public static final String REPO_TYPE_AI_PROMPT_FILE_LONG = "--ai-prompt-file";
   public static final String REPO_TYPE_AI_PROMPT_FILE_SHORT = "-apf";
   public static final String REPO_TYPE_AI_PROMPT_FILE_DESCRIPTION =
-      "Path to a UTF-8 text file with the type-layer AI prompt (e.g. markdown); mutually exclusive"
-          + " with --ai-prompt. A leading UTF-8 BOM and one trailing newline (LF or CRLF) are not"
-          + " stored; newlines inside the file are kept. On update, empty contents after that"
-          + " strip clear the prompt";
+      "Path to a UTF-8 text file with the type-layer AI prompt (sample extension can be .txt or .md"
+          + "). Mutually exclusive with --ai-prompt. A leading BOM and one trailing newline"
+          + " (LF or CRLF) are not stored; newlines inside the file are kept. On update, an empty"
+          + " file clears the prompt";
 
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
