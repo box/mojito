@@ -50,11 +50,23 @@ public class RepoViewCommand extends RepoCommand {
           .fg(Ansi.Color.MAGENTA)
           .a(repository.getId())
           .println();
+      printRepoType(repository);
       printIntegrityChecker(repository);
       printLocales(repository);
       consoleWriter.println();
     } catch (RepositoryNotFoundException ex) {
       throw new CommandException(ex.getMessage(), ex);
+    }
+  }
+
+  private void printRepoType(Repository repository) {
+    if (repository.getRepoType() != null) {
+      consoleWriter
+          .newLine()
+          .a("Repository type --> ")
+          .fg(Ansi.Color.MAGENTA)
+          .a(repository.getRepoType().getName())
+          .println();
     }
   }
 

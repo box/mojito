@@ -102,6 +102,14 @@ public class Param {
           + " contains a value when the prompt is non-empty (including whitespace-only), not the"
           + " body";
 
+  public static final String REPOSITORY_TYPE_LONG = "--repo-type";
+  public static final String REPOSITORY_TYPE_DESCRIPTION =
+      "Exact name of the repository type to assign";
+
+  public static final String CLEAR_REPOSITORY_TYPE_LONG = "--clear-repo-type";
+  public static final String CLEAR_REPOSITORY_TYPE_DESCRIPTION =
+      "Remove the repository type assignment";
+
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
   public static final String REPOSITORY_LOCALES_DESCRIPTION =

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.repository;
 
+import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.Repository;
 import java.util.List;
 import java.util.Optional;
@@ -23,12 +24,15 @@ public interface RepositoryRepository
 
   List<Repository> findByDeletedFalseOrderByNameAsc();
 
+  boolean existsByRepoType(RepoType repoType);
+
   @EntityGraph(value = "Repository.legacy", type = EntityGraphType.FETCH)
   @Override
   Optional<Repository> findById(Long aLong);
 
   Optional<Repository> findNoGraphById(Long aLong);
 
+  @EntityGraph(value = "Repository.legacy", type = EntityGraphType.FETCH)
   @Override
   List<Repository> findAll(Specification<Repository> s, Sort sort);
 

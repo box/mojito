@@ -8,18 +8,22 @@ import static org.junit.Assert.fail;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.WSTestDataFactory;
+import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
 import com.box.l10n.mojito.rest.entity.Locale;
+import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,6 +34,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
@@ -47,6 +52,8 @@ public class RepositoryWSTest extends WSTestBase {
   @Autowired WSTestDataFactory wsTestDataFactory;
 
   @Autowired RepositoryClient repositoryClient;
+
+  @Autowired RepoTypeClient repoTypeClient;
 
   @Autowired LocaleService localeService;
 
@@ -145,6 +152,178 @@ public class RepositoryWSTest extends WSTestBase {
   }
 
   @Test
+  public void testCreateRepositoryWithRepoTypeAndWithoutRepoType() throws Exception {
+    RepoType repoType = createRepoType("CreateType");
+    String typedName = testIdWatcher.getEntityName("typedRepository");
+    String untypedName = testIdWatcher.getEntityName("untypedRepository");
+
+    com.box.l10n.mojito.rest.entity.Repository typed =
+        repositoryClient.createRepository(
+            typedName, null, null, new HashSet<>(), new HashSet<>(), false, repoType);
+    com.box.l10n.mojito.rest.entity.Repository untyped =
+        repositoryClient.createRepository(
+            untypedName, null, null, new HashSet<>(), new HashSet<>(), false);
+
+    assertEquals(repoType.getId(), typed.getRepoType().getId());
+    assertEquals(repoType.getName(), typed.getRepoType().getName());
+    assertEquals(
+        repoType.getId(), repositoryClient.getRepositoryByName(typedName).getRepoType().getId());
+    assertEquals(null, untyped.getRepoType());
+  }
+
+  @Test
+  public void testRepositoryRepoTypeJsonContainsOnlyIdAndName() throws Exception {
+    RepoType repoType = createRepoType("JsonShape");
+    com.box.l10n.mojito.rest.entity.Repository repository =
+        repositoryClient.createRepository(
+            testIdWatcher.getEntityName("jsonRepository"),
+            null,
+            null,
+            new HashSet<>(),
+            new HashSet<>(),
+            false,
+            repoType);
+
+    ResponseEntity<String> response =
+        authenticatedRestTemplate
+            .getRestTemplate()
+            .getForEntity(
+                authenticatedRestTemplate.getURIForResource(
+                    "/api/repositories/" + repository.getId()),
+                String.class);
+    JsonNode nestedRepoType = new ObjectMapper().readTree(response.getBody()).get("repoType");
+    Set<String> fieldNames = new HashSet<>();
+    nestedRepoType.fieldNames().forEachRemaining(fieldNames::add);
+
+    assertEquals(Set.of("id", "name"), fieldNames);
+  }
+
+  @Test
+  public void testCreateRepositoryRejectsUnknownAndWrongCaseRepoType() throws Exception {
+    RepoType repoType = createRepoType("React");
+    RepoType wrongCase = new RepoType();
+    wrongCase.setName(repoType.getName().toLowerCase(java.util.Locale.ROOT));
+
+    try {
+      repositoryClient.createRepository(
+          testIdWatcher.getEntityName("wrongCaseRepository"),
+          null,
+          null,
+          new HashSet<>(),
+          new HashSet<>(),
+          false,
+          wrongCase);
+      fail("HTTP 400 is expected");
+    } catch (ResourceNotCreatedException e) {
+      assertTrue(
+          e.getMessage().contains("RepoType with name [" + wrongCase.getName() + "] not found"));
+    }
+  }
+
+  @Test
+  public void testUpdateRepositoryAssignChangeOmitAndClearRepoType() throws Exception {
+    RepoType firstType = createRepoType("FirstType");
+    RepoType secondType = createRepoType("SecondType");
+    Repository repository = wsTestDataFactory.createRepository(testIdWatcher);
+
+    repositoryClient.updateRepository(
+        repository.getName(), null, null, null, null, null, firstType, false);
+    assertEquals(
+        firstType.getId(),
+        repositoryClient.getRepositoryByName(repository.getName()).getRepoType().getId());
+
+    repositoryClient.updateRepository(repository.getName(), null, "changed", null, null, null);
+    assertEquals(
+        firstType.getId(),
+        repositoryClient.getRepositoryByName(repository.getName()).getRepoType().getId());
+
+    repositoryClient.updateRepository(
+        repository.getName(), null, null, null, null, null, secondType, false);
+    assertEquals(
+        secondType.getId(),
+        repositoryClient.getRepositoryByName(repository.getName()).getRepoType().getId());
+
+    repositoryClient.updateRepository(
+        repository.getName(), null, null, null, null, null, null, true);
+    assertEquals(null, repositoryClient.getRepositoryByName(repository.getName()).getRepoType());
+  }
+
+  @Test
+  public void testUpdateRepositoryRejectsUnknownRepoTypeAndKeepsAssignment() throws Exception {
+    RepoType assignedType = createRepoType("AssignedType");
+    Repository repository = wsTestDataFactory.createRepository(testIdWatcher);
+    repositoryClient.updateRepository(
+        repository.getName(), null, null, null, null, null, assignedType, false);
+    RepoType missingType = new RepoType();
+    missingType.setName(testIdWatcher.getEntityName("MissingType"));
+
+    try {
+      repositoryClient.updateRepository(
+          repository.getName(), null, null, null, null, null, missingType, false);
+      fail("HTTP 400 is expected");
+    } catch (ResourceNotUpdatedException e) {
+      assertTrue(
+          e.getMessage().contains("RepoType with name [" + missingType.getName() + "] not found"));
+    }
+
+    assertEquals(
+        assignedType.getId(),
+        repositoryClient.getRepositoryByName(repository.getName()).getRepoType().getId());
+  }
+
+  @Test
+  public void testUpdateRepositoryRejectsRepoTypeAndClearTogether() throws Exception {
+    RepoType repoType = createRepoType("ConflictingUpdate");
+    Repository repository = wsTestDataFactory.createRepository(testIdWatcher);
+
+    try {
+      repositoryClient.updateRepository(
+          repository.getName(), null, null, null, null, null, repoType, true);
+      fail("HTTP 400 is expected");
+    } catch (ResourceNotUpdatedException e) {
+      assertTrue(
+          e.getMessage().contains("repoType and clearRepoType cannot be specified together"));
+    }
+
+    assertEquals(null, repositoryClient.getRepositoryByName(repository.getName()).getRepoType());
+  }
+
+  @Test
+  public void testDeleteRepoTypeIsBlockedUntilRepositoryAssignmentIsCleared() throws Exception {
+    RepoType repoType = createRepoType("InUse");
+    String repositoryName = testIdWatcher.getEntityName("repositoryWithType");
+    repositoryClient.createRepository(
+        repositoryName, null, null, new HashSet<>(), new HashSet<>(), false, repoType);
+
+    try {
+      repoTypeClient.deleteRepoType(repoType.getId());
+      fail("HTTP 409 is expected");
+    } catch (HttpClientErrorException e) {
+      assertEquals(409, e.getRawStatusCode());
+      assertEquals(
+          "RepoType with name [" + repoType.getName() + "] is assigned to one or more repositories",
+          e.getResponseBodyAsString());
+    }
+
+    repositoryClient.updateRepository(repositoryName, null, null, null, null, null, null, true);
+    repoTypeClient.deleteRepoType(repoType.getId());
+  }
+
+  @Test
+  public void testDeletingRepositoryClearsAssignmentSoRepoTypeCanBeDeleted() throws Exception {
+    RepoType repoType = createRepoType("DeletedRepository");
+    String repositoryName = testIdWatcher.getEntityName("repositoryToDelete");
+    com.box.l10n.mojito.rest.entity.Repository repository =
+        repositoryClient.createRepository(
+            repositoryName, null, null, new HashSet<>(), new HashSet<>(), false, repoType);
+
+    repositoryClient.deleteRepositoryByName(repositoryName);
+
+    assertEquals(null, repositoryClient.getRepositoryById(repository.getId()).getRepoType());
+    repoTypeClient.deleteRepoType(repoType.getId());
+  }
+
+  @Test
   public void testUpdateRepositoryLocales()
       throws RepositoryNotFoundException,
           RepositoryNameAlreadyUsedException,
@@ -240,5 +419,11 @@ public class RepositoryWSTest extends WSTestBase {
 
       assertTrue(expectedLocaleFound);
     }
+  }
+
+  private RepoType createRepoType(String prefix) {
+    RepoType repoType = new RepoType();
+    repoType.setName(testIdWatcher.getEntityName(prefix));
+    return repoTypeClient.createRepoType(repoType);
   }
 }

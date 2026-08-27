@@ -9,6 +9,7 @@ import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Locale;
+import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.List;
@@ -46,6 +47,13 @@ public class RepoCreateCommand extends RepoCommand {
       required = false,
       description = Param.REPOSITORY_DESCRIPTION_DESCRIPTION)
   String descriptionParam;
+
+  @Parameter(
+      names = {Param.REPOSITORY_TYPE_LONG},
+      arity = 1,
+      required = false,
+      description = Param.REPOSITORY_TYPE_DESCRIPTION)
+  String repoTypeNameParam;
 
   @Parameter(
       names = {Param.CHECK_SLA_LONG, Param.CHECK_SLA_SHORT},
@@ -110,6 +118,12 @@ public class RepoCreateCommand extends RepoCommand {
         sourceLocale = localeClient.getLocaleByBcp47Tag(sourceLocaleBcp47Tags);
       }
 
+      RepoType repoType = null;
+      if (repoTypeNameParam != null) {
+        repoType = new RepoType();
+        repoType.setName(repoTypeNameParam);
+      }
+
       Repository repository =
           repositoryClient.createRepository(
               nameParam,
@@ -117,7 +131,8 @@ public class RepoCreateCommand extends RepoCommand {
               sourceLocale,
               repositoryLocales,
               integrityCheckers,
-              checkSLA);
+              checkSLA,
+              repoType);
       consoleWriter
           .newLine()
           .a("created --> repository id: ")

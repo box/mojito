@@ -766,6 +766,19 @@ public class RepoTypeWSTest extends WSTestBase {
   }
 
   @Test
+  public void testRepositoryForeignKeyViolationIsRecognizedAsRepoTypeInUse() {
+    DataIntegrityViolationException repositoryForeignKey =
+        new DataIntegrityViolationException(
+            "type in use",
+            new org.hibernate.exception.ConstraintViolationException(
+                "type in use",
+                new java.sql.SQLException("constraint"),
+                "FK__REPOSITORY__REPO_TYPE__ID"));
+
+    assertTrue(RepoTypeWS.isRepoTypeInUseConstraint(repositoryForeignKey));
+  }
+
+  @Test
   public void testUserRoleCanGetAndIsForbiddenToMutate() throws ResourceNotCreatedException {
     RepoType toCreate = new RepoType();
     toCreate.setName(testIdWatcher.getEntityName("UserGet"));

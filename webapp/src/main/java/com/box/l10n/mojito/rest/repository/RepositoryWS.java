@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.repotype.RepoTypeInvalidException;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.time.ZonedDateTime;
@@ -101,6 +102,7 @@ public class RepositoryWS {
   /**
    * Creates a new {@link Repository}. Will return {@link HttpStatus#CREATED} if all is successful.
    * Will return {@link HttpStatus#CONFLICT} if there's already a repository with the same name.
+   * Will return {@link HttpStatus#BAD_REQUEST} if the nested repo type is blank or unknown.
    *
    * @param repository
    * @return
@@ -120,7 +122,8 @@ public class RepositoryWS {
               repository.getSourceLocale(),
               repository.getCheckSLA(),
               repository.getAssetIntegrityCheckers(),
-              repository.getRepositoryLocales());
+              repository.getRepositoryLocales(),
+              repository.getRepoType());
       result = new ResponseEntity<>(createdRepo, HttpStatus.CREATED);
     } catch (RepositoryNameAlreadyUsedException e) {
       logger.debug("Cannot create the repository", e);
@@ -131,6 +134,9 @@ public class RepositoryWS {
     } catch (RepositoryLocaleCreationException e) {
       logger.debug("Cannot create the repository", e);
       result = new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
+    } catch (RepoTypeInvalidException e) {
+      logger.debug("Cannot create the repository", e);
+      result = new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     return result;
@@ -187,15 +193,23 @@ public class RepositoryWS {
   }
 
   /**
-   * Updates repository by the {@link Repository#id}
+   * Updates repository by the {@link Repository#id}.
+   *
+   * <p>A nested {@code repoType} assigns by name. {@code clearRepoType=true} unassigns. Omitting
+   * both leaves the assignment unchanged. Sending both returns {@link HttpStatus#BAD_REQUEST}.
+   * Unknown or blank type names also return {@link HttpStatus#BAD_REQUEST}.
    *
    * @param repositoryId
    * @param repository
+   * @param clearRepoType {@code true} to clear the assigned repo type
    * @return
    */
   @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PATCH)
   public ResponseEntity updateRepository(
-      @PathVariable Long repositoryId, @RequestBody Repository repository)
+      @PathVariable Long repositoryId,
+      @RequestBody Repository repository,
+      @RequestParam(value = "clearRepoType", required = false, defaultValue = "false")
+          boolean clearRepoType)
       throws RepositoryWithIdNotFoundException {
     logger.info("Updating repository [{}]", repositoryId);
     ResponseEntity result;
@@ -212,7 +226,9 @@ public class RepositoryWS {
           repository.getDescription(),
           repository.getCheckSLA(),
           repository.getRepositoryLocales(),
-          repository.getAssetIntegrityCheckers());
+          repository.getAssetIntegrityCheckers(),
+          repository.getRepoType(),
+          clearRepoType);
 
       result = new ResponseEntity(HttpStatus.OK);
 
@@ -225,6 +241,9 @@ public class RepositoryWS {
     } catch (RepositoryLocaleCreationException e) {
       logger.debug("Cannot create the repository", e);
       result = new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
+    } catch (RepoTypeInvalidException e) {
+      logger.debug("Cannot update the repository", e);
+      result = new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     return result;
