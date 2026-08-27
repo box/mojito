@@ -64,8 +64,7 @@ public class RepoTypeCreateCommand extends Command {
       RepoType toCreate = new RepoType();
       toCreate.setName(nameParam);
       toCreate.setDescription(descriptionParam);
-      toCreate.setAiPrompt(
-          CommandHelper.resolveRepoTypeAiPrompt(aiPromptParam, aiPromptFileParam));
+      toCreate.setAiPrompt(CommandHelper.resolveRepoTypeAiPrompt(aiPromptParam, aiPromptFileParam));
 
       RepoType created = repoTypeClient.createRepoType(toCreate);
       consoleWriter

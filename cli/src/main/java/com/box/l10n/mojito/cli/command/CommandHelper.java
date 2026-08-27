@@ -126,8 +126,8 @@ public class CommandHelper {
   /**
    * Resolves the type-layer AI prompt from either {@code --ai-prompt} or {@code --ai-prompt-file}.
    * Returns {@code null} when neither is set (omit on the wire / leave unchanged on update). An
-   * empty string from {@code --ai-prompt ""} or a file that is empty after UTF-8 text
-   * normalization is a real value (clear on update).
+   * empty string from {@code --ai-prompt ""} or a file that is empty after UTF-8 text normalization
+   * is a real value (clear on update).
    */
   public static String resolveRepoTypeAiPrompt(String aiPromptParam, String aiPromptFileParam)
       throws CommandException {
