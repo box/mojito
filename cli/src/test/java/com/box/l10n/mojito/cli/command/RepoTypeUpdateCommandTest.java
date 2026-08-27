@@ -9,11 +9,8 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
-import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
-import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -79,14 +76,11 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testUpdateDescriptionDoesNotClearPromptOrCheckers() throws Exception {
+  public void testUpdateDescriptionDoesNotClearPrompt() throws Exception {
     String name = testIdWatcher.getEntityName("React");
     String prompt = "You are a React i18n expert";
-    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
-    checker.setAssetExtension("json");
-    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
 
-    RepoType created = repoTypeService.createRepoType(name, "old", prompt, Set.of(checker));
+    RepoType created = repoTypeService.createRepoType(name, "old", prompt, null);
 
     getL10nJCommander()
         .run(
@@ -100,19 +94,16 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
 
     RepoType updated = repoTypeService.getRepoTypeById(created.getId());
     assertEquals("new desc", updated.getDescription());
-    assertPromptAndCheckerUnchanged(updated, prompt, "json", IntegrityCheckerType.MESSAGE_FORMAT);
+    assertEquals(prompt, updated.getAiPrompt());
   }
 
   @Test
-  public void testUpdateNameDoesNotClearPromptOrCheckers() throws Exception {
+  public void testUpdateNameDoesNotClearPrompt() throws Exception {
     String name = testIdWatcher.getEntityName("Android");
     String newName = name + "_renamed";
     String prompt = "You are an Android i18n expert";
-    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
-    checker.setAssetExtension("xml");
-    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
 
-    RepoType created = repoTypeService.createRepoType(name, "old", prompt, Set.of(checker));
+    RepoType created = repoTypeService.createRepoType(name, "old", prompt, null);
 
     getL10nJCommander()
         .run(
@@ -127,7 +118,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     RepoType updated = repoTypeService.getRepoTypeById(created.getId());
     assertEquals(newName, updated.getName());
     assertEquals("old", updated.getDescription());
-    assertPromptAndCheckerUnchanged(updated, prompt, "xml", IntegrityCheckerType.MESSAGE_FORMAT);
+    assertEquals(prompt, updated.getAiPrompt());
   }
 
   @Test
@@ -143,11 +134,8 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
   private void updateAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
     String name = testIdWatcher.getEntityName(entityKey);
     String newPrompt = "Updated type prompt";
-    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
-    checker.setAssetExtension("json");
-    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
 
-    RepoType created = repoTypeService.createRepoType(name, "desc", "old prompt", Set.of(checker));
+    RepoType created = repoTypeService.createRepoType(name, "desc", "old prompt", null);
 
     getL10nJCommander()
         .run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, newPrompt);
@@ -157,8 +145,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     RepoType updated = repoTypeService.getRepoTypeById(created.getId());
     assertEquals(name, updated.getName());
     assertEquals("desc", updated.getDescription());
-    assertPromptAndCheckerUnchanged(
-        updated, newPrompt, "json", IntegrityCheckerType.MESSAGE_FORMAT);
+    assertEquals(newPrompt, updated.getAiPrompt());
   }
 
   @Test
@@ -173,12 +160,8 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
 
   private void clearAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
     String name = testIdWatcher.getEntityName(entityKey);
-    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
-    checker.setAssetExtension("properties");
-    checker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
 
-    RepoType created =
-        repoTypeService.createRepoType(name, "desc", "prompt to clear", Set.of(checker));
+    RepoType created = repoTypeService.createRepoType(name, "desc", "prompt to clear", null);
 
     getL10nJCommander().run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, "");
 
@@ -187,7 +170,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     RepoType updated = repoTypeService.getRepoTypeById(created.getId());
     assertEquals(name, updated.getName());
     assertEquals("desc", updated.getDescription());
-    assertPromptAndCheckerUnchanged(updated, "", "properties", IntegrityCheckerType.MESSAGE_FORMAT);
+    assertEquals("", updated.getAiPrompt());
   }
 
   private void assertUpdatedIdLine(Long id) {
@@ -198,15 +181,6 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
                 Pattern.MULTILINE)
             .matcher(outputCapture.toString())
             .find());
-  }
-
-  private static void assertPromptAndCheckerUnchanged(
-      RepoType updated, String prompt, String assetExtension, IntegrityCheckerType checkerType) {
-    assertEquals(prompt, updated.getAiPrompt());
-    assertEquals(1, updated.getIntegrityCheckers().size());
-    RepoTypeIntegrityChecker remaining = updated.getIntegrityCheckers().iterator().next();
-    assertEquals(assetExtension, remaining.getAssetExtension());
-    assertEquals(checkerType, remaining.getIntegrityCheckerType());
   }
 
   @Test
