@@ -80,6 +80,14 @@ public class Param {
   public static final String REPO_TYPE_DESCRIPTION_DESCRIPTION =
       "Description of the repo type to create or update";
 
+  public static final String REPOSITORY_TYPE_LONG = "--repo-type";
+  public static final String REPOSITORY_TYPE_DESCRIPTION =
+      "Exact name of the repository type to assign";
+
+  public static final String CLEAR_REPOSITORY_TYPE_LONG = "--clear-repo-type";
+  public static final String CLEAR_REPOSITORY_TYPE_DESCRIPTION =
+      "Remove the repository type assignment";
+
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
   public static final String REPOSITORY_LOCALES_DESCRIPTION =

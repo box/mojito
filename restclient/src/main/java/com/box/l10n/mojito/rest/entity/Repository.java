@@ -30,6 +30,8 @@ public class Repository {
   @JsonProperty("assetIntegrityCheckers")
   Set<IntegrityChecker> integrityCheckers = new HashSet<>();
 
+  private RepoType repoType;
+
   RepositoryStatistic repositoryStatistic;
 
   public Long getId() {
@@ -78,6 +80,14 @@ public class Repository {
 
   public void setIntegrityCheckers(Set<IntegrityChecker> integrityCheckers) {
     this.integrityCheckers = integrityCheckers;
+  }
+
+  public RepoType getRepoType() {
+    return repoType;
+  }
+
+  public void setRepoType(RepoType repoType) {
+    this.repoType = repoType;
   }
 
   public Boolean getDeleted() {

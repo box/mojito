@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.repotype;
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.rest.repotype.RepoTypeWithIdNotFoundException;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Business logic for creating, reading, updating, and deleting {@link RepoType} records and their
  * integrity checkers.
  *
- * <p>Assigning a type to a {@link com.box.l10n.mojito.entity.Repository} is out of scope here.
- * Until that link exists, delete is a hard delete of the type and its checkers.
+ * <p>Delete is a hard delete of the type and its checkers, and is refused while any {@link
+ * com.box.l10n.mojito.entity.Repository} still references the type.
  */
 @Service
 public class RepoTypeService {
@@ -31,6 +32,8 @@ public class RepoTypeService {
   static Logger logger = LoggerFactory.getLogger(RepoTypeService.class);
 
   @Autowired RepoTypeRepository repoTypeRepository;
+
+  @Autowired RepositoryRepository repositoryRepository;
 
   /**
    * Creates a new repo type and optionally its integrity checkers.
@@ -212,16 +215,18 @@ public class RepoTypeService {
   /**
    * Hard-deletes a repo type and all of its integrity checkers.
    *
-   * <p>Until repositories can reference a type, there is no “type in use” guard. After that link
-   * exists, delete should refuse (or require clearing assignments) when any repository still
-   * references the type.
+   * <p>Delete is refused while any repository references the type.
    *
    * @param repoTypeId id of the type to delete
    * @throws RepoTypeWithIdNotFoundException if the id does not exist
+   * @throws RepoTypeInUseException if any repository still references the type
    */
   @Transactional
   public void deleteRepoType(Long repoTypeId) throws RepoTypeWithIdNotFoundException {
     RepoType repoType = getRepoTypeById(repoTypeId);
+    if (repositoryRepository.existsByRepoType(repoType)) {
+      throw new RepoTypeInUseException(repoType.getName());
+    }
     logger.debug("Delete repo type with name: {}", repoType.getName());
     repoTypeRepository.delete(repoType);
   }

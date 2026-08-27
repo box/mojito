@@ -9,6 +9,7 @@ import com.box.l10n.mojito.rest.entity.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.time.ZonedDateTime;
@@ -109,6 +110,19 @@ public class RepositoryClient extends BaseClient {
       Set<IntegrityChecker> integrityCheckers,
       Boolean checkSLA)
       throws ResourceNotCreatedException {
+    return createRepository(
+        name, description, sourceLocale, repositoryLocales, integrityCheckers, checkSLA, null);
+  }
+
+  public Repository createRepository(
+      String name,
+      String description,
+      Locale sourceLocale,
+      Set<RepositoryLocale> repositoryLocales,
+      Set<IntegrityChecker> integrityCheckers,
+      Boolean checkSLA,
+      RepoType repoType)
+      throws ResourceNotCreatedException {
     logger.debug(
         "Creating repo with name = {}, and description = {}, and repositoryLocales = {}",
         name,
@@ -122,12 +136,14 @@ public class RepositoryClient extends BaseClient {
     repoToCreate.setRepositoryLocales(repositoryLocales);
     repoToCreate.setIntegrityCheckers(integrityCheckers);
     repoToCreate.setCheckSLA(checkSLA);
+    repoToCreate.setRepoType(repoType);
 
     try {
       return authenticatedRestTemplate.postForObject(
           getBasePathForEntity(), repoToCreate, Repository.class);
     } catch (HttpClientErrorException exception) {
-      if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
+      if (exception.getStatusCode().equals(HttpStatus.BAD_REQUEST)
+          || exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
         throw new ResourceNotCreatedException(exception.getResponseBodyAsString());
       } else {
         throw exception;
@@ -196,6 +212,20 @@ public class RepositoryClient extends BaseClient {
       Set<RepositoryLocale> repositoryLocales,
       Set<IntegrityChecker> integrityCheckers)
       throws RepositoryNotFoundException, ResourceNotUpdatedException {
+    updateRepository(
+        name, newName, description, checkSLA, repositoryLocales, integrityCheckers, null, false);
+  }
+
+  public void updateRepository(
+      String name,
+      String newName,
+      String description,
+      Boolean checkSLA,
+      Set<RepositoryLocale> repositoryLocales,
+      Set<IntegrityChecker> integrityCheckers,
+      RepoType repoType,
+      boolean clearRepoType)
+      throws RepositoryNotFoundException, ResourceNotUpdatedException {
 
     logger.debug("Updating repository by name = [{}]", name);
     Repository repository = getRepositoryByName(name);
@@ -204,14 +234,24 @@ public class RepositoryClient extends BaseClient {
     repository.setName(newName);
     repository.setRepositoryLocales(repositoryLocales);
     repository.setCheckSLA(checkSLA);
+    repository.setRepoType(repoType);
     if (integrityCheckers != null) {
       repository.setIntegrityCheckers(integrityCheckers);
     }
 
     try {
-      authenticatedRestTemplate.patch(getBasePathForResource(repository.getId()), repository);
+      String path = getBasePathForResource(repository.getId());
+      if (clearRepoType) {
+        path =
+            UriComponentsBuilder.fromPath(path)
+                .queryParam("clearRepoType", true)
+                .build()
+                .toUriString();
+      }
+      authenticatedRestTemplate.patch(path, repository);
     } catch (HttpClientErrorException exception) {
-      if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
+      if (exception.getStatusCode().equals(HttpStatus.BAD_REQUEST)
+          || exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
         throw new ResourceNotUpdatedException(exception.getResponseBodyAsString());
       } else {
         throw exception;
