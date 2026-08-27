@@ -49,6 +49,13 @@ public class RepoTypeCreateCommand extends Command {
       description = Param.REPO_TYPE_AI_PROMPT_DESCRIPTION)
   String aiPromptParam;
 
+  @Parameter(
+      names = {Param.REPO_TYPE_AI_PROMPT_FILE_LONG, Param.REPO_TYPE_AI_PROMPT_FILE_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.REPO_TYPE_AI_PROMPT_FILE_DESCRIPTION)
+  String aiPromptFileParam;
+
   @Override
   protected void execute() throws CommandException {
     consoleWriter.a("Create repo type: ").fg(Ansi.Color.CYAN).a(nameParam).println();
@@ -57,7 +64,8 @@ public class RepoTypeCreateCommand extends Command {
       RepoType toCreate = new RepoType();
       toCreate.setName(nameParam);
       toCreate.setDescription(descriptionParam);
-      toCreate.setAiPrompt(aiPromptParam);
+      toCreate.setAiPrompt(
+          CommandHelper.resolveRepoTypeAiPrompt(aiPromptParam, aiPromptFileParam));
 
       RepoType created = repoTypeClient.createRepoType(toCreate);
       consoleWriter

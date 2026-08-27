@@ -335,7 +335,7 @@ Name, description, and AI-prompt CLI for repo types. Commands are JCommander `Co
 **In scope**
 
 - `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`
-- Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`)
+- Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`, or `--ai-prompt-file` / `-apf`)
 
 **Out of scope (follow-up)**
 
@@ -346,8 +346,8 @@ Name, description, and AI-prompt CLI for repo types. Commands are JCommander `Co
 
 | Command | Role | Required flags | Optional flags |
 |---------|------|----------------|----------------|
-| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d`, `--ai-prompt` / `-ap` |
-| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap` |
+| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf` |
+| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf` |
 | `repo-type-delete` | DELETE `/api/repo-types/{id}` | `--name` / `-n` | — |
 | `repo-type-view` | GET list filtered by name | `--name` / `-n` | — |
 
@@ -360,17 +360,18 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 ##### Create
 
 - Body: `name` required; `description` and `aiPrompt` may be omitted (`null`).
-- Omitted `--ai-prompt` leaves Java `aiPrompt` `null`; `AuthenticatedRestTemplate` `NON_NULL` omits the property from JSON (it is not sent as JSON `null`). The server treats a missing field as `null` and stores `""`. Passing `--ai-prompt` sets the type-layer prompt at create time.
+- Omitted `--ai-prompt` / `--ai-prompt-file` leaves Java `aiPrompt` `null`; `AuthenticatedRestTemplate` `NON_NULL` omits the property from JSON (it is not sent as JSON `null`). The server treats a missing field as `null` and stores `""`. Passing `--ai-prompt` or `--ai-prompt-file` sets the type-layer prompt at create time.
+- `--ai-prompt` and `--ai-prompt-file` are mutually exclusive (`Cannot specify both --ai-prompt and --ai-prompt-file`). File contents are UTF-8 text: a leading UTF-8 BOM and a single trailing newline (`\n` or `\r\n`) are not stored (so `--ai-prompt hello` and a file `hello\n` store the same value). Newlines inside the file are kept. After that strip, empty contents are a real value (create stores `""`; update clears). A missing/unreadable file fails with `Failed to read AI prompt file: <path>: ...`.
 - Does not send `integrityCheckers` (server default: no checkers).
 - HTTP 400, 404, and 409 → the response body as a `CommandException` (e.g. `name must be at most 255 characters`, `RepoType with name [<trimmed name>] already exists`). Empty body falls back to `Invalid repo type` (400), `Repo type is not found` (404), or `Repo type already exists` (409). HTTP 403 is **not** mapped: `AuthenticatedRestTemplate` treats 403 as a stale session, retries login, then throws `RestClientException` (`Tried to re-authenticate but the response remains to be unauthenticated`). That is the same dump as other mutating CLI commands (e.g. `repo-create`). Unmapped client errors still dump as `Unexpected error` in `L10nJCommander`.
 - Success prints `created --> repo type id: <id>`.
 
 ##### Update
 
-- At least one of `--new-name`, `--description`, or `--ai-prompt` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt`.
+- At least one of `--new-name`, `--description`, `--ai-prompt`, or `--ai-prompt-file` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt, --ai-prompt-file`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#6-patch-null-means-leave-unchanged)).
 - Checkers: `integrityCheckers` is left Java `null` so `NON_NULL` omits the property (unchanged). A non-null empty set would serialize as `[]` and clear them. There is no checkers CLI flag yet.
-- Prompt: omitted `--ai-prompt` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` includes `"aiPrompt":""` and clears the prompt.
+- Prompt: omitted `--ai-prompt` / `--ai-prompt-file` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` or `--ai-prompt-file` whose contents are empty after the UTF-8 BOM / trailing-newline strip includes `"aiPrompt":""` and clears the prompt (a file that is only a trailing newline also clears). The two prompt flags are mutually exclusive (same error as create).
 - A description-only or rename update must leave prompt and checkers as they were.
 - HTTP 400, 404, and 409 → same mapping as create (response body, or the 400/404/409 fallbacks). HTTP 403 is the same session-retry dump as create.
 - Success prints `updated --> repo type id: <id>`.
@@ -398,8 +399,8 @@ Prints four fields for an existing type:
 | `cli/.../command/RepoTypeUpdateCommand.java` | Update |
 | `cli/.../command/RepoTypeDeleteCommand.java` | Delete |
 | `cli/.../command/RepoTypeViewCommand.java` | View |
-| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` / `--ai-prompt` constants |
-| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt`, description/rename/prompt-only updates must not clear checkers) |
+| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` / `--ai-prompt` / `--ai-prompt-file` constants |
+| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt` including `--ai-prompt-file`, UTF-8 BOM and one trailing newline stripped from files, mutual exclusion and missing file, description/rename/prompt-only updates must not clear checkers) |
 
 ---
 

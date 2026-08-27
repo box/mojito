@@ -53,6 +53,16 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
     createWithAiPrompt(Param.REPO_TYPE_AI_PROMPT_SHORT, "ReactPromptShort");
   }
 
+  @Test
+  public void testCreateRepoTypeWithAiPromptFileLongFlag() throws Exception {
+    createWithAiPromptFile(Param.REPO_TYPE_AI_PROMPT_FILE_LONG, "ReactPromptFileLong");
+  }
+
+  @Test
+  public void testCreateRepoTypeWithAiPromptFileShortFlag() throws Exception {
+    createWithAiPromptFile(Param.REPO_TYPE_AI_PROMPT_FILE_SHORT, "ReactPromptFileShort");
+  }
+
   private void createWithAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
     String name = testIdWatcher.getEntityName(entityKey);
     String prompt = "You are a React i18n expert";
@@ -66,6 +76,118 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
     assertEquals(name, created.getName());
     assertNull(created.getDescription());
     assertEquals(prompt, created.getAiPrompt());
+  }
+
+  private void createWithAiPromptFile(String aiPromptFileFlag, String entityKey) throws Exception {
+    String name = testIdWatcher.getEntityName(entityKey);
+    String prompt = "Line one\n\n## Heading\nPreserve {placeholders}.";
+    java.io.File promptFile = java.io.File.createTempFile("mojito-ai-prompt-", ".md");
+    promptFile.deleteOnExit();
+    java.nio.file.Files.writeString(promptFile.toPath(), prompt);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            aiPromptFileFlag,
+            promptFile.getAbsolutePath());
+
+    RepoType created = repoTypeRepository.findByName(name);
+    assertNotNull(created);
+    assertCreatedIdLine(created.getId());
+    assertEquals(name, created.getName());
+    assertNull(created.getDescription());
+    assertEquals(prompt, created.getAiPrompt());
+  }
+
+  @Test
+  public void testCreateAiPromptFileStripsTrailingNewline() throws Exception {
+    String name = testIdWatcher.getEntityName("PromptFileTrailingNewline");
+    java.io.File promptFile = java.io.File.createTempFile("mojito-ai-prompt-", ".md");
+    promptFile.deleteOnExit();
+    java.nio.file.Files.writeString(promptFile.toPath(), "hello\n");
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_FILE_SHORT,
+            promptFile.getAbsolutePath());
+
+    RepoType created = repoTypeRepository.findByName(name);
+    assertNotNull(created);
+    assertEquals("hello", created.getAiPrompt());
+  }
+
+  @Test
+  public void testCreateRejectsBothAiPromptAndAiPromptFile() throws Exception {
+    String name = testIdWatcher.getEntityName("BothPromptFlags");
+    java.io.File promptFile = java.io.File.createTempFile("mojito-ai-prompt-", ".md");
+    promptFile.deleteOnExit();
+    java.nio.file.Files.writeString(promptFile.toPath(), "from file");
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_SHORT,
+            "from flag",
+            Param.REPO_TYPE_AI_PROMPT_FILE_SHORT,
+            promptFile.getAbsolutePath());
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Cannot specify both --ai-prompt and --ai-prompt-file"));
+    assertNull(repoTypeRepository.findByName(name));
+  }
+
+  @Test
+  public void testCreateMissingAiPromptFileIsAShortError() throws Exception {
+    String name = testIdWatcher.getEntityName("MissingPromptFile");
+    String missing =
+        java.nio.file.Files.createTempDirectory("mojito-ai-prompt-")
+            .resolve("missing.md")
+            .toString();
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_FILE_LONG,
+            missing);
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Failed to read AI prompt file: " + missing));
+    assertFalse(
+        "Mapped file error must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
+    assertNull(repoTypeRepository.findByName(name));
+  }
+
+  @Test
+  public void testCreateInvalidAiPromptFilePathIsAShortError() throws Exception {
+    String name = testIdWatcher.getEntityName("InvalidPromptFilePath");
+    String invalid = "bad\0path.md";
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_FILE_LONG,
+            invalid);
+
+    String output = outputCapture.toString();
+    assertTrue(
+        "Invalid path must map to the same short file-read error as a missing file",
+        output.contains("Failed to read AI prompt file:"));
+    assertFalse(
+        "Mapped file error must not go through L10nJCommander's Unexpected error dump",
+        output.contains("Unexpected error"));
+    assertNull(repoTypeRepository.findByName(name));
   }
 
   @Test

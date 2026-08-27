@@ -131,6 +131,16 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     updateAiPrompt(Param.REPO_TYPE_AI_PROMPT_SHORT, "PromptUpdateShort");
   }
 
+  @Test
+  public void testUpdateAiPromptFileLongFlag() throws Exception {
+    updateAiPromptFile(Param.REPO_TYPE_AI_PROMPT_FILE_LONG, "PromptFileUpdateLong");
+  }
+
+  @Test
+  public void testUpdateAiPromptFileShortFlag() throws Exception {
+    updateAiPromptFile(Param.REPO_TYPE_AI_PROMPT_FILE_SHORT, "PromptFileUpdateShort");
+  }
+
   private void updateAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
     String name = testIdWatcher.getEntityName(entityKey);
     String newPrompt = "Updated type prompt";
@@ -139,6 +149,31 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
 
     getL10nJCommander()
         .run("repo-type-update", Param.REPO_TYPE_NAME_SHORT, name, aiPromptFlag, newPrompt);
+
+    assertUpdatedIdLine(created.getId());
+
+    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(name, updated.getName());
+    assertEquals("desc", updated.getDescription());
+    assertEquals(newPrompt, updated.getAiPrompt());
+  }
+
+  private void updateAiPromptFile(String aiPromptFileFlag, String entityKey) throws Exception {
+    String name = testIdWatcher.getEntityName(entityKey);
+    String newPrompt = "Updated from file\n\nPreserve {placeholders}.";
+    java.io.File promptFile = java.io.File.createTempFile("mojito-ai-prompt-", ".md");
+    promptFile.deleteOnExit();
+    java.nio.file.Files.writeString(promptFile.toPath(), newPrompt);
+
+    RepoType created = repoTypeService.createRepoType(name, "desc", "old prompt", null);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            aiPromptFileFlag,
+            promptFile.getAbsolutePath());
 
     assertUpdatedIdLine(created.getId());
 
@@ -158,6 +193,31 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     clearAiPrompt(Param.REPO_TYPE_AI_PROMPT_SHORT, "PromptClearShort");
   }
 
+  @Test
+  public void testClearAiPromptWithEmptyFile() throws Exception {
+    String name = testIdWatcher.getEntityName("PromptClearFile");
+    java.io.File promptFile = java.io.File.createTempFile("mojito-ai-prompt-", ".md");
+    promptFile.deleteOnExit();
+    java.nio.file.Files.writeString(promptFile.toPath(), "");
+
+    RepoType created = repoTypeService.createRepoType(name, "desc", "prompt to clear", null);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_FILE_SHORT,
+            promptFile.getAbsolutePath());
+
+    assertUpdatedIdLine(created.getId());
+
+    RepoType updated = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(name, updated.getName());
+    assertEquals("desc", updated.getDescription());
+    assertEquals("", updated.getAiPrompt());
+  }
+
   private void clearAiPrompt(String aiPromptFlag, String entityKey) throws Exception {
     String name = testIdWatcher.getEntityName(entityKey);
 
@@ -171,6 +231,65 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
     assertEquals(name, updated.getName());
     assertEquals("desc", updated.getDescription());
     assertEquals("", updated.getAiPrompt());
+  }
+
+  @Test
+  public void testUpdateRejectsBothAiPromptAndAiPromptFile() throws Exception {
+    String name = testIdWatcher.getEntityName("BothPromptFlagsUpdate");
+    String originalPrompt = "keep me";
+    java.io.File promptFile = java.io.File.createTempFile("mojito-ai-prompt-", ".md");
+    promptFile.deleteOnExit();
+    java.nio.file.Files.writeString(promptFile.toPath(), "from file");
+
+    RepoType created = repoTypeService.createRepoType(name, "desc", originalPrompt, null);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_SHORT,
+            "from flag",
+            Param.REPO_TYPE_AI_PROMPT_FILE_SHORT,
+            promptFile.getAbsolutePath());
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Cannot specify both --ai-prompt and --ai-prompt-file"));
+    assertFalse(
+        "Mapped exclusive-flag error must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
+
+    RepoType unchanged = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(originalPrompt, unchanged.getAiPrompt());
+  }
+
+  @Test
+  public void testUpdateMissingAiPromptFileIsAShortError() throws Exception {
+    String name = testIdWatcher.getEntityName("MissingPromptFileUpdate");
+    String originalPrompt = "keep me";
+    String missing =
+        java.nio.file.Files.createTempDirectory("mojito-ai-prompt-")
+            .resolve("missing.md")
+            .toString();
+
+    RepoType created = repoTypeService.createRepoType(name, "desc", originalPrompt, null);
+
+    getL10nJCommander()
+        .run(
+            "repo-type-update",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            Param.REPO_TYPE_AI_PROMPT_FILE_LONG,
+            missing);
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Failed to read AI prompt file: " + missing));
+    assertFalse(
+        "Mapped file error must not go through L10nJCommander's Unexpected error stack dump",
+        output.contains("Unexpected error"));
+
+    RepoType unchanged = repoTypeService.getRepoTypeById(created.getId());
+    assertEquals(originalPrompt, unchanged.getAiPrompt());
   }
 
   private void assertUpdatedIdLine(Long id) {
@@ -196,7 +315,7 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
         outputCapture
             .toString()
             .contains(
-                "Must provide at least one of the following options: --new-name, --description, --ai-prompt"));
+                "Must provide at least one of the following options: --new-name, --description, --ai-prompt, --ai-prompt-file"));
 
     RepoType unchanged = repoTypeRepository.findByName(name);
     assertNotNull(unchanged);

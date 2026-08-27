@@ -58,21 +58,33 @@ public class RepoTypeUpdateCommand extends Command {
       description = Param.REPO_TYPE_AI_PROMPT_DESCRIPTION)
   String aiPromptParam;
 
+  @Parameter(
+      names = {Param.REPO_TYPE_AI_PROMPT_FILE_LONG, Param.REPO_TYPE_AI_PROMPT_FILE_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.REPO_TYPE_AI_PROMPT_FILE_DESCRIPTION)
+  String aiPromptFileParam;
+
   @Override
   protected void execute() throws CommandException {
     consoleWriter.a("Update repo type: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
-    if (newNameParam == null && descriptionParam == null && aiPromptParam == null) {
+    if (newNameParam == null
+        && descriptionParam == null
+        && aiPromptParam == null
+        && aiPromptFileParam == null) {
       throw new CommandException(
-          "Must provide at least one of the following options: --new-name, --description, --ai-prompt");
+          "Must provide at least one of the following options: --new-name, --description,"
+              + " --ai-prompt, --ai-prompt-file");
     }
 
     RepoType existing = commandHelper.findRepoTypeByName(nameParam);
 
     try {
+      String aiPrompt = CommandHelper.resolveRepoTypeAiPrompt(aiPromptParam, aiPromptFileParam);
       RepoType updated =
           repoTypeClient.updateRepoType(
-              existing.getId(), repoTypePatch(newNameParam, descriptionParam, aiPromptParam));
+              existing.getId(), repoTypePatch(newNameParam, descriptionParam, aiPrompt));
       consoleWriter
           .newLine()
           .a("updated --> repo type id: ")
