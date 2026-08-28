@@ -8,12 +8,16 @@ import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
+import com.box.l10n.mojito.service.repotype.RepoTypeService;
 import com.google.common.base.Joiner;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +32,10 @@ public class RepoUpdateCommandTest extends CLITestBase {
   static Logger logger = LoggerFactory.getLogger(RepoUpdateCommandTest.class);
 
   @Autowired RepositoryRepository repositoryRepository;
+
+  @Autowired RepoTypeService repoTypeService;
+
+  @Autowired RepoTypeRepository repoTypeRepository;
 
   @Test
   public void testUpdateName() throws Exception {
@@ -52,6 +60,113 @@ public class RepoUpdateCommandTest extends CLITestBase {
 
     repository = repositoryRepository.findByName(newName);
     assertNotNull("Should find repository by the new name", repository);
+  }
+
+  @Test
+  public void testAssignChangeOmitAndClearRepoType() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+    RepoType firstType =
+        repoTypeService.createRepoType(
+            testIdWatcher.getEntityName("FirstType"), null, null, Set.of());
+    RepoType secondType =
+        repoTypeService.createRepoType(
+            testIdWatcher.getEntityName("SecondType"), null, null, Set.of());
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repository.getName(),
+            Param.REPOSITORY_TYPE_LONG,
+            firstType.getName());
+    assertEquals(
+        firstType.getId(),
+        repositoryRepository.findByName(repository.getName()).getRepoType().getId());
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repository.getName(),
+            Param.REPOSITORY_DESCRIPTION_SHORT,
+            "description changed");
+    assertEquals(
+        firstType.getId(),
+        repositoryRepository.findByName(repository.getName()).getRepoType().getId());
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repository.getName(),
+            Param.REPOSITORY_TYPE_LONG,
+            secondType.getName());
+    assertEquals(
+        secondType.getId(),
+        repositoryRepository.findByName(repository.getName()).getRepoType().getId());
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repository.getName(),
+            Param.CLEAR_REPOSITORY_TYPE_LONG);
+    assertNull(repositoryRepository.findByName(repository.getName()).getRepoType());
+  }
+
+  @Test
+  public void testRepoTypeNamedNullIsAssignedRatherThanCleared() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+    RepoType nullType = repoTypeRepository.findByName("NULL");
+    if (nullType == null) {
+      nullType = repoTypeService.createRepoType("NULL", null, null, Set.of());
+    }
+
+    try {
+      getL10nJCommander()
+          .run(
+              "repo-update",
+              Param.REPOSITORY_NAME_SHORT,
+              repository.getName(),
+              Param.REPOSITORY_TYPE_LONG,
+              "NULL");
+
+      assertEquals(
+          nullType.getId(),
+          repositoryRepository.findByName(repository.getName()).getRepoType().getId());
+    } finally {
+      Repository toClear = repositoryRepository.findByName(repository.getName());
+      if (toClear != null) {
+        toClear.setRepoType(null);
+        repositoryRepository.save(toClear);
+      }
+      repoTypeService.deleteRepoType(nullType.getId());
+    }
+  }
+
+  @Test
+  public void testEmptyRepoTypeNameIsInvalid() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repository.getName(),
+            Param.REPOSITORY_TYPE_LONG,
+            "");
+
+    assertNull(repositoryRepository.findByName(repository.getName()).getRepoType());
+    assertTrue(outputCapture.toString().contains("repoType.name is required"));
+  }
+
+  @Test(expected = CommandException.class)
+  public void testRepoTypeAndClearRepoTypeAreMutuallyExclusive() throws CommandException {
+    RepoUpdateCommand command = new RepoUpdateCommand();
+    command.nameParam = "repo";
+    command.repoTypeNameParam = "React";
+    command.clearRepoType = true;
+    command.checkRepositoryParams();
   }
 
   @Test

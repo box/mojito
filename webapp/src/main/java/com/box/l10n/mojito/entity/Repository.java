@@ -2,10 +2,12 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
+import com.box.l10n.mojito.rest.repository.RepoTypeIdAndNameSerializer;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +37,7 @@ import org.springframework.data.annotation.CreatedBy;
           value = "repositoryStatistic",
           subgraph = "Repository.legacy.repositoryStatistic"),
       @NamedAttributeNode("assetIntegrityCheckers"),
+      @NamedAttributeNode("repoType"),
       @NamedAttributeNode("tm"),
       @NamedAttributeNode("createdByUser"),
       @NamedAttributeNode("manualScreenshotRun"),
@@ -88,6 +91,14 @@ public class Repository extends AuditableEntity {
   @JsonManagedReference
   @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
   Set<AssetIntegrityChecker> assetIntegrityCheckers = new HashSet<>();
+
+  @JsonView(View.RepositorySummary.class)
+  @JsonSerialize(using = RepoTypeIdAndNameSerializer.class)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "repo_type_id",
+      foreignKey = @ForeignKey(name = "FK__REPOSITORY__REPO_TYPE__ID"))
+  RepoType repoType;
 
   @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
   @NotAudited
@@ -194,6 +205,14 @@ public class Repository extends AuditableEntity {
 
   public void setAssetIntegrityCheckers(Set<AssetIntegrityChecker> assetIntegrityCheckers) {
     this.assetIntegrityCheckers = assetIntegrityCheckers;
+  }
+
+  public RepoType getRepoType() {
+    return repoType;
+  }
+
+  public void setRepoType(RepoType repoType) {
+    this.repoType = repoType;
   }
 
   public Boolean getDeleted() {

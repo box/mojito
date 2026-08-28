@@ -35,7 +35,7 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 - AI instructions about placeholders, plurals, and markup are duplicated per repo (or missing).
 - Integrity checker configuration is duplicated per repo for the same file formats.
 
-**Repo types** are named shared configs (e.g. `React`, `Android`) that repositories will later be assigned to. Multiple repos of the same kind inherit the same AI prompt layer and the same integrity-checker defaults.
+**Repo types** are named shared configs (e.g. `React`, `Android`) that repositories can optionally be assigned to. Multiple repos of the same kind will later inherit the same AI prompt layer and integrity-checker defaults.
 
 ##### Scope of this server slice
 
@@ -43,20 +43,21 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 
 - Persist `RepoType` and its integrity checkers.
 - REST CRUD under `/api/repo-types` (`RepoTypeWS`).
+- Persist an optional `repository.repo_type_id`, expose the nested type as `id` + `name`, and support assign / clear through the repository REST API.
+- Support `--repo-type` on `repo-create` / `repo-update`, `--clear-repo-type` on `repo-update`, and display the assignment in `repo-view`.
+- Refuse to delete a repo type while any repository references it.
 - Documented contracts below (implementation and tests follow this doc).
 
 **Out of scope (follow-up work)**
 
-| Concern | Notes                                                   |
-|--------|---------------------------------------------------------|
-| Assign / clear a type on a repository | Add optional FK from `repository` to `repo_type`        |
-| CLI commands | See [CLI → Repo Types](#repo-types-1)                   |
-| Prompt / integrity UI | See [Frontend → Repo Types](#repo-types-2)              |
-| Layered prompt assembly (global → type → repo → request) | Prompt builder wiring type `aiPrompt` into AI runs      |
-| Runtime superset of type + repo checkers on push/import | Union by `(assetExtension, integrityCheckerType)`       |
+| Concern | Notes |
+|--------|--------|
+| Prompt / integrity UI | See [Frontend → Repo Types](#repo-types-2) |
+| Layered prompt assembly (global → type → repo → request) | Prompt builder wiring type `aiPrompt` into AI runs |
+| Runtime superset of type + repo checkers on push/import | Union by `(assetExtension, integrityCheckerType)` |
 | Prompt content per stack | Authoring React/Android/etc. prompts in production data |
 
-Until repositories can reference a type, deleting a type is an unconditional hard delete (no “type in use” check).
+Deleting a type is a hard delete only when no repository references it. An in-use type returns HTTP 409 until all assignments are cleared.
 
 ##### Architectural decisions
 
@@ -119,11 +120,11 @@ Until repositories can reference a type, deleting a type is an unconditional har
 
 **Why:** Fixed in the contract before implementation so REST and service behave the same way. Omitted JSON fields deserialize to `null` and therefore leave values unchanged.
 
-###### 7. Hard delete for now
+###### 7. Guarded hard delete
 
-**Decision:** `deleteRepoType` removes the type and all of its checker rows.
+**Decision:** `deleteRepoType` removes the type and all of its checker rows only when no repository references it.
 
-**Why:** No FK from `repository` yet. When repositories gain an optional `repo_type_id`, delete must gain a “type in use” guard (refuse or require clearing assignments first).
+**Why:** `repository.repo_type_id` uses `ON DELETE RESTRICT` as a database backstop. The service checks first so callers receive a clear HTTP 409 instead of a raw FK error.
 
 ###### 8. Package layout (server)
 
@@ -145,7 +146,7 @@ Rules (same idea as repository names):
 - Required: non-empty after trim
 - Trim leading/trailing whitespace before uniqueness and persist (`"React "` → `"React"`)
 - Max 255 characters
-- Unique, **case-sensitive** (`React` and `react` are different types; the DB uses `utf8_bin`, same as repository names)
+- Unique, **case-sensitive** (`React` and `react` are different types). Columns inherit the database collation from `CREATE DATABASE ... COLLATE 'utf8mb4_bin'` / `'utf8_bin'` (see install docs); there is no column-level `COLLATE` in Flyway.
 - No required charset, PascalCase rule, or separator
 
 ##### Data model
@@ -163,6 +164,9 @@ repo_type_integrity_checker
   asset_extension
   integrity_checker_type   (enum string, same values as asset_integrity_checker)
   PRIMARY KEY (repo_type_id, asset_extension, integrity_checker_type)
+
+repository
+  repo_type_id      nullable FK → repo_type.id (ON DELETE RESTRICT)
 ```
 
 Uniqueness of a checker on a type is that primary key (JPA `UK__REPO_TYPE_INTEGRITY_CHECKER` on
@@ -198,7 +202,7 @@ Base path: `/api/repo-types`
 | GET | `/?name=` | 200 + list (0 or 1); **not** 404 if unknown name | — |
 | POST | `/` | 201 + body | 400 invalid name/description/checkers; 403 USER; 409 duplicate name |
 | PATCH | `/{id}` | 200 + body | 400 invalid name/description/checkers; 403 USER; 404 missing; 409 name conflict |
-| DELETE | `/{id}` | 204 (void) | 403 USER; 404 missing |
+| DELETE | `/{id}` | 204 (void) | 403 USER; 404 missing; 409 assigned to a repository |
 
 **Error bodies**
 
@@ -209,6 +213,16 @@ Base path: `/api/repo-types`
   `name must be at most 255 characters`, `description must be at most 255 characters`,
   `integrity checker must not be null`, `assetExtension is required`,
   `integrityCheckerType is required`). There is no 400 for over-length `aiPrompt`.
+- 409 in-use delete: `RepoType with name [<name>] is assigned to one or more repositories`.
+
+**Repository assignment contract**
+
+- Repository POST/PATCH accepts `repoType: { "name": "<exact name>" }`; surrounding whitespace is trimmed, while blank or unknown names return 400.
+- Name lookup is exact and case-sensitive after trimming. `react` does not select `React`, and `NULL` is an ordinary name.
+- PATCH with no `repoType` leaves the assignment unchanged.
+- PATCH with `clearRepoType=true` clears it; sending both a type and the clear parameter returns 400.
+- Repository responses expose only nested repo-type `id` and `name`.
+- Soft-deleting a repository clears its assignment, so hidden deleted rows cannot permanently block type deletion; Envers retains the prior FK in history.
 
 **Create body**
 
@@ -288,8 +302,8 @@ Implementations must match this section and the JavaDoc on `RepoTypeService` / `
 ###### `deleteRepoType`
 
 - Missing id → `RepoTypeWithIdNotFoundException`.
-- Deletes all checker rows for the type, then the type.
-- No soft-delete; no “in use” check until repositories can reference a type.
+- If any repository references the type, throws `RepoTypeInUseException` (HTTP 409).
+- Otherwise deletes all checker rows for the type, then the type. There is no soft-delete.
 
 ###### `updateIntegrityCheckers`
 
@@ -330,7 +344,16 @@ JCommander commands that talk to a running Mojito server through `restclient`.
 
 #### Repo Types
 
-Name/description CLI for repo types. Commands are JCommander `Command` beans in `cli/.../command/`, same pattern as `repo-create` / `repo-update` / `repo-delete` / `repo-view`. They talk to the server only through `RepoTypeClient` (never through `RepoTypeService` in production code). Integration tests extend `CLITestBase` and then assert via `RepoTypeRepository` / `RepoTypeService`.
+Name/description CLI for repo types, plus optional assignment on repository commands. Catalog commands are JCommander `Command` beans in `cli/.../command/`, same pattern as `repo-create` / `repo-update` / `repo-delete` / `repo-view`. They talk to the server only through `RepoTypeClient` (never through `RepoTypeService` in production code). Integration tests extend `CLITestBase` and then assert via `RepoTypeRepository` / `RepoTypeService`.
+
+Repository commands manage the optional assignment by exact, case-sensitive type name:
+
+- `repo-create --repo-type <name>` creates a typed repository; omitting the flag creates an untyped repository.
+- `repo-update --repo-type <name>` assigns or changes the type.
+- `repo-update --clear-repo-type` clears it. Omitting both flags preserves the current assignment; the two flags are mutually exclusive.
+- `repo-view` prints `Repository type --> <name>` only when a type is assigned.
+
+`NULL` has no special meaning: `--repo-type NULL` looks up a type literally named `NULL`. Flag constants: `Param.REPOSITORY_TYPE_*` and `Param.CLEAR_REPOSITORY_TYPE_*`.
 
 **In scope**
 
@@ -376,7 +399,7 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 - Resolves by name, then `deleteRepoType(id)`. HTTP 404 on that call → same mapping as create (lookup-then-delete race is a short `CommandException`). HTTP 403 is the same session-retry dump as create (USER mutate never arrives as `HttpClientErrorException`).
 - Success prints `deleted --> repo type name: <name>`.
-- Until repositories can reference a type, delete is an unconditional hard delete (same as the server).
+- If any repository still references the type, the server returns HTTP 409 and the CLI maps it like other 409s.
 
 ##### View
 
@@ -414,6 +437,8 @@ Skeleton client and DTOs mirror the server contract in [Server → Repo Types](#
 | `rest/client/RepoTypeClient.java` | HTTP client; entity path `repo-types` → `/api/repo-types` |
 | `rest/entity/RepoType.java` | DTO mirror of server `RepoType` JSON |
 | `rest/entity/RepoTypeIntegrityChecker.java` | DTO for `integrityCheckers[]` elements |
+| `rest/client/RepositoryClient.java` | Sends the nested repo-type name and the explicit `clearRepoType=true` PATCH query parameter |
+| `rest/entity/Repository.java` | Includes the optional nested `repoType` (`id` + `name`) |
 
 `RepoTypeClient` methods (get by id, list, create, update, delete) correspond 1:1 with `RepoTypeWS`. Behavior must match the [REST API contract](#rest-api-contract) above (including 404 / 409 mapping via HTTP errors).
 
