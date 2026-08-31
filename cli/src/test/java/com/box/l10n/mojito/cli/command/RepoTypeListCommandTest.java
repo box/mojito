@@ -99,8 +99,7 @@ public class RepoTypeListCommandTest extends CLITestBase {
 
   static String typeBlock(String output, Long id) {
     Pattern start =
-        Pattern.compile(
-            "^" + Pattern.quote("Repo type id --> " + id) + "$", Pattern.MULTILINE);
+        Pattern.compile("^" + Pattern.quote("Repo type id --> " + id) + "$", Pattern.MULTILINE);
     Matcher matcher = start.matcher(output);
     assertTrue("missing output block for repo type id " + id, matcher.find());
     int from = matcher.start();
