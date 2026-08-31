@@ -95,6 +95,12 @@ public class Param {
           + " (LF or CRLF) are not stored; newlines inside the file are kept. On update, an empty"
           + " file clears the prompt";
 
+  public static final String REPO_TYPE_LIST_VERBOSE_LONG = "--verbose";
+  public static final String REPO_TYPE_LIST_VERBOSE_SHORT = "-vb";
+  public static final String REPO_TYPE_LIST_VERBOSE_DESCRIPTION =
+      "Print the full AI prompt body for each type (same as repo-type-view). Default prints"
+          + " set when the prompt is non-empty (including whitespace-only), not the body";
+
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
   public static final String REPOSITORY_LOCALES_DESCRIPTION =

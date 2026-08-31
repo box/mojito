@@ -334,13 +334,14 @@ Name, description, and AI-prompt CLI for repo types. Commands are JCommander `Co
 
 **In scope**
 
-- `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`
+- `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`, `repo-type-list`
 - Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`, or `--ai-prompt-file` / `-apf`)
+- Listing every type in one invocation (`repo-type-list`); exact-name view stays on `repo-type-view`
 
 **Out of scope (follow-up)**
 
 - CLI for `integrityCheckers` (separate story)
-- Listing all types (no `repo-type-list`; view is by exact name)
+- Pagination or filtering on the list beyond “all types, ordered by name”
 
 ##### Commands
 
@@ -350,12 +351,13 @@ Name, description, and AI-prompt CLI for repo types. Commands are JCommander `Co
 | `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf` |
 | `repo-type-delete` | DELETE `/api/repo-types/{id}` | `--name` / `-n` | — |
 | `repo-type-view` | GET list filtered by name | `--name` / `-n` | — |
+| `repo-type-list` | GET `/api/repo-types` with no `name` filter | — | `--verbose` / `-vb` |
 
 Flag constants live in `cli/.../command/param/Param.java` (`REPO_TYPE_*`). Help text comes from those descriptions.
 
 ##### Lookup by name
 
-Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName`. A blank `-n` is rejected with `Repo type name is required` before calling the API — the server treats a blank `?name=` as list-all, so a single existing type would otherwise be selected. Non-blank names are trimmed and looked up with `RepoTypeClient.getRepoTypes(name)`. If the list size is not exactly `1`, the command fails with `Repo type with name [<name>] is not found` (`CommandException`). There is no dedicated get-by-name client method.
+Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName`. A blank `-n` is rejected with `Repo type name is required` before calling the API — the server treats a blank `?name=` as list-all, so a single existing type would otherwise be selected. Non-blank names are trimmed and looked up with `RepoTypeClient.getRepoTypes(name)`. If the list size is not exactly `1`, the command fails with `Repo type with name [<name>] is not found` (`CommandException`). There is no dedicated get-by-name client method. `repo-type-list` does not take `-n` and does not use this helper. Optional `--verbose` / `-vb` only changes list output (see [List](#list)).
 
 ##### Create
 
@@ -391,6 +393,22 @@ Prints four fields for an existing type:
 - `Description --> <description>` (`null` description prints as empty)
 - `AI prompt --> <aiPrompt>` (`null` prompt prints as empty)
 
+##### List
+
+`mojito repo-type-list` (no flags) calls `RepoTypeClient.getRepoTypes(null)` — GET `/api/repo-types` with no `name` query. Help (`-h` / `--help`) describes it as `List all repo types`. There is no new REST endpoint. `--verbose` / `-vb` is a CLI print switch only; the same GET is used either way. The short form is `-vb`, not `-v` (`-v` is CLI `--version`).
+
+Prints one block per type, same labels as view, in the server’s name-ascending order:
+
+- `Repo type id --> <id>`
+- `Name --> <name>`
+- `Description --> <description>` (`null` description prints as empty)
+- Default (no `--verbose`): `AI prompt --> set` when the prompt is **non-empty** (`StringUtils.isNotEmpty`; whitespace-only counts as set); otherwise `AI prompt -->` with an empty value. The prompt **body** is not printed.
+- `--verbose` / `-vb`: `AI prompt --> <aiPrompt>` (`null` prompt prints as empty), same as `repo-type-view`. Use this when you need the body without calling view per type.
+
+HTTP errors on this GET are not mapped (same as `repo-type-view`). `CommandHelper.repoTypeClientError` stays on create/update/delete. A successful empty list is HTTP 200 `[]` and prints `No repo types found` (not an error). Other failures dump via `L10nJCommander`.
+
+Types already in the catalog are not filtered or paginated. The empty-list print is covered by a stubbed-client unit test (`RepoTypeListCommandClientTest`) that asserts captured console text; list-all (including whitespace-only prompt → `set`) and `--verbose` go through `CLITestBase` / HTTP. Unknown-name `repo-type-view` stays covered by `RepoTypeViewCommandTest`.
+
 ##### Package layout (CLI)
 
 | File | Role |
@@ -399,8 +417,9 @@ Prints four fields for an existing type:
 | `cli/.../command/RepoTypeUpdateCommand.java` | Update |
 | `cli/.../command/RepoTypeDeleteCommand.java` | Delete |
 | `cli/.../command/RepoTypeViewCommand.java` | View |
-| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` / `--ai-prompt` / `--ai-prompt-file` constants |
-| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt` including `--ai-prompt-file`, UTF-8 BOM and one trailing newline stripped from files, mutual exclusion and missing file, description/rename/prompt-only updates must not clear checkers) |
+| `cli/.../command/RepoTypeListCommand.java` | List all |
+| `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` / `--ai-prompt` / `--ai-prompt-file` / `--verbose` (`-vb`) constants |
+| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt` including `--ai-prompt-file`, UTF-8 BOM and one trailing newline stripped from files, mutual exclusion and missing file, description/rename/prompt-only updates must not clear checkers, `repo-type-list` list-all with per-type blocks including whitespace-only prompt → `set` / `--verbose` including empty prompt / help). Empty-list print: `RepoTypeListCommandClientTest` (stubbed `RepoTypeClient`, captured console text, not HTTP). |
 
 ---
 

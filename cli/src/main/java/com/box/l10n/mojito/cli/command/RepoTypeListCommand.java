@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 
 /**
- * Lists every repo type. Default prints id, name, description, and whether an AI prompt is set.
- * {@code --verbose} prints the prompt body (same as {@code repo-type-view}).
+ * Lists every repo type. Default prints id, name, description, and {@code set} when the AI prompt
+ * is non-empty (body omitted). {@code --verbose} / {@code -vb} prints the prompt body (same as
+ * {@code repo-type-view}).
  */
 @Component
 @Scope("prototype")
@@ -34,9 +34,8 @@ public class RepoTypeListCommand extends Command {
   @Autowired RepoTypeClient repoTypeClient;
 
   @Parameter(
-      names = {Param.REPO_TYPE_LIST_VERBOSE_LONG},
+      names = {Param.REPO_TYPE_LIST_VERBOSE_LONG, Param.REPO_TYPE_LIST_VERBOSE_SHORT},
       arity = 0,
-      required = false,
       description = Param.REPO_TYPE_LIST_VERBOSE_DESCRIPTION)
   boolean verboseParam = false;
 
@@ -44,17 +43,13 @@ public class RepoTypeListCommand extends Command {
   protected void execute() throws CommandException {
     consoleWriter.a("List repo types").println();
 
-    try {
-      List<RepoType> repoTypes = repoTypeClient.getRepoTypes(null);
-      if (repoTypes.isEmpty()) {
-        consoleWriter.newLine().a("No repo types found").println();
-        return;
-      }
-      for (RepoType repoType : repoTypes) {
-        printRepoType(repoType);
-      }
-    } catch (HttpClientErrorException ex) {
-      throw CommandHelper.repoTypeClientError(ex);
+    List<RepoType> repoTypes = repoTypeClient.getRepoTypes(null);
+    if (repoTypes.isEmpty()) {
+      consoleWriter.newLine().a("No repo types found").println();
+      return;
+    }
+    for (RepoType repoType : repoTypes) {
+      printRepoType(repoType);
     }
   }
 
@@ -71,12 +66,13 @@ public class RepoTypeListCommand extends Command {
     consoleWriter.a("Name --> ").fg(Ansi.Color.MAGENTA).a(repoType.getName()).println();
     consoleWriter.a("Description --> ").fg(Ansi.Color.MAGENTA).a(description).println();
     consoleWriter.a("AI prompt --> ").fg(Ansi.Color.MAGENTA).a(aiPrompt).println();
+    consoleWriter.println();
   }
 
   String aiPromptLine(String aiPrompt) {
     if (verboseParam) {
       return aiPrompt != null ? aiPrompt : "";
     }
-    return StringUtils.isNotBlank(aiPrompt) ? "set" : "";
+    return StringUtils.isNotEmpty(aiPrompt) ? "set" : "";
   }
 }

@@ -2,16 +2,12 @@ package com.box.l10n.mojito.cli.command;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
-import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.entity.RepoType;
-import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
-import java.util.Collections;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,10 +23,12 @@ public class RepoTypeListCommandTest extends CLITestBase {
   @Test
   public void testListAllRepoTypes() throws Exception {
     String nameApple = testIdWatcher.getEntityName("Apple");
+    String nameSpace = testIdWatcher.getEntityName("Space");
     String nameZebra = testIdWatcher.getEntityName("Zebra");
-    String prompt = "You are a React i18n expert — keep this body off the list";
+    String prompt = "compact-omit-body-" + nameApple;
 
     RepoType apple = repoTypeService.createRepoType(nameApple, "first type", prompt, null);
+    RepoType space = repoTypeService.createRepoType(nameSpace, "whitespace prompt", " ", null);
     RepoType zebra = repoTypeService.createRepoType(nameZebra, null, null, null);
 
     getL10nJCommander().run("repo-type-list");
@@ -39,39 +37,30 @@ public class RepoTypeListCommandTest extends CLITestBase {
     assertTrue(output.contains("List repo types"));
 
     int appleIdx = labeledLineIndex(output, "Name --> ", nameApple);
+    int spaceIdx = labeledLineIndex(output, "Name --> ", nameSpace);
     int zebraIdx = labeledLineIndex(output, "Name --> ", nameZebra);
-    assertTrue("Listed types must be ordered by name", appleIdx < zebraIdx);
+    assertTrue("Listed types must be ordered by name", appleIdx < spaceIdx && spaceIdx < zebraIdx);
 
-    assertLabeledLine(output, "Repo type id --> ", String.valueOf(apple.getId()));
-    assertLabeledLine(output, "Description --> ", "first type");
-    assertLabeledLine(output, "AI prompt --> ", "set");
-    assertLabeledLine(output, "Repo type id --> ", String.valueOf(zebra.getId()));
+    String appleBlock = typeBlock(output, apple.getId());
+    assertLabeledLine(appleBlock, "Name --> ", nameApple);
+    assertLabeledLine(appleBlock, "Description --> ", "first type");
+    assertLabeledLine(appleBlock, "AI prompt --> ", "set");
+    assertFalse(
+        "Default list must not dump this type's AI prompt body (use --verbose)",
+        appleBlock.contains(prompt));
+
+    String spaceBlock = typeBlock(output, space.getId());
+    assertLabeledLine(spaceBlock, "Name --> ", nameSpace);
+    assertLabeledLine(spaceBlock, "AI prompt --> ", "set");
+
+    String zebraBlock = typeBlock(output, zebra.getId());
+    assertLabeledLine(zebraBlock, "Name --> ", nameZebra);
     assertTrue(
         "Null description must print an empty value after the label",
-        Pattern.compile("Description --> $", Pattern.MULTILINE).matcher(output).find());
+        Pattern.compile("Description --> $", Pattern.MULTILINE).matcher(zebraBlock).find());
     assertTrue(
         "Empty AI prompt must print an empty value after the label, not \"set\"",
-        Pattern.compile("AI prompt --> $", Pattern.MULTILINE).matcher(output).find());
-    assertFalse(
-        "List must not dump the AI prompt body; use repo-type-view for that",
-        output.contains(prompt));
-  }
-
-  @Test
-  public void testListEmptyCatalog() throws Exception {
-    RepoTypeListCommand command = new RepoTypeListCommand();
-    RepoTypeClient repoTypeClient = mock(RepoTypeClient.class);
-    when(repoTypeClient.getRepoTypes(null)).thenReturn(Collections.emptyList());
-    command.repoTypeClient = repoTypeClient;
-    command.consoleWriter =
-        new ConsoleWriter(false, ConsoleWriter.OutputType.ANSI_CONSOLE_AND_LOGGER);
-
-    command.execute();
-
-    String output = outputCapture.toString();
-    assertTrue(output.contains("List repo types"));
-    assertTrue(output.contains("No repo types found"));
-    assertFalse(output.contains("Repo type id -->"));
+        Pattern.compile("AI prompt --> $", Pattern.MULTILINE).matcher(zebraBlock).find());
   }
 
   @Test
@@ -82,44 +71,48 @@ public class RepoTypeListCommandTest extends CLITestBase {
     assertTrue("CLI help must document list-all usage", output.contains("List all repo types"));
     assertTrue(output.contains("repo-type-list"));
     assertTrue(output.contains(Param.REPO_TYPE_LIST_VERBOSE_LONG));
+    assertTrue(output.contains(Param.REPO_TYPE_LIST_VERBOSE_SHORT));
   }
 
   @Test
   public void testListVerbosePrintsAiPromptBody() throws Exception {
     String name = testIdWatcher.getEntityName("WithPrompt");
-    String prompt = "You are a React i18n expert";
+    String emptyName = testIdWatcher.getEntityName("EmptyPrompt");
+    String prompt = "verbose-body-" + name;
 
-    repoTypeService.createRepoType(name, "desc", prompt, null);
+    RepoType created = repoTypeService.createRepoType(name, "desc", prompt, null);
+    RepoType empty = repoTypeService.createRepoType(emptyName, "no prompt", null, null);
 
     getL10nJCommander().run("repo-type-list", Param.REPO_TYPE_LIST_VERBOSE_LONG);
 
     String output = outputCapture.toString();
-    assertLabeledLine(output, "Name --> ", name);
-    assertLabeledLine(output, "AI prompt --> ", prompt);
-    assertFalse(
-        "Verbose must print the prompt body, not the compact \"set\" marker",
-        Pattern.compile("AI prompt --> set$", Pattern.MULTILINE).matcher(output).find());
+    String block = typeBlock(output, created.getId());
+    assertLabeledLine(block, "Name --> ", name);
+    assertLabeledLine(block, "AI prompt --> ", prompt);
+
+    String emptyBlock = typeBlock(output, empty.getId());
+    assertLabeledLine(emptyBlock, "Name --> ", emptyName);
+    assertTrue(
+        "Verbose null prompt must print an empty value, not the string \"null\"",
+        Pattern.compile("AI prompt --> $", Pattern.MULTILINE).matcher(emptyBlock).find());
   }
 
-  @Test
-  public void testViewUnknownNameStillFails() throws Exception {
-    String name = testIdWatcher.getEntityName("OnlyForList");
-    repoTypeService.createRepoType(name, "listed type", null, null);
-
-    String missing = testIdWatcher.getEntityName("missing");
-    getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, missing);
-
-    String output = outputCapture.toString();
-    assertTrue(
-        "Exact-name view must still fail when the name is unknown",
-        output.contains("Repo type with name [" + missing + "] is not found"));
-    assertFalse(output.contains("List repo types"));
+  static String typeBlock(String output, Long id) {
+    Pattern start =
+        Pattern.compile(
+            "^" + Pattern.quote("Repo type id --> " + id) + "$", Pattern.MULTILINE);
+    Matcher matcher = start.matcher(output);
+    assertTrue("missing output block for repo type id " + id, matcher.find());
+    int from = matcher.start();
+    Matcher next = Pattern.compile("^Repo type id --> ", Pattern.MULTILINE).matcher(output);
+    int end = next.find(matcher.end()) ? next.start() : output.length();
+    return output.substring(from, end);
   }
 
   private static int labeledLineIndex(String output, String label, String value) {
     Pattern pattern =
         Pattern.compile(Pattern.quote(label) + Pattern.quote(value) + "$", Pattern.MULTILINE);
-    java.util.regex.Matcher matcher = pattern.matcher(output);
+    Matcher matcher = pattern.matcher(output);
     assertTrue(label + " is missing or incorrect from output", matcher.find());
     return matcher.start();
   }
