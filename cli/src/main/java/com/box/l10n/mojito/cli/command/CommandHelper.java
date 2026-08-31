@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.Period;
 import java.time.ZonedDateTime;
@@ -120,6 +121,49 @@ public class CommandHelper {
       throw new CommandException("Repo type with name [" + name + "] is not found");
     }
     return repoTypes.get(0);
+  }
+
+  /**
+   * Resolves the type-layer AI prompt from either {@code --ai-prompt} or {@code --ai-prompt-file}.
+   * Returns {@code null} when neither is set (omit on the wire / leave unchanged on update). An
+   * empty string from {@code --ai-prompt ""} or a file that is empty after UTF-8 text normalization
+   * is a real value (clear on update).
+   */
+  public static String resolveRepoTypeAiPrompt(String aiPromptParam, String aiPromptFileParam)
+      throws CommandException {
+    if (aiPromptParam != null && aiPromptFileParam != null) {
+      throw new CommandException("Cannot specify both --ai-prompt and --ai-prompt-file");
+    }
+    if (aiPromptFileParam != null) {
+      return readRepoTypeAiPromptFile(aiPromptFileParam);
+    }
+    return aiPromptParam;
+  }
+
+  static String readRepoTypeAiPromptFile(String path) throws CommandException {
+    try {
+      return normalizeRepoTypeAiPromptFileContents(
+          java.nio.file.Files.readString(Path.of(path), StandardCharsets.UTF_8));
+    } catch (IOException | InvalidPathException e) {
+      throw new CommandException(
+          "Failed to read AI prompt file: " + path + ": " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * UTF-8 plain-text file to prompt: drop a leading BOM and one trailing newline ({@code \n} or
+   * {@code \r\n}). Extension is not checked. Newlines inside the file are kept so {@code
+   * --ai-prompt hello} and a file {@code hello\n} store the same value.
+   */
+  static String normalizeRepoTypeAiPromptFileContents(String raw) {
+    String text = raw.startsWith("\uFEFF") ? raw.substring(1) : raw;
+    if (text.endsWith("\r\n")) {
+      return text.substring(0, text.length() - 2);
+    }
+    if (text.endsWith("\n")) {
+      return text.substring(0, text.length() - 1);
+    }
+    return text;
   }
 
   /**

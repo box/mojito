@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/** Views id, name, and description of an existing repo type. */
+/** Views id, name, description, and AI prompt of an existing repo type. */
 @Component
 @Scope("prototype")
 @Parameters(
@@ -39,6 +39,7 @@ public class RepoTypeViewCommand extends Command {
 
     RepoType repoType = commandHelper.findRepoTypeByName(nameParam);
     String description = repoType.getDescription() != null ? repoType.getDescription() : "";
+    String aiPrompt = repoType.getAiPrompt() != null ? repoType.getAiPrompt() : "";
 
     consoleWriter
         .newLine()
@@ -48,6 +49,7 @@ public class RepoTypeViewCommand extends Command {
         .println();
     consoleWriter.a("Name --> ").fg(Ansi.Color.MAGENTA).a(repoType.getName()).println();
     consoleWriter.a("Description --> ").fg(Ansi.Color.MAGENTA).a(description).println();
+    consoleWriter.a("AI prompt --> ").fg(Ansi.Color.MAGENTA).a(aiPrompt).println();
     consoleWriter.println();
   }
 }

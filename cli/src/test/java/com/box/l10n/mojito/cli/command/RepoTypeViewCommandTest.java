@@ -29,14 +29,26 @@ public class RepoTypeViewCommandTest extends CLITestBase {
     getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, name);
 
     String output = outputCapture.toString();
-    assertTrue(
-        "Repo type id is missing or incorrect from output",
-        output.contains("Repo type id --> " + created.getId()));
-    assertTrue(
-        "Repo type name is missing or incorrect from output", output.contains("Name --> " + name));
-    assertTrue(
-        "Repo type description is missing or incorrect from output",
-        output.contains("Description --> " + description));
+    assertLabeledLine(output, "Repo type id --> ", String.valueOf(created.getId()));
+    assertLabeledLine(output, "Name --> ", name);
+    assertLabeledLine(output, "Description --> ", description);
+    assertLabeledLine(output, "AI prompt --> ", "");
+    assertFalse(
+        "Empty AI prompt must not print the string \"null\"",
+        output.contains("AI prompt --> null"));
+  }
+
+  @Test
+  public void testViewRepoTypeWithAiPrompt() throws Exception {
+    String name = testIdWatcher.getEntityName("WithPrompt");
+    String prompt = "You are a React i18n expert";
+
+    repoTypeService.createRepoType(name, "desc", prompt, null);
+
+    getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, name);
+
+    String output = outputCapture.toString();
+    assertLabeledLine(output, "AI prompt --> ", prompt);
   }
 
   @Test
@@ -54,6 +66,12 @@ public class RepoTypeViewCommandTest extends CLITestBase {
     assertTrue(
         "Null description must print an empty value after the label",
         Pattern.compile("Description --> $", Pattern.MULTILINE).matcher(output).find());
+    assertFalse(
+        "Empty AI prompt must not print the string \"null\"",
+        output.contains("AI prompt --> null"));
+    assertTrue(
+        "Empty AI prompt must print an empty value after the label",
+        Pattern.compile("AI prompt --> $", Pattern.MULTILINE).matcher(output).find());
   }
 
   @Test
@@ -84,6 +102,18 @@ public class RepoTypeViewCommandTest extends CLITestBase {
         output.contains("is not found"));
     assertFalse(
         "Must not print the type as if lookup succeeded",
-        output.contains("Repo type id --> " + created.getId()));
+        Pattern.compile(
+                "Repo type id --> " + Pattern.quote(String.valueOf(created.getId())) + "$",
+                Pattern.MULTILINE)
+            .matcher(output)
+            .find());
+  }
+
+  private static void assertLabeledLine(String output, String label, String value) {
+    assertTrue(
+        label + " is missing or incorrect from output",
+        Pattern.compile(Pattern.quote(label) + Pattern.quote(value) + "$", Pattern.MULTILINE)
+            .matcher(output)
+            .find());
   }
 }

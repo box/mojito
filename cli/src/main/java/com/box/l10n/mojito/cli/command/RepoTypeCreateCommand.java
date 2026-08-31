@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
-/** Creates a repo type with a name and optional description. */
+/** Creates a repo type with a required name and optional description and AI prompt. */
 @Component
 @Scope("prototype")
 @Parameters(
@@ -42,6 +42,20 @@ public class RepoTypeCreateCommand extends Command {
       description = Param.REPO_TYPE_DESCRIPTION_DESCRIPTION)
   String descriptionParam;
 
+  @Parameter(
+      names = {Param.REPO_TYPE_AI_PROMPT_LONG, Param.REPO_TYPE_AI_PROMPT_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.REPO_TYPE_AI_PROMPT_DESCRIPTION)
+  String aiPromptParam;
+
+  @Parameter(
+      names = {Param.REPO_TYPE_AI_PROMPT_FILE_LONG, Param.REPO_TYPE_AI_PROMPT_FILE_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.REPO_TYPE_AI_PROMPT_FILE_DESCRIPTION)
+  String aiPromptFileParam;
+
   @Override
   protected void execute() throws CommandException {
     consoleWriter.a("Create repo type: ").fg(Ansi.Color.CYAN).a(nameParam).println();
@@ -50,6 +64,7 @@ public class RepoTypeCreateCommand extends Command {
       RepoType toCreate = new RepoType();
       toCreate.setName(nameParam);
       toCreate.setDescription(descriptionParam);
+      toCreate.setAiPrompt(CommandHelper.resolveRepoTypeAiPrompt(aiPromptParam, aiPromptFileParam));
 
       RepoType created = repoTypeClient.createRepoType(toCreate);
       consoleWriter
