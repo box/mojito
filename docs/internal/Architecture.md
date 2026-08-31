@@ -407,7 +407,7 @@ Prints one block per type, same labels as view, in the server’s name-ascending
 
 HTTP errors on this GET are not mapped (same as `repo-type-view`). `CommandHelper.repoTypeClientError` stays on create/update/delete. A successful empty list is HTTP 200 `[]` and prints `No repo types found` (not an error). Other failures dump via `L10nJCommander`.
 
-Types already in the catalog are not filtered or paginated. The empty-list print is covered by a stubbed-client unit test (`RepoTypeListCommandClientTest`) that asserts captured console text; list-all (including whitespace-only prompt → `set`) and `--verbose` go through `CLITestBase` / HTTP. Unknown-name `repo-type-view` stays covered by `RepoTypeViewCommandTest`.
+Types already in the catalog are not filtered or paginated. The empty-list print is covered by a stubbed-client unit test (`RepoTypeListEmptyCommandTest`) that asserts captured console text; list-all (including whitespace-only prompt → `set`) and `--verbose` go through `CLITestBase` / HTTP. Unknown-name `repo-type-view` stays covered by `RepoTypeViewCommandTest`.
 
 ##### Package layout (CLI)
 
@@ -419,7 +419,7 @@ Types already in the catalog are not filtered or paginated. The empty-list print
 | `cli/.../command/RepoTypeViewCommand.java` | View |
 | `cli/.../command/RepoTypeListCommand.java` | List all |
 | `cli/.../command/param/Param.java` | `--name` / `--new-name` / `--description` / `--ai-prompt` / `--ai-prompt-file` / `--verbose` (`-vb`) constants |
-| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt` including `--ai-prompt-file`, UTF-8 BOM and one trailing newline stripped from files, mutual exclusion and missing file, description/rename/prompt-only updates must not clear checkers, `repo-type-list` list-all with per-type blocks including whitespace-only prompt → `set` / `--verbose` including empty prompt / help). Empty-list print: `RepoTypeListCommandClientTest` (stubbed `RepoTypeClient`, captured console text, not HTTP). |
+| `cli/.../command/RepoType*CommandTest.java` | `CLITestBase` happy path and error cases (duplicate name, unknown type, update with no optional flags, create/update/clear/view `aiPrompt` including `--ai-prompt-file`, UTF-8 BOM and one trailing newline stripped from files, mutual exclusion and missing file, description/rename/prompt-only updates must not clear checkers, `repo-type-list` list-all with per-type blocks including whitespace-only prompt → `set` / `--verbose` including empty prompt / help). Empty-list print: `RepoTypeListEmptyCommandTest` (stubbed `RepoTypeClient`, captured console text, not HTTP). |
 
 ---
 

@@ -17,7 +17,7 @@ import org.springframework.boot.test.system.OutputCaptureRule;
  * {@code repo-type-list} {@code execute()} against a stubbed {@link RepoTypeClient} (no JCommander,
  * no HTTP). Empty list print only; HTTP errors are not mapped (same as {@code repo-type-view}).
  */
-public class RepoTypeListCommandClientTest {
+public class RepoTypeListEmptyCommandTest {
 
   @Rule public OutputCaptureRule outputCapture = new OutputCaptureRule();
 
