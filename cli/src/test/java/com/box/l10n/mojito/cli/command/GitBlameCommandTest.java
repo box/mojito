@@ -67,12 +67,7 @@ public class GitBlameCommandTest extends CLITestBase {
     }
 
     getL10nJCommander()
-        .run(
-            "git-blame",
-            "-r",
-            repository.getName(),
-            "-s",
-            sourceRepo.directory.getAbsolutePath());
+        .run("git-blame", "-r", repository.getName(), "-s", sourceRepo.directory.getAbsolutePath());
 
     gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
     verifyGitBlame(gitBlameWithUsages, sourceRepo.gitBlame);
