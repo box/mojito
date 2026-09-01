@@ -25,8 +25,7 @@ public class IntegrityCheckerTypeTest {
   @Test
   public void everyTypeDeserializesInACheckerPayload() throws Exception {
     for (IntegrityCheckerType type : IntegrityCheckerType.values()) {
-      String json =
-          "{\"assetExtension\":\"ftl\",\"integrityCheckerType\":\"" + type.name() + "\"}";
+      String json = "{\"assetExtension\":\"ftl\",\"integrityCheckerType\":\"" + type.name() + "\"}";
       IntegrityChecker checker = objectMapper.readValue(json, IntegrityChecker.class);
       assertEquals(type.name(), "ftl", checker.getAssetExtension());
       assertEquals(type.name(), type, checker.getIntegrityCheckerType());
