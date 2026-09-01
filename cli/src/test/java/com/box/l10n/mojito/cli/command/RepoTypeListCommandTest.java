@@ -44,14 +44,14 @@ public class RepoTypeListCommandTest extends CLITestBase {
     String appleBlock = typeBlock(output, apple.getId());
     assertLabeledLine(appleBlock, "Name --> ", nameApple);
     assertLabeledLine(appleBlock, "Description --> ", "first type");
-    assertLabeledLine(appleBlock, "AI prompt --> ", "set");
+    assertLabeledLine(appleBlock, "AI prompt --> ", "contains a value");
     assertFalse(
         "Default list must not dump this type's AI prompt body (use --verbose)",
         appleBlock.contains(prompt));
 
     String spaceBlock = typeBlock(output, space.getId());
     assertLabeledLine(spaceBlock, "Name --> ", nameSpace);
-    assertLabeledLine(spaceBlock, "AI prompt --> ", "set");
+    assertLabeledLine(spaceBlock, "AI prompt --> ", "contains a value");
 
     String zebraBlock = typeBlock(output, zebra.getId());
     assertLabeledLine(zebraBlock, "Name --> ", nameZebra);
@@ -59,7 +59,7 @@ public class RepoTypeListCommandTest extends CLITestBase {
         "Null description must print an empty value after the label",
         Pattern.compile("Description --> $", Pattern.MULTILINE).matcher(zebraBlock).find());
     assertTrue(
-        "Empty AI prompt must print an empty value after the label, not \"set\"",
+        "Empty AI prompt must print an empty value after the label, not \"contains a value\"",
         Pattern.compile("AI prompt --> $", Pattern.MULTILINE).matcher(zebraBlock).find());
   }
 

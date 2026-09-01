@@ -16,9 +16,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Lists every repo type. Default prints id, name, description, and {@code set} when the AI prompt
- * is non-empty (body omitted). {@code --verbose} / {@code -vb} prints the prompt body (same as
- * {@code repo-type-view}).
+ * Lists every repo type. Default prints id, name, description, and {@code contains a value} when
+ * the AI prompt is non-empty (body omitted). {@code --verbose} / {@code -vb} prints the prompt body
+ * (same as {@code repo-type-view}).
  */
 @Component
 @Scope("prototype")
@@ -73,6 +73,6 @@ public class RepoTypeListCommand extends Command {
     if (verboseParam) {
       return aiPrompt != null ? aiPrompt : "";
     }
-    return StringUtils.isNotEmpty(aiPrompt) ? "set" : "";
+    return StringUtils.isNotEmpty(aiPrompt) ? "contains a value" : "";
   }
 }
