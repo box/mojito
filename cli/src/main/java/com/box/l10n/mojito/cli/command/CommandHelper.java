@@ -10,11 +10,13 @@ import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
+import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Preconditions;
@@ -25,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.Period;
 import java.time.ZonedDateTime;
@@ -46,11 +49,15 @@ import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author wyau
@@ -72,6 +79,8 @@ public class CommandHelper {
   };
 
   @Autowired RepositoryClient repositoryClient;
+
+  @Autowired RepoTypeClient repoTypeClient;
 
   @Autowired PollableTaskClient pollableTaskClient;
 
@@ -97,6 +106,95 @@ public class CommandHelper {
     } catch (RestClientException e) {
       throw new CommandException("Repository [" + repositoryName + "] is not found", e);
     }
+  }
+
+  /**
+   * Looks up a repo type by name for update, delete, and view. Rejects a blank name so it is not
+   * sent as a list-all filter.
+   */
+  public RepoType findRepoTypeByName(String name) throws CommandException {
+    if (StringUtils.isBlank(name)) {
+      throw new CommandException("Repo type name is required");
+    }
+    List<RepoType> repoTypes = repoTypeClient.getRepoTypes(name.trim());
+    if (repoTypes.size() != 1) {
+      throw new CommandException("Repo type with name [" + name + "] is not found");
+    }
+    return repoTypes.get(0);
+  }
+
+  /**
+   * Resolves the type-layer AI prompt from either {@code --ai-prompt} or {@code --ai-prompt-file}.
+   * Returns {@code null} when neither is set (omit on the wire / leave unchanged on update). An
+   * empty string from {@code --ai-prompt ""} or a file that is empty after UTF-8 text normalization
+   * is a real value (clear on update).
+   */
+  public static String resolveRepoTypeAiPrompt(String aiPromptParam, String aiPromptFileParam)
+      throws CommandException {
+    if (aiPromptParam != null && aiPromptFileParam != null) {
+      throw new CommandException("Cannot specify both --ai-prompt and --ai-prompt-file");
+    }
+    if (aiPromptFileParam != null) {
+      return readRepoTypeAiPromptFile(aiPromptFileParam);
+    }
+    return aiPromptParam;
+  }
+
+  static String readRepoTypeAiPromptFile(String path) throws CommandException {
+    try {
+      return normalizeRepoTypeAiPromptFileContents(
+          java.nio.file.Files.readString(Path.of(path), StandardCharsets.UTF_8));
+    } catch (IOException | InvalidPathException e) {
+      throw new CommandException(
+          "Failed to read AI prompt file: " + path + ": " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * UTF-8 plain-text file to prompt: drop a leading BOM and one trailing newline ({@code \n} or
+   * {@code \r\n}). Extension is not checked. Newlines inside the file are kept so {@code
+   * --ai-prompt hello} and a file {@code hello\n} store the same value.
+   */
+  static String normalizeRepoTypeAiPromptFileContents(String raw) {
+    String text = raw.startsWith("\uFEFF") ? raw.substring(1) : raw;
+    if (text.endsWith("\r\n")) {
+      return text.substring(0, text.length() - 2);
+    }
+    if (text.endsWith("\n")) {
+      return text.substring(0, text.length() - 1);
+    }
+    return text;
+  }
+
+  /**
+   * Maps HTTP 400, 404, and 409 to {@link CommandException} using the API response body. Other
+   * client errors are rethrown so {@code L10nJCommander} handles them.
+   *
+   * <p>HTTP 403 is not mapped. {@code AuthenticatedRestTemplate} treats 403 as a stale session
+   * ({@code FormLoginAuthenticationCsrfTokenInterceptor}): a USER mutate is retried, then thrown as
+   * {@code RestClientException}, never as {@link HttpClientErrorException}. Same dump as other
+   * mutating CLI commands (e.g. {@code repo-create}).
+   */
+  public static CommandException repoTypeClientError(HttpClientErrorException ex) {
+    String fallback = repoTypeClientErrorFallback(ex.getStatusCode());
+    if (fallback == null) {
+      throw ex;
+    }
+    String body = ex.getResponseBodyAsString();
+    return new CommandException(!body.isBlank() ? body : fallback, ex);
+  }
+
+  static String repoTypeClientErrorFallback(HttpStatusCode status) {
+    if (status.equals(HttpStatus.BAD_REQUEST)) {
+      return "Invalid repo type";
+    }
+    if (status.equals(HttpStatus.NOT_FOUND)) {
+      return "Repo type is not found";
+    }
+    if (status.equals(HttpStatus.CONFLICT)) {
+      return "Repo type already exists";
+    }
+    return null;
   }
 
   /**

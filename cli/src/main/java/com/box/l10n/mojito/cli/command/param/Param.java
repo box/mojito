@@ -67,6 +67,34 @@ public class Param {
   public static final String REPOSITORY_DESCRIPTION_DESCRIPTION =
       "Description of the repository to create or update";
 
+  public static final String REPO_TYPE_NAME_LONG = "--name";
+  public static final String REPO_TYPE_NAME_SHORT = "-n";
+  public static final String REPO_TYPE_NAME_DESCRIPTION = "Name of the repo type";
+
+  public static final String REPO_TYPE_NEW_NAME_LONG = "--new-name";
+  public static final String REPO_TYPE_NEW_NAME_SHORT = "-nn";
+  public static final String REPO_TYPE_NEW_NAME_DESCRIPTION = "New name for the repo type";
+
+  public static final String REPO_TYPE_DESCRIPTION_LONG = "--description";
+  public static final String REPO_TYPE_DESCRIPTION_SHORT = "-d";
+  public static final String REPO_TYPE_DESCRIPTION_DESCRIPTION =
+      "Description of the repo type to create or update";
+
+  public static final String REPO_TYPE_AI_PROMPT_LONG = "--ai-prompt";
+  public static final String REPO_TYPE_AI_PROMPT_SHORT = "-ap";
+  public static final String REPO_TYPE_AI_PROMPT_DESCRIPTION =
+      "Type-layer AI prompt for translation and review; mutually exclusive with --ai-prompt-file."
+          + " On update, pass an empty value to clear. Same stored text as --ai-prompt-file after"
+          + " the file's UTF-8 BOM and one trailing newline are stripped";
+
+  public static final String REPO_TYPE_AI_PROMPT_FILE_LONG = "--ai-prompt-file";
+  public static final String REPO_TYPE_AI_PROMPT_FILE_SHORT = "-apf";
+  public static final String REPO_TYPE_AI_PROMPT_FILE_DESCRIPTION =
+      "Path to a UTF-8 text file with the type-layer AI prompt (sample extension can be .txt or .md"
+          + "). Mutually exclusive with --ai-prompt. A leading BOM and one trailing newline"
+          + " (LF or CRLF) are not stored; newlines inside the file are kept. On update, an empty"
+          + " file clears the prompt";
+
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";
   public static final String REPOSITORY_LOCALES_DESCRIPTION =
