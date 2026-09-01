@@ -5,6 +5,9 @@ date:   2016-02-17 15:25:25 -0800
 categories: guides
 permalink: /docs/guides/open-source-contributors/
 ---
+
+Looking for something to work on? See the [project roadmap]({{ site.url }}/docs/roadmap/) for planned areas of future development.
+
 ## Prerequisites
 
 The following requirements are needed to develop on {{ site.mojito_green }}: 
