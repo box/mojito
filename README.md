@@ -7,6 +7,8 @@ Mojito
 
 Mojito is a continuous localization platform. Rely on continuous integration to collect all of your software strings in one place. Check what products need localization in real time. Create and import translation packages with a single click. Search and edit translations across all products and languages! And if you have a small dedicated translation team, they can work directly in mojito.
 
+**Project status:** Mojito is an open-source project maintained by Box, not a core Box product or commercial offering. Box makes no support or availability commitments for Mojito. Any published roadmap items are proposals rather than commitments, and priorities may change.
+
 ### Features:
 - Extract (push) strings from your repository to be translated
 - Generates localized files from translated strings (pull)
