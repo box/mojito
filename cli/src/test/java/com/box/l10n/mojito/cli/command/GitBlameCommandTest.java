@@ -4,10 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
@@ -20,13 +16,18 @@ import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,24 +41,20 @@ public class GitBlameCommandTest extends CLITestBase {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(GitBlameCommandTest.class);
 
-  @Autowired GitBlameService gitBlameService;
+  static final String BLAME_AUTHOR_NAME = "Git Blame Test";
+  static final String BLAME_AUTHOR_EMAIL = "git-blame-test@example.com";
+  static final long BLAME_COMMIT_TIME_MILLIS = 1_537_568_049_000L;
 
-  /**
-   * Travis does shallow clone, which prevents "integration" tests looking up commits since they are
-   * too old to test locally this can be set to false.
-   */
-  boolean shallowClone = true;
+  @Autowired GitBlameService gitBlameService;
 
   @Test
   public void android() throws Exception {
-    Assume.assumeFalse(isGitActions());
-
     Repository repository = createTestRepoUsingRepoService();
-    File sourceDirectory = getInputResourcesTestDir("source");
+    CommittedGitRepo sourceRepo = createTempGitRepoFrom(getInputResourcesTestDir("source"));
 
-    logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+    logger.debug("Source directory is [{}]", sourceRepo.directory.getAbsoluteFile());
     getL10nJCommander()
-        .run("push", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+        .run("push", "-r", repository.getName(), "-s", sourceRepo.directory.getAbsolutePath());
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -69,30 +66,26 @@ public class GitBlameCommandTest extends CLITestBase {
       assertNull(gitBlameWithUsage.getGitBlame());
     }
 
-    GitBlame gitBlame = new GitBlame();
-    gitBlame.setCommitName("37801193683d2e852a8a2b81e6dd05ca9ed13598");
-    gitBlame.setCommitTime("1537568049");
-    gitBlame.setAuthorName("Jean Aurambault");
-    gitBlame.setAuthorEmail("aurambaj@users.noreply.github.com");
-
-    getL10nJCommanderWithSpiedIfShallow(gitBlame)
-        .run("git-blame", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+    getL10nJCommander()
+        .run(
+            "git-blame",
+            "-r",
+            repository.getName(),
+            "-s",
+            sourceRepo.directory.getAbsolutePath());
 
     gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
-    verifyGitBlame(gitBlameWithUsages, gitBlame);
+    verifyGitBlame(gitBlameWithUsages, sourceRepo.gitBlame);
   }
 
   @Test
   public void poFile() throws Exception {
-
-    Assume.assumeFalse(isGitActions());
-
     Repository repository = createTestRepoUsingRepoService();
-    File sourceDirectory = getInputResourcesTestDir("source");
+    CommittedGitRepo sourceRepo = createTempGitRepoForPoFile();
 
-    logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+    logger.debug("Source directory is [{}]", sourceRepo.directory.getAbsoluteFile());
     getL10nJCommander()
-        .run("push", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+        .run("push", "-r", repository.getName(), "-s", sourceRepo.directory.getAbsolutePath());
 
     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
     textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -104,26 +97,20 @@ public class GitBlameCommandTest extends CLITestBase {
       assertNull(gitBlameWithUsage.getGitBlame());
     }
 
-    GitBlame gitBlame = new GitBlame();
-    gitBlame.setCommitName("1a86b8a2003f4d20858bfb53770119f039520f79");
-    gitBlame.setCommitTime("1537572147");
-    gitBlame.setAuthorName("Liz Magalindan");
-    gitBlame.setAuthorEmail("emagalindan@pinterest.com");
-
-    L10nJCommander l10nJCommanderWithSpiedIfShallow = getL10nJCommanderWithSpiedIfShallow(gitBlame);
-    l10nJCommanderWithSpiedIfShallow.run(
+    L10nJCommander l10nJCommander = getL10nJCommander();
+    l10nJCommander.run(
         "git-blame",
         "-r",
         repository.getName(),
         "-s",
-        sourceDirectory.getAbsolutePath(),
+        sourceRepo.directory.getAbsolutePath(),
         "-ft",
         "po");
 
-    assertEquals(0, l10nJCommanderWithSpiedIfShallow.getExitCode());
+    assertEquals(0, l10nJCommander.getExitCode());
 
     gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
-    verifyGitBlame(gitBlameWithUsages, gitBlame);
+    verifyGitBlame(gitBlameWithUsages, sourceRepo.gitBlame);
   }
 
   @Test
@@ -268,39 +255,21 @@ public class GitBlameCommandTest extends CLITestBase {
 
   @Test
   public void getBlameResultForLines() throws Exception {
+    CommittedGitRepo sourceRepo = createTempGitRepoFrom(getInputResourcesTestDir("source"));
 
-    Assume.assumeFalse(shallowClone);
+    GitBlameCommand gitBlameCommand = gitBlameCommandForRepo(sourceRepo.directory);
 
-    File sourceDirectory = getInputResourcesTestDir("source");
-    String filepath = sourceDirectory.getAbsolutePath();
-
-    GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    gitBlameCommand.commandDirectories = new CommandDirectories(filepath);
-    gitBlameCommand.initGitRepository();
-
-    String relativePath =
-        gitBlameCommand
-            .gitRepository
-            .getDirectory()
-            .toPath()
-            .getParent()
-            .relativize(sourceDirectory.toPath())
-            .toString();
-    relativePath = relativePath + "/res/values/strings.xml";
+    String relativePath = "res/values/strings.xml";
     BlameResult blameResult = gitBlameCommand.gitRepository.getBlameResultForFile(relativePath);
 
-    // Will not hold up if file is committed by another person and/or at another time
-    String expectedAuthor = "Liz Magalindan";
-    String expectedEmail = "256@holbertonschool.com";
-    String expectedSourceCommit = "88025e7b8b0f5d0f12f90c4ed9f86623074bc2ee";
-    int expectedTime = 1537477876;
     for (int lineNumber = 0; lineNumber < blameResult.getResultContents().size(); lineNumber++) {
       PersonIdent actualAuthor = blameResult.getSourceAuthor(lineNumber);
       RevCommit actualCommit = blameResult.getSourceCommit(lineNumber);
-      assertEquals(expectedAuthor, actualAuthor.getName());
-      assertEquals(expectedEmail, actualAuthor.getEmailAddress());
-      assertEquals(expectedSourceCommit, actualCommit.getName());
-      assertEquals(expectedTime, actualCommit.getCommitTime());
+      assertEquals(BLAME_AUTHOR_NAME, actualAuthor.getName());
+      assertEquals(BLAME_AUTHOR_EMAIL, actualAuthor.getEmailAddress());
+      assertEquals(sourceRepo.gitBlame.getCommitName(), actualCommit.getName());
+      assertEquals(
+          Integer.parseInt(sourceRepo.gitBlame.getCommitTime()), actualCommit.getCommitTime());
     }
   }
 
@@ -324,11 +293,9 @@ public class GitBlameCommandTest extends CLITestBase {
 
   @Test
   public void getBlameResultForFileWhenFileIsMissing()
-      throws CommandException, NoSuchFileException {
-    GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    gitBlameCommand.commandDirectories =
-        new CommandDirectories(getInputResourcesTestDir().getAbsolutePath());
-    gitBlameCommand.initGitRepository();
+      throws CommandException, NoSuchFileException, Exception {
+    CommittedGitRepo sourceRepo = createTempGitRepoWithSingleFile("tracked.txt", "content\n");
+    GitBlameCommand gitBlameCommand = gitBlameCommandForRepo(sourceRepo.directory);
     BlameResult blameResult =
         gitBlameCommand.gitRepository.getBlameResultForFile("forSomeMissingFile");
     assertNull(blameResult);
@@ -336,21 +303,17 @@ public class GitBlameCommandTest extends CLITestBase {
 
   @Test(expected = NoSuchFileException.class)
   public void getBlameResultForFileCachedWhenFileIsMissing()
-      throws CommandException, NoSuchFileException {
-    GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    gitBlameCommand.commandDirectories =
-        new CommandDirectories(getInputResourcesTestDir().getAbsolutePath());
-    gitBlameCommand.initGitRepository();
+      throws CommandException, NoSuchFileException, Exception {
+    CommittedGitRepo sourceRepo = createTempGitRepoWithSingleFile("tracked.txt", "content\n");
+    GitBlameCommand gitBlameCommand = gitBlameCommandForRepo(sourceRepo.directory);
     gitBlameCommand.getBlameResultForFileCached("forSomeMissingFile");
   }
 
   @Test(expected = LineMissingException.class)
   public void updateGitBlameOutOfBousnd()
-      throws CommandException, NoSuchFileException, LineMissingException {
-    Assume.assumeFalse(isGitActions());
-    GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
-    gitBlameCommand.initGitRepository();
+      throws CommandException, NoSuchFileException, LineMissingException, Exception {
+    CommittedGitRepo sourceRepo = createTempGitRepoWithSingleFile("pom.xml", "<project/>\n");
+    GitBlameCommand gitBlameCommand = gitBlameCommandForRepo(sourceRepo.directory);
     BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("pom.xml");
     GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
     gitBlameCommand.updateBlameResultsInGitBlameWithUsage(100000, blameResult, gitBlameWithUsage);
@@ -359,10 +322,9 @@ public class GitBlameCommandTest extends CLITestBase {
 
   @Test(expected = NoSuchFileException.class)
   public void updateGitBlameOMissingFile()
-      throws CommandException, NoSuchFileException, LineMissingException {
-    GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
-    gitBlameCommand.initGitRepository();
+      throws CommandException, NoSuchFileException, LineMissingException, Exception {
+    CommittedGitRepo sourceRepo = createTempGitRepoWithSingleFile("tracked.txt", "content\n");
+    GitBlameCommand gitBlameCommand = gitBlameCommandForRepo(sourceRepo.directory);
     BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("somemissginfile");
     GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
     gitBlameCommand.updateBlameResultsInGitBlameWithUsage(10, blameResult, gitBlameWithUsage);
@@ -370,12 +332,10 @@ public class GitBlameCommandTest extends CLITestBase {
   }
 
   @Test(expected = ArrayIndexOutOfBoundsException.class)
-  public void getSourceCommitsAccessOutOfBound() throws CommandException, NoSuchFileException {
-    Assume.assumeFalse(isGitActions());
-
-    GitBlameCommand gitBlameCommand = new GitBlameCommand();
-    gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
-    gitBlameCommand.initGitRepository();
+  public void getSourceCommitsAccessOutOfBound()
+      throws CommandException, NoSuchFileException, Exception {
+    CommittedGitRepo sourceRepo = createTempGitRepoWithSingleFile("pom.xml", "<project/>\n");
+    GitBlameCommand gitBlameCommand = gitBlameCommandForRepo(sourceRepo.directory);
     BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("pom.xml");
     blameResult.getSourceCommit(100000);
   }
@@ -421,15 +381,71 @@ public class GitBlameCommandTest extends CLITestBase {
     }
   }
 
-  L10nJCommander getL10nJCommanderWithSpiedIfShallow(GitBlame gitBlame) throws Exception {
-    L10nJCommander l10nJCommander = getL10nJCommander();
+  GitBlameCommand gitBlameCommandForRepo(File repoDir) throws CommandException {
+    GitBlameCommand gitBlameCommand = new GitBlameCommand();
+    gitBlameCommand.commandDirectories = new CommandDirectories(repoDir.getAbsolutePath());
+    gitBlameCommand.initGitRepository();
+    return gitBlameCommand;
+  }
 
-    if (shallowClone) {
-      GitBlameCommand gitBlameCommand = l10nJCommander.getCommand(GitBlameCommand.class);
-      gitBlameCommand.gitRepository = spy(GitRepository.class);
-      doReturn(gitBlame).when(gitBlameCommand.gitRepository).getBlameResults(anyInt(), any());
+  CommittedGitRepo createTempGitRepoFrom(File sourceDirectory) throws Exception {
+    File repoDir = new File(getTargetTestDir(), "git-repo");
+    FileUtils.copyDirectory(sourceDirectory, repoDir);
+    return commitWorkingTree(repoDir);
+  }
+
+  CommittedGitRepo createTempGitRepoForPoFile() throws Exception {
+    File repoDir = new File(getTargetTestDir(), "git-repo");
+    File sourceInRepo = new File(repoDir, "source");
+    FileUtils.copyDirectory(getInputResourcesTestDir("source"), sourceInRepo);
+    FileUtils.copyFile(
+        new File(getInputResourcesTestDir(), "file.js"), new File(repoDir, "file.js"));
+    CommittedGitRepo committed = commitWorkingTree(repoDir);
+    return new CommittedGitRepo(sourceInRepo, committed.gitBlame);
+  }
+
+  CommittedGitRepo createTempGitRepoWithSingleFile(String relativePath, String content)
+      throws Exception {
+    File repoDir = new File(getTargetTestDir(), "git-repo");
+    File file = new File(repoDir, relativePath);
+    file.getParentFile().mkdirs();
+    Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
+    return commitWorkingTree(repoDir);
+  }
+
+  CommittedGitRepo commitWorkingTree(File repoDir) throws Exception {
+    PersonIdent ident =
+        new PersonIdent(
+            BLAME_AUTHOR_NAME,
+            BLAME_AUTHOR_EMAIL,
+            new Date(BLAME_COMMIT_TIME_MILLIS),
+            TimeZone.getTimeZone("UTC"));
+
+    try (Git git = Git.init().setDirectory(repoDir).call()) {
+      git.add().addFilepattern(".").call();
+      RevCommit commit =
+          git.commit()
+              .setMessage("Deterministic git-blame test commit")
+              .setAuthor(ident)
+              .setCommitter(ident)
+              .call();
+
+      GitBlame gitBlame = new GitBlame();
+      gitBlame.setCommitName(commit.getName());
+      gitBlame.setCommitTime(Integer.toString(commit.getCommitTime()));
+      gitBlame.setAuthorName(ident.getName());
+      gitBlame.setAuthorEmail(ident.getEmailAddress());
+      return new CommittedGitRepo(repoDir, gitBlame);
     }
+  }
 
-    return l10nJCommander;
+  static class CommittedGitRepo {
+    final File directory;
+    final GitBlame gitBlame;
+
+    CommittedGitRepo(File directory, GitBlame gitBlame) {
+      this.directory = directory;
+      this.gitBlame = gitBlame;
+    }
   }
 }
