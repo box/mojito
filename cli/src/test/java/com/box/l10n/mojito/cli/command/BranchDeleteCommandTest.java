@@ -12,6 +12,8 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.branch.BranchStatisticService;
+import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,6 +29,8 @@ public class BranchDeleteCommandTest extends CLITestBase {
   @Autowired RepositoryClient repositoryClient;
 
   @Autowired BranchRepository branchRepository;
+
+  @Autowired BranchStatisticService branchStatisticService;
 
   @Test
   public void delete() throws Exception {
@@ -70,6 +74,10 @@ public class BranchDeleteCommandTest extends CLITestBase {
 
     getL10nJCommander().run("branch-view", "-r", repository.getName());
 
+    // Push does not write translated/untranslated flags; compute them now so the
+    // wait below does not race background Quartz/async stats jobs.
+    computeBranchStatistics(repository);
+
     // master and null not processed for branch statistic see {@link
     // BranchStatisticService#getBranchesToProcess}
     waitForCondition(
@@ -95,6 +103,9 @@ public class BranchDeleteCommandTest extends CLITestBase {
             getInputResourcesTestDir("b4Source").getAbsolutePath(),
             "-t",
             getInputResourcesTestDir("b4Translations").getAbsolutePath());
+
+    // Recompute after import so b4's translated flag is present before we assert.
+    computeBranchStatistics(repository);
 
     waitForCondition(
         "All b4 translated other branches should still not be translated",
@@ -316,6 +327,21 @@ public class BranchDeleteCommandTest extends CLITestBase {
             BRANCH_CREATED_BEFORE_SHORT,
             String.format("1%c", TimeframeType.WEEKS.getAbbreviationInLowerCase()));
     checkBranches("Should delete fiveDaysBranch", repository, null, null, null, masterBranchName);
+  }
+
+  /**
+   * Compute branch stats in-process instead of waiting for the shared scheduler.
+   *
+   * <p>{@code getBranches(..., translated=...)} only reflects data after {@link
+   * BranchStatisticService#computeAndSaveBranchStatistics} runs. In CI that used to happen via
+   * Quartz {@code RepositoryStatisticsJob}s and {@code @Async} work on a pool every other CLI test
+   * also uses, so {@link #waitForCondition} often expired (~50s) before the flags landed. Calling
+   * the service here runs the same computation and waits for its per-branch updates, so the
+   * assertions no longer depend on scheduler load.
+   */
+  void computeBranchStatistics(Repository repository) {
+    branchStatisticService.computeAndSaveBranchStatistics(
+        repository.getId(), repository.getName(), UpdateType.ALWAYS);
   }
 
   void checkBranches(
