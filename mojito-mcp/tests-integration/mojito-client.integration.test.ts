@@ -14,8 +14,37 @@
  * limitations under the License.
  */
 
+/**
+ * Test scenarios: end-to-end against a real dev Mojito.
+ *
+ * The unit tests prove we build the right CLI arguments; only these tests prove the
+ * arguments are ones Mojito accepts. They spawn a genuine CLI wrapper against a live
+ * server, so they are excluded from the default `pnpm test` run and require a local
+ * tests-integration/integration-config.json (see README.md in this directory). Point
+ * them at a dev instance and a disposable repository name, never at production.
+ *
+ * 1. The configured dev CLI is usable. `probeHelp` is the same check the server performs
+ *    at startup, so running it first means a broken wrapper or bad config fails with an
+ *    obvious message instead of surfacing as a confusing failure in a later test.
+ * 2. Listing repositories returns JSON. The cheapest read-only proof that authentication
+ *    works, the host is reachable, and stdout parses as the shape we expect.
+ * 3. The full repository lifecycle: create, view, search, delete. This is the one path
+ *    that exercises writes against a real server, including the nested JSON body for
+ *    derived locales (`fr-FR` plus `(fr-CA)->fr-FR`) that the CLI receives via a temp
+ *    file. It first deletes any leftover repository of the same name so an interrupted
+ *    earlier run cannot fail the suite, verifies a duplicate name is rejected, confirms
+ *    the created repository can be read back and searched, then deletes it and confirms
+ *    it is gone. An afterAll hook removes the repository if the test dies midway, so a
+ *    failure does not litter the dev server.
+ *
+ * Not covered here: translation writes and review updates, text unit history, pollable
+ * tasks, and the all-repositories search expansion. Those are argv-level unit tests only,
+ * because asserting them live would need seeded translation data on the dev instance.
+ */
+
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
 import { DefaultCliRunner } from "../src/cli-runner.js";
+import { MojitoCliError } from "../src/errors.js";
 import { MojitoCliClient } from "../src/mojito-client.js";
 import { loadIntegrationConfig, type IntegrationConfig } from "./load-integration-config.js";
 
@@ -99,6 +128,8 @@ describe("MojitoCliClient integration (dev)", () => {
             id: repositoryId,
             name: repoName,
         });
+
+        await expect(client.repoCreate({ name: repoName })).rejects.toBeInstanceOf(MojitoCliError);
 
         const viewed = await client.repoView(repositoryId);
         expect(viewed).toMatchObject({

@@ -130,6 +130,9 @@ export class MojitoCliClient {
         if (!hasRepoScope && !hasTmIds) {
             const repos = await this.repoList();
             effective.repositoryIds = extractRepositoryIds(repos);
+            if (effective.repositoryIds.length === 0) {
+                return [];
+            }
         }
 
         const argv = ["api", "/api/textunits/search", "-X", "POST"];
@@ -337,12 +340,17 @@ function extractRepositoryIds(repos: unknown): number[] {
     }
     const ids: number[] = [];
     for (const repo of repos) {
-        if (repo && typeof repo === "object" && "id" in repo) {
-            const id = (repo as { id: unknown }).id;
-            if (typeof id === "number") {
-                ids.push(id);
-            }
+        const id =
+            repo && typeof repo === "object" && "id" in repo
+                ? (repo as { id: unknown }).id
+                : undefined;
+        if (typeof id !== "number" || !Number.isSafeInteger(id) || id <= 0) {
+            throw new MojitoCliError(
+                "Expected every repository to have a positive integer id when expanding all repositories",
+                { stdout: JSON.stringify(repos) },
+            );
         }
+        ids.push(id);
     }
     return ids;
 }
@@ -383,7 +391,7 @@ export function parseEncodedRepositoryLocale(
     encoded: EncodedRepositoryLocale,
 ): Record<string, unknown> {
     const parts = encoded.split("->").map((p) => p.trim());
-    if (parts.length === 0 || parts[0] === "") {
+    if (parts.some((part) => part === "")) {
         throw new MojitoCliError(`Invalid encoded repository locale: ${encoded}`);
     }
 
@@ -391,10 +399,17 @@ export function parseEncodedRepositoryLocale(
     const locales: string[] = [];
 
     for (const part of parts) {
+        if (/^\(\s*\)$/.test(part)) {
+            throw new MojitoCliError(`Invalid encoded repository locale: ${encoded}`);
+        }
         const m = /^\((.+)\)$/.exec(part);
         if (m) {
+            const locale = m[1].trim();
+            if (locale === "") {
+                throw new MojitoCliError(`Invalid encoded repository locale: ${encoded}`);
+            }
             toBeFullyTranslated = false;
-            locales.push(m[1]);
+            locales.push(locale);
         } else {
             locales.push(part);
         }

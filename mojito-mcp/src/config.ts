@@ -30,15 +30,24 @@ export const DEFAULT_TIMEOUT_MS = 600_000;
 /**
  * Reads {@link MojitoMcpConfig} from `process.env`.
  *
- * - `MOJITO_CLI` → `cliBinary` (default {@link DEFAULT_CLI_BINARY})
- * - `MOJITO_CLI_TIMEOUT_MS` → `timeoutMs` (default {@link DEFAULT_TIMEOUT_MS})
+ * - `MOJITO_CLI` → `cliBinary` (default {@link DEFAULT_CLI_BINARY}). Trimmed; blank values
+ *   fall back to the default. Names on `PATH` and filesystem paths are both accepted.
+ * - `MOJITO_CLI_TIMEOUT_MS` → `timeoutMs` (default {@link DEFAULT_TIMEOUT_MS}). Must be a
+ *   finite positive whole number of milliseconds; anything else falls back to the default.
  */
 export function loadConfigFromEnv(): MojitoMcpConfig {
     const cliBinary = process.env.MOJITO_CLI?.trim();
-    const timeoutMs = Number(process.env.MOJITO_CLI_TIMEOUT_MS);
 
     return {
         cliBinary: cliBinary ? cliBinary : DEFAULT_CLI_BINARY,
-        timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS,
+        timeoutMs: parseTimeoutMs(process.env.MOJITO_CLI_TIMEOUT_MS),
     };
+}
+
+function parseTimeoutMs(raw: string | undefined): number {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && Number.isInteger(parsed) && parsed > 0) {
+        return parsed;
+    }
+    return DEFAULT_TIMEOUT_MS;
 }

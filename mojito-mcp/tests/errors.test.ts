@@ -14,6 +14,23 @@
  * limitations under the License.
  */
 
+/**
+ * Test scenarios: the failure payload that reaches the AI agent.
+ *
+ * Every error an agent sees from this server is a MojitoCliError, so the fields it
+ * carries decide whether the agent can tell "your CLI is not installed" apart from
+ * "Mojito rejected the request with HTTP 400". These tests pin that payload's shape.
+ *
+ * 1. A failure where the CLI actually ran. The error retains the exit code, both output
+ *    streams, and the timeout flag, and reports a stable `name` that callers and tests
+ *    can match on rather than parsing the message text.
+ * 2. A failure with almost nothing known, such as a timeout. The optional fields default
+ *    to empty string and null instead of `undefined`, so code that formats an MCP error
+ *    message can never end up showing the agent the word "undefined".
+ * 3. A lower-level exception is retained as `cause`. Spawn and JSON parse failures need
+ *    their original exception for diagnostics without replacing the stable public error.
+ */
+
 import { describe, expect, test } from "@jest/globals";
 import { MojitoCliError } from "../src/errors.js";
 
@@ -40,5 +57,12 @@ describe("MojitoCliError", () => {
         expect(err.stdout).toBe("");
         expect(err.stderr).toBe("");
         expect(err.timedOut).toBe(true);
+    });
+
+    test("retains an underlying cause", () => {
+        const cause = new Error("spawn failed");
+        const err = new MojitoCliError("could not run CLI", { cause });
+
+        expect(err.cause).toBe(cause);
     });
 });

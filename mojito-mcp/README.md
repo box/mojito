@@ -255,7 +255,7 @@ Optional second add with `MOJITO_CLI=mojito-dev` if you have a local/non-prod Mo
 | Variable | Required | Default | Meaning |
 |----------|----------|---------|---------|
 | `MOJITO_CLI` | No | `mojito-prod` | Mojito CLI executable name or path on `PATH` |
-| `MOJITO_CLI_TIMEOUT_MS` | No | `600000` (10 minutes) | Hard timeout per CLI invocation |
+| `MOJITO_CLI_TIMEOUT_MS` | No | `600000` (10 minutes) | Hard timeout per CLI invocation, as a positive whole number of milliseconds. Invalid values (including fractions) use the default. |
 
 There is **no** `MOJITO_BASE_URL` or auth token in the MCP env. Host and credentials live in the CLI configuration only.
 

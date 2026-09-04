@@ -69,7 +69,12 @@ export function loadIntegrationConfig(): IntegrationConfig {
         throw new Error(`Invalid JSON in ${path}`, { cause });
     }
 
-    if (!parsed || typeof parsed !== "object") {
+    return parseIntegrationConfig(parsed);
+}
+
+/** Parses and validates integration config independently of filesystem access. */
+export function parseIntegrationConfig(parsed: unknown): IntegrationConfig {
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
         throw new Error(`${CONFIG_FILE} must be a JSON object`);
     }
 
@@ -88,9 +93,9 @@ export function loadIntegrationConfig(): IntegrationConfig {
     }
     if (
         timeoutMs !== undefined &&
-        (typeof timeoutMs !== "number" || !Number.isFinite(timeoutMs) || timeoutMs <= 0)
+        (typeof timeoutMs !== "number" || !Number.isSafeInteger(timeoutMs) || timeoutMs <= 0)
     ) {
-        throw new Error(`${CONFIG_FILE}: "timeoutMs" must be a positive number when set`);
+        throw new Error(`${CONFIG_FILE}: "timeoutMs" must be a positive whole number when set`);
     }
 
     return {

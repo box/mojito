@@ -348,7 +348,7 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
                     .positive()
                     .optional()
                     .describe(
-                        "Page size hint for each underlying request. The tool still aggregates pages automatically.",
+                        "Maximum rows to return. When set, the tool makes one unpaginated request so the limit is preserved.",
                     ),
                 offset: z
                     .number()

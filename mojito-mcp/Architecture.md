@@ -82,7 +82,7 @@ Skill guidance: prefer **mojito-dev** while building features; use **mojito-prod
 | Variable               | Required | Default       | Meaning |
 |------------------------|----------|---------------|---------|
 | `MOJITO_CLI`           | No       | `mojito-prod` | Executable name or path of the Mojito CLI script |
-| `MOJITO_CLI_TIMEOUT_MS`| No       | `600000` (10m)| Hard kill timeout for each CLI invocation |
+| `MOJITO_CLI_TIMEOUT_MS`| No       | `600000` (10m)| Hard kill timeout for each CLI invocation (positive whole milliseconds; invalid values use the default) |
 
 Removed relative to the stub design: `MOJITO_BASE_URL`, `MOJITO_AUTH_TOKEN` (auth/host are CLI concerns).
 

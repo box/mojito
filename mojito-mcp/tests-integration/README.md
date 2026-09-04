@@ -31,7 +31,7 @@ cp tests-integration/integration-config.template.json tests-integration/integrat
 | `prodCli` | Name or path of the prod Mojito CLI script (documented for completeness; integration tests do **not** use it) |
 | `devCli` | Name or path of the **dev** Mojito CLI script — used by all integration tests |
 | `testRepositoryName` | Disposable repository name the suite will **create, view, and delete** on dev. Use something unique that is not a real project (e.g. `mojito-mcp-integration-test`). |
-| `timeoutMs` | Optional per-invocation timeout in milliseconds (default `600000`) |
+| `timeoutMs` | Optional per-invocation timeout as a positive whole number of milliseconds (default `600000`) |
 
 Example:
 
@@ -64,6 +64,7 @@ Against **dev** only:
 3. **Repository lifecycle** using `testRepositoryName`:
    - Delete any leftover repo with that name (from a prior interrupted run)
    - `repoCreate` (with sample locales including `(fr-CA)->fr-FR`)
+   - Confirm creating the same repository name again is rejected
    - `repoView` by id
    - `textunitSearch` scoped to that new repo (empty results are fine)
    - `repoDelete` and confirm it no longer appears in a name-filtered list  
