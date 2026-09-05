@@ -2,7 +2,7 @@
 layout: doc
 title:  "Authentication (Spring Boot 3 on master)"
 categories: guides
-permalink: /docs/guides/authentication-springboot2/
+permalink: /docs/guides/authentication-springboot3/
 ---
 
 {{ site.mojito_green }}'s default setup comes with a `form login` authentication backed by the database.
@@ -17,7 +17,7 @@ Change or add an authentication mechanisms by updating the configuration. Eg. to
 
     l10n.security.authenticationType=DATABASE,OAUTH2
         
-You can chosse to either show the {{ site.mojito_green }}'s login page or to automatically redirect to another page.
+You can choose to either show the {{ site.mojito_green }}'s login page or to automatically redirect to another page.
 Eg. to redirect to Github OAuth when the not authenticated
     
     l10n.security.unauth-redirect-to==/login/oauth2/authorization/github

@@ -6,22 +6,30 @@ permalink: /docs/refs/mojito-file-formats/
 ---
 
 
-| Format                             | Source Resource File                   |
-|:-----------------------------------|:---------------------------------------|
-| Android Strings                    | res/values/strings.xml                 |
-| CSV File                           | *.csv                                  |
-| iOS/Mac Strings                    | Localizable.strings, InfoPList.strings |
-| iOS/Mac Stringsdict                | Localizable.stringsdict                |
-| Java Properties                    | *.properties                           |
-| JS File                            | *.js                                   |
-| JSON File                          | *.json                                 |
-| Chrome extension JSON &nbsp;&nbsp; | _locales/{locale}/messages.json                                 |
-| RESW                               | *.resw                                 |
-| RESX                               | *.resx                                 |
-| PO File                            | *.pot                                  |
-| TS File                            | *.ts                                   |
-| XLIFF                              | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
-| XTB File                           | *.xtb                                  |
+| Format                             | CLI file type                    | Source Resource File                   |
+|:-----------------------------------|:---------------------------------|:---------------------------------------|
+| Android Strings                    | `ANDROID_STRINGS`                | res/values/strings.xml                 |
+| CSV File                           | `CSV`                            | *.csv                                  |
+| Adobe Commerce (Magento) CSV       | `CSV_ADOBE_MAGENTO`              | i18n/{locale}.csv                      |
+| iOS/Mac Strings                    | `MAC_STRING`                     | Localizable.strings, InfoPList.strings |
+| iOS/Mac Stringsdict                | `MAC_STRINGSDICT`                | Localizable.stringsdict                |
+| Java Properties                    | `PROPERTIES`, `PROPERTIES_NOBASENAME`, `PROPERTIES_JAVA` | *.properties |
+| JS File                            | `JS`                             | *.js                                   |
+| JSON File                          | `JSON`, `JSON_NOBASENAME`        | *.json                                 |
+| Chrome extension JSON              | `CHROME_EXT_JSON`                | _locales/{locale}/messages.json        |
+| FormatJS JSON                      | `FORMATJS_JSON_NOBASENAME`       | {locale}.json                          |
+| i18next parser JSON                | `I18NEXT_PARSER_JSON`            | locales/{locale}/*.json                |
+| VS Code extension JSON             | `VSCODE_EXTENSION_JSON`          | package.nls.json, bundle.l10n.json      |
+| RESW                               | `RESW`                           | *.resw                                 |
+| RESX                               | `RESX`                           | *.resx                                 |
+| PO File                            | `PO`                             | *.pot                                  |
+| TS File                            | `TS`                             | *.ts                                   |
+| YAML                               | `YAML`                           | *.yaml                                 |
+| HTML (alpha)                       | `HTML_ALPHA`                     | *.html                                 |
+| XLIFF                              | `XLIFF`, `XCODE_XLIFF`           | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
+| XTB File                           | `XTB`                            | *.xtb                                  |
+
+Pass one or more CLI file types to `push`, `pull`, `import`, or `pseudo` with `--file-type` (`-ft`). `HTML_ALPHA` is experimental.
 
 
 
@@ -72,7 +80,6 @@ Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 | 2             | Source      |
 | 3             | Target      |
 | 4             | Comment     |
-|||
 
 Source Resource File (English): `example.csv`
 

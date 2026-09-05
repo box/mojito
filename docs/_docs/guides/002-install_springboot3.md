@@ -37,7 +37,7 @@ One simple solution is to add an `application.properties` next to the `jar`. To 
 The server provides an entry point to fetch a `bash` script that downloads the latest CLI from the server and create a bash 
 wrapper to easily run the CLI.
 
-It can be called with a one liner to make the bash command available rigth away in the current console. Replace 
+It can be called with a one liner to make the bash command available right away in the current console. Replace 
 `http://localhost:8080` with the actual URL if needed. 
 
 ```bash
@@ -74,7 +74,7 @@ server.forward-headers-strategy=native
 ## Setup
 
 The default setup comes with `HSQL` in-memory database, database authentication and runs on port `8080`.
-For production, `MySQL` should be setup. Different types of [authentication](/docs/guides/authentication-springboot2/) are 
+For production, `MySQL` should be setup. Different types of [authentication]({{ site.url }}/docs/guides/authentication-springboot3/) are 
 available too.
 
 On the first Webapp startup, a user: `admin/ChangeMe` is created. This can be customized with configuration, 
@@ -138,7 +138,7 @@ l10n.org.quartz.dataSource.myDS.maxConnections=12
 l10n.org.quartz.dataSource.myDS.validationQuery=select 1
 ```
 
-Note that `utf8mb4` setup has been tested on MySQL `5.7`. The server will probably needs some configuration too, for
+Note that `utf8mb4` setup has been tested on MySQL `8`. The server will probably need some configuration too, for
 example by editing `my.cnf` (if installed with brew: `/usr/local/etc/my.cnf`) with something like:
 
 ```properties
@@ -159,7 +159,7 @@ max_allowed_packet = 256M
 If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
 instead `utf8mb4` but it has its limitation in term of character support.
 
-We recommand to run both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set
+We recommend running both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set
 `UTC` as default use the following:
 
 ```properties
