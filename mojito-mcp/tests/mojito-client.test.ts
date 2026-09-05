@@ -332,7 +332,7 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
         const runner = mockRunner(() => ({ exitCode: 0, stdout: " \n ", stderr: "" }));
         const client = new MojitoCliClient(config, runner);
 
-        await expect(client.repoDelete(1)).resolves.toBeNull();
+        await expect(client.repoView(1)).resolves.toBeNull();
     });
 
     test("successful non-JSON stdout throws MojitoCliError and preserves stdout", async () => {
