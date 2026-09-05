@@ -15,28 +15,10 @@
  */
 
 /**
- * Test scenarios: translating tool calls into Mojito CLI invocations.
+ * Test scenarios: translating tool calls into Mojito CLI invocations for repository
+ * reads, pollable tasks, and text-unit search/info/history.
  *
- * A fake CliRunner records the argv it is handed and returns canned output, so every
- * case below is an assertion about the command we would have run, with no Mojito
- * install, no authentication, and no network involved.
- *
- * 1. The startup probe runs `--help` and succeeds on exit 0. This is what the server does
- *    before serving traffic, and it must not touch the network.
- * 2. The startup probe fails on a non-zero exit, which is how a missing or broken CLI
- *    wrapper stops the server at boot instead of failing later on every tool call.
- * 3. Listing repositories deliberately does *not* paginate. The endpoint ignores offset and
- *    limit and returns everything at once, so `--paginate` would loop forever on pages that
- *    always look full.
- * 4. Listing with a name filter passes it as a string field.
- * 5. Viewing a repository is a plain GET on the id.
- * 6. Fetching a pollable task is a plain GET on the id; it never waits on the task.
- * 7. Any non-zero CLI exit becomes a MojitoCliError that carries the exit code and stderr.
- * 8. A CLI failure with blank stderr falls back to an exit-code message.
- * 9. A successful call parses the JSON on stdout and returns it as data.
- * 10. Successful empty stdout maps to null rather than causing a JSON parse error.
- * 11. Successful but malformed JSON becomes a MojitoCliError that preserves stdout and the
- *     SyntaxError cause for diagnosis.
+ * Write tools (create/delete/translation/review) and locale encoding land in the next PR.
  */
 
 import { describe, expect, test } from "@jest/globals";
@@ -107,6 +89,204 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
         expect(runner.calls[0]).toEqual(["api", "/api/repositories/42"]);
     });
 
+    test("textunitSearch POSTs search with pagination flags", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitSearch({
+            repositoryNames: ["demo"],
+            source: "Hello",
+            searchType: "CONTAINS",
+            localeTags: ["fr-FR"],
+        });
+
+        const argv = runner.calls[0];
+        expect(argv).toEqual(
+            expect.arrayContaining([
+                "api",
+                "/api/textunits/search",
+                "-X",
+                "POST",
+                "--paginate",
+                "--slurp",
+                "--max-pages",
+                "0",
+            ]),
+        );
+        expect(argv).toEqual(expect.arrayContaining(["-f", "repositoryNames[]=demo"]));
+        expect(argv).toEqual(expect.arrayContaining(["-f", "source=Hello"]));
+        expect(argv).toEqual(expect.arrayContaining(["-f", "searchType=CONTAINS"]));
+        expect(argv).toEqual(expect.arrayContaining(["-f", "localeTags[]=fr-FR"]));
+    });
+
+    test("textunitSearch with an explicit limit skips pagination", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitSearch({
+            repositoryNames: ["demo"],
+            searchType: "CONTAINS",
+            limit: 5,
+        });
+
+        const argv = runner.calls[0];
+        expect(argv).not.toContain("--paginate");
+        expect(argv).toEqual(expect.arrayContaining(["-F", "limit=5"]));
+    });
+
+    test("textunitSearch with no repos lists all repos then searches with ids", async () => {
+        const runner = mockRunner((argv) => {
+            if (argv.includes("/api/repositories")) {
+                return okJson([
+                    { id: 1, name: "a" },
+                    { id: 2, name: "b" },
+                ]);
+            }
+            return okJson([]);
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitSearch({ source: "x", searchType: "CONTAINS" });
+
+        expect(runner.calls.length).toBeGreaterThanOrEqual(2);
+        expect(runner.calls[0]).toEqual(expect.arrayContaining(["api", "/api/repositories"]));
+        const searchArgv = runner.calls.find((c) => c.includes("/api/textunits/search"));
+        expect(searchArgv).toEqual(expect.arrayContaining(["-F", "repositoryIds[]=1"]));
+        expect(searchArgv).toEqual(expect.arrayContaining(["-F", "repositoryIds[]=2"]));
+    });
+
+    test("textunitSearch encodes every optional search field with the correct type", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitSearch({
+            repositoryIds: [1],
+            repositoryNames: ["demo"],
+            tmTextUnitIds: [2],
+            localeTags: ["fr-FR"],
+            name: "welcome",
+            source: "Hello",
+            target: "Bonjour",
+            assetPath: "messages.properties",
+            pluralFormOther: "items",
+            searchType: "ILIKE",
+            statusFilter: "REVIEW_NEEDED",
+            usedFilter: "UNUSED",
+            doNotTranslateFilter: false,
+            tmTextUnitCreatedAfter: "2024-01-01T00:00:00Z",
+            tmTextUnitCreatedBefore: "2024-02-01T00:00:00Z",
+            branchId: 3,
+            pluralFormFiltered: false,
+            pluralFormExcluded: true,
+            limit: 10,
+            offset: 0,
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/textunits/search",
+            "-X",
+            "POST",
+            "-F",
+            "repositoryIds[]=1",
+            "-f",
+            "repositoryNames[]=demo",
+            "-F",
+            "tmTextUnitIds[]=2",
+            "-f",
+            "localeTags[]=fr-FR",
+            "-f",
+            "name=welcome",
+            "-f",
+            "source=Hello",
+            "-f",
+            "target=Bonjour",
+            "-f",
+            "assetPath=messages.properties",
+            "-f",
+            "pluralFormOther=items",
+            "-f",
+            "searchType=ILIKE",
+            "-f",
+            "statusFilter=REVIEW_NEEDED",
+            "-f",
+            "usedFilter=UNUSED",
+            "-F",
+            "doNotTranslateFilter=false",
+            "-f",
+            "tmTextUnitCreatedAfter=2024-01-01T00:00:00Z",
+            "-f",
+            "tmTextUnitCreatedBefore=2024-02-01T00:00:00Z",
+            "-F",
+            "branchId=3",
+            "-F",
+            "pluralFormFiltered=false",
+            "-F",
+            "pluralFormExcluded=true",
+            "-F",
+            "limit=10",
+            "-F",
+            "offset=0",
+        ]);
+    });
+
+    test("textunitSearch returns an empty result without searching when there are no repositories", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(client.textunitSearch({ source: "x" })).resolves.toEqual([]);
+        expect(runner.calls).toEqual([["api", "/api/repositories"]]);
+    });
+
+    test("textunitSearch rejects malformed repository rows during all-repository expansion", async () => {
+        const runner = mockRunner(() => okJson([{ id: 1 }, { name: "missing-id" }]));
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(client.textunitSearch({ source: "x" })).rejects.toThrow(/positive integer id/);
+        expect(runner.calls).toEqual([["api", "/api/repositories"]]);
+    });
+
+    test("textunitInfo searches by tmTextUnitIds", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitInfo({ tmTextUnitId: 100 });
+        expect(runner.calls[0]).toEqual(
+            expect.arrayContaining([
+                "api",
+                "/api/textunits/search",
+                "-X",
+                "POST",
+                "-F",
+                "tmTextUnitIds[]=100",
+            ]),
+        );
+    });
+
+    test("textunitInfo passes every locale tag as a raw array field", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitInfo({ tmTextUnitId: 100, localeTags: ["fr-FR", "ja-JP"] });
+
+        expect(runner.calls[0]).toEqual(
+            expect.arrayContaining(["-f", "localeTags[]=fr-FR", "-f", "localeTags[]=ja-JP"]),
+        );
+    });
+
+    test("textunitHistory requires bcp47Tag query field", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.textunitHistory({ tmTextUnitId: 5, bcp47Tag: "ja-JP" });
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/textunits/5/history",
+            "-f",
+            "bcp47Tag=ja-JP",
+        ]);
+    });
+
     test("pollabletaskGet GETs by id", async () => {
         const runner = mockRunner(() => okJson({ id: 3 }));
         const client = new MojitoCliClient(config, runner);
@@ -152,7 +332,7 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
         const runner = mockRunner(() => ({ exitCode: 0, stdout: " \n ", stderr: "" }));
         const client = new MojitoCliClient(config, runner);
 
-        await expect(client.repoView(1)).resolves.toBeNull();
+        await expect(client.repoDelete(1)).resolves.toBeNull();
     });
 
     test("successful non-JSON stdout throws MojitoCliError and preserves stdout", async () => {
