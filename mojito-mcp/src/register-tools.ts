@@ -72,6 +72,52 @@ const statusFilterSchema = z
         ].join(" "),
     );
 
+const textUnitStatusSchema = z
+    .enum(["APPROVED", "REVIEW_NEEDED", "TRANSLATION_NEEDED"])
+    .describe(
+        "Current translation status: APPROVED = accepted; REVIEW_NEEDED = needs linguistic review; TRANSLATION_NEEDED = needs (re)translation.",
+    );
+
+const reviewActionSchema = z
+    .enum(["accept", "review", "translate", "reject"])
+    .describe(
+        [
+            "Workbench review action (maps to status + includedInLocalizedFile):",
+            "accept → APPROVED, included;",
+            "review → REVIEW_NEEDED, included;",
+            "translate → TRANSLATION_NEEDED, included;",
+            "reject → TRANSLATION_NEEDED, NOT included (rejected from file).",
+        ].join(" "),
+    );
+
+const bcp47TagSchema = z.string().describe("BCP-47 locale tag, e.g. en-US, fr-FR, ja-JP.");
+
+/**
+ * Same encoding as `mojito repo-create -l` / `repo-update -l` (see Mojito “Managing Locales” docs).
+ */
+const encodedRepositoryLocaleSchema = z
+    .string()
+    .describe(
+        [
+            "Encoded locale, Mojito CLI -l syntax:",
+            "`fr-FR` = fully translated;",
+            "`(en-GB)` = not fully translated (parentheses);",
+            "`(fr-CA)->fr-FR` = fr-CA inherits from parent fr-FR (child is not fully translated).",
+            "Parent on the right must also be listed as its own entry if it should exist in the repo (e.g. include both `(fr-CA)->fr-FR` and `fr-FR`).",
+        ].join(" "),
+    );
+
+const assetIntegrityCheckerInputSchema = z.object({
+    assetExtension: z
+        .string()
+        .describe("Resource file extension without a dot, e.g. properties, resw, xlf."),
+    integrityCheckerType: z
+        .string()
+        .describe(
+            "Integrity checker type name, e.g. COMPOSITE_FORMAT, PRINTF_LIKE. Validates placeholders/format in translations.",
+        ),
+});
+
 function jsonResult(data: unknown) {
     return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
@@ -124,6 +170,72 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
             },
         },
         async ({ repositoryId }) => jsonResult(await client.repoView(repositoryId)),
+    );
+
+    server.registerTool(
+        "mojito_repo_create",
+        {
+            description: [
+                "Create a new Mojito repository (container for strings, locales, and localization config).",
+                "Requires a unique name. Optionally set description, source locale, target locales, SLA flag, and integrity checkers.",
+                "WARNING: Prefer mojito-dev while experimenting. Creating repos on prod affects shared production data.",
+                "On name conflict the API returns HTTP 409.",
+            ].join(" "),
+            inputSchema: {
+                name: z
+                    .string()
+                    .describe(
+                        "Unique repository name (often aligned with the product/git project name).",
+                    ),
+                description: z
+                    .string()
+                    .optional()
+                    .describe("Optional human-readable description of the project/repository."),
+                checkSLA: z
+                    .boolean()
+                    .optional()
+                    .describe("Whether SLA tracking is enabled for this repository."),
+                sourceLocale: bcp47TagSchema
+                    .optional()
+                    .describe(
+                        "Source/root locale of the repository as a BCP-47 tag string, e.g. en-US. If omitted, server defaults apply.",
+                    ),
+                repositoryLocales: z
+                    .array(encodedRepositoryLocaleSchema)
+                    .optional()
+                    .describe(
+                        'Target locales as Mojito CLI -l strings, e.g. ["de-DE", "fr-FR", "(fr-CA)->fr-FR", "(en-GB)"].',
+                    ),
+                assetIntegrityCheckers: z
+                    .array(assetIntegrityCheckerInputSchema)
+                    .optional()
+                    .describe(
+                        'Optional integrity checkers per file extension, e.g. [{ "assetExtension": "properties", "integrityCheckerType": "PRINTF_LIKE" }].',
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.repoCreate(args)),
+    );
+
+    server.registerTool(
+        "mojito_repo_delete",
+        {
+            description: [
+                "Soft-delete a Mojito repository by id so it no longer appears in normal listings.",
+                "DESTRUCTIVE: confirm the repository id and environment (prod vs dev) with the user before calling.",
+                "Prefer mojito-dev for tests. Deleting on prod removes visibility of real project data from the UI.",
+            ].join(" "),
+            inputSchema: {
+                repositoryId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric id of the repository to delete. Resolve via mojito_repo_list if unsure.",
+                    ),
+            },
+        },
+        async ({ repositoryId }) => jsonResult(await client.repoDelete(repositoryId)),
     );
 
     // --- Text units ---
@@ -300,6 +412,79 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
             },
         },
         async (args) => jsonResult(await client.textunitHistory(args)),
+    );
+
+    server.registerTool(
+        "mojito_textunit_translation_add",
+        {
+            description: [
+                "Add or set the current translation for a text unit in a locale (creates a new current TMTextUnitVariant).",
+                "Requires tmTextUnitId, localeId (numeric locale id from search results), and target text.",
+                "Optional status and includedInLocalizedFile control review state; optional targetComment stores a translator/reviewer comment.",
+                "WARNING: Prefer mojito-dev for experiments. On prod this changes live translations.",
+                "For workbench-style accept/reject/needs-review flows, prefer mojito_review_update.",
+            ].join(" "),
+            inputSchema: {
+                tmTextUnitId: z.number().int().positive().describe("TM text unit id to translate."),
+                localeId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric Mojito locale id (from search/info results: localeId), not the BCP-47 tag.",
+                    ),
+                target: z.string().describe("Translation text to save as the current target."),
+                targetComment: z
+                    .string()
+                    .optional()
+                    .describe("Optional comment attached to this translation variant."),
+                status: textUnitStatusSchema.optional(),
+                includedInLocalizedFile: z
+                    .boolean()
+                    .optional()
+                    .describe(
+                        "If false, translation is treated as rejected (not included in localized files). Default/typical for good translations is true.",
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.textunitTranslationAdd(args)),
+    );
+
+    // --- Review ---
+
+    server.registerTool(
+        "mojito_review_update",
+        {
+            description: [
+                "Update review outcome for a current translation, matching the Mojito workbench review modal.",
+                "Actions: accept (APPROVED), review (REVIEW_NEEDED), translate (TRANSLATION_NEEDED), reject (TRANSLATION_NEEDED + excluded from file).",
+                "Requires the current target text because the underlying API updates via POST /api/textunits.",
+                "WARNING: Prefer mojito-dev for experiments. On prod this changes live review state.",
+            ].join(" "),
+            inputSchema: {
+                tmTextUnitId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe("TM text unit id of the string being reviewed."),
+                localeId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe("Numeric locale id for the translation being reviewed."),
+                target: z
+                    .string()
+                    .describe(
+                        "Current translation text to keep/save with the new review status (required by the API).",
+                    ),
+                action: reviewActionSchema,
+                targetComment: z
+                    .string()
+                    .optional()
+                    .describe("Optional review comment stored on the translation variant."),
+            },
+        },
+        async (args) => jsonResult(await client.reviewUpdate(args)),
     );
 
     // --- Pollable tasks ---
