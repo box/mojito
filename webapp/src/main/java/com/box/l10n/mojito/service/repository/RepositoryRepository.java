@@ -32,7 +32,7 @@ public interface RepositoryRepository
 
   Optional<Repository> findNoGraphById(Long aLong);
 
-  @EntityGraph(value = "Repository.legacy", type = EntityGraphType.FETCH)
+  @EntityGraph(attributePaths = "repoType", type = EntityGraphType.LOAD)
   @Override
   List<Repository> findAll(Specification<Repository> s, Sort sort);
 
