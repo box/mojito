@@ -119,7 +119,7 @@ public class RepoCreateCommand extends RepoCommand {
       }
 
       RepoType repoType = null;
-      if (repoTypeNameParam != null) {
+      if (repoTypeNameParam != null && !repoTypeNameParam.isEmpty()) {
         repoType = new RepoType();
         repoType.setName(repoTypeNameParam);
       }

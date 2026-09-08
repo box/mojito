@@ -104,11 +104,8 @@ public class Param {
 
   public static final String REPOSITORY_TYPE_LONG = "--repo-type";
   public static final String REPOSITORY_TYPE_DESCRIPTION =
-      "Exact name of the repository type to assign";
-
-  public static final String CLEAR_REPOSITORY_TYPE_LONG = "--clear-repo-type";
-  public static final String CLEAR_REPOSITORY_TYPE_DESCRIPTION =
-      "Remove the repository type assignment";
+      "Exact name of the repository type to assign. An empty value leaves the repository untyped"
+          + " on create and clears the assignment on update";
 
   public static final String REPOSITORY_LOCALES_LONG = "--locales";
   public static final String REPOSITORY_LOCALES_SHORT = "-l";

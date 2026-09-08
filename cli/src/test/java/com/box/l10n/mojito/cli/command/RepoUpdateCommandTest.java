@@ -110,7 +110,8 @@ public class RepoUpdateCommandTest extends CLITestBase {
             "repo-update",
             Param.REPOSITORY_NAME_SHORT,
             repository.getName(),
-            Param.CLEAR_REPOSITORY_TYPE_LONG);
+            Param.REPOSITORY_TYPE_LONG,
+            "");
     assertNull(repositoryRepository.findByName(repository.getName()).getRepoType());
   }
 
@@ -145,8 +146,11 @@ public class RepoUpdateCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testEmptyRepoTypeNameIsInvalid() throws Exception {
+  public void testWhitespaceRepoTypeNameIsInvalid() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
+    RepoType repoType =
+        repoTypeService.createRepoType(
+            testIdWatcher.getEntityName("ToKeep"), null, null, Set.of());
 
     getL10nJCommander()
         .run(
@@ -154,19 +158,22 @@ public class RepoUpdateCommandTest extends CLITestBase {
             Param.REPOSITORY_NAME_SHORT,
             repository.getName(),
             Param.REPOSITORY_TYPE_LONG,
-            "");
+            repoType.getName());
+    assertEquals(
+        repoType.getId(),
+        repositoryRepository.findByName(repository.getName()).getRepoType().getId());
 
-    assertNull(repositoryRepository.findByName(repository.getName()).getRepoType());
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repository.getName(),
+            Param.REPOSITORY_TYPE_LONG,
+            "   ");
+    assertEquals(
+        repoType.getId(),
+        repositoryRepository.findByName(repository.getName()).getRepoType().getId());
     assertTrue(outputCapture.toString().contains("repoType.name is required"));
-  }
-
-  @Test(expected = CommandException.class)
-  public void testRepoTypeAndClearRepoTypeAreMutuallyExclusive() throws CommandException {
-    RepoUpdateCommand command = new RepoUpdateCommand();
-    command.nameParam = "repo";
-    command.repoTypeNameParam = "React";
-    command.clearRepoType = true;
-    command.checkRepositoryParams();
   }
 
   @Test

@@ -67,12 +67,6 @@ public class RepoUpdateCommand extends RepoCommand {
   String repoTypeNameParam;
 
   @Parameter(
-      names = {Param.CLEAR_REPOSITORY_TYPE_LONG},
-      required = false,
-      description = Param.CLEAR_REPOSITORY_TYPE_DESCRIPTION)
-  boolean clearRepoType;
-
-  @Parameter(
       names = {Param.CHECK_SLA_LONG, Param.CHECK_SLA_SHORT},
       arity = 1,
       required = false,
@@ -124,8 +118,6 @@ public class RepoUpdateCommand extends RepoCommand {
     } else if (repositoryNames != null && (nameParam != null || newNameParam != null)) {
       throw new CommandException(
           "Can't use --repository-names option with --name or --new-name options");
-    } else if (repoTypeNameParam != null && clearRepoType) {
-      throw new CommandException("--repo-type and --clear-repo-type cannot be used together");
     }
   }
 
@@ -150,9 +142,14 @@ public class RepoUpdateCommand extends RepoCommand {
       Set<IntegrityChecker> integrityCheckers =
           extractIntegrityCheckersFromInput(integrityCheckParam, true);
       RepoType repoType = null;
+      boolean clearRepoType = false;
       if (repoTypeNameParam != null) {
-        repoType = new RepoType();
-        repoType.setName(repoTypeNameParam);
+        if (repoTypeNameParam.isEmpty()) {
+          clearRepoType = true;
+        } else {
+          repoType = new RepoType();
+          repoType.setName(repoTypeNameParam);
+        }
       }
 
       consoleWriter.a("Update repositories").println();

@@ -73,6 +73,43 @@ public class RepoCreateCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testCreateRepositoryWithEmptyRepoTypeStaysUntyped() throws Exception {
+    String repositoryName = testIdWatcher.getEntityName("emptyTypeRepository");
+
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            Param.REPOSITORY_TYPE_LONG,
+            "");
+
+    Repository repository = repositoryRepository.findByName(repositoryName);
+    assertNotNull(repository);
+    assertNull(repository.getRepoType());
+  }
+
+  @Test
+  public void testCreateRepositoryRejectsWhitespaceRepoType() throws Exception {
+    String repositoryName = testIdWatcher.getEntityName("whitespaceTypeRepository");
+
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            Param.REPOSITORY_TYPE_LONG,
+            "   ");
+
+    assertNull(repositoryRepository.findByName(repositoryName));
+    assertTrue(outputCapture.toString().contains("repoType.name is required"));
+  }
+
+  @Test
   public void testCreateRepositoryRejectsUnknownRepoType() throws Exception {
     String repositoryName = testIdWatcher.getEntityName("unknownTypeRepository");
     String repoTypeName = testIdWatcher.getEntityName("Missing");

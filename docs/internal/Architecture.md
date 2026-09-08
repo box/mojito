@@ -44,7 +44,7 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 - Persist `RepoType` and its integrity checkers.
 - REST CRUD under `/api/repo-types` (`RepoTypeWS`).
 - Persist an optional `repository.repo_type_id`, expose the nested type as `id` + `name`, and support assign / clear through the repository REST API.
-- Support `--repo-type` on `repo-create` / `repo-update`, `--clear-repo-type` on `repo-update`, and display the assignment in `repo-view`.
+- Support `--repo-type` on `repo-create` / `repo-update` (empty value on update clears the assignment) and display the assignment in `repo-view`.
 - Refuse to delete a repo type while any repository references it.
 - Documented contracts below (implementation and tests follow this doc).
 
@@ -348,12 +348,12 @@ Name, description, and AI-prompt CLI for repo types, plus optional assignment on
 
 Repository commands manage the optional assignment by exact, case-sensitive type name:
 
-- `repo-create --repo-type <name>` creates a typed repository; omitting the flag creates an untyped repository.
+- `repo-create --repo-type <name>` creates a typed repository; omitting the flag or passing an empty value creates an untyped repository (`repo_type_id` SQL `NULL`). Whitespace-only is invalid (`repoType.name is required`).
 - `repo-update --repo-type <name>` assigns or changes the type.
-- `repo-update --clear-repo-type` clears it. Omitting both flags preserves the current assignment; the two flags are mutually exclusive.
+- `repo-update --repo-type ""` clears it, same pattern as `-it ""`. Omitting the flag preserves the current assignment. Whitespace-only is invalid (`repoType.name is required`).
 - `repo-view` prints `Repository type --> <name>` only when a type is assigned.
 
-`NULL` has no special meaning: `--repo-type NULL` looks up a type literally named `NULL`. Flag constants: `Param.REPOSITORY_TYPE_*` and `Param.CLEAR_REPOSITORY_TYPE_*`.
+`NULL` has no special meaning: `--repo-type NULL` looks up a type literally named `NULL`. Flag constants: `Param.REPOSITORY_TYPE_*`. The REST PATCH still uses `clearRepoType=true`; the CLI maps an empty `--repo-type` to that query parameter.
 
 **In scope**
 
