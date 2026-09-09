@@ -12,8 +12,8 @@ permalink: /docs/guides/user-roles-overview/
 
 | Role | Who you are | What you can do |
 |------|-------------|-----------------|
-| **User** | Basic access | View repositories, workbench, branches, screenshots. Search and browse. No edits. |
-| **Translator** | Translation team member | Everything User can do, plus edit translations in Workbench for your assigned locales. Export, import, share searches. |
+| **User** | Basic access | View repositories, workbench, branches, screenshots. Search, browse, export, and share searches. Import is visible but cannot save translations. |
+| **Translator** | Translation team member | Everything User can do, plus edit translations in Workbench for your assigned locales, and import translations. |
 | **Project Manager (PM)** | Coordinates translation work | Everything Translator can do, plus create/import/cancel project requests, manage screenshots, manage users, and configure Box integration. |
 | **Admin** | System administrator | Everything PM can do, plus AI Translate and database monitoring. |
 
@@ -75,7 +75,8 @@ The **AI Translate** link appears in the main navigation only for Admins (this i
 |---------|------|------------|-----|-------|
 | Workbench: search, view | ✓ | ✓ | ✓ | ✓ |
 | Workbench: edit translations | — | ✓ (assigned locales) | ✓ | ✓ |
-| Workbench: export, import, share | — | ✓ | ✓ | ✓ |
+| Workbench: export, share | ✓ | ✓ | ✓ | ✓ |
+| Workbench: import | visible; save is 403 | ✓ | ✓ | ✓ |
 | Project requests: view | ✓ | ✓ | ✓ | ✓ |
 | Project requests: create, import, cancel | — | — | ✓ | ✓ |
 | Screenshots: view, upload (dropzone) | ✓ | ✓ | ✓ | ✓ |

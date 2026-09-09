@@ -23,8 +23,7 @@ We use `mojito-cli` to configure locales in a repository.  Locales can be config
 
 By default, all locales configured in the repository are required to be fully translated.  These locales get automatically included in the translation requests.
 
-You can configure the locales to be partially translated.  English in United Kingdom (en-GB) is a good example because most of the strings do not need to be "translated".  Source strings can be used as-is in most cases and only some strings that are specific to English in United Kingdom need to be overridden. In this sense, en-GB is an inherited locale. That is, it inherits
-most of its strings from the parent locale, which in this example, is en-US.
+You can configure the locales to be partially translated. English in United Kingdom (en-GB) is a good example because most of the strings do not need to be "translated". Source strings can be used as-is in most cases and only some strings that are specific to English in United Kingdom need to be overridden. In this sense, en-GB is an inherited locale: missing strings are filled in from the repository source locale (often en).
 
 ```bash
 mojito repo-update -n MyRepo -l "(en-GB)" es-ES fr-FR ja-JP zh-CN zh-TW
@@ -43,8 +42,7 @@ mojito repo-update -n MyRepo -l "(fr-CH)->fr-FR" fr-FR ja-JP zh-CN zh-TW
 The above example makes French in Switzerland (fr-CH) the child locale of French in France (fr-FR).
 
 
-Note that the partially translated locales are displayed in grey in the locales list. The parent locale for partially
-translated locales is implicitly the source locale, which is often en or en-US. That is, it is equivalent to writing "(en-GB)->en-US".
+Note that the partially translated locales are displayed in grey in the locales list. If you omit `->…`, the parent is the repository source locale. For a repo whose source is `en`, `(en-GB)` is equivalent to `(en-GB)->en`. Use `->` only when the parent is a different locale that is already in the repo, as in `(fr-CH)->fr-FR` above. Do not write `(en-GB)->en-US` unless `en-US` is actually a locale in that repository.
 
 
 ![Partially Translated Locales](./images/partially-translated-locales.png)

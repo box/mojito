@@ -10,7 +10,7 @@ Workbench in {{ site.mojito_green }} is a place where you can search and edit al
 
 Use Workbench to fix bugs, communicate context to translation teams and manage global terminology changes. Translators and reviewers can also work directly in Workbench.
 
-> **Who can use the Workbench:** Everyone can search and view. **Translators**, **Project Managers**, and **Admins** can edit translations (Translators only for their assigned locales). Export, Import, and Share are available to Translators, PMs, and Admins. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/) for details.
+> **Who can use the Workbench:** Everyone can search, view, export, and share. **Translators**, **Project Managers**, and **Admins** can edit translations (Translators only for their assigned locales). Import is visible to everyone, but only Translators, PMs, and Admins can save imported translations. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/) for details.
 
 ## Searching
 
@@ -109,7 +109,7 @@ If you need to clear all selections across all pages, click on `Clear all`.
 
 ## Exporting search results
 
-> **Who can export:** Translators, Project Managers, and Admins.
+> **Who can export:** Any authenticated user, including User.
 
 You can export your current search results to CSV or JSON for offline work, reporting, or backup. Click **Export search results** in the Workbench toolbar.
 
@@ -123,7 +123,7 @@ The export uses your current search filters (repositories, locales, status, etc.
 
 ## Importing translations
 
-> **Who can import:** Translators, Project Managers, and Admins.
+> **Who can import:** The Import control is visible to everyone. Only **Translators**, **Project Managers**, and **Admins** can succeed; a User sees Import but the save is 403.
 
 You can import translations from a CSV or JSON file—for example, from an export or from an external translation tool. Click **Import translations** in the Workbench toolbar.
 
@@ -137,7 +137,7 @@ Use the **Download template** link to get a CSV template with the required colum
 
 ## Sharing searches
 
-> **Who can share:** Translators, Project Managers, and Admins.
+> **Who can share:** Any authenticated user, including User.
 
 You can create a shareable link that opens the Workbench with your current search (repositories, locales, filters, etc.). Click **Share this search** in the Workbench toolbar.
 

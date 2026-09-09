@@ -38,8 +38,8 @@ Translations are imported with the status you choose (e.g. Needs Review) so they
 | **Model override** | AI model identifier (e.g. `gpt-4.1`) | gpt-4.1 |
 | **Prompt suffix** | Optional text appended to the base prompt | — |
 | **Related strings** | Extra context sent to the AI. See [Related strings](#related-strings) below. | NONE |
-| **Translate type** | `TARGET_ONLY_NEW` = only untranslated; `TARGET_ONLY` = overwrite existing; `WITH_REVIEW` = translate all and mark for review | TARGET_ONLY_NEW |
-| **Status filter** | `FOR_TRANSLATION` = only strings needing translation; `ALL` = every string | FOR_TRANSLATION |
+| **Translate type** | Prompt and output shape the model must return—not which strings are sent, and not the status saved on import. `TARGET_ONLY_NEW` and `TARGET_ONLY` are both “just translate” prompts; `TARGET_ONLY_NEW` expects a list `{ targets: [{ tmTextUnitId, target }, …] }` (web path, several strings per request), while `TARGET_ONLY` expects a single `{ content: "…" }`. `WITH_REVIEW` is a richer prompt/output (explanation, confidence, review flag), not “translate everything” or “mark for review.” | TARGET_ONLY_NEW |
+| **Status filter** | Which strings are sent: `FOR_TRANSLATION` = only strings needing translation; `ALL` = every string. Combine with any translate type. | FOR_TRANSLATION |
 | **Import status** | Status applied to imported translations: `REVIEW_NEEDED`, `ACCEPTED`, or `TRANSLATION_NEEDED` | REVIEW_NEEDED |
 | **Request timeout (seconds)** | Per-request timeout; leave blank for server default | — |
 | **Download JSON report** | Download a JSON report per locale after completion | Off |
@@ -86,7 +86,7 @@ The CLI supports the same model, prompt, related-string, timeout, dry-run, and t
 - `--attach-job-id` to monitor an existing batch job
 - `--import-job-id` with `--resume` to retry or resume an import
 
-The CLI defaults `--translate-type` to `WITH_REVIEW`, while the web page defaults to `TARGET_ONLY_NEW`. Set it explicitly in automation when the distinction matters. `--download-report` is available only in non-batch mode.
+The CLI defaults `--translate-type` to `WITH_REVIEW`, while the web page defaults to `TARGET_ONLY_NEW`. That is a different default prompt, not different overwrite behavior. Set it explicitly in automation when the distinction matters. `--download-report` is available only in non-batch mode.
 
 ## Requirements
 
