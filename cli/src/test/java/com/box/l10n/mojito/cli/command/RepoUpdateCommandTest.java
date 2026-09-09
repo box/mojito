@@ -149,8 +149,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
   public void testWhitespaceRepoTypeNameIsInvalid() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
     RepoType repoType =
-        repoTypeService.createRepoType(
-            testIdWatcher.getEntityName("ToKeep"), null, null, Set.of());
+        repoTypeService.createRepoType(testIdWatcher.getEntityName("ToKeep"), null, null, Set.of());
 
     getL10nJCommander()
         .run(
