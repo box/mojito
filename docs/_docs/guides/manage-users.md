@@ -11,9 +11,9 @@ The default authentication used by {{ site.mojito_green }} relies on the databas
 
     l10n.security.authenticationType=DATABASE
     
-User information is stored in database and all the authentication process
-is handled by the server. Managing users is done 
-via the CLI.
+User information is stored in the database and authentication is handled by
+the server. Users can be managed in the web UI (**Settings → User Management**)
+or via the CLI. The CLI remains useful for bootstrap and password changes.
 
 Alternatively, [LDAP]({{ site.url }}/docs/guides/authentication/#ldap) can be used.
        

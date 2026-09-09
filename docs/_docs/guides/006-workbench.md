@@ -12,7 +12,7 @@ Use Workbench to fix bugs, communicate context to translation teams and manage g
 
 > **Who can use the Workbench:** Everyone can search and view. **Translators**, **Project Managers**, and **Admins** can edit translations (Translators only for their assigned locales). Export, Import, and Share are available to Translators, PMs, and Admins. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/) for details.
 
-##  Searching
+## Searching
 
 ![Workbench Search](./images/WorkbenchSearch.png)
 
@@ -46,7 +46,7 @@ Use Workbench to fix bugs, communicate context to translation teams and manage g
       - `Unused` - includes legacy text units that have been removed from product or modified
 
 
-##  Managing text units
+## Managing text units
 
 ###  Add or change translations
 

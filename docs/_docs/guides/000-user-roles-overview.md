@@ -50,11 +50,11 @@ If you can't edit a translation, or if you get an error when importing, your rol
 - Import and re-import completed projects
 - Cancel project requests
 - Add and manage screenshots in the [legacy screenshot dashboard]({{ site.url }}/docs/guides/branching/#collecting-screenshots)
-- Manage users (add, update roles) via **Settings → User Management**
+- Manage users (add, update roles) via **Settings → User Management**. PMs cannot create Admins or edit existing Admins.
 - Configure [Box integration]({{ site.url }}/docs/guides/integrating-with-box/) for project requests via **Settings → Box Integration**
 
 **You cannot:**
-- Access [AI Translate]({{ site.url }}/docs/guides/ai-translate/) (Admin only)
+- Access [AI Translate]({{ site.url }}/docs/guides/ai-translate/) in the product UI (the nav link and page are Admin only). PMs can still call the AI Translate API or the `repository-ai-translate` CLI.
 - Access [database monitoring]({{ site.url }}/docs/refs/monitoring/) (Admin only)
 
 ---
@@ -65,7 +65,7 @@ If you can't edit a translation, or if you get an error when importing, your rol
 - Use [AI Translate]({{ site.url }}/docs/guides/ai-translate/) to batch-translate repositories with AI
 - Access [database latency monitoring]({{ site.url }}/docs/refs/monitoring/) (User menu → Monitoring)
 
-The **AI Translate** link appears in the main navigation only for Admins. The **Monitoring** link appears in your user menu (top right) only for Admins.
+The **AI Translate** link appears in the main navigation only for Admins (this is UI gating; the API and CLI are available to PMs as well). The **Monitoring** link appears in your user menu (top right) only for Admins.
 
 ---
 

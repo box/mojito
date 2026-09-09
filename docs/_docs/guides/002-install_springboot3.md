@@ -34,10 +34,10 @@ One simple solution is to add an `application.properties` next to the `jar`. To 
 
 ### CLI install script
 
-The server provides an entry point to fetch a `bash` script that downloads the latest CLI from the server and create a bash 
+The server provides an entry point to fetch a `bash` script that downloads the latest CLI from the server and creates a bash 
 wrapper to easily run the CLI.
 
-It can be called with a one liner to make the bash command available right away in the current console. Replace 
+It can be called with a one-liner to make the bash command available right away in the current console. Replace 
 `http://localhost:8080` with the actual URL if needed. 
 
 ```bash
@@ -156,10 +156,10 @@ Depending on the file size that will be processed, it might be required to incre
 max_allowed_packet = 256M
 ```
     
-If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
-instead `utf8mb4` but it has its limitation in term of character support.
+If using an older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
+instead of `utf8mb4` but it has its limitations in terms of character support.
 
-We recommend running both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set
+We recommend running both MySQL and the Java service using `UTC` timezone (or at least make sure they both use the same timezone). To set
 `UTC` as default use the following:
 
 ```properties
@@ -170,9 +170,9 @@ default-time-zone = '+00:00'
 ### CLI
 
 The default CLI configuration maps to the server default configuration and allows to access the server without
-having to enter credential.
+having to enter credentials.
 
-To access a production instance, the server url and port should be configured and it is also common to use the console to enter credential.
+To access a production instance, the server url and port should be configured and it is also common to use the console to enter credentials.
 
 ```properties
 l10n.resttemplate.host=${HOSTNAME}

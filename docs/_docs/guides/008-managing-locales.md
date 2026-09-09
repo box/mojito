@@ -23,7 +23,7 @@ We use `mojito-cli` to configure locales in a repository.  Locales can be config
 
 By default, all locales configured in the repository are required to be fully translated.  These locales get automatically included in the translation requests.
 
-You can configure the locales to be partially translated.  English in United Kingdom (en-GB) is a good example because most of the strings do not need to be "translated".  Source strings can be used as-is in most cases and only some strings that are specific to English in United Kingdom need to be overriden. In this sense, en-GB is an inherited locale. That is, it inherits
+You can configure the locales to be partially translated.  English in United Kingdom (en-GB) is a good example because most of the strings do not need to be "translated".  Source strings can be used as-is in most cases and only some strings that are specific to English in United Kingdom need to be overridden. In this sense, en-GB is an inherited locale. That is, it inherits
 most of its strings from the parent locale, which in this example, is en-US.
 
 ```bash
@@ -43,7 +43,7 @@ mojito repo-update -n MyRepo -l "(fr-CH)->fr-FR" fr-FR ja-JP zh-CN zh-TW
 The above example makes French in Switzerland (fr-CH) the child locale of French in France (fr-FR).
 
 
-Note that the partially translated locales are displayed in grey color in locales list. The parent locale for partially
+Note that the partially translated locales are displayed in grey in the locales list. The parent locale for partially
 translated locales is implicitly the source locale, which is often en or en-US. That is, it is equivalent to writing "(en-GB)->en-US".
 
 
