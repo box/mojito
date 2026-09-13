@@ -118,6 +118,18 @@ const assetIntegrityCheckerInputSchema = z.object({
         ),
 });
 
+const assetFilterConfigIdOverrideSchema = z
+    .enum([
+        "PROPERTIES_JAVA",
+        "MACSTRINGSDICT_FILTER_KEY",
+        "XCODE_XLIFF",
+        "CSV_ADOBE_MAGENTO",
+        "HTML_ALPHA",
+    ])
+    .describe(
+        "Optional Okapi filter override. Omit to let Mojito infer the filter from the asset path.",
+    );
+
 function jsonResult(data: unknown) {
     return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
@@ -236,6 +248,77 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
             },
         },
         async ({ repositoryId }) => jsonResult(await client.repoDelete(repositoryId)),
+    );
+
+    // --- Assets ---
+
+    server.registerTool(
+        "mojito_asset_import",
+        {
+            description: [
+                "Create or update one source asset and start asynchronous string extraction via POST /api/assets.",
+                "This is the core upload operation used by `mojito push`, but it does not scan local files, wait for completion, or delete assets omitted from the upload.",
+                "The response contains `addedAssetId` and a `pollableTask`; use mojito_pollabletask_get with the returned task id until it finishes.",
+                "By default content is the complete raw resource-file content and Mojito selects a parser from path; extractedContent=true is an advanced mode for Mojito pre-extracted text-unit JSON.",
+                "WARNING: Importing changes source strings in the selected repository. Confirm repository id and environment; prefer mojito-dev while experimenting.",
+            ].join(" "),
+            inputSchema: {
+                repositoryId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric destination repository id. Resolve it with mojito_repo_list if needed.",
+                    ),
+                path: z
+                    .string()
+                    .min(1)
+                    .describe(
+                        "Logical asset path stored in Mojito, including a recognizable extension, e.g. `src/main/resources/messages.properties`. This is not a local filesystem path.",
+                    ),
+                content: z
+                    .string()
+                    .describe(
+                        "Complete source resource-file content. When extractedContent=true, Mojito pre-extracted text-unit JSON instead.",
+                    ),
+                branch: z
+                    .string()
+                    .optional()
+                    .describe(
+                        "Optional Mojito branch name. Omit to import into the repository's default/null branch.",
+                    ),
+                branchCreatedByUsername: z
+                    .string()
+                    .optional()
+                    .describe("Optional username recorded as the creator of a new branch."),
+                branchNotifiers: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        "Optional usernames to notify about this branch's localization state.",
+                    ),
+                pushRunName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        "Optional existing or new push-run name used to associate extracted text units with a push run.",
+                    ),
+                filterConfigIdOverride: assetFilterConfigIdOverrideSchema.optional(),
+                filterOptions: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        'Optional parser-specific settings in `name=value` form, e.g. ["generateHeader=false"].',
+                    ),
+                extractedContent: z
+                    .boolean()
+                    .optional()
+                    .describe(
+                        "Advanced: true only when content is Mojito's pre-extracted text-unit JSON. False/omitted means a normal source resource file.",
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.assetImport(args)),
     );
 
     // --- Text units ---
