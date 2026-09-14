@@ -9,7 +9,7 @@ When you use `Mojito`, you may need additional information about the text units 
 commit introduced them. 
 
 This information about the text unit can be extracted using the `git-blame` command from the `mojito-cli`. This command
-uses the [git-blame](https://git-scm.com/docs/git-blame) command to extract the the information about the text unit.
+uses the [git-blame](https://git-scm.com/docs/git-blame) command to extract the information about the text unit.
 
 Depending on the file type, the `blame` command can be run on the lines of the source resource files or read in the usage locations from the resource files to use to get the `blame` information from 
 the code base.
@@ -37,7 +37,7 @@ The command will run `git blame` on the file `res/values/strings.xml` and save t
 
 The command can also be run on specified file types using the `-ft` parameter
 
-    mojito git-blame -r MyRepo -ft FileType
+    mojito git-blame -r MyRepo -ft PO
     
 ### Blame with usages
     

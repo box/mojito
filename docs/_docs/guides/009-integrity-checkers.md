@@ -5,7 +5,7 @@ categories: guides
 permalink: /docs/guides/integrity-checkers/
 ---
 
-In this guide, let's go over the integrity checkers in {{ site.mojito_green }} in detail.  Integrity checkers perform checks on the translations against the source strings and reject the translations with errors.  This prevents translations with errors from being used in localized resource files which can lead to build faiilure or errors in application.
+In this guide, let's go over the integrity checkers in {{ site.mojito_green }} in detail.  Integrity checkers perform checks on the translations against the source strings and reject the translations with errors.  This prevents translations with errors from being used in localized resource files which can lead to build failure or errors in application.
 
 
 We use `mojito-cli` to configure integrity checkers in a repository.  Integrity checkers can be configured when you create and update repository in {{ site.mojito_green }} with `-it` parameter.  You can set integrity checker for each file extension of resource files.  For example, `-it resw:COMPOSITE_FORMAT,xlf:PRINTF_LIKE`.
@@ -19,13 +19,28 @@ We use `mojito-cli` to configure integrity checkers in a repository.  Integrity 
 ### Available Integrity Checkers
 
 | Integrity Checker                      | Recommended File Extensions &nbsp;&nbsp;&nbsp; | File Format                          |
-|:---------------------------------------|:------------------------------- ---------------|:-------------------------------------|
+|:---------------------------------------|:-----------------------------------------------|:-------------------------------------|
 | COMPOSITE_FORMAT                       | resw, resx                                     | RESW, RESX                           |
 | MESSAGE_FORMAT                         | properties                                     | Java Properties                      |
-| PRINTF_LIKE                            | xml, strings,                                  | Android Strings, iOS/Mac Strings,    |
-| SIMPLE_PRINTF_LIKE                     |                                                |                                      |
-| WHITESPACE                             |                                                |                                      |
-| TRAILING_WHITESPACE &nbsp;&nbsp;&nbsp; |                                                |                                      |
+| MESSAGE_FORMAT_DOUBLE_BRACES           | vue, hbs, mustache                              | Strings with `{{` placeholders       |
+| PRINTF_LIKE                            | xml, strings                                   | Android Strings, iOS/Mac Strings     |
+| PRINTF_LIKE_IGNORE_PERCENTAGE_AFTER_BRACKETS |                                    |                                      |
+| PRINTF_LIKE_VARIABLE_TYPE             |                                                |                                      |
+| PRINTF_LIKE_ADD_PARAMETER_SPECIFIER   |                                                |                                      |
+| SIMPLE_PRINTF_LIKE                     |                                                | Placeholders like %1, %2              |
+| FLUENT                                 | ftl                                            | Fluent localization                  |
+| WHITESPACE                             |                                                | Leading and trailing whitespace      |
+| TRAILING_WHITESPACE                    |                                                | Trailing whitespace only             |
+| HTML_TAG                               | html                                           | HTML content                         |
+| ELLIPSIS                               |                                                | Ellipsis characters                  |
+| BACKQUOTE                              |                                                | Backtick characters                  |
+| EMPTY_TARGET_NOT_EMPTY_SOURCE          |                                                | Empty translation when source has content |
+| MARKDOWN_LINKS                         |                                                | Markdown link syntax                 |
+| PYTHON_FPRINT                          | py                                             | Python f-string format               |
+| EMAIL                                  | eml                                            | Email format                         |
+| URL                                    |                                                | URL format                           |
+| FORBIDS_CONTROL_CHARACTERS             |                                                | Control characters                   |
+| MISC_AI_TRANSLATE                      |                                                | AI translation validation            |
 
 
 ### Composite Format Integrity Checker
@@ -97,14 +112,14 @@ The translation gets rejected if any placeholder in the source string is missing
 
 Whitespace integrity checker validates that the leading and trailing whitespaces in the source string exist in the translation.
 
-The translation gets rejected if any leading or traingling whitespace in the source string is missing in the translation.
+The translation gets rejected if any leading or trailing whitespace in the source string is missing in the translation.
 
 | Source String                                          | Translation                                                           | Checker           |
 |:-------------------------------------------------------|:----------------------------------------------------------------------|:------------------|
 | <small>[space]Hello %@![newline]</small>               | <small>[space]¡Hola %@![newline]</small>                              | <small>OK</small> |
 | <small>[space]%1$d files and %2$d folders</small>      | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing leading space</small>                    |
 | <small>%1$d files and %2$d folders[newline]</small>    | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailing newline</small>                 |
-| <small>[space]%1 files and %2 folders[newline]</small> | <small>[newline]%1 fichiers et %2 dossiers[space]</small>&nbsp;&nbsp; | <small>FAIL modified leading and trailing whitepsace</small> |
+| <small>[space]%1 files and %2 folders[newline]</small> | <small>[newline]%1 fichiers et %2 dossiers[space]</small>&nbsp;&nbsp; | <small>FAIL modified leading and trailing whitespace</small> |
 
 
 
@@ -113,12 +128,12 @@ The translation gets rejected if any leading or traingling whitespace in the sou
 
 Trailing whitespace integrity checker validates that the trailing whitespaces in the source string exist in the translation.
 
-The translation gets rejected if any traingling whitespace in the source string is missing in the translation.
+The translation gets rejected if any trailing whitespace in the source string is missing in the translation.
 
 | Source String                                                      | Translation                                                           | Checker           |
 |:-------------------------------------------------------------------|:----------------------------------------------------------------------|:------------------|
 | <small>Hello %@![space][newline]</small>                           | <small>¡Hola %@![space][newline]</small>                              | <small>OK</small> |
-| <small>%1$d files and %2$d folders[space]</small>                  | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailng space</small>         |
+| <small>%1$d files and %2$d folders[space]</small>                  | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailing space</small>       |
 | <small>%1$d files and %2$d folders[newline]</small>                | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailing newline</small>      |
 | <small>%1 files and %2 folders[space][newline]</small>&nbsp;&nbsp; | <small>%1 fichiers et %2 dossiers[newline][space]</small>&nbsp;&nbsp; | <small>FAIL modified trailing whitespaces</small> |
 

@@ -6,6 +6,8 @@ categories: guides
 permalink: /docs/guides/integrating-with-box/
 ---
 
+> **Who can configure Box:** Project Managers and Admins. Box integration is configured under Settings → Box Integration. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/).
+
 Adding Box Platform Integration will allow project requests to be sent to the cloud.  This is a great way to exchange translation files with vendors.  When a translation request is made, XLIFFs will be sent to a Box folder where translation vendors can start their process.  When they've completed the translations, {{ site.mojito_green }} can import the translated files from Box.
 
 
@@ -46,7 +48,7 @@ For instructions on how to create the key pair: See [here](https://docs.box.com/
 >
 >If Oracle JDK is used to run {{ site.mojito_green }}, this will require **JCE** to be installed
 (for JDK7 see [here](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html)).
-Otherwise, an exception like the folllowing will be thrown:
+Otherwise, an exception like the following will be thrown:
 >
 >`Caused by: java.security.InvalidKeyException: Illegal key size`.
 >

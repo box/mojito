@@ -8,6 +8,8 @@ permalink: /docs/guides/project-request/
 
 {{ site.mojito_green }} allows you to create project packages for your translation teams. You can create them at the `Project Requests` page.
 
+> **Who can use Project Requests:** Everyone can view projects. **Project Managers** and **Admins** can create, import, re-import, and cancel requests. Translators and Users can only view. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/).
+
 ### Request a translation project
 
 ![Request translation](./images/TranslationRequest.gif)
