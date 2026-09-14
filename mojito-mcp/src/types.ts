@@ -143,6 +143,36 @@ export type AssetImportParams = {
     extractedContent?: boolean;
 };
 
+/** Which translations are eligible when generating a localized asset. */
+export type LocalizedAssetStatus = "ALL" | "ACCEPTED_OR_NEEDS_REVIEW" | "ACCEPTED";
+
+/**
+ * When a string has no translation in the target locale, either fall back through
+ * parent locales (and ultimately the source) or drop the text unit from the file.
+ */
+export type LocalizedAssetInheritanceMode = "USE_PARENT" | "REMOVE_UNTRANSLATED";
+
+/**
+ * Parameters for POST /api/assets/{assetId}/localized/{localeId}.
+ *
+ * This is the synchronous localize call used by default `mojito pull`: the request
+ * body is the current source resource content; the response body's `content` is the
+ * generated localized file. It does not scan a working tree or write files to disk.
+ */
+export type AssetLocalizeParams = {
+    assetId: number;
+    localeId: number;
+    content: string;
+    /** Generate the file tagged with this BCP-47 value while still fetching translations for localeId. */
+    outputBcp47tag?: string;
+    filterConfigIdOverride?: AssetFilterConfigIdOverride;
+    filterOptions?: string[];
+    inheritanceMode?: LocalizedAssetInheritanceMode;
+    status?: LocalizedAssetStatus;
+    /** If set, Mojito records a pull run under this name when generating the file. */
+    pullRunName?: string;
+};
+
 export type RepoCreateParams = {
     name: string;
     description?: string;

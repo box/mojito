@@ -38,8 +38,9 @@
  *    failure does not litter the dev server.
  *
  * Not covered here: translation writes and review updates, text unit history, pollable
- * tasks, and the all-repositories search expansion. Those are argv-level unit tests only,
- * because asserting them live would need seeded translation data on the dev instance.
+ * tasks, asset import/list/localize/delete, and the all-repositories search expansion.
+ * Those are argv-level unit tests only, because asserting them live would need seeded
+ * translation data (or extra asset fixtures) on the dev instance.
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";

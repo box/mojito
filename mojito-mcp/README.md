@@ -1,6 +1,6 @@
 # mojito-mcp
 
-MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import source assets, search strings, inspect repositories, add translations, update review status, and more.
+MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import and localize source assets, search strings, inspect repositories, add translations, update review status, and more.
 
 This directory is a **standalone npm package** (not a Maven module). You need **Node 18+** and a working Mojito CLI on your `PATH`.
 
@@ -285,11 +285,14 @@ Tool ids follow `mojito_<object>_<action>`.
 | `mojito_asset_list` | List asset summaries in a repository (optional path / deleted / virtual / branchId) |
 | `mojito_asset_ids` | List asset ids with the same filters as list |
 | `mojito_asset_import` | Create or update one source asset and start asynchronous extraction |
+| `mojito_asset_localize` | Generate one localized resource file for an asset and locale |
 | `mojito_asset_delete` | Delete one source asset by id |
 
 `mojito_asset_import` is the core server call beneath `mojito push`: it sends a logical asset `path` and its complete `content` to `POST /api/assets`. Mojito creates or updates that asset and returns an `addedAssetId` plus a `pollableTask`. Poll that task with `mojito_pollabletask_get`.
 
 This tool deliberately does not reproduce the rest of `mojito push`: it does not discover local files, wait for extraction, or mark assets missing from the current upload as unused. Import each intended asset explicitly. For a normal resource file, omit `extractedContent`; Mojito chooses the parser from the path extension unless `filterConfigIdOverride` is supplied. Set `extractedContent=true` only when `content` is Mojito's pre-extracted text-unit JSON format.
+
+`mojito_asset_localize` is the core server call beneath default `mojito pull`: `POST /api/assets/{assetId}/localized/{localeId}` with the current source-file `content`. Mojito applies translations for numeric `localeId` and returns a `LocalizedAssetBody` whose `content` is the generated localized file. It does not scan directories, write files, or wait on a pollable task. `localeId` is a number (from `mojito_repo_view` or a text-unit row), not a BCP-47 tag. Optional `outputBcp47tag` only changes the tag written on the generated file (for example `fr` while translations live on `fr-FR`). Optional `status` (`ALL` / `ACCEPTED_OR_NEEDS_REVIEW` / `ACCEPTED`) and `inheritanceMode` (`USE_PARENT` / `REMOVE_UNTRANSLATED`) match the CLI `--status` and `--inheritance-mode` flags. Async and parallel localize endpoints are not exposed.
 
 `mojito_asset_list` / `mojito_asset_ids` require `repositoryId`. There is no GET-by-id for a single asset. `mojito_asset_delete` removes one asset by id; it is not the bulk unused-asset cleanup used by CLI push.
 

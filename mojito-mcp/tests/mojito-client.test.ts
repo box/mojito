@@ -90,6 +90,11 @@
  * 8d. Deleting an asset is an explicit `-X DELETE` on the asset id.
  * 9. Importing an asset POSTs the complete source-asset JSON body and cleans up its temporary
  *    input file. This is the asynchronous server operation beneath the CLI push command.
+ * 9b. Localizing an asset POSTs LocalizedAssetBody JSON to
+ *     /api/assets/{assetId}/localized/{localeId} (the default `mojito pull` call) and
+ *     returns the generated file in the response body, not a pollable task.
+ * 9c. A minimal localize keeps empty content and omits every optional field so API defaults
+ *     (status ALL, inheritance USE_PARENT) apply.
  * 10. A minimal asset import preserves empty content and omits every optional field.
  * 11. Searching text units POSTs to the search endpoint with the full pagination flag set
  *    (`--paginate --slurp --max-pages 0`), and passes repository, source, search type, and
@@ -630,6 +635,87 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
         expect(body).toEqual({
             repositoryId: 7,
             path: "messages.properties",
+            content: "",
+        });
+    });
+
+    test("assetLocalize POSTs LocalizedAssetBody JSON to the sync pull endpoint", async () => {
+        let inputFile = "";
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            inputFile = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(inputFile, "utf8")) as Record<string, unknown>;
+            return okJson({
+                assetId: 12,
+                localeId: 24,
+                bcp47Tag: "fr",
+                content: "hello=Bonjour\n",
+            });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.assetLocalize({
+                assetId: 12,
+                localeId: 24,
+                content: "hello=Hello\n",
+                outputBcp47tag: "fr",
+                filterConfigIdOverride: "PROPERTIES_JAVA",
+                filterOptions: ["generateHeader=false"],
+                inheritanceMode: "REMOVE_UNTRANSLATED",
+                status: "ACCEPTED",
+                pullRunName: "pull-123",
+            }),
+        ).resolves.toEqual({
+            assetId: 12,
+            localeId: 24,
+            bcp47Tag: "fr",
+            content: "hello=Bonjour\n",
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/assets/12/localized/24",
+            "-X",
+            "POST",
+            "--input",
+            inputFile,
+        ]);
+        expect(runner.calls[0]).not.toContain("--wait");
+        expect(body).toEqual({
+            assetId: 12,
+            localeId: 24,
+            content: "hello=Hello\n",
+            outputBcp47tag: "fr",
+            filterConfigIdOverride: "PROPERTIES_JAVA",
+            filterOptions: ["generateHeader=false"],
+            inheritanceMode: "REMOVE_UNTRANSLATED",
+            status: "ACCEPTED",
+            pullRunName: "pull-123",
+        });
+        expect(existsSync(inputFile)).toBe(false);
+    });
+
+    test("assetLocalize omits optional fields from a generate-only call", async () => {
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            body = JSON.parse(readFileSync(argv[argv.indexOf("--input") + 1], "utf8")) as Record<
+                string,
+                unknown
+            >;
+            return okJson({ content: "" });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.assetLocalize({
+            assetId: 12,
+            localeId: 24,
+            content: "",
+        });
+
+        expect(body).toEqual({
+            assetId: 12,
+            localeId: 24,
             content: "",
         });
     });
