@@ -79,7 +79,10 @@ describe("MCP tool surface", () => {
             "mojito_repo_view",
             "mojito_repo_create",
             "mojito_repo_delete",
+            "mojito_asset_list",
+            "mojito_asset_ids",
             "mojito_asset_import",
+            "mojito_asset_delete",
             "mojito_textunit_search",
             "mojito_textunit_info",
             "mojito_textunit_history",
@@ -123,12 +126,22 @@ describe("MCP tool surface", () => {
         expect(repositoryId.safeParse(-1).success).toBe(false);
         expect(repositoryId.safeParse(1.5).success).toBe(false);
 
+        const assetList = byName.get("mojito_asset_list")!.options.inputSchema;
+        expect(assetList.repositoryId.safeParse(1).success).toBe(true);
+        expect(assetList.repositoryId.safeParse(0).success).toBe(false);
+        expect(assetList.deleted.safeParse(false).success).toBe(true);
+        expect(assetList.branchId.safeParse(0).success).toBe(false);
+
         const assetImport = byName.get("mojito_asset_import")!.options.inputSchema;
         expect(assetImport.repositoryId.safeParse(1).success).toBe(true);
         expect(assetImport.repositoryId.safeParse(0).success).toBe(false);
         expect(assetImport.path.safeParse("messages.properties").success).toBe(true);
         expect(assetImport.path.safeParse("").success).toBe(false);
         expect(assetImport.content.safeParse("").success).toBe(true);
+
+        const assetDelete = byName.get("mojito_asset_delete")!.options.inputSchema;
+        expect(assetDelete.assetId.safeParse(1).success).toBe(true);
+        expect(assetDelete.assetId.safeParse(0).success).toBe(false);
 
         const search = byName.get("mojito_textunit_search")!.options.inputSchema;
         expect(search.limit.safeParse(1).success).toBe(true);
