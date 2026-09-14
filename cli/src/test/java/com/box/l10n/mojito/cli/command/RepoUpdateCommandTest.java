@@ -146,7 +146,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
   }
 
   @Test
-  public void testWhitespaceRepoTypeNameIsInvalid() throws Exception {
+  public void testWhitespaceRepoTypeNameClearsLikeEmpty() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
     RepoType repoType =
         repoTypeService.createRepoType(testIdWatcher.getEntityName("ToKeep"), null, null, Set.of());
@@ -162,6 +162,10 @@ public class RepoUpdateCommandTest extends CLITestBase {
         repoType.getId(),
         repositoryRepository.findByName(repository.getName()).getRepoType().getId());
 
+    // JCommander 1.48 trims flag values, even when quoted
+    // (https://github.com/cbeust/jcommander/issues/417), so "   " arrives as "" and
+    // clears the assignment the same way as --repo-type "". Blank names are still
+    // rejected on the REST update body.
     getL10nJCommander()
         .run(
             "repo-update",
@@ -169,10 +173,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
             repository.getName(),
             Param.REPOSITORY_TYPE_LONG,
             "   ");
-    assertEquals(
-        repoType.getId(),
-        repositoryRepository.findByName(repository.getName()).getRepoType().getId());
-    assertTrue(outputCapture.toString().contains("repoType.name is required"));
+    assertNull(repositoryRepository.findByName(repository.getName()).getRepoType());
   }
 
   @Test

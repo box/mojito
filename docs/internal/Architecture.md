@@ -348,9 +348,9 @@ Name, description, and AI-prompt CLI for repo types, plus optional assignment on
 
 Repository commands manage the optional assignment by exact, case-sensitive type name:
 
-- `repo-create --repo-type <name>` creates a typed repository; omitting the flag or passing an empty value creates an untyped repository (`repo_type_id` SQL `NULL`). Whitespace-only is invalid (`repoType.name is required`).
+- `repo-create --repo-type <name>` creates a typed repository; omitting the flag or passing an empty value creates an untyped repository (`repo_type_id` SQL `NULL`). JCommander 1.48 trims flag values, even when quoted, so whitespace-only (`"   "`) is the same as empty at the CLI. A blank nested name on the REST create body still returns 400 (`repoType.name is required`).
 - `repo-update --repo-type <name>` assigns or changes the type.
-- `repo-update --repo-type ""` clears it, same pattern as `-it ""`. Omitting the flag preserves the current assignment. Whitespace-only is invalid (`repoType.name is required`).
+- `repo-update --repo-type ""` clears it, same pattern as `-it ""`. Omitting the flag preserves the current assignment. Whitespace-only is likewise treated as empty (clears) because JCommander trims first. A blank nested name on the REST update body still returns 400.
 - `repo-view` prints `Repository type --> <name>` only when a type is assigned.
 
 `NULL` has no special meaning: `--repo-type NULL` looks up a type literally named `NULL`. Flag constants: `Param.REPOSITORY_TYPE_*`. The REST PATCH still uses `clearRepoType=true`; the CLI maps an empty `--repo-type` to that query parameter.

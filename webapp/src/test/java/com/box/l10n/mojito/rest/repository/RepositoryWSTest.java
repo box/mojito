@@ -221,6 +221,48 @@ public class RepositoryWSTest extends WSTestBase {
   }
 
   @Test
+  public void testCreateRepositoryRejectsBlankRepoType() throws Exception {
+    RepoType blankType = new RepoType();
+    blankType.setName("   ");
+
+    try {
+      repositoryClient.createRepository(
+          testIdWatcher.getEntityName("blankTypeRepository"),
+          null,
+          null,
+          new HashSet<>(),
+          new HashSet<>(),
+          false,
+          blankType);
+      fail("HTTP 400 is expected");
+    } catch (ResourceNotCreatedException e) {
+      assertTrue(e.getMessage().contains("repoType.name is required"));
+    }
+  }
+
+  @Test
+  public void testUpdateRepositoryRejectsBlankRepoTypeAndKeepsAssignment() throws Exception {
+    RepoType assignedType = createRepoType("KeepOnBlank");
+    Repository repository = wsTestDataFactory.createRepository(testIdWatcher);
+    repositoryClient.updateRepository(
+        repository.getName(), null, null, null, null, null, assignedType, false);
+    RepoType blankType = new RepoType();
+    blankType.setName("   ");
+
+    try {
+      repositoryClient.updateRepository(
+          repository.getName(), null, null, null, null, null, blankType, false);
+      fail("HTTP 400 is expected");
+    } catch (ResourceNotUpdatedException e) {
+      assertTrue(e.getMessage().contains("repoType.name is required"));
+    }
+
+    assertEquals(
+        assignedType.getId(),
+        repositoryClient.getRepositoryByName(repository.getName()).getRepoType().getId());
+  }
+
+  @Test
   public void testUpdateRepositoryAssignChangeOmitAndClearRepoType() throws Exception {
     RepoType firstType = createRepoType("FirstType");
     RepoType secondType = createRepoType("SecondType");
