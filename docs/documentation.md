@@ -4,6 +4,8 @@ title: Documentation
 permalink: /docs/
 ---
 
+<p><strong>Using the webapp?</strong> Start with <a href="{{ site.url }}/docs/guides/user-roles-overview/">User Roles & Permissions</a> to see what you can do based on your role (Translator, Project Manager, Admin, or User).</p>
+
 <h3>Roadmap</h3>
 <a class="page-link" href="{{ site.url }}/docs/roadmap/">Roadmap</a>
 

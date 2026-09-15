@@ -2,31 +2,31 @@
 layout: doc
 title:  "Authentication (Spring Boot 3 on master)"
 categories: guides
-permalink: /docs/guides/authentication-springboot2/
+permalink: /docs/guides/authentication-springboot3/
 ---
 
 {{ site.mojito_green }}'s default setup comes with a `form login` authentication backed by the database.
 
     l10n.security.authenticationType=DATABASE
     
-Other types of authentication can be used in conjunction with the default `form login`. This enables to have a dual 
+Other types of authentication can be used in conjunction with the default `form login`. This enables a dual 
 authentication scheme (potentially `OAuth` for regular users and `form login` to support tools and API integrations 
-like the `CLI`.
+like the `CLI`).
 
-Change or add an authentication mechanisms by updating the configuration. Eg. to add OAuth2 append it to the end
+Change or add an authentication mechanism by updating the configuration. Eg. to add OAuth2 append it to the end
 
     l10n.security.authenticationType=DATABASE,OAUTH2
         
-You can chosse to either show the {{ site.mojito_green }}'s login page or to automatically redirect to another page.
-Eg. to redirect to Github OAuth when the not authenticated
+You can choose to either show the {{ site.mojito_green }}'s login page or to automatically redirect to another page.
+E.g. to redirect to GitHub OAuth when the user is not authenticated
     
-    l10n.security.unauth-redirect-to==/login/oauth2/authorization/github
+    l10n.security.unauth-redirect-to=/login/oauth2/authorization/github
 
 If the redirect is enabled, it is still possible to access {{ site.mojito_green }}'s login page.
                
 ### OAuth 2
 
-{{ site.mojito_green }} support `OAuth 2` using standard
+{{ site.mojito_green }} supports `OAuth 2` using standard
 [Spring 2 / Spring Security configuration](https://docs.spring.io/spring-security/site/docs/5.3.2.RELEASE/reference/html5/#oauth2login-sample-boot)
  with a few additional {{ site.mojito_green }} settings to customize the UI and how the user name is extracted from the user information payload. 
 

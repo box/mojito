@@ -17,7 +17,7 @@ repository from scratch following a bad manipulation.
 If starting with a new repository, the `push` command must be run first since `import` doesn't process the source
  files. Skip following step if working on an existing project:
 ```bash
-mojito repo-create -n MyRepo -l fr-FR,ja-JP
+mojito repo-create -n MyRepo -l fr-FR ja-JP
 mojito push -r MyRepo
 ```
 
@@ -30,10 +30,10 @@ mojito import -r MyRepo
 
 The major addition to the `push`/`pull` options is `--status-equal-target`
 that allows you to define the behavior of the import when the "translation" is
-the same the source string.
+the same as the source string.
 
-It lets you skip the import or mark the string with special status (approved,
-translation needed, review needed)
+It lets you skip the import or mark the string with special status (`APPROVED`,
+`TRANSLATION_NEEDED`, `REVIEW_NEEDED`, or `SKIPPED`).
 
 ```bash
 mojito import -r MyRepo --status-equal-target SKIPPED

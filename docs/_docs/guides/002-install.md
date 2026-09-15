@@ -27,12 +27,12 @@ Run the CLI with:
 
 Default configuration location:
 
-    usr/local/etc/mojito/cli/application.properties
-    usr/local/etc/mojito/webapp/application.properties
+    /usr/local/etc/mojito/cli/application.properties
+    /usr/local/etc/mojito/webapp/application.properties
 
 ### Using Executable Jars
 
-`Java 1.8` is required. Executable Jars can be downloaded in the [release section](https://github.com/box/mojito/releases/).
+`Java 1.8` is required for this deprecated version. For current releases (master branch), see [Installation and Setup (Spring Boot 3)]({{ site.url }}/docs/guides/install-springboot3/) which requires `Java 21`. Executable Jars can be downloaded in the [release section](https://github.com/box/mojito/releases/).
 
 Run the Webapp with:
 
@@ -54,7 +54,7 @@ One simple solution is to add an `application.properties` next to the `jar`. To 
 The server provides an entry point to fetch a `bash` script that downloads the latest CLI from the server and create a bash 
 wrapper to easily run the CLI.
 
-It can be called with a one liner to make the bash command available rigth away in the current console. Replace 
+It can be called with a one liner to make the bash command available right away in the current console. Replace 
 `http://localhost:8080` with the actual URL if needed. 
 
 ```bash

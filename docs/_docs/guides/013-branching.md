@@ -7,6 +7,8 @@ permalink: /docs/guides/branching/
 
 {{ site.mojito_green }} supports `branching` by simply adding an extra parameter to the `push` command.
 
+> **Who can use branches and screenshots:** Everyone can view the branch dashboard. Adding screenshots in the legacy screenshot dashboard requires **Project Manager** or **Admin** role. The new Screenshots page (upload dropzone) is available to everyone. See [User Roles & Permissions]({{ site.url }}/docs/guides/user-roles-overview/).
+
 Using branches is transparent to other tasks and won't be noticed unless voluntarily using it to 
 process [pull requests](#process-pull-request--diff) and interacting with the [branch dashboard](#branch-dashboard).
 
@@ -105,7 +107,7 @@ when the commits are merged into the "master" branch and it takes some time to g
 
 When working in a fast paced environment where deployments can happen multiple times a day. It is likely that features
 will be pushed in production without being fully localized, leading to poor experience for international users. It 
-can also create inefficencies in the testing process. 
+can also create inefficiencies in the testing process. 
 
 If releases are gated or less frequent, it is easier to wait for strings to be ready before publishing the feature but
 last minute changes may still happen.
@@ -183,10 +185,13 @@ the actual strings.
  
 #### Collecting screenshots
 
-Providing context to translators is key for having quality translations. In addition to adding comments in the code base, 
-{{ site.mojito_green }} provides a simple way to collect screenshots for strings in a branch.
+Providing context to translators is key for having quality translations. {{ site.mojito_green }} offers two ways to work with screenshots:
 
-Once in the dashboard, it is possible to select one or multiple text units and then click on the `Add screenshot` button.
+**Legacy screenshot dashboard** (Screenshots link when "legacy" is enabled, or Branches → Screenshot button): Select one or multiple text units and click `Add screenshot` to attach images. **Project Managers** and **Admins** can add and edit screenshots; others can view.
+
+**Screenshots page** (main navigation → Screenshots): A drag-and-drop page where you upload images (.png, .jpg, .jpeg). Each upload returns a reference like `s:550e8400-e29b-41d4-a716-446655440000`. Copy this reference and use it in source comments or asset metadata to link screenshots to text units. Everyone can upload; no repository or locale selection is needed.
+
+Once in the legacy dashboard, it is possible to select one or multiple text units and then click on the `Add screenshot` button.
 
 ![Search branch by name](./images/add-screenshot.gif)
 
@@ -213,7 +218,7 @@ mojito pull -r MyRepo
 hello = Bonjour
 ```
 
-It is not possbible to create a branch that has a differente translation `Bonjour!` (adding the missing exclamation mark).
+It is not possible to create a branch that has a different translation `Bonjour!` (adding the missing exclamation mark).
 Branches may have different source strings (the `push` command as the branch parameter) but not translations (`pull`
 command doesn't have any branch parameter).
 
@@ -221,7 +226,7 @@ If this is not acceptable, an alternative is to clone the repository instead but
 and no tool are provided to merge branches easily.
 
 Note that modifying the name/context/comment of an existing string in the code base leads to the creation of a new 
-string. So it is tottally safe to change a placeholder in a branch while keeping the same string `name`. In that case
+string. So it is totally safe to change a placeholder in a branch while keeping the same string `name`. In that case
 the translation won't be shared since the string are different.
 
 For example, the `master` branch contains following file:

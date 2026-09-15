@@ -2,7 +2,7 @@
 layout: doc
 title:  "Spring Boot 3 migration"
 categories: guides
-permalink: /docs/guides/authentication-springboot3/
+permalink: /docs/guides/springboot3-migration/
 ---
 
 Changes from Spring 2.x to Spring 3.x

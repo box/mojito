@@ -27,7 +27,7 @@ opens the workbench with all different plural forms.
 Depending on the locale, the forms shown are customized. For example, while English
 has 2 forms (singular and plural), Japanese has a single form and Russian 4 forms.
 
-The 2 forms shown for English in the the workbench:
+The 2 forms shown for English in the workbench:
 
 ![create demo repository](./images/wb-english.png)
 

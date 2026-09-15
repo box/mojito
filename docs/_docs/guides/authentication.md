@@ -11,7 +11,7 @@ permalink: /docs/guides/authentication/
  authentication. This enables to have a dual authentication scheme (potentially `OAuth` for 
  regular users and `form login` to support tools and API integrations like the `CLI`.
   
-The integration resuse Spring Security standard settings, just prefixed with `l10n`. 
+The integration reuses Spring Security standard settings, just prefixed with `l10n`. 
 
 #### Example with GitHub
 

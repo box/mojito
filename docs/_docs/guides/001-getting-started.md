@@ -5,7 +5,7 @@ categories: guides
 permalink: /docs/guides/getting-started/
 ---
 
-For this guide, we use [Brew](http://brew.sh/) to install {{ site.mojito_green }} Webapp and CLI (`Java 1.8` is required).
+For this guide, we use [Brew](http://brew.sh/) to install {{ site.mojito_green }} Webapp and CLI (`Java 21` is required).
 
 ### Setup and install
 
@@ -59,7 +59,7 @@ Check in the Workbench that the string was added and is untranslated. Try adding
 
 Finally, this generates the updated localized files with the new translation.  
 
-![update localized filwa](./images/update-localized.gif)
+![update localized files](./images/update-localized.gif)
 
 ### What's next?
 

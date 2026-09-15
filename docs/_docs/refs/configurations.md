@@ -18,9 +18,11 @@ To override default configurations of {{ site.mojito_green }}, add them in
     /usr/local/etc/mojito/cli/application.properties     # for mojito cli
     /usr/local/etc/mojito/webapp/application.properties  # for mojito webapp
 
-If you want to use different path to store the override configuration, you can specify the following extra parameter when you start {{ site.mojito_green }} server and when you run {{ site.mojito_green }} CLI.  For example,
+If you want to use a different path for override configuration, specify the following when you start the server or run the CLI:
 
-    -Dspring.config.location=file:/${YOUR_PATH}/application.properties
+    -Dspring.config.additional-location=optional:file:/${YOUR_PATH}/application.properties
+
+Using `additional-location` adds your file to the default configuration. Use `optional:` so startup succeeds even if the file is missing.
 
 
 ## Database Configuration
@@ -37,8 +39,8 @@ The default database configuration of {{ site.mojito_green }} is in-memory HSQL 
 
 You can override the database configuration with MySQL.
 
-[Install MySQL 5.7](http://dev.mysql.com/doc/refman/5.7/en/installing.html) and then create a database for {{ site.mojito_green }} 
-(with Brew: `brew install mysql@5.7`). 
+[Install MySQL 8](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/) and then create a database for {{ site.mojito_green }} 
+(with Brew: `brew install mysql@8`). 
 
 Connect to MySQL DB as root user
 
@@ -61,10 +63,10 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     spring.jpa.database=MYSQL
     spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
     spring.jpa.hibernate.ddl-auto=none
-    spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
+    spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=UTC
     spring.datasource.username=${DB_USERNAME}
     spring.datasource.password=${DB_PASSWORD}
-    spring.datasource.driverClassName=com.mysql.jdbc.Driver
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
     spring.datasource.testOnBorrow=true
     spring.datasource.validationQuery=SELECT 1
     
@@ -75,8 +77,8 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     l10n.org.quartz.jobStore.class=org.quartz.impl.jdbcjobstore.JobStoreTX
     l10n.org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
     l10n.org.quartz.jobStore.dataSource=myDS
-    l10n.org.quartz.dataSource.myDS.driver=com.mysql.jdbc.Driver
-    l10n.org.quartz.dataSource.myDS.URL=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
+    l10n.org.quartz.dataSource.myDS.driver=com.mysql.cj.jdbc.Driver
+    l10n.org.quartz.dataSource.myDS.URL=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=UTC
     l10n.org.quartz.dataSource.myDS.user=${DB_USERNAME}
     l10n.org.quartz.dataSource.myDS.password=${DB_PASSWORD}
     l10n.org.quartz.dataSource.myDS.maxConnections=12
@@ -136,6 +138,61 @@ When translators are done, translated xliff files should be put in the `Localize
 You can override this default configuration and have project requests to be managed on Box instead of local file system.  Refer to [Integrating with Box]({{ site.url }}/docs/guides/integrating-with-box/).
 
 
+### AI Translation and AI Review (OpenAI)
+
+AI translation and AI review use the OpenAI HTTP API. Configure an API token and, when required by your network, an optional HTTP proxy for outbound requests. Proxy credentials are handled separately from the OpenAI Bearer token.
+
+#### AI translation
+
+    # Required to enable AI translation features
+    l10n.ai-translate.openai-client-token=${OPENAI_API_KEY}
+
+    # Optional. Default: gpt-4o-2024-08-06
+    l10n.ai-translate.model-name=gpt-4o-2024-08-06
+
+    # Optional. HTTP proxy (host and port must both be set)
+    l10n.ai-translate.proxy-host=proxy.example.com
+    l10n.ai-translate.proxy-port=3128
+    l10n.ai-translate.proxy-user=proxy-user
+    l10n.ai-translate.proxy-password=${PROXY_PASSWORD}
+
+    # Optional. Preferred proxy auth schemes (see below)
+    # l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Optional. Use a dedicated Quartz scheduler for AI translation jobs
+    l10n.ai-translate.scheduler-name=ai-translate
+
+Keep secrets such as the API token and proxy password out of source control.
+
+#### Proxy preferred auth schemes
+
+When an HTTP proxy challenges with more than one authentication scheme, Apache HttpClient 5 selects a scheme using its built-in preference order. Leave this property unset to keep those defaults, which is the right choice for most deployments.
+
+Set a comma-separated preference list only when the proxy's advertised order does not work with HttpClient. For example, if a proxy advertises Digest before Basic but only Basic succeeds:
+
+    l10n.ai-translate.proxy-preferred-auth-schemes=Basic,Digest
+
+    # Same option for AI review
+    l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+
+Scheme names are HttpClient 5 authentication scheme names, such as `Basic` and `Digest`. Whitespace around commas is ignored.
+
+#### AI review
+
+AI review uses the same OpenAI client and proxy settings under the `l10n.ai-review.*` prefix:
+
+    l10n.ai-review.openai-client-token=${OPENAI_API_KEY}
+    l10n.ai-review.model-name=gpt-4o-2024-08-06
+    l10n.ai-review.proxy-host=proxy.example.com
+    l10n.ai-review.proxy-port=3128
+    l10n.ai-review.proxy-user=proxy-user
+    l10n.ai-review.proxy-password=${PROXY_PASSWORD}
+    # l10n.ai-review.proxy-preferred-auth-schemes=Basic,Digest
+    l10n.ai-review.scheduler-name=default
+
+See also [AI Translate]({{ site.url }}/docs/guides/ai-translate/) for web and CLI usage.
+
+
 ### Database Authentication
 
 The default user authentication setting in {{ site.mojito_green }} is to use database.  User information is stored in database.  {{ site.mojito_green }} initially is set up with one default user `admin/ChangeMe`.  You can override the default user settings.  These values are only respected on initial bootstrapping.
@@ -146,10 +203,10 @@ The default user authentication setting in {{ site.mojito_green }} is to use dat
 
 With database authentication, {{ site.mojito_green }} users can be added, updated (with new password) and deleted using {{ site.mojito_green }} CLI.
 
-    # add user - enter password when promted
+    # add user - enter password when prompted
     mojito user-create  --username ${USERNAME} --password --surname ${SURNAME} --given-name ${GIVEN_NAME} --common-name ${COMMON_NAME}
 
-    # update password - enter password when promted
+    # update password - enter password when prompted
     mojito user-update --username ${USERNAME} --password
 
     # delete user
@@ -271,7 +328,7 @@ You can also optionally use it in production by setting the following configurat
 
    The ID of the newly created `mojito` folder will be stored and used as the rootFolderId
 
-        <UserRootRolder>
+        <UserRootFolder>
         |-> mojito
           |-> Project Requests
 
