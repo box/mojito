@@ -86,7 +86,7 @@ public class QuartzJobsDeleteCommandTest extends CLITestBase {
       String needle = "AJob_" + uniqueId;
       return quartzService.getDynamicJobs().stream().anyMatch(name -> name.contains(needle));
     } catch (SchedulerException e) {
-      return false;
+      throw new RuntimeException(e);
     }
   }
 
