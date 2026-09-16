@@ -31,6 +31,8 @@ export const MOJITO_MCP_TOOL_IDS = [
     "mojito_drop_list",
     "mojito_drop_export",
     "mojito_drop_import",
+    "mojito_drop_cancel",
+    "mojito_drop_complete",
     "mojito_textunit_search",
     "mojito_textunit_info",
     "mojito_textunit_history",
