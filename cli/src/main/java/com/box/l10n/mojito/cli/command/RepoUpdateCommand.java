@@ -9,6 +9,7 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
+import com.box.l10n.mojito.rest.entity.RepoType;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
@@ -57,6 +58,13 @@ public class RepoUpdateCommand extends RepoCommand {
       required = false,
       description = Param.REPOSITORY_DESCRIPTION_DESCRIPTION)
   String descriptionParam;
+
+  @Parameter(
+      names = {Param.REPOSITORY_TYPE_LONG},
+      arity = 1,
+      required = false,
+      description = Param.REPOSITORY_TYPE_DESCRIPTION)
+  String repoTypeNameParam;
 
   @Parameter(
       names = {Param.CHECK_SLA_LONG, Param.CHECK_SLA_SHORT},
@@ -133,6 +141,16 @@ public class RepoUpdateCommand extends RepoCommand {
           localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
       Set<IntegrityChecker> integrityCheckers =
           extractIntegrityCheckersFromInput(integrityCheckParam, true);
+      RepoType repoType = null;
+      boolean clearRepoType = false;
+      if (repoTypeNameParam != null) {
+        if (repoTypeNameParam.isEmpty()) {
+          clearRepoType = true;
+        } else {
+          repoType = new RepoType();
+          repoType.setName(repoTypeNameParam);
+        }
+      }
 
       consoleWriter.a("Update repositories").println();
       for (Repository repository : repositoriesForUpdate) {
@@ -142,7 +160,9 @@ public class RepoUpdateCommand extends RepoCommand {
             descriptionParam,
             checkSLA,
             repositoryLocales,
-            integrityCheckers);
+            integrityCheckers,
+            repoType,
+            clearRepoType);
         consoleWriter
             .newLine()
             .a("updated --> repository name: ")

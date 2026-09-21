@@ -3,16 +3,19 @@ package com.box.l10n.mojito.cli.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.AssetIntegrityChecker;
+import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.repotype.RepoTypeService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +38,8 @@ public class RepoCreateCommandTest extends CLITestBase {
 
   @Autowired RepositoryService repositoryService;
 
+  @Autowired RepoTypeService repoTypeService;
+
   @Test
   public void testCreateTestRepo() throws Exception {
     String testRepoName = testIdWatcher.getEntityName("repository");
@@ -43,6 +48,90 @@ public class RepoCreateCommandTest extends CLITestBase {
     createTestRepoWith6Locales(testRepoName, testDescription, false);
 
     assertCreatedRepositoryHas6Locales(testRepoName, testDescription, false);
+    assertNull(repositoryRepository.findByName(testRepoName).getRepoType());
+  }
+
+  @Test
+  public void testCreateRepositoryWithRepoType() throws Exception {
+    String repoTypeName = testIdWatcher.getEntityName("React");
+    RepoType repoType = repoTypeService.createRepoType(repoTypeName, null, null, Set.of());
+    String repositoryName = testIdWatcher.getEntityName("typedRepository");
+
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            Param.REPOSITORY_TYPE_LONG,
+            repoTypeName);
+
+    Repository repository = repositoryRepository.findByName(repositoryName);
+    assertNotNull(repository);
+    assertEquals(repoType.getId(), repository.getRepoType().getId());
+  }
+
+  @Test
+  public void testCreateRepositoryWithEmptyRepoTypeStaysUntyped() throws Exception {
+    String repositoryName = testIdWatcher.getEntityName("emptyTypeRepository");
+
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            Param.REPOSITORY_TYPE_LONG,
+            "");
+
+    Repository repository = repositoryRepository.findByName(repositoryName);
+    assertNotNull(repository);
+    assertNull(repository.getRepoType());
+  }
+
+  @Test
+  public void testCreateRepositoryWhitespaceRepoTypeIsTreatedAsEmpty() throws Exception {
+    String repositoryName = testIdWatcher.getEntityName("whitespaceTypeRepository");
+
+    // JCommander 1.48 trims flag values, even when quoted
+    // (https://github.com/cbeust/jcommander/issues/417), so "   " arrives as "" and
+    // follows the empty --repo-type path: create an untyped repository. Blank names
+    // are still rejected on the REST create body.
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            Param.REPOSITORY_TYPE_LONG,
+            "   ");
+
+    Repository repository = repositoryRepository.findByName(repositoryName);
+    assertNotNull(repository);
+    assertNull(repository.getRepoType());
+  }
+
+  @Test
+  public void testCreateRepositoryRejectsUnknownRepoType() throws Exception {
+    String repositoryName = testIdWatcher.getEntityName("unknownTypeRepository");
+    String repoTypeName = testIdWatcher.getEntityName("Missing");
+
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            Param.REPOSITORY_TYPE_LONG,
+            repoTypeName);
+
+    assertNull(repositoryRepository.findByName(repositoryName));
+    assertTrue(
+        outputCapture.toString().contains("RepoType with name [" + repoTypeName + "] not found"));
   }
 
   protected void createTestRepoWith6Locales(

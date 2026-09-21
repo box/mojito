@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.repotype;
 
 import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.rest.View;
+import com.box.l10n.mojito.service.repotype.RepoTypeInUseException;
 import com.box.l10n.mojito.service.repotype.RepoTypeInvalidException;
 import com.box.l10n.mojito.service.repotype.RepoTypeNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -168,16 +168,32 @@ public class RepoTypeWS {
   /**
    * Hard-deletes a repo type and its integrity checkers.
    *
-   * <p>HTTP 204 on success (void return). Unknown id → HTTP 404.
+   * <p>HTTP 204 on success. Unknown id → HTTP 404. A type still assigned to any repository → HTTP
+   * 409. The {@link DataIntegrityViolationException} branch covers a concurrent assign that hits
+   * {@code FK__REPOSITORY__REPO_TYPE__ID} after the in-use check; the service transaction has
+   * already rolled back, so re-reading the type by id is safe.
    *
    * @param repoTypeId id of the type to delete
    * @throws RepoTypeWithIdNotFoundException if missing → HTTP 404
    */
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequestMapping(value = "/api/repo-types/{repoTypeId}", method = RequestMethod.DELETE)
-  public void deleteRepoType(@PathVariable Long repoTypeId) throws RepoTypeWithIdNotFoundException {
+  public ResponseEntity<?> deleteRepoType(@PathVariable Long repoTypeId)
+      throws RepoTypeWithIdNotFoundException {
     logger.info("Deleting repo type [{}]", repoTypeId);
-    repoTypeService.deleteRepoType(repoTypeId);
+    try {
+      repoTypeService.deleteRepoType(repoTypeId);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (RepoTypeInUseException e) {
+      logger.debug("Cannot delete the repo type", e);
+      return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+    } catch (DataIntegrityViolationException e) {
+      if (!isRepoTypeInUseConstraint(e)) {
+        throw e;
+      }
+      RepoType repoType = repoTypeService.getRepoTypeById(repoTypeId);
+      return new ResponseEntity<>(
+          new RepoTypeInUseException(repoType.getName()).getMessage(), HttpStatus.CONFLICT);
+    }
   }
 
   /**
@@ -219,6 +235,20 @@ public class RepoTypeWS {
         return true;
       }
       if (t.getMessage() != null && t.getMessage().contains("UK__REPO_TYPE__NAME")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static boolean isRepoTypeInUseConstraint(DataIntegrityViolationException e) {
+    for (Throwable t = e; t != null; t = t.getCause()) {
+      if (t instanceof org.hibernate.exception.ConstraintViolationException cve
+          && cve.getConstraintName() != null
+          && cve.getConstraintName().contains("FK__REPOSITORY__REPO_TYPE__ID")) {
+        return true;
+      }
+      if (t.getMessage() != null && t.getMessage().contains("FK__REPOSITORY__REPO_TYPE__ID")) {
         return true;
       }
     }

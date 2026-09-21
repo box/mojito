@@ -7,6 +7,7 @@ import static org.springframework.data.jpa.domain.Specification.where;
 
 import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.RepoType;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
@@ -17,6 +18,8 @@ import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
+import com.box.l10n.mojito.service.repotype.RepoTypeInvalidException;
+import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRunRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import java.util.HashMap;
@@ -61,6 +64,8 @@ public class RepositoryService {
   @Autowired DropExporterConfig dropExporterConfiguration;
 
   @Autowired ScreenshotRunRepository screenshotRunRepository;
+
+  @Autowired RepoTypeRepository repoTypeRepository;
 
   /**
    * Default root locale.
@@ -208,8 +213,38 @@ public class RepositoryService {
       Set<AssetIntegrityChecker> assetIntegrityCheckers,
       Set<RepositoryLocale> repositoryLocales)
       throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
+    return createRepository(
+        name, description, sourceLocale, checkSLA, assetIntegrityCheckers, repositoryLocales, null);
+  }
+
+  /**
+   * Create {@link Repository} and optionally assign a repo type by exact, trimmed name.
+   *
+   * <p>{@code requestedRepoType} {@code null} leaves the repository untyped. A non-null value must
+   * include a non-blank name that matches an existing type; otherwise {@link
+   * RepoTypeInvalidException}.
+   *
+   * @param requestedRepoType type to assign, or {@code null} for untyped
+   * @throws RepoTypeInvalidException if the name is blank or no type with that name exists
+   */
+  @Transactional
+  public Repository createRepository(
+      String name,
+      String description,
+      Locale sourceLocale,
+      Boolean checkSLA,
+      Set<AssetIntegrityChecker> assetIntegrityCheckers,
+      Set<RepositoryLocale> repositoryLocales,
+      RepoType requestedRepoType)
+      throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
+
+    RepoType repoType = resolveRepoType(requestedRepoType);
 
     Repository createdRepo = createRepository(name, description, sourceLocale, checkSLA);
+    if (repoType != null) {
+      createdRepo.setRepoType(repoType);
+      repositoryRepository.save(createdRepo);
+    }
 
     updateRepositoryLocales(createdRepo, repositoryLocales);
     addIntegrityCheckersToRepository(createdRepo, assetIntegrityCheckers);
@@ -727,6 +762,7 @@ public class RepositoryService {
     String name = "deleted__" + System.currentTimeMillis() + "__" + repository.getName();
     repository.setName(StringUtils.abbreviate(name, Repository.NAME_MAX_LENGTH));
     repository.setDeleted(true);
+    repository.setRepoType(null);
     repositoryRepository.save(repository);
 
     logger.debug("Deleted repository with name: {}", repository.getName());
@@ -752,8 +788,48 @@ public class RepositoryService {
       Set<RepositoryLocale> repositoryLocales,
       Set<AssetIntegrityChecker> assetIntegrityCheckers)
       throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
+    updateRepository(
+        repository,
+        newName,
+        description,
+        checkSLA,
+        repositoryLocales,
+        assetIntegrityCheckers,
+        null,
+        false);
+  }
+
+  /**
+   * Updates a {@link Repository}, including optional repo-type assign or clear.
+   *
+   * <p>{@code requestedRepoType} {@code null} and {@code clearRepoType} {@code false} leave the
+   * current assignment unchanged. A non-null type assigns by exact, trimmed name. {@code
+   * clearRepoType} {@code true} unassigns. Sending both a type and {@code clearRepoType} is
+   * invalid.
+   *
+   * @param requestedRepoType type to assign, or {@code null} to leave unchanged when not clearing
+   * @param clearRepoType {@code true} to unassign the type
+   * @throws RepoTypeInvalidException if both assign and clear are set, the name is blank, or no
+   *     type with that name exists
+   */
+  @Transactional
+  public void updateRepository(
+      Repository repository,
+      String newName,
+      String description,
+      Boolean checkSLA,
+      Set<RepositoryLocale> repositoryLocales,
+      Set<AssetIntegrityChecker> assetIntegrityCheckers,
+      RepoType requestedRepoType,
+      boolean clearRepoType)
+      throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
 
     logger.debug("Update a repository with name: {}", repository.getName());
+
+    if (requestedRepoType != null && clearRepoType) {
+      throw new RepoTypeInvalidException("repoType and clearRepoType cannot be specified together");
+    }
+    RepoType repoType = resolveRepoType(requestedRepoType);
 
     if (newName != null) {
       // check duplicated name
@@ -771,7 +847,17 @@ public class RepositoryService {
       repository.setCheckSLA(checkSLA);
     }
 
-    if (newName != null || description != null || checkSLA != null) {
+    if (clearRepoType) {
+      repository.setRepoType(null);
+    } else if (repoType != null) {
+      repository.setRepoType(repoType);
+    }
+
+    if (newName != null
+        || description != null
+        || checkSLA != null
+        || requestedRepoType != null
+        || clearRepoType) {
       repositoryRepository.save(repository);
     }
 
@@ -782,5 +868,21 @@ public class RepositoryService {
     updateAssetIntegrityCheckers(repository, assetIntegrityCheckers);
 
     logger.debug("Updated repository with name: {}", repository.getName());
+  }
+
+  private RepoType resolveRepoType(RepoType requestedRepoType) {
+    if (requestedRepoType == null) {
+      return null;
+    }
+    String name = StringUtils.trim(requestedRepoType.getName());
+    if (StringUtils.isBlank(name)) {
+      throw new RepoTypeInvalidException("repoType.name is required");
+    }
+
+    RepoType repoType = repoTypeRepository.findByName(name);
+    if (repoType == null) {
+      throw new RepoTypeInvalidException("RepoType with name [" + name + "] not found");
+    }
+    return repoType;
   }
 }
