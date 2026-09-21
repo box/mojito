@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
+import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
 import com.google.common.collect.Lists;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Component;
 public class IntegrityCheckerFactory {
 
   @Autowired AssetIntegrityCheckerRepository assetIntegrityCheckerRepository;
+
+  @Autowired RepoTypeRepository repoTypeRepository;
 
   @Autowired ApplicationContext applicationContext;
 
@@ -65,11 +68,20 @@ public class IntegrityCheckerFactory {
     Set<AssetIntegrityChecker> assetIntegrityCheckers =
         assetIntegrityCheckerRepository.findByRepositoryAndAssetExtension(
             repository, assetExtension);
-    Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
+    Set<IntegrityCheckerType> integrityCheckerTypes =
+        new HashSet<>(
+            repoTypeRepository.findIntegrityCheckerTypesByRepositoryIdAndAssetExtension(
+                repository.getId(), assetExtension));
 
     for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
-      String className = assetIntegrityChecker.getIntegrityCheckerType().getClassName();
-      textUnitIntegrityCheckers.add(createInstanceForClassName(className));
+      integrityCheckerTypes.add(assetIntegrityChecker.getIntegrityCheckerType());
+    }
+
+    Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
+
+    for (IntegrityCheckerType integrityCheckerType : integrityCheckerTypes) {
+      textUnitIntegrityCheckers.add(
+          createInstanceForClassName(integrityCheckerType.getClassName()));
     }
 
     return textUnitIntegrityCheckers;
