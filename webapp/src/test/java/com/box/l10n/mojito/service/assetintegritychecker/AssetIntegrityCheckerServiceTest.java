@@ -17,6 +17,8 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.EllipsisIntegrityChecker;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.HtmlTagIntegrityChecker;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.MessageFormatIntegrityChecker;
@@ -74,6 +76,14 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
   protected static final String ASSET_PATH = "source-asset-path.xliff";
+  private static final String MESSAGE_FORMAT_SOURCE =
+      "{numFiles, plural, one{# There is one file} other{There are # files}}";
+  private static final String BROKEN_MESSAGE_FORMAT_TARGET =
+      "{numFiles, plural, one{Il y a un fichier} other{Il y a # fichiers}";
+  private static final String MESSAGE_FORMAT_SOURCE_WITH_ELLIPSIS =
+      "{numFiles, plural, one{# There is one file…} other{There are # files…}}";
+  private static final String VALID_MESSAGE_FORMAT_TARGET_WITH_THREE_DOTS =
+      "{numFiles, plural, one{Il y a un fichier...} other{Il y a # fichiers...}}";
 
   @Test
   public void testTmUpdateWithoutRepoTypeOrCheckersKeepsTranslationIncluded() throws Exception {
@@ -112,9 +122,38 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testTypeMessageFormatAllowsValidIcuWithEllipsisMismatch() throws Exception {
+    Set<RepoTypeIntegrityChecker> typeCheckers = new HashSet<>();
+    typeCheckers.add(checker(ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT));
+    Repository repository = createRepository(typeCheckers);
+
+    assertTranslationIncluded(
+        repository,
+        MESSAGE_FORMAT_SOURCE_WITH_ELLIPSIS,
+        VALID_MESSAGE_FORMAT_TARGET_WITH_THREE_DOTS,
+        true);
+  }
+
+  @Test
+  public void testDisjointTypeAndRepoIntegrityCheckersAreUsedInTmServiceUpdate() throws Exception {
+    Set<RepoTypeIntegrityChecker> typeCheckers = new HashSet<>();
+    typeCheckers.add(checker(ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT));
+    Repository repository = createRepository(typeCheckers);
+    assetIntegrityCheckerService.addToRepository(
+        repository, ASSET_PATH, IntegrityCheckerType.ELLIPSIS);
+
+    assertTranslationIncluded(
+        repository,
+        MESSAGE_FORMAT_SOURCE_WITH_ELLIPSIS,
+        VALID_MESSAGE_FORMAT_TARGET_WITH_THREE_DOTS,
+        false);
+  }
+
+  @Test
   public void testFactoryUnionsCheckersUsingDetachedAssetAndFiltersByExtension() throws Exception {
     Set<RepoTypeIntegrityChecker> typeCheckers = new HashSet<>();
     typeCheckers.add(checker(ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT));
+    typeCheckers.add(checker(ASSET_PATH, IntegrityCheckerType.ELLIPSIS));
     typeCheckers.add(checker("other.properties", IntegrityCheckerType.HTML_TAG));
     Repository repository = createRepository(typeCheckers);
     assetIntegrityCheckerService.addToRepository(
@@ -122,7 +161,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     assetIntegrityCheckerService.addToRepository(
         repository, ASSET_PATH, IntegrityCheckerType.TRAILING_WHITESPACE);
 
-    addSourceAsset(repository);
+    addSourceAsset(repository, MESSAGE_FORMAT_SOURCE);
     entityManager.clear();
     Asset asset = assetRepository.findByPathAndRepositoryId(ASSET_PATH, repository.getId());
     assertFalse(Hibernate.isInitialized(asset.getRepository().getRepoType()));
@@ -130,12 +169,14 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
 
     Set<TextUnitIntegrityChecker> checkers = integrityCheckerFactory.getTextUnitCheckers(asset);
 
-    assertEquals(2, checkers.size());
+    assertEquals(3, checkers.size());
     assertTrue(
         checkers.stream().anyMatch(checker -> checker instanceof MessageFormatIntegrityChecker));
+    assertTrue(checkers.stream().anyMatch(checker -> checker instanceof EllipsisIntegrityChecker));
     assertTrue(
         checkers.stream()
             .anyMatch(checker -> checker instanceof TrailingWhitespaceIntegrityChecker));
+    assertFalse(checkers.stream().anyMatch(checker -> checker instanceof HtmlTagIntegrityChecker));
   }
 
   private Repository createRepository(Set<RepoTypeIntegrityChecker> typeCheckers) throws Exception {
@@ -163,12 +204,11 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     return checker;
   }
 
-  private void addSourceAsset(Repository repository)
+  private void addSourceAsset(Repository repository, String sourceTextUnit)
       throws AssetUpdateException,
           UnsupportedAssetFilterTypeException,
           ExecutionException,
           InterruptedException {
-    String sourceTextUnit = "{numFiles, plural, one{# There is one file} other{There are # files}}";
     String sourceXliff =
         xliffDataFactory.generateSourceXliff(
             Arrays.asList(xliffDataFactory.createTextUnit(1L, "tu1", sourceTextUnit, null)));
@@ -180,12 +220,18 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
 
   private void assertBrokenMessageFormatTranslationIncluded(
       Repository repository, boolean expectedIncluded) throws Exception {
+    assertTranslationIncluded(
+        repository, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, expectedIncluded);
+  }
+
+  private void assertTranslationIncluded(
+      Repository repository, String sourceTextUnit, String targetTextUnit, boolean expectedIncluded)
+      throws Exception {
 
     String frFR = "fr-FR";
     repositoryService.addRepositoryLocale(repository, "fr-FR");
 
-    String sourceTextUnit = "{numFiles, plural, one{# There is one file} other{There are # files}}";
-    addSourceAsset(repository);
+    addSourceAsset(repository, sourceTextUnit);
 
     Long tmId = repository.getTm().getId();
     List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(tmId);
@@ -200,7 +246,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
                     "tu1",
                     sourceTextUnit,
                     null,
-                    "{numFiles, plural, one{Il y a un fichier} other{Il y a # fichiers}",
+                    targetTextUnit,
                     frFR,
                     XliffState.TRANSLATED)),
             frFR);
