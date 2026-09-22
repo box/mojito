@@ -11,6 +11,8 @@ import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.RepoType;
+import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
@@ -27,6 +29,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.repotype.RepoTypeService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -37,7 +40,9 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,6 +77,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
   @Autowired AssetExtractionService assetExtractionService;
 
   @Autowired AssetMappingService assetMappingService;
+
+  @Autowired RepoTypeService repoTypeService;
 
   @Test
   public void testAsyncImportTextUnitsNameOnly() throws InterruptedException {
@@ -513,6 +520,63 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     assertEquals("with fixed {placeholder}", textUnitDTOs.get(0).getTarget());
     assertTrue(
         "should be included with proper placeholder",
+        textUnitDTOs.get(0).isIncludedInLocalizedFile());
+  }
+
+  @Test
+  public void testTypeOnlyIntegrityCheckerIsUsedOnBatchImport() throws Exception {
+    RepoTypeIntegrityChecker typeChecker = new RepoTypeIntegrityChecker();
+    typeChecker.setAssetExtension("properties");
+    typeChecker.setIntegrityCheckerType(IntegrityCheckerType.MESSAGE_FORMAT);
+    RepoType repoType =
+        repoTypeService.createRepoType(
+            testIdWatcher.getEntityName("repoType"), null, "", Set.of(typeChecker));
+    Repository repository =
+        repositoryService.createRepository(
+            testIdWatcher.getEntityName("typedBatchImport"),
+            null,
+            null,
+            false,
+            Collections.emptySet(),
+            Collections.emptySet(),
+            repoType);
+    RepositoryLocale repositoryLocaleFrFR =
+        repositoryService.addRepositoryLocale(repository, "fr-FR");
+    Locale frFR = repositoryLocaleFrFR.getLocale();
+
+    VirtualAsset virtualAsset = new VirtualAsset();
+    virtualAsset.setRepositoryId(repository.getId());
+    virtualAsset.setPath("messages.properties");
+    virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+    VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
+    virtualAssetTextUnit.setName("name1");
+    virtualAssetTextUnit.setContent("with {placeholder}");
+    virtualAssetService
+        .addTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit))
+        .get();
+
+    TextUnitDTO textUnitDTO = new TextUnitDTO();
+    textUnitDTO.setRepositoryName(repository.getName());
+    textUnitDTO.setTargetLocale(frFR.getBcp47Tag());
+    textUnitDTO.setAssetPath(virtualAsset.getPath());
+    textUnitDTO.setName("name1");
+    textUnitDTO.setTarget("with some broken {placeholder");
+
+    PollableFuture<Void> asyncImportTextUnits =
+        textUnitBatchImporterService.asyncImportTextUnits(
+            Arrays.asList(textUnitDTO), fromLegacy(false, false));
+    pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+
+    TextUnitSearcherParameters textUnitSearcherParameters =
+        new TextUnitSearcherParametersForTesting();
+    textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository.getName()));
+    textUnitSearcherParameters.setName("name1");
+
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(1, textUnitDTOs.size());
+    assertFalse(
+        "Type-owned MESSAGE_FORMAT should exclude a broken placeholder on batch import",
         textUnitDTOs.get(0).isIncludedInLocalizedFile());
   }
 }
