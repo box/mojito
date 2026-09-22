@@ -55,8 +55,18 @@ public class IntegrityCheckerFactory {
   }
 
   /**
-   * @param asset
-   * @return Instance of {@link TextUnitIntegrityChecker}, depending on the given asset
+   * Builds the text-unit checkers that apply to {@code asset}.
+   *
+   * <p>Resolution is a set union of type-owned and repository-owned checker types whose {@code
+   * assetExtension} equals {@link FilenameUtils#getExtension(String)} of the asset path. The same
+   * {@link IntegrityCheckerType} configured on both the type and the repository is instantiated
+   * once. An untyped repository contributes no type checkers. The type rows are loaded by
+   * repository id so callers do not need to initialize the repository's lazy {@code repoType}
+   * association.
+   *
+   * @param asset asset whose repository and path extension select the checkers
+   * @return one {@link TextUnitIntegrityChecker} instance per distinct matching checker type; empty
+   *     when neither the repository nor its type has a checker for the extension
    * @throws IntegrityCheckerInstantiationException if unable to create an instance of the integrity
    *     checker
    */

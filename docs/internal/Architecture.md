@@ -35,7 +35,7 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 - AI instructions about placeholders, plurals, and markup are duplicated per repo (or missing).
 - Integrity checker configuration is duplicated per repo for the same file formats.
 
-**Repo types** are named shared configs (e.g. `React`, `Android`) that repositories can optionally be assigned to. Multiple repos of the same kind will later inherit the same AI prompt layer and integrity-checker defaults.
+**Repo types** are named shared configs (e.g. `React`, `Android`) that repositories can optionally be assigned to. Assigned repositories run the union of type-owned and repository-owned integrity checkers at check time. Multiple repos of the same kind will later also inherit the same AI prompt layer.
 
 ##### Scope of this server slice
 
@@ -326,7 +326,8 @@ Caller must pass a persisted `RepoType`.
 | `entity/RepoType.java` | Aggregate root |
 | `entity/RepoTypeIntegrityChecker.java` | Embeddable checker pair (extension + type) |
 | `service/repotype/RepoTypeService.java` | Business rules (above) |
-| `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc` |
+| `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc`, `findIntegrityCheckerTypesByRepositoryIdAndAssetExtension` (type checkers for one repository and asset extension; used at check time without initializing lazy `repoType`) |
+| `service/assetintegritychecker/integritychecker/IntegrityCheckerFactory.java` | Unions type-owned and repository-owned checkers for the asset extension |
 | `service/repotype/RepoTypeNameAlreadyUsedException.java` | → HTTP 409 |
 | `service/repotype/RepoTypeInvalidException.java` | → HTTP 400 |
 | `rest/View.java` | `View.RepoType` for `/api/repo-types` payloads |

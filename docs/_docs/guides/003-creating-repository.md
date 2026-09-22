@@ -5,7 +5,7 @@ categories: guides
 permalink: /docs/guides/creating-repository/
 ---
 
-In this guide, we use `mojito-cli` to create a repository in {{ site.mojito_green }}.  Repository is a container for strings and their translations.  It also stores localization configurations such as locales and integrity checkers.
+In this guide, we use `mojito-cli` to create a repository in {{ site.mojito_green }}.  Repository is a container for strings and their translations.  It also stores localization configurations such as locales, an optional repository type, and integrity checkers.
 
 
 ### Creating Repository
@@ -34,7 +34,25 @@ You can now see the repository `MyRepo` in the Webapp.
 This creates a repository with name `MyRepo` with locales `fr-FR`.
 
 
-The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` extension.  Integrity checkers are used to validate translations.  Integrity checker configuration is optional but it is highly recommended to catch translations with errors and reject them.  See [Integrity Checkers]({{ site.url }}/docs/guides/integrity-checkers/) for more information.
+The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` extension.  Integrity checkers are used to validate translations.  Integrity checker configuration is optional but it is highly recommended to catch translations with errors and reject them.  See [Integrity Checkers]({{ site.url }}/docs/guides/integrity-checkers/) for more information.  If the repository is also assigned to a repository type, Mojito also runs that type's checkers; see [Creating Repository with a Repository Type](#creating-repository-with-a-repository-type).
+
+
+### Creating Repository with a Repository Type
+
+    mojito repo-create -n MyRepo --repo-type React -l fr-FR
+    
+
+This creates a repository named `MyRepo` assigned to the existing repository type `React`.  Omitting `--repo-type`, or passing an empty value, creates an untyped repository.
+
+
+Assigning a type does not replace repository-level `-it` checkers.  At check time Mojito runs the union of the type's integrity checkers and the repository's own checkers for each file extension.  You can also assign or change the type later, or clear it:
+
+    mojito repo-update -n MyRepo --repo-type React
+    
+    mojito repo-update -n MyRepo --repo-type ""
+    
+
+`repo-view` prints `Repository type --> React` when a type is assigned.  It still does not print type-owned integrity checkers.  See [Integrity Checkers]({{ site.url }}/docs/guides/integrity-checkers/).
 
 
 
