@@ -326,7 +326,8 @@ Caller must pass a persisted `RepoType`.
 | `entity/RepoType.java` | Aggregate root |
 | `entity/RepoTypeIntegrityChecker.java` | Embeddable checker pair (extension + type) |
 | `service/repotype/RepoTypeService.java` | Business rules (above) |
-| `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc`, `findIntegrityCheckerTypesByRepositoryIdAndAssetExtension` (type checkers for one repository and asset extension; used at check time without initializing lazy `repoType`) |
+| `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc` |
+| `service/assetintegritychecker/AssetIntegrityCheckerRepository.java` | Repository-owned checkers by extension, and type-owned checker types for a repository id + extension (check-time lookup without initializing lazy `repoType`) |
 | `service/assetintegritychecker/integritychecker/IntegrityCheckerFactory.java` | Unions type-owned and repository-owned checkers for the asset extension |
 | `service/repotype/RepoTypeNameAlreadyUsedException.java` | → HTTP 409 |
 | `service/repotype/RepoTypeInvalidException.java` | → HTTP 400 |
