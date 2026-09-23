@@ -213,8 +213,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     Repository repository = createRepository(null);
     PreparedImport preparedImport = prepareXliffImport(repository, MESSAGE_FORMAT_SOURCE);
 
-    importXliffTarget(
-        preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, true);
+    importXliffTarget(preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, true);
 
     RepoType repoType =
         repoTypeService.createRepoType(
@@ -226,10 +225,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     repositoryRepository.save(repository);
 
     importXliffTarget(
-        preparedImport,
-        MESSAGE_FORMAT_SOURCE,
-        BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE,
-        false);
+        preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE, false);
   }
 
   @Test
@@ -239,17 +235,13 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     Repository repository = createRepository(typeCheckers);
     PreparedImport preparedImport = prepareXliffImport(repository, MESSAGE_FORMAT_SOURCE);
 
-    importXliffTarget(
-        preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, false);
+    importXliffTarget(preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, false);
 
     repository.setRepoType(null);
     repositoryRepository.save(repository);
 
     importXliffTarget(
-        preparedImport,
-        MESSAGE_FORMAT_SOURCE,
-        BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE,
-        true);
+        preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE, true);
   }
 
   @Test
@@ -258,17 +250,13 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     RepoType repoType = repository.getRepoType();
     PreparedImport preparedImport = prepareXliffImport(repository, MESSAGE_FORMAT_SOURCE);
 
-    importXliffTarget(
-        preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, true);
+    importXliffTarget(preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET, true);
 
     repoTypeService.updateIntegrityCheckers(
         repoType, Set.of(checker(ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT)));
 
     importXliffTarget(
-        preparedImport,
-        MESSAGE_FORMAT_SOURCE,
-        BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE,
-        false);
+        preparedImport, MESSAGE_FORMAT_SOURCE, BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE, false);
   }
 
   @Test
@@ -352,8 +340,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     Asset asset =
         assetRepository.findByPathAndRepositoryId(PROPERTIES_ASSET_PATH, repository.getId());
 
-    String pseudoLocalized =
-        tmService.generatePseudoLocalized(asset, PROPERTIES_SOURCE, null);
+    String pseudoLocalized = tmService.generatePseudoLocalized(asset, PROPERTIES_SOURCE, null);
 
     assertTrue(pseudoLocalized.contains("{name}"));
   }
@@ -452,9 +439,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
     assertEquals(1, tmTextUnits.size());
     return new PreparedImport(
-        repository,
-        tmTextUnits.get(0).getId(),
-        localeService.findByBcp47Tag("fr-FR"));
+        repository, tmTextUnits.get(0).getId(), localeService.findByBcp47Tag("fr-FR"));
   }
 
   private void importXliffTarget(

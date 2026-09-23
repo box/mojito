@@ -80,8 +80,7 @@ public class RepoCreateCommandTest extends CLITestBase {
     assertTrue(output.contains(Param.REPOSITORY_TYPE_LONG));
     assertTrue(
         "CLI help must warn that assigning a type also runs type integrity checkers",
-        output.contains("Assigned types also run")
-            && output.contains("their integrity checkers"));
+        output.contains("Assigned types also run") && output.contains("their integrity checkers"));
     assertTrue(output.contains(RepoCommand.INTEGRITY_CHECK_SHORT_PARAM));
     assertTrue(
         "CLI help must say -it stores repository checkers only",

@@ -119,7 +119,8 @@ public class RepoViewCommand extends RepoCommand {
     List<RepoTypeIntegrityChecker> typeCheckers = new ArrayList<>(repoType.getIntegrityCheckers());
     typeCheckers.sort(
         Comparator.comparing(
-                RepoTypeIntegrityChecker::getAssetExtension, Comparator.nullsLast(String::compareTo))
+                RepoTypeIntegrityChecker::getAssetExtension,
+                Comparator.nullsLast(String::compareTo))
             .thenComparing(
                 checker ->
                     checker.getIntegrityCheckerType() == null
