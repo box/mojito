@@ -170,6 +170,21 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testDisjointTypeCheckerRejectsWhenRepoCheckerWouldAllow() throws Exception {
+    Set<RepoTypeIntegrityChecker> typeCheckers = new HashSet<>();
+    typeCheckers.add(checker(ASSET_PATH, IntegrityCheckerType.ELLIPSIS));
+    Repository repository = createRepository(typeCheckers);
+    assetIntegrityCheckerService.addToRepository(
+        repository, ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT);
+
+    assertTranslationIncluded(
+        repository,
+        MESSAGE_FORMAT_SOURCE_WITH_ELLIPSIS,
+        VALID_MESSAGE_FORMAT_TARGET_WITH_THREE_DOTS,
+        false);
+  }
+
+  @Test
   public void testFactoryUnionsCheckersUsingDetachedAssetAndFiltersByExtension() throws Exception {
     Set<RepoTypeIntegrityChecker> typeCheckers = new HashSet<>();
     typeCheckers.add(checker(ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT));
