@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 
 /**
  * Command to view properties of existing repository
@@ -98,9 +98,10 @@ public class RepoViewCommand extends RepoCommand {
 
   /**
    * Prints type-owned checkers from a follow-up {@code GET /api/repo-types/{id}}. Nested {@code
-   * repoType} on the repository payload is only {@code id} and {@code name}.
+   * repoType} on the repository payload is only {@code id} and {@code name}. A failed fetch must not
+   * abort {@code repo-view}; the rest of the repository is still printed.
    */
-  private void printRepoTypeIntegrityCheckers(Repository repository) throws CommandException {
+  private void printRepoTypeIntegrityCheckers(Repository repository) {
     if (repository.getRepoType() == null || repository.getRepoType().getId() == null) {
       return;
     }
@@ -108,8 +109,15 @@ public class RepoViewCommand extends RepoCommand {
     RepoType repoType;
     try {
       repoType = repoTypeClient.getRepoTypeById(repository.getRepoType().getId());
-    } catch (HttpClientErrorException ex) {
-      throw CommandHelper.repoTypeClientError(ex);
+    } catch (RestClientException ex) {
+      logger.debug("Could not load repository type checkers", ex);
+      consoleWriter
+          .newLine()
+          .a("Repository type checkers --> ")
+          .fg(Ansi.Color.YELLOW)
+          .a("could not be loaded")
+          .println();
+      return;
     }
 
     if (repoType.getIntegrityCheckers() == null || repoType.getIntegrityCheckers().isEmpty()) {
