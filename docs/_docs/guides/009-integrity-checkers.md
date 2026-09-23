@@ -10,7 +10,7 @@ In this guide, let's go over the integrity checkers in {{ site.mojito_green }} i
 
 We use `mojito-cli` to configure integrity checkers in a repository.  Integrity checkers can be configured when you create and update repository in {{ site.mojito_green }} with `-it` parameter.  You can set integrity checker for each file extension of resource files.  For example, `-it resw:COMPOSITE_FORMAT,xlf:PRINTF_LIKE`.
 
-When a repository is assigned to a repository type, checks also include the integrity checkers configured on that type. Mojito runs the union of type and repository checkers for each file extension, so the same `(extension, checker type)` configured in both places runs only once. `repo-view` continues to list only the repository-stored checkers configured with `-it`, not the additional type checkers that run.
+When a repository is assigned to a repository type, checks also include the integrity checkers configured on that type. Mojito runs the union of type and repository checkers for each file extension, so the same `(extension, checker type)` configured in both places runs only once. `repo-view` lists repository-stored checkers on `Integrity checkers` (configured with `-it`) and type-owned checkers on `Repository type checkers`.
 
 ```bash
     mojito repo-create -n MyRepo -it "properties:MESSAGE_FORMAT" -l de-DE es-ES

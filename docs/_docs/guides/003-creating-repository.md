@@ -52,7 +52,7 @@ Assigning a type does not replace repository-level `-it` checkers.  At check tim
     mojito repo-update -n MyRepo --repo-type ""
     
 
-`repo-view` prints `Repository type --> React` when a type is assigned.  It still does not print type-owned integrity checkers.  See [Integrity Checkers]({{ site.url }}/docs/guides/integrity-checkers/).
+`repo-view` prints `Repository type --> React` when a type is assigned.  Type-owned integrity checkers appear on a separate `Repository type checkers` line; repository `-it` checkers stay on `Integrity checkers`.  See [Integrity Checkers]({{ site.url }}/docs/guides/integrity-checkers/).
 
 
 
