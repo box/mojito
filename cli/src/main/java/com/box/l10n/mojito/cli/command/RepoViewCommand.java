@@ -3,18 +3,24 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
+import com.box.l10n.mojito.rest.entity.RepoType;
+import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * Command to view properties of existing repository
@@ -30,6 +36,8 @@ public class RepoViewCommand extends RepoCommand {
 
   /** logger */
   static Logger logger = LoggerFactory.getLogger(RepoViewCommand.class);
+
+  @Autowired RepoTypeClient repoTypeClient;
 
   @Parameter(
       names = {Param.REPOSITORY_NAME_LONG, Param.REPOSITORY_NAME_SHORT},
@@ -52,6 +60,7 @@ public class RepoViewCommand extends RepoCommand {
           .println();
       printRepoType(repository);
       printIntegrityChecker(repository);
+      printRepoTypeIntegrityCheckers(repository);
       printLocales(repository);
       consoleWriter.println();
     } catch (RepositoryNotFoundException ex) {
@@ -76,18 +85,63 @@ public class RepoViewCommand extends RepoCommand {
       integrityCheckers.addAll(repository.getIntegrityCheckers());
       Collections.sort(integrityCheckers, IntegrityChecker.getComparator());
 
-      consoleWriter.newLine().a("Integrity checkers --> ").fg(Ansi.Color.MAGENTA);
-      for (int i = 0; i < integrityCheckers.size(); i++) {
-        IntegrityChecker integrityChecker = integrityCheckers.get(i);
-        consoleWriter
-            .a(integrityChecker.getAssetExtension())
-            .a(":")
-            .a(integrityChecker.getIntegrityCheckerType().toString());
-        if (i == integrityCheckers.size() - 1) {
-          consoleWriter.println();
-        } else {
-          consoleWriter.a(",");
-        }
+      List<String> pairs = new ArrayList<>();
+      for (IntegrityChecker integrityChecker : integrityCheckers) {
+        pairs.add(
+            integrityChecker.getAssetExtension()
+                + ":"
+                + integrityChecker.getIntegrityCheckerType().toString());
+      }
+      printCheckerLine("Integrity checkers --> ", pairs);
+    }
+  }
+
+  /**
+   * Prints type-owned checkers from a follow-up {@code GET /api/repo-types/{id}}. Nested {@code
+   * repoType} on the repository payload is only {@code id} and {@code name}.
+   */
+  private void printRepoTypeIntegrityCheckers(Repository repository) throws CommandException {
+    if (repository.getRepoType() == null || repository.getRepoType().getId() == null) {
+      return;
+    }
+
+    RepoType repoType;
+    try {
+      repoType = repoTypeClient.getRepoTypeById(repository.getRepoType().getId());
+    } catch (HttpClientErrorException ex) {
+      throw CommandHelper.repoTypeClientError(ex);
+    }
+
+    if (repoType.getIntegrityCheckers() == null || repoType.getIntegrityCheckers().isEmpty()) {
+      return;
+    }
+
+    List<RepoTypeIntegrityChecker> typeCheckers = new ArrayList<>(repoType.getIntegrityCheckers());
+    typeCheckers.sort(
+        Comparator.comparing(
+                RepoTypeIntegrityChecker::getAssetExtension, Comparator.nullsLast(String::compareTo))
+            .thenComparing(
+                checker ->
+                    checker.getIntegrityCheckerType() == null
+                        ? ""
+                        : checker.getIntegrityCheckerType().name()));
+
+    List<String> pairs = new ArrayList<>();
+    for (RepoTypeIntegrityChecker typeChecker : typeCheckers) {
+      pairs.add(
+          typeChecker.getAssetExtension() + ":" + typeChecker.getIntegrityCheckerType().toString());
+    }
+    printCheckerLine("Repository type checkers --> ", pairs);
+  }
+
+  private void printCheckerLine(String label, List<String> pairs) {
+    consoleWriter.newLine().a(label).fg(Ansi.Color.MAGENTA);
+    for (int i = 0; i < pairs.size(); i++) {
+      consoleWriter.a(pairs.get(i));
+      if (i == pairs.size() - 1) {
+        consoleWriter.println();
+      } else {
+        consoleWriter.a(",");
       }
     }
   }
