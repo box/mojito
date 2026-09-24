@@ -20,17 +20,19 @@ import { join } from "node:path";
 import type { CliRunner } from "./cli-runner.js";
 import type { MojitoMcpConfig } from "./config.js";
 import { MojitoCliError } from "./errors.js";
-import type {
-    AssetImportParams,
-    AssetListParams,
-    AssetLocalizeParams,
-    EncodedRepositoryLocale,
-    RepoCreateParams,
-    ReviewAction,
-    ReviewUpdateParams,
-    TextUnitSearchParams,
-    TextUnitTranslationAddParams,
-    TextUnitStatus,
+import {
+    PSEUDO_OUTPUT_BCP47_TAG,
+    type AssetImportParams,
+    type AssetListParams,
+    type AssetLocalizeParams,
+    type AssetPseudoParams,
+    type EncodedRepositoryLocale,
+    type RepoCreateParams,
+    type ReviewAction,
+    type ReviewUpdateParams,
+    type TextUnitSearchParams,
+    type TextUnitTranslationAddParams,
+    type TextUnitStatus,
 } from "./types.js";
 
 const PAGINATE_FLAGS = ["--paginate", "--slurp", "--max-pages", "0"] as const;
@@ -189,6 +191,32 @@ export class MojitoCliClient {
                 }),
                 ...(params.status !== undefined && { status: params.status }),
                 ...(params.pullRunName !== undefined && { pullRunName: params.pullRunName }),
+            },
+        );
+    }
+
+    /**
+     * POST /api/assets/{assetId}/pseudo — generate one pseudolocalized file.
+     *
+     * Synchronous: the response is LocalizedAssetBody with accented `content`.
+     * Matches `AssetClient.getPseudoLocalizedAssetForContent` / `mojito pseudo`.
+     * Always sends `outputBcp47tag` (CLI default `en-x-pseudo`) so the body matches
+     * the Java client; the server does not use that field to pick translations.
+     */
+    async assetPseudo(params: AssetPseudoParams): Promise<unknown> {
+        return this.apiJsonWithInput(
+            ["api", `/api/assets/${params.assetId}/pseudo`, "-X", "POST"],
+            {
+                assetId: params.assetId,
+                content: params.content,
+                outputBcp47tag: params.outputBcp47tag ?? PSEUDO_OUTPUT_BCP47_TAG,
+                ...(params.filterConfigIdOverride !== undefined && {
+                    filterConfigIdOverride: params.filterConfigIdOverride,
+                }),
+                ...(params.filterOptions !== undefined && { filterOptions: params.filterOptions }),
+                ...(params.substituteType !== undefined && {
+                    substituteType: params.substituteType,
+                }),
             },
         );
     }

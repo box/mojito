@@ -151,6 +151,16 @@ const localizedAssetInheritanceModeSchema = z
         ].join(" "),
     );
 
+const pseudoSubstituteTypeSchema = z
+    .enum(["RANDOM", "CONSISTENT"])
+    .describe(
+        [
+            "How accented replacements are chosen (CLI `pseudo --substitute`):",
+            "RANDOM = pick a diacritic at random each time (server/CLI default; repeats may differ);",
+            "CONSISTENT = same ASCII letter maps to the same replacement within a given string.",
+        ].join(" "),
+    );
+
 const assetListFilterSchema = {
     repositoryId: z
         .number()
@@ -450,6 +460,48 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
             },
         },
         async (args) => jsonResult(await client.assetLocalize(args)),
+    );
+
+    server.registerTool(
+        "mojito_asset_pseudo",
+        {
+            description: [
+                "Generate one pseudolocalized resource file for an existing source asset (POST /api/assets/{assetId}/pseudo).",
+                "This is the synchronous server call used by `mojito pseudo`; it does not scan a working tree, write files to disk, or wait on a pollable task.",
+                "Pass the complete current source-file `content` (same role as the file `mojito pseudo` reads locally). Mojito replaces source characters with accented alternatives so missing translations and layout issues are visible before real locales exist.",
+                "No localeId: output is a synthetic locale. When writing the returned `content` to disk, use the path tag `en-x-pseudo` (CLI convention). The generate pipeline uses `en-x-psaccent` internally; do not use that as the filename tag.",
+                "Optional `substituteType`: RANDOM (default) or CONSISTENT. Optional filter override/options match the Java client; the server currently uses filterConfigIdOverride only.",
+            ].join(" "),
+            inputSchema: {
+                assetId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric source asset id. Resolve via mojito_asset_list (there is no GET-by-id).",
+                    ),
+                content: z
+                    .string()
+                    .describe(
+                        "Complete current source resource-file content to pseudolocalize (typically the English/source file).",
+                    ),
+                outputBcp47tag: z
+                    .string()
+                    .optional()
+                    .describe(
+                        "Optional output BCP-47 tag sent on the request (Java client always sends `en-x-pseudo`). Omit to send that CLI default. The server does not use this to fetch translations; still write files using `en-x-pseudo`.",
+                    ),
+                filterConfigIdOverride: assetFilterConfigIdOverrideSchema.optional(),
+                filterOptions: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        'Optional parser-specific settings in `name=value` form, e.g. ["generateHeader=false"]. The Java client sends these; the current pseudo endpoint only applies filterConfigIdOverride.',
+                    ),
+                substituteType: pseudoSubstituteTypeSchema.optional(),
+            },
+        },
+        async (args) => jsonResult(await client.assetPseudo(args)),
     );
 
     server.registerTool(
