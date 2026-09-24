@@ -134,9 +134,9 @@ Pass caller `limit` / `offset` / page-size fields through as `-f`/`-F` when the 
 
 ### Wait / timeout
 
-**MCP tools:** do **not** pass `-w` / `--wait`. Asset import, drop export, and drop import return their pollable task to the caller instead of blocking. Poll with `mojito_pollabletask_get` until `allFinished` is true. Asset localize uses the synchronous `/localized/{localeId}` endpoint, and asset pseudo uses `/pseudo`; both return the generated file in the HTTP response body rather than a later pollable-task output.
+**MCP tools:** do **not** pass `-w` / `--wait`. Asset import, drop export, drop import, and drop cancel return their pollable task to the caller instead of blocking. Poll with `mojito_pollabletask_get` until `allFinished` is true. Drop complete is a synchronous POST with an empty body. Asset localize uses the synchronous `/localized/{localeId}` endpoint, and asset pseudo uses `/pseudo`; both return the generated file in the HTTP response body rather than a later pollable-task output.
 
-`MOJITO_CLI_TIMEOUT_MS` still applies to every spawn (network hangs, slow searches, pollable-task GETs). Default **10 minutes**. Drop export/import jobs themselves can take ~5+ minutes **on the server**; the MCP POST returns quickly with a task id, so the long wait is a series of `mojito_pollabletask_get` calls, not one blocked CLI `--wait`. Operators raise the env var if individual invocations hang.
+`MOJITO_CLI_TIMEOUT_MS` still applies to every spawn (network hangs, slow searches, pollable-task GETs). Default **10 minutes**. Drop export/import/cancel jobs themselves can take ~5+ minutes **on the server**; the MCP POST returns quickly with a task id, so the long wait is a series of `mojito_pollabletask_get` calls, not one blocked CLI `--wait`. Operators raise the env var if individual invocations hang.
 
 Keep `mojito_pollabletask_get` as a non-waiting status GET.
 
@@ -152,7 +152,7 @@ All tools use **`mojito_<object>_<action>`**, where `<object>` is the resource t
 |--------|----------------|
 | `repo` | `list`, `view`, `create`, `delete` |
 | `asset` | `list`, `ids`, `import`, `localize`, `pseudo`, `delete` |
-| `drop` | `list`, `export`, `import` |
+| `drop` | `list`, `export`, `import`, `cancel`, `complete` |
 | `textunit` | `search`, `info`, `history`, `translation_add` |
 | `review` | `update` |
 | `pollabletask` | `get` |
@@ -200,14 +200,22 @@ Asset import sends the full `SourceAsset` JSON body: required `repositoryId`, `p
 | `mojito_drop_list` | `api /api/drops --paginate --slurp --max-pages 0 --page-size 100` optional `-F repositoryId=` `-F imported=` `-F canceled=` |
 | `mojito_drop_export` | `api /api/drops/export -X POST --input <export-drop.json>` |
 | `mojito_drop_import` | `api /api/drops/import -X POST --input <import-drop.json>` |
+| `mojito_drop_cancel` | `api /api/drops/cancel -X POST --input <cancel-drop.json>` |
+| `mojito_drop_complete` | `api /api/drops/complete/{dropId} -X POST` |
 
 `mojito_drop_list` is GET `/api/drops` (Java `getDrops`). Optional `repositoryId`, `imported`, and `canceled` match the REST query params (`null` = no filter). The endpoint is Spring Data paginated (default sort id DESC); the client slurps every page. Response rows are `View.DropSummary` (id, name, created date, repository, canceled, lastImportedDate, import/export pollable tasks, translationKits, failure flags). There is no GET-by-id.
 
-`mojito_drop_export` sends `ExportDropConfig` JSON: required `repositoryId`; optional `locales` (BCP-47 tags; Jackson field name `locales`, not `bcp47Tags`), `type` (`TRANSLATION` / `REVIEW`), `useInheritance`. Return `dropId` and `pollableTask` without `--wait`. Unlike CLI `drop-export`, omitted `locales` is an empty list on the server (no auto-fill from fully-translated repository locales). Cancel/complete/importXliff are not exposed.
+`mojito_drop_export` sends `ExportDropConfig` JSON: required `repositoryId`; optional `locales` (BCP-47 tags; Jackson field name `locales`, not `bcp47Tags`), `type` (`TRANSLATION` / `REVIEW`), `useInheritance`. Return `dropId` and `pollableTask` without `--wait`. Unlike CLI `drop-export`, omitted `locales` is an empty list on the server (no auto-fill from fully-translated repository locales).
 
 `mojito_drop_import` sends `ImportDropConfig` JSON: required `repositoryId` and `dropId`; optional `status` (`APPROVED` / `REVIEW_NEEDED` / `TRANSLATION_NEEDED`). Return `pollableTask` without `--wait`.
 
-Callers wait via `mojito_pollabletask_get` on the returned task id.
+`mojito_drop_cancel` sends `CancelDropConfig` JSON: required `dropId` (repository id is not on the body). Return `pollableTask` without `--wait`. Fails if the drop is still exporting or importing.
+
+`mojito_drop_complete` is `POST /api/drops/complete/{dropId}` with no body. Synchronous; empty stdout maps to null. Clears `partiallyImported`. Completing a drop that was never partially imported can succeed without changing state.
+
+Callers wait via `mojito_pollabletask_get` on the returned task id (export, import, cancel). Complete does not return a task.
+
+Standalone XLIFF import (`POST /api/drops/importXliff`) is not exposed.
 
 ### Text units
 
@@ -284,7 +292,7 @@ Required inputs: `tmTextUnitId`, `localeId`, `target` (current translation text;
 |----------|-----------|
 | `mojito_pollabletask_get` | `api /api/pollableTasks/{pollableTaskId}` |
 
-Use after drop export/import (and asset import). Does not wait.
+Use after drop export/import/cancel (and asset import). Does not wait. Drop complete has no pollable task.
 
 ### Field encoding helpers
 
@@ -326,8 +334,8 @@ Tool ids and zod schemas in `register-tools.ts` / `tool-metadata.ts` must match 
 
 ## Future extensions (out of scope for this slice)
 
-- Drop cancel / complete / standalone XLIFF import.
-- Drop export/import with CLI `--wait` (currently poll via `mojito_pollabletask_get`).
+- Standalone drop XLIFF import (`POST /api/drops/importXliff`).
+- Drop export/import/cancel with CLI `--wait` (currently poll via `mojito_pollabletask_get`).
 - Async asset localize (`POST /api/assets/{assetId}/localized`) and parallel (`…/localized/parallel`).
 - Optional `--paginate` toggles only if unbounded slurps become a problem (not expected).
 - Escape-hatch raw `api` tool (deliberately deferred; curated tools are safer for agents).
