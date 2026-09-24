@@ -61,6 +61,9 @@ describe("MCP tool surface", () => {
         expect(MOJITO_MCP_TOOL_IDS).toEqual([
             "mojito_repo_list",
             "mojito_repo_view",
+            "mojito_textunit_search",
+            "mojito_textunit_info",
+            "mojito_textunit_history",
             "mojito_pollabletask_get",
         ]);
     });
@@ -98,6 +101,13 @@ describe("MCP tool surface", () => {
         expect(repositoryId.safeParse(0).success).toBe(false);
         expect(repositoryId.safeParse(-1).success).toBe(false);
         expect(repositoryId.safeParse(1.5).success).toBe(false);
+
+        const search = byName.get("mojito_textunit_search")!.options.inputSchema;
+        expect(search.limit.safeParse(1).success).toBe(true);
+        expect(search.limit.safeParse(0).success).toBe(false);
+        expect(search.offset.safeParse(0).success).toBe(true);
+        expect(search.offset.safeParse(-1).success).toBe(false);
+        expect(search.offset.safeParse(1.5).success).toBe(false);
     });
 
     test("README and SKILL mention every published tool id", () => {
