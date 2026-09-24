@@ -16,6 +16,8 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  * #findTypeIntegrityCheckerTypesByRepositoryIdAndAssetExtension} loads the assigned type's checkers
  * for the same extension without initializing the repository's lazy {@code repoType} association.
  * {@code IntegrityCheckerFactory} unions the two.
+ *
+ * @author aloison
  */
 @RepositoryRestResource(exported = false)
 public interface AssetIntegrityCheckerRepository
