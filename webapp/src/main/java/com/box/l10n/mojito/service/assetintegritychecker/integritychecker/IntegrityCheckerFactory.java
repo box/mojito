@@ -72,24 +72,27 @@ public class IntegrityCheckerFactory {
     Repository repository = asset.getRepository();
     String assetExtension = FilenameUtils.getExtension(asset.getPath());
 
-    Set<AssetIntegrityChecker> assetIntegrityCheckers =
+    Set<AssetIntegrityChecker> repositoryOwnedCheckers =
         assetIntegrityCheckerRepository.findByRepositoryAndAssetExtension(
             repository, assetExtension);
-    Set<IntegrityCheckerType> integrityCheckerTypes =
+
+    // Checker types to run, starting with the ones owned by the assigned repository type. Empty
+    // when the repository is untyped.
+    Set<IntegrityCheckerType> checkerTypesToRun =
         new HashSet<>(
             assetIntegrityCheckerRepository
                 .findTypeIntegrityCheckerTypesByRepositoryIdAndAssetExtension(
                     repository.getId(), assetExtension));
 
-    for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
-      integrityCheckerTypes.add(assetIntegrityChecker.getIntegrityCheckerType());
+    // Union: a repository-owned type already contributed by the repository type is not added twice.
+    for (AssetIntegrityChecker repositoryOwnedChecker : repositoryOwnedCheckers) {
+      checkerTypesToRun.add(repositoryOwnedChecker.getIntegrityCheckerType());
     }
 
     Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
 
-    for (IntegrityCheckerType integrityCheckerType : integrityCheckerTypes) {
-      textUnitIntegrityCheckers.add(
-          createInstanceForClassName(integrityCheckerType.getClassName()));
+    for (IntegrityCheckerType checkerTypeToRun : checkerTypesToRun) {
+      textUnitIntegrityCheckers.add(createInstanceForClassName(checkerTypeToRun.getClassName()));
     }
 
     return textUnitIntegrityCheckers;
