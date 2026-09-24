@@ -152,7 +152,7 @@ All tools use **`mojito_<object>_<action>`**, where `<object>` is the resource t
 |--------|----------------|
 | `repo` | `list`, `view`, `create`, `delete` |
 | `asset` | `list`, `ids`, `import`, `localize`, `pseudo`, `delete` |
-| `drop` | `export`, `import` |
+| `drop` | `list`, `export`, `import` |
 | `textunit` | `search`, `info`, `history`, `translation_add` |
 | `review` | `update` |
 | `pollabletask` | `get` |
@@ -197,10 +197,13 @@ Asset import sends the full `SourceAsset` JSON body: required `repositoryId`, `p
 
 | MCP tool | CLI shape |
 |----------|-----------|
+| `mojito_drop_list` | `api /api/drops --paginate --slurp --max-pages 0 --page-size 100` optional `-F repositoryId=` `-F imported=` `-F canceled=` |
 | `mojito_drop_export` | `api /api/drops/export -X POST --input <export-drop.json>` |
 | `mojito_drop_import` | `api /api/drops/import -X POST --input <import-drop.json>` |
 
-`mojito_drop_export` sends `ExportDropConfig` JSON: required `repositoryId`; optional `locales` (BCP-47 tags; Jackson field name `locales`, not `bcp47Tags`), `type` (`TRANSLATION` / `REVIEW`), `useInheritance`. Return `dropId` and `pollableTask` without `--wait`. Unlike CLI `drop-export`, omitted `locales` is an empty list on the server (no auto-fill from fully-translated repository locales). List/cancel/complete/importXliff are not exposed.
+`mojito_drop_list` is GET `/api/drops` (Java `getDrops`). Optional `repositoryId`, `imported`, and `canceled` match the REST query params (`null` = no filter). The endpoint is Spring Data paginated (default sort id DESC); the client slurps every page. Response rows are `View.DropSummary` (id, name, created date, repository, canceled, lastImportedDate, import/export pollable tasks, translationKits, failure flags). There is no GET-by-id.
+
+`mojito_drop_export` sends `ExportDropConfig` JSON: required `repositoryId`; optional `locales` (BCP-47 tags; Jackson field name `locales`, not `bcp47Tags`), `type` (`TRANSLATION` / `REVIEW`), `useInheritance`. Return `dropId` and `pollableTask` without `--wait`. Unlike CLI `drop-export`, omitted `locales` is an empty list on the server (no auto-fill from fully-translated repository locales). Cancel/complete/importXliff are not exposed.
 
 `mojito_drop_import` sends `ImportDropConfig` JSON: required `repositoryId` and `dropId`; optional `status` (`APPROVED` / `REVIEW_NEEDED` / `TRANSLATION_NEEDED`). Return `pollableTask` without `--wait`.
 
@@ -323,7 +326,7 @@ Tool ids and zod schemas in `register-tools.ts` / `tool-metadata.ts` must match 
 
 ## Future extensions (out of scope for this slice)
 
-- Drop list / cancel / complete / standalone XLIFF import.
+- Drop cancel / complete / standalone XLIFF import.
 - Drop export/import with CLI `--wait` (currently poll via `mojito_pollabletask_get`).
 - Async asset localize (`POST /api/assets/{assetId}/localized`) and parallel (`…/localized/parallel`).
 - Optional `--paginate` toggles only if unbounded slurps become a problem (not expected).

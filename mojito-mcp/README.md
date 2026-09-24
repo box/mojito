@@ -1,6 +1,6 @@
 # mojito-mcp
 
-MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import, localize, and pseudolocalize source assets, export and import vendor drops, search strings, inspect repositories, add translations, update review status, and more.
+MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import, localize, and pseudolocalize source assets, list/export/import vendor drops, search strings, inspect repositories, add translations, update review status, and more.
 
 This directory is a **standalone npm package** (not a Maven module). You need **Node 18+** and a working Mojito CLI on your `PATH`.
 
@@ -303,14 +303,17 @@ This tool deliberately does not reproduce the rest of `mojito push`: it does not
 
 | Tool | Purpose |
 |------|---------|
+| `mojito_drop_list` | List vendor drops (optional repository, imported, and canceled filters) |
 | `mojito_drop_export` | Start a vendor translation-kit export for a repository |
 | `mojito_drop_import` | Start re-import of an existing drop into the TM |
 
 A drop is a vendor package: export writes source XLIFF via the repository's drop exporter (Box folder or filesystem); import reads localized XLIFF back into the translation memory.
 
+`mojito_drop_list` is `GET /api/drops`. Optional `repositoryId` restricts to one repository (prefer that over listing everything). Optional `imported` and `canceled` are booleans; omit them to include both states. The server paginates newest-first; the tool slurps every page into one array of DropSummary rows (`id`, `name`, repository, canceled, lastImportedDate, pollable tasks, translationKits, failure flags). There is no GET-by-id — use this list to find a `dropId` for import.
+
 `mojito_drop_export` is the core server call beneath `mojito drop-export`: `POST /api/drops/export` with `repositoryId` and optional BCP-47 `locales`, `type` (`TRANSLATION` / `REVIEW`), and `useInheritance` (REVIEW only). The JSON field name is `locales` (not `bcp47Tags`). Unlike the CLI command, omitting `locales` does **not** fill fully-translated repository locales — it sends none. Take tags from `mojito_repo_view`. The response includes `dropId` (when assigned) and `pollableTask`. **Do not expect this tool to wait.** Poll `pollableTask.id` with `mojito_pollabletask_get` until `allFinished` is true (or an error appears). Export of a large project can take several minutes on the server.
 
-`mojito_drop_import` is the core server call beneath `mojito drop-import`: `POST /api/drops/import` with `repositoryId`, `dropId`, and optional translation `status`. It also returns a `pollableTask` and **does not wait**. Poll with `mojito_pollabletask_get`. A drop can be imported more than once. List, cancel, complete, and standalone XLIFF import are not exposed yet.
+`mojito_drop_import` is the core server call beneath `mojito drop-import`: `POST /api/drops/import` with `repositoryId`, `dropId`, and optional translation `status`. It also returns a `pollableTask` and **does not wait**. Poll with `mojito_pollabletask_get`. A drop can be imported more than once. Cancel, complete, and standalone XLIFF import are not exposed yet.
 
 ### Text units
 
