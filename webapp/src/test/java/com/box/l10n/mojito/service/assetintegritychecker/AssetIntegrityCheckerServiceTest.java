@@ -104,6 +104,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
       "{numFiles, plural, one{Il y a deux fichiers} other{Il y a # fichiers}";
   private static final String PROPERTIES_SOURCE = "greeting=Hello {name}\n";
   private static final String PROPERTIES_BROKEN_TARGET = "greeting=Bonjour {name\n";
+  private static final String PROPERTIES_VALID_TARGET = "greeting=Bonjour {name}\n";
 
   @Test
   public void testTmUpdateWithoutRepoTypeOrCheckersKeepsTranslationIncluded() throws Exception {
@@ -330,6 +331,58 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     assertEquals(1, textUnitVariants.size());
     assertFalse(textUnitVariants.get(0).isIncludedInLocalizedFile());
     assertEquals(TMTextUnitVariant.Status.TRANSLATION_NEEDED, textUnitVariants.get(0).getStatus());
+  }
+
+  @Test
+  public void testLocalizedAssetImportAfterRejectedIntegrityCheckUpdatesCurrentVariant()
+      throws Exception {
+    Repository repository = createRepository(null);
+    repositoryService.addRepositoryLocale(repository, "fr-FR");
+    assetIntegrityCheckerService.addToRepository(
+        repository, PROPERTIES_ASSET_PATH, IntegrityCheckerType.MESSAGE_FORMAT);
+
+    PollableFuture<Asset> assetPollableFuture =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repository.getId(),
+            PROPERTIES_ASSET_PATH,
+            PROPERTIES_SOURCE,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
+    Asset asset =
+        assetRepository.findByPathAndRepositoryId(PROPERTIES_ASSET_PATH, repository.getId());
+    Locale frFR = localeService.findByBcp47Tag("fr-FR");
+
+    tmService.importLocalizedAsset(
+        asset.getId(),
+        PROPERTIES_BROKEN_TARGET,
+        frFR.getId(),
+        StatusForEqualTarget.APPROVED,
+        null,
+        null);
+
+    tmService.importLocalizedAsset(
+        asset.getId(),
+        PROPERTIES_VALID_TARGET,
+        frFR.getId(),
+        StatusForEqualTarget.APPROVED,
+        null,
+        null);
+
+    List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
+    assertEquals(1, tmTextUnits.size());
+    TMTextUnitCurrentVariant current =
+        tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+            frFR.getId(), tmTextUnits.get(0).getId());
+    Hibernate.initialize(current.getTmTextUnitVariant());
+    assertTrue(current.getTmTextUnitVariant().isIncludedInLocalizedFile());
+    assertEquals(TMTextUnitVariant.Status.APPROVED, current.getTmTextUnitVariant().getStatus());
+    assertEquals("Bonjour {name}", current.getTmTextUnitVariant().getContent());
   }
 
   @Test

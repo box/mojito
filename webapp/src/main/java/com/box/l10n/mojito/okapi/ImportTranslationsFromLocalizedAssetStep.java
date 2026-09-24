@@ -79,7 +79,13 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     initTmTextUnitsMapsForAsset();
     translatorWithInheritance =
         new TranslatorWithInheritance(asset, repositoryLocale, InheritanceMode.USE_PARENT);
-    hasTranslationWithoutInheritance = translatorWithInheritance.hasTranslationWithoutInheritance();
+    // Count current-variant rows, including rejected integrity checks. The translation cache used
+    // for inheritance skips rejected strings, so using it here would skip the lookup and insert a
+    // second current variant on the next import (UK__TM_TEXT_UNIT_ID__LOCALE_ID).
+    hasTranslationWithoutInheritance =
+        !tmTextUnitCurrentVariantRepository
+            .findByAsset_idAndLocale_Id(asset.getId(), repositoryLocale.getLocale().getId())
+            .isEmpty();
 
     textUnitIntegrityCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
     if (textUnitIntegrityCheckers.isEmpty()) {
@@ -273,11 +279,12 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
   }
 
   /**
-   * Optimize by skipping the look up of the tmTextUnitCurrentVariant when then there is no
-   * translation.
+   * Optimize by skipping the look up of the tmTextUnitCurrentVariant when there is no current
+   * variant for this asset and locale.
    *
    * <p>This is to optimize for the first import of big projects, looking up for
-   * tmTextUnitCurrentVariants is expensive and not required as none is present yet.
+   * tmTextUnitCurrentVariants is expensive and not required as none is present yet. Rejected
+   * translations still have a current variant row and must not skip the lookup.
    *
    * @param localeId
    * @param tmTextUnit
