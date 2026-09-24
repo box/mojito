@@ -161,6 +161,16 @@ const pseudoSubstituteTypeSchema = z
         ].join(" "),
     );
 
+const dropExportTypeSchema = z
+    .enum(["TRANSLATION", "REVIEW"])
+    .describe(
+        [
+            "Which strings go into the vendor drop (TranslationKit.Type):",
+            "TRANSLATION = untranslated or TRANSLATION_NEEDED (server/CLI default);",
+            "REVIEW = strings currently in REVIEW_NEEDED.",
+        ].join(" "),
+    );
+
 const assetListFilterSchema = {
     repositoryId: z
         .number()
@@ -525,6 +535,72 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
         async ({ assetId }) => jsonResult(await client.assetDelete(assetId)),
     );
 
+    // --- Drops ---
+
+    server.registerTool(
+        "mojito_drop_export",
+        {
+            description: [
+                "Start exporting a vendor translation drop (POST /api/drops/export).",
+                "This is the core server call used by `mojito drop-export`. It creates a drop and kicks off asynchronous kit generation to the configured exporter (Box folder or filesystem); it does not wait for files to finish writing.",
+                "The response is ExportDropConfig: `dropId` when already assigned, plus `pollableTask`. Poll `pollableTask.id` with mojito_pollabletask_get until allFinished is true (or an error appears). This tool does not pass CLI --wait.",
+                "Pass BCP-47 `locales` to include. Unlike CLI drop-export, omitting locales does not fill fully-translated repository locales — it sends none. Take tags from mojito_repo_view.",
+                "Optional `type`: TRANSLATION (default) or REVIEW. `useInheritance` is only meaningful with REVIEW.",
+                "WARNING: Exporting creates a real drop on the selected instance. Confirm repository and environment; prefer mojito-dev while experimenting.",
+            ].join(" "),
+            inputSchema: {
+                repositoryId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric Mojito repository id to export. Resolve via mojito_repo_list if needed.",
+                    ),
+                locales: z
+                    .array(bcp47TagSchema)
+                    .optional()
+                    .describe(
+                        "BCP-47 tags to include in the drop (JSON field `locales`). Omit or [] sends no locales — unlike CLI drop-export, this tool does not default to fully-translated repository locales.",
+                    ),
+                type: dropExportTypeSchema.optional(),
+                useInheritance: z
+                    .boolean()
+                    .optional()
+                    .describe(
+                        "When type is REVIEW, include translations inherited from parent locales. Ignored or rejected for TRANSLATION (CLI only allows it with REVIEW).",
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.dropExport(args)),
+    );
+
+    server.registerTool(
+        "mojito_drop_import",
+        {
+            description: [
+                "Start importing a previously exported vendor drop (POST /api/drops/import).",
+                "This is the core server call used by `mojito drop-import`. It reads localized XLIFF from the drop exporter back into the TM; it does not wait for import to finish.",
+                "The response is ImportDropConfig with `pollableTask`. Poll `pollableTask.id` with mojito_pollabletask_get until allFinished is true (or an error appears). This tool does not pass CLI --wait.",
+                "Requires repositoryId and dropId from a prior export (or drop listing). Optional `status` overrides the status applied to imported translations (APPROVED / REVIEW_NEEDED / TRANSLATION_NEEDED); omit for the server default.",
+                "WARNING: Importing changes translations in the selected repository. Confirm drop id, repository, and environment; prefer mojito-dev while experimenting. A drop can be imported more than once.",
+            ].join(" "),
+            inputSchema: {
+                repositoryId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe("Numeric repository id that owns the drop."),
+                dropId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe("Numeric drop id to import (from mojito_drop_export's dropId)."),
+                status: textUnitStatusSchema.optional(),
+            },
+        },
+        async (args) => jsonResult(await client.dropImport(args)),
+    );
+
     // --- Text units ---
 
     server.registerTool(
@@ -781,8 +857,9 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
         {
             description: [
                 "Fetch status of an asynchronous Mojito pollable task by id",
-                "(imports, batch jobs, and other long-running operations that return a PollableTask).",
+                "(asset extraction, drop export/import, and other long-running operations that return a PollableTask).",
                 "Use when a previous operation returned a pollableTask id; poll until allFinished is true or an error appears.",
+                "Required after mojito_drop_export and mojito_drop_import — those tools do not wait.",
                 "This tool does not wait/block; call again as needed.",
             ].join(" "),
             inputSchema: {

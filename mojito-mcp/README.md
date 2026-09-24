@@ -1,6 +1,6 @@
 # mojito-mcp
 
-MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import, localize, and pseudolocalize source assets, search strings, inspect repositories, add translations, update review status, and more.
+MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import, localize, and pseudolocalize source assets, export and import vendor drops, search strings, inspect repositories, add translations, update review status, and more.
 
 This directory is a **standalone npm package** (not a Maven module). You need **Node 18+** and a working Mojito CLI on your `PATH`.
 
@@ -124,7 +124,7 @@ If you set up **mojito-dev**, verify it the same way (`mojito-dev --help` and `m
 
 Then register **one MCP server** for prod (and a second only if you have `mojito-dev`) — see [Install from npm](#install-from-npm-recommended) or [Install from a local checkout](#install-from-a-local-checkout).
 
-**Default:** if `MOJITO_CLI` is unset, the MCP server uses `mojito-prod`. If you have a local/non-prod instance, prefer **mojito-dev** while building features and **mojito-prod** for real data. Be careful with write tools (`mojito_repo_create`, `mojito_repo_delete`, `mojito_asset_import`, `mojito_asset_delete`, `mojito_textunit_translation_add`, `mojito_review_update`) on prod.
+**Default:** if `MOJITO_CLI` is unset, the MCP server uses `mojito-prod`. If you have a local/non-prod instance, prefer **mojito-dev** while building features and **mojito-prod** for real data. Be careful with write tools (`mojito_repo_create`, `mojito_repo_delete`, `mojito_asset_import`, `mojito_asset_delete`, `mojito_drop_export`, `mojito_drop_import`, `mojito_textunit_translation_add`, `mojito_review_update`) on prod.
 
 ## Install from npm (recommended)
 
@@ -263,7 +263,7 @@ On startup the server runs `{MOJITO_CLI} --help`. If that fails (missing script,
 
 ### Timeouts
 
-Long CLI work (especially future drop export/import with wait) can exceed a few minutes. Raise `MOJITO_CLI_TIMEOUT_MS` in the MCP env for that server if needed. The default (10 minutes) covers typical slow jobs; large projects may need more.
+Long CLI work can exceed a few minutes. Drop export/import themselves return immediately with a pollable task; waiting is done with `mojito_pollabletask_get`. Raise `MOJITO_CLI_TIMEOUT_MS` in the MCP env if individual CLI calls (including those poll GETs against a slow host) need more time. The default (10 minutes) covers typical slow jobs; large projects may need more.
 
 ## Tools
 
@@ -299,6 +299,19 @@ This tool deliberately does not reproduce the rest of `mojito push`: it does not
 
 `mojito_asset_list` / `mojito_asset_ids` require `repositoryId`. There is no GET-by-id for a single asset. `mojito_asset_delete` removes one asset by id; it is not the bulk unused-asset cleanup used by CLI push.
 
+### Drops
+
+| Tool | Purpose |
+|------|---------|
+| `mojito_drop_export` | Start a vendor translation-kit export for a repository |
+| `mojito_drop_import` | Start re-import of an existing drop into the TM |
+
+A drop is a vendor package: export writes source XLIFF via the repository's drop exporter (Box folder or filesystem); import reads localized XLIFF back into the translation memory.
+
+`mojito_drop_export` is the core server call beneath `mojito drop-export`: `POST /api/drops/export` with `repositoryId` and optional BCP-47 `locales`, `type` (`TRANSLATION` / `REVIEW`), and `useInheritance` (REVIEW only). The JSON field name is `locales` (not `bcp47Tags`). Unlike the CLI command, omitting `locales` does **not** fill fully-translated repository locales — it sends none. Take tags from `mojito_repo_view`. The response includes `dropId` (when assigned) and `pollableTask`. **Do not expect this tool to wait.** Poll `pollableTask.id` with `mojito_pollabletask_get` until `allFinished` is true (or an error appears). Export of a large project can take several minutes on the server.
+
+`mojito_drop_import` is the core server call beneath `mojito drop-import`: `POST /api/drops/import` with `repositoryId`, `dropId`, and optional translation `status`. It also returns a `pollableTask` and **does not wait**. Poll with `mojito_pollabletask_get`. A drop can be imported more than once. List, cancel, complete, and standalone XLIFF import are not exposed yet.
+
 ### Text units
 
 | Tool | Purpose |
@@ -317,7 +330,7 @@ Prefer scoping by repository when you can — all-repo search can return a lot o
 | Tool | Purpose |
 |------|---------|
 | `mojito_review_update` | Accept / needs-review / needs-translation / reject (workbench review actions) |
-| `mojito_pollabletask_get` | Fetch status of a pollable task by id |
+| `mojito_pollabletask_get` | Fetch status of a pollable task by id (does not wait; required after drop export/import) |
 
 ## How it works (brief)
 
