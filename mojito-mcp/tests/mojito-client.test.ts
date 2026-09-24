@@ -84,6 +84,10 @@
  *    as flat fields. The assertion reads that temp file inside the fake runner, since the
  *    file is deleted as soon as the call returns.
  * 8. Deleting a repository requires an explicit `-X DELETE`, never an implied method.
+ * 8b. Listing assets does *not* paginate; repositoryId is required and optional filters
+ *     (path, deleted, virtual, branchId) use the same encoding as the REST query string.
+ * 8c. Listing asset ids uses GET /api/assets/ids with the same filters.
+ * 8d. Deleting an asset is an explicit `-X DELETE` on the asset id.
  * 9. Importing an asset POSTs the complete source-asset JSON body and cleans up its temporary
  *    input file. This is the asynchronous server operation beneath the CLI push command.
  * 10. A minimal asset import preserves empty content and omits every optional field.
@@ -487,6 +491,82 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
 
         await client.repoDelete(9);
         expect(runner.calls[0]).toEqual(["api", "/api/repositories/9", "-X", "DELETE"]);
+    });
+
+    test("assetList does not paginate and requires repositoryId", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.assetList({ repositoryId: 7 });
+
+        expect(runner.calls[0]).toEqual(["api", "/api/assets", "-F", "repositoryId=7"]);
+        expect(runner.calls[0]).not.toContain("--paginate");
+    });
+
+    test("assetList encodes every optional filter with the correct type", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.assetList({
+            repositoryId: 7,
+            path: "messages.properties",
+            deleted: false,
+            virtual: true,
+            branchId: 3,
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/assets",
+            "-F",
+            "repositoryId=7",
+            "-f",
+            "path=messages.properties",
+            "-F",
+            "deleted=false",
+            "-F",
+            "virtual=true",
+            "-F",
+            "branchId=3",
+        ]);
+    });
+
+    test("assetIds uses GET /api/assets/ids with the same filters as list", async () => {
+        const runner = mockRunner(() => okJson([12, 13]));
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.assetIds({
+                repositoryId: 7,
+                path: "",
+                deleted: true,
+                virtual: false,
+                branchId: 3,
+            }),
+        ).resolves.toEqual([12, 13]);
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/assets/ids",
+            "-F",
+            "repositoryId=7",
+            "-f",
+            "path=",
+            "-F",
+            "deleted=true",
+            "-F",
+            "virtual=false",
+            "-F",
+            "branchId=3",
+        ]);
+    });
+
+    test("assetDelete uses -X DELETE", async () => {
+        const runner = mockRunner(() => ({ exitCode: 0, stdout: "", stderr: "" }));
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(client.assetDelete(12)).resolves.toBeNull();
+        expect(runner.calls[0]).toEqual(["api", "/api/assets/12", "-X", "DELETE"]);
     });
 
     test("assetImport POSTs the complete source asset as JSON and removes its temp file", async () => {
