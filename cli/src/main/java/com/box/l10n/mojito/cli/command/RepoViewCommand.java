@@ -98,8 +98,8 @@ public class RepoViewCommand extends RepoCommand {
 
   /**
    * Prints type-owned checkers from a follow-up {@code GET /api/repo-types/{id}}. Nested {@code
-   * repoType} on the repository payload is only {@code id} and {@code name}. A failed fetch must not
-   * abort {@code repo-view}; the rest of the repository is still printed.
+   * repoType} on the repository payload is only {@code id} and {@code name}. A failed fetch must
+   * not abort {@code repo-view}; the rest of the repository is still printed.
    */
   private void printRepoTypeIntegrityCheckers(Repository repository) {
     if (repository.getRepoType() == null || repository.getRepoType().getId() == null) {
