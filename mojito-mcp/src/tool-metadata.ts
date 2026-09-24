@@ -22,6 +22,7 @@ export const MOJITO_MCP_TOOL_IDS = [
     "mojito_repo_view",
     "mojito_repo_create",
     "mojito_repo_delete",
+    "mojito_asset_import",
     "mojito_textunit_search",
     "mojito_textunit_info",
     "mojito_textunit_history",
