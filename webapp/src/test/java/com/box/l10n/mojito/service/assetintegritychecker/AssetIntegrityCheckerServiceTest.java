@@ -101,7 +101,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
   private static final String VALID_MESSAGE_FORMAT_TARGET_WITH_THREE_DOTS =
       "{numFiles, plural, one{Il y a un fichier...} other{Il y a # fichiers...}}";
   private static final String BROKEN_MESSAGE_FORMAT_TARGET_ALTERNATE =
-      "{numFiles, plural, one{Il y a deux fichiers} other{Il y a # fichiers}";
+      "{numFiles, plural, one{Il y a un seul fichier} other{Il y a # fichiers}";
   private static final String PROPERTIES_SOURCE = "greeting=Hello {name}\n";
   private static final String PROPERTIES_BROKEN_TARGET = "greeting=Bonjour {name\n";
   private static final String PROPERTIES_VALID_TARGET = "greeting=Bonjour {name}\n";
