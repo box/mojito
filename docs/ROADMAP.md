@@ -12,18 +12,19 @@ Items are ordered roughly by dependency where that applies; ordering within a to
 
 Core Mojito orchestration for AI-assisted translation.
 
+Integrity checkers configured on a repository type already run at check time for assigned repositories (unioned with any repository-owned checkers). CLI and UI for managing those type checkers is still follow-up.
+
 1. Add Repo Types
 2. Prompt Layer per Repo Type
 3. Prompt Layer per Repo
-4. Integrity checks per Repo Type
-5. Glossary awareness in AI translation flows (approved terms in prompts)
-6. Derived-locale AI adaptation (parent → regional variant)
-7. Derived-locale prompt layers
-8. Fuzzy match support using Lucene search
-9. Translation memory support using fuzzy match (TM hits as AI reference context)
-10. Workbench free-text / TM search (filters by repo, locale, status)
-11. MQM-style quality measurement (segment-level scoring, batch scorecards, rollups)
-12. Automatic translation within Mojito (triggered on push / status changes), instead of kicking off translations externally via the CLI
+4. Glossary awareness in AI translation flows (approved terms in prompts)
+5. Derived-locale AI adaptation (parent → regional variant)
+6. Derived-locale prompt layers
+7. Fuzzy match support using Lucene search
+8. Translation memory support using fuzzy match (TM hits as AI reference context)
+9. Workbench free-text / TM search (filters by repo, locale, status)
+10. MQM-style quality measurement (segment-level scoring, batch scorecards, rollups)
+11. Automatic translation within Mojito (triggered on push / status changes), instead of kicking off translations externally via the CLI
 
 ### A Few Definitions
 

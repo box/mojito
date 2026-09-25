@@ -18,7 +18,7 @@ import java.util.Objects;
  * element collection; they are not part of this type and are not exposed in JSON. Clients get and
  * send de-duplicated sets of this pair only.
  *
- * <p>Logical identity matches repository checkers so a push/import can later take the superset of
+ * <p>Logical identity matches repository checkers so integrity checking can take the superset of
  * type-level and repo-level checkers by that pair. Multiple checkers may share the same {@code
  * assetExtension} as long as their {@link IntegrityCheckerType} values differ.
  */

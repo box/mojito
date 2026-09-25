@@ -6,7 +6,9 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
+import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
 import java.util.Set;
@@ -38,6 +40,7 @@ public class RepoViewCommandTest extends CLITestBase {
         "Repository id is missing or incorrect from output",
         outputCapture.toString().contains("Repository id --> " + repository.getId()));
     assertFalse(outputCapture.toString().contains("Repository type -->"));
+    assertFalse(outputCapture.toString().contains("Repository type checkers -->"));
     assertFalse(
         "Repository integrity checker is incorrect",
         outputCapture.toString().contains("Integrity checkers -->"));
@@ -78,6 +81,46 @@ public class RepoViewCommandTest extends CLITestBase {
     getL10nJCommander().run("repo-view", Param.REPOSITORY_NAME_SHORT, repository.getName());
 
     assertTrue(outputCapture.toString().contains("Repository type --> " + repoType.getName()));
+    assertFalse(outputCapture.toString().contains("Repository type checkers -->"));
+  }
+
+  @Test
+  public void testViewRepoTypeIntegrityCheckers() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+    String testRepoName = repository.getName();
+
+    RepoTypeIntegrityChecker typeChecker = new RepoTypeIntegrityChecker();
+    typeChecker.setAssetExtension("xliff");
+    typeChecker.setIntegrityCheckerType(IntegrityCheckerType.SIMPLE_PRINTF_LIKE);
+
+    RepoType repoType =
+        repoTypeService.createRepoType(
+            testIdWatcher.getEntityName("React"), null, null, Set.of(typeChecker));
+    repository.setRepoType(repoType);
+    repositoryRepository.save(repository);
+
+    getL10nJCommander().run("repo-view", Param.REPOSITORY_NAME_SHORT, testRepoName);
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Repository type --> " + repoType.getName()));
+    assertTrue(output.contains("Repository type checkers --> xliff:SIMPLE_PRINTF_LIKE"));
+    assertFalse(output.contains("Integrity checkers -->"));
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            testRepoName,
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "properties:MESSAGE_FORMAT");
+    getL10nJCommander().run("repo-view", Param.REPOSITORY_NAME_SHORT, testRepoName);
+
+    output = outputCapture.toString();
+    assertTrue(output.contains("Integrity checkers --> properties:MESSAGE_FORMAT"));
+    assertTrue(output.contains("Repository type checkers --> xliff:SIMPLE_PRINTF_LIKE"));
+    assertFalse(
+        output.contains(
+            "Integrity checkers --> properties:MESSAGE_FORMAT,xliff:SIMPLE_PRINTF_LIKE"));
   }
 
   @Test

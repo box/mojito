@@ -35,7 +35,7 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 - AI instructions about placeholders, plurals, and markup are duplicated per repo (or missing).
 - Integrity checker configuration is duplicated per repo for the same file formats.
 
-**Repo types** are named shared configs (e.g. `React`, `Android`) that repositories can optionally be assigned to. Multiple repos of the same kind will later inherit the same AI prompt layer and integrity-checker defaults.
+**Repo types** are named shared configs (e.g. `React`, `Android`) that repositories can optionally be assigned to. Assigned repositories run the union of type-owned and repository-owned integrity checkers at check time. Multiple repos of the same kind will later also inherit the same AI prompt layer.
 
 ##### Scope of this server slice
 
@@ -45,6 +45,7 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 - REST CRUD under `/api/repo-types` (`RepoTypeWS`).
 - Persist an optional `repository.repo_type_id`, expose the nested type as `id` + `name`, and support assign / clear through the repository REST API.
 - Support `--repo-type` on `repo-create` / `repo-update` (empty value on update clears the assignment) and display the assignment in `repo-view`.
+- At check time, run the union of type-owned and repository-owned integrity checkers for the asset extension.
 - Refuse to delete a repo type while any repository references it.
 - Documented contracts below (implementation and tests follow this doc).
 
@@ -54,7 +55,6 @@ Many Mojito repositories share the same tech stack (React + FormatJS, Android `s
 |--------|--------|
 | Prompt / integrity UI | See [Frontend → Repo Types](#repo-types-2) |
 | Layered prompt assembly (global → type → repo → request) | Prompt builder wiring type `aiPrompt` into AI runs |
-| Runtime superset of type + repo checkers on push/import | Union by `(assetExtension, integrityCheckerType)` |
 | Prompt content per stack | Authoring React/Android/etc. prompts in production data |
 
 Deleting a type is a hard delete only when no repository references it. An in-use type returns HTTP 409 until all assignments are cleared.
@@ -93,7 +93,7 @@ Deleting a type is a hard delete only when no repository references it. An in-us
 
 **Why not `AssetIntegrityChecker`:** JPA maps one parent FK per association. A row owned by a type cannot use `AssetIntegrityChecker`’s required `repository_id`.
 
-**Why still “the same” for runtime:** Push/import will later build a **superset** by projecting both type-level and repo-level rows to `(assetExtension, integrityCheckerType)` and unioning. The Java class of the parent entity does not matter at apply time.
+**Runtime resolution:** Push/import and other text-unit check paths build a **set union** by projecting both type-level and repo-level rows to `(assetExtension, integrityCheckerType)`. Only rows matching the asset's extension apply. A pair configured on both the type and repository runs once; different checker types on the same extension all run. Untyped repositories continue to use only their repository-owned checkers. The Java class of the parent entity does not matter at apply time.
 
 **JSON name:** The collection is exposed as `integrityCheckers` (not `assetIntegrityCheckers`) to keep the repo-type API clear. Element shape is `{ assetExtension, integrityCheckerType }` only — clients get and send de-duplicated sets of that pair.
 
@@ -327,6 +327,8 @@ Caller must pass a persisted `RepoType`.
 | `entity/RepoTypeIntegrityChecker.java` | Embeddable checker pair (extension + type) |
 | `service/repotype/RepoTypeService.java` | Business rules (above) |
 | `service/repotype/RepoTypeRepository.java` | `findByName`, `findAllByOrderByNameAsc` |
+| `service/assetintegritychecker/AssetIntegrityCheckerRepository.java` | Repository-owned checkers by extension, and type-owned checker types for a repository id + extension (check-time lookup without initializing lazy `repoType`) |
+| `service/assetintegritychecker/integritychecker/IntegrityCheckerFactory.java` | Unions type-owned and repository-owned checkers for the asset extension |
 | `service/repotype/RepoTypeNameAlreadyUsedException.java` | → HTTP 409 |
 | `service/repotype/RepoTypeInvalidException.java` | → HTTP 400 |
 | `rest/View.java` | `View.RepoType` for `/api/repo-types` payloads |
@@ -351,7 +353,7 @@ Repository commands manage the optional assignment by exact, case-sensitive type
 - `repo-create --repo-type <name>` creates a typed repository; omitting the flag or passing an empty value creates an untyped repository (`repo_type_id` SQL `NULL`). JCommander 1.48 trims flag values, even when quoted, so whitespace-only (`"   "`) is the same as empty at the CLI. A blank nested name on the REST create body still returns 400 (`repoType.name is required`).
 - `repo-update --repo-type <name>` assigns or changes the type.
 - `repo-update --repo-type ""` clears it, same pattern as `-it ""`. Omitting the flag preserves the current assignment. Whitespace-only is likewise treated as empty (clears) because JCommander trims first. A blank nested name on the REST update body still returns 400.
-- `repo-view` prints `Repository type --> <name>` only when a type is assigned.
+- `repo-view` prints `Repository type --> <name>` only when a type is assigned. Type-owned checkers are loaded with `RepoTypeClient.getRepoTypeById` (nested `repoType` on the repository payload is still only `id` + `name`) and printed on `Repository type checkers -->` when the set is non-empty. If that GET fails, print `Repository type checkers --> could not be loaded` and continue (id, type name, `-it` checkers, locales). Repository `-it` checkers stay on `Integrity checkers -->`.
 
 `NULL` has no special meaning: `--repo-type NULL` looks up a type literally named `NULL`. Flag constants: `Param.REPOSITORY_TYPE_*`. The REST PATCH still uses `clearRepoType=true`; the CLI maps an empty `--repo-type` to that query parameter.
 

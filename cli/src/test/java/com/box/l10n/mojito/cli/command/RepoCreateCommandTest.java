@@ -73,6 +73,21 @@ public class RepoCreateCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testCreateHelpDocumentsTypeIntegrityUnion() {
+    getL10nJCommander().run("repo-create", "-h");
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains(Param.REPOSITORY_TYPE_LONG));
+    assertTrue(
+        "CLI help must warn that assigning a type also runs type integrity checkers",
+        output.contains("Assigned types also run") && output.contains("their integrity checkers"));
+    assertTrue(output.contains(RepoCommand.INTEGRITY_CHECK_SHORT_PARAM));
+    assertTrue(
+        "CLI help must say -it stores repository checkers only",
+        output.contains("Stores checkers on this repository only"));
+  }
+
+  @Test
   public void testCreateRepositoryWithEmptyRepoTypeStaysUntyped() throws Exception {
     String repositoryName = testIdWatcher.getEntityName("emptyTypeRepository");
 

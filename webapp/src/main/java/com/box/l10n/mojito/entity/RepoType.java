@@ -23,8 +23,8 @@ import java.util.Set;
  * <ul>
  *   <li>{@link #aiPrompt} — one type-layer AI prompt used for both translation and review (stack
  *       rules such as placeholders, ICU plurals/selects, markup)
- *   <li>{@link #integrityCheckers} — integrity checkers that will later be unioned with
- *       repository-level checkers when a push or import runs
+ *   <li>{@link #integrityCheckers} — integrity checkers that are unioned with repository-level
+ *       checkers when integrity checking runs
  * </ul>
  *
  * <p>Names are unique. Extends {@link AuditableEntity} for {@code created_date} / {@code
