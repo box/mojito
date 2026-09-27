@@ -1,6 +1,6 @@
 # mojito-mcp
 
-MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — search strings, inspect repositories, add translations, update review status, and more.
+MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — import source assets, search strings, inspect repositories, add translations, update review status, and more.
 
 This directory is a **standalone npm package** (not a Maven module). You need **Node 18+** and a working Mojito CLI on your `PATH`.
 
@@ -124,7 +124,7 @@ If you set up **mojito-dev**, verify it the same way (`mojito-dev --help` and `m
 
 Then register **one MCP server** for prod (and a second only if you have `mojito-dev`) — see [Install from npm](#install-from-npm-recommended) or [Install from a local checkout](#install-from-a-local-checkout).
 
-**Default:** if `MOJITO_CLI` is unset, the MCP server uses `mojito-prod`. If you have a local/non-prod instance, prefer **mojito-dev** while building features and **mojito-prod** for real data. Be careful with write tools (`mojito_repo_create`, `mojito_repo_delete`, `mojito_textunit_translation_add`, `mojito_review_update`) on prod.
+**Default:** if `MOJITO_CLI` is unset, the MCP server uses `mojito-prod`. If you have a local/non-prod instance, prefer **mojito-dev** while building features and **mojito-prod** for real data. Be careful with write tools (`mojito_repo_create`, `mojito_repo_delete`, `mojito_asset_import`, `mojito_textunit_translation_add`, `mojito_review_update`) on prod.
 
 ## Install from npm (recommended)
 
@@ -277,6 +277,16 @@ Tool ids follow `mojito_<object>_<action>`.
 | `mojito_repo_view` | Get one repository by id |
 | `mojito_repo_create` | Create a repository |
 | `mojito_repo_delete` | Delete a repository by id |
+
+### Assets
+
+| Tool                  | Purpose                                                             |
+| --------------------- | ------------------------------------------------------------------- |
+| `mojito_asset_import` | Create or update one source asset and start asynchronous extraction |
+
+`mojito_asset_import` is the core server call beneath `mojito push`: it sends a logical asset `path` and its complete `content` to `POST /api/assets`. Mojito creates or updates that asset and returns an `addedAssetId` plus a `pollableTask`. Poll that task with `mojito_pollabletask_get`.
+
+This tool deliberately does not reproduce the rest of `mojito push`: it does not discover local files, wait for extraction, or mark assets missing from the current upload as unused. Import each intended asset explicitly. For a normal resource file, omit `extractedContent`; Mojito chooses the parser from the path extension unless `filterConfigIdOverride` is supplied. Set `extractedContent=true` only when `content` is Mojito's pre-extracted text-unit JSON format.
 
 ### Text units
 
