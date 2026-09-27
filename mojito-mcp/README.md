@@ -124,7 +124,7 @@ If you set up **mojito-dev**, verify it the same way (`mojito-dev --help` and `m
 
 Then register **one MCP server** for prod (and a second only if you have `mojito-dev`) — see [Install from npm](#install-from-npm-recommended) or [Install from a local checkout](#install-from-a-local-checkout).
 
-**Default:** if `MOJITO_CLI` is unset, the MCP server uses `mojito-prod`. If you have a local/non-prod instance, prefer **mojito-dev** while building features and **mojito-prod** for real data. Be careful with write tools (`mojito_repo_create`, `mojito_repo_delete`, `mojito_asset_import`, `mojito_textunit_translation_add`, `mojito_review_update`) on prod.
+**Default:** if `MOJITO_CLI` is unset, the MCP server uses `mojito-prod`. If you have a local/non-prod instance, prefer **mojito-dev** while building features and **mojito-prod** for real data. Be careful with write tools (`mojito_repo_create`, `mojito_repo_delete`, `mojito_asset_import`, `mojito_asset_delete`, `mojito_textunit_translation_add`, `mojito_review_update`) on prod.
 
 ## Install from npm (recommended)
 
@@ -280,13 +280,18 @@ Tool ids follow `mojito_<object>_<action>`.
 
 ### Assets
 
-| Tool                  | Purpose                                                             |
-| --------------------- | ------------------------------------------------------------------- |
+| Tool | Purpose |
+|------|---------|
+| `mojito_asset_list` | List asset summaries in a repository (optional path / deleted / virtual / branchId) |
+| `mojito_asset_ids` | List asset ids with the same filters as list |
 | `mojito_asset_import` | Create or update one source asset and start asynchronous extraction |
+| `mojito_asset_delete` | Delete one source asset by id |
 
 `mojito_asset_import` is the core server call beneath `mojito push`: it sends a logical asset `path` and its complete `content` to `POST /api/assets`. Mojito creates or updates that asset and returns an `addedAssetId` plus a `pollableTask`. Poll that task with `mojito_pollabletask_get`.
 
 This tool deliberately does not reproduce the rest of `mojito push`: it does not discover local files, wait for extraction, or mark assets missing from the current upload as unused. Import each intended asset explicitly. For a normal resource file, omit `extractedContent`; Mojito chooses the parser from the path extension unless `filterConfigIdOverride` is supplied. Set `extractedContent=true` only when `content` is Mojito's pre-extracted text-unit JSON format.
+
+`mojito_asset_list` / `mojito_asset_ids` require `repositoryId`. There is no GET-by-id for a single asset. `mojito_asset_delete` removes one asset by id; it is not the bulk unused-asset cleanup used by CLI push.
 
 ### Text units
 
