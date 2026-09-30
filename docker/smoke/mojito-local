@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Run the Mojito CLI inside the local smoke webapp container.
+#
+#   docker/smoke/mojito-local repo-view -n some-repo
+#
+# This never calls a `mojito` installed on the host. The host command may be
+# configured for a real server. If the container is not running, this exits
+# and does not fall back to anything else.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+COMPOSE_FILE="$ROOT/docker/docker-compose-mysql-smoke.yml"
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: docker/smoke/mojito-local <command> [arguments...]" >&2
+  exit 1
+fi
+
+target="$(docker compose -f "$COMPOSE_FILE" exec -T webapp printenv MOJITO_HOST MOJITO_PORT 2>/dev/null || true)"
+host="$(printf '%s\n' "$target" | sed -n '1p')"
+port="$(printf '%s\n' "$target" | sed -n '2p')"
+host="${host//[[:space:]]/}"
+port="${port//[[:space:]]/}"
+
+if [[ "$host" != "localhost" || "$port" != "8080" ]]; then
+  echo "Refusing to run: container CLI target is '${host:-<not running>}:${port:-<unset>}'. Expected localhost:8080." >&2
+  exit 1
+fi
+
+echo "mojito-local: webapp container at localhost:8080" >&2
+docker compose -f "$COMPOSE_FILE" exec -T webapp mojito "$@"
