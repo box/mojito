@@ -79,12 +79,23 @@ fi
 echo "$health"
 printf '%s\n' "$health" | grep -q '"status":"UP"'
 
-actual="$(
+# Keep the MySQL password warning off the success path, but keep the real
+# error when the container, login, or history table cannot be read.
+query_err="$(mktemp)"
+if ! actual="$(
   compose exec -T db \
     mysql -N -umojito -pChangeMe mojito \
     -e "SELECT MAX(CAST(version AS UNSIGNED)) FROM flyway_schema_history WHERE success = 1;" \
-    2>/dev/null || true
-)"
+    2>"$query_err"
+)"; then
+  echo "Could not read flyway_schema_history from the smoke database." >&2
+  if [[ -s "$query_err" ]]; then
+    cat "$query_err" >&2
+  fi
+  rm -f "$query_err"
+  exit 1
+fi
+rm -f "$query_err"
 actual="${actual//[[:space:]]/}"
 
 echo "flyway_schema_history max version: ${actual:-<empty>} (highest migration: ${expected})"
