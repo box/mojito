@@ -6,8 +6,9 @@
 #
 # Checks:
 #   1. GET /actuator/health reports UP
-#   2. flyway_schema_history max version equals the highest V* script
-#      under webapp/src/main/resources/db/migration/
+#   2. flyway_schema_history max version equals the highest versioned migration
+#      Flyway loads: V*.sql under webapp/src/main/resources/db/migration/ and
+#      V*.java under webapp/src/main/java/db/migration/
 #   3. repo-type-create, repo-type-list, repo-type-view, repo-type-delete succeed
 #
 # CLI calls go through docker/smoke/mojito-local, which runs mojito inside the webapp
@@ -18,7 +19,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 COMPOSE_FILE="$ROOT/docker/docker-compose-mysql-smoke.yml"
-MIGRATION_DIR="$ROOT/webapp/src/main/resources/db/migration"
+SQL_MIGRATION_DIR="$ROOT/webapp/src/main/resources/db/migration"
+JAVA_MIGRATION_DIR="$ROOT/webapp/src/main/java/db/migration"
 BASE_URL="http://127.0.0.1:8080"
 # Unique per run, so delete can only remove the type this run created.
 REPO_TYPE_NAME="local-smoke-$(date +%Y%m%d%H%M%S)-$$"
@@ -31,20 +33,31 @@ container_cli() {
   "$ROOT/docker/smoke/mojito-local" "$@"
 }
 
-if [[ ! -d "$MIGRATION_DIR" ]]; then
-  echo "Migration directory not found: $MIGRATION_DIR" >&2
+if [[ ! -d "$SQL_MIGRATION_DIR" ]]; then
+  echo "Migration directory not found: $SQL_MIGRATION_DIR" >&2
   exit 1
 fi
 
+if [[ ! -d "$JAVA_MIGRATION_DIR" ]]; then
+  echo "Migration directory not found: $JAVA_MIGRATION_DIR" >&2
+  exit 1
+fi
+
+# Flyway's default location is classpath:db/migration. That loads SQL from
+# resources and Java classes from the same package. A Java-only migration
+# numbered above every SQL file is still the latest version in the database.
 expected="$(
-  find "$MIGRATION_DIR" -maxdepth 1 -type f -name 'V*.sql' -print \
-    | sed -E 's|.*/V([0-9]+)__.*|\1|' \
+  {
+    find "$SQL_MIGRATION_DIR" -maxdepth 1 -type f -name 'V*.sql' -print
+    find "$JAVA_MIGRATION_DIR" -maxdepth 1 -type f -name 'V*.java' -print
+  } \
+    | sed -nE 's|.*/V([0-9]+)__.*|\1|p' \
     | sort -n \
     | tail -n 1
 )"
 
 if [[ -z "$expected" ]]; then
-  echo "No V* migrations found in $MIGRATION_DIR" >&2
+  echo "No V* migrations found in $SQL_MIGRATION_DIR or $JAVA_MIGRATION_DIR" >&2
   exit 1
 fi
 
@@ -74,9 +87,9 @@ actual="$(
 )"
 actual="${actual//[[:space:]]/}"
 
-echo "flyway_schema_history max version: ${actual:-<empty>} (highest migration script: ${expected})"
+echo "flyway_schema_history max version: ${actual:-<empty>} (highest migration: ${expected})"
 if [[ "$actual" != "$expected" ]]; then
-  echo "Flyway version does not match the highest migration script." >&2
+  echo "Flyway version does not match the highest migration." >&2
   exit 1
 fi
 
