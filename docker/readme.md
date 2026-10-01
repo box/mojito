@@ -332,7 +332,7 @@ docker compose -f docker/docker-compose-mysql-smoke.yml down
 
 1. `GET /actuator/health` returns status `UP`.
 2. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`.
-3. Repo-type create, list, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-view`, and `repo-type-delete`. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
+3. Repo-type create, list, update, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-update`, `repo-type-view`, and `repo-type-delete`. After update, the view output must contain the new description. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
 
 **Run local CLI commands through `docker/smoke/mojito-local`.** A `mojito` installed on your own machine reads its own configuration and may point at a real Mojito server. `mojito-local` is a separate command, not a replacement: it runs `mojito` inside the webapp container, prints `localhost:8080`, and refuses to continue if the container target is anything else. If the container is not running, it fails instead of falling back to the installed CLI. Do not alias the name `mojito` itself to this script. That would send real-server commands to the local container, or the reverse if the alias is missing.
 
@@ -351,6 +351,7 @@ docker compose -f docker/docker-compose-mysql-smoke.yml exec -T db \
   -e "SELECT MAX(CAST(version AS UNSIGNED)) FROM flyway_schema_history WHERE success = 1;"
 docker/smoke/mojito-local repo-type-create -n local-smoke-manual -d "local smoke check"
 docker/smoke/mojito-local repo-type-list
+docker/smoke/mojito-local repo-type-update -n local-smoke-manual -d "local smoke check updated"
 docker/smoke/mojito-local repo-type-view -n local-smoke-manual
 docker/smoke/mojito-local repo-type-delete -n local-smoke-manual
 ```

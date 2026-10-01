@@ -9,7 +9,8 @@
 #   2. flyway_schema_history max version equals the highest versioned migration
 #      Flyway loads: V*.sql under webapp/src/main/resources/db/migration/ and
 #      V*.java under webapp/src/main/java/db/migration/
-#   3. repo-type-create, repo-type-list, repo-type-view, repo-type-delete succeed
+#   3. repo-type-create, repo-type-list, repo-type-update, repo-type-view,
+#      repo-type-delete succeed
 #
 # CLI calls go through docker/smoke/mojito-local, which runs mojito inside the webapp
 # container and refuses any target other than localhost:8080. The script never calls a
@@ -24,6 +25,7 @@ JAVA_MIGRATION_DIR="$ROOT/webapp/src/main/java/db/migration"
 BASE_URL="http://127.0.0.1:8080"
 # Unique per run, so delete can only remove the type this run created.
 REPO_TYPE_NAME="local-smoke-$(date +%Y%m%d%H%M%S)-$$"
+UPDATED_DESCRIPTION="local smoke check updated"
 
 compose() {
   docker compose -f "$COMPOSE_FILE" "$@"
@@ -112,10 +114,14 @@ list_output="$(container_cli repo-type-list)"
 printf '%s\n' "$list_output"
 printf '%s\n' "$list_output" | grep -q "$REPO_TYPE_NAME"
 
+echo "repo-type-update ${REPO_TYPE_NAME}"
+container_cli repo-type-update -n "$REPO_TYPE_NAME" -d "$UPDATED_DESCRIPTION"
+
 echo "repo-type-view ${REPO_TYPE_NAME}"
 view_output="$(container_cli repo-type-view -n "$REPO_TYPE_NAME")"
 printf '%s\n' "$view_output"
 printf '%s\n' "$view_output" | grep -q "$REPO_TYPE_NAME"
+printf '%s\n' "$view_output" | grep -q "$UPDATED_DESCRIPTION"
 
 echo "repo-type-delete ${REPO_TYPE_NAME}"
 container_cli repo-type-delete -n "$REPO_TYPE_NAME"
