@@ -296,15 +296,19 @@ The first build compiles Mojito inside the image and takes a while. Later runs c
 
 ## Recipe: upgrade from version N to latest
 
-Start fresh, migrate through version N, confirm the logbook, then boot again with no target so only the remaining scripts run. The example uses N=66. Use any version below the latest script.
+Start fresh, migrate through version N, and boot again with no target only when the logbook stopped at exactly N. The example uses N=66. Use any version below the latest script.
+
+Paste this as one block. The second boot and `docker/smoke/check.sh` are inside the success branch. `check.sh` only sees the final version, so after a second boot it cannot tell a fresh migrate from an upgrade. If the logbook is already past N, or it never reaches N, the block prints an error and stops. The webapp is not recreated, and the smoke check does not run. A version already past N will not become N, so the wait ends as soon as that shows up instead of running out the clock.
 
 ```bash
 docker compose -f docker/docker-compose-mysql-smoke.yml down
 rm -rf docker/.data/db
 mkdir -p docker/.data/db
-FLYWAY_TARGET=66 docker compose -f docker/docker-compose-mysql-smoke.yml up -d
+TARGET=66
+FLYWAY_TARGET="$TARGET" docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 
-# Wait until the logbook shows 66. The webapp may exit after Flyway; the db container stays up.
+# Wait until the logbook shows exactly TARGET. The webapp may exit after Flyway; the db container stays up.
+version=""
 for _ in $(seq 1 60); do
   version="$(docker compose -f docker/docker-compose-mysql-smoke.yml exec -T db \
     mysql -N -umojito -pChangeMe mojito \
@@ -312,19 +316,33 @@ for _ in $(seq 1 60); do
     2>/dev/null || true)"
   version="${version//[[:space:]]/}"
   echo "flyway version: ${version:-unknown}"
-  if [ "$version" = "66" ]; then
+  if [ "$version" = "$TARGET" ]; then
     break
   fi
+  case "$version" in
+    ''|*[!0-9]*)
+      ;;
+    *)
+      if [ "$version" -gt "$TARGET" ]; then
+        break
+      fi
+      ;;
+  esac
   sleep 10
 done
 
-# Second boot: no FLYWAY_TARGET, so the cap is latest. Leave docker/.data/db in place.
-docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
-docker/smoke/check.sh
-docker compose -f docker/docker-compose-mysql-smoke.yml down
+if [ "$version" != "$TARGET" ]; then
+  echo "Did not stop at ${TARGET} (saw '${version:-unknown}'). Refusing the second boot." >&2
+  false
+else
+  # Second boot: no FLYWAY_TARGET, so the cap is latest. Leave docker/.data/db in place.
+  docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
+  docker/smoke/check.sh
+  docker compose -f docker/docker-compose-mysql-smoke.yml down
+fi
 ```
 
-`docker compose down` at the end removes the containers and keeps `docker/.data/db`.
+`false` makes the block finish with a failing status. It does not close an interactive terminal. `docker compose down` runs only after the smoke check passes. It removes the containers and keeps `docker/.data/db`. If the recipe stops early, the containers stay up so you can read the logbook.
 
 ## Smoke checks
 
