@@ -355,8 +355,16 @@ fi
 
 1. `GET /actuator/health` returns status `UP`.
 2. The running webapp is the image recorded by `docker/smoke/build-image.sh`, and the `V*.sql` and `V*.java` migration files still match that build. The SQL files inside the running jar are also compared with the working tree.
-3. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`.
+3. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`. This comparison assumes every version is a plain integer. See "Migration versions are integers" below.
 4. Repo-type create, list, update, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-update`, `repo-type-view`, and `repo-type-delete`. After update, the view output must contain the new description. After delete, a second list must not contain that name. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
+
+### Migration versions are integers
+
+Mojito names each versioned migration with a plain integer and two underscores, such as `V69__Add_repo_type.sql` and `V9__Compute_Word_Count.java`. The current files are `V1` through `V69`, each number once. `check.sh` and the manual history query below depend on that convention.
+
+The script takes the digits between `V` and `__`. MySQL then compares those numbers with `CAST(version AS UNSIGNED)`. That cast stops at the first character that is not a digit, so the string `69.1` becomes `69`. A filename such as `V69.1__Fix_repo_type.sql` is therefore not treated as newer than `V69`. A repeatable script named `R__...` has no version number, so this comparison does not show whether it ran.
+
+Keep new migrations on the next integer (`V70__...`, then `V71__...`). If a change needs a dotted version or a repeatable script, update `docker/smoke/check.sh` before treating a green smoke result as proof that the new script was applied.
 
 **Run local CLI commands through `docker/smoke/mojito-local`.** A `mojito` installed on your own machine reads its own configuration and may point at a real Mojito server. `mojito-local` is a separate command, not a replacement: it runs `mojito` inside the webapp container, prints `localhost:8080`, and refuses to continue if the container target is anything else. If the container is not running, it fails instead of falling back to the installed CLI. Do not alias the name `mojito` itself to this script. That would send real-server commands to the local container, or the reverse if the alias is missing.
 

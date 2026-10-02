@@ -12,6 +12,8 @@
 #   4. flyway_schema_history max version equals the highest versioned migration
 #      Flyway loads: V*.sql under webapp/src/main/resources/db/migration/ and
 #      V*.java under webapp/src/main/java/db/migration/
+#      Versions must be plain integers (V69__Name). Dotted versions (V69.1)
+#      and repeatable R__ scripts are not counted. See docker/readme.md.
 #   5. repo-type-create, repo-type-list, repo-type-update, repo-type-view,
 #      and repo-type-delete succeed. A second list must not contain the
 #      deleted name.
@@ -57,6 +59,10 @@ fi
 # Flyway's default location is classpath:db/migration. That loads SQL from
 # resources and Java classes from the same package. A Java-only migration
 # numbered above every SQL file is still the latest version in the database.
+#
+# Integer versions only: V<digits>__. CAST(version AS UNSIGNED) stops at the
+# first non-digit, so V69.1 would compare equal to V69. Repeatable R__ scripts
+# have no version. See "Migration versions are integers" in docker/readme.md.
 expected="$(
   {
     find "$SQL_MIGRATION_DIR" -maxdepth 1 -type f -name 'V*.sql' -print
