@@ -30,8 +30,13 @@ services:
       - --innodb_use_native_aio=0
     volumes:
       - ./.data/db:/var/lib/mysql
+    # TCP, not the Unix socket. `mysqladmin ping -h localhost` uses the socket.
+    # On an empty data directory the 8.0.34 entrypoint starts a temporary server
+    # with --skip-networking, so that socket answers while port 3306 is down.
+    # Compose treats the first successful probe as healthy, the webapp then
+    # fails to connect, and restart: "no" leaves it stopped.
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "--protocol=TCP", "ping", "-h", "127.0.0.1"]
       interval: 5s
       timeout: 5s
       retries: 40

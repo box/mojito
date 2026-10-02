@@ -153,7 +153,7 @@ The webapp is configured like a MySQL deploy: Flyway on, `l10n.flyway.clean=fals
 
 Username and password are the local Compose values `mojito` / `ChangeMe`. On Docker Desktop and Colima for Mac the database is started with `--innodb_use_native_aio=0`, which this bind-mount needs. Mail health is turned off in this stack (`management.health.mail.enabled=false`) because the default settings point mail at `localhost` and this stack has no mail server. Without that, `/actuator/health` stays `DOWN` even when the app and database are fine.
 
-MySQL is healthchecked. The webapp waits until MySQL accepts connections (`depends_on` with `condition: service_healthy`).
+MySQL is healthchecked over TCP (`mysqladmin --protocol=TCP ping -h 127.0.0.1`). A ping to `localhost` uses the Unix socket, and on the first boot of an empty data directory MySQL 8.0.34 answers there from a temporary server while port 3306 is still down. The webapp waits until the TCP check passes (`depends_on` with `condition: service_healthy`).
 
 ## Stopping at a Flyway version
 
