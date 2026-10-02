@@ -6,10 +6,13 @@
 #
 # Checks:
 #   1. GET /actuator/health reports UP
-#   2. flyway_schema_history max version equals the highest versioned migration
+#   2. The running webapp is the image recorded by docker/smoke/build-image.sh,
+#      and the SQL and Java migration sources still match that build
+#   3. SQL migrations packaged in the running webapp match the working tree
+#   4. flyway_schema_history max version equals the highest versioned migration
 #      Flyway loads: V*.sql under webapp/src/main/resources/db/migration/ and
 #      V*.java under webapp/src/main/java/db/migration/
-#   3. repo-type-create, repo-type-list, repo-type-update, repo-type-view,
+#   5. repo-type-create, repo-type-list, repo-type-update, repo-type-view,
 #      and repo-type-delete succeed. A second list must not contain the
 #      deleted name.
 #
@@ -20,7 +23,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+# shellcheck source=lib.sh
+source "$ROOT/docker/smoke/lib.sh"
 COMPOSE_FILE="$ROOT/docker/docker-compose-mysql-smoke.yml"
+BUILD_RECORD="$ROOT/docker/.data/webapp-build.txt"
 SQL_MIGRATION_DIR="$ROOT/webapp/src/main/resources/db/migration"
 JAVA_MIGRATION_DIR="$ROOT/webapp/src/main/java/db/migration"
 BASE_URL="http://127.0.0.1:8080"
@@ -35,6 +41,8 @@ compose() {
 container_cli() {
   "$ROOT/docker/smoke/mojito-local" "$@"
 }
+
+require_sha256
 
 if [[ ! -d "$SQL_MIGRATION_DIR" ]]; then
   echo "Migration directory not found: $SQL_MIGRATION_DIR" >&2
@@ -81,6 +89,95 @@ fi
 
 echo "$health"
 printf '%s\n' "$health" | grep -q '"status":"UP"'
+
+# Java migrations are compiled before they enter the image, so their .java
+# files are not inside the jar. build-image.sh records the source fingerprint
+# and the image ID. This fails when either the sources or the running image
+# differ from that record.
+if [[ ! -f "$BUILD_RECORD" ]]; then
+  echo "No webapp build record at docker/.data/webapp-build.txt." >&2
+  echo "Run docker/smoke/build-image.sh before this check." >&2
+  exit 1
+fi
+
+recorded_image_id="$(awk -F= '/^image_id=/ { print $2; exit }' "$BUILD_RECORD")"
+recorded_fingerprint="$(awk -F= '/^fingerprint=/ { print $2; exit }' "$BUILD_RECORD")"
+recorded_manifest="$(tail -n +3 "$BUILD_RECORD")"
+current_manifest="$(migration_manifest "$ROOT")"
+current_fingerprint="$(migration_fingerprint "$current_manifest")"
+
+if [[ -z "$recorded_image_id" || -z "$recorded_fingerprint" ]]; then
+  echo "The webapp build record is incomplete. Run docker/smoke/build-image.sh again." >&2
+  exit 1
+fi
+
+if [[ "$current_fingerprint" != "$recorded_fingerprint" || "$current_manifest" != "$recorded_manifest" ]]; then
+  echo "SQL or Java migration files changed after the webapp image was built." >&2
+  echo "Run docker/smoke/build-image.sh, then start the webapp again." >&2
+  diff -u \
+    <(printf '%s\n' "$recorded_manifest") \
+    <(printf '%s\n' "$current_manifest") \
+    >&2 || true
+  exit 1
+fi
+
+webapp_container_id="$(compose ps -q webapp)"
+webapp_container_id="${webapp_container_id%%$'\n'*}"
+if [[ -z "$webapp_container_id" ]]; then
+  echo "Webapp container is not running." >&2
+  exit 1
+fi
+running_image_id="$(docker inspect --format '{{.Image}}' "$webapp_container_id")"
+if [[ "$running_image_id" != "$recorded_image_id" ]]; then
+  echo "The running webapp container is not the image recorded by docker/smoke/build-image.sh." >&2
+  echo "Recorded: $recorded_image_id" >&2
+  echo "Running:  $running_image_id" >&2
+  echo "Run docker/smoke/build-image.sh, then start the webapp again." >&2
+  exit 1
+fi
+echo "Running webapp image matches the SQL and Java migrations from its build."
+
+# A Docker image is a snapshot from its last build. Compare the SQL files in
+# the running jar with the working tree so an old image cannot produce a green
+# smoke result after a migration was edited without rebuilding.
+source_sql_manifest="$(
+  while IFS= read -r -d '' migration; do
+    printf '%s  %s\n' "$(sha256_file "$migration")" "$(basename "$migration")"
+  done < <(find "$SQL_MIGRATION_DIR" -maxdepth 1 -type f -name 'V*.sql' -print0) \
+    | sort
+)"
+
+if ! image_sql_manifest="$(
+  # Quoted heredoc: the laptop shell must not expand these variables.
+  # The shell inside the webapp container expands them.
+  compose exec -T webapp sh -s <<'END_IMAGE_MANIFEST'
+set -eu
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+jar xf "$MOJITO_BIN/mojito-webapp.jar" BOOT-INF/classes/db/migration
+find BOOT-INF/classes/db/migration -maxdepth 1 -type f -name 'V*.sql' \
+  -exec sha256sum {} \; \
+  | while read -r checksum path; do
+      printf '%s  %s\n' "$checksum" "$(basename "$path")"
+    done \
+  | sort
+END_IMAGE_MANIFEST
+)"; then
+  echo "Could not read SQL migrations from the running webapp image." >&2
+  exit 1
+fi
+
+if [[ "$source_sql_manifest" != "$image_sql_manifest" ]]; then
+  echo "The running webapp image does not contain the SQL migrations in this working tree." >&2
+  echo "Run docker/smoke/build-image.sh, then start the webapp again." >&2
+  diff -u \
+    <(printf '%s\n' "$image_sql_manifest") \
+    <(printf '%s\n' "$source_sql_manifest") \
+    >&2 || true
+  exit 1
+fi
+echo "Running webapp SQL migrations match the working tree."
 
 # Keep the MySQL password warning off the success path, but keep the real
 # error when the container, login, or history table cannot be read.

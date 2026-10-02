@@ -185,9 +185,11 @@ Start MySQL and the webapp, reusing `docker/.data/db` if it is already there:
 docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 ```
 
-`up` creates and starts the services. `-d` means detached: the containers keep running and the terminal returns. Omit `-d` and the terminal stays attached to the logs until you press Ctrl-C, which also stops the containers. Add `--build` when you changed Mojito code and need the image rebuilt (`up -d --build`). The first build compiles Mojito inside the image and takes a while. Later starts can omit `--build`.
+`up` creates and starts the services. `-d` means detached: the containers keep running and the terminal returns. Omit `-d` and the terminal stays attached to the logs until you press Ctrl-C, which also stops the containers. When you have changed Mojito code or migrations, run `docker/smoke/build-image.sh` before `up`. The first build compiles Mojito inside the image and takes a while. Later starts can use `up` alone when the recorded image is already the one you want to test.
 
 Do not put `FLYWAY_TARGET=...` in front of this command. Unset means the latest schema. If `docker/.data/db` already contains a migrated database, Flyway sees `flyway_schema_history` and applies only scripts that are not in that logbook yet.
+
+The image is a packaged snapshot of Mojito from the last Docker build. Editing a source or migration file does not update an existing image. `docker/smoke/build-image.sh` builds the webapp and writes `docker/.data/webapp-build.txt`. That record contains the image ID and a fingerprint of every `V*.sql` and `V*.java` migration file. `docker/smoke/check.sh` fails if the running container is a different image or those files changed after the build. It also compares the SQL files inside the running jar with the working tree. Java migrations are compiled into the jar, so that second comparison cannot see their `.java` files; the build record covers them. Deleting `docker/.data/db` does not delete the build record.
 
 Check that both containers came up:
 
@@ -288,11 +290,12 @@ Deletes `docker/.data/db`, then migrates V1 through the latest script.
 docker compose -f docker/docker-compose-mysql-smoke.yml down
 rm -rf docker/.data/db
 mkdir -p docker/.data/db
-docker compose -f docker/docker-compose-mysql-smoke.yml up -d --build
+docker/smoke/build-image.sh
+docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 docker/smoke/check.sh
 ```
 
-The first build compiles Mojito inside the image and takes a while. Later runs can omit `--build` when the image is already local.
+`build-image.sh` compiles the current Mojito files into the image and records that build. This takes a while. Do not replace it with `up --build`: that can start a new image without updating `docker/.data/webapp-build.txt`, and the smoke check then fails.
 
 ## Recipe: upgrade from version N to latest
 
@@ -305,6 +308,8 @@ docker compose -f docker/docker-compose-mysql-smoke.yml down
 rm -rf docker/.data/db
 mkdir -p docker/.data/db
 TARGET=66
+# Build once before either boot so both boots run the current source and migrations.
+docker/smoke/build-image.sh
 FLYWAY_TARGET="$TARGET" docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 
 # Wait until the logbook shows exactly TARGET. The webapp may exit after Flyway; the db container stays up.
@@ -349,8 +354,9 @@ fi
 `docker/smoke/check.sh` waits until the app is up, then checks:
 
 1. `GET /actuator/health` returns status `UP`.
-2. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`.
-3. Repo-type create, list, update, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-update`, `repo-type-view`, and `repo-type-delete`. After update, the view output must contain the new description. After delete, a second list must not contain that name. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
+2. The running webapp is the image recorded by `docker/smoke/build-image.sh`, and the `V*.sql` and `V*.java` migration files still match that build. The SQL files inside the running jar are also compared with the working tree.
+3. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`.
+4. Repo-type create, list, update, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-update`, `repo-type-view`, and `repo-type-delete`. After update, the view output must contain the new description. After delete, a second list must not contain that name. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
 
 **Run local CLI commands through `docker/smoke/mojito-local`.** A `mojito` installed on your own machine reads its own configuration and may point at a real Mojito server. `mojito-local` is a separate command, not a replacement: it runs `mojito` inside the webapp container, prints `localhost:8080`, and refuses to continue if the container target is anything else. If the container is not running, it fails instead of falling back to the installed CLI. Do not alias the name `mojito` itself to this script. That would send real-server commands to the local container, or the reverse if the alias is missing.
 

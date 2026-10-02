@@ -5,6 +5,7 @@
 # directory docker/.data/db in place (bind-mount, not a named volume).
 #
 # Stop at a Flyway version:
+#   docker/smoke/build-image.sh
 #   FLYWAY_TARGET=66 docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 # Continue to latest (do not set FLYWAY_TARGET on this command):
 #   docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
