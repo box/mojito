@@ -10,7 +10,8 @@
 #      Flyway loads: V*.sql under webapp/src/main/resources/db/migration/ and
 #      V*.java under webapp/src/main/java/db/migration/
 #   3. repo-type-create, repo-type-list, repo-type-update, repo-type-view,
-#      repo-type-delete succeed
+#      and repo-type-delete succeed. A second list must not contain the
+#      deleted name.
 #
 # CLI calls go through docker/smoke/mojito-local, which runs mojito inside the webapp
 # container and refuses any target other than localhost:8080. The script never calls a
@@ -125,5 +126,13 @@ printf '%s\n' "$view_output" | grep -q "$UPDATED_DESCRIPTION"
 
 echo "repo-type-delete ${REPO_TYPE_NAME}"
 container_cli repo-type-delete -n "$REPO_TYPE_NAME"
+
+echo "repo-type-list after delete"
+list_after="$(container_cli repo-type-list)"
+printf '%s\n' "$list_after"
+if printf '%s\n' "$list_after" | grep -q "$REPO_TYPE_NAME"; then
+  echo "repo-type-delete left ${REPO_TYPE_NAME} in the list." >&2
+  exit 1
+fi
 
 echo "Smoke checks passed (Flyway version ${actual})."
