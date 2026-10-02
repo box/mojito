@@ -155,16 +155,6 @@ Username and password are the local Compose values `mojito` / `ChangeMe`. On Doc
 
 MySQL is healthchecked over TCP (`mysqladmin --protocol=TCP ping -h 127.0.0.1`). A ping to `localhost` uses the Unix socket, and on the first boot of an empty data directory MySQL 8.0.34 answers there from a temporary server while port 3306 is still down. The webapp waits until the TCP check passes (`depends_on` with `condition: service_healthy`).
 
-## Stopping at a Flyway version
-
-`FLYWAY_TARGET` is passed through to Mojito as `spring.flyway.target`. When it is unset, the value is `latest` and Flyway applies every pending script. Set it to a version number to migrate up to that version and stop. This uses Mojito's own Flyway inside the webapp process. Java migrations `V9__Compute_Word_Count` and `V56__TUCVAddAssetIdUpdater` run only there.
-
-A first boot at an older target may exit after Flyway, because Hibernate expects the latest schema. That is acceptable. The database version is the goal of that boot. Confirm it in `flyway_schema_history`, then boot again with `FLYWAY_TARGET` unset so Flyway applies only the remaining scripts. After that second boot the app must stay up.
-
-Pass `FLYWAY_TARGET` only on the command that should stop early. The follow-up `docker compose up` must not include it, or the same cap is applied again.
-
-For a normal local session, leave `FLYWAY_TARGET` unset. The database migrates to the latest script and the app stays up. Set a version only when you are rehearsing a stop-partway upgrade (the recipe below).
-
 ## Run it locally and add demo data
 
 Stop any Mojito you started in IntelliJ or with `java -jar` before these commands. This stack publishes port 8080, and only one process can listen there. Run the commands from the repository root.
@@ -249,6 +239,16 @@ docker compose -f docker/docker-compose-mysql-smoke.yml down
 
 `docker/smoke/check.sh` is optional here. It is a separate pass/fail script you run by hand after the app is up. It is not started by `up`.
 
+## Run local CLI commands through `docker/smoke/mojito-local`
+
+A `mojito` installed on your own machine reads its own configuration and may point at a real Mojito server. `mojito-local` is a separate command, not a replacement: it runs `mojito` inside the webapp container, prints `localhost:8080`, and refuses to continue if the container target is anything else. If the container is not running, it fails instead of falling back to the installed CLI.
+
+From the repository root, with the stack already up:
+
+```bash
+docker/smoke/mojito-local repo-view -n some-repo
+```
+
 ## Query the database from the terminal
 
 The MySQL files are on the host at `docker/.data/db` (from the repository root, `docker/.data/db`). In Finder, use Go → Go to Folder, because `.data` is a hidden directory. Those files are MySQL's live storage. A SQL app does not open that folder, and a second program must not open it while the container is running.
@@ -282,6 +282,35 @@ SELECT id, name FROM repository;
 
 `exit` closes the prompt. The container keeps running. `down` is still the command that removes the containers, and it leaves `docker/.data/db` on disk.
 
+## Smoke checks
+
+`docker/smoke/check.sh` waits until the app is up, then checks:
+
+1. `GET /actuator/health` returns status `UP`.
+2. The running webapp is the image recorded by `docker/smoke/build-image.sh`, and the `V*.sql` and `V*.java` migration files still match that build. The SQL files inside the running jar are also compared with the working tree.
+3. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`. This comparison assumes every version is a plain integer. See "Migration versions are integers" below.
+4. Repo-type create, list, update, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-update`, `repo-type-view`, and `repo-type-delete`. After update, the view output must contain the new description. After delete, a second list must not contain that name. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
+
+The same checks by hand, from the repository root with the stack already up:
+
+```bash
+curl -sf http://127.0.0.1:8080/actuator/health
+docker compose -f docker/docker-compose-mysql-smoke.yml exec -T db \
+  mysql -N -umojito -pChangeMe mojito \
+  -e "SELECT MAX(CAST(version AS UNSIGNED)) FROM flyway_schema_history WHERE success = 1;"
+docker/smoke/mojito-local repo-type-create -n local-smoke-manual -d "local smoke check"
+docker/smoke/mojito-local repo-type-list
+docker/smoke/mojito-local repo-type-update -n local-smoke-manual -d "local smoke check updated"
+docker/smoke/mojito-local repo-type-view -n local-smoke-manual
+docker/smoke/mojito-local repo-type-delete -n local-smoke-manual
+```
+
+This block covers checks 1, 3, and 4. It does not compare the running image or the migration files with the build record. That comparison is check 2, and only `docker/smoke/check.sh` performs it. The name `local-smoke-manual` is fixed, so run the delete step before creating it again. `check.sh` uses a new name on every run.
+
+### Migration versions are integers
+
+Mojito names each versioned migration with a plain integer and two underscores, such as `V69__Add_repo_type.sql` and `V9__Compute_Word_Count.java`. Keep new migrations on the next integer (`V70__...`, then `V71__...`). If a change needs a dotted version or a repeatable script, update `docker/smoke/check.sh` before treating a green smoke result as proof that the new script was applied.
+
 ## Recipe: fresh database
 
 Deletes `docker/.data/db`, then migrates V1 through the latest script.
@@ -296,6 +325,16 @@ docker/smoke/check.sh
 ```
 
 `build-image.sh` compiles the current Mojito files into the image and records that build. This takes a while. Do not replace it with `up --build`: that can start a new image without updating `docker/.data/webapp-build.txt`, and the smoke check then fails.
+
+## Stopping at a Flyway version
+
+`FLYWAY_TARGET` is passed through to Mojito as `spring.flyway.target`. When it is unset, the value is `latest` and Flyway applies every pending script. Set it to a version number to migrate up to that version and stop. This uses Mojito's own Flyway inside the webapp process. Java migrations `V9__Compute_Word_Count` and `V56__TUCVAddAssetIdUpdater` run only there.
+
+A first boot at an older target may exit after Flyway, because Hibernate expects the latest schema. That is acceptable. The database version is the goal of that boot. Confirm it in `flyway_schema_history`, then boot again with `FLYWAY_TARGET` unset so Flyway applies only the remaining scripts. After that second boot the app must stay up.
+
+Pass `FLYWAY_TARGET` only on the command that should stop early. The follow-up `docker compose up` must not include it, or the same cap is applied again.
+
+For a normal local session, leave `FLYWAY_TARGET` unset. The database migrates to the latest script and the app stays up. Set a version only when you are rehearsing a stop-partway upgrade (the recipe below).
 
 ## Recipe: upgrade from version N to latest
 
@@ -348,42 +387,3 @@ fi
 ```
 
 `false` makes the block finish with a failing status. It does not close an interactive terminal. `docker compose down` runs only after the smoke check passes. It removes the containers and keeps `docker/.data/db`. If the recipe stops early, the containers stay up so you can read the logbook.
-
-## Smoke checks
-
-`docker/smoke/check.sh` waits until the app is up, then checks:
-
-1. `GET /actuator/health` returns status `UP`.
-2. The running webapp is the image recorded by `docker/smoke/build-image.sh`, and the `V*.sql` and `V*.java` migration files still match that build. The SQL files inside the running jar are also compared with the working tree.
-3. `MAX(version)` in `flyway_schema_history` equals the highest versioned migration Flyway loads: `V*.sql` in `webapp/src/main/resources/db/migration/` and `V*.java` in `webapp/src/main/java/db/migration/`. This comparison assumes every version is a plain integer. See "Migration versions are integers" below.
-4. Repo-type create, list, update, view, and delete succeed through `docker/smoke/mojito-local`: `repo-type-create`, `repo-type-list`, `repo-type-update`, `repo-type-view`, and `repo-type-delete`. After update, the view output must contain the new description. After delete, a second list must not contain that name. The script creates a new name on every run (`local-smoke-<timestamp>-<pid>`), so the delete step can only remove the type that run just created. The Compose file sets `MOJITO_HOST=localhost`, `MOJITO_SCHEME=http`, and `MOJITO_PORT=8080` for the CLI inside the image. `mojito-local` refuses to run if the container reports any other target.
-
-### Migration versions are integers
-
-Mojito names each versioned migration with a plain integer and two underscores, such as `V69__Add_repo_type.sql` and `V9__Compute_Word_Count.java`. The current files are `V1` through `V69`, each number once. `check.sh` and the manual history query below depend on that convention.
-
-The script takes the digits between `V` and `__`. MySQL then compares those numbers with `CAST(version AS UNSIGNED)`. That cast stops at the first character that is not a digit, so the string `69.1` becomes `69`. A filename such as `V69.1__Fix_repo_type.sql` is therefore not treated as newer than `V69`. A repeatable script named `R__...` has no version number, so this comparison does not show whether it ran.
-
-Keep new migrations on the next integer (`V70__...`, then `V71__...`). If a change needs a dotted version or a repeatable script, update `docker/smoke/check.sh` before treating a green smoke result as proof that the new script was applied.
-
-**Run local CLI commands through `docker/smoke/mojito-local`.** A `mojito` installed on your own machine reads its own configuration and may point at a real Mojito server. `mojito-local` is a separate command, not a replacement: it runs `mojito` inside the webapp container, prints `localhost:8080`, and refuses to continue if the container target is anything else. If the container is not running, it fails instead of falling back to the installed CLI. Do not alias the name `mojito` itself to this script. That would send real-server commands to the local container, or the reverse if the alias is missing.
-
-From the repository root, with the stack already up:
-
-```bash
-docker/smoke/mojito-local repo-view -n some-repo
-```
-
-The same smoke checks by hand:
-
-```bash
-curl -sf http://127.0.0.1:8080/actuator/health
-docker compose -f docker/docker-compose-mysql-smoke.yml exec -T db \
-  mysql -N -umojito -pChangeMe mojito \
-  -e "SELECT MAX(CAST(version AS UNSIGNED)) FROM flyway_schema_history WHERE success = 1;"
-docker/smoke/mojito-local repo-type-create -n local-smoke-manual -d "local smoke check"
-docker/smoke/mojito-local repo-type-list
-docker/smoke/mojito-local repo-type-update -n local-smoke-manual -d "local smoke check updated"
-docker/smoke/mojito-local repo-type-view -n local-smoke-manual
-docker/smoke/mojito-local repo-type-delete -n local-smoke-manual
-```
