@@ -7,6 +7,7 @@ import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.rest.entity.CopyTmConfig;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.ibm.icu.text.MessageFormat;
@@ -128,6 +129,22 @@ public class PushCommand extends Command {
   PushService.PushType pushType = PushService.PushType.NORMAL;
 
   @Parameter(
+      names = {"--preserve-status", "-ps"},
+      arity = 1,
+      required = false,
+      description =
+          """
+          Controls whether leveraged translations keep their original status or are downgraded \
+          to TRANSLATION_NEEDED during source leveraging on push. \
+          PRECISION (default): preserve status only for unique high-precision matches \
+          (name+content). Name-only and content-only matches are always downgraded. \
+          UNIQUE: preserve status for any unique match. Ambiguous matches are still downgraded. \
+          Useful for AI-only locales so leveraged REVIEW_NEEDED strings are not re-queued. \
+          ALL: always preserve the original status, even for ambiguous matches.""",
+      converter = PreserveStatusModeConverter.class)
+  CopyTmConfig.PreserveStatusMode preserveStatusMode = CopyTmConfig.PreserveStatusMode.PRECISION;
+
+  @Parameter(
       names = {Param.COMMIT_HASH_LONG, Param.COMMIT_HASH_SHORT},
       arity = 1,
       required = false,
@@ -229,6 +246,7 @@ public class PushCommand extends Command {
                   sourceAsset.setFilterOptions(
                       commandHelper.getFilterOptionsOrDefaults(
                           sourceFileMatch.getFileType(), filterOptionsParam));
+                  sourceAsset.setPreserveStatusMode(preserveStatusMode);
 
                   return sourceAsset;
                 });

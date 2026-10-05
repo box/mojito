@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
 import java.util.List;
 
 public class ProcessAssetJobInput {
@@ -8,6 +9,7 @@ public class ProcessAssetJobInput {
   Long pushRunId;
   FilterConfigIdOverride filterConfigIdOverride;
   List<String> filterOptions;
+  PreserveStatusMode preserveStatusMode = PreserveStatusMode.PRECISION;
 
   public Long getAssetContentId() {
     return assetContentId;
@@ -39,5 +41,13 @@ public class ProcessAssetJobInput {
 
   public void setFilterOptions(List<String> filterOptions) {
     this.filterOptions = filterOptions;
+  }
+
+  public PreserveStatusMode getPreserveStatusMode() {
+    return preserveStatusMode;
+  }
+
+  public void setPreserveStatusMode(PreserveStatusMode preserveStatusMode) {
+    this.preserveStatusMode = preserveStatusMode;
   }
 }

@@ -32,6 +32,9 @@ public class SourceAsset {
 
   private String commitHash;
 
+  private CopyTmConfig.PreserveStatusMode preserveStatusMode =
+      CopyTmConfig.PreserveStatusMode.PRECISION;
+
   public Long getRepositoryId() {
     return repositoryId;
   }
@@ -126,6 +129,14 @@ public class SourceAsset {
 
   public void setPushRunName(String pushRunName) {
     this.pushRunName = pushRunName;
+  }
+
+  public CopyTmConfig.PreserveStatusMode getPreserveStatusMode() {
+    return preserveStatusMode;
+  }
+
+  public void setPreserveStatusMode(CopyTmConfig.PreserveStatusMode preserveStatusMode) {
+    this.preserveStatusMode = preserveStatusMode;
   }
 
   @JsonProperty
