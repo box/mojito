@@ -1,0 +1,73 @@
+# Local MySQL schema-upgrade smoke stack.
+#
+# An engineer starts this by hand on a laptop. It is not used by the test suite.
+# `docker compose down` removes the containers and leaves the host data
+# directory docker/.data/db in place (bind-mount, not a named volume).
+#
+# Stop at a Flyway version:
+#   docker/smoke/build-image.sh
+#   FLYWAY_TARGET=66 docker compose -f docker/docker-compose-mysql-smoke.yml up -d
+# Continue to latest (do not set FLYWAY_TARGET on this command):
+#   docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
+#
+# The datasource host is the Compose service name `db` and nothing else.
+
+name: mojito-mysql-smoke
+
+services:
+  db:
+    image: mysql:8.0.34
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ChangeMe
+      MYSQL_DATABASE: mojito
+      MYSQL_USER: mojito
+      MYSQL_PASSWORD: ChangeMe
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_bin
+      # Host bind-mounts on Docker Desktop and Colima for Mac need this.
+      - --innodb_use_native_aio=0
+    volumes:
+      - ./.data/db:/var/lib/mysql
+    # TCP, not the Unix socket. `mysqladmin ping -h localhost` uses the socket.
+    # On an empty data directory the 8.0.34 entrypoint starts a temporary server
+    # with --skip-networking, so that socket answers while port 3306 is down.
+    # Compose treats the first successful probe as healthy, the webapp then
+    # fails to connect, and restart: "no" leaves it stopped.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "--protocol=TCP", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 60s
+
+  webapp:
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      dockerfile: docker/Dockerfile-bk21
+      context: ../
+    ports:
+      - "8080:8080"
+    environment:
+      # The image wrapper reads MOJITO_PORT (not MOJITO_SERVICE_PORT) for the CLI.
+      MOJITO_HOST: localhost
+      MOJITO_SCHEME: http
+      MOJITO_PORT: "8080"
+      # Mojito's own Flyway. Unset FLYWAY_TARGET (or leave it unset) to apply every pending script.
+      SPRING_FLYWAY_TARGET: ${FLYWAY_TARGET:-latest}
+      SPRING_APPLICATION_JSON: '{
+        "spring.flyway.enabled": "true",
+        "l10n.flyway.clean": "false",
+        "spring.jpa.database-platform": "org.hibernate.dialect.MySQLDialect",
+        "spring.jpa.hibernate.ddl-auto": "none",
+        "spring.jpa.defer-datasource-initialization": "false",
+        "spring.datasource.url": "jdbc:mysql://db:3306/mojito?characterEncoding=UTF-8&useUnicode=true",
+        "spring.datasource.username": "mojito",
+        "spring.datasource.password": "ChangeMe",
+        "spring.datasource.driverClassName": "com.mysql.cj.jdbc.Driver",
+        "management.health.mail.enabled": "false"
+        }'
