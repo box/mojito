@@ -208,6 +208,42 @@ export type AssetPseudoParams = {
     substituteType?: PseudoSubstituteType;
 };
 
+/** Translation-kit type for POST /api/drops/export. */
+export type DropExportType = "TRANSLATION" | "REVIEW";
+
+/**
+ * Parameters for POST /api/drops/export.
+ *
+ * Starts an asynchronous vendor-drop export. The response includes `dropId`
+ * (when already assigned) and a `pollableTask`. This tool does not wait.
+ */
+export type DropExportParams = {
+    repositoryId: number;
+    /**
+     * BCP-47 tags to include. JSON field name on the wire is `locales`.
+     * Omit or pass [] to send no locales (unlike CLI `drop-export`, which
+     * fills fully-translated repository locales).
+     */
+    locales?: string[];
+    /** TRANSLATION (default on the server) or REVIEW. */
+    type?: DropExportType;
+    /** Only meaningful with type REVIEW: include inherited parent translations. */
+    useInheritance?: boolean;
+};
+
+/**
+ * Parameters for POST /api/drops/import.
+ *
+ * Starts an asynchronous re-import of an existing drop. The response includes
+ * a `pollableTask`. This tool does not wait.
+ */
+export type DropImportParams = {
+    repositoryId: number;
+    dropId: number;
+    /** Optional status to apply to imported translations. Omit for server default. */
+    status?: TextUnitStatus;
+};
+
 export type RepoCreateParams = {
     name: string;
     description?: string;
