@@ -134,7 +134,7 @@ Pass caller `limit` / `offset` / page-size fields through as `-f`/`-F` when the 
 
 ### Wait / timeout
 
-**v1 tools:** do **not** pass `-w` / `--wait`. None of them need to block on pollable tasks.
+**MCP tools:** do **not** pass `-w` / `--wait`. Asset import returns its pollable task to the caller instead of blocking.
 
 `MOJITO_CLI_TIMEOUT_MS` still applies to every spawn (network hangs, slow searches). Default **10 minutes** so future tools that *do* use `--wait` (e.g. drop export/import, which can take ~5+ minutes per project) work without a too-aggressive default. Operators raise the env var for larger jobs.
 
@@ -151,6 +151,7 @@ All tools use **`mojito_<object>_<action>`**, where `<object>` is the resource t
 | Object | Actions (v1) |
 |--------|----------------|
 | `repo` | `list`, `view`, `create`, `delete` |
+| `asset` | `import` |
 | `textunit` | `search`, `info`, `history`, `translation_add` |
 | `review` | `update` |
 | `pollabletask` | `get` |
@@ -169,6 +170,14 @@ Later (not v1): `mojito_textunit_translation_update` and related translation too
 | `mojito_repo_delete` | `api /api/repositories/{repositoryId} -X DELETE` |
 
 `mojito_repo_create` body mirrors `POST /api/repositories` (`Repository` JSON). Prefer `--input` with JSON when nested `repositoryLocales` / integrity checkers are present; simple creates can use `-F`/`-f`.
+
+### Assets
+
+| MCP tool | CLI shape |
+|----------|-----------|
+| `mojito_asset_import` | `api /api/assets -X POST --input <source-asset.json>` |
+
+Asset import sends the full `SourceAsset` JSON body: required `repositoryId`, `path`, and `content`; optional branch metadata, push-run name, filter override/options, and `extractedContent`. `POST /api/assets` creates or updates the logical asset and starts asynchronous extraction. Return its `addedAssetId` and `pollableTask` without waiting. This is only the core upload used by `mojito push`; MCP does not scan local files or delete assets omitted from an import.
 
 ### Text units
 
