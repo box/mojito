@@ -538,6 +538,44 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
     // --- Drops ---
 
     server.registerTool(
+        "mojito_drop_list",
+        {
+            description: [
+                "List vendor drops (GET /api/drops).",
+                "Returns DropSummary rows (id, name, repository, canceled, lastImportedDate, import/export pollable tasks, translationKits, exportFailed/importFailed, partiallyImported, created date).",
+                "The endpoint is paginated; this tool slurps every page (newest id first). There is no GET-by-id — filter the list for a specific drop.",
+                "Optional repositoryId restricts to one repository (prefer this). Omit it to list drops across all repositories.",
+                "Optional imported: true = fully imported; false = not fully imported (missing, partial, or failed). Omit for both.",
+                "Optional canceled: true = canceled; false = not canceled. Omit for both.",
+                "Use this to find a dropId before mojito_drop_import.",
+            ].join(" "),
+            inputSchema: {
+                repositoryId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .optional()
+                    .describe(
+                        "Restrict to this repository id. Omit to list drops across all repositories.",
+                    ),
+                imported: z
+                    .boolean()
+                    .optional()
+                    .describe(
+                        "true = only fully imported drops; false = only not-yet-imported (or partial/failed). Omit for both.",
+                    ),
+                canceled: z
+                    .boolean()
+                    .optional()
+                    .describe(
+                        "true = only canceled drops; false = only not canceled. Omit for both.",
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.dropList(args)),
+    );
+
+    server.registerTool(
         "mojito_drop_export",
         {
             description: [
@@ -581,7 +619,7 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
                 "Start importing a previously exported vendor drop (POST /api/drops/import).",
                 "This is the core server call used by `mojito drop-import`. It reads localized XLIFF from the drop exporter back into the TM; it does not wait for import to finish.",
                 "The response is ImportDropConfig with `pollableTask`. Poll `pollableTask.id` with mojito_pollabletask_get until allFinished is true (or an error appears). This tool does not pass CLI --wait.",
-                "Requires repositoryId and dropId from a prior export (or drop listing). Optional `status` overrides the status applied to imported translations (APPROVED / REVIEW_NEEDED / TRANSLATION_NEEDED); omit for the server default.",
+                "Requires repositoryId and dropId (from mojito_drop_list or a prior export). Optional `status` overrides the status applied to imported translations (APPROVED / REVIEW_NEEDED / TRANSLATION_NEEDED); omit for the server default.",
                 "WARNING: Importing changes translations in the selected repository. Confirm drop id, repository, and environment; prefer mojito-dev while experimenting. A drop can be imported more than once.",
             ].join(" "),
             inputSchema: {
@@ -594,7 +632,9 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
                     .number()
                     .int()
                     .positive()
-                    .describe("Numeric drop id to import (from mojito_drop_export's dropId)."),
+                    .describe(
+                        "Numeric drop id to import (from mojito_drop_list or mojito_drop_export's dropId).",
+                    ),
                 status: textUnitStatusSchema.optional(),
             },
         },
