@@ -17,6 +17,16 @@
 import type { CliRunner } from "./cli-runner.js";
 import type { MojitoMcpConfig } from "./config.js";
 import { MojitoCliError } from "./errors.js";
+import type { TextUnitSearchParams } from "./types.js";
+
+const PAGINATE_FLAGS = ["--paginate", "--slurp", "--max-pages", "0"] as const;
+
+/**
+ * The CLI's offset-style pagination stops when a page comes back shorter than
+ * `--page-size`, so the page size must be large enough to make a short final
+ * page likely but small enough to keep each request cheap.
+ */
+const SEARCH_PAGE_SIZE = 500;
 
 /**
  * Mojito API access via the CLI `api` command.
@@ -59,10 +69,59 @@ export class MojitoCliClient {
         return this.apiJson(["api", `/api/repositories/${repositoryId}`]);
     }
 
+    /**
+     * POST /api/textunits/search — paginate + slurp + max-pages 0.
+     * Omit repo lists → expand to all repo ids; omit localeTags → all locales.
+     */
+    async textunitSearch(params: TextUnitSearchParams = {}): Promise<unknown> {
+        const effective = { ...params };
+
+        const hasRepoScope =
+            (effective.repositoryIds?.length ?? 0) > 0 ||
+            (effective.repositoryNames?.length ?? 0) > 0;
+        const hasTmIds = (effective.tmTextUnitIds?.length ?? 0) > 0;
+
+        if (!hasRepoScope && !hasTmIds) {
+            const repos = await this.repoList();
+            effective.repositoryIds = extractRepositoryIds(repos);
+            if (effective.repositoryIds.length === 0) {
+                return [];
+            }
+        }
+
+        const argv = ["api", "/api/textunits/search", "-X", "POST"];
+        // `--paginate` overwrites offset/limit in the request body, so an explicit
+        // limit only survives on a single unpaginated request.
+        if (effective.limit === undefined) {
+            argv.push(...PAGINATE_FLAGS, "--page-size", String(SEARCH_PAGE_SIZE));
+        }
+        appendSearchFields(argv, effective);
+        return this.apiJson(argv);
+    }
+
+    /** Detail via search with tmTextUnitIds (optional localeTags). */
+    async textunitInfo(params: { tmTextUnitId: number; localeTags?: string[] }): Promise<unknown> {
+        const argv = ["api", "/api/textunits/search", "-X", "POST"];
+        pushTypedArray(argv, "tmTextUnitIds", [params.tmTextUnitId]);
+        if (params.localeTags?.length) {
+            pushRawArray(argv, "localeTags", params.localeTags);
+        }
+        return this.apiJson(argv);
+    }
+
+    /** GET /api/textunits/{tmTextUnitId}/history?bcp47Tag=… */
+    async textunitHistory(params: { tmTextUnitId: number; bcp47Tag: string }): Promise<unknown> {
+        const argv = ["api", `/api/textunits/${params.tmTextUnitId}/history`];
+        pushRaw(argv, "bcp47Tag", params.bcp47Tag);
+        return this.apiJson(argv);
+    }
+
     /** GET /api/pollableTasks/{pollableTaskId} */
     async pollabletaskGet(pollableTaskId: number): Promise<unknown> {
         return this.apiJson(["api", `/api/pollableTasks/${pollableTaskId}`]);
     }
+
+    // --- internals ---
 
     private async runChecked(argv: string[]): Promise<{ stdout: string; stderr: string }> {
         const result = await this._runner.run(argv);
@@ -101,4 +160,107 @@ function parseStdoutJson(stdout: string): unknown {
 
 function pushRaw(argv: string[], key: string, value: string): void {
     argv.push("-f", `${key}=${value}`);
+}
+
+function pushTyped(argv: string[], key: string, value: string | number | boolean): void {
+    argv.push("-F", `${key}=${String(value)}`);
+}
+
+function pushRawArray(argv: string[], key: string, values: string[]): void {
+    for (const value of values) {
+        pushRaw(argv, `${key}[]`, value);
+    }
+}
+
+function pushTypedArray(argv: string[], key: string, values: number[]): void {
+    for (const value of values) {
+        pushTyped(argv, `${key}[]`, value);
+    }
+}
+
+function appendSearchFields(argv: string[], params: TextUnitSearchParams): void {
+    if (params.repositoryIds?.length) {
+        pushTypedArray(argv, "repositoryIds", params.repositoryIds);
+    }
+    if (params.repositoryNames?.length) {
+        pushRawArray(argv, "repositoryNames", params.repositoryNames);
+    }
+    if (params.tmTextUnitIds?.length) {
+        pushTypedArray(argv, "tmTextUnitIds", params.tmTextUnitIds);
+    }
+    if (params.localeTags?.length) {
+        pushRawArray(argv, "localeTags", params.localeTags);
+    }
+    if (params.name !== undefined) {
+        pushRaw(argv, "name", params.name);
+    }
+    if (params.source !== undefined) {
+        pushRaw(argv, "source", params.source);
+    }
+    if (params.target !== undefined) {
+        pushRaw(argv, "target", params.target);
+    }
+    if (params.assetPath !== undefined) {
+        pushRaw(argv, "assetPath", params.assetPath);
+    }
+    if (params.pluralFormOther !== undefined) {
+        pushRaw(argv, "pluralFormOther", params.pluralFormOther);
+    }
+    if (params.searchType !== undefined) {
+        pushRaw(argv, "searchType", params.searchType);
+    }
+    if (params.statusFilter !== undefined) {
+        pushRaw(argv, "statusFilter", params.statusFilter);
+    }
+    if (params.usedFilter !== undefined) {
+        pushRaw(argv, "usedFilter", params.usedFilter);
+    }
+    if (params.doNotTranslateFilter !== undefined) {
+        pushTyped(argv, "doNotTranslateFilter", params.doNotTranslateFilter);
+    }
+    if (params.tmTextUnitCreatedAfter !== undefined) {
+        pushRaw(argv, "tmTextUnitCreatedAfter", params.tmTextUnitCreatedAfter);
+    }
+    if (params.tmTextUnitCreatedBefore !== undefined) {
+        pushRaw(argv, "tmTextUnitCreatedBefore", params.tmTextUnitCreatedBefore);
+    }
+    if (params.branchId !== undefined) {
+        pushTyped(argv, "branchId", params.branchId);
+    }
+    if (params.pluralFormFiltered !== undefined) {
+        pushTyped(argv, "pluralFormFiltered", params.pluralFormFiltered);
+    }
+    if (params.pluralFormExcluded !== undefined) {
+        pushTyped(argv, "pluralFormExcluded", params.pluralFormExcluded);
+    }
+    if (params.limit !== undefined) {
+        pushTyped(argv, "limit", params.limit);
+    }
+    if (params.offset !== undefined) {
+        pushTyped(argv, "offset", params.offset);
+    }
+}
+
+function extractRepositoryIds(repos: unknown): number[] {
+    if (!Array.isArray(repos)) {
+        throw new MojitoCliError(
+            "Expected repository list to be a JSON array when expanding all repositories",
+            { stdout: JSON.stringify(repos) },
+        );
+    }
+    const ids: number[] = [];
+    for (const repo of repos) {
+        const id =
+            repo && typeof repo === "object" && "id" in repo
+                ? (repo as { id: unknown }).id
+                : undefined;
+        if (typeof id !== "number" || !Number.isSafeInteger(id) || id <= 0) {
+            throw new MojitoCliError(
+                "Expected every repository to have a positive integer id when expanding all repositories",
+                { stdout: JSON.stringify(repos) },
+            );
+        }
+        ids.push(id);
+    }
+    return ids;
 }
