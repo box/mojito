@@ -130,6 +130,27 @@ const assetFilterConfigIdOverrideSchema = z
         "Optional Okapi filter override. Omit to let Mojito infer the filter from the asset path.",
     );
 
+const localizedAssetStatusSchema = z
+    .enum(["ALL", "ACCEPTED_OR_NEEDS_REVIEW", "ACCEPTED"])
+    .describe(
+        [
+            "Which translations are eligible when generating the localized file (not the workbench statusFilter):",
+            "ALL = every translation except rejected ones (CLI pull default);",
+            "ACCEPTED_OR_NEEDS_REVIEW = accepted plus needs-review;",
+            "ACCEPTED = only accepted translations.",
+        ].join(" "),
+    );
+
+const localizedAssetInheritanceModeSchema = z
+    .enum(["USE_PARENT", "REMOVE_UNTRANSLATED"])
+    .describe(
+        [
+            "When a string has no translation in the target locale:",
+            "USE_PARENT = fall back through parent locales, then the source (CLI pull default);",
+            "REMOVE_UNTRANSLATED = omit the text unit from the generated file.",
+        ].join(" "),
+    );
+
 const assetListFilterSchema = {
     repositoryId: z
         .number()
@@ -373,6 +394,62 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
             },
         },
         async (args) => jsonResult(await client.assetImport(args)),
+    );
+
+    server.registerTool(
+        "mojito_asset_localize",
+        {
+            description: [
+                "Generate one localized resource file for an existing source asset and locale (POST /api/assets/{assetId}/localized/{localeId}).",
+                "This is the synchronous server call used by default `mojito pull`; it does not scan a working tree, write files to disk, or wait on a pollable task.",
+                "Pass the complete current source-file `content` (same role as the file `mojito pull` reads locally). Mojito applies translations for numeric `localeId` and returns a LocalizedAssetBody whose `content` is the localized file and `bcp47Tag` is the tag to use in the output path.",
+                "Resolve `assetId` via mojito_asset_list and `localeId` via mojito_repo_view or text-unit search — do not pass a BCP-47 tag as localeId.",
+                "Async `/localized` and parallel `/localized/parallel` endpoints are not exposed; omit pullRunName unless you intentionally want Mojito to record a pull run.",
+            ].join(" "),
+            inputSchema: {
+                assetId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric source asset id. Resolve via mojito_asset_list (there is no GET-by-id).",
+                    ),
+                localeId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric Mojito locale id whose translations to apply. Not a BCP-47 tag; take it from mojito_repo_view or a text-unit row.",
+                    ),
+                content: z
+                    .string()
+                    .describe(
+                        "Complete current source resource-file content to localize (typically the English/source file, possibly with local edits vs what is stored in Mojito).",
+                    ),
+                outputBcp47tag: z
+                    .string()
+                    .optional()
+                    .describe(
+                        "Optional output BCP-47 tag for the generated file, e.g. `fr` while translations are stored on locale `fr-FR`. Omit to use the repository locale tag.",
+                    ),
+                filterConfigIdOverride: assetFilterConfigIdOverrideSchema.optional(),
+                filterOptions: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        'Optional parser-specific settings in `name=value` form, e.g. ["generateHeader=false"].',
+                    ),
+                inheritanceMode: localizedAssetInheritanceModeSchema.optional(),
+                status: localizedAssetStatusSchema.optional(),
+                pullRunName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        "Optional name under which Mojito records a pull run of the text-unit variants used. Omit for a generate-only call.",
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.assetLocalize(args)),
     );
 
     server.registerTool(
