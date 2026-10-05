@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,6 +30,8 @@ public class SourceAsset {
   private boolean extractedContent;
 
   private String commitHash;
+
+  private PreserveStatusMode preserveStatusMode = PreserveStatusMode.PRECISION;
 
   public Long getRepositoryId() {
     return repositoryId;
@@ -124,6 +127,14 @@ public class SourceAsset {
 
   public void setPushRunName(String pushRunName) {
     this.pushRunName = pushRunName;
+  }
+
+  public PreserveStatusMode getPreserveStatusMode() {
+    return preserveStatusMode;
+  }
+
+  public void setPreserveStatusMode(PreserveStatusMode preserveStatusMode) {
+    this.preserveStatusMode = preserveStatusMode;
   }
 
   @JsonProperty

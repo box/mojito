@@ -129,6 +129,7 @@ public abstract class AbstractLeverager {
         filterTextUnitDTOWithSameTMTextUnitId(textUnitDTOsForLeveraging);
         boolean uniqueTMTextUnitMatched =
             textUnitDTOsForLeveragingSize == textUnitDTOsForLeveraging.size();
+        uniqueTMTextUnitMatched = resolveUniqueMatch(uniqueTMTextUnitMatched);
 
         logger.debug("Determine if re-translation is needed for the strings that will be copied");
         boolean translationNeeded =
@@ -153,6 +154,14 @@ public abstract class AbstractLeverager {
       case UNIQUE -> !uniqueTMTextUnitMatched;
       case PRECISION -> isTranslationNeededIfUniqueMatch() || !uniqueTMTextUnitMatched;
     };
+  }
+
+  /**
+   * Hook for subclasses that already know whether the match was unique (e.g. source leveraging on
+   * push) before looking up translations by a single {@link TMTextUnit} id.
+   */
+  protected boolean resolveUniqueMatch(boolean computedUniqueMatch) {
+    return computedUniqueMatch;
   }
 
   /**

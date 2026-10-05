@@ -31,6 +31,8 @@ import com.box.l10n.mojito.okapi.extractor.AssetExtractor;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.OverwriteMode;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -197,6 +199,23 @@ public class AssetExtractionService {
       List<String> filterOptions,
       PollableTask currentTask)
       throws UnsupportedAssetFilterTypeException, AssetExtractionConflictException {
+    return processAsset(
+        assetContentId,
+        pushRunId,
+        filterConfigIdOverride,
+        filterOptions,
+        PreserveStatusMode.PRECISION,
+        currentTask);
+  }
+
+  public PollableFuture<Asset> processAsset(
+      Long assetContentId,
+      Long pushRunId,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      PreserveStatusMode preserveStatusMode,
+      PollableTask currentTask)
+      throws UnsupportedAssetFilterTypeException, AssetExtractionConflictException {
 
     logger.info("Start processing asset content, id: {}", assetContentId);
     AssetContent assetContent = assetContentService.findOne(assetContentId);
@@ -213,7 +232,10 @@ public class AssetExtractionService {
     updateLastSuccessfulAssetExtraction(
         asset, createdTextUnitsResult.getUpdatedState(), currentTask);
     updatePushRun(asset, createdTextUnitsResult.getUpdatedState(), pushRunId, currentTask);
-    performLeveraging(createdTextUnitsResult.getLeveragingMatches(), currentTask);
+    performLeveraging(
+        createdTextUnitsResult.getLeveragingMatches(),
+        preserveStatusMode == null ? PreserveStatusMode.PRECISION : preserveStatusMode,
+        currentTask);
 
     logger.info("Done processing asset content id: {}", assetContentId);
     return new PollableFutureTaskResult<>(asset);
@@ -797,12 +819,16 @@ public class AssetExtractionService {
   @Pollable(message = "Perform leveraging")
   void performLeveraging(
       ImmutableList<TextUnitDTOMatch> matchesForSourceLeveraging,
+      PreserveStatusMode preserveStatusMode,
       @ParentTask PollableTask currentTask) {
     matchesForSourceLeveraging.stream()
         .forEach(
             match -> {
               LeveragerByTmTextUnit leveragerByTmTextUnit =
-                  new LeveragerByTmTextUnit(match.getMatch().getTmTextUnitId());
+                  new LeveragerByTmTextUnit(
+                      match.getMatch().getTmTextUnitId(),
+                      match.getTranslationNeededIfUniqueMatch(),
+                      match.getUniqueMatch());
               if (match.getSource().getTmTextUnitId() == null) {
                 throw new RuntimeException(
                     "The source must be saved in the database when requesting leveraging");
@@ -810,7 +836,11 @@ public class AssetExtractionService {
               TMTextUnit tmTextUnit =
                   tmTextUnitRepository.findById(match.getSource().getTmTextUnitId()).get();
               leveragerByTmTextUnit.performLeveragingFor(
-                  new ArrayList<>(Arrays.asList(tmTextUnit)), null, null);
+                  new ArrayList<>(Arrays.asList(tmTextUnit)),
+                  null,
+                  null,
+                  preserveStatusMode,
+                  OverwriteMode.ALL);
             });
   }
 
@@ -1150,12 +1180,33 @@ public class AssetExtractionService {
       throws UnsupportedAssetFilterTypeException,
           InterruptedException,
           AssetExtractionConflictException {
+    return processAssetAsync(
+        assetContentId,
+        pushRunId,
+        filterConfigIdOverride,
+        filterOptions,
+        PreserveStatusMode.PRECISION,
+        parentTaskId);
+  }
+
+  public PollableFuture<Void> processAssetAsync(
+      Long assetContentId,
+      Long pushRunId,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      PreserveStatusMode preserveStatusMode,
+      Long parentTaskId)
+      throws UnsupportedAssetFilterTypeException,
+          InterruptedException,
+          AssetExtractionConflictException {
 
     ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();
     processAssetJobInput.setAssetContentId(assetContentId);
     processAssetJobInput.setPushRunId(pushRunId);
     processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
     processAssetJobInput.setFilterOptions(filterOptions);
+    processAssetJobInput.setPreserveStatusMode(
+        preserveStatusMode == null ? PreserveStatusMode.PRECISION : preserveStatusMode);
 
     String pollableMessage =
         MessageFormat.format("Process asset content, id: {0}", assetContentId.toString());

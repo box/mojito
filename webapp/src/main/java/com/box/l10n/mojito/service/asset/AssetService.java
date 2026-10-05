@@ -21,6 +21,7 @@ import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig.PreserveStatusMode;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
@@ -134,6 +135,34 @@ public class AssetService {
         pushRunId,
         filterConfigIdOverride,
         filterOptions,
+        PreserveStatusMode.PRECISION);
+  }
+
+  public PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(
+      Long repositoryId,
+      String assetPath,
+      String assetContent,
+      boolean extractedContent,
+      String branch,
+      String branchCreatedByUsername,
+      Set<String> branchNotifierIds,
+      Long pushRunId,
+      FilterConfigIdOverride filterConfigIdOverride,
+      List<String> filterOptions,
+      PreserveStatusMode preserveStatusMode)
+      throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
+    return addOrUpdateAssetAndProcessIfNeeded(
+        repositoryId,
+        assetPath,
+        assetContent,
+        extractedContent,
+        branch,
+        branchCreatedByUsername,
+        branchNotifierIds,
+        pushRunId,
+        filterConfigIdOverride,
+        filterOptions,
+        preserveStatusMode == null ? PreserveStatusMode.PRECISION : preserveStatusMode,
         PollableTask.INJECT_CURRENT_TASK);
   }
 
@@ -162,6 +191,7 @@ public class AssetService {
       Long pushRunId,
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions,
+      PreserveStatusMode preserveStatusMode,
       @InjectCurrentTask PollableTask currentTask)
       throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
@@ -208,6 +238,7 @@ public class AssetService {
           pushRunId,
           filterConfigIdOverride,
           filterOptions,
+          preserveStatusMode,
           currentTask.getId());
     } else {
       logger.debug(
