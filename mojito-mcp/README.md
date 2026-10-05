@@ -2,7 +2,7 @@
 
 MCP (Model Context Protocol) server that lets Cursor and other AI hosts work with [Mojito](https://github.com/box/mojito) — search strings, inspect repositories, add translations, update review status, and more.
 
-This directory is a **standalone npm package** (not a Maven module). You need **Node 18+** and a working Mojito CLI on your `PATH`.
+This directory is a **standalone npm package** (not a Maven module). End users need **Java 21**, **Node 18+**, a working Mojito CLI, and an MCP-capable host (Cursor, Claude Code, or Codex).
 
 Internal design notes for implementers: see [Architecture.md](./Architecture.md).
 
@@ -12,27 +12,39 @@ Mojito’s REST APIs sit behind the same Java authentication the CLI already imp
 
 So this server does **not** talk to Mojito over HTTP itself and does **not** take `MOJITO_AUTH_TOKEN` or a base URL. It runs your existing CLI (`mojito api …`). If the CLI can reach Mojito, the MCP tools can too. Auth and instance URL stay in the CLI config you already maintain.
 
-## Prerequisites: Mojito CLI
+## Prerequisites
 
-Before installing the MCP server, install and configure the Mojito CLI so it authenticates to your Mojito instance(s).
+Install these **before** the MCP package. The MCP server does not bundle Java, Node, or the Mojito CLI.
 
-### Official Mojito documentation
+| Need | Why | Notes |
+|------|-----|-------|
+| **Java 21 JRE or JDK** | Runs the Mojito CLI jar (`java -jar …`) | A JRE is enough to *run* the CLI; a JDK is fine too. Confirm with `java -version` (expect 21+). See [Installation and Setup](https://www.mojito.global/docs/guides/install-springboot3/). |
+| **Node.js 18+** (with npm) | Runs `mojito-mcp` itself | Confirm with `node -v` / `npm -v`. |
+| **Network access to Mojito** | CLI calls the REST API | Same reachability you need for the CLI in a terminal (VPN, Cloudflare Access service token, etc. if your org requires it). |
+| **Mojito CLI + config** | Auth, host, and API calls | Jar (or server install script), a wrapper script, and `application.properties` — details below. |
+| **An MCP host** | Spawns this server on stdio | Cursor, Claude Code, or Codex (see [Install from npm](#install-from-npm-recommended)). |
+
+You do **not** need Maven, a local Mojito webapp, or a database unless you are developing Mojito itself.
+
+### Mojito CLI setup
+
+Configure the Mojito CLI so it authenticates to your Mojito instance(s). The MCP server only invokes the script you point it at.
+
+#### Official Mojito documentation
 
 | Topic | Doc |
 |-------|-----|
-| Install the CLI (jar, Homebrew, install script from the server) | [Installation and Setup](https://www.mojito.global/docs/guides/install-springboot3/) |
+| Install the CLI (jar or install script from the server) | [Installation and Setup](https://www.mojito.global/docs/guides/install-springboot3/) |
 | CLI host, credentials, and auth modes (`l10n.resttemplate.*`) | [Configurations](https://www.mojito.global/docs/refs/configurations/) |
 | Contributor / local alias examples | [Open source contributors](https://www.mojito.global/docs/guides/open-source-contributors/) |
 
-Typical pieces:
+Typical pieces after Java is installed:
 
-1. A CLI wrapper on your `PATH` (install script from the Mojito server, Homebrew `mojito`, or a `java -jar …` wrapper).
+1. A CLI wrapper on your `PATH` (install script from the Mojito server, or a `java -jar …` wrapper).
 2. CLI `application.properties` with host/scheme/port and authentication (form login, MSAL, header/CF Access, etc.) — see the configurations guide above.
-3. Confirm in a terminal: `mojito --help` and a simple call such as `mojito api /api/repositories`.
+3. Confirm in a terminal: `java -version`, then `mojito --help` (or `mojito-prod --help`) and a simple call such as `mojito api /api/repositories`.
 
-The MCP server does **not** replace that setup. It only invokes the script you point it at.
-
-### Prod and optional dev
+#### Prod and optional dev
 
 Most people only need **one** CLI wrapper, pointed at the Mojito they actually use (typically prod). That is enough for MCP.
 
@@ -45,13 +57,13 @@ Most people only need **one** CLI wrapper, pointed at the Mojito they actually u
 
 Name the scripts whatever you like; the MCP server only cares about the value of `MOJITO_CLI`. The conventions above match the defaults and docs in this package.
 
-### Download `mojito-cli.jar` from your Mojito instance
+#### Download `mojito-cli.jar` from your Mojito instance
 
 Use the CLI jar **served by the Mojito webapp you will talk to**. Each instance publishes it at:
 
 `https://<your-mojito-host>/cli/mojito-cli.jar`
 
-Download the jar from **that** instance so the CLI version matches the server. Homebrew or a locally built `cli/target/mojito-cli-*-exec.jar` are alternatives; the instance URL is the usual path.
+Download the jar from **that** instance so the CLI version matches the server. A locally built `cli/target/mojito-cli-*-exec.jar` is an alternative; the instance URL is the usual path.
 
 ```bash
 mkdir -p "$HOME/bin/mojito-files/prod"
@@ -72,7 +84,7 @@ curl -fL -o "$HOME/bin/mojito-files/dev/mojito-cli.jar" \
 
 Re-run the same `curl` commands to pick up a new CLI after the server is upgraded. If the instance is behind Cloudflare Access, pass the CF Access client id/secret headers (see [Installation and Setup](https://www.mojito.global/docs/guides/install-springboot3/) for `install.sh` with `authMode=CF_SERVICE_TOKEN`). The webapp also serves `/cli/install.sh` if you prefer the official installer over a raw jar.
 
-### Example wrappers
+#### Example wrappers
 
 Each script is a thin `java -jar` launcher: a **CLI jar**, a **Spring config directory**, and a **profile** that selects host + auth. Put the scripts on your `PATH` (for example `~/bin`) and `chmod +x` them.
 
@@ -128,15 +140,17 @@ Then register **one MCP server** for prod (and a second only if you have `mojito
 
 ## Install from npm (recommended)
 
-Install the published package **once, globally**. Cursor and Claude Code then spawn that binary on stdio. Do **not** use `npx` in a long-lived MCP config: every host start can hit the registry again.
+Normal install for end users: publish lands on the public npm registry, you install the package **once globally**, then point your AI host at that binary on stdio.
 
 ```bash
 npm install -g mojito-mcp
 ```
 
+Do **not** use `npx` in a long-lived MCP config: every host start can hit the registry again.
+
 If the published name is scoped (for example `@box/mojito-mcp`), use that name in `npm install -g` and in the snippets below. You still need **Node 18+** and a working `mojito-prod` (or whatever you set as `MOJITO_CLI`). Add `mojito-dev` only if you have a local/non-prod Mojito. This package does not install the Mojito CLI.
 
-Resolve the installed binary and use that **absolute path** in host config. GUI apps (Cursor) often do not inherit your shell `PATH` (nvm, fnm, asdf), so `"command": "mojito-mcp"` can fail even when the same name works in a terminal.
+Resolve the installed binary and use that **absolute path** in host config. GUI apps (Cursor, Codex IDE) often do not inherit your shell `PATH` (nvm, fnm, asdf), so `"command": "mojito-mcp"` / `command = "mojito-mcp"` can fail even when the same name works in a terminal.
 
 ```bash
 which mojito-mcp
@@ -146,6 +160,14 @@ which mojito-mcp
 Upgrade later with `npm install -g mojito-mcp@<version>` (or the same command without a version for latest). After upgrading, `which mojito-mcp` should still be the same path unless you changed Node versions.
 
 If you only use prod (typical), register a **single** MCP server with `MOJITO_CLI` set to `mojito-prod` (or omit it — that is the default). The `mojito-dev` blocks below are optional.
+
+Pick your host:
+
+| Host | Where to configure | How to register |
+|------|--------------------|-----------------|
+| [Cursor](#cursor) | `~/.cursor/mcp.json` (or project `.cursor/mcp.json`) | Merge a JSON `mcpServers` entry |
+| [Claude Code](#claude-code) | user or project MCP config via CLI | `claude mcp add …` |
+| [Codex](#codex) | `~/.codex/config.toml` (or project `.codex/config.toml`) | `codex mcp add …` or edit TOML |
 
 ### Cursor
 
@@ -203,7 +225,48 @@ claude mcp add --scope user mojito-dev \
 
 Check with `claude mcp list`, or `/mcp` inside a Claude Code session.
 
-There is no `setup.sh` for this on purpose. Cursor wants a JSON merge into a file you already have; Claude Code already has a first-class add command. Copy the snippets above, or run `claude mcp add`.
+### Codex
+
+Codex (CLI, IDE extension, and ChatGPT desktop when using the same host config) stores MCP servers in TOML — usually `~/.codex/config.toml`. Project-scoped config goes in `.codex/config.toml` and is loaded only for **trusted** projects. Prefer the absolute path from `which mojito-mcp`.
+
+CLI (writes into your Codex config):
+
+```bash
+MCP_BIN="$(which mojito-mcp)"
+
+codex mcp add mojito-prod \
+  --env MOJITO_CLI=mojito-prod \
+  --env MOJITO_CLI_TIMEOUT_MS=600000 \
+  -- "$MCP_BIN"
+```
+
+Optional — only if you have a local/non-prod Mojito:
+
+```bash
+codex mcp add mojito-dev \
+  --env MOJITO_CLI=mojito-dev \
+  --env MOJITO_CLI_TIMEOUT_MS=600000 \
+  -- "$MCP_BIN"
+```
+
+Or edit `~/.codex/config.toml` directly:
+
+```toml
+[mcp_servers.mojito-prod]
+command = "/absolute/path/to/mojito-mcp"
+# Mojito CLI calls can exceed Codex’s default tool timeout (60s).
+tool_timeout_sec = 600
+
+[mcp_servers.mojito-prod.env]
+MOJITO_CLI = "mojito-prod"
+MOJITO_CLI_TIMEOUT_MS = "600000"
+```
+
+Optional second table (local/non-prod Mojito only): same shape with `mojito-dev` and `MOJITO_CLI = "mojito-dev"`.
+
+Check with `codex mcp list`, or `/mcp` in the Codex TUI. Restart Codex (and open a new chat) after changing MCP config.
+
+There is no `setup.sh` for this on purpose. Each host has its own config format (JSON for Cursor, `claude mcp add` for Claude Code, TOML / `codex mcp add` for Codex). Copy the snippet for your host after the global `npm install`.
 
 ## Install from a local checkout
 
@@ -247,6 +310,17 @@ claude mcp add --scope user mojito-prod \
 ```
 
 Optional second add with `MOJITO_CLI=mojito-dev` if you have a local/non-prod Mojito.
+
+### Codex (local `dist/`)
+
+```bash
+codex mcp add mojito-prod \
+  --env MOJITO_CLI=mojito-prod \
+  --env MOJITO_CLI_TIMEOUT_MS=600000 \
+  -- node /absolute/path/to/mojito/mojito-mcp/dist/index.js
+```
+
+Optional second add with `MOJITO_CLI=mojito-dev` if you have a local/non-prod Mojito. After local rebuilds, restart Codex so it picks up the new `dist/`.
 
 ## Configuration
 
