@@ -110,6 +110,10 @@
  * 9j. Importing a drop POSTs ImportDropConfig JSON to /api/drops/import and does not
  *     pass `--wait`.
  * 9k. A minimal drop import omits optional status.
+ * 9l. Canceling a drop POSTs CancelDropConfig JSON `{ dropId }` to /api/drops/cancel
+ *     and does not pass `--wait`.
+ * 9m. Completing a drop POSTs to /api/drops/complete/{dropId} with no body and no
+ *     `--wait`; empty stdout maps to null.
  * 10. A minimal asset import preserves empty content and omits every optional field.
  * 11. Searching text units POSTs to the search endpoint with the full pagination flag set
  *    (`--paginate --slurp --max-pages 0`), and passes repository, source, search type, and
@@ -758,6 +762,47 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
             repositoryId: 7,
             dropId: 99,
         });
+    });
+
+    test("dropCancel POSTs CancelDropConfig JSON and does not wait", async () => {
+        let inputFile = "";
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            inputFile = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(inputFile, "utf8")) as Record<string, unknown>;
+            return okJson({
+                dropId: 99,
+                pollableTask: { id: 34 },
+            });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(client.dropCancel({ dropId: 99 })).resolves.toEqual({
+            dropId: 99,
+            pollableTask: { id: 34 },
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/drops/cancel",
+            "-X",
+            "POST",
+            "--input",
+            inputFile,
+        ]);
+        expect(runner.calls[0]).not.toContain("--wait");
+        expect(body).toEqual({ dropId: 99 });
+        expect(existsSync(inputFile)).toBe(false);
+    });
+
+    test("dropComplete POSTs to the drop id path with no body", async () => {
+        const runner = mockRunner(() => ({ exitCode: 0, stdout: "", stderr: "" }));
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(client.dropComplete({ dropId: 99 })).resolves.toBeNull();
+        expect(runner.calls[0]).toEqual(["api", "/api/drops/complete/99", "-X", "POST"]);
+        expect(runner.calls[0]).not.toContain("--wait");
+        expect(runner.calls[0]).not.toContain("--input");
     });
 
     test("assetImport POSTs the complete source asset as JSON and removes its temp file", async () => {

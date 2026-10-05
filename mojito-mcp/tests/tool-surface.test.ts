@@ -88,6 +88,8 @@ describe("MCP tool surface", () => {
             "mojito_drop_list",
             "mojito_drop_export",
             "mojito_drop_import",
+            "mojito_drop_cancel",
+            "mojito_drop_complete",
             "mojito_textunit_search",
             "mojito_textunit_info",
             "mojito_textunit_history",
@@ -189,6 +191,16 @@ describe("MCP tool surface", () => {
         expect(dropImport.dropId.safeParse(0).success).toBe(false);
         expect(dropImport.status.safeParse("APPROVED").success).toBe(true);
         expect(dropImport.status.safeParse("ACCEPTED").success).toBe(false);
+
+        const dropCancel = byName.get("mojito_drop_cancel")!.options.inputSchema;
+        expect(dropCancel.dropId.safeParse(1).success).toBe(true);
+        expect(dropCancel.dropId.safeParse(0).success).toBe(false);
+        expect(dropCancel.repositoryId).toBeUndefined();
+
+        const dropComplete = byName.get("mojito_drop_complete")!.options.inputSchema;
+        expect(dropComplete.dropId.safeParse(1).success).toBe(true);
+        expect(dropComplete.dropId.safeParse(0).success).toBe(false);
+        expect(dropComplete.repositoryId).toBeUndefined();
 
         const search = byName.get("mojito_textunit_search")!.options.inputSchema;
         expect(search.limit.safeParse(1).success).toBe(true);
