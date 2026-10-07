@@ -33,3 +33,4 @@ release.properties
 /tmp/
 /local/
 .vscode/
+.conduit/
