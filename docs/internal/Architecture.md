@@ -361,12 +361,12 @@ Repository commands manage the optional assignment by exact, case-sensitive type
 
 - `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`, `repo-type-list`
 - Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`, or `--ai-prompt-file` / `-apf`)
-- Setting **`integrityCheckers`** on `repo-type-create` (`--integrity-check` / `-it`)
+- Setting **`integrityCheckers`** on `repo-type-create` and `repo-type-update` (`--integrity-check` / `-it`)
 - Listing every type in one invocation (`repo-type-list`); exact-name view stays on `repo-type-view`
 
 **Out of scope (follow-up)**
 
-- CLI for `integrityCheckers` on `repo-type-update`, `repo-type-view`, and `repo-type-list` (rest of the same story)
+- CLI for `integrityCheckers` on `repo-type-view` and `repo-type-list` (rest of the same story)
 - Pagination or filtering on the list beyond “all types, ordered by name”
 
 ##### Commands
@@ -374,7 +374,7 @@ Repository commands manage the optional assignment by exact, case-sensitive type
 | Command | Role | Required flags | Optional flags |
 |---------|------|----------------|----------------|
 | `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf`, `--integrity-check` / `-it` |
-| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf` |
+| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf`, `--integrity-check` / `-it` |
 | `repo-type-delete` | DELETE `/api/repo-types/{id}` | `--name` / `-n` | — |
 | `repo-type-view` | GET list filtered by name | `--name` / `-n` | — |
 | `repo-type-list` | GET `/api/repo-types` with no `name` filter | — | `--verbose` / `-vb` |
@@ -396,9 +396,9 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 ##### Update
 
-- At least one of `--new-name`, `--description`, `--ai-prompt`, or `--ai-prompt-file` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt, --ai-prompt-file`.
+- At least one of `--new-name`, `--description`, `--ai-prompt`, `--ai-prompt-file`, or `--integrity-check` / `-it` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt, --ai-prompt-file, --integrity-check`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#6-patch-null-means-leave-unchanged)).
-- Checkers: `integrityCheckers` is left Java `null` so `NON_NULL` omits the property (unchanged). A non-null empty set would serialize as `[]` and clear them. There is no checkers CLI flag yet.
+- Omitted `--integrity-check` / `-it` leaves Java `integrityCheckers` null, so `NON_NULL` omits the property and existing checkers stay. A present value replaces the full set, same `FILE_EXTENSION:CHECKER_TYPE` list as create. The same pair twice, including a leading dot on the extension, is stored once. An empty value sends `[]` and clears every checker. An unknown checker type fails before the request with `Invalid integrity checker type [<type>]`.
 - Prompt: omitted `--ai-prompt` / `--ai-prompt-file` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` or `--ai-prompt-file` whose contents are empty after the UTF-8 BOM / trailing-newline strip includes `"aiPrompt":""` and clears the prompt (a file that is only a trailing newline also clears). The two prompt flags are mutually exclusive (same error as create).
 - A description-only or rename update must leave prompt and checkers as they were.
 - HTTP 400, 404, and 409 → same mapping as create (response body, or the 400/404/409 fallbacks). HTTP 403 is the same session-retry dump as create.
