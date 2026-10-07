@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
+import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repotype.RepoTypeRepository;
 import java.util.regex.Pattern;
 import org.junit.Test;
@@ -202,6 +204,92 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
     assertEquals(name, created.getName());
     assertNull(created.getDescription());
     assertEquals("", created.getAiPrompt());
+    assertTrue(created.getIntegrityCheckers().isEmpty());
+  }
+
+  @Test
+  public void testCreateRepoTypeWithEmptyIntegrityCheckers() throws Exception {
+    String name = testIdWatcher.getEntityName("EmptyCheckers");
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "");
+
+    RepoType created = repoTypeRepository.findByName(name);
+    assertNotNull(created);
+    assertCreatedIdLine(created.getId());
+    assertTrue(created.getIntegrityCheckers().isEmpty());
+  }
+
+  @Test
+  public void testCreateRepoTypeWithIntegrityCheckers() throws Exception {
+    String name = testIdWatcher.getEntityName("WithCheckers");
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "properties:MESSAGE_FORMAT,properties:TRAILING_WHITESPACE");
+
+    RepoType created = repoTypeRepository.findByName(name);
+    assertNotNull(created);
+    assertCreatedIdLine(created.getId());
+    assertTrue(hasChecker(created, "properties", IntegrityCheckerType.MESSAGE_FORMAT));
+    assertTrue(hasChecker(created, "properties", IntegrityCheckerType.TRAILING_WHITESPACE));
+    assertEquals(2, created.getIntegrityCheckers().size());
+  }
+
+  @Test
+  public void testCreateRepoTypeStoresDuplicateCheckerOnce() throws Exception {
+    String name = testIdWatcher.getEntityName("DuplicateChecker");
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            RepoCommand.INTEGRITY_CHECK_LONG_PARAM,
+            "properties:MESSAGE_FORMAT,.properties:MESSAGE_FORMAT");
+
+    RepoType created = repoTypeRepository.findByName(name);
+    assertNotNull(created);
+    assertEquals(1, created.getIntegrityCheckers().size());
+    assertTrue(hasChecker(created, "properties", IntegrityCheckerType.MESSAGE_FORMAT));
+  }
+
+  @Test
+  public void testCreateInvalidIntegrityCheckerTypeIsAShortError() throws Exception {
+    String name = testIdWatcher.getEntityName("BadChecker");
+
+    getL10nJCommander()
+        .run(
+            "repo-type-create",
+            Param.REPO_TYPE_NAME_SHORT,
+            name,
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "properties:NOT_A_CHECKER");
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Invalid integrity checker type [NOT_A_CHECKER]"));
+    assertFalse(output.contains("Unexpected error"));
+    assertNull(repoTypeRepository.findByName(name));
+  }
+
+  private static boolean hasChecker(
+      RepoType repoType, String extension, IntegrityCheckerType checkerType) {
+    for (RepoTypeIntegrityChecker checker : repoType.getIntegrityCheckers()) {
+      if (extension.equals(checker.getAssetExtension())
+          && checkerType == checker.getIntegrityCheckerType()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void assertCreatedIdLine(Long id) {
