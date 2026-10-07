@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.rest.entity.RepoType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashSet;
 import org.junit.Test;
 
 public class RepoTypeUpdateCommandPatchTest {
@@ -54,5 +55,16 @@ public class RepoTypeUpdateCommandPatchTest {
     String json = NON_NULL.writeValueAsString(patch);
     assertTrue(json.contains("\"aiPrompt\":\"Preserve {placeholders}.\""));
     assertFalse(json.contains("\"name\""));
+  }
+
+  @Test
+  public void repoTypePatchSendsEmptyCheckersToClear() throws Exception {
+    RepoType patch = RepoTypeUpdateCommand.repoTypePatch(null, null, null, new HashSet<>());
+    assertTrue(patch.getIntegrityCheckers().isEmpty());
+
+    String json = NON_NULL.writeValueAsString(patch);
+    assertTrue(json.contains("\"integrityCheckers\":[]"));
+    assertFalse(json.contains("\"name\""));
+    assertFalse(json.contains("aiPrompt"));
   }
 }
