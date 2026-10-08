@@ -19,9 +19,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Lists every repo type. Default prints id, name, description, {@code contains a value} when the
- * AI prompt is non-empty (body omitted), and {@code contains N values} for integrity checkers.
- * {@code --verbose} / {@code -vb} prints the prompt body and one checker pair per line.
+ * Lists every repo type. Default prints id, name, description, {@code contains a value} when the AI
+ * prompt is non-empty (body omitted), and {@code contains N values} for integrity checkers. {@code
+ * --verbose} / {@code -vb} prints the prompt body and one checker pair per line.
  */
 @Component
 @Scope("prototype")
@@ -74,8 +74,8 @@ public class RepoTypeListCommand extends Command {
   }
 
   /**
-   * Default prints a count, or an empty value when there are no checkers. Verbose prints one
-   * {@code extension:CHECKER_TYPE} line per checker, sorted by extension then type.
+   * Default prints a count, or an empty value when there are no checkers. Verbose prints one {@code
+   * extension:CHECKER_TYPE} line per checker, sorted by extension then type.
    */
   private void printIntegrityCheckers(RepoType repoType) {
     List<String> pairs = sortedCheckerPairs(repoType);
@@ -88,11 +88,7 @@ public class RepoTypeListCommand extends Command {
       return;
     }
 
-    consoleWriter
-        .a("Integrity checkers --> ")
-        .fg(Ansi.Color.MAGENTA)
-        .a(pairs.get(0))
-        .println();
+    consoleWriter.a("Integrity checkers --> ").fg(Ansi.Color.MAGENTA).a(pairs.get(0)).println();
     for (int i = 1; i < pairs.size(); i++) {
       consoleWriter.fg(Ansi.Color.MAGENTA).a(pairs.get(i)).println();
     }
@@ -105,7 +101,8 @@ public class RepoTypeListCommand extends Command {
     List<RepoTypeIntegrityChecker> checkers = new ArrayList<>(repoType.getIntegrityCheckers());
     checkers.sort(
         Comparator.comparing(
-                RepoTypeIntegrityChecker::getAssetExtension, Comparator.nullsLast(String::compareTo))
+                RepoTypeIntegrityChecker::getAssetExtension,
+                Comparator.nullsLast(String::compareTo))
             .thenComparing(
                 checker ->
                     checker.getIntegrityCheckerType() == null
