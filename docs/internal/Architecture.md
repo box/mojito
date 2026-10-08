@@ -412,7 +412,7 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 ##### View
 
-Prints the fields of an existing reop type:
+Prints the fields of an existing repo type:
 
 - `Repo type id --> <id>`
 - `Name --> <name>`
@@ -481,7 +481,7 @@ Web UI served from `webapp` (React / Flux-style JS under `webapp/src/main/resour
 
 #### Repo Types
 
-No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name, description, and `aiPrompt` on the CLI).
+No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name, description, `aiPrompt`, and `integrityCheckers`).
 
 ---
 

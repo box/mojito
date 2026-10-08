@@ -6,9 +6,6 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.entity.RepoType;
-import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
@@ -78,7 +75,7 @@ public class RepoTypeListCommand extends Command {
    * extension:CHECKER_TYPE} line per checker, sorted by extension then type.
    */
   private void printIntegrityCheckers(RepoType repoType) {
-    List<String> pairs = sortedCheckerPairs(repoType);
+    List<String> pairs = IntegrityCheckerCli.sortedPairs(repoType.getIntegrityCheckers());
     if (!verboseParam || pairs.isEmpty()) {
       consoleWriter
           .a("Integrity checkers --> ")
@@ -92,27 +89,6 @@ public class RepoTypeListCommand extends Command {
     for (int i = 1; i < pairs.size(); i++) {
       consoleWriter.fg(Ansi.Color.MAGENTA).a(pairs.get(i)).println();
     }
-  }
-
-  private static List<String> sortedCheckerPairs(RepoType repoType) {
-    if (repoType.getIntegrityCheckers() == null || repoType.getIntegrityCheckers().isEmpty()) {
-      return List.of();
-    }
-    List<RepoTypeIntegrityChecker> checkers = new ArrayList<>(repoType.getIntegrityCheckers());
-    checkers.sort(
-        Comparator.comparing(
-                RepoTypeIntegrityChecker::getAssetExtension,
-                Comparator.nullsLast(String::compareTo))
-            .thenComparing(
-                checker ->
-                    checker.getIntegrityCheckerType() == null
-                        ? ""
-                        : checker.getIntegrityCheckerType().name()));
-    List<String> pairs = new ArrayList<>();
-    for (RepoTypeIntegrityChecker checker : checkers) {
-      pairs.add(checker.getAssetExtension() + ":" + checker.getIntegrityCheckerType());
-    }
-    return pairs;
   }
 
   private static String containsValues(int count) {
