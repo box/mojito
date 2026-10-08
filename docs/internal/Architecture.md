@@ -362,11 +362,12 @@ Repository commands manage the optional assignment by exact, case-sensitive type
 - `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`, `repo-type-list`
 - Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`, or `--ai-prompt-file` / `-apf`)
 - Setting **`integrityCheckers`** on `repo-type-create` and `repo-type-update` (`--integrity-check` / `-it`)
+- Printing **`integrityCheckers`** on `repo-type-view` as `extension:CHECKER_TYPE`
 - Listing every type in one invocation (`repo-type-list`); exact-name view stays on `repo-type-view`
 
 **Out of scope (follow-up)**
 
-- CLI for `integrityCheckers` on `repo-type-view` and `repo-type-list` (rest of the same story)
+- CLI for `integrityCheckers` on `repo-type-list` (rest of the same story)
 - Pagination or filtering on the list beyond “all types, ordered by name”
 
 ##### Commands
@@ -412,12 +413,13 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 ##### View
 
-Prints four fields for an existing type:
+Prints the fields of an existing reop type:
 
 - `Repo type id --> <id>`
 - `Name --> <name>`
 - `Description --> <description>` (`null` description prints as empty)
 - `AI prompt --> <aiPrompt>` (`null` prompt prints as empty)
+- `Integrity checkers --> <extension:CHECKER_TYPE>[,...]` when the type has checkers, sorted by extension then checker type. An empty set prints no checker line.
 
 ##### List
 
