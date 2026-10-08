@@ -70,7 +70,8 @@ public class RepoTypeViewCommand extends Command {
     List<RepoTypeIntegrityChecker> checkers = new ArrayList<>(repoType.getIntegrityCheckers());
     checkers.sort(
         Comparator.comparing(
-                RepoTypeIntegrityChecker::getAssetExtension, Comparator.nullsLast(String::compareTo))
+                RepoTypeIntegrityChecker::getAssetExtension,
+                Comparator.nullsLast(String::compareTo))
             .thenComparing(
                 checker ->
                     checker.getIntegrityCheckerType() == null

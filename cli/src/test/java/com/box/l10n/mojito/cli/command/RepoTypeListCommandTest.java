@@ -85,8 +85,7 @@ public class RepoTypeListCommandTest extends CLITestBase {
   public void testListCountsIntegrityCheckers() throws Exception {
     String name = testIdWatcher.getEntityName("Counted");
 
-    RepoType created =
-        repoTypeService.createRepoType(name, "desc", null, threeCheckers());
+    RepoType created = repoTypeService.createRepoType(name, "desc", null, threeCheckers());
 
     getL10nJCommander().run("repo-type-list");
 
@@ -102,8 +101,7 @@ public class RepoTypeListCommandTest extends CLITestBase {
     String name = testIdWatcher.getEntityName("VerboseCheckers");
     String emptyName = testIdWatcher.getEntityName("VerboseNone");
 
-    RepoType created =
-        repoTypeService.createRepoType(name, "desc", null, threeCheckers());
+    RepoType created = repoTypeService.createRepoType(name, "desc", null, threeCheckers());
     RepoType empty = repoTypeService.createRepoType(emptyName, "none", null, Set.of());
 
     getL10nJCommander().run("repo-type-list", Param.REPO_TYPE_LIST_VERBOSE_SHORT);
@@ -115,7 +113,9 @@ public class RepoTypeListCommandTest extends CLITestBase {
     int printfLike = block.indexOf("xliff:PRINTF_LIKE");
     assertTrue(
         "Verbose list must print each checker on its own line, sorted",
-        messageFormat >= 0 && messageFormat < trailingWhitespace && trailingWhitespace < printfLike);
+        messageFormat >= 0
+            && messageFormat < trailingWhitespace
+            && trailingWhitespace < printfLike);
     assertTrue(block.contains("Integrity checkers --> properties:MESSAGE_FORMAT"));
     assertFalse(block.contains("properties:MESSAGE_FORMAT,"));
     assertFalse(block.contains("contains 3 values"));

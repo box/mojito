@@ -13,8 +13,8 @@ import org.fusesource.jansi.Ansi;
 import org.springframework.util.StringUtils;
 
 /**
- * Parses the shared {@code --integrity-check} / {@code -it} value used by the repo commands
- * {@code repo} and by the repo-type commands {@code repo-type}.
+ * Parses the shared {@code --integrity-check} / {@code -it} value used by the repo commands {@code
+ * repo} and by the repo-type commands {@code repo-type}.
  */
 final class IntegrityCheckerCli {
 
