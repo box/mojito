@@ -5,8 +5,12 @@ import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.IntegrityCheckerType;
 import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi;
@@ -102,5 +106,30 @@ final class IntegrityCheckerCli {
       converted.add(typeChecker);
     }
     return converted;
+  }
+
+  /**
+   * Sorts repo-type checkers by extension, then checker type, and formats each as {@code
+   * extension:CHECKER_TYPE}. A {@code null} or empty set returns an empty list.
+   */
+  static List<String> sortedPairs(Collection<RepoTypeIntegrityChecker> checkers) {
+    if (checkers == null || checkers.isEmpty()) {
+      return List.of();
+    }
+    List<RepoTypeIntegrityChecker> sorted = new ArrayList<>(checkers);
+    sorted.sort(
+        Comparator.comparing(
+                RepoTypeIntegrityChecker::getAssetExtension,
+                Comparator.nullsLast(String::compareTo))
+            .thenComparing(
+                checker ->
+                    checker.getIntegrityCheckerType() == null
+                        ? ""
+                        : checker.getIntegrityCheckerType().name()));
+    List<String> pairs = new ArrayList<>();
+    for (RepoTypeIntegrityChecker checker : sorted) {
+      pairs.add(checker.getAssetExtension() + ":" + checker.getIntegrityCheckerType());
+    }
+    return pairs;
   }
 }

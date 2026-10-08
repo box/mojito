@@ -5,9 +5,6 @@ import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.entity.RepoType;
-import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -63,26 +60,15 @@ public class RepoTypeViewCommand extends Command {
    * set prints nothing, matching {@code repo-view}.
    */
   private void printIntegrityCheckers(RepoType repoType) {
-    if (repoType.getIntegrityCheckers() == null || repoType.getIntegrityCheckers().isEmpty()) {
+    List<String> pairs = IntegrityCheckerCli.sortedPairs(repoType.getIntegrityCheckers());
+    if (pairs.isEmpty()) {
       return;
     }
 
-    List<RepoTypeIntegrityChecker> checkers = new ArrayList<>(repoType.getIntegrityCheckers());
-    checkers.sort(
-        Comparator.comparing(
-                RepoTypeIntegrityChecker::getAssetExtension,
-                Comparator.nullsLast(String::compareTo))
-            .thenComparing(
-                checker ->
-                    checker.getIntegrityCheckerType() == null
-                        ? ""
-                        : checker.getIntegrityCheckerType().name()));
-
     consoleWriter.newLine().a("Integrity checkers --> ").fg(Ansi.Color.MAGENTA);
-    for (int i = 0; i < checkers.size(); i++) {
-      RepoTypeIntegrityChecker checker = checkers.get(i);
-      consoleWriter.a(checker.getAssetExtension() + ":" + checker.getIntegrityCheckerType());
-      if (i == checkers.size() - 1) {
+    for (int i = 0; i < pairs.size(); i++) {
+      consoleWriter.a(pairs.get(i));
+      if (i == pairs.size() - 1) {
         consoleWriter.println();
       } else {
         consoleWriter.a(",");

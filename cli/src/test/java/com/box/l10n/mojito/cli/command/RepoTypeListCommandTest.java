@@ -82,6 +82,24 @@ public class RepoTypeListCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testListCountsOneIntegrityChecker() throws Exception {
+    String name = testIdWatcher.getEntityName("OneChecker");
+
+    RepoType created =
+        repoTypeService.createRepoType(
+            name, "desc", null, Set.of(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT)));
+
+    getL10nJCommander().run("repo-type-list");
+
+    String block = typeBlock(outputCapture.toString(), created.getId());
+    assertLabeledLine(block, "Integrity checkers --> ", "contains 1 value");
+    assertFalse(block.contains("contains 1 values"));
+    assertFalse(
+        "Default list must not print the checker pair (use --verbose)",
+        block.contains("MESSAGE_FORMAT"));
+  }
+
+  @Test
   public void testListCountsIntegrityCheckers() throws Exception {
     String name = testIdWatcher.getEntityName("Counted");
 
