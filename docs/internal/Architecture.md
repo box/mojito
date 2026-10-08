@@ -362,12 +362,11 @@ Repository commands manage the optional assignment by exact, case-sensitive type
 - `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`, `repo-type-list`
 - Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`, or `--ai-prompt-file` / `-apf`)
 - Setting **`integrityCheckers`** on `repo-type-create` and `repo-type-update` (`--integrity-check` / `-it`)
-- Printing **`integrityCheckers`** on `repo-type-view` as `extension:CHECKER_TYPE`
+- Printing **`integrityCheckers`** on `repo-type-view` as `extension:CHECKER_TYPE`, and on `repo-type-list` as a count or one pair per line with `--verbose`
 - Listing every type in one invocation (`repo-type-list`); exact-name view stays on `repo-type-view`
 
 **Out of scope (follow-up)**
 
-- CLI for `integrityCheckers` on `repo-type-list` (rest of the same story)
 - Pagination or filtering on the list beyond “all types, ordered by name”
 
 ##### Commands
@@ -431,7 +430,8 @@ Prints one block per type, same labels as view, in the server’s name-ascending
 - `Name --> <name>`
 - `Description --> <description>` (`null` description prints as empty)
 - Default (no `--verbose`): `AI prompt --> contains a value` when the prompt is **non-empty** (`StringUtils.isNotEmpty`; whitespace-only counts as present); otherwise `AI prompt -->` with an empty value. The prompt **body** is not printed.
-- `--verbose` / `-vb`: `AI prompt --> <aiPrompt>` (`null` prompt prints as empty), same as `repo-type-view`. Use this when you need the body without calling view per type.
+- Default: `Integrity checkers --> contains N values` when the type has checkers (`contains 1 value` when there is one). The pairs are not printed. No checkers, whether the set was omitted or empty, prints `Integrity checkers -->` with an empty value.
+- `--verbose` / `-vb`: `AI prompt --> <aiPrompt>` (`null` prompt prints as empty), same as `repo-type-view`. Use this when you need the body without calling view per type. Integrity checkers print one `extension:CHECKER_TYPE` line each, sorted by extension then type. The first line keeps the label; further checkers are their own lines. No checkers prints the same empty line as the default.
 
 HTTP errors on this GET are not mapped (same as `repo-type-view`). `CommandHelper.repoTypeClientError` stays on create/update/delete. A successful empty list is HTTP 200 `[]` and prints `No repo types found` (not an error). Other failures dump via `L10nJCommander`.
 
