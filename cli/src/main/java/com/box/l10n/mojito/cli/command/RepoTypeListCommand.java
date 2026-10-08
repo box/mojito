@@ -16,9 +16,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Lists every repo type. Default prints id, name, description, and {@code contains a value} when
- * the AI prompt is non-empty (body omitted). {@code --verbose} / {@code -vb} prints the prompt body
- * (same as {@code repo-type-view}).
+ * Lists every repo type. Default prints id, name, description, {@code contains a value} when the AI
+ * prompt is non-empty (body omitted), and {@code contains N values} for integrity checkers. {@code
+ * --verbose} / {@code -vb} prints the prompt body and one checker pair per line.
  */
 @Component
 @Scope("prototype")
@@ -66,7 +66,33 @@ public class RepoTypeListCommand extends Command {
     consoleWriter.a("Name --> ").fg(Ansi.Color.MAGENTA).a(repoType.getName()).println();
     consoleWriter.a("Description --> ").fg(Ansi.Color.MAGENTA).a(description).println();
     consoleWriter.a("AI prompt --> ").fg(Ansi.Color.MAGENTA).a(aiPrompt).println();
+    printIntegrityCheckers(repoType);
     consoleWriter.println();
+  }
+
+  /**
+   * Default prints a count, or an empty value when there are no checkers. Verbose prints one {@code
+   * extension:CHECKER_TYPE} line per checker, sorted by extension then type.
+   */
+  private void printIntegrityCheckers(RepoType repoType) {
+    List<String> pairs = IntegrityCheckerCli.sortedPairs(repoType.getIntegrityCheckers());
+    if (!verboseParam || pairs.isEmpty()) {
+      consoleWriter
+          .a("Integrity checkers --> ")
+          .fg(Ansi.Color.MAGENTA)
+          .a(pairs.isEmpty() ? "" : containsValues(pairs.size()))
+          .println();
+      return;
+    }
+
+    consoleWriter.a("Integrity checkers --> ").fg(Ansi.Color.MAGENTA).a(pairs.get(0)).println();
+    for (int i = 1; i < pairs.size(); i++) {
+      consoleWriter.fg(Ansi.Color.MAGENTA).a(pairs.get(i)).println();
+    }
+  }
+
+  private static String containsValues(int count) {
+    return "contains " + count + (count == 1 ? " value" : " values");
   }
 
   String aiPromptLine(String aiPrompt) {

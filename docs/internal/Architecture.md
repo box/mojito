@@ -361,19 +361,20 @@ Repository commands manage the optional assignment by exact, case-sensitive type
 
 - `repo-type-create`, `repo-type-update`, `repo-type-delete`, `repo-type-view`, `repo-type-list`
 - Setting **name**, **description**, and **`aiPrompt`** (`--ai-prompt` / `-ap`, or `--ai-prompt-file` / `-apf`)
+- Setting **`integrityCheckers`** on `repo-type-create` and `repo-type-update` (`--integrity-check` / `-it`)
+- Printing **`integrityCheckers`** on `repo-type-view` as `extension:CHECKER_TYPE`, and on `repo-type-list` as a count or one pair per line with `--verbose`
 - Listing every type in one invocation (`repo-type-list`); exact-name view stays on `repo-type-view`
 
 **Out of scope (follow-up)**
 
-- CLI for `integrityCheckers` (separate story)
 - Pagination or filtering on the list beyond “all types, ordered by name”
 
 ##### Commands
 
 | Command | Role | Required flags | Optional flags |
 |---------|------|----------------|----------------|
-| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf` |
-| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf` |
+| `repo-type-create` | POST `/api/repo-types` | `--name` / `-n` | `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf`, `--integrity-check` / `-it` |
+| `repo-type-update` | PATCH `/api/repo-types/{id}` | `--name` / `-n` (existing type) | `--new-name` / `-nn`, `--description` / `-d`, `--ai-prompt` / `-ap`, `--ai-prompt-file` / `-apf`, `--integrity-check` / `-it` |
 | `repo-type-delete` | DELETE `/api/repo-types/{id}` | `--name` / `-n` | — |
 | `repo-type-view` | GET list filtered by name | `--name` / `-n` | — |
 | `repo-type-list` | GET `/api/repo-types` with no `name` filter | — | `--verbose` / `-vb` |
@@ -389,15 +390,15 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 - Body: `name` required; `description` and `aiPrompt` may be omitted (`null`).
 - Omitted `--ai-prompt` / `--ai-prompt-file` leaves Java `aiPrompt` `null`; `AuthenticatedRestTemplate` `NON_NULL` omits the property from JSON (it is not sent as JSON `null`). The server treats a missing field as `null` and stores `""`. Passing `--ai-prompt` or `--ai-prompt-file` sets the type-layer prompt at create time.
 - `--ai-prompt` and `--ai-prompt-file` are mutually exclusive (`Cannot specify both --ai-prompt and --ai-prompt-file`). `--ai-prompt-file` is a UTF-8 text file (sample extension can be `.txt` or `.md`). A leading BOM and a single trailing newline (`\n` or `\r\n`) are not stored (so `--ai-prompt hello` and a file `hello\n` store the same value). Newlines inside the file are kept. After that strip, empty contents are a real value (create stores `""`; update clears). A missing/unreadable file (including invalid UTF-8) fails with `Failed to read AI prompt file: <path>: ...`.
-- Does not send `integrityCheckers` (server default: no checkers).
+- Omitted `--integrity-check` / `-it` leaves Java `integrityCheckers` null, so `NON_NULL` omits the property (server stores no checkers). A present value uses the same `FILE_EXTENSION:CHECKER_TYPE` list as repo create and is sent as `integrityCheckers`. The same pair twice, including a leading dot on the extension, is stored once. An empty value sends `[]`, which create treats as no checkers. An unknown checker type fails before the request with `Invalid integrity checker type [<type>]`.
 - HTTP 400, 404, and 409 → the response body as a `CommandException` (e.g. `name must be at most 255 characters`, `RepoType with name [<trimmed name>] already exists`). Empty body falls back to `Invalid repo type` (400), `Repo type is not found` (404), or `Repo type already exists` (409). HTTP 403 is **not** mapped: `AuthenticatedRestTemplate` treats 403 as a stale session, retries login, then throws `RestClientException` (`Tried to re-authenticate but the response remains to be unauthenticated`). That is the same dump as other mutating CLI commands (e.g. `repo-create`). Unmapped client errors still dump as `Unexpected error` in `L10nJCommander`.
 - Success prints `created --> repo type id: <id>`.
 
 ##### Update
 
-- At least one of `--new-name`, `--description`, `--ai-prompt`, or `--ai-prompt-file` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt, --ai-prompt-file`.
+- At least one of `--new-name`, `--description`, `--ai-prompt`, `--ai-prompt-file`, or `--integrity-check` / `-it` is required; otherwise `Must provide at least one of the following options: --new-name, --description, --ai-prompt, --ai-prompt-file, --integrity-check`.
 - PATCH body sets only the fields the user passed; omitted flags stay `null` so the server leaves those columns unchanged (see [PATCH semantics](#6-patch-null-means-leave-unchanged)).
-- Checkers: `integrityCheckers` is left Java `null` so `NON_NULL` omits the property (unchanged). A non-null empty set would serialize as `[]` and clear them. There is no checkers CLI flag yet.
+- Omitted `--integrity-check` / `-it` leaves Java `integrityCheckers` null, so `NON_NULL` omits the property and existing checkers stay. A present value replaces the full set, same `FILE_EXTENSION:CHECKER_TYPE` list as create. The same pair twice, including a leading dot on the extension, is stored once. An empty value sends `[]` and clears every checker. An unknown checker type fails before the request with `Invalid integrity checker type [<type>]`.
 - Prompt: omitted `--ai-prompt` / `--ai-prompt-file` leaves Java `aiPrompt` `null`, so `NON_NULL` omits the property (leave unchanged). `--ai-prompt ""` or `--ai-prompt-file` whose contents are empty after the UTF-8 BOM / trailing-newline strip includes `"aiPrompt":""` and clears the prompt (a file that is only a trailing newline also clears). The two prompt flags are mutually exclusive (same error as create).
 - A description-only or rename update must leave prompt and checkers as they were.
 - HTTP 400, 404, and 409 → same mapping as create (response body, or the 400/404/409 fallbacks). HTTP 403 is the same session-retry dump as create.
@@ -411,12 +412,13 @@ Update, delete, and view resolve the type with `CommandHelper.findRepoTypeByName
 
 ##### View
 
-Prints four fields for an existing type:
+Prints the fields of an existing repo type:
 
 - `Repo type id --> <id>`
 - `Name --> <name>`
 - `Description --> <description>` (`null` description prints as empty)
 - `AI prompt --> <aiPrompt>` (`null` prompt prints as empty)
+- `Integrity checkers --> <extension:CHECKER_TYPE>[,...]` when the type has checkers, sorted by extension then checker type. An empty set prints no checker line.
 
 ##### List
 
@@ -428,7 +430,8 @@ Prints one block per type, same labels as view, in the server’s name-ascending
 - `Name --> <name>`
 - `Description --> <description>` (`null` description prints as empty)
 - Default (no `--verbose`): `AI prompt --> contains a value` when the prompt is **non-empty** (`StringUtils.isNotEmpty`; whitespace-only counts as present); otherwise `AI prompt -->` with an empty value. The prompt **body** is not printed.
-- `--verbose` / `-vb`: `AI prompt --> <aiPrompt>` (`null` prompt prints as empty), same as `repo-type-view`. Use this when you need the body without calling view per type.
+- Default: `Integrity checkers --> contains N values` when the type has checkers (`contains 1 value` when there is one). The pairs are not printed. No checkers, whether the set was omitted or empty, prints `Integrity checkers -->` with an empty value.
+- `--verbose` / `-vb`: `AI prompt --> <aiPrompt>` (`null` prompt prints as empty), same as `repo-type-view`. Use this when you need the body without calling view per type. Integrity checkers print one `extension:CHECKER_TYPE` line each, sorted by extension then type. The first line keeps the label; further checkers are their own lines. No checkers prints the same empty line as the default.
 
 HTTP errors on this GET are not mapped (same as `repo-type-view`). `CommandHelper.repoTypeClientError` stays on create/update/delete. A successful empty list is HTTP 200 `[]` and prints `No repo types found` (not an error). Other failures dump via `L10nJCommander`.
 
@@ -478,7 +481,7 @@ Web UI served from `webapp` (React / Flux-style JS under `webapp/src/main/resour
 
 #### Repo Types
 
-No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name, description, and `aiPrompt` on the CLI).
+No UI yet. Follow-up work may add management screens for creating types, editing `aiPrompt`, and configuring `integrityCheckers`. Until then, configuration is REST API and CLI (name, description, `aiPrompt`, and `integrityCheckers`).
 
 ---
 
