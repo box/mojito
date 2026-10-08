@@ -6,7 +6,10 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
+import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.Test;
@@ -64,6 +67,63 @@ public class RepoTypeListCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testListPrintsEmptyIntegrityCheckersWhenNoneOrEmpty() throws Exception {
+    String noneName = testIdWatcher.getEntityName("NoCheckers");
+    String emptyName = testIdWatcher.getEntityName("EmptyCheckers");
+
+    RepoType none = repoTypeService.createRepoType(noneName, "none", null, null);
+    RepoType empty = repoTypeService.createRepoType(emptyName, "empty", null, Set.of());
+
+    getL10nJCommander().run("repo-type-list");
+
+    String output = outputCapture.toString();
+    assertEmptyCheckerLine(typeBlock(output, none.getId()));
+    assertEmptyCheckerLine(typeBlock(output, empty.getId()));
+  }
+
+  @Test
+  public void testListCountsIntegrityCheckers() throws Exception {
+    String name = testIdWatcher.getEntityName("Counted");
+
+    RepoType created =
+        repoTypeService.createRepoType(name, "desc", null, threeCheckers());
+
+    getL10nJCommander().run("repo-type-list");
+
+    String block = typeBlock(outputCapture.toString(), created.getId());
+    assertLabeledLine(block, "Integrity checkers --> ", "contains 3 values");
+    assertFalse(
+        "Default list must not print checker pairs (use --verbose)",
+        block.contains("MESSAGE_FORMAT"));
+  }
+
+  @Test
+  public void testListVerbosePrintsEachIntegrityChecker() throws Exception {
+    String name = testIdWatcher.getEntityName("VerboseCheckers");
+    String emptyName = testIdWatcher.getEntityName("VerboseNone");
+
+    RepoType created =
+        repoTypeService.createRepoType(name, "desc", null, threeCheckers());
+    RepoType empty = repoTypeService.createRepoType(emptyName, "none", null, Set.of());
+
+    getL10nJCommander().run("repo-type-list", Param.REPO_TYPE_LIST_VERBOSE_SHORT);
+
+    String output = outputCapture.toString();
+    String block = typeBlock(output, created.getId());
+    int messageFormat = block.indexOf("properties:MESSAGE_FORMAT");
+    int trailingWhitespace = block.indexOf("properties:TRAILING_WHITESPACE");
+    int printfLike = block.indexOf("xliff:PRINTF_LIKE");
+    assertTrue(
+        "Verbose list must print each checker on its own line, sorted",
+        messageFormat >= 0 && messageFormat < trailingWhitespace && trailingWhitespace < printfLike);
+    assertTrue(block.contains("Integrity checkers --> properties:MESSAGE_FORMAT"));
+    assertFalse(block.contains("properties:MESSAGE_FORMAT,"));
+    assertFalse(block.contains("contains 3 values"));
+
+    assertEmptyCheckerLine(typeBlock(output, empty.getId()));
+  }
+
+  @Test
   public void testListHelpDocumentsListAll() throws Exception {
     getL10nJCommander().run("repo-type-list", "-h");
 
@@ -118,5 +178,26 @@ public class RepoTypeListCommandTest extends CLITestBase {
 
   private static void assertLabeledLine(String output, String label, String value) {
     labeledLineIndex(output, label, value);
+  }
+
+  private static void assertEmptyCheckerLine(String block) {
+    assertTrue(
+        "No checkers must print an empty value after the label",
+        Pattern.compile("Integrity checkers --> $", Pattern.MULTILINE).matcher(block).find());
+    assertFalse(block.contains("contains "));
+  }
+
+  private static Set<RepoTypeIntegrityChecker> threeCheckers() {
+    return Set.of(
+        checker("xliff", IntegrityCheckerType.PRINTF_LIKE),
+        checker("properties", IntegrityCheckerType.TRAILING_WHITESPACE),
+        checker("properties", IntegrityCheckerType.MESSAGE_FORMAT));
+  }
+
+  private static RepoTypeIntegrityChecker checker(String extension, IntegrityCheckerType type) {
+    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
+    checker.setAssetExtension(extension);
+    checker.setIntegrityCheckerType(type);
+    return checker;
   }
 }
