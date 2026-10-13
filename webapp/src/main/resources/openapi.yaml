@@ -3184,6 +3184,8 @@ components:
       properties:
         comments:
           type: string
+        declarationLocation:
+          type: string
         name:
           type: string
         pluralForm:

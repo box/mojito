@@ -593,4 +593,70 @@ class GithubReviewCommentServiceTest {
     assertThat(reviewComments.getFirst().getPath()).isEqualTo(fileUri);
     assertThat(reviewComments.getFirst().getLine()).isEqualTo(82);
   }
+
+  @Test
+  void generateReviewComments_withNoUsages_commentsOnDeclarationLocation() {
+    // Arrange
+    GithubReviewCommentService service = createService(DEFAULT_LINE_ERROR_ALLOWANCE);
+
+    AssetExtractorTextUnit textUnit = createAssetExtractorTextUnit("source1", null);
+    textUnit.setDeclarationLocation("res/values/strings.xml:4");
+
+    CliCheckResult checkResult =
+        createCliCheckResult(
+            true,
+            "TestCheck",
+            createFieldFailures(
+                "source1", CheckerRuleId.EMPTY_PLACEHOLDER_COMMENT, "Failure message"));
+
+    Map<String, Set<Integer>> githubModifiedLines = Map.of("res/values/strings.xml", Set.of(4));
+
+    // Act
+    List<GithubClient.ReviewComment> reviewComments =
+        service.generateReviewComments(
+            List.of(checkResult),
+            List.of(createDiff(textUnit)),
+            githubModifiedLines,
+            "repoName",
+            "");
+
+    // Assert
+    assertThat(reviewComments).hasSize(1);
+    assertThat(reviewComments.getFirst().getPath()).isEqualTo("res/values/strings.xml");
+    assertThat(reviewComments.getFirst().getLine()).isEqualTo(4);
+  }
+
+  @Test
+  void generateReviewComments_withUsages_ignoresDeclarationLocation() {
+    // Arrange
+    GithubReviewCommentService service = createService(DEFAULT_LINE_ERROR_ALLOWANCE);
+
+    AssetExtractorTextUnit textUnit =
+        createAssetExtractorTextUnit("source1", Set.of("file1.java:10"));
+    textUnit.setDeclarationLocation("res/values/strings.xml:4");
+
+    CliCheckResult checkResult =
+        createCliCheckResult(
+            true,
+            "TestCheck",
+            createFieldFailures(
+                "source1", CheckerRuleId.EMPTY_PLACEHOLDER_COMMENT, "Failure message"));
+
+    Map<String, Set<Integer>> githubModifiedLines =
+        Map.of("file1.java", Set.of(10), "res/values/strings.xml", Set.of(4));
+
+    // Act
+    List<GithubClient.ReviewComment> reviewComments =
+        service.generateReviewComments(
+            List.of(checkResult),
+            List.of(createDiff(textUnit)),
+            githubModifiedLines,
+            "repoName",
+            "");
+
+    // Assert
+    assertThat(reviewComments).hasSize(1);
+    assertThat(reviewComments.getFirst().getPath()).isEqualTo("file1.java");
+    assertThat(reviewComments.getFirst().getLine()).isEqualTo(10);
+  }
 }

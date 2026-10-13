@@ -97,6 +97,14 @@ public class ExtractionCommand extends Command {
       description = Param.EXTRACTION_OUTPUT_DESCRIPTION)
   String outputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
+  @Parameter(
+      names = {"--usages-from-declaration-line", "-udl"},
+      arity = 1,
+      required = false,
+      description =
+          "Record the line that declares the string in the asset, used as the location of the PR review comments when the asset format doesn't reference the source code")
+  Boolean usagesFromDeclarationLine = false;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired ExtractionService extractionService;
@@ -136,7 +144,8 @@ public class ExtractionCommand extends Command {
           extractionPaths,
           filterOptions,
           sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-          sourceFileMatch);
+          sourceFileMatch,
+          usagesFromDeclarationLine);
     }
 
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);

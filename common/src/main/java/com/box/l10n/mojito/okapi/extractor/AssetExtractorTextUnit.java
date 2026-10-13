@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.okapi.extractor;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -10,6 +11,13 @@ public class AssetExtractorTextUnit implements Serializable {
   String pluralForm;
   String pluralFormOther;
   Set<String> usages;
+
+  /**
+   * Location of the line that declares the text unit in the asset, for example {@code
+   * res/values/strings.xml:4}
+   */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  String declarationLocation;
 
   public String getName() {
     return name;
@@ -57,5 +65,13 @@ public class AssetExtractorTextUnit implements Serializable {
 
   public void setUsages(Set<String> usages) {
     this.usages = usages;
+  }
+
+  public String getDeclarationLocation() {
+    return declarationLocation;
+  }
+
+  public void setDeclarationLocation(String declarationLocation) {
+    this.declarationLocation = declarationLocation;
   }
 }

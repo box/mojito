@@ -31,11 +31,14 @@ public class ExtractionService {
 
   @Autowired AssetExtractor assetExtractor;
 
+  @Autowired DeclarationLineLocator declarationLineLocator;
+
   public void fileMatchToAssetExtractionAndSaveToJsonFile(
       ExtractionPaths extractionPaths,
       List<String> filterOptions,
       FilterConfigIdOverride filterConfigIdOverride,
-      FileMatch sourceFileMatch)
+      FileMatch sourceFileMatch,
+      boolean usagesFromDeclarationLine)
       throws CommandException {
 
     AssetExtraction assetExtraction =
@@ -43,7 +46,8 @@ public class ExtractionService {
             extractionPaths.getExtractionName(),
             sourceFileMatch,
             filterOptions,
-            filterConfigIdOverride);
+            filterConfigIdOverride,
+            usagesFromDeclarationLine);
     Path assetExtractionPath = extractionPaths.assetExtractionPath(sourceFileMatch.getSourcePath());
     objectMapper.createDirectoriesAndWrite(assetExtractionPath, assetExtraction);
   }
@@ -60,10 +64,12 @@ public class ExtractionService {
       String extractionName,
       FileMatch sourceFileMatch,
       List<String> filterOptions,
-      FilterConfigIdOverride filterConfigIdOverride)
+      FilterConfigIdOverride filterConfigIdOverride,
+      boolean usagesFromDeclarationLine)
       throws CommandException {
     List<AssetExtractorTextUnit> assetExtractorTextUnits =
-        getExtractionTextUnitsForSourceFileMatch(sourceFileMatch, filterOptions);
+        getExtractionTextUnitsForSourceFileMatch(
+            sourceFileMatch, filterOptions, usagesFromDeclarationLine);
 
     AssetExtraction assetExtraction = new AssetExtraction();
     assetExtraction.setTextunits(assetExtractorTextUnits);
@@ -75,17 +81,26 @@ public class ExtractionService {
   }
 
   List<AssetExtractorTextUnit> getExtractionTextUnitsForSourceFileMatch(
-      FileMatch sourceFileMatch, List<String> filterOptions) {
+      FileMatch sourceFileMatch, List<String> filterOptions, boolean usagesFromDeclarationLine) {
     String sourcePath = sourceFileMatch.getSourcePath();
     String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
     FilterConfigIdOverride filterConfigIdOverride =
         sourceFileMatch.getFileType().getFilterConfigIdOverride();
 
+    List<AssetExtractorTextUnit> assetExtractorTextUnits;
     try {
-      return assetExtractor.getAssetExtractorTextUnitsForAsset(
-          sourcePath, assetContent, filterConfigIdOverride, filterOptions);
+      assetExtractorTextUnits =
+          assetExtractor.getAssetExtractorTextUnitsForAsset(
+              sourcePath, assetContent, filterConfigIdOverride, filterOptions);
     } catch (UnsupportedAssetFilterTypeException uasft) {
       throw new RuntimeException("Source file match must be for a supported file type", uasft);
     }
+
+    if (usagesFromDeclarationLine) {
+      declarationLineLocator.setDeclarationLocations(
+          assetExtractorTextUnits, assetContent, sourcePath, sourceFileMatch.getFileType());
+    }
+
+    return assetExtractorTextUnits;
   }
 }

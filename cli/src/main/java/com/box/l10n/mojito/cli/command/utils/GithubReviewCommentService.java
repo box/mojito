@@ -53,6 +53,22 @@ public class GithubReviewCommentService {
         && !assetExtractorTextUnit.getUsages().isEmpty();
   }
 
+  private static boolean hasDeclarationLocation(AssetExtractorTextUnit assetExtractorTextUnit) {
+    return assetExtractorTextUnit != null
+        && assetExtractorTextUnit.getDeclarationLocation() != null
+        && !assetExtractorTextUnit.getDeclarationLocation().isEmpty();
+  }
+
+  /**
+   * Returns the locations to comment on for a text unit: its usages, or the line that declares it
+   * in the asset when its format doesn't reference the source code.
+   */
+  private static Set<String> getLocations(AssetExtractorTextUnit assetExtractorTextUnit) {
+    return hasUsages(assetExtractorTextUnit)
+        ? assetExtractorTextUnit.getUsages()
+        : Set.of(assetExtractorTextUnit.getDeclarationLocation());
+  }
+
   /**
    * Returns the closest modified line in the given direction from the usage (1 for the lines
    * following it, -1 for the lines preceding it), up to a max (inclusive) of the {@link
@@ -117,7 +133,7 @@ public class GithubReviewCommentService {
       Map<String, Set<Integer>> githubModifiedLines,
       String repoName,
       String prefixToRemoveFromFileUri) {
-    return assetExtractorTextUnit.getUsages().stream()
+    return getLocations(assetExtractorTextUnit).stream()
         .map(
             usage -> {
               int colonIndex = usage.lastIndexOf(':');
@@ -177,9 +193,10 @@ public class GithubReviewCommentService {
   /**
    * Generates GitHub PR review comments based on CLI check failures.
    *
-   * <p>Usages pointing at a file that has no line modified in the PR are discarded, as are usages
-   * that do not point at a change made in the PR. The comments that are kept are reported on a
-   * modified line (see {@link #getCommentLineNumber}).
+   * <p>A text unit with no usages is commented on at the line that declares it in the asset, when
+   * known. Usages pointing at a file that has no line modified in the PR are discarded, as are
+   * usages that do not point at a change made in the PR. The comments that are kept are reported on
+   * a modified line (see {@link #getCommentLineNumber}).
    *
    * @param cliCheckerFailures List of check failures from CLI checkers
    * @param assetExtractionDiffs List of asset extraction diffs containing text units with usages
@@ -212,7 +229,7 @@ public class GithubReviewCommentService {
         CliCheckResult.CheckFailure resultCheckFailure = entry.getValue();
         AssetExtractorTextUnit assetExtractorTextUnit = nameToAssetTextUnitMap.get(source);
 
-        if (hasUsages(assetExtractorTextUnit)) {
+        if (hasUsages(assetExtractorTextUnit) || hasDeclarationLocation(assetExtractorTextUnit)) {
           List<UsageLocation> usageLocations =
               getUsageLocations(
                   assetExtractorTextUnit,
