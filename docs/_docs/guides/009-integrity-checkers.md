@@ -10,7 +10,7 @@ In this guide, let's go over the integrity checkers in {{ site.mojito_green }} i
 
 We use `mojito-cli` to configure integrity checkers in a repository.  Integrity checkers can be configured when you create and update repository in {{ site.mojito_green }} with `-it` parameter.  You can set integrity checker for each file extension of resource files.  For example, `-it resw:COMPOSITE_FORMAT,xlf:PRINTF_LIKE`.
 
-When a repository is assigned to a repository type, checks also include the integrity checkers configured on that type. Mojito runs the union of type and repository checkers for each file extension, so the same `(extension, checker type)` configured in both places runs only once. `repo-view` lists repository-stored checkers on `Integrity checkers` (configured with `-it`) and type-owned checkers on `Repository type checkers`.
+When a repository is assigned to a repository type, checks also include the integrity checkers configured on that type. Mojito runs the union of type and repository checkers for each file extension, so the same `(extension, checker type)` configured in both places runs only once. `repo-view` lists repository-stored checkers on `Integrity checkers` (configured with `-it`) and type-owned checkers on `Repository type checkers`. To create a type and set its checkers, see [Repository Types]({{ site.url }}/docs/guides/repository-types/).
 
 ```bash
     mojito repo-create -n MyRepo -it "properties:MESSAGE_FORMAT" -l de-DE es-ES
@@ -24,7 +24,7 @@ When a repository is assigned to a repository type, checks also include the inte
 |:---------------------------------------|:-----------------------------------------------|:-------------------------------------|
 | COMPOSITE_FORMAT                       | resw, resx                                     | RESW, RESX                           |
 | MESSAGE_FORMAT                         | properties                                     | Java Properties                      |
-| MESSAGE_FORMAT_DOUBLE_BRACES           | vue, hbs, mustache                              | Strings with `{{` placeholders       |
+| MESSAGE_FORMAT_DOUBLE_BRACES           | vue, hbs, mustache                              | Strings with `{% raw %}{{{% endraw %}` placeholders       |
 | PRINTF_LIKE                            | xml, strings                                   | Android Strings, iOS/Mac Strings     |
 | PRINTF_LIKE_IGNORE_PERCENTAGE_AFTER_BRACKETS |                                    |                                      |
 | PRINTF_LIKE_VARIABLE_TYPE             |                                                |                                      |
