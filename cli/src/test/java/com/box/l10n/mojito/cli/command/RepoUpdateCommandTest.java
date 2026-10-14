@@ -38,6 +38,15 @@ public class RepoUpdateCommandTest extends CLITestBase {
   @Autowired RepoTypeRepository repoTypeRepository;
 
   @Test
+  public void testUpdateHelpSubstitutesAvailableCheckerTypes() {
+    getL10nJCommander().run("repo-update", "-h");
+
+    String output = outputCapture.toString();
+    assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
+    assertTrue(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES));
+  }
+
+  @Test
   public void testUpdateName() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
     String testRepoName = repository.getName();
@@ -314,6 +323,28 @@ public class RepoUpdateCommandTest extends CLITestBase {
         outputCapture
             .toString()
             .contains("Repository with name [" + testRepoName + "] is not found"));
+  }
+
+  @Test
+  public void testUpdateInvalidIntegrityCheckerTypeIsAShortError() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+    String repositoryName = repository.getName();
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "properties:NOT_A_CHECKER");
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Invalid integrity checker type [NOT_A_CHECKER]"));
+    assertFalse(output.contains("Unexpected error"));
+
+    Repository unchanged = repositoryRepository.findByName(repositoryName);
+    assertNotNull(unchanged);
+    assertEquals(0, unchanged.getAssetIntegrityCheckers().size());
   }
 
   @Test
