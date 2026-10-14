@@ -317,6 +317,28 @@ public class RepoUpdateCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testUpdateInvalidIntegrityCheckerTypeIsAShortError() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+    String repositoryName = repository.getName();
+
+    getL10nJCommander()
+        .run(
+            "repo-update",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "properties:NOT_A_CHECKER");
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Invalid integrity checker type [NOT_A_CHECKER]"));
+    assertFalse(output.contains("Unexpected error"));
+
+    Repository unchanged = repositoryRepository.findByName(repositoryName);
+    assertNotNull(unchanged);
+    assertEquals(0, unchanged.getAssetIntegrityCheckers().size());
+  }
+
+  @Test
   public void testUpdateIntegrityChecker() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
     String testRepoName = repository.getName();
