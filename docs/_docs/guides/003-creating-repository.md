@@ -5,7 +5,7 @@ categories: guides
 permalink: /docs/guides/creating-repository/
 ---
 
-In this guide, we use `mojito-cli` to create a repository in {{ site.mojito_green }}.  Repository is a container for strings and their translations.  It also stores localization configurations such as locales, an optional repository type, and integrity checkers.
+In this guide, we use `mojito-cli` to create a repository in {{ site.mojito_green }}.  Repository is a container for strings and their translations.  It also stores localization configurations such as locales, an optional [repository type]({{ site.url }}/docs/guides/repository-types/), and integrity checkers.
 
 
 ### Creating Repository
@@ -42,7 +42,7 @@ The repository is configured to use `COMPOSITE_FORMAT` integrity checker for fil
     mojito repo-create -n MyRepo --repo-type React -l fr-FR
     
 
-This creates a repository named `MyRepo` assigned to the existing repository type `React`.  Omitting `--repo-type`, or passing an empty value, creates an untyped repository.
+This creates a repository named `MyRepo` assigned to the existing repository type `React`.  Create that type first; see [Repository Types]({{ site.url }}/docs/guides/repository-types/).  Omitting `--repo-type`, or passing an empty value, creates an untyped repository.
 
 
 Assigning a type does not replace repository-level `-it` checkers.  At check time Mojito runs the union of the type's integrity checkers and the repository's own checkers for each file extension.  You can also assign or change the type later, or clear it:
