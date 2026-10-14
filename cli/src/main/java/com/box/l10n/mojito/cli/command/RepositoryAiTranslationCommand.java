@@ -14,7 +14,9 @@ import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTransl
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateResponse;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -319,25 +321,73 @@ public class RepositoryAiTranslationCommand extends Command {
         consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
         waitForPollable(pollableTask.getId());
       } else {
+        consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
         commandHelper.waitForPollableTask(pollableTask.getId());
-
-        if (downloadReport) {
-          ProtoAiTranslateGetReportResponse report =
-              repositoryAiTranslateClient.getReport(pollableTask.getId());
-
-          for (String reportLocaleUrl : report.reportLocaleUrls()) {
-            RepositoryAiTranslateClient.ProtoAiTranslateGetReportLocaleResponse reportLocale =
-                repositoryAiTranslateClient.getReportLocale(reportLocaleUrl);
-            Path path = Path.of(reportLocaleUrl + ".json");
-            Files.createDirectories(path.getParent());
-            Files.write(path, reportLocale.content());
-            consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
-          }
-        }
+        processNonBatchReport(pollableTask.getId());
       }
     }
 
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+  }
+
+  /**
+   * Loads the non-batch import report, optionally writes locale JSON files, prints per-unit errors,
+   * and fails the command when any report line has a non-null {@code error}.
+   *
+   * <p>The pollable task can finish successfully even when OpenAI calls time out or fail; those
+   * failures are only recorded on the report. Without this check the CLI would print Finished and
+   * exit 0 while translations were skipped.
+   */
+  void processNonBatchReport(long pollableTaskId) {
+    ProtoAiTranslateGetReportResponse report =
+        repositoryAiTranslateClient.getReport(pollableTaskId);
+
+    ObjectMapper reportMapper = ObjectMapper.withNoFailOnUnknownProperties();
+    List<ImportReportLine> errorLines = new ArrayList<>();
+
+    for (String reportLocaleUrl : report.reportLocaleUrls()) {
+      RepositoryAiTranslateClient.ProtoAiTranslateGetReportLocaleResponse reportLocale =
+          repositoryAiTranslateClient.getReportLocale(reportLocaleUrl);
+
+      if (downloadReport) {
+        Path path = Path.of(reportLocaleUrl + ".json");
+        Files.createDirectories(path.getParent());
+        Files.write(path, reportLocale.content());
+        consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
+      }
+
+      List<ImportReportLine> lines =
+          reportMapper.readValueUnchecked(
+              reportLocale.content(), new TypeReference<List<ImportReportLine>>() {});
+      for (ImportReportLine line : lines) {
+        if (line.error() != null) {
+          errorLines.add(line);
+        }
+      }
+    }
+
+    if (!errorLines.isEmpty()) {
+      consoleWriter
+          .fg(Color.RED)
+          .newLine()
+          .a("AI translate failed for ")
+          .a(errorLines.size())
+          .a(" text unit(s):")
+          .println();
+      for (ImportReportLine line : errorLines) {
+        consoleWriter
+            .fg(Color.RED)
+            .a("- locale: ")
+            .a(line.locale())
+            .a(", tmTextUnitId: ")
+            .a(line.tmTexUnitId())
+            .a(": ")
+            .a(line.error())
+            .println();
+      }
+      throw new CommandException(
+          "AI translate completed with %d error(s)".formatted(errorLines.size()));
+    }
   }
 
   void waitForPollable(Long pollableTaskId) {
@@ -513,4 +563,10 @@ public class RepositoryAiTranslationCommand extends Command {
       List<String> processed,
       Map<String, String> failedToImport,
       Long nextJob) {}
+
+  /**
+   * Subset of the server {@code ImportReport.ImportReportLine} JSON used to detect per-unit
+   * failures. Field name {@code tmTexUnitId} matches the server spelling.
+   */
+  record ImportReportLine(long tmTexUnitId, String locale, String error) {}
 }
