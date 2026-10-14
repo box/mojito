@@ -25,6 +25,16 @@ public class RepoTypeCreateCommandTest extends CLITestBase {
   @Autowired RepoTypeRepository repoTypeRepository;
 
   @Test
+  public void testCreateHelpSubstitutesAvailableCheckerTypes() {
+    getL10nJCommander().run("repo-type-create", "-h");
+
+    String output = outputCapture.toString();
+    assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
+    assertTrue(output.contains("FLUENT"));
+    assertTrue(output.contains("MISC_AI_TRANSLATE"));
+  }
+
+  @Test
   public void testCreateRepoType() throws Exception {
     String name = testIdWatcher.getEntityName("React");
     String description = "FormatJS / react-intl apps";

@@ -88,6 +88,16 @@ public class RepoCreateCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testCreateHelpSubstitutesAvailableCheckerTypes() {
+    getL10nJCommander().run("repo-create", "-h");
+
+    String output = outputCapture.toString();
+    assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
+    assertTrue(output.contains("FLUENT"));
+    assertTrue(output.contains("MISC_AI_TRANSLATE"));
+  }
+
+  @Test
   public void testCreateInvalidIntegrityCheckerTypeIsAShortError() throws Exception {
     String repositoryName = testIdWatcher.getEntityName("badCheckerRepository");
 
