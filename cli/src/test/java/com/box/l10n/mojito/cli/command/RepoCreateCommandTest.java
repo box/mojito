@@ -93,8 +93,7 @@ public class RepoCreateCommandTest extends CLITestBase {
 
     String output = outputCapture.toString();
     assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
-    assertTrue(output.contains("FLUENT"));
-    assertTrue(output.contains("MISC_AI_TRANSLATE"));
+    assertTrue(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES));
   }
 
   @Test

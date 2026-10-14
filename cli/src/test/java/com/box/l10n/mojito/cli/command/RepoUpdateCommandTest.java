@@ -38,6 +38,15 @@ public class RepoUpdateCommandTest extends CLITestBase {
   @Autowired RepoTypeRepository repoTypeRepository;
 
   @Test
+  public void testUpdateHelpSubstitutesAvailableCheckerTypes() {
+    getL10nJCommander().run("repo-update", "-h");
+
+    String output = outputCapture.toString();
+    assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
+    assertTrue(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES));
+  }
+
+  @Test
   public void testUpdateName() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
     String testRepoName = repository.getName();

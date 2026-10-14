@@ -29,6 +29,15 @@ public class RepoTypeUpdateCommandTest extends CLITestBase {
   @Autowired RepoTypeRepository repoTypeRepository;
 
   @Test
+  public void testUpdateHelpSubstitutesAvailableCheckerTypes() {
+    getL10nJCommander().run("repo-type-update", "-h");
+
+    String output = outputCapture.toString();
+    assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
+    assertTrue(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES));
+  }
+
+  @Test
   public void testUpdateName() throws Exception {
     String name = testIdWatcher.getEntityName("Android");
     String newName = name + "_updated";
