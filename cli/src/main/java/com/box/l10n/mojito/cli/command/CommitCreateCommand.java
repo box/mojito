@@ -154,7 +154,7 @@ public class CommitCreateCommand extends Command {
         revCommit =
             Streams.stream(new Git(gitRepository.jgitRepository).log().setMaxCount(1).call())
                 .findFirst()
-                .orElseThrow(() -> new CommandException("There is no commits in the log"));
+                .orElseThrow(() -> new CommandException("There are no commits in the log"));
       }
 
       final PersonIdent authorIdent = revCommit.getAuthorIdent();
@@ -180,7 +180,7 @@ public class CommitCreateCommand extends Command {
       return commitInfo;
 
     } catch (IOException | GitAPIException ioException) {
-      throw new CommandException("Can't retreive information from Git", ioException);
+      throw new CommandException("Can't retrieve information from Git", ioException);
     }
   }
 
