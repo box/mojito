@@ -7,6 +7,7 @@ WORKDIR /mnt/mojito
 
 # copy source and make sure node* are not present (Mac version may conflict with Linux)
 COPY . /mnt/mojito
+RUN rm -rf /mnt/mojito/webapp/node/ /mnt/mojito/webapp/node_modules
 
 ENV PATH="/mnt/mojito/webapp/node/:${PATH}"
 RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/mnt/mojito/node --mount=type=cache,target=/mnt/mojito/node_module mvn clean install -DskipTests
