@@ -7,12 +7,10 @@ import com.box.l10n.mojito.rest.client.RepoTypeClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.RepoType;
-import com.box.l10n.mojito.rest.entity.RepoTypeIntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -120,25 +118,9 @@ public class RepoViewCommand extends RepoCommand {
       return;
     }
 
-    if (repoType.getIntegrityCheckers() == null || repoType.getIntegrityCheckers().isEmpty()) {
+    List<String> pairs = IntegrityCheckerCli.sortedPairs(repoType.getIntegrityCheckers());
+    if (pairs.isEmpty()) {
       return;
-    }
-
-    List<RepoTypeIntegrityChecker> typeCheckers = new ArrayList<>(repoType.getIntegrityCheckers());
-    typeCheckers.sort(
-        Comparator.comparing(
-                RepoTypeIntegrityChecker::getAssetExtension,
-                Comparator.nullsLast(String::compareTo))
-            .thenComparing(
-                checker ->
-                    checker.getIntegrityCheckerType() == null
-                        ? ""
-                        : checker.getIntegrityCheckerType().name()));
-
-    List<String> pairs = new ArrayList<>();
-    for (RepoTypeIntegrityChecker typeChecker : typeCheckers) {
-      pairs.add(
-          typeChecker.getAssetExtension() + ":" + typeChecker.getIntegrityCheckerType().toString());
     }
     printCheckerLine("Repository type checkers --> ", pairs);
   }
