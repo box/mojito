@@ -21,6 +21,7 @@ source "$ROOT/docker/smoke/lib.sh"
 COMPOSE_FILE="$ROOT/docker/docker-compose-mysql-smoke.yml"
 STAMP_DIR="$ROOT/docker/.data"
 STAMP="$STAMP_DIR/webapp-build.txt"
+# Must match image on the webapp service in docker-compose-mysql-smoke.yml.
 IMAGE_NAME="mojito-mysql-smoke-webapp:latest"
 
 require_sha256

@@ -47,6 +47,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Explicit tag so build-image.sh / check.sh do not depend on Compose's
+    # default "{project}-{service}:latest" naming.
+    image: mojito-mysql-smoke-webapp:latest
     build:
       dockerfile: docker/Dockerfile-bk21
       context: ../
