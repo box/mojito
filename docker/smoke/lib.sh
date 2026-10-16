@@ -28,6 +28,7 @@ require_sha256() {
 # Sorted lines of "<sha256>  <path>", one per SQL or Java migration source file.
 # The path is relative to the repository root. Command substitution removes the
 # final newline; callers that hash this text must add that newline back.
+# LC_ALL=C forces byte order so the fingerprint does not depend on the locale.
 migration_manifest() {
   local root="$1"
   local sql_dir="$root/webapp/src/main/resources/db/migration"
@@ -44,7 +45,7 @@ migration_manifest() {
     checksum="$(sha256_file "$file")"
     printf '%s  %s\n' "$checksum" "$relative_path"
   done < <(find "$sql_dir" "$java_dir" -maxdepth 1 -type f \( -name 'V*.sql' -o -name 'V*.java' \) -print0) \
-    | sort
+    | LC_ALL=C sort
 }
 
 migration_fingerprint() {

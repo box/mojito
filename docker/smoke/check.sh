@@ -146,11 +146,13 @@ echo "Running webapp image matches the SQL and Java migrations from its build."
 # A Docker image is a snapshot from its last build. Compare the SQL files in
 # the running jar with the working tree so an old image cannot produce a green
 # smoke result after a migration was edited without rebuilding.
+# LC_ALL=C forces byte order. The laptop sort and the sort inside the image
+# must use the same rule, or the same hashes can fail this check.
 source_sql_manifest="$(
   while IFS= read -r -d '' migration; do
     printf '%s  %s\n' "$(sha256_file "$migration")" "$(basename "$migration")"
   done < <(find "$SQL_MIGRATION_DIR" -maxdepth 1 -type f -name 'V*.sql' -print0) \
-    | sort
+    | LC_ALL=C sort
 )"
 
 if ! image_sql_manifest="$(
@@ -167,7 +169,7 @@ find BOOT-INF/classes/db/migration -maxdepth 1 -type f -name 'V*.sql' \
   | while read -r checksum path; do
       printf '%s  %s\n' "$checksum" "$(basename "$path")"
     done \
-  | sort
+  | LC_ALL=C sort
 END_IMAGE_MANIFEST
 )"; then
   echo "Could not read SQL migrations from the running webapp image." >&2
