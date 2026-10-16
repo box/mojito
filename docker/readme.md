@@ -163,7 +163,7 @@ docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 
 This command leaves `FLYWAY_TARGET` unset, so Flyway migrates to the latest script. To stop at a chosen version first (then continue), set `FLYWAY_TARGET=N` on `up` as described in [Stopping at a Flyway version](#stopping-at-a-flyway-version). If `docker/.data/db` already contains a migrated database, Flyway reads `flyway_schema_history` and applies only scripts that are not in that logbook yet.
 
-The image is a packaged snapshot of Mojito from the last Docker build. Editing a source or migration file does not update an existing image. `docker/smoke/build-image.sh` builds the webapp and writes `docker/.data/webapp-build.txt`. That record contains the image ID and a fingerprint of every `V*.sql` and `V*.java` migration file. `docker/smoke/check.sh` fails if the running container is a different image or those files changed after the build. It also compares SQL in the running jar with the working tree. Java migrations are compiled to class files and are not shipped as `.java`; `check.sh` verifies them through that fingerprint instead. Deleting `docker/.data/db` does not delete the build record.
+The image is a packaged snapshot of Mojito from the last Docker build. Editing a source or migration file does not update an existing image. `docker/smoke/build-image.sh` builds the webapp and writes `docker/.data/webapp-build.txt`. That record contains the image ID and a fingerprint of every `V*.sql` and `V*.java` migration file. `docker/smoke/check.sh` fails if the running container is a different image or those files changed after the build. It also compares SQL in the running jar with the working tree. Java migrations are compiled to class files and are not shipped as `.java`; `check.sh` verifies them through that fingerprint instead. Deleting `docker/.data/db` does not delete the build record. To try a host-built jar without that full rebuild, see [Edit loop without rebuilding the image](#edit-loop-without-rebuilding-the-image). That path is not what `check.sh` trusts.
 
 Follow the webapp log until it reports that the application started:
 
@@ -199,12 +199,39 @@ docker compose -f docker/docker-compose-mysql-smoke.yml down
 
 `docker/smoke/check.sh` is optional here. It is a separate pass/fail script you run by hand after the app is up. It is not started by `up`.
 
+## Edit loop without rebuilding the image
+
+`build-image.sh` is the run `check.sh` can trust. This shortcut is for trying a Java or migration change without that full image build. MySQL and `docker/.data/db` stay up.
+
+The running image has to honor `MOJITO_WEBAPP_JAR` and `MOJITO_CLI_JAR`. Run `docker/smoke/build-image.sh` once after that change to the image. Later tries can skip the image build.
+
+Compile on the laptop, copy the jars onto stable names, and recreate only the webapp with the extra Compose file:
+
+```bash
+mvn -DskipTests package
+docker/smoke/stage-local-jars.sh
+docker compose \
+  -f docker/docker-compose-mysql-smoke.yml \
+  -f docker/docker-compose-mysql-smoke.local-jars.yml \
+  up -d --no-deps --force-recreate webapp
+```
+
+`stage-local-jars.sh` copies `mojito-webapp-*-exec.jar` and `mojito-cli-*-exec.jar` to `docker/local-jars/mojito-webapp.jar` and `docker/local-jars/mojito-cli.jar`. Compose cannot mount a glob, and mounting over `/usr/local/mojito/bin` would hide the `mojito` wrapper that `mojito-local` calls. The Compose file mounts `docker/local-jars` at `/opt/mojito-jars` instead. Copy again after every Maven build, then recreate the webapp. The process keeps the jar it opened at start. A host-built jar is fine here. Do not use this shortcut to supply `webapp/node`.
+
+`check.sh` fails while this mount is in place. The image id does not change, so a green check would not describe the jars that are actually running. When you want that check, recreate the webapp from the baked image:
+
+```bash
+docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
+```
+
+That command does not include the local-jars file, so the container goes back to the jars inside the image. Run `docker/smoke/build-image.sh` first if the sources have moved on from that image.
+
 ## Smoke checks
 
 `docker/smoke/check.sh` waits until the app is up, then verifies:
 
 1. `GET /actuator/health` reports `UP`.
-2. The running webapp matches the image and migration fingerprint recorded by `docker/smoke/build-image.sh`. SQL in the running jar is also compared with the working tree.
+2. The running webapp matches the image and migration fingerprint recorded by `docker/smoke/build-image.sh`. SQL in the running jar is also compared with the working tree. The check fails if host jars are mounted with `docker-compose-mysql-smoke.local-jars.yml`.
 3. `MAX(version)` in `flyway_schema_history` equals the highest integer migration Flyway loads (`V*.sql` under `webapp/src/main/resources/db/migration/` and `V*.java` under `webapp/src/main/java/db/migration/`). See [Migration versions are integers](#migration-versions-are-integers).
 4. Repo-type create, list, update, view, and delete succeed via `docker/smoke/mojito-local`. Each run uses a unique name. Update is confirmed in `repo-type-view`; delete is confirmed by a second list that omits that name.
 

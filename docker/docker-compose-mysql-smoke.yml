@@ -11,6 +11,9 @@
 #   docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
 #
 # The datasource host is the Compose service name `db` and nothing else.
+#
+# Edit loop (host-built jars, not the trusted check): docker/readme.md,
+# "Edit loop without rebuilding the image".
 
 name: mojito-mysql-smoke
 

@@ -7,7 +7,9 @@
 # Checks:
 #   1. GET /actuator/health reports UP
 #   2. The running webapp is the image recorded by docker/smoke/build-image.sh,
-#      and the SQL and Java migration sources still match that build
+#      and the SQL and Java migration sources still match that build.
+#      A host-jar mount (docker-compose-mysql-smoke.local-jars.yml) fails this
+#      check: the image id does not change when those jars are mounted.
 #   3. SQL migrations packaged in the running webapp match the working tree
 #   4. flyway_schema_history max version equals the highest versioned migration
 #      Flyway loads: V*.sql under webapp/src/main/resources/db/migration/ and
@@ -131,6 +133,15 @@ webapp_container_id="$(compose ps -q webapp)"
 webapp_container_id="${webapp_container_id%%$'\n'*}"
 if [[ -z "$webapp_container_id" ]]; then
   echo "Webapp container is not running." >&2
+  exit 1
+fi
+# The edit-loop mount leaves the image id unchanged, so a green result would
+# describe the baked image while a different jar is running.
+if docker inspect --format '{{range .Mounts}}{{println .Destination}}{{end}}' "$webapp_container_id" \
+  | grep -qx '/opt/mojito-jars'; then
+  echo "The webapp is running with host jars mounted at /opt/mojito-jars." >&2
+  echo "This check cannot prove what is running, because the image id stays the baked image." >&2
+  echo "Recreate the webapp without docker/docker-compose-mysql-smoke.local-jars.yml, after docker/smoke/build-image.sh." >&2
   exit 1
 fi
 running_image_id="$(docker inspect --format '{{.Image}}' "$webapp_container_id")"

@@ -1,4 +1,5 @@
 /docker/.data
+/docker/local-jars/
 /cli/performance/
 /cli/target/
 /webapp/target/

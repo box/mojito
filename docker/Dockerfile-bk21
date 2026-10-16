@@ -37,8 +37,9 @@ RUN /bin/echo -e "#!/bin/sh \n\
 java -Dl10n.resttemplate.host=\${MOJITO_HOST} \\\\\n \
      -Dl10n.resttemplate.scheme=\${MOJITO_SCHEME} \\\\\n \
      -Dl10n.resttemplate.port=\${MOJITO_PORT} \\\\\n \
-     -jar $MOJITO_BIN/mojito-cli.jar \"\${@}\"" \
+     -jar \${MOJITO_CLI_JAR:-$MOJITO_BIN/mojito-cli.jar} \"\${@}\"" \
     >> /usr/local/mojito/bin/mojito && chmod +x $MOJITO_BIN/mojito
 
 # starting with "exec doesn't seem to be needed with openjdk:8-alpine. As per docker documentation, it is required in general
-ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar $MOJITO_BIN/mojito-webapp.jar
+# The shell chooses the jar path when the container starts. Unset MOJITO_WEBAPP_JAR keeps the baked jar.
+ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar ${MOJITO_WEBAPP_JAR:-/usr/local/mojito/bin/mojito-webapp.jar}
