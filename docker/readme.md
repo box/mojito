@@ -161,7 +161,7 @@ When Mojito code or migrations change, run `docker/smoke/build-image.sh` before 
 docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 ```
 
-This command leaves `FLYWAY_TARGET` unset, so Flyway migrates to the latest script. To stop at a chosen version first (then continue), set `FLYWAY_TARGET=N` on `up` as described in [Stopping at a Flyway version](#stopping-at-a-flyway-version). If `docker/.data/db` already contains a migrated database, Flyway reads `flyway_schema_history` and applies only scripts that are not in that logbook yet.
+This command leaves `FLYWAY_TARGET` unset, so Flyway migrates to the latest script in the running image. To rehearse an upgrade of a populated database, use [Recipe: upgrade from version N to latest](#recipe-upgrade-from-version-n-to-latest). If `docker/.data/db` already contains a migrated database, Flyway reads `flyway_schema_history` and applies only scripts that are not in that logbook yet.
 
 The image is a packaged snapshot of Mojito from the last Docker build. Editing a source or migration file does not update an existing image. `docker/smoke/build-image.sh` builds the webapp and writes `docker/.data/webapp-build.txt`. That record contains the image ID and a fingerprint of every `V*.sql` and `V*.java` migration file. `docker/smoke/check.sh` fails if the running container is a different image or those files changed after the build. It also compares SQL in the running jar with the working tree. Java migrations are compiled to class files and are not shipped as `.java`; `check.sh` verifies them through that fingerprint instead. Deleting `docker/.data/db` does not delete the build record. To try a host-built jar without that full rebuild, see [Edit loop without rebuilding the image](#edit-loop-without-rebuilding-the-image). That path is not what `check.sh` trusts.
 
@@ -254,63 +254,227 @@ docker/smoke/check.sh
 
 `build-image.sh` compiles the current Mojito files into the image and records that build. This takes a while. Do not replace it with `up --build`: that can start a new image without updating `docker/.data/webapp-build.txt`, and the smoke check then fails.
 
-## Stopping at a Flyway version
+## Upgrade from an older Mojito
 
-`FLYWAY_TARGET` maps to `spring.flyway.target`. Omit it for a normal session: Flyway applies every pending script, through the latest.
+`FLYWAY_TARGET` maps to `spring.flyway.target`. Leave it unset. Flyway then applies every pending script in the image that is running, through that image's own latest migration.
 
-Set it only to rehearse an upgrade from an older schema. That is two starts on the same database:
+An upgrade rehearsal is two images on one `docker/.data/db`. The first image is the commit that introduced migration N, so N is that build's latest migration. Code and schema match, and the app stays up. The second image is the Mojito on this branch. It applies N+1 through the latest script to a database that already holds a repository, an asset, and an imported translation.
 
-1. `FLYWAY_TARGET=N docker compose … up -d` — migrate an empty database through version N and stop. Confirm `flyway_schema_history` reached N. The webapp may then exit: this image is the current Mojito build, which expects the latest schema, while the database is still at N. That is expected. The goal of this start is the database at N, not a usable app. MySQL stays up.
-2. `docker compose … up -d --no-deps --force-recreate webapp` with `FLYWAY_TARGET` unset — Flyway applies only the remaining scripts so the schema matches the current code. The app must stay up.
+The example uses N=66. Pick a version below the latest script on this branch, from a commit `docker/Dockerfile-bk21` can compile (Java 21). That commit does not need the smoke harness. This branch's Dockerfile builds it and installs the `mojito` command. `docker/smoke/mojito-local` runs that command from the host.
 
-If the second start still has `FLYWAY_TARGET=N`, versions after N never run. Commands are in the recipe below.
+The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the recipe copies those files in with `docker compose cp`. Record the repository id from `repo-view` and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same id and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
+
+Do not call `repo-type-create` on the first boot when N is below V69. That table is not there yet. `check.sh` covers the repository-type API after the upgrade.
 
 ## Recipe: upgrade from version N to latest
 
-Start fresh, migrate through version N, and boot again with no target only when the logbook stopped at exactly N. The example uses N=66. Use any version below the latest script.
+Run this with bash from the repository root. Both image builds compile Mojito and take a while. The first `docker build` does not update `docker/.data/webapp-build.txt`. `build-image.sh` records the second image, which is the one `check.sh` trusts.
 
-The script below recreates the webapp and runs `docker/smoke/check.sh` only after `flyway_schema_history` shows exactly N. `check.sh` reports the final version only, so it cannot distinguish this path from a fresh migrate; the wait before the second start is what proves the stop at N. If the logbook is already past N, or never reaches N, the block exits with an error and does not recreate the webapp or run the smoke check. A version already past N cannot become N, so the wait ends as soon as that is observed.
+The block checks the seed before it recreates the webapp. If that check fails, it does not build the current image or run `check.sh`. On success it removes the containers. `docker/.data/db` stays on disk. The temporary git worktree is removed when the block ends, including when it stops early. If it stops early, the stack stays up so you can read the webapp log.
 
 ```bash
-docker compose -f docker/docker-compose-mysql-smoke.yml down
+set -euo pipefail
+unset FLYWAY_TARGET
+
+COMPOSE=(docker compose -f docker/docker-compose-mysql-smoke.yml)
+TARGET=66
+REPO=schema-upgrade-smoke
+TRANSLATED='Bonjour de la mise à niveau du schéma'
+FIXTURE=docker/smoke/fixtures/populated-upgrade
+IMAGE=mojito-mysql-smoke-webapp:latest
+
+latest_migration_at() {
+  git ls-tree -r --name-only "$1" -- \
+    webapp/src/main/resources/db/migration \
+    webapp/src/main/java/db/migration \
+    | sed -nE 's|.*/V([0-9]+)__.*|\1|p' \
+    | sort -n \
+    | tail -n 1
+}
+
+strip_ansi() {
+  perl -pe 's/\e\[[0-9;]*[A-Za-z]//g'
+}
+
+wait_until_up() {
+  local health=""
+  echo "Waiting for http://127.0.0.1:8080/actuator/health"
+  for _ in $(seq 1 90); do
+    if health="$(curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health)"; then
+      if printf '%s\n' "$health" | grep -q '"status":"UP"'; then
+        echo "$health"
+        return 0
+      fi
+    fi
+    sleep 5
+  done
+  echo "Webapp did not stay up at http://127.0.0.1:8080/actuator/health" >&2
+  return 1
+}
+
+flyway_version() {
+  local query_err raw
+  if ! query_err="$(mktemp)"; then
+    echo "Could not read flyway_schema_history." >&2
+    return 1
+  fi
+  if ! raw="$(
+    "${COMPOSE[@]}" exec -T db \
+      mysql -N -umojito -pChangeMe mojito \
+      -e "SELECT IFNULL(MAX(CAST(version AS UNSIGNED)), 0) FROM flyway_schema_history WHERE success = 1;" \
+      2>"$query_err"
+  )"; then
+    echo "Could not read flyway_schema_history." >&2
+    if [[ -s "$query_err" ]]; then
+      cat "$query_err" >&2
+    fi
+    rm -f "$query_err"
+    return 1
+  fi
+  rm -f "$query_err"
+  printf '%s\n' "${raw//[[:space:]]/}"
+}
+
+copy_fixtures() {
+  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-seed /opt/smoke-pull
+  "${COMPOSE[@]}" exec -T webapp rm -rf /opt/smoke-pull
+  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-pull
+  "${COMPOSE[@]}" cp "$FIXTURE/messages.properties" webapp:/opt/smoke-seed/messages.properties
+  "${COMPOSE[@]}" cp "$FIXTURE/messages_fr-FR.properties" webapp:/opt/smoke-seed/messages_fr-FR.properties
+}
+
+# Prints the repository id on stdout. repo-view and pull are shown on stderr.
+# Fails unless pull wrote TRANSLATED.
+assert_seed() {
+  local view repo_id
+  if ! view="$(docker/smoke/mojito-local repo-view -n "$REPO" | strip_ansi)"; then
+    echo "repo-view failed for ${REPO}." >&2
+    return 1
+  fi
+  printf '%s\n' "$view" >&2
+  repo_id="$(printf '%s\n' "$view" | sed -nE 's/.*Repository id --> ([0-9]+).*/\1/p')"
+  repo_id="${repo_id%%$'\n'*}"
+  if [[ -z "$repo_id" ]]; then
+    echo "repo-view did not print a repository id for ${REPO}." >&2
+    return 1
+  fi
+  if ! docker/smoke/mojito-local pull -r "$REPO" -s /opt/smoke-seed -t /opt/smoke-pull >&2; then
+    echo "pull failed for ${REPO}." >&2
+    return 1
+  fi
+  if ! "${COMPOSE[@]}" exec -T webapp grep -R -F "$TRANSLATED" /opt/smoke-pull >&2; then
+    echo "Imported translation was not in the pull output." >&2
+    return 1
+  fi
+  printf '%s\n' "$repo_id"
+}
+
+"${COMPOSE[@]}" down
 rm -rf docker/.data/db
 mkdir -p docker/.data/db
-TARGET=66
-# Build once before either boot so both boots run the current source and migrations.
-docker/smoke/build-image.sh
-FLYWAY_TARGET="$TARGET" docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 
-# Wait until the logbook shows exactly TARGET. The webapp may exit after Flyway; the db container stays up.
-version=""
-for _ in $(seq 1 60); do
-  version="$(docker compose -f docker/docker-compose-mysql-smoke.yml exec -T db \
-    mysql -N -umojito -pChangeMe mojito \
-    -e "SELECT IFNULL(MAX(CAST(version AS UNSIGNED)), 0) FROM flyway_schema_history WHERE success = 1;" \
-    2>/dev/null || true)"
-  version="${version//[[:space:]]/}"
-  echo "flyway version: ${version:-unknown}"
-  if [ "$version" = "$TARGET" ]; then
+current_latest="$(
+  find webapp/src/main/resources/db/migration webapp/src/main/java/db/migration \
+    -maxdepth 1 -type f \( -name 'V*.sql' -o -name 'V*.java' \) -print \
+    | sed -nE 's|.*/V([0-9]+)__.*|\1|p' \
+    | sort -n \
+    | tail -n 1
+)"
+if [[ -z "$current_latest" || "$TARGET" -ge "$current_latest" ]]; then
+  echo "TARGET=${TARGET} must be below this branch's latest migration (${current_latest:-none})." >&2
+  exit 1
+fi
+
+migration_files="$(
+  find webapp/src/main/resources/db/migration webapp/src/main/java/db/migration \
+    -maxdepth 1 -type f \( -name "V${TARGET}__*.sql" -o -name "V${TARGET}__*.java" \) | sort
+)"
+if [[ -z "$migration_files" ]]; then
+  echo "No V${TARGET}__ migration file in this branch." >&2
+  exit 1
+fi
+
+COMMIT=""
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  candidate="$(git log --diff-filter=A -1 --format=%H -- "$file")"
+  [[ -n "$candidate" ]] || continue
+  if [[ "$(latest_migration_at "$candidate")" == "$TARGET" ]]; then
+    COMMIT="$candidate"
     break
   fi
-  case "$version" in
-    ''|*[!0-9]*)
-      ;;
-    *)
-      if [ "$version" -gt "$TARGET" ]; then
-        break
-      fi
-      ;;
-  esac
-  sleep 10
-done
+done <<EOF
+$migration_files
+EOF
 
-if [ "$version" != "$TARGET" ]; then
-  echo "Did not stop at ${TARGET} (saw '${version:-unknown}'). Refusing the second boot." >&2
-  false
-else
-  # Second boot: no FLYWAY_TARGET, so the cap is latest. Leave docker/.data/db in place.
-  docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
-  docker/smoke/check.sh
-  docker compose -f docker/docker-compose-mysql-smoke.yml down
+if [[ -z "$COMMIT" ]]; then
+  echo "No commit that added V${TARGET} has latest migration ${TARGET}." >&2
+  exit 1
 fi
+
+WORKTREE="$(mktemp -d "${TMPDIR:-/tmp}/mojito-schema-${TARGET}.XXXXXX")"
+rmdir "$WORKTREE"
+cleanup_worktree() {
+  git worktree remove --force "$WORKTREE" >/dev/null 2>&1 || true
+  git worktree prune >/dev/null 2>&1 || true
+}
+trap cleanup_worktree EXIT
+git worktree add --detach "$WORKTREE" "$COMMIT"
+
+java_version="$(sed -nE 's|.*<java.version>([^<]+)</java.version>.*|\1|p' "$WORKTREE/pom.xml")"
+java_version="${java_version%%$'\n'*}"
+if [[ "$java_version" != "21" ]]; then
+  echo "Commit ${COMMIT} uses Java ${java_version:-unknown}. docker/Dockerfile-bk21 compiles Java 21." >&2
+  exit 1
+fi
+
+# A worktree .git is a file (gitdir: <host path>). Exclude it so COPY . does not
+# send that dangling pointer into the image. Create or append only in this
+# temporary worktree; do not replace rules already in .dockerignore.
+if [[ ! -e "$WORKTREE/.dockerignore" ]]; then
+  printf '%s\n' '.git' > "$WORKTREE/.dockerignore"
+elif ! grep -qxF '.git' "$WORKTREE/.dockerignore"; then
+  printf '\n%s\n' '.git' >> "$WORKTREE/.dockerignore"
+fi
+
+echo "Building ${COMMIT} (latest migration V${TARGET}) as ${IMAGE}"
+DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile-bk21 -t "$IMAGE" "$WORKTREE"
+
+# --no-build keeps Compose from replacing this image with a build of the current branch.
+"${COMPOSE[@]}" up -d --no-build
+wait_until_up
+if ! version="$(flyway_version)"; then
+  exit 1
+fi
+echo "flyway version: ${version:-unknown}"
+if [[ "$version" != "$TARGET" ]]; then
+  echo "First boot stopped at '${version:-unknown}', expected ${TARGET}. Refusing to seed." >&2
+  exit 1
+fi
+
+copy_fixtures
+docker/smoke/mojito-local repo-create -n "$REPO" -l fr-FR
+docker/smoke/mojito-local push -r "$REPO" -s /opt/smoke-seed
+docker/smoke/mojito-local import -r "$REPO" -s /opt/smoke-seed -t /opt/smoke-seed
+if ! repo_id_before="$(assert_seed)"; then
+  exit 1
+fi
+echo "Recorded repository id ${repo_id_before} and translation: ${TRANSLATED}"
+
+# Second boot: current branch, same docker/.data/db, FLYWAY_TARGET still unset.
+docker/smoke/build-image.sh
+"${COMPOSE[@]}" up -d --no-deps --force-recreate --no-build webapp
+wait_until_up
+copy_fixtures
+if ! repo_id_after="$(assert_seed)"; then
+  exit 1
+fi
+if [[ "$repo_id_after" != "$repo_id_before" ]]; then
+  echo "Repository id changed from ${repo_id_before} to ${repo_id_after}." >&2
+  exit 1
+fi
+echo "Repository ${repo_id_after} and translation survived the upgrade."
+
+docker/smoke/check.sh
+"${COMPOSE[@]}" down
 ```

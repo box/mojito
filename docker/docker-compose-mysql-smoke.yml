@@ -4,11 +4,12 @@
 # `docker compose down` removes the containers and leaves the host data
 # directory docker/.data/db in place (bind-mount, not a named volume).
 #
-# Stop at a Flyway version:
-#   docker/smoke/build-image.sh
-#   FLYWAY_TARGET=66 docker compose -f docker/docker-compose-mysql-smoke.yml up -d
-# Continue to latest (do not set FLYWAY_TARGET on this command):
-#   docker compose -f docker/docker-compose-mysql-smoke.yml up -d --no-deps --force-recreate webapp
+# Populated upgrade from the commit that introduced migration N:
+#   docker/readme.md, "Recipe: upgrade from version N to latest".
+# That recipe builds two images and leaves FLYWAY_TARGET unset both times.
+#
+# A normal start leaves FLYWAY_TARGET unset and migrates to the latest script
+# in the image that is running.
 #
 # The datasource host is the Compose service name `db` and nothing else.
 #
@@ -63,7 +64,8 @@ services:
       MOJITO_HOST: localhost
       MOJITO_SCHEME: http
       MOJITO_PORT: "8080"
-      # Mojito's own Flyway. Unset FLYWAY_TARGET (or leave it unset) to apply every pending script.
+      # Mojito's own Flyway. Leave FLYWAY_TARGET unset to apply every pending script in this image.
+      # The upgrade recipe does not set it. "latest" is the newest migration in the image that is running.
       SPRING_FLYWAY_TARGET: ${FLYWAY_TARGET:-latest}
       SPRING_APPLICATION_JSON: '{
         "spring.flyway.enabled": "true",
