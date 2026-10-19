@@ -179,7 +179,7 @@ curl -sf http://127.0.0.1:8080/actuator/health
 
 The body should contain `"status":"UP"`.
 
-Open [http://localhost:8080/login](http://localhost:8080/login) and sign in with the bootstrap user from `l10n.bootstrap.user` (created when this database has no users yet).
+Open [http://localhost:8080/login](http://localhost:8080/login) and sign in as `admin` with password `ChangeMe`. Mojito creates that user from `l10n.bootstrap.default-user` when the database has no users yet.
 
 Create the sample repository once the app is up:
 
@@ -275,9 +275,9 @@ docker/smoke/populated-upgrade.sh
 docker/smoke/populated-upgrade.sh 66
 ```
 
-Run either command from anywhere inside the repository. With no argument, N defaults to 66; otherwise the integer argument selects N. Both image builds compile Mojito and take a while. The first image does not update `docker/.data/webapp-build.txt`. `build-image.sh` records the second image, which is the one `check.sh` trusts.
+Run either command from the repository root. With no argument, N defaults to 66; otherwise the integer argument selects N. Both image builds compile Mojito and take a while. The first image does not update `docker/.data/webapp-build.txt`. `build-image.sh` records the second image, which is the one `check.sh` trusts.
 
-The script stops at the first failure. It does not build the current image or run `check.sh` unless the seed is present before the second boot. On success it removes the containers. `docker/.data/db` stays on disk. The temporary git worktree is removed when the script ends, including when it stops early. If it stops early, the stack stays up so you can read the webapp log.
+The script stops at the first failure. It does not build the current image or run `check.sh` unless the seed is present before the second boot. On success it removes the containers. `docker/.data/db` stays on disk. The temporary git worktree is removed when the script ends, including when it stops early. After the webapp is up, a later failure leaves that stack running so you can read the webapp log. The first image build runs after the script has removed the containers, so a failure there leaves them down.
 
 In order, the script:
 
