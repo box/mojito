@@ -205,6 +205,7 @@ if ! actual="$(
   compose exec -T db \
     mysql -N -umojito -pChangeMe mojito \
     -e "SELECT MAX(CAST(version AS UNSIGNED)) FROM flyway_schema_history WHERE success = 1;" \
+    </dev/null \
     2>"$query_err"
 )"; then
   echo "Could not read flyway_schema_history from the smoke database." >&2

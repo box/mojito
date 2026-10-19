@@ -262,7 +262,9 @@ An upgrade rehearsal is two images on one `docker/.data/db`. The first image is 
 
 The example uses N=66. Pick a version below the latest script on this branch, from a commit `docker/Dockerfile-bk21` can compile (Java 21). That commit does not need the smoke harness. This branch's Dockerfile builds it and installs the `mojito` command. `docker/smoke/mojito-local` runs that command from the host.
 
-The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the recipe copies those files in with `docker compose cp`. Record the repository id from `repo-view` and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same id and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
+The first image is built for `linux/amd64`. The V66 frontend uses `node-sass` 4, which publishes a `linux-x64` binary and no `linux-arm64` binary. On Apple Silicon that image runs under emulation. `build-image.sh` still builds the second image for the host.
+
+The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the recipe copies those files in with `docker compose cp`. The source file and the translation go in different directories. `push` and `import` can share one directory, because a file that matches a translation name is then treated as a translation. `pull` writes to a separate directory, so the same French file sitting next to the source would be scanned as a second source asset and the command would fail. Record the repository id from `repo-view` and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same id and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
 
 Do not call `repo-type-create` on the first boot when N is below V69. That table is not there yet. `check.sh` covers the repository-type API after the upgrade.
 
@@ -275,6 +277,11 @@ The block checks the seed before it recreates the webapp. If that check fails, i
 ```bash
 set -euo pipefail
 unset FLYWAY_TARGET
+
+# This block is piped into bash, so bash reads the recipe from its own standard
+# input. docker compose exec also reads standard input and would consume every
+# unread line, then bash would exit successfully before the seed. Every exec
+# below closes stdin with </dev/null. docker/smoke/mojito-local does the same.
 
 COMPOSE=(docker compose -f docker/docker-compose-mysql-smoke.yml)
 TARGET=66
@@ -322,6 +329,7 @@ flyway_version() {
     "${COMPOSE[@]}" exec -T db \
       mysql -N -umojito -pChangeMe mojito \
       -e "SELECT IFNULL(MAX(CAST(version AS UNSIGNED)), 0) FROM flyway_schema_history WHERE success = 1;" \
+      </dev/null \
       2>"$query_err"
   )"; then
     echo "Could not read flyway_schema_history." >&2
@@ -336,11 +344,14 @@ flyway_version() {
 }
 
 copy_fixtures() {
-  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-seed /opt/smoke-pull
-  "${COMPOSE[@]}" exec -T webapp rm -rf /opt/smoke-pull
-  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-pull
-  "${COMPOSE[@]}" cp "$FIXTURE/messages.properties" webapp:/opt/smoke-seed/messages.properties
-  "${COMPOSE[@]}" cp "$FIXTURE/messages_fr-FR.properties" webapp:/opt/smoke-seed/messages_fr-FR.properties
+  # Source and translation stay in different directories. pull scans -s and
+  # writes into a different -t, so a translation left beside the source is
+  # scanned as its own source asset.
+  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-source /opt/smoke-import /opt/smoke-pull </dev/null
+  "${COMPOSE[@]}" exec -T webapp rm -rf /opt/smoke-pull </dev/null
+  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-pull </dev/null
+  "${COMPOSE[@]}" cp "$FIXTURE/messages.properties" webapp:/opt/smoke-source/messages.properties
+  "${COMPOSE[@]}" cp "$FIXTURE/messages_fr-FR.properties" webapp:/opt/smoke-import/messages_fr-FR.properties
 }
 
 # Prints the repository id on stdout. repo-view and pull are shown on stderr.
@@ -358,11 +369,11 @@ assert_seed() {
     echo "repo-view did not print a repository id for ${REPO}." >&2
     return 1
   fi
-  if ! docker/smoke/mojito-local pull -r "$REPO" -s /opt/smoke-seed -t /opt/smoke-pull >&2; then
+  if ! docker/smoke/mojito-local pull -r "$REPO" -s /opt/smoke-source -t /opt/smoke-pull >&2; then
     echo "pull failed for ${REPO}." >&2
     return 1
   fi
-  if ! "${COMPOSE[@]}" exec -T webapp grep -R -F "$TRANSLATED" /opt/smoke-pull >&2; then
+  if ! "${COMPOSE[@]}" exec -T webapp grep -R -F "$TRANSLATED" /opt/smoke-pull </dev/null >&2; then
     echo "Imported translation was not in the pull output." >&2
     return 1
   fi
@@ -437,8 +448,22 @@ elif ! grep -qxF '.git' "$WORKTREE/.dockerignore"; then
   printf '\n%s\n' '.git' >> "$WORKTREE/.dockerignore"
 fi
 
+# Only the first image needs a stand-in git.properties. That image is the
+# commit that introduced migration N (COMMIT above; V66 in the example).
+# Its webapp and CLI load classpath:git.properties at startup and exit if
+# the file is missing. git-commit-id would write it, but this worktree's .git
+# file points at the host and is excluded above, so the plugin skips it.
+# The second image is the current branch. That checkout has a real .git
+# directory, and the plugin writes git.properties itself. mvn clean deletes
+# target/, so the stand-in has to live in src/main/resources.
+for module in webapp cli; do
+  printf 'git.branch=detached\ngit.commit.id=%s\n' "$COMMIT" \
+    > "$WORKTREE/$module/src/main/resources/git.properties"
+done
+
 echo "Building ${COMMIT} (latest migration V${TARGET}) as ${IMAGE}"
-DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile-bk21 -t "$IMAGE" "$WORKTREE"
+# linux/amd64 so the V66 frontend can use the prebuilt node-sass binary.
+DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -f docker/Dockerfile-bk21 -t "$IMAGE" "$WORKTREE"
 
 # --no-build keeps Compose from replacing this image with a build of the current branch.
 "${COMPOSE[@]}" up -d --no-build
@@ -454,8 +479,8 @@ fi
 
 copy_fixtures
 docker/smoke/mojito-local repo-create -n "$REPO" -l fr-FR
-docker/smoke/mojito-local push -r "$REPO" -s /opt/smoke-seed
-docker/smoke/mojito-local import -r "$REPO" -s /opt/smoke-seed -t /opt/smoke-seed
+docker/smoke/mojito-local push -r "$REPO" -s /opt/smoke-source
+docker/smoke/mojito-local import -r "$REPO" -s /opt/smoke-source -t /opt/smoke-import
 if ! repo_id_before="$(assert_seed)"; then
   exit 1
 fi

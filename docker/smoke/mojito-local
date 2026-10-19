@@ -17,7 +17,9 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
-target="$(docker compose -f "$COMPOSE_FILE" exec -T webapp printenv MOJITO_HOST MOJITO_PORT 2>/dev/null || true)"
+# </dev/null: compose exec reads stdin. A caller piping a script into bash
+# would otherwise lose every line after this command.
+target="$(docker compose -f "$COMPOSE_FILE" exec -T webapp printenv MOJITO_HOST MOJITO_PORT </dev/null 2>/dev/null || true)"
 host="$(printf '%s\n' "$target" | sed -n '1p')"
 port="$(printf '%s\n' "$target" | sed -n '2p')"
 host="${host//[[:space:]]/}"
@@ -29,4 +31,4 @@ if [[ "$host" != "localhost" || "$port" != "8080" ]]; then
 fi
 
 echo "mojito-local: webapp container at localhost:8080" >&2
-docker compose -f "$COMPOSE_FILE" exec -T webapp mojito "$@"
+docker compose -f "$COMPOSE_FILE" exec -T webapp mojito "$@" </dev/null
