@@ -237,7 +237,7 @@ That command does not include the local-jars file, so the container goes back to
 
 ### Migration versions are integers
 
-Mojito names each versioned migration with a plain integer and two underscores, such as `V69__Add_repo_type.sql` and `V9__Compute_Word_Count.java`. Keep new migrations on the next integer (`V70__...`, then `V71__...`). If a change needs a dotted version or a repeatable script, update `docker/smoke/check.sh` before treating a green smoke result as proof that the new script was applied.
+Mojito names each versioned migration with a plain integer and two underscores, such as `V69__Add_repo_type.sql` and `V9__Compute_Word_Count.java`. Keep each new migration on the next plain integer. If a change needs a dotted version or a repeatable script, update `docker/smoke/check.sh` before treating a green smoke result as proof that the new script was applied.
 
 ## Recipe: fresh database
 
@@ -260,246 +260,41 @@ docker/smoke/check.sh
 
 An upgrade rehearsal is two images on one `docker/.data/db`. The first image is the commit that introduced migration N, so N is that build's latest migration. Code and schema match, and the app stays up. The second image is the Mojito on this branch. It applies N+1 through the latest script to a database that already holds a repository, an asset, and an imported translation.
 
-The example uses N=66. Pick a version below the latest script on this branch, from a commit `docker/Dockerfile-bk21` can compile (Java 21). That commit does not need the smoke harness. This branch's Dockerfile builds it and installs the `mojito` command. `docker/smoke/mojito-local` runs that command from the host.
+N defaults to 66. You can pass another integer version below the latest script on this branch, from a commit `docker/Dockerfile-bk21` can compile (Java 21). That commit does not need the smoke harness. This branch's Dockerfile builds it and installs the `mojito` command. `docker/smoke/mojito-local` runs that command from the host.
 
-The first image is built for `linux/amd64`. The V66 frontend uses `node-sass` 4, which publishes a `linux-x64` binary and no `linux-arm64` binary. On Apple Silicon that image runs under emulation. `build-image.sh` still builds the second image for the host.
+The historical image is always built for `linux/amd64`. V66 and other commits from that period use `node-sass` 4, which publishes a `linux-x64` binary and no `linux-arm64` binary. A selected Java 21 commit can also build for amd64. On Apple Silicon that first image runs under emulation. `build-image.sh` still builds the current-branch image for the host.
 
-The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the recipe copies those files in with `docker compose cp`. The source file and the translation go in different directories. `push` and `import` can share one directory, because a file that matches a translation name is then treated as a translation. `pull` writes to a separate directory, so the same French file sitting next to the source would be scanned as a second source asset and the command would fail. Record the repository id from `repo-view` and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same id and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
+The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the script copies those files in with `docker compose cp`. The source file and the translation go in different directories. `push` and `import` can share one directory, because a file that matches a translation name is then treated as a translation. `pull` writes to a separate directory, so the same French file sitting next to the source would be scanned as a second source asset and the command would fail. Record the repository id from `repo-view` and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same id and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
 
 Do not call `repo-type-create` on the first boot when N is below V69. That table is not there yet. `check.sh` covers the repository-type API after the upgrade.
 
 ## Recipe: upgrade from version N to latest
 
-Run this with bash from the repository root. Both image builds compile Mojito and take a while. The first `docker build` does not update `docker/.data/webapp-build.txt`. `build-image.sh` records the second image, which is the one `check.sh` trusts.
-
-The block checks the seed before it recreates the webapp. If that check fails, it does not build the current image or run `check.sh`. On success it removes the containers. `docker/.data/db` stays on disk. The temporary git worktree is removed when the block ends, including when it stops early. If it stops early, the stack stays up so you can read the webapp log.
-
 ```bash
-set -euo pipefail
-unset FLYWAY_TARGET
-
-# This block is piped into bash, so bash reads the recipe from its own standard
-# input. docker compose exec also reads standard input and would consume every
-# unread line, then bash would exit successfully before the seed. Every exec
-# below closes stdin with </dev/null. docker/smoke/mojito-local does the same.
-
-COMPOSE=(docker compose -f docker/docker-compose-mysql-smoke.yml)
-TARGET=66
-REPO=schema-upgrade-smoke
-TRANSLATED='Bonjour de la mise à niveau du schéma'
-FIXTURE=docker/smoke/fixtures/populated-upgrade
-IMAGE=mojito-mysql-smoke-webapp:latest
-
-latest_migration_at() {
-  git ls-tree -r --name-only "$1" -- \
-    webapp/src/main/resources/db/migration \
-    webapp/src/main/java/db/migration \
-    | sed -nE 's|.*/V([0-9]+)__.*|\1|p' \
-    | sort -n \
-    | tail -n 1
-}
-
-strip_ansi() {
-  perl -pe 's/\e\[[0-9;]*[A-Za-z]//g'
-}
-
-wait_until_up() {
-  local health=""
-  echo "Waiting for http://127.0.0.1:8080/actuator/health"
-  for _ in $(seq 1 90); do
-    if health="$(curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health)"; then
-      if printf '%s\n' "$health" | grep -q '"status":"UP"'; then
-        echo "$health"
-        return 0
-      fi
-    fi
-    sleep 5
-  done
-  echo "Webapp did not stay up at http://127.0.0.1:8080/actuator/health" >&2
-  return 1
-}
-
-flyway_version() {
-  local query_err raw
-  if ! query_err="$(mktemp)"; then
-    echo "Could not read flyway_schema_history." >&2
-    return 1
-  fi
-  if ! raw="$(
-    "${COMPOSE[@]}" exec -T db \
-      mysql -N -umojito -pChangeMe mojito \
-      -e "SELECT IFNULL(MAX(CAST(version AS UNSIGNED)), 0) FROM flyway_schema_history WHERE success = 1;" \
-      </dev/null \
-      2>"$query_err"
-  )"; then
-    echo "Could not read flyway_schema_history." >&2
-    if [[ -s "$query_err" ]]; then
-      cat "$query_err" >&2
-    fi
-    rm -f "$query_err"
-    return 1
-  fi
-  rm -f "$query_err"
-  printf '%s\n' "${raw//[[:space:]]/}"
-}
-
-copy_fixtures() {
-  # Source and translation stay in different directories. pull scans -s and
-  # writes into a different -t, so a translation left beside the source is
-  # scanned as its own source asset.
-  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-source /opt/smoke-import /opt/smoke-pull </dev/null
-  "${COMPOSE[@]}" exec -T webapp rm -rf /opt/smoke-pull </dev/null
-  "${COMPOSE[@]}" exec -T webapp mkdir -p /opt/smoke-pull </dev/null
-  "${COMPOSE[@]}" cp "$FIXTURE/messages.properties" webapp:/opt/smoke-source/messages.properties
-  "${COMPOSE[@]}" cp "$FIXTURE/messages_fr-FR.properties" webapp:/opt/smoke-import/messages_fr-FR.properties
-}
-
-# Prints the repository id on stdout. repo-view and pull are shown on stderr.
-# Fails unless pull wrote TRANSLATED.
-assert_seed() {
-  local view repo_id
-  if ! view="$(docker/smoke/mojito-local repo-view -n "$REPO" | strip_ansi)"; then
-    echo "repo-view failed for ${REPO}." >&2
-    return 1
-  fi
-  printf '%s\n' "$view" >&2
-  repo_id="$(printf '%s\n' "$view" | sed -nE 's/.*Repository id --> ([0-9]+).*/\1/p')"
-  repo_id="${repo_id%%$'\n'*}"
-  if [[ -z "$repo_id" ]]; then
-    echo "repo-view did not print a repository id for ${REPO}." >&2
-    return 1
-  fi
-  if ! docker/smoke/mojito-local pull -r "$REPO" -s /opt/smoke-source -t /opt/smoke-pull >&2; then
-    echo "pull failed for ${REPO}." >&2
-    return 1
-  fi
-  if ! "${COMPOSE[@]}" exec -T webapp grep -R -F "$TRANSLATED" /opt/smoke-pull </dev/null >&2; then
-    echo "Imported translation was not in the pull output." >&2
-    return 1
-  fi
-  printf '%s\n' "$repo_id"
-}
-
-"${COMPOSE[@]}" down
-rm -rf docker/.data/db
-mkdir -p docker/.data/db
-
-current_latest="$(
-  find webapp/src/main/resources/db/migration webapp/src/main/java/db/migration \
-    -maxdepth 1 -type f \( -name 'V*.sql' -o -name 'V*.java' \) -print \
-    | sed -nE 's|.*/V([0-9]+)__.*|\1|p' \
-    | sort -n \
-    | tail -n 1
-)"
-if [[ -z "$current_latest" || "$TARGET" -ge "$current_latest" ]]; then
-  echo "TARGET=${TARGET} must be below this branch's latest migration (${current_latest:-none})." >&2
-  exit 1
-fi
-
-migration_files="$(
-  find webapp/src/main/resources/db/migration webapp/src/main/java/db/migration \
-    -maxdepth 1 -type f \( -name "V${TARGET}__*.sql" -o -name "V${TARGET}__*.java" \) | sort
-)"
-if [[ -z "$migration_files" ]]; then
-  echo "No V${TARGET}__ migration file in this branch." >&2
-  exit 1
-fi
-
-COMMIT=""
-while IFS= read -r file; do
-  [[ -n "$file" ]] || continue
-  candidate="$(git log --diff-filter=A -1 --format=%H -- "$file")"
-  [[ -n "$candidate" ]] || continue
-  if [[ "$(latest_migration_at "$candidate")" == "$TARGET" ]]; then
-    COMMIT="$candidate"
-    break
-  fi
-done <<EOF
-$migration_files
-EOF
-
-if [[ -z "$COMMIT" ]]; then
-  echo "No commit that added V${TARGET} has latest migration ${TARGET}." >&2
-  exit 1
-fi
-
-WORKTREE="$(mktemp -d "${TMPDIR:-/tmp}/mojito-schema-${TARGET}.XXXXXX")"
-rmdir "$WORKTREE"
-cleanup_worktree() {
-  git worktree remove --force "$WORKTREE" >/dev/null 2>&1 || true
-  git worktree prune >/dev/null 2>&1 || true
-}
-trap cleanup_worktree EXIT
-git worktree add --detach "$WORKTREE" "$COMMIT"
-
-java_version="$(sed -nE 's|.*<java.version>([^<]+)</java.version>.*|\1|p' "$WORKTREE/pom.xml")"
-java_version="${java_version%%$'\n'*}"
-if [[ "$java_version" != "21" ]]; then
-  echo "Commit ${COMMIT} uses Java ${java_version:-unknown}. docker/Dockerfile-bk21 compiles Java 21." >&2
-  exit 1
-fi
-
-# A worktree .git is a file (gitdir: <host path>). Exclude it so COPY . does not
-# send that dangling pointer into the image. Create or append only in this
-# temporary worktree; do not replace rules already in .dockerignore.
-if [[ ! -e "$WORKTREE/.dockerignore" ]]; then
-  printf '%s\n' '.git' > "$WORKTREE/.dockerignore"
-elif ! grep -qxF '.git' "$WORKTREE/.dockerignore"; then
-  printf '\n%s\n' '.git' >> "$WORKTREE/.dockerignore"
-fi
-
-# Only the first image needs a stand-in git.properties. That image is the
-# commit that introduced migration N (COMMIT above; V66 in the example).
-# Its webapp and CLI load classpath:git.properties at startup and exit if
-# the file is missing. git-commit-id would write it, but this worktree's .git
-# file points at the host and is excluded above, so the plugin skips it.
-# The second image is the current branch. That checkout has a real .git
-# directory, and the plugin writes git.properties itself. mvn clean deletes
-# target/, so the stand-in has to live in src/main/resources.
-for module in webapp cli; do
-  printf 'git.branch=detached\ngit.commit.id=%s\n' "$COMMIT" \
-    > "$WORKTREE/$module/src/main/resources/git.properties"
-done
-
-echo "Building ${COMMIT} (latest migration V${TARGET}) as ${IMAGE}"
-# linux/amd64 so the V66 frontend can use the prebuilt node-sass binary.
-DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -f docker/Dockerfile-bk21 -t "$IMAGE" "$WORKTREE"
-
-# --no-build keeps Compose from replacing this image with a build of the current branch.
-"${COMPOSE[@]}" up -d --no-build
-wait_until_up
-if ! version="$(flyway_version)"; then
-  exit 1
-fi
-echo "flyway version: ${version:-unknown}"
-if [[ "$version" != "$TARGET" ]]; then
-  echo "First boot stopped at '${version:-unknown}', expected ${TARGET}. Refusing to seed." >&2
-  exit 1
-fi
-
-copy_fixtures
-docker/smoke/mojito-local repo-create -n "$REPO" -l fr-FR
-docker/smoke/mojito-local push -r "$REPO" -s /opt/smoke-source
-docker/smoke/mojito-local import -r "$REPO" -s /opt/smoke-source -t /opt/smoke-import
-if ! repo_id_before="$(assert_seed)"; then
-  exit 1
-fi
-echo "Recorded repository id ${repo_id_before} and translation: ${TRANSLATED}"
-
-# Second boot: current branch, same docker/.data/db, FLYWAY_TARGET still unset.
-docker/smoke/build-image.sh
-"${COMPOSE[@]}" up -d --no-deps --force-recreate --no-build webapp
-wait_until_up
-copy_fixtures
-if ! repo_id_after="$(assert_seed)"; then
-  exit 1
-fi
-if [[ "$repo_id_after" != "$repo_id_before" ]]; then
-  echo "Repository id changed from ${repo_id_before} to ${repo_id_after}." >&2
-  exit 1
-fi
-echo "Repository ${repo_id_after} and translation survived the upgrade."
-
-docker/smoke/check.sh
-"${COMPOSE[@]}" down
+docker/smoke/populated-upgrade.sh
+docker/smoke/populated-upgrade.sh 66
 ```
+
+Run either command from anywhere inside the repository. With no argument, N defaults to 66; otherwise the integer argument selects N. Both image builds compile Mojito and take a while. The first image does not update `docker/.data/webapp-build.txt`. `build-image.sh` records the second image, which is the one `check.sh` trusts.
+
+The script stops at the first failure. It does not build the current image or run `check.sh` unless the seed is present before the second boot. On success it removes the containers. `docker/.data/db` stays on disk. The temporary git worktree is removed when the script ends, including when it stops early. If it stops early, the stack stays up so you can read the webapp log.
+
+In order, the script:
+
+1. Checks N, then asks you to confirm deletion of `docker/.data/db`. That directory holds the MySQL data and survives `docker compose down`. The first boot has to migrate an empty database to V{N}. Flyway records applied versions in this directory, so a leftover directory makes this run continue from the schema already stored there.
+2. Builds and boots the commit whose latest migration is V{N}.
+3. Seeds a repository and checks the repository id and the French translation.
+4. Builds and boots this branch against that same database.
+5. Checks that the same repository id and translation are still there.
+6. Runs `docker/smoke/check.sh`.
+
+These checks run before `docker/.data/db` is deleted:
+
+- **N is below this branch's latest migration.** The second boot has to apply at least one new script. N equal to the latest version is not an upgrade.
+- **A `V{N}__` file exists on this branch.** Its history is what identifies the commit that added N.
+- **That commit's own latest migration is N.** The first image must be a Mojito whose newest script is N, so the running code matches schema N.
+- **That commit's `<java.version>` is 21.** The first image is compiled and run with this branch's `docker/Dockerfile-bk21` (Java 21). Any other version stops the script before the image build and before the database is deleted.
+
+Supported bases are V66 up to, but not including, this branch's latest migration. A base is the past version N: the schema the first image migrates to, before this branch upgrades it. V66 is the first migration introduced by a Java 21 commit. V65 and earlier were introduced on Java 17 or Java 8. N is a plain integer, such as `66`.
+
+After those checks pass, the script asks you to type `yes` or `y` before it deletes `docker/.data/db`. Any other answer stops without deleting it. The question is read from the terminal.

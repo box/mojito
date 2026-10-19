@@ -5,8 +5,9 @@
 # directory docker/.data/db in place (bind-mount, not a named volume).
 #
 # Populated upgrade from the commit that introduced migration N:
+#   docker/smoke/populated-upgrade.sh
 #   docker/readme.md, "Recipe: upgrade from version N to latest".
-# That recipe builds two images and leaves FLYWAY_TARGET unset both times.
+# That script builds two images and leaves FLYWAY_TARGET unset both times.
 #
 # A normal start leaves FLYWAY_TARGET unset and migrates to the latest script
 # in the image that is running.
