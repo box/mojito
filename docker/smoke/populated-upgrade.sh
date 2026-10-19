@@ -5,7 +5,8 @@
 #
 # N is the original schema, not the version the upgrade finishes on. It
 # defaults to 66. The first image is the commit that introduced V{N}. The second
-# image is this branch and applies every later migration to the same database.
+# image is built from the current working tree, including uncommitted files,
+# and applies every later migration to the same database.
 # See docker/readme.md, "Recipe: upgrade from version N to latest".
 
 set -euo pipefail
@@ -245,7 +246,8 @@ fi
 # Its webapp and CLI load classpath:git.properties at startup and exit if
 # the file is missing. git-commit-id would write it, but this worktree's .git
 # file points at the host and is excluded above, so the plugin skips it.
-# The second image is the current branch. That checkout has a real .git
+# The second image is built from the current working tree, including
+# uncommitted files. That checkout has a real .git
 # directory, and the plugin writes git.properties itself. mvn clean deletes
 # target/, so the stand-in has to live in src/main/resources.
 for module in webapp cli; do
@@ -257,7 +259,7 @@ echo "Building ${COMMIT} (latest migration V${TARGET}) as ${IMAGE}"
 # linux/amd64 so the V66 frontend can use the prebuilt node-sass binary.
 DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -f docker/Dockerfile-bk21 -t "$IMAGE" "$WORKTREE"
 
-# --no-build keeps Compose from replacing this image with a build of the current branch.
+# --no-build keeps Compose from replacing this image with a build of the current working tree.
 "${COMPOSE[@]}" up -d --no-build
 wait_until_up
 if ! version="$(flyway_version)"; then
@@ -281,7 +283,8 @@ if ! asset_id_before="$(asset_id "$repo_id_before")"; then
 fi
 echo "Recorded repository id ${repo_id_before}, asset id ${asset_id_before}, and translation: ${TRANSLATED}"
 
-# Second boot: current branch, same docker/.data/db, FLYWAY_TARGET still unset.
+# Second boot: current working tree, including uncommitted files. Same
+# docker/.data/db, FLYWAY_TARGET still unset.
 docker/smoke/build-image.sh
 "${COMPOSE[@]}" up -d --no-deps --force-recreate --no-build webapp
 wait_until_up
