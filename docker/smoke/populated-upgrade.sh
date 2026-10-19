@@ -22,9 +22,9 @@ cd "$ROOT"
 
 COMPOSE=(docker compose -f docker/docker-compose-mysql-smoke.yml)
 TARGET="${1:-66}"
-if [[ ! "$TARGET" =~ ^[0-9]+$ ]]; then
+if [[ ! "$TARGET" =~ ^[1-9][0-9]*$ ]]; then
   echo "Usage: docker/smoke/populated-upgrade.sh [N]" >&2
-  echo "N must be an integer migration version and defaults to 66." >&2
+  echo "N must be a plain integer with no leading zero, such as 66." >&2
   exit 1
 fi
 REPO=schema-upgrade-smoke
@@ -40,10 +40,6 @@ latest_migration_at() {
     | sed -nE 's|.*/V([0-9]+)__.*|\1|p' \
     | sort -n \
     | tail -n 1
-}
-
-strip_ansi() {
-  perl -pe 's/\e\[[0-9;]*[A-Za-z]//g'
 }
 
 wait_until_up() {
@@ -86,6 +82,42 @@ flyway_version() {
   printf '%s\n' "${raw//[[:space:]]/}"
 }
 
+# Prints the id of the one active messages.properties row in the repository.
+asset_id() {
+  local repository_id="$1"
+  local query_err raw
+  if [[ ! "$repository_id" =~ ^[0-9]+$ ]]; then
+    echo "Repository id '${repository_id}' is not an integer." >&2
+    return 1
+  fi
+  if ! query_err="$(mktemp)"; then
+    echo "Could not read the asset row." >&2
+    return 1
+  fi
+  if ! raw="$(
+    "${COMPOSE[@]}" exec -T db \
+      mysql -N -umojito -pChangeMe mojito \
+      -e "SELECT id FROM asset WHERE repository_id = ${repository_id} AND path = 'messages.properties' AND deleted = 0;" \
+      </dev/null \
+      2>"$query_err"
+  )"; then
+    echo "Could not read the asset row for repository ${repository_id}." >&2
+    if [[ -s "$query_err" ]]; then
+      cat "$query_err" >&2
+    fi
+    rm -f "$query_err"
+    return 1
+  fi
+  rm -f "$query_err"
+  raw="${raw//$'\r'/}"
+  if [[ -z "${raw//[[:space:]]/}" || "$raw" == *$'\n'* ]]; then
+    echo "Expected one active messages.properties asset in repository ${repository_id}." >&2
+    printf '%s\n' "$raw" >&2
+    return 1
+  fi
+  printf '%s\n' "${raw//[[:space:]]/}"
+}
+
 copy_fixtures() {
   # Source and translation stay in different directories. pull scans -s and
   # writes into a different -t, so a translation left beside the source is
@@ -101,7 +133,7 @@ copy_fixtures() {
 # Fails unless pull wrote TRANSLATED.
 assert_seed() {
   local view repo_id
-  if ! view="$(docker/smoke/mojito-local repo-view -n "$REPO" | strip_ansi)"; then
+  if ! view="$(docker/smoke/mojito-local repo-view -n "$REPO")"; then
     echo "repo-view failed for ${REPO}." >&2
     return 1
   fi
@@ -181,12 +213,16 @@ fi
 echo "Checks passed for V${TARGET} (${COMMIT})."
 echo "${DB_DIR} holds the MySQL data and survives docker compose down."
 echo "The first boot has to migrate an empty database to V${TARGET}. Flyway records applied versions in this directory, so a leftover directory makes this run continue from the schema already stored there."
-# Read the terminal, not standard input.
+# Read the terminal, not standard input. yes and y match in any case, with
+# surrounding spaces. Any other answer leaves the database directory in place.
 printf 'Type yes or y to delete %s: ' "$DB_DIR"
 if ! IFS= read -r confirmation </dev/tty; then
   echo "Refusing to delete ${DB_DIR}: no confirmation was read." >&2
   exit 1
 fi
+confirmation="${confirmation#"${confirmation%%[![:space:]]*}"}"
+confirmation="${confirmation%"${confirmation##*[![:space:]]}"}"
+confirmation="$(printf '%s' "$confirmation" | tr '[:upper:]' '[:lower:]')"
 if [[ "$confirmation" != "yes" && "$confirmation" != "y" ]]; then
   echo "Aborted. ${DB_DIR} was not deleted." >&2
   exit 1
@@ -240,7 +276,10 @@ docker/smoke/mojito-local import -r "$REPO" -s /opt/smoke-source -t /opt/smoke-i
 if ! repo_id_before="$(assert_seed)"; then
   exit 1
 fi
-echo "Recorded repository id ${repo_id_before} and translation: ${TRANSLATED}"
+if ! asset_id_before="$(asset_id "$repo_id_before")"; then
+  exit 1
+fi
+echo "Recorded repository id ${repo_id_before}, asset id ${asset_id_before}, and translation: ${TRANSLATED}"
 
 # Second boot: current branch, same docker/.data/db, FLYWAY_TARGET still unset.
 docker/smoke/build-image.sh
@@ -254,7 +293,14 @@ if [[ "$repo_id_after" != "$repo_id_before" ]]; then
   echo "Repository id changed from ${repo_id_before} to ${repo_id_after}." >&2
   exit 1
 fi
-echo "Repository ${repo_id_after} and translation survived the upgrade."
+if ! asset_id_after="$(asset_id "$repo_id_after")"; then
+  exit 1
+fi
+if [[ "$asset_id_after" != "$asset_id_before" ]]; then
+  echo "Asset id changed from ${asset_id_before} to ${asset_id_after}." >&2
+  exit 1
+fi
+echo "Repository ${repo_id_after}, asset ${asset_id_after}, and translation survived the upgrade."
 
 docker/smoke/check.sh
 "${COMPOSE[@]}" down

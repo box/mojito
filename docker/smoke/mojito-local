@@ -31,4 +31,8 @@ if [[ "$host" != "localhost" || "$port" != "8080" ]]; then
 fi
 
 echo "mojito-local: webapp container at localhost:8080" >&2
-docker compose -f "$COMPOSE_FILE" exec -T webapp mojito "$@" </dev/null
+# repo-view colors the repository id. populated-upgrade.sh reads that number
+# from the text, so the CLI runs with color codes turned off.
+docker compose -f "$COMPOSE_FILE" exec -T \
+  -e L10N_CONSOLE_WRITER_ANSI_CODE_ENABLED=false \
+  webapp mojito "$@" </dev/null

@@ -264,7 +264,7 @@ N defaults to 66. You can pass another integer version below the latest script o
 
 The historical image is always built for `linux/amd64`. V66 and other commits from that period use `node-sass` 4, which publishes a `linux-x64` binary and no `linux-arm64` binary. A selected Java 21 commit can also build for amd64. On Apple Silicon that first image runs under emulation. `build-image.sh` still builds the current-branch image for the host.
 
-The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the script copies those files in with `docker compose cp`. The source file and the translation go in different directories. `push` and `import` can share one directory, because a file that matches a translation name is then treated as a translation. `pull` writes to a separate directory, so the same French file sitting next to the source would be scanned as a second source asset and the command would fail. Record the repository id from `repo-view` and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same id and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
+The seed is `repo-create`, `push` of `docker/smoke/fixtures/populated-upgrade/messages.properties`, and `import` of `messages_fr-FR.properties`. The CLI runs inside the container, so the script copies those files in with `docker compose cp`. The source file and the translation go in different directories. `push` and `import` can share one directory, because a file that matches a translation name is then treated as a translation. `pull` writes to a separate directory, so the same French file sitting next to the source would be scanned as a second source asset and the command would fail. Record the repository id from `repo-view`, the `messages.properties` asset id from the `asset` table, and the translated string `Bonjour de la mise à niveau du schéma` from `pull` before the second boot, and require the same ids and string after it. `docker/smoke/check.sh` runs only after that. It sees the final version, so it cannot tell this populated upgrade from a fresh migrate.
 
 Do not call `repo-type-create` on the first boot when N is below V69. That table is not there yet. `check.sh` covers the repository-type API after the upgrade.
 
@@ -281,12 +281,12 @@ The script stops at the first failure. It does not build the current image or ru
 
 In order, the script:
 
-1. Checks N, then asks you to confirm deletion of `docker/.data/db`. That directory holds the MySQL data and survives `docker compose down`. The first boot has to migrate an empty database to V{N}. Flyway records applied versions in this directory, so a leftover directory makes this run continue from the schema already stored there.
+1. Checks N, then asks you to confirm deletion of `docker/.data/db`. The answer is `yes` or `y`; capital letters and surrounding spaces are accepted. That directory holds the MySQL data and survives `docker compose down`. The first boot has to migrate an empty database to V{N}. Flyway records applied versions in this directory, so a leftover directory makes this run continue from the schema already stored there.
 2. Builds the past commit that introduced V{N}. The script puts that commit in a temporary directory. Your checkout stays on the branch you already have. This image starts on an empty database, and Flyway stops at V{N} because that is the newest migration in that old Mojito.
-3. Seeds a repository and checks the repository id and the French translation.
+3. Seeds a repository and checks the repository id, the `messages.properties` asset id, and the French translation.
 4. Builds a second image from the files in your current working tree. This is the branch you already have checked out, not the old commit from step 2. Only the webapp container is replaced. MySQL and `docker/.data/db` stay, so this webapp opens the populated V{N} database and Flyway applies N+1 through the latest migration in this tree.
-5. Checks that the same repository id and translation are still there.
-6. Runs `docker/smoke/check.sh`.
+5. Checks that the same repository id, asset id, and translation are still there.
+6. Runs `docker/smoke/check.sh`. That check creates a repository type, so it passes only when the upgraded database includes V69, the migration that adds that table.
 
 These checks run before `docker/.data/db` is deleted:
 
@@ -295,6 +295,4 @@ These checks run before `docker/.data/db` is deleted:
 - **That commit's own latest migration is N.** The first image must be a Mojito whose newest script is N, so the running code matches schema N.
 - **That commit's `<java.version>` is 21.** The first image is compiled and run with this branch's `docker/Dockerfile-bk21` (Java 21). Any other version stops the script before the image build and before the database is deleted.
 
-Supported bases are V66 up to, but not including, this branch's latest migration. A base is the past version N: the schema the first image migrates to, before this branch upgrades it. V66 is the first migration introduced by a Java 21 commit. V65 and earlier were introduced on Java 17 or Java 8. N is a plain integer, such as `66`.
-
-After those checks pass, the script asks you to type `yes` or `y` before it deletes `docker/.data/db`. Any other answer stops without deleting it. The question is read from the terminal.
+Supported bases are V66 up to, but not including, this branch's latest migration. A base is the past version N: the schema the first image migrates to, before this branch upgrades it. V66 is the first migration introduced by a Java 21 commit. V65 and earlier were introduced on Java 17 or Java 8. N is a plain integer with no leading zero, such as `66`.
