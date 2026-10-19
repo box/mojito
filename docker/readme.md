@@ -163,7 +163,7 @@ docker compose -f docker/docker-compose-mysql-smoke.yml up -d
 
 This command leaves `FLYWAY_TARGET` unset, so Flyway migrates to the latest script in the running image. To rehearse an upgrade of a populated database, use [Recipe: upgrade from version N to latest](#recipe-upgrade-from-version-n-to-latest). If `docker/.data/db` already contains a migrated database, Flyway reads `flyway_schema_history` and applies only scripts that are not in that logbook yet.
 
-The image is a packaged snapshot of Mojito from the last Docker build. Editing a source or migration file does not update an existing image. `docker/smoke/build-image.sh` builds the webapp and writes `docker/.data/webapp-build.txt`. That record contains the image ID and a fingerprint of every `V*.sql` and `V*.java` migration file. `docker/smoke/check.sh` fails if the running container is a different image or those files changed after the build. It also compares SQL in the running jar with the working tree. Java migrations are compiled to class files and are not shipped as `.java`; `check.sh` verifies them through that fingerprint instead. Deleting `docker/.data/db` does not delete the build record. To try a host-built jar without that full rebuild, see [Edit loop without rebuilding the image](#edit-loop-without-rebuilding-the-image). That path is not what `check.sh` trusts.
+The image is a packaged snapshot of Mojito from the last Docker build. Editing a source or migration file does not update an existing image. `docker/smoke/build-image.sh` builds the webapp and writes `docker/.data/webapp-build.txt`. That file records the image id and a fingerprint of every `V*.sql` and `V*.java` migration file that went into the build. `docker/smoke/check.sh` passes only when the running container is that image and those files are unchanged. Java migrations are compiled into the jar, so `check.sh` cannot compare their `.java` files with the running jar and uses this fingerprint instead. It also compares the SQL files inside the jar with the working tree. Deleting `docker/.data/db` does not delete this file. To try a host-built jar without that full rebuild, see [Edit loop without rebuilding the image](#edit-loop-without-rebuilding-the-image). That shortcut leaves the image id unchanged, so `check.sh` fails because it cannot tell which jars are running.
 
 Follow the webapp log until it reports that the application started:
 
@@ -275,16 +275,16 @@ docker/smoke/populated-upgrade.sh
 docker/smoke/populated-upgrade.sh 66
 ```
 
-Run either command from the repository root. With no argument, N defaults to 66; otherwise the integer argument selects N. Both image builds compile Mojito and take a while. The first image does not update `docker/.data/webapp-build.txt`. `build-image.sh` records the second image, which is the one `check.sh` trusts.
+Run either command from the repository root. With no argument, N defaults to 66; otherwise the integer argument selects N. Both image builds compile Mojito and take a while. `docker/.data/webapp-build.txt` records which image was built and which migration files went into it. `check.sh` passes only when the running webapp is that image. The first image is the old Mojito, so its build does not write this file. `build-image.sh` writes it for the current-branch image, and `check.sh` checks that image.
 
 The script stops at the first failure. It does not build the current image or run `check.sh` unless the seed is present before the second boot. On success it removes the containers. `docker/.data/db` stays on disk. The temporary git worktree is removed when the script ends, including when it stops early. After the webapp is up, a later failure leaves that stack running so you can read the webapp log. The first image build runs after the script has removed the containers, so a failure there leaves them down.
 
 In order, the script:
 
 1. Checks N, then asks you to confirm deletion of `docker/.data/db`. That directory holds the MySQL data and survives `docker compose down`. The first boot has to migrate an empty database to V{N}. Flyway records applied versions in this directory, so a leftover directory makes this run continue from the schema already stored there.
-2. Builds and boots the commit whose latest migration is V{N}.
+2. Builds the past commit that introduced V{N}. The script puts that commit in a temporary directory. Your checkout stays on the branch you already have. This image starts on an empty database, and Flyway stops at V{N} because that is the newest migration in that old Mojito.
 3. Seeds a repository and checks the repository id and the French translation.
-4. Builds and boots this branch against that same database.
+4. Builds a second image from the files in your current working tree. This is the branch you already have checked out, not the old commit from step 2. Only the webapp container is replaced. MySQL and `docker/.data/db` stay, so this webapp opens the populated V{N} database and Flyway applies N+1 through the latest migration in this tree.
 5. Checks that the same repository id and translation are still there.
 6. Runs `docker/smoke/check.sh`.
 
