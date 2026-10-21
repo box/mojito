@@ -77,8 +77,7 @@ public class RepositoryAiTranslationCommandTest {
       command.execute();
       fail("Expected CommandException");
     } catch (CommandException e) {
-      assertEquals(
-          "AI translate completed with 1 error(s) (task id: 46945665)", e.getMessage());
+      assertEquals("AI translate completed with 1 error(s) (task id: 46945665)", e.getMessage());
     }
 
     String output = outputCapture.toString();
@@ -159,8 +158,7 @@ public class RepositoryAiTranslationCommandTest {
     command.locales = List.of("bn-IN", "hi-IN");
     when(repositoryAiTranslateClient.getReport(400L))
         .thenReturn(
-            new ProtoAiTranslateGetReportResponse(
-                List.of("400/locale/bn-IN", "400/locale/hi-IN")));
+            new ProtoAiTranslateGetReportResponse(List.of("400/locale/bn-IN", "400/locale/hi-IN")));
     when(repositoryAiTranslateClient.getReportLocale("400/locale/bn-IN"))
         .thenReturn(
             new ProtoAiTranslateGetReportLocaleResponse(

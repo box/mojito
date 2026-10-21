@@ -331,8 +331,8 @@ public class RepositoryAiTranslationCommand extends Command {
   }
 
   /**
-   * Loads the non-batch import report, optionally writes locale JSON files, prints errors, and fails
-   * the command when any report line has a non-null {@code error}.
+   * Loads the non-batch import report, optionally writes locale JSON files, prints errors, and
+   * fails the command when any report line has a non-null {@code error}.
    *
    * <p>The pollable task can finish successfully even when OpenAI calls time out or fail; those
    * failures are only recorded on the report. Without this check the CLI would print Finished and
@@ -427,8 +427,7 @@ public class RepositoryAiTranslationCommand extends Command {
       String[] localeAndError = entry.getKey().split("\0", 2);
       String locale = localeAndError[0];
       String error = localeAndError.length > 1 ? localeAndError[1] : "";
-      String ids =
-          entry.getValue().stream().map(String::valueOf).collect(Collectors.joining(", "));
+      String ids = entry.getValue().stream().map(String::valueOf).collect(Collectors.joining(", "));
       consoleWriter
           .fg(Color.RED)
           .a("- locale: ")
