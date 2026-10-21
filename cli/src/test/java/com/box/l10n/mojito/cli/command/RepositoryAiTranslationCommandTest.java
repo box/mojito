@@ -18,10 +18,13 @@ import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTransl
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateGetReportResponse;
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateResponse;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.boot.test.system.OutputCaptureRule;
 
 /**
@@ -31,6 +34,8 @@ import org.springframework.boot.test.system.OutputCaptureRule;
 public class RepositoryAiTranslationCommandTest {
 
   @Rule public OutputCaptureRule outputCapture = new OutputCaptureRule();
+
+  @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   RepositoryAiTranslateClient repositoryAiTranslateClient;
   PollableTaskClient pollableTaskClient;
@@ -72,13 +77,14 @@ public class RepositoryAiTranslationCommandTest {
       command.execute();
       fail("Expected CommandException");
     } catch (CommandException e) {
-      assertEquals("AI translate completed with 1 error(s)", e.getMessage());
+      assertEquals(
+          "AI translate completed with 1 error(s) (task id: 46945665)", e.getMessage());
     }
 
     String output = outputCapture.toString();
     assertTrue(output.contains("AI translate failed for 1 text unit(s):"));
     assertTrue(output.contains("locale: bn-IN"));
-    assertTrue(output.contains("tmTextUnitId: 36486276"));
+    assertTrue(output.contains("tmTextUnitIds: [36486276]"));
     assertTrue(output.contains("SocketTimeoutException"));
     assertFalse(output.contains("Finished"));
   }
@@ -111,6 +117,79 @@ public class RepositoryAiTranslationCommandTest {
     command.execute();
 
     assertTrue(outputCapture.toString().contains("Finished"));
+  }
+
+  @Test
+  public void writesReportFileBeforeFailingWhenDownloadReportAndError() throws Exception {
+    Path reportDir = temporaryFolder.newFolder("report-out").toPath();
+    String reportLocaleUrl = reportDir.resolve("locale").resolve("bn-IN").toString();
+
+    stubSuccessfulTranslate(300L);
+    command.downloadReport = true;
+    when(repositoryAiTranslateClient.getReport(300L))
+        .thenReturn(new ProtoAiTranslateGetReportResponse(List.of(reportLocaleUrl)));
+    when(repositoryAiTranslateClient.getReportLocale(reportLocaleUrl))
+        .thenReturn(
+            new ProtoAiTranslateGetReportLocaleResponse(
+                """
+                [{"tmTexUnitId":36486276,"locale":"bn-IN","error":"Read timed out","tmTextUnitCurrentVariantUpdated":false}]
+                """));
+
+    try {
+      command.execute();
+      fail("Expected CommandException");
+    } catch (CommandException e) {
+      assertEquals("AI translate completed with 1 error(s) (task id: 300)", e.getMessage());
+    }
+
+    Path written = Path.of(reportLocaleUrl + ".json");
+    assertTrue(Files.exists(written));
+    assertTrue(Files.readString(written).contains("Read timed out"));
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains(written.toAbsolutePath().toString()));
+    assertTrue(output.contains("tmTextUnitId: 36486276"));
+    assertTrue(output.contains("Read timed out"));
+    assertFalse(output.contains("Finished"));
+  }
+
+  @Test
+  public void aggregatesErrorsAcrossLocalesAndOmitsSuccessfulLines() {
+    stubSuccessfulTranslate(400L);
+    command.locales = List.of("bn-IN", "hi-IN");
+    when(repositoryAiTranslateClient.getReport(400L))
+        .thenReturn(
+            new ProtoAiTranslateGetReportResponse(
+                List.of("400/locale/bn-IN", "400/locale/hi-IN")));
+    when(repositoryAiTranslateClient.getReportLocale("400/locale/bn-IN"))
+        .thenReturn(
+            new ProtoAiTranslateGetReportLocaleResponse(
+                """
+                [{"tmTexUnitId":1,"locale":"bn-IN","error":null,"tmTextUnitCurrentVariantUpdated":true},{"tmTexUnitId":2,"locale":"bn-IN","error":"timeout A","tmTextUnitCurrentVariantUpdated":false}]
+                """));
+    when(repositoryAiTranslateClient.getReportLocale("400/locale/hi-IN"))
+        .thenReturn(
+            new ProtoAiTranslateGetReportLocaleResponse(
+                """
+                [{"tmTexUnitId":3,"locale":"hi-IN","error":"timeout B","tmTextUnitCurrentVariantUpdated":false},{"tmTexUnitId":4,"locale":"hi-IN","error":null,"tmTextUnitCurrentVariantUpdated":true}]
+                """));
+
+    try {
+      command.execute();
+      fail("Expected CommandException");
+    } catch (CommandException e) {
+      assertEquals("AI translate completed with 2 error(s) (task id: 400)", e.getMessage());
+    }
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("AI translate failed for 2 text unit(s):"));
+    assertTrue(output.contains("tmTextUnitIds: [2]"));
+    assertTrue(output.contains("tmTextUnitIds: [3]"));
+    assertTrue(output.contains("timeout A"));
+    assertTrue(output.contains("timeout B"));
+    assertFalse(output.contains("tmTextUnitIds: [1]"));
+    assertFalse(output.contains("tmTextUnitIds: [4]"));
+    assertFalse(output.contains("Finished"));
   }
 
   private void stubSuccessfulTranslate(long pollableTaskId) {
