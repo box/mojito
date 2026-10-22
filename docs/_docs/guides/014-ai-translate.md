@@ -88,6 +88,12 @@ The CLI supports the same model, prompt, related-string, timeout, dry-run, and t
 
 The CLI defaults `--translate-type` to `WITH_REVIEW`, while the web page defaults to `TARGET_ONLY_NEW`. That is a different default prompt, not different overwrite behavior. Set it explicitly in automation when the distinction matters. `--download-report` is available only in non-batch mode.
 
+### Non-batch exit status and reports
+
+**Breaking change:** In non-batch mode, after the pollable task finishes the CLI inspects the per-locale import report. If any text unit has a non-null `error` (for example an OpenAI timeout), the command prints a failure summary and **exits non-zero** instead of printing `Finished`. Successful units that were already imported are kept; the non-zero exit is so automation (`set -e`, Jenkins, etc.) can detect skipped translations and retry.
+
+Without `--download-report`, the CLI prints a compact summary: error count, affected `tmTextUnitId`s grouped by locale/error. With `--download-report`, it still writes the full locale JSON files and lists each failed unit in detail.
+
 ## Requirements
 
 AI Translate requires an AI translation service to be configured on the server. Contact your administrator if the feature is not available or jobs fail.

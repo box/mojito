@@ -14,7 +14,9 @@ import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTransl
 import com.box.l10n.mojito.rest.client.RepositoryAiTranslateClient.ProtoAiTranslateResponse;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -319,25 +321,123 @@ public class RepositoryAiTranslationCommand extends Command {
         consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
         waitForPollable(pollableTask.getId());
       } else {
+        consoleWriter.a("Running, task id: ").fg(Color.MAGENTA).a(pollableTask.getId()).println();
         commandHelper.waitForPollableTask(pollableTask.getId());
-
-        if (downloadReport) {
-          ProtoAiTranslateGetReportResponse report =
-              repositoryAiTranslateClient.getReport(pollableTask.getId());
-
-          for (String reportLocaleUrl : report.reportLocaleUrls()) {
-            RepositoryAiTranslateClient.ProtoAiTranslateGetReportLocaleResponse reportLocale =
-                repositoryAiTranslateClient.getReportLocale(reportLocaleUrl);
-            Path path = Path.of(reportLocaleUrl + ".json");
-            Files.createDirectories(path.getParent());
-            Files.write(path, reportLocale.content());
-            consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
-          }
-        }
+        processNonBatchReport(pollableTask.getId());
       }
     }
 
     consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+  }
+
+  /**
+   * Loads the non-batch import report, optionally writes locale JSON files, prints errors, and
+   * fails the command when any report line has a non-null {@code error}.
+   *
+   * <p>The pollable task can finish successfully even when OpenAI calls time out or fail; those
+   * failures are only recorded on the report. Without this check the CLI would print Finished and
+   * exit 0 while translations were skipped.
+   *
+   * <p>Without {@code --download-report}, only an error summary (distinct errors and affected
+   * tmTextUnitIds) is printed. With {@code --download-report}, locale JSON files are written and
+   * each failed unit is listed in full.
+   */
+  void processNonBatchReport(long pollableTaskId) {
+    ProtoAiTranslateGetReportResponse report =
+        repositoryAiTranslateClient.getReport(pollableTaskId);
+
+    ObjectMapper reportMapper = ObjectMapper.withNoFailOnUnknownProperties();
+    List<ImportReportLine> errorLines = new ArrayList<>();
+
+    for (String reportLocaleUrl : report.reportLocaleUrls()) {
+      RepositoryAiTranslateClient.ProtoAiTranslateGetReportLocaleResponse reportLocale =
+          repositoryAiTranslateClient.getReportLocale(reportLocaleUrl);
+
+      if (downloadReport) {
+        Path path = Path.of(reportLocaleUrl + ".json");
+        Files.createDirectories(path.getParent());
+        Files.write(path, reportLocale.content());
+        consoleWriter.a("- ").a(path.toAbsolutePath().toString()).println();
+      }
+
+      List<ImportReportLine> lines =
+          reportMapper.readValueUnchecked(
+              reportLocale.content(), new TypeReference<List<ImportReportLine>>() {});
+      for (ImportReportLine line : lines) {
+        if (line.error() != null) {
+          errorLines.add(line);
+        }
+      }
+    }
+
+    if (!errorLines.isEmpty()) {
+      if (downloadReport) {
+        printDetailedReportErrors(errorLines);
+      } else {
+        printReportErrorSummary(errorLines);
+      }
+      throw new CommandException(
+          "AI translate completed with %d error(s) (task id: %d)"
+              .formatted(errorLines.size(), pollableTaskId));
+    }
+  }
+
+  void printDetailedReportErrors(List<ImportReportLine> errorLines) {
+    consoleWriter
+        .fg(Color.RED)
+        .newLine()
+        .a("AI translate failed for ")
+        .a(errorLines.size())
+        .a(" text unit(s):")
+        .println();
+    for (ImportReportLine line : errorLines) {
+      consoleWriter
+          .fg(Color.RED)
+          .a("- locale: ")
+          .a(line.locale())
+          .a(", tmTextUnitId: ")
+          .a(line.tmTexUnitId())
+          .a(": ")
+          .a(line.error())
+          .println();
+    }
+  }
+
+  /**
+   * Prints a compact summary: one line per distinct (locale, error) with the affected text unit
+   * ids, instead of repeating the full error string for every unit.
+   */
+  void printReportErrorSummary(List<ImportReportLine> errorLines) {
+    consoleWriter
+        .fg(Color.RED)
+        .newLine()
+        .a("AI translate failed for ")
+        .a(errorLines.size())
+        .a(" text unit(s):")
+        .println();
+
+    Map<String, List<Long>> idsByLocaleAndError =
+        errorLines.stream()
+            .collect(
+                Collectors.groupingBy(
+                    line -> line.locale() + "\0" + line.error(),
+                    Collectors.mapping(ImportReportLine::tmTexUnitId, Collectors.toList())));
+
+    for (Map.Entry<String, List<Long>> entry : idsByLocaleAndError.entrySet()) {
+      String[] localeAndError = entry.getKey().split("\0", 2);
+      String locale = localeAndError[0];
+      String error = localeAndError.length > 1 ? localeAndError[1] : "";
+      String ids = entry.getValue().stream().map(String::valueOf).collect(Collectors.joining(", "));
+      consoleWriter
+          .fg(Color.RED)
+          .a("- locale: ")
+          .a(locale)
+          .a(", tmTextUnitIds: [")
+          .a(ids)
+          .a("], error: ")
+          .a(error)
+          .println();
+    }
   }
 
   void waitForPollable(Long pollableTaskId) {
@@ -513,4 +613,10 @@ public class RepositoryAiTranslationCommand extends Command {
       List<String> processed,
       Map<String, String> failedToImport,
       Long nextJob) {}
+
+  /**
+   * Subset of the server {@code ImportReport.ImportReportLine} JSON used to detect per-unit
+   * failures. Field name {@code tmTexUnitId} matches the server spelling.
+   */
+  record ImportReportLine(long tmTexUnitId, String locale, String error) {}
 }
