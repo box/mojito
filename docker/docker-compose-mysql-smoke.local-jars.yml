@@ -1,0 +1,23 @@
+# Opt-in edit loop for the MySQL smoke stack. Not the trusted smoke run.
+#
+# Use it only together with docker-compose-mysql-smoke.yml:
+#   mvn -DskipTests package
+#   docker/smoke/stage-local-jars.sh
+#   docker compose \
+#     -f docker/docker-compose-mysql-smoke.yml \
+#     -f docker/docker-compose-mysql-smoke.local-jars.yml \
+#     up -d --no-deps --force-recreate webapp
+#
+# The image must already honor MOJITO_WEBAPP_JAR and MOJITO_CLI_JAR
+# (docker/smoke/build-image.sh once after that Dockerfile change).
+# check.sh refuses this mount. See docker/readme.md.
+
+services:
+  webapp:
+    environment:
+      MOJITO_WEBAPP_JAR: /opt/mojito-jars/mojito-webapp.jar
+      MOJITO_CLI_JAR: /opt/mojito-jars/mojito-cli.jar
+    volumes:
+      # Directory mount, not the Maven glob and not /usr/local/mojito/bin.
+      # Covering .../bin would hide the mojito wrapper that mojito-local calls.
+      - ./local-jars:/opt/mojito-jars:ro
