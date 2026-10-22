@@ -199,7 +199,14 @@ public class L10nJCommander {
   public void usage(String commandName) {
     StringBuilder stringBuilder = new StringBuilder();
     jCommander.usage(commandName, stringBuilder, "");
-    consoleWriter.a(stringBuilder).println();
+    consoleWriter
+        .a(
+            stringBuilder
+                .toString()
+                .replace(
+                    IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN,
+                    IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES))
+        .println();
   }
 
   /**

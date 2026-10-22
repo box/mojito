@@ -6,7 +6,10 @@ import static org.junit.Assert.assertTrue;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.RepoType;
+import com.box.l10n.mojito.entity.RepoTypeIntegrityChecker;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repotype.RepoTypeService;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -75,6 +78,51 @@ public class RepoTypeViewCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testViewRepoTypeWithOneIntegrityChecker() throws Exception {
+    String name = testIdWatcher.getEntityName("OneChecker");
+
+    repoTypeService.createRepoType(
+        name, "desc", null, Set.of(checker("properties", IntegrityCheckerType.MESSAGE_FORMAT)));
+
+    getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, name);
+
+    assertLabeledLine(
+        outputCapture.toString(), "Integrity checkers --> ", "properties:MESSAGE_FORMAT");
+  }
+
+  @Test
+  public void testViewRepoTypeListsEachIntegrityChecker() throws Exception {
+    String name = testIdWatcher.getEntityName("TwoCheckers");
+
+    repoTypeService.createRepoType(
+        name,
+        "desc",
+        null,
+        Set.of(
+            checker("xliff", IntegrityCheckerType.PRINTF_LIKE),
+            checker("properties", IntegrityCheckerType.TRAILING_WHITESPACE),
+            checker("properties", IntegrityCheckerType.MESSAGE_FORMAT)));
+
+    getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, name);
+
+    assertLabeledLine(
+        outputCapture.toString(),
+        "Integrity checkers --> ",
+        "properties:MESSAGE_FORMAT,properties:TRAILING_WHITESPACE,xliff:PRINTF_LIKE");
+  }
+
+  @Test
+  public void testViewRepoTypeWithoutIntegrityCheckersOmitsTheLine() throws Exception {
+    String name = testIdWatcher.getEntityName("NoCheckers");
+
+    repoTypeService.createRepoType(name, "desc", null, null);
+
+    getL10nJCommander().run("repo-type-view", Param.REPO_TYPE_NAME_SHORT, name);
+
+    assertFalse(outputCapture.toString().contains("Integrity checkers -->"));
+  }
+
+  @Test
   public void testViewNonExistingRepoType() throws Exception {
     String name = testIdWatcher.getEntityName("missing");
 
@@ -107,6 +155,13 @@ public class RepoTypeViewCommandTest extends CLITestBase {
                 Pattern.MULTILINE)
             .matcher(output)
             .find());
+  }
+
+  private static RepoTypeIntegrityChecker checker(String extension, IntegrityCheckerType type) {
+    RepoTypeIntegrityChecker checker = new RepoTypeIntegrityChecker();
+    checker.setAssetExtension(extension);
+    checker.setIntegrityCheckerType(type);
+    return checker;
   }
 
   private static void assertLabeledLine(String output, String label, String value) {

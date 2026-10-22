@@ -88,6 +88,35 @@ public class RepoCreateCommandTest extends CLITestBase {
   }
 
   @Test
+  public void testCreateHelpSubstitutesAvailableCheckerTypes() {
+    getL10nJCommander().run("repo-create", "-h");
+
+    String output = outputCapture.toString();
+    assertFalse(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES_TOKEN));
+    assertTrue(output.contains(IntegrityCheckerCli.AVAILABLE_CHECKER_TYPES));
+  }
+
+  @Test
+  public void testCreateInvalidIntegrityCheckerTypeIsAShortError() throws Exception {
+    String repositoryName = testIdWatcher.getEntityName("badCheckerRepository");
+
+    getL10nJCommander()
+        .run(
+            "repo-create",
+            Param.REPOSITORY_NAME_SHORT,
+            repositoryName,
+            Param.REPOSITORY_LOCALES_SHORT,
+            "fr-FR",
+            RepoCommand.INTEGRITY_CHECK_SHORT_PARAM,
+            "properties:NOT_A_CHECKER");
+
+    String output = outputCapture.toString();
+    assertTrue(output.contains("Invalid integrity checker type [NOT_A_CHECKER]"));
+    assertFalse(output.contains("Unexpected error"));
+    assertNull(repositoryRepository.findByName(repositoryName));
+  }
+
+  @Test
   public void testCreateRepositoryWithEmptyRepoTypeStaysUntyped() throws Exception {
     String repositoryName = testIdWatcher.getEntityName("emptyTypeRepository");
 
