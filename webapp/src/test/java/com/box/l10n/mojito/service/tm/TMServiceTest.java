@@ -636,8 +636,7 @@ public class TMServiceTest extends ServiceTestBase {
     List<TMTextUnitVariant> tmTextUnitVariants =
         tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(
             targetLocale.getId(), tmId);
-    assertEquals(
-        "Only the unit with a target should be imported", 1, tmTextUnitVariants.size());
+    assertEquals("Only the unit with a target should be imported", 1, tmTextUnitVariants.size());
     assertEquals("Accueil", tmTextUnitVariants.get(0).getContent());
     assertEquals(
         tmTextUnitWithTranslation.getId(), tmTextUnitVariants.get(0).getTmTextUnit().getId());
