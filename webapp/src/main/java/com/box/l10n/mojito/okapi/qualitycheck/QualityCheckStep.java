@@ -90,13 +90,25 @@ public class QualityCheckStep extends net.sf.okapi.steps.qualitycheck.QualityChe
   }
 
   /**
-   * Adds an issue annotation on the target of the given text unit
+   * Adds an issue annotation on the target of the given text unit.
+   *
+   * <p>Some XLIFF inputs omit the {@code <target>} element entirely (e.g. empty source units from
+   * vendor tools). Okapi still reports target issues such as {@code MISSING_TARGETTU} for those
+   * units; skip annotating when there is no target container so import can continue and skip the
+   * unit instead of failing with an NPE.
    *
    * @param textUnit
    * @param issue
    */
   private void addAnnotationOnTarget(ITextUnit textUnit, Issue issue) {
     TextContainer targetContainer = textUnit.getTarget(targetLocale);
+    if (targetContainer == null) {
+      logger.debug(
+          "Skipping quality-check annotation for text unit id={} (issue: {}): target container is missing",
+          textUnit.getId(),
+          issue.getMessage());
+      return;
+    }
     addAnnotation(targetContainer, issue);
   }
 
