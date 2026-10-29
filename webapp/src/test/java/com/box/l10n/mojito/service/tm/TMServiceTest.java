@@ -577,6 +577,71 @@ public class TMServiceTest extends ServiceTestBase {
     assertEquals(TMTextUnitVariantComment.Severity.WARNING, variant4Comments.get(0).getSeverity());
   }
 
+  /**
+   * Trans-units with an empty source and no {@code <target>} element must not NPE during quality
+   * check; the unit is skipped and other units in the file still import.
+   */
+  @Test
+  public void testUpdateTMWithLocalizedXLIFFMissingTargetDoesNotThrow()
+      throws RepositoryNameAlreadyUsedException {
+    createTestData();
+
+    TMTextUnit emptySourceTmTextUnit =
+        tmService.addTMTextUnit(tmId, assetId, "empty_source_key", "", null);
+    TMTextUnit tmTextUnitWithTranslation =
+        tmService.addTMTextUnit(
+            tmId,
+            assetId,
+            "home",
+            "Home",
+            "This is the text displayed in the link that takes the user to the home page.");
+    Locale targetLocale = localeService.findByBcp47Tag("fr-FR");
+    String targetBcp47Tag = targetLocale.getBcp47Tag();
+
+    String localizedXLIFFContents =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<xliff xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" version=\"1.2\">\n"
+            + " <file original=\"\" source-language=\"en\" datatype=\"x-undefined\" target-language=\""
+            + targetBcp47Tag
+            + "\">\n"
+            + "  <body>\n"
+            + "   <trans-unit id=\""
+            + emptySourceTmTextUnit.getId()
+            + "\" resname=\""
+            + emptySourceTmTextUnit.getName()
+            + "\" xml:space=\"preserve\">\n"
+            + "    <source xml:lang=\"en\" />\n"
+            + "   </trans-unit>\n"
+            + "   <trans-unit id=\""
+            + tmTextUnitWithTranslation.getId()
+            + "\" resname=\""
+            + tmTextUnitWithTranslation.getName()
+            + "\">\n"
+            + "    <source>"
+            + tmTextUnitWithTranslation.getContent()
+            + "</source>\n"
+            + "    <target xml:lang=\""
+            + targetBcp47Tag
+            + "\" state=\"translated\">Accueil</target>\n"
+            + "   </trans-unit>\n"
+            + "  </body>\n"
+            + " </file>\n"
+            + "</xliff>";
+
+    UpdateTMWithXLIFFResult updateResult =
+        tmService.updateTMWithXLIFFById(localizedXLIFFContents, null);
+    assertNotNull(updateResult);
+    assertNotNull(updateResult.getXliffContent());
+
+    List<TMTextUnitVariant> tmTextUnitVariants =
+        tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(
+            targetLocale.getId(), tmId);
+    assertEquals("Only the unit with a target should be imported", 1, tmTextUnitVariants.size());
+    assertEquals("Accueil", tmTextUnitVariants.get(0).getContent());
+    assertEquals(
+        tmTextUnitWithTranslation.getId(), tmTextUnitVariants.get(0).getTmTextUnit().getId());
+  }
+
   private String getLocalizedXLIFFContent(
       Locale targetLocale, TMTextUnit tmTextUnit1, TMTextUnit tmTextUnit2) {
 
