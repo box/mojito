@@ -263,6 +263,26 @@ export type DropImportParams = {
     status?: TextUnitStatus;
 };
 
+/**
+ * Parameters for POST /api/drops/cancel.
+ *
+ * Starts an asynchronous cancel (marks canceled and deletes exporter files).
+ * The response includes a `pollableTask`. This tool does not wait.
+ */
+export type DropCancelParams = {
+    dropId: number;
+};
+
+/**
+ * Parameters for POST /api/drops/complete/{dropId}.
+ *
+ * Force-completes a partially imported drop. Synchronous: empty body, no
+ * pollable task. Success is empty stdout.
+ */
+export type DropCompleteParams = {
+    dropId: number;
+};
+
 export type RepoCreateParams = {
     name: string;
     description?: string;

@@ -26,6 +26,8 @@ import {
     type AssetListParams,
     type AssetLocalizeParams,
     type AssetPseudoParams,
+    type DropCancelParams,
+    type DropCompleteParams,
     type DropExportParams,
     type DropImportParams,
     type DropListParams,
@@ -285,6 +287,29 @@ export class MojitoCliClient {
             dropId: params.dropId,
             ...(params.status !== undefined && { status: params.status }),
         });
+    }
+
+    /**
+     * POST /api/drops/cancel — start canceling an exported drop.
+     *
+     * Asynchronous: the response is CancelDropConfig with `pollableTask`.
+     * Does not pass `--wait`. Failures include a drop that is mid-export/import.
+     */
+    async dropCancel(params: DropCancelParams): Promise<unknown> {
+        return this.apiJsonWithInput(["api", "/api/drops/cancel", "-X", "POST"], {
+            dropId: params.dropId,
+        });
+    }
+
+    /**
+     * POST /api/drops/complete/{dropId} — force-complete a partially imported drop.
+     *
+     * Synchronous: no request body and no pollable task. Empty stdout maps to null.
+     * Completing a drop that was never partially imported succeeds but may leave
+     * `partiallyImported` unchanged (server behavior).
+     */
+    async dropComplete(params: DropCompleteParams): Promise<unknown> {
+        return this.apiJson(["api", `/api/drops/complete/${params.dropId}`, "-X", "POST"]);
     }
 
     /**
