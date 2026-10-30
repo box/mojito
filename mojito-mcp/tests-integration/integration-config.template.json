@@ -1,0 +1,6 @@
+{
+  "prodCli": "mojito-prod",
+  "devCli": "mojito-dev",
+  "testRepositoryName": "mojito-mcp-integration-test",
+  "timeoutMs": 600000
+}
