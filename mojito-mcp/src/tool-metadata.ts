@@ -20,6 +20,9 @@
 export const MOJITO_MCP_TOOL_IDS = [
     "mojito_repo_list",
     "mojito_repo_view",
+    "mojito_textunit_search",
+    "mojito_textunit_info",
+    "mojito_textunit_history",
     "mojito_pollabletask_get",
 ] as const;
 
