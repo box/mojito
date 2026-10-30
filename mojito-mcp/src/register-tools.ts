@@ -130,6 +130,34 @@ const assetFilterConfigIdOverrideSchema = z
         "Optional Okapi filter override. Omit to let Mojito infer the filter from the asset path.",
     );
 
+const assetListFilterSchema = {
+    repositoryId: z
+        .number()
+        .int()
+        .positive()
+        .describe("Numeric Mojito repository id whose assets to list."),
+    path: z
+        .string()
+        .optional()
+        .describe(
+            "Exact logical asset path filter, e.g. `src/main/resources/messages.properties`. Omit to include every path.",
+        ),
+    deleted: z
+        .boolean()
+        .optional()
+        .describe("true = only deleted assets; false = only live assets; omit = both."),
+    virtual: z
+        .boolean()
+        .optional()
+        .describe("true = only virtual assets; false = only non-virtual; omit = both."),
+    branchId: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Restrict to assets associated with this Mojito branch id."),
+};
+
 function jsonResult(data: unknown) {
     return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
@@ -253,6 +281,32 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
     // --- Assets ---
 
     server.registerTool(
+        "mojito_asset_list",
+        {
+            description: [
+                "List source-asset summaries in a repository (id, path, deleted/virtual flags, and related metadata).",
+                "GET /api/assets. repositoryId is required. Optional path, deleted, virtual, and branchId restrict the set.",
+                "Returns the full filtered list in one response (the endpoint is not paginated).",
+                "There is no GET-by-id for a single asset; use path + repositoryId here, or mojito_asset_ids when you only need ids.",
+            ].join(" "),
+            inputSchema: assetListFilterSchema,
+        },
+        async (args) => jsonResult(await client.assetList(args)),
+    );
+
+    server.registerTool(
+        "mojito_asset_ids",
+        {
+            description: [
+                "List numeric source-asset ids in a repository (same filters as mojito_asset_list).",
+                "GET /api/assets/ids. Use this when you only need ids (for example before delete), not the summary objects.",
+            ].join(" "),
+            inputSchema: assetListFilterSchema,
+        },
+        async (args) => jsonResult(await client.assetIds(args)),
+    );
+
+    server.registerTool(
         "mojito_asset_import",
         {
             description: [
@@ -319,6 +373,27 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
             },
         },
         async (args) => jsonResult(await client.assetImport(args)),
+    );
+
+    server.registerTool(
+        "mojito_asset_delete",
+        {
+            description: [
+                "Delete one source asset by numeric id (DELETE /api/assets/{assetId}).",
+                "DESTRUCTIVE: confirm the asset id, repository, and environment (prod vs dev) with the user before calling.",
+                "Prefer mojito-dev for tests. This is a single-asset delete; it does not bulk-delete unused assets the way `mojito push` cleanup does.",
+            ].join(" "),
+            inputSchema: {
+                assetId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric asset id to delete. Resolve via mojito_asset_list or mojito_asset_ids.",
+                    ),
+            },
+        },
+        async ({ assetId }) => jsonResult(await client.assetDelete(assetId)),
     );
 
     // --- Text units ---

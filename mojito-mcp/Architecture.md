@@ -151,7 +151,7 @@ All tools use **`mojito_<object>_<action>`**, where `<object>` is the resource t
 | Object | Actions (v1) |
 |--------|----------------|
 | `repo` | `list`, `view`, `create`, `delete` |
-| `asset` | `import` |
+| `asset` | `list`, `ids`, `import`, `delete` |
 | `textunit` | `search`, `info`, `history`, `translation_add` |
 | `review` | `update` |
 | `pollabletask` | `get` |
@@ -175,9 +175,16 @@ Later (not v1): `mojito_textunit_translation_update` and related translation too
 
 | MCP tool | CLI shape |
 |----------|-----------|
+| `mojito_asset_list` | `api /api/assets` required `-F repositoryId=…` optional `-f path=…` `-F deleted=` `-F virtual=` `-F branchId=` |
+| `mojito_asset_ids` | `api /api/assets/ids` with the same query fields as list |
 | `mojito_asset_import` | `api /api/assets -X POST --input <source-asset.json>` |
+| `mojito_asset_delete` | `api /api/assets/{assetId} -X DELETE` |
+
+Asset list/ids are **not** paginated: the endpoint returns the full filtered set. `repositoryId` is required. There is no GET-by-id.
 
 Asset import sends the full `SourceAsset` JSON body: required `repositoryId`, `path`, and `content`; optional branch metadata, push-run name, filter override/options, and `extractedContent`. `POST /api/assets` creates or updates the logical asset and starts asynchronous extraction. Return its `addedAssetId` and `pollableTask` without waiting. This is only the core upload used by `mojito push`; MCP does not scan local files or delete assets omitted from an import.
+
+`mojito_asset_delete` is a single-asset delete. Bulk unused-asset cleanup (`DELETE /api/assets` with a body of ids) is not exposed.
 
 ### Text units
 

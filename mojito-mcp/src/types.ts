@@ -105,6 +105,22 @@ export type AssetFilterConfigIdOverride =
     | "HTML_ALPHA";
 
 /**
+ * Shared query filters for GET /api/assets and GET /api/assets/ids.
+ * `repositoryId` is required; other fields restrict the result when present.
+ */
+export type AssetListParams = {
+    repositoryId: number;
+    /** Exact logical asset path. Omit to include every path in the repository. */
+    path?: string;
+    /** true = only deleted assets; false = only live assets; omit = both. */
+    deleted?: boolean;
+    /** true = only virtual assets; false = only non-virtual; omit = both. */
+    virtual?: boolean;
+    /** Restrict to assets associated with this Mojito branch id. */
+    branchId?: number;
+};
+
+/**
  * Parameters for POST /api/assets.
  *
  * The operation creates or updates the asset at `path`, then starts asynchronous
