@@ -23,6 +23,7 @@ import { MojitoCliError } from "./errors.js";
 import type {
     AssetImportParams,
     AssetListParams,
+    AssetLocalizeParams,
     EncodedRepositoryLocale,
     RepoCreateParams,
     ReviewAction,
@@ -161,6 +162,35 @@ export class MojitoCliClient {
                 extractedContent: params.extractedContent,
             }),
         });
+    }
+
+    /**
+     * POST /api/assets/{assetId}/localized/{localeId} — generate one localized file.
+     *
+     * Synchronous: the response is the LocalizedAssetBody (localized `content`), not a
+     * pollable task. Async (`/localized`) and parallel (`/localized/parallel`) stay unused.
+     */
+    async assetLocalize(params: AssetLocalizeParams): Promise<unknown> {
+        return this.apiJsonWithInput(
+            ["api", `/api/assets/${params.assetId}/localized/${params.localeId}`, "-X", "POST"],
+            {
+                assetId: params.assetId,
+                localeId: params.localeId,
+                content: params.content,
+                ...(params.outputBcp47tag !== undefined && {
+                    outputBcp47tag: params.outputBcp47tag,
+                }),
+                ...(params.filterConfigIdOverride !== undefined && {
+                    filterConfigIdOverride: params.filterConfigIdOverride,
+                }),
+                ...(params.filterOptions !== undefined && { filterOptions: params.filterOptions }),
+                ...(params.inheritanceMode !== undefined && {
+                    inheritanceMode: params.inheritanceMode,
+                }),
+                ...(params.status !== undefined && { status: params.status }),
+                ...(params.pullRunName !== undefined && { pullRunName: params.pullRunName }),
+            },
+        );
     }
 
     /** DELETE /api/assets/{assetId} */
