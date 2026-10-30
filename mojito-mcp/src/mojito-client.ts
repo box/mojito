@@ -26,6 +26,8 @@ import {
     type AssetListParams,
     type AssetLocalizeParams,
     type AssetPseudoParams,
+    type DropExportParams,
+    type DropImportParams,
     type EncodedRepositoryLocale,
     type RepoCreateParams,
     type ReviewAction,
@@ -224,6 +226,35 @@ export class MojitoCliClient {
     /** DELETE /api/assets/{assetId} */
     async assetDelete(assetId: number): Promise<unknown> {
         return this.apiJson(["api", `/api/assets/${assetId}`, "-X", "DELETE"]);
+    }
+
+    /**
+     * POST /api/drops/export — start a vendor-drop export (translation kit).
+     *
+     * Asynchronous: the response is ExportDropConfig with `dropId` and
+     * `pollableTask`. Does not pass `--wait`.
+     */
+    async dropExport(params: DropExportParams): Promise<unknown> {
+        return this.apiJsonWithInput(["api", "/api/drops/export", "-X", "POST"], {
+            repositoryId: params.repositoryId,
+            ...(params.locales !== undefined && { locales: params.locales }),
+            ...(params.type !== undefined && { type: params.type }),
+            ...(params.useInheritance !== undefined && { useInheritance: params.useInheritance }),
+        });
+    }
+
+    /**
+     * POST /api/drops/import — start re-import of an existing drop.
+     *
+     * Asynchronous: the response is ImportDropConfig with `pollableTask`.
+     * Does not pass `--wait`.
+     */
+    async dropImport(params: DropImportParams): Promise<unknown> {
+        return this.apiJsonWithInput(["api", "/api/drops/import", "-X", "POST"], {
+            repositoryId: params.repositoryId,
+            dropId: params.dropId,
+            ...(params.status !== undefined && { status: params.status }),
+        });
     }
 
     /**

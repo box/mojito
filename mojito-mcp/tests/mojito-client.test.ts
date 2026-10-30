@@ -100,6 +100,13 @@
  *     body matches the Java client. There is no localeId.
  * 9e. A minimal pseudo call still sends that default output tag and omits substituteType
  *     so the server default RANDOM applies.
+ * 9f. Exporting a drop POSTs ExportDropConfig JSON to /api/drops/export with `locales`
+ *     (not `bcp47Tags`) and does not pass `--wait`.
+ * 9g. A minimal drop export sends only repositoryId so server defaults apply (type
+ *     TRANSLATION, empty locales).
+ * 9h. Importing a drop POSTs ImportDropConfig JSON to /api/drops/import and does not
+ *     pass `--wait`.
+ * 9i. A minimal drop import omits optional status.
  * 10. A minimal asset import preserves empty content and omits every optional field.
  * 11. Searching text units POSTs to the search endpoint with the full pagination flag set
  *    (`--paginate --slurp --max-pages 0`), and passes repository, source, search type, and
@@ -577,6 +584,129 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
 
         await expect(client.assetDelete(12)).resolves.toBeNull();
         expect(runner.calls[0]).toEqual(["api", "/api/assets/12", "-X", "DELETE"]);
+    });
+
+    test("dropExport POSTs ExportDropConfig JSON and does not wait", async () => {
+        let inputFile = "";
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            inputFile = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(inputFile, "utf8")) as Record<string, unknown>;
+            return okJson({
+                repositoryId: 7,
+                dropId: 99,
+                pollableTask: { id: 34 },
+            });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.dropExport({
+                repositoryId: 7,
+                locales: ["fr-FR", "ja-JP"],
+                type: "REVIEW",
+                useInheritance: true,
+            }),
+        ).resolves.toEqual({
+            repositoryId: 7,
+            dropId: 99,
+            pollableTask: { id: 34 },
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/drops/export",
+            "-X",
+            "POST",
+            "--input",
+            inputFile,
+        ]);
+        expect(runner.calls[0]).not.toContain("--wait");
+        expect(body).toEqual({
+            repositoryId: 7,
+            locales: ["fr-FR", "ja-JP"],
+            type: "REVIEW",
+            useInheritance: true,
+        });
+        expect(existsSync(inputFile)).toBe(false);
+    });
+
+    test("dropExport omits optional fields from a repository-only export", async () => {
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            body = JSON.parse(readFileSync(argv[argv.indexOf("--input") + 1], "utf8")) as Record<
+                string,
+                unknown
+            >;
+            return okJson({ dropId: 99, pollableTask: { id: 34 } });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.dropExport({ repositoryId: 7 });
+
+        expect(body).toEqual({ repositoryId: 7 });
+    });
+
+    test("dropImport POSTs ImportDropConfig JSON and does not wait", async () => {
+        let inputFile = "";
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            inputFile = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(inputFile, "utf8")) as Record<string, unknown>;
+            return okJson({
+                repositoryId: 7,
+                dropId: 99,
+                pollableTask: { id: 34 },
+            });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.dropImport({
+                repositoryId: 7,
+                dropId: 99,
+                status: "APPROVED",
+            }),
+        ).resolves.toEqual({
+            repositoryId: 7,
+            dropId: 99,
+            pollableTask: { id: 34 },
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/drops/import",
+            "-X",
+            "POST",
+            "--input",
+            inputFile,
+        ]);
+        expect(runner.calls[0]).not.toContain("--wait");
+        expect(body).toEqual({
+            repositoryId: 7,
+            dropId: 99,
+            status: "APPROVED",
+        });
+        expect(existsSync(inputFile)).toBe(false);
+    });
+
+    test("dropImport omits optional status", async () => {
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            body = JSON.parse(readFileSync(argv[argv.indexOf("--input") + 1], "utf8")) as Record<
+                string,
+                unknown
+            >;
+            return okJson({ dropId: 99, pollableTask: { id: 34 } });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.dropImport({ repositoryId: 7, dropId: 99 });
+
+        expect(body).toEqual({
+            repositoryId: 7,
+            dropId: 99,
+        });
     });
 
     test("assetImport POSTs the complete source asset as JSON and removes its temp file", async () => {
