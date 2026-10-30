@@ -28,6 +28,7 @@ export const MOJITO_MCP_TOOL_IDS = [
     "mojito_asset_localize",
     "mojito_asset_pseudo",
     "mojito_asset_delete",
+    "mojito_drop_list",
     "mojito_drop_export",
     "mojito_drop_import",
     "mojito_textunit_search",

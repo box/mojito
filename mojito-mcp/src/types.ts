@@ -208,6 +208,25 @@ export type AssetPseudoParams = {
     substituteType?: PseudoSubstituteType;
 };
 
+/**
+ * Query filters for GET /api/drops.
+ * Omit a field to leave that filter off (all repositories, any imported/canceled state).
+ */
+export type DropListParams = {
+    /** Restrict to this repository. Omit to list drops across all repositories. */
+    repositoryId?: number;
+    /**
+     * true = only fully imported drops; false = only not-yet-imported (or partial/failed).
+     * Omit = both.
+     */
+    imported?: boolean;
+    /**
+     * true = only canceled drops; false = only not canceled.
+     * Omit = both.
+     */
+    canceled?: boolean;
+};
+
 /** Translation-kit type for POST /api/drops/export. */
 export type DropExportType = "TRANSLATION" | "REVIEW";
 

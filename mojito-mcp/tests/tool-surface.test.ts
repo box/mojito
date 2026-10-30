@@ -85,6 +85,7 @@ describe("MCP tool surface", () => {
             "mojito_asset_localize",
             "mojito_asset_pseudo",
             "mojito_asset_delete",
+            "mojito_drop_list",
             "mojito_drop_export",
             "mojito_drop_import",
             "mojito_textunit_search",
@@ -165,6 +166,12 @@ describe("MCP tool surface", () => {
         const assetDelete = byName.get("mojito_asset_delete")!.options.inputSchema;
         expect(assetDelete.assetId.safeParse(1).success).toBe(true);
         expect(assetDelete.assetId.safeParse(0).success).toBe(false);
+
+        const dropList = byName.get("mojito_drop_list")!.options.inputSchema;
+        expect(dropList.repositoryId.safeParse(1).success).toBe(true);
+        expect(dropList.repositoryId.safeParse(0).success).toBe(false);
+        expect(dropList.imported.safeParse(false).success).toBe(true);
+        expect(dropList.canceled.safeParse(true).success).toBe(true);
 
         const dropExport = byName.get("mojito_drop_export")!.options.inputSchema;
         expect(dropExport.repositoryId.safeParse(1).success).toBe(true);
