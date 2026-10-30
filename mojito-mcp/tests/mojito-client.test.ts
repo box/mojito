@@ -95,6 +95,11 @@
  *     returns the generated file in the response body, not a pollable task.
  * 9c. A minimal localize keeps empty content and omits every optional field so API defaults
  *     (status ALL, inheritance USE_PARENT) apply.
+ * 9d. Pseudolocalizing an asset POSTs to /api/assets/{assetId}/pseudo (the `mojito pseudo`
+ *     call) with source content and always includes outputBcp47tag `en-x-pseudo` so the
+ *     body matches the Java client. There is no localeId.
+ * 9e. A minimal pseudo call still sends that default output tag and omits substituteType
+ *     so the server default RANDOM applies.
  * 10. A minimal asset import preserves empty content and omits every optional field.
  * 11. Searching text units POSTs to the search endpoint with the full pagination flag set
  *    (`--paginate --slurp --max-pages 0`), and passes repository, source, search type, and
@@ -717,6 +722,76 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
             assetId: 12,
             localeId: 24,
             content: "",
+        });
+    });
+
+    test("assetPseudo POSTs LocalizedAssetBody JSON to the pseudo endpoint", async () => {
+        let inputFile = "";
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            inputFile = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(inputFile, "utf8")) as Record<string, unknown>;
+            return okJson({
+                assetId: 12,
+                content: "héllo=Héllo\n",
+            });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.assetPseudo({
+                assetId: 12,
+                content: "hello=Hello\n",
+                outputBcp47tag: "en-x-pseudo",
+                filterConfigIdOverride: "PROPERTIES_JAVA",
+                filterOptions: ["generateHeader=false"],
+                substituteType: "CONSISTENT",
+            }),
+        ).resolves.toEqual({
+            assetId: 12,
+            content: "héllo=Héllo\n",
+        });
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/assets/12/pseudo",
+            "-X",
+            "POST",
+            "--input",
+            inputFile,
+        ]);
+        expect(runner.calls[0]).not.toContain("--wait");
+        expect(body).toEqual({
+            assetId: 12,
+            content: "hello=Hello\n",
+            outputBcp47tag: "en-x-pseudo",
+            filterConfigIdOverride: "PROPERTIES_JAVA",
+            filterOptions: ["generateHeader=false"],
+            substituteType: "CONSISTENT",
+        });
+        expect(existsSync(inputFile)).toBe(false);
+    });
+
+    test("assetPseudo defaults outputBcp47tag to en-x-pseudo and omits substituteType", async () => {
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            body = JSON.parse(readFileSync(argv[argv.indexOf("--input") + 1], "utf8")) as Record<
+                string,
+                unknown
+            >;
+            return okJson({ content: "" });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.assetPseudo({
+            assetId: 12,
+            content: "",
+        });
+
+        expect(body).toEqual({
+            assetId: 12,
+            content: "",
+            outputBcp47tag: "en-x-pseudo",
         });
     });
 

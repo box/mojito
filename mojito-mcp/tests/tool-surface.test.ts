@@ -83,6 +83,7 @@ describe("MCP tool surface", () => {
             "mojito_asset_ids",
             "mojito_asset_import",
             "mojito_asset_localize",
+            "mojito_asset_pseudo",
             "mojito_asset_delete",
             "mojito_textunit_search",
             "mojito_textunit_info",
@@ -149,6 +150,15 @@ describe("MCP tool surface", () => {
         expect(assetLocalize.status.safeParse("ACCEPTED").success).toBe(true);
         expect(assetLocalize.status.safeParse("APPROVED").success).toBe(false);
         expect(assetLocalize.inheritanceMode.safeParse("USE_PARENT").success).toBe(true);
+
+        const assetPseudo = byName.get("mojito_asset_pseudo")!.options.inputSchema;
+        expect(assetPseudo.assetId.safeParse(1).success).toBe(true);
+        expect(assetPseudo.assetId.safeParse(0).success).toBe(false);
+        expect(assetPseudo.content.safeParse("").success).toBe(true);
+        expect(assetPseudo.substituteType.safeParse("CONSISTENT").success).toBe(true);
+        expect(assetPseudo.substituteType.safeParse("RANDOM").success).toBe(true);
+        expect(assetPseudo.substituteType.safeParse("SEQUENTIAL").success).toBe(false);
+        expect(assetPseudo.localeId).toBeUndefined();
 
         const assetDelete = byName.get("mojito_asset_delete")!.options.inputSchema;
         expect(assetDelete.assetId.safeParse(1).success).toBe(true);
