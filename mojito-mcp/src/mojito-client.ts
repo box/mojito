@@ -21,6 +21,7 @@ import type { CliRunner } from "./cli-runner.js";
 import type { MojitoMcpConfig } from "./config.js";
 import { MojitoCliError } from "./errors.js";
 import type {
+    AssetImportParams,
     EncodedRepositoryLocale,
     RepoCreateParams,
     ReviewAction,
@@ -113,6 +114,32 @@ export class MojitoCliClient {
     /** DELETE /api/repositories/{repositoryId} */
     async repoDelete(repositoryId: number): Promise<unknown> {
         return this.apiJson(["api", `/api/repositories/${repositoryId}`, "-X", "DELETE"]);
+    }
+
+    /**
+     * POST /api/assets — create or update a source asset and start asynchronous extraction.
+     */
+    async assetImport(params: AssetImportParams): Promise<unknown> {
+        return this.apiJsonWithInput(["api", "/api/assets", "-X", "POST"], {
+            repositoryId: params.repositoryId,
+            path: params.path,
+            content: params.content,
+            ...(params.branch !== undefined && { branch: params.branch }),
+            ...(params.branchCreatedByUsername !== undefined && {
+                branchCreatedByUsername: params.branchCreatedByUsername,
+            }),
+            ...(params.branchNotifiers !== undefined && {
+                branchNotifiers: params.branchNotifiers,
+            }),
+            ...(params.pushRunName !== undefined && { pushRunName: params.pushRunName }),
+            ...(params.filterConfigIdOverride !== undefined && {
+                filterConfigIdOverride: params.filterConfigIdOverride,
+            }),
+            ...(params.filterOptions !== undefined && { filterOptions: params.filterOptions }),
+            ...(params.extractedContent !== undefined && {
+                extractedContent: params.extractedContent,
+            }),
+        });
     }
 
     /**
