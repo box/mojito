@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
@@ -27,6 +28,7 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -43,6 +45,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -578,13 +581,21 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   /**
-   * Trans-units with an empty source and no {@code <target>} element must not NPE during quality
-   * check; the unit is skipped and other units in the file still import.
+   * Trans-units with an empty source and no {@code <target>} element must not NPE during integrity
+   * or quality check; the unit is skipped with an import note and other units in the file still
+   * import.
    */
   @Test
   public void testUpdateTMWithLocalizedXLIFFMissingTargetDoesNotThrow()
       throws RepositoryNameAlreadyUsedException {
     createTestData();
+
+    // Exercise TextUnitIntegrityCheckStep as well as QualityCheckStep for missing targets.
+    AssetIntegrityChecker assetIntegrityChecker = new AssetIntegrityChecker();
+    assetIntegrityChecker.setAssetExtension("xliff");
+    assetIntegrityChecker.setIntegrityCheckerType(IntegrityCheckerType.TRAILING_WHITESPACE);
+    repositoryService.updateAssetIntegrityCheckers(
+        repository, Sets.newHashSet(assetIntegrityChecker));
 
     TMTextUnit emptySourceTmTextUnit =
         tmService.addTMTextUnit(tmId, assetId, "empty_source_key", "", null);
@@ -632,6 +643,10 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.updateTMWithXLIFFById(localizedXLIFFContents, null);
     assertNotNull(updateResult);
     assertNotNull(updateResult.getXliffContent());
+    assertTrue(
+        updateResult
+            .getXliffContent()
+            .contains("Target missing for text unit with id: " + emptySourceTmTextUnit.getId()));
 
     List<TMTextUnitVariant> tmTextUnitVariants =
         tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(
