@@ -72,24 +72,32 @@ public class TextUnitIntegrityCheckStep extends BasePipelineStep {
         asset = tmTextUnit.getAsset();
         TextContainer target = textUnit.getTarget(targetLocale);
 
-        logger.debug("Check integrity of text unit");
+        // Some XLIFF inputs omit <target> entirely (e.g. empty source units). Skip integrity
+        // checking so the import step can report "Target missing" and continue with other units.
+        if (target == null) {
+          logger.debug(
+              "Skipping integrity check for text unit id={}: target container is missing",
+              textUnit.getId());
+        } else {
+          logger.debug("Check integrity of text unit");
 
-        try {
-          Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers =
-              getTextUnitIntegrityCheckers(asset);
+          try {
+            Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers =
+                getTextUnitIntegrityCheckers(asset);
 
-          for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
-            textUnitIntegrityChecker.check(textUnit.getSource().toString(), target.toString());
+            for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
+              textUnitIntegrityChecker.check(textUnit.getSource().toString(), target.toString());
+            }
+          } catch (IntegrityCheckException e) {
+            TMTextUnitVariantCommentAnnotation tmTextUnitVariantCommentAnnotation =
+                new TMTextUnitVariantCommentAnnotation();
+            tmTextUnitVariantCommentAnnotation.setCommentType(
+                TMTextUnitVariantComment.Type.INTEGRITY_CHECK);
+            tmTextUnitVariantCommentAnnotation.setMessage(e.getMessage());
+            tmTextUnitVariantCommentAnnotation.setSeverity(TMTextUnitVariantComment.Severity.ERROR);
+            new TMTextUnitVariantCommentAnnotations(target)
+                .addAnnotation(tmTextUnitVariantCommentAnnotation);
           }
-        } catch (IntegrityCheckException e) {
-          TMTextUnitVariantCommentAnnotation tmTextUnitVariantCommentAnnotation =
-              new TMTextUnitVariantCommentAnnotation();
-          tmTextUnitVariantCommentAnnotation.setCommentType(
-              TMTextUnitVariantComment.Type.INTEGRITY_CHECK);
-          tmTextUnitVariantCommentAnnotation.setMessage(e.getMessage());
-          tmTextUnitVariantCommentAnnotation.setSeverity(TMTextUnitVariantComment.Severity.ERROR);
-          new TMTextUnitVariantCommentAnnotations(target)
-              .addAnnotation(tmTextUnitVariantCommentAnnotation);
         }
       } else {
         logger.debug("Could not find a TMTextUnit for id: {}. Skipping it...", textUnit.getId());

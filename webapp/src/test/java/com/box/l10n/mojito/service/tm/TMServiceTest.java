@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 
 import com.box.l10n.mojito.JSR310Migration;
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
@@ -27,6 +28,7 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -43,6 +45,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -575,6 +578,83 @@ public class TMServiceTest extends ServiceTestBase {
         "There should be 1 comment associated to the variant 4", 1, variant4Comments.size());
     assertEquals(TMTextUnitVariantComment.Type.QUALITY_CHECK, variant4Comments.get(0).getType());
     assertEquals(TMTextUnitVariantComment.Severity.WARNING, variant4Comments.get(0).getSeverity());
+  }
+
+  /**
+   * Trans-units with an empty source and no {@code <target>} element must not NPE during integrity
+   * or quality check; the unit is skipped with an import note and other units in the file still
+   * import.
+   */
+  @Test
+  public void testUpdateTMWithLocalizedXLIFFMissingTargetDoesNotThrow()
+      throws RepositoryNameAlreadyUsedException {
+    createTestData();
+
+    // Exercise TextUnitIntegrityCheckStep as well as QualityCheckStep for missing targets.
+    AssetIntegrityChecker assetIntegrityChecker = new AssetIntegrityChecker();
+    assetIntegrityChecker.setAssetExtension("xliff");
+    assetIntegrityChecker.setIntegrityCheckerType(IntegrityCheckerType.TRAILING_WHITESPACE);
+    repositoryService.updateAssetIntegrityCheckers(
+        repository, Sets.newHashSet(assetIntegrityChecker));
+
+    TMTextUnit emptySourceTmTextUnit =
+        tmService.addTMTextUnit(tmId, assetId, "empty_source_key", "", null);
+    TMTextUnit tmTextUnitWithTranslation =
+        tmService.addTMTextUnit(
+            tmId,
+            assetId,
+            "home",
+            "Home",
+            "This is the text displayed in the link that takes the user to the home page.");
+    Locale targetLocale = localeService.findByBcp47Tag("fr-FR");
+    String targetBcp47Tag = targetLocale.getBcp47Tag();
+
+    String localizedXLIFFContents =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<xliff xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" version=\"1.2\">\n"
+            + " <file original=\"\" source-language=\"en\" datatype=\"x-undefined\" target-language=\""
+            + targetBcp47Tag
+            + "\">\n"
+            + "  <body>\n"
+            + "   <trans-unit id=\""
+            + emptySourceTmTextUnit.getId()
+            + "\" resname=\""
+            + emptySourceTmTextUnit.getName()
+            + "\" xml:space=\"preserve\">\n"
+            + "    <source xml:lang=\"en\" />\n"
+            + "   </trans-unit>\n"
+            + "   <trans-unit id=\""
+            + tmTextUnitWithTranslation.getId()
+            + "\" resname=\""
+            + tmTextUnitWithTranslation.getName()
+            + "\">\n"
+            + "    <source>"
+            + tmTextUnitWithTranslation.getContent()
+            + "</source>\n"
+            + "    <target xml:lang=\""
+            + targetBcp47Tag
+            + "\" state=\"translated\">Accueil</target>\n"
+            + "   </trans-unit>\n"
+            + "  </body>\n"
+            + " </file>\n"
+            + "</xliff>";
+
+    UpdateTMWithXLIFFResult updateResult =
+        tmService.updateTMWithXLIFFById(localizedXLIFFContents, null);
+    assertNotNull(updateResult);
+    assertNotNull(updateResult.getXliffContent());
+    assertTrue(
+        updateResult
+            .getXliffContent()
+            .contains("Target missing for text unit with id: " + emptySourceTmTextUnit.getId()));
+
+    List<TMTextUnitVariant> tmTextUnitVariants =
+        tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(
+            targetLocale.getId(), tmId);
+    assertEquals("Only the unit with a target should be imported", 1, tmTextUnitVariants.size());
+    assertEquals("Accueil", tmTextUnitVariants.get(0).getContent());
+    assertEquals(
+        tmTextUnitWithTranslation.getId(), tmTextUnitVariants.get(0).getTmTextUnit().getId());
   }
 
   private String getLocalizedXLIFFContent(
