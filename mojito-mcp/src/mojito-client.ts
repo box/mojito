@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { CliRunner } from "./cli-runner.js";
 import type { MojitoMcpConfig } from "./config.js";
 import { MojitoCliError } from "./errors.js";
-import type { TextUnitSearchParams } from "./types.js";
+import type {
+    EncodedRepositoryLocale,
+    RepoCreateParams,
+    ReviewAction,
+    ReviewUpdateParams,
+    TextUnitSearchParams,
+    TextUnitTranslationAddParams,
+    TextUnitStatus,
+} from "./types.js";
 
 const PAGINATE_FLAGS = ["--paginate", "--slurp", "--max-pages", "0"] as const;
 
@@ -27,6 +38,16 @@ const PAGINATE_FLAGS = ["--paginate", "--slurp", "--max-pages", "0"] as const;
  * page likely but small enough to keep each request cheap.
  */
 const SEARCH_PAGE_SIZE = 500;
+
+const REVIEW_ACTION_MAP: Record<
+    ReviewAction,
+    { status: TextUnitStatus; includedInLocalizedFile: boolean }
+> = {
+    accept: { status: "APPROVED", includedInLocalizedFile: true },
+    review: { status: "REVIEW_NEEDED", includedInLocalizedFile: true },
+    translate: { status: "TRANSLATION_NEEDED", includedInLocalizedFile: true },
+    reject: { status: "TRANSLATION_NEEDED", includedInLocalizedFile: false },
+};
 
 /**
  * Mojito API access via the CLI `api` command.
@@ -67,6 +88,31 @@ export class MojitoCliClient {
     /** GET /api/repositories/{repositoryId} */
     async repoView(repositoryId: number): Promise<unknown> {
         return this.apiJson(["api", `/api/repositories/${repositoryId}`]);
+    }
+
+    /** POST /api/repositories */
+    async repoCreate(params: RepoCreateParams): Promise<unknown> {
+        if (needsRepoCreateJsonBody(params)) {
+            return this.apiJsonWithInput(
+                ["api", "/api/repositories", "-X", "POST"],
+                buildRepoCreateBody(params),
+            );
+        }
+
+        const argv = ["api", "/api/repositories", "-X", "POST"];
+        pushRaw(argv, "name", params.name);
+        if (params.description !== undefined) {
+            pushRaw(argv, "description", params.description);
+        }
+        if (params.checkSLA !== undefined) {
+            pushTyped(argv, "checkSLA", params.checkSLA);
+        }
+        return this.apiJson(argv);
+    }
+
+    /** DELETE /api/repositories/{repositoryId} */
+    async repoDelete(repositoryId: number): Promise<unknown> {
+        return this.apiJson(["api", `/api/repositories/${repositoryId}`, "-X", "DELETE"]);
     }
 
     /**
@@ -116,6 +162,39 @@ export class MojitoCliClient {
         return this.apiJson(argv);
     }
 
+    /** POST /api/textunits — add current translation */
+    async textunitTranslationAdd(params: TextUnitTranslationAddParams): Promise<unknown> {
+        const argv = ["api", "/api/textunits", "-X", "POST"];
+        pushTyped(argv, "tmTextUnitId", params.tmTextUnitId);
+        pushTyped(argv, "localeId", params.localeId);
+        pushRaw(argv, "target", params.target);
+        if (params.targetComment !== undefined) {
+            pushRaw(argv, "targetComment", params.targetComment);
+        }
+        if (params.status !== undefined) {
+            pushRaw(argv, "status", params.status);
+        }
+        if (params.includedInLocalizedFile !== undefined) {
+            pushTyped(argv, "includedInLocalizedFile", params.includedInLocalizedFile);
+        }
+        return this.apiJson(argv);
+    }
+
+    /** POST /api/textunits — workbench review action */
+    async reviewUpdate(params: ReviewUpdateParams): Promise<unknown> {
+        const mapped = REVIEW_ACTION_MAP[params.action];
+        const argv = ["api", "/api/textunits", "-X", "POST"];
+        pushTyped(argv, "tmTextUnitId", params.tmTextUnitId);
+        pushTyped(argv, "localeId", params.localeId);
+        pushRaw(argv, "target", params.target);
+        pushRaw(argv, "status", mapped.status);
+        pushTyped(argv, "includedInLocalizedFile", mapped.includedInLocalizedFile);
+        if (params.targetComment !== undefined) {
+            pushRaw(argv, "targetComment", params.targetComment);
+        }
+        return this.apiJson(argv);
+    }
+
     /** GET /api/pollableTasks/{pollableTaskId} */
     async pollabletaskGet(pollableTaskId: number): Promise<unknown> {
         return this.apiJson(["api", `/api/pollableTasks/${pollableTaskId}`]);
@@ -140,6 +219,17 @@ export class MojitoCliClient {
     private async apiJson(argv: string[]): Promise<unknown> {
         const { stdout } = await this.runChecked(argv);
         return parseStdoutJson(stdout);
+    }
+
+    private async apiJsonWithInput(argv: string[], body: unknown): Promise<unknown> {
+        const dir = mkdtempSync(join(tmpdir(), "mojito-mcp-"));
+        const file = join(dir, "body.json");
+        try {
+            writeFileSync(file, JSON.stringify(body), "utf8");
+            return await this.apiJson([...argv, "--input", file]);
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     }
 }
 
@@ -263,4 +353,82 @@ function extractRepositoryIds(repos: unknown): number[] {
         ids.push(id);
     }
     return ids;
+}
+
+function needsRepoCreateJsonBody(params: RepoCreateParams): boolean {
+    return (
+        params.sourceLocale !== undefined ||
+        (params.repositoryLocales?.length ?? 0) > 0 ||
+        (params.assetIntegrityCheckers?.length ?? 0) > 0
+    );
+}
+
+function buildRepoCreateBody(params: RepoCreateParams): Record<string, unknown> {
+    const body: Record<string, unknown> = { name: params.name };
+    if (params.description !== undefined) {
+        body.description = params.description;
+    }
+    if (params.checkSLA !== undefined) {
+        body.checkSLA = params.checkSLA;
+    }
+    if (params.sourceLocale !== undefined) {
+        body.sourceLocale = { bcp47Tag: params.sourceLocale };
+    }
+    if (params.repositoryLocales?.length) {
+        body.repositoryLocales = params.repositoryLocales.map(parseEncodedRepositoryLocale);
+    }
+    if (params.assetIntegrityCheckers?.length) {
+        body.assetIntegrityCheckers = params.assetIntegrityCheckers;
+    }
+    return body;
+}
+
+/**
+ * Parse Mojito CLI `-l` encoding into nested RepositoryLocale JSON.
+ * Mirrors {@code LocaleHelper.getRepositoryLocaleFromEncodedBcp47Tag}.
+ */
+export function parseEncodedRepositoryLocale(
+    encoded: EncodedRepositoryLocale,
+): Record<string, unknown> {
+    const parts = encoded.split("->").map((p) => p.trim());
+    if (parts.some((part) => part === "")) {
+        throw new MojitoCliError(`Invalid encoded repository locale: ${encoded}`);
+    }
+
+    let toBeFullyTranslated = true;
+    const locales: string[] = [];
+
+    for (const part of parts) {
+        if (/^\(\s*\)$/.test(part)) {
+            throw new MojitoCliError(`Invalid encoded repository locale: ${encoded}`);
+        }
+        const m = /^\((.+)\)$/.exec(part);
+        if (m) {
+            const locale = m[1].trim();
+            if (locale === "") {
+                throw new MojitoCliError(`Invalid encoded repository locale: ${encoded}`);
+            }
+            toBeFullyTranslated = false;
+            locales.push(locale);
+        } else {
+            locales.push(part);
+        }
+    }
+
+    const [child, ...parents] = locales;
+    const repositoryLocale: Record<string, unknown> = {
+        locale: { bcp47Tag: child },
+        toBeFullyTranslated,
+    };
+
+    let cursor = repositoryLocale;
+    for (const parent of parents) {
+        const parentNode: Record<string, unknown> = {
+            locale: { bcp47Tag: parent },
+        };
+        cursor.parentLocale = parentNode;
+        cursor = parentNode;
+    }
+
+    return repositoryLocale;
 }
