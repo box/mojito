@@ -22,6 +22,7 @@ import type { MojitoMcpConfig } from "./config.js";
 import { MojitoCliError } from "./errors.js";
 import type {
     AssetImportParams,
+    AssetListParams,
     EncodedRepositoryLocale,
     RepoCreateParams,
     ReviewAction,
@@ -117,6 +118,26 @@ export class MojitoCliClient {
     }
 
     /**
+     * GET /api/assets — list asset summaries for a repository.
+     *
+     * Not paginated: the endpoint returns the full filtered set in one response.
+     */
+    async assetList(params: AssetListParams): Promise<unknown> {
+        const argv = ["api", "/api/assets"];
+        appendAssetListFields(argv, params);
+        return this.apiJson(argv);
+    }
+
+    /**
+     * GET /api/assets/ids — list asset ids for a repository (same filters as list).
+     */
+    async assetIds(params: AssetListParams): Promise<unknown> {
+        const argv = ["api", "/api/assets/ids"];
+        appendAssetListFields(argv, params);
+        return this.apiJson(argv);
+    }
+
+    /**
      * POST /api/assets — create or update a source asset and start asynchronous extraction.
      */
     async assetImport(params: AssetImportParams): Promise<unknown> {
@@ -140,6 +161,11 @@ export class MojitoCliClient {
                 extractedContent: params.extractedContent,
             }),
         });
+    }
+
+    /** DELETE /api/assets/{assetId} */
+    async assetDelete(assetId: number): Promise<unknown> {
+        return this.apiJson(["api", `/api/assets/${assetId}`, "-X", "DELETE"]);
     }
 
     /**
@@ -292,6 +318,22 @@ function pushRawArray(argv: string[], key: string, values: string[]): void {
 function pushTypedArray(argv: string[], key: string, values: number[]): void {
     for (const value of values) {
         pushTyped(argv, `${key}[]`, value);
+    }
+}
+
+function appendAssetListFields(argv: string[], params: AssetListParams): void {
+    pushTyped(argv, "repositoryId", params.repositoryId);
+    if (params.path !== undefined) {
+        pushRaw(argv, "path", params.path);
+    }
+    if (params.deleted !== undefined) {
+        pushTyped(argv, "deleted", params.deleted);
+    }
+    if (params.virtual !== undefined) {
+        pushTyped(argv, "virtual", params.virtual);
+    }
+    if (params.branchId !== undefined) {
+        pushTyped(argv, "branchId", params.branchId);
     }
 }
 
