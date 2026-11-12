@@ -100,13 +100,16 @@
  *     body matches the Java client. There is no localeId.
  * 9e. A minimal pseudo call still sends that default output tag and omits substituteType
  *     so the server default RANDOM applies.
- * 9f. Exporting a drop POSTs ExportDropConfig JSON to /api/drops/export with `locales`
+ * 9f. Listing drops GETs /api/drops with pagination flags and slurps every page. Optional
+ *     repositoryId / imported / canceled filters use typed fields so false is preserved.
+ * 9g. A filter-less drop list still paginates and sends no query fields.
+ * 9h. Exporting a drop POSTs ExportDropConfig JSON to /api/drops/export with `locales`
  *     (not `bcp47Tags`) and does not pass `--wait`.
- * 9g. A minimal drop export sends only repositoryId so server defaults apply (type
+ * 9i. A minimal drop export sends only repositoryId so server defaults apply (type
  *     TRANSLATION, empty locales).
- * 9h. Importing a drop POSTs ImportDropConfig JSON to /api/drops/import and does not
+ * 9j. Importing a drop POSTs ImportDropConfig JSON to /api/drops/import and does not
  *     pass `--wait`.
- * 9i. A minimal drop import omits optional status.
+ * 9k. A minimal drop import omits optional status.
  * 10. A minimal asset import preserves empty content and omits every optional field.
  * 11. Searching text units POSTs to the search endpoint with the full pagination flag set
  *    (`--paginate --slurp --max-pages 0`), and passes repository, source, search type, and
@@ -584,6 +587,54 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
 
         await expect(client.assetDelete(12)).resolves.toBeNull();
         expect(runner.calls[0]).toEqual(["api", "/api/assets/12", "-X", "DELETE"]);
+    });
+
+    test("dropList paginates and slurps GET /api/drops with typed filters", async () => {
+        const runner = mockRunner(() => okJson([{ id: 99, name: "drop" }]));
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.dropList({
+                repositoryId: 7,
+                imported: false,
+                canceled: true,
+            }),
+        ).resolves.toEqual([{ id: 99, name: "drop" }]);
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/drops",
+            "--paginate",
+            "--slurp",
+            "--max-pages",
+            "0",
+            "--page-size",
+            "100",
+            "-F",
+            "repositoryId=7",
+            "-F",
+            "imported=false",
+            "-F",
+            "canceled=true",
+        ]);
+    });
+
+    test("dropList without filters still paginates and omits query fields", async () => {
+        const runner = mockRunner(() => okJson([]));
+        const client = new MojitoCliClient(config, runner);
+
+        await client.dropList();
+
+        expect(runner.calls[0]).toEqual([
+            "api",
+            "/api/drops",
+            "--paginate",
+            "--slurp",
+            "--max-pages",
+            "0",
+            "--page-size",
+            "100",
+        ]);
     });
 
     test("dropExport POSTs ExportDropConfig JSON and does not wait", async () => {

@@ -28,6 +28,7 @@ import {
     type AssetPseudoParams,
     type DropExportParams,
     type DropImportParams,
+    type DropListParams,
     type EncodedRepositoryLocale,
     type RepoCreateParams,
     type ReviewAction,
@@ -45,6 +46,9 @@ const PAGINATE_FLAGS = ["--paginate", "--slurp", "--max-pages", "0"] as const;
  * page likely but small enough to keep each request cheap.
  */
 const SEARCH_PAGE_SIZE = 500;
+
+/** Page size for GET /api/drops (Spring Data page/size). */
+const DROP_PAGE_SIZE = 100;
 
 const REVIEW_ACTION_MAP: Record<
     ReviewAction,
@@ -226,6 +230,32 @@ export class MojitoCliClient {
     /** DELETE /api/assets/{assetId} */
     async assetDelete(assetId: number): Promise<unknown> {
         return this.apiJson(["api", `/api/assets/${assetId}`, "-X", "DELETE"]);
+    }
+
+    /**
+     * GET /api/drops — list drop summaries (paginated on the server).
+     *
+     * Always paginates + slurps so the caller gets every matching drop, newest
+     * first (server default sort is id DESC). Optional filters restrict the set.
+     */
+    async dropList(params: DropListParams = {}): Promise<unknown> {
+        const argv = [
+            "api",
+            "/api/drops",
+            ...PAGINATE_FLAGS,
+            "--page-size",
+            String(DROP_PAGE_SIZE),
+        ];
+        if (params.repositoryId !== undefined) {
+            pushTyped(argv, "repositoryId", params.repositoryId);
+        }
+        if (params.imported !== undefined) {
+            pushTyped(argv, "imported", params.imported);
+        }
+        if (params.canceled !== undefined) {
+            pushTyped(argv, "canceled", params.canceled);
+        }
+        return this.apiJson(argv);
     }
 
     /**
