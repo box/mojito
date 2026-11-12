@@ -38,7 +38,8 @@
  *    failure does not litter the dev server.
  *
  * Not covered here: translation writes and review updates, text unit history, pollable
- * tasks, asset import/list/localize/pseudo/delete, and the all-repositories search expansion.
+ * tasks, asset import/list/localize/pseudo/delete, drop export/import, and the all-repositories
+ * search expansion.
  * Those are argv-level unit tests only, because asserting them live would need seeded
  * translation data (or extra asset fixtures) on the dev instance.
  */

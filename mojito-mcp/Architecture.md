@@ -134,11 +134,11 @@ Pass caller `limit` / `offset` / page-size fields through as `-f`/`-F` when the 
 
 ### Wait / timeout
 
-**MCP tools:** do **not** pass `-w` / `--wait`. Asset import returns its pollable task to the caller instead of blocking. Asset localize uses the synchronous `/localized/{localeId}` endpoint, and asset pseudo uses `/pseudo`; both return the generated file in the HTTP response body rather than a later pollable-task output.
+**MCP tools:** do **not** pass `-w` / `--wait`. Asset import, drop export, and drop import return their pollable task to the caller instead of blocking. Poll with `mojito_pollabletask_get` until `allFinished` is true. Asset localize uses the synchronous `/localized/{localeId}` endpoint, and asset pseudo uses `/pseudo`; both return the generated file in the HTTP response body rather than a later pollable-task output.
 
-`MOJITO_CLI_TIMEOUT_MS` still applies to every spawn (network hangs, slow searches). Default **10 minutes** so future tools that *do* use `--wait` (e.g. drop export/import, which can take ~5+ minutes per project) work without a too-aggressive default. Operators raise the env var for larger jobs.
+`MOJITO_CLI_TIMEOUT_MS` still applies to every spawn (network hangs, slow searches, pollable-task GETs). Default **10 minutes**. Drop export/import jobs themselves can take ~5+ minutes **on the server**; the MCP POST returns quickly with a task id, so the long wait is a series of `mojito_pollabletask_get` calls, not one blocked CLI `--wait`. Operators raise the env var if individual invocations hang.
 
-When adding long-running tools later: pass `--wait` and document raising `MOJITO_CLI_TIMEOUT_MS` as needed. Keep `mojito_pollabletask_get` as a non-waiting status GET.
+Keep `mojito_pollabletask_get` as a non-waiting status GET.
 
 ### `--spec`
 
@@ -152,6 +152,7 @@ All tools use **`mojito_<object>_<action>`**, where `<object>` is the resource t
 |--------|----------------|
 | `repo` | `list`, `view`, `create`, `delete` |
 | `asset` | `list`, `ids`, `import`, `localize`, `pseudo`, `delete` |
+| `drop` | `export`, `import` |
 | `textunit` | `search`, `info`, `history`, `translation_add` |
 | `review` | `update` |
 | `pollabletask` | `get` |
@@ -191,6 +192,19 @@ Asset import sends the full `SourceAsset` JSON body: required `repositoryId`, `p
 `mojito_asset_pseudo` sends `LocalizedAssetBody` JSON: required `assetId` and source `content`; optional `outputBcp47tag` (client default `en-x-pseudo`, matching the Java CLI), `filterConfigIdOverride` / `filterOptions`, and `substituteType` (`RANDOM` / `CONSISTENT`). This is the `mojito pseudo` call (`POST /api/assets/{assetId}/pseudo`). The response `content` is the accented file. Agents should write it using path tag `en-x-pseudo` even though the pipeline uses `en-x-psaccent` internally. No `localeId`. MCP does not scan directories or write files.
 
 `mojito_asset_delete` is a single-asset delete. Bulk unused-asset cleanup (`DELETE /api/assets` with a body of ids) is not exposed.
+
+### Drops
+
+| MCP tool | CLI shape |
+|----------|-----------|
+| `mojito_drop_export` | `api /api/drops/export -X POST --input <export-drop.json>` |
+| `mojito_drop_import` | `api /api/drops/import -X POST --input <import-drop.json>` |
+
+`mojito_drop_export` sends `ExportDropConfig` JSON: required `repositoryId`; optional `locales` (BCP-47 tags; Jackson field name `locales`, not `bcp47Tags`), `type` (`TRANSLATION` / `REVIEW`), `useInheritance`. Return `dropId` and `pollableTask` without `--wait`. Unlike CLI `drop-export`, omitted `locales` is an empty list on the server (no auto-fill from fully-translated repository locales). List/cancel/complete/importXliff are not exposed.
+
+`mojito_drop_import` sends `ImportDropConfig` JSON: required `repositoryId` and `dropId`; optional `status` (`APPROVED` / `REVIEW_NEEDED` / `TRANSLATION_NEEDED`). Return `pollableTask` without `--wait`.
+
+Callers wait via `mojito_pollabletask_get` on the returned task id.
 
 ### Text units
 
@@ -267,6 +281,8 @@ Required inputs: `tmTextUnitId`, `localeId`, `target` (current translation text;
 |----------|-----------|
 | `mojito_pollabletask_get` | `api /api/pollableTasks/{pollableTaskId}` |
 
+Use after drop export/import (and asset import). Does not wait.
+
 ### Field encoding helpers
 
 - Prefer `-F` for typed values (`true`/`false`/`null`/integers) and `-f` when the value must stay a string.
@@ -305,9 +321,10 @@ Tool ids and zod schemas in `register-tools.ts` / `tool-metadata.ts` must match 
 5. Update README and SKILL (dual-server, naming, search/review workflows).
 6. Manual smoke: Cursor → `mojito-dev` `mojito_repo_list` → `mojito-prod` `mojito_textunit_search` (read-only).
 
-## Future extensions (out of scope for v1)
+## Future extensions (out of scope for this slice)
 
-- Drop export/import tools with `--wait` and documented long timeouts.
+- Drop list / cancel / complete / standalone XLIFF import.
+- Drop export/import with CLI `--wait` (currently poll via `mojito_pollabletask_get`).
 - Async asset localize (`POST /api/assets/{assetId}/localized`) and parallel (`…/localized/parallel`).
 - Optional `--paginate` toggles only if unbounded slurps become a problem (not expected).
 - Escape-hatch raw `api` tool (deliberately deferred; curated tools are safer for agents).

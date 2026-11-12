@@ -85,6 +85,8 @@ describe("MCP tool surface", () => {
             "mojito_asset_localize",
             "mojito_asset_pseudo",
             "mojito_asset_delete",
+            "mojito_drop_export",
+            "mojito_drop_import",
             "mojito_textunit_search",
             "mojito_textunit_info",
             "mojito_textunit_history",
@@ -163,6 +165,23 @@ describe("MCP tool surface", () => {
         const assetDelete = byName.get("mojito_asset_delete")!.options.inputSchema;
         expect(assetDelete.assetId.safeParse(1).success).toBe(true);
         expect(assetDelete.assetId.safeParse(0).success).toBe(false);
+
+        const dropExport = byName.get("mojito_drop_export")!.options.inputSchema;
+        expect(dropExport.repositoryId.safeParse(1).success).toBe(true);
+        expect(dropExport.repositoryId.safeParse(0).success).toBe(false);
+        expect(dropExport.locales.safeParse(["fr-FR"]).success).toBe(true);
+        expect(dropExport.type.safeParse("TRANSLATION").success).toBe(true);
+        expect(dropExport.type.safeParse("REVIEW").success).toBe(true);
+        expect(dropExport.type.safeParse("BOTH").success).toBe(false);
+        expect(dropExport.useInheritance.safeParse(true).success).toBe(true);
+
+        const dropImport = byName.get("mojito_drop_import")!.options.inputSchema;
+        expect(dropImport.repositoryId.safeParse(1).success).toBe(true);
+        expect(dropImport.repositoryId.safeParse(0).success).toBe(false);
+        expect(dropImport.dropId.safeParse(1).success).toBe(true);
+        expect(dropImport.dropId.safeParse(0).success).toBe(false);
+        expect(dropImport.status.safeParse("APPROVED").success).toBe(true);
+        expect(dropImport.status.safeParse("ACCEPTED").success).toBe(false);
 
         const search = byName.get("mojito_textunit_search")!.options.inputSchema;
         expect(search.limit.safeParse(1).success).toBe(true);
