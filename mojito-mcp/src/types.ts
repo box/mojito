@@ -96,6 +96,37 @@ export type AssetIntegrityCheckerInput = {
     integrityCheckerType: string;
 };
 
+/** Okapi filter override accepted by the source-asset import API. */
+export type AssetFilterConfigIdOverride =
+    | "PROPERTIES_JAVA"
+    | "MACSTRINGSDICT_FILTER_KEY"
+    | "XCODE_XLIFF"
+    | "CSV_ADOBE_MAGENTO"
+    | "HTML_ALPHA";
+
+/**
+ * Parameters for POST /api/assets.
+ *
+ * The operation creates or updates the asset at `path`, then starts asynchronous
+ * extraction. Its response contains the asset id and a pollable task.
+ */
+export type AssetImportParams = {
+    repositoryId: number;
+    path: string;
+    content: string;
+    branch?: string;
+    branchCreatedByUsername?: string;
+    branchNotifiers?: string[];
+    pushRunName?: string;
+    filterConfigIdOverride?: AssetFilterConfigIdOverride;
+    filterOptions?: string[];
+    /**
+     * False/omitted means `content` is a source resource file. True means it is
+     * Mojito's pre-extracted text-unit JSON format.
+     */
+    extractedContent?: boolean;
+};
+
 export type RepoCreateParams = {
     name: string;
     description?: string;

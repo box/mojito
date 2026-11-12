@@ -84,51 +84,54 @@
  *    as flat fields. The assertion reads that temp file inside the fake runner, since the
  *    file is deleted as soon as the call returns.
  * 8. Deleting a repository requires an explicit `-X DELETE`, never an implied method.
- * 9. Searching text units POSTs to the search endpoint with the full pagination flag set
+ * 9. Importing an asset POSTs the complete source-asset JSON body and cleans up its temporary
+ *    input file. This is the asynchronous server operation beneath the CLI push command.
+ * 10. A minimal asset import preserves empty content and omits every optional field.
+ * 11. Searching text units POSTs to the search endpoint with the full pagination flag set
  *    (`--paginate --slurp --max-pages 0`), and passes repository, source, search type, and
  *    locale filters through as fields.
- * 10. Searching with an explicit `limit` drops pagination and sends the limit as a typed
+ * 12. Searching with an explicit `limit` drops pagination and sends the limit as a typed
  *     field, so a caller who asked for a handful of rows gets one cheap request instead of a
  *     full slurp of every page.
- * 11. Searching with no repository scope first lists every repository and then searches with
+ * 13. Searching with no repository scope first lists every repository and then searches with
  *     all of their ids. Mojito's search API demands a scope, so "all repositories" has to be
  *     expanded here rather than pushed onto the agent.
- * 12. Inspecting one text unit reuses the search endpoint filtered by id, because Mojito has
+ * 14. Inspecting one text unit reuses the search endpoint filtered by id, because Mojito has
  *     no get-by-id route for text units.
- * 13. Fetching history sends the required BCP-47 tag as a query field. History takes a tag
+ * 15. Fetching history sends the required BCP-47 tag as a query field. History takes a tag
  *     while the write tools take a numeric locale id, and confusing the two is an easy
  *     mistake for both humans and agents.
- * 14. Adding a translation POSTs numeric ids as typed fields and the target text as a string,
+ * 16. Adding a translation POSTs numeric ids as typed fields and the target text as a string,
  *     so a translation that happens to look like a number is not coerced.
- * 15. The review action `accept` maps to status APPROVED and included-in-localized-file true.
- * 16. The review action `reject` maps to status TRANSLATION_NEEDED and included false. Reject
+ * 17. The review action `accept` maps to status APPROVED and included-in-localized-file true.
+ * 18. The review action `reject` maps to status TRANSLATION_NEEDED and included false. Reject
  *     is the case where a wrong mapping would quietly drop a string from shipped files.
- * 17. Fetching a pollable task is a plain GET on the id; it never waits on the task.
- * 18. Any non-zero CLI exit becomes a MojitoCliError that carries the exit code and stderr,
+ * 19. Fetching a pollable task is a plain GET on the id; it never waits on the task.
+ * 20. Any non-zero CLI exit becomes a MojitoCliError that carries the exit code and stderr,
  *     which is how a Mojito HTTP error reaches the agent as a readable message.
- * 19. A successful call parses the JSON on stdout and returns it as data.
+ * 21. A successful call parses the JSON on stdout and returns it as data.
  *
- * 20. Empty descriptions and a false SLA flag survive a simple repository create. Checks
+ * 22. Empty descriptions and a false SLA flag survive a simple repository create. Checks
  *     based on truthiness would otherwise silently discard both valid values.
- * 21. A nested repository create writes every optional field and removes its temporary JSON
+ * 23. A nested repository create writes every optional field and removes its temporary JSON
  *     file after success; a separate failure path proves cleanup also happens when CLI exits
  *     non-zero, preventing abandoned request bodies in the system temp directory.
- * 22. One exhaustive search encodes every supported filter with the right raw (`-f`) or
+ * 24. One exhaustive search encodes every supported filter with the right raw (`-f`) or
  *     typed (`-F`) flag, including false booleans and offset zero.
- * 23. An all-repository search on a server with no repositories returns an empty array
+ * 25. An all-repository search on a server with no repositories returns an empty array
  *     without issuing an invalid unscoped search request.
- * 24. A malformed repository row is rejected during all-repository expansion instead of
+ * 26. A malformed repository row is rejected during all-repository expansion instead of
  *     being silently omitted and producing incomplete search results.
- * 25. Text-unit info forwards multiple locale tags as repeated raw array fields.
- * 26. Translation add preserves empty target/comment strings and false inclusion instead of
+ * 27. Text-unit info forwards multiple locale tags as repeated raw array fields.
+ * 28. Translation add preserves empty target/comment strings and false inclusion instead of
  *     dropping them as falsy values.
- * 27. The `review` and `translate` actions are pinned in addition to accept and reject, and
+ * 29. The `review` and `translate` actions are pinned in addition to accept and reject, and
  *     an empty review comment is preserved.
- * 28. A CLI failure with blank stderr falls back to an exit-code message, so the agent still
+ * 30. A CLI failure with blank stderr falls back to an exit-code message, so the agent still
  *     receives a useful explanation.
- * 29. Successful empty stdout (the normal DELETE response) maps to null rather than causing
+ * 31. Successful empty stdout (the normal DELETE response) maps to null rather than causing
  *     a JSON parse error.
- * 30. Successful but malformed JSON becomes a MojitoCliError that preserves stdout and the
+ * 32. Successful but malformed JSON becomes a MojitoCliError that preserves stdout and the
  *     SyntaxError cause for diagnosis.
  */
 
@@ -484,6 +487,71 @@ describe("MojitoCliClient (CLI argv contracts)", () => {
 
         await client.repoDelete(9);
         expect(runner.calls[0]).toEqual(["api", "/api/repositories/9", "-X", "DELETE"]);
+    });
+
+    test("assetImport POSTs the complete source asset as JSON and removes its temp file", async () => {
+        let inputFile = "";
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            inputFile = argv[argv.indexOf("--input") + 1];
+            body = JSON.parse(readFileSync(inputFile, "utf8")) as Record<string, unknown>;
+            return okJson({ addedAssetId: 12, pollableTask: { id: 34 } });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await expect(
+            client.assetImport({
+                repositoryId: 7,
+                path: "src/messages.properties",
+                content: "hello = Hello!\n",
+                branch: "feature/localize",
+                branchCreatedByUsername: "translator@example.com",
+                branchNotifiers: ["owner@example.com"],
+                pushRunName: "push-123",
+                filterConfigIdOverride: "PROPERTIES_JAVA",
+                filterOptions: ["useCodeFinder=true"],
+                extractedContent: false,
+            }),
+        ).resolves.toEqual({ addedAssetId: 12, pollableTask: { id: 34 } });
+
+        expect(runner.calls[0]).toEqual(["api", "/api/assets", "-X", "POST", "--input", inputFile]);
+        expect(body).toEqual({
+            repositoryId: 7,
+            path: "src/messages.properties",
+            content: "hello = Hello!\n",
+            branch: "feature/localize",
+            branchCreatedByUsername: "translator@example.com",
+            branchNotifiers: ["owner@example.com"],
+            pushRunName: "push-123",
+            filterConfigIdOverride: "PROPERTIES_JAVA",
+            filterOptions: ["useCodeFinder=true"],
+            extractedContent: false,
+        });
+        expect(existsSync(inputFile)).toBe(false);
+    });
+
+    test("assetImport omits optional fields from a normal raw-content import", async () => {
+        let body: Record<string, unknown> | undefined;
+        const runner = mockRunner((argv) => {
+            body = JSON.parse(readFileSync(argv[argv.indexOf("--input") + 1], "utf8")) as Record<
+                string,
+                unknown
+            >;
+            return okJson({ addedAssetId: 12, pollableTask: { id: 34 } });
+        });
+        const client = new MojitoCliClient(config, runner);
+
+        await client.assetImport({
+            repositoryId: 7,
+            path: "messages.properties",
+            content: "",
+        });
+
+        expect(body).toEqual({
+            repositoryId: 7,
+            path: "messages.properties",
+            content: "",
+        });
     });
 
     test("textunitSearch POSTs search with pagination flags", async () => {
