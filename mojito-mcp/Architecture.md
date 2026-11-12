@@ -134,7 +134,7 @@ Pass caller `limit` / `offset` / page-size fields through as `-f`/`-F` when the 
 
 ### Wait / timeout
 
-**MCP tools:** do **not** pass `-w` / `--wait`. Asset import returns its pollable task to the caller instead of blocking. Asset localize uses the synchronous `/localized/{localeId}` endpoint, so the localized file is the HTTP response body rather than a later pollable-task output.
+**MCP tools:** do **not** pass `-w` / `--wait`. Asset import returns its pollable task to the caller instead of blocking. Asset localize uses the synchronous `/localized/{localeId}` endpoint, and asset pseudo uses `/pseudo`; both return the generated file in the HTTP response body rather than a later pollable-task output.
 
 `MOJITO_CLI_TIMEOUT_MS` still applies to every spawn (network hangs, slow searches). Default **10 minutes** so future tools that *do* use `--wait` (e.g. drop export/import, which can take ~5+ minutes per project) work without a too-aggressive default. Operators raise the env var for larger jobs.
 
@@ -151,7 +151,7 @@ All tools use **`mojito_<object>_<action>`**, where `<object>` is the resource t
 | Object | Actions (v1) |
 |--------|----------------|
 | `repo` | `list`, `view`, `create`, `delete` |
-| `asset` | `list`, `ids`, `import`, `localize`, `delete` |
+| `asset` | `list`, `ids`, `import`, `localize`, `pseudo`, `delete` |
 | `textunit` | `search`, `info`, `history`, `translation_add` |
 | `review` | `update` |
 | `pollabletask` | `get` |
@@ -179,6 +179,7 @@ Later (not v1): `mojito_textunit_translation_update` and related translation too
 | `mojito_asset_ids` | `api /api/assets/ids` with the same query fields as list |
 | `mojito_asset_import` | `api /api/assets -X POST --input <source-asset.json>` |
 | `mojito_asset_localize` | `api /api/assets/{assetId}/localized/{localeId} -X POST --input <localized-asset.json>` |
+| `mojito_asset_pseudo` | `api /api/assets/{assetId}/pseudo -X POST --input <localized-asset.json>` |
 | `mojito_asset_delete` | `api /api/assets/{assetId} -X DELETE` |
 
 Asset list/ids are **not** paginated: the endpoint returns the full filtered set. `repositoryId` is required. There is no GET-by-id.
@@ -186,6 +187,8 @@ Asset list/ids are **not** paginated: the endpoint returns the full filtered set
 Asset import sends the full `SourceAsset` JSON body: required `repositoryId`, `path`, and `content`; optional branch metadata, push-run name, filter override/options, and `extractedContent`. `POST /api/assets` creates or updates the logical asset and starts asynchronous extraction. Return its `addedAssetId` and `pollableTask` without waiting. This is only the core upload used by `mojito push`; MCP does not scan local files or delete assets omitted from an import.
 
 `mojito_asset_localize` sends `LocalizedAssetBody` JSON: required `assetId`, `localeId`, and source `content`; optional `outputBcp47tag`, filter override/options, `inheritanceMode`, `status`, and `pullRunName`. This is the default `mojito pull` call (`POST /api/assets/{assetId}/localized/{localeId}`). The response is the localized file body, not a pollable task. MCP does not scan source directories or write target files. Async (`POST /api/assets/{assetId}/localized`) and parallel (`…/localized/parallel`) endpoints are not exposed.
+
+`mojito_asset_pseudo` sends `LocalizedAssetBody` JSON: required `assetId` and source `content`; optional `outputBcp47tag` (client default `en-x-pseudo`, matching the Java CLI), `filterConfigIdOverride` / `filterOptions`, and `substituteType` (`RANDOM` / `CONSISTENT`). This is the `mojito pseudo` call (`POST /api/assets/{assetId}/pseudo`). The response `content` is the accented file. Agents should write it using path tag `en-x-pseudo` even though the pipeline uses `en-x-psaccent` internally. No `localeId`. MCP does not scan directories or write files.
 
 `mojito_asset_delete` is a single-asset delete. Bulk unused-asset cleanup (`DELETE /api/assets` with a body of ids) is not exposed.
 
@@ -305,7 +308,7 @@ Tool ids and zod schemas in `register-tools.ts` / `tool-metadata.ts` must match 
 ## Future extensions (out of scope for v1)
 
 - Drop export/import tools with `--wait` and documented long timeouts.
-- Async asset localize (`POST /api/assets/{assetId}/localized`) and parallel (`…/localized/parallel`), plus pseudo-localize.
+- Async asset localize (`POST /api/assets/{assetId}/localized`) and parallel (`…/localized/parallel`).
 - Optional `--paginate` toggles only if unbounded slurps become a problem (not expected).
 - Escape-hatch raw `api` tool (deliberately deferred; curated tools are safer for agents).
 - Using `api --spec` offline when authoring new mappings.

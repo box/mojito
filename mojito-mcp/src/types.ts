@@ -173,6 +173,41 @@ export type AssetLocalizeParams = {
     pullRunName?: string;
 };
 
+/**
+ * How accented replacements are chosen during pseudolocalization.
+ * RANDOM (server default) can differ across runs and repeats; CONSISTENT maps
+ * the same ASCII letter to the same replacement within a given string.
+ */
+export type PseudoSubstituteType = "RANDOM" | "CONSISTENT";
+
+/**
+ * BCP-47 tag the CLI writes into the output path (`en-x-pseudo`).
+ * The generate pipeline uses `en-x-psaccent` internally; agents should still
+ * name files with this tag, matching `mojito pseudo`.
+ */
+export const PSEUDO_OUTPUT_BCP47_TAG = "en-x-pseudo";
+
+/**
+ * Parameters for POST /api/assets/{assetId}/pseudo.
+ *
+ * This is the synchronous call used by `mojito pseudo`: the request body is
+ * the current source resource content; the response body's `content` is the
+ * pseudolocalized file. It does not scan a working tree or write files to disk.
+ * No localeId: output is a synthetic locale, not a repository translation locale.
+ */
+export type AssetPseudoParams = {
+    assetId: number;
+    content: string;
+    /**
+     * Tag the Java CLI puts on the request (and uses for the output path).
+     * Defaults to {@link PSEUDO_OUTPUT_BCP47_TAG} when omitted.
+     */
+    outputBcp47tag?: string;
+    filterConfigIdOverride?: AssetFilterConfigIdOverride;
+    filterOptions?: string[];
+    substituteType?: PseudoSubstituteType;
+};
+
 export type RepoCreateParams = {
     name: string;
     description?: string;
