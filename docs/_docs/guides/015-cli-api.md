@@ -15,6 +15,10 @@ Print the server's OpenAPI specification:
 mojito api --spec --pretty
 ```
 
+Datetime fields in Mojito JSON are epoch milliseconds (64-bit integers), not ISO-8601 strings.
+The OpenAPI spec matches that wire format (`type: integer`, `format: int64`) when springdoc is
+enabled on the server.
+
 Make a GET request by passing either a resource name or an `/api/` path:
 
 ```bash
