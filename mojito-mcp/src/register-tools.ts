@@ -641,6 +641,50 @@ export function registerMojitoTools(server: McpServer, client: MojitoCliClient):
         async (args) => jsonResult(await client.dropImport(args)),
     );
 
+    server.registerTool(
+        "mojito_drop_cancel",
+        {
+            description: [
+                "Start canceling an exported vendor drop (POST /api/drops/cancel).",
+                "This is the core server call used by `mojito drop-cancel`. It marks the drop canceled and deletes exporter files (Box folder or filesystem); it does not wait for deletion to finish.",
+                "The response is CancelDropConfig with `dropId` and `pollableTask`. Poll `pollableTask.id` with mojito_pollabletask_get until allFinished is true (or an error appears). This tool does not pass CLI --wait.",
+                "Requires dropId (from mojito_drop_list or a prior export). A drop cannot be canceled while export or import is still running.",
+                "WARNING: Canceling deletes the drop's vendor files on the selected instance. Confirm drop id and environment; prefer mojito-dev while experimenting.",
+            ].join(" "),
+            inputSchema: {
+                dropId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe(
+                        "Numeric drop id to cancel (from mojito_drop_list or mojito_drop_export's dropId).",
+                    ),
+            },
+        },
+        async (args) => jsonResult(await client.dropCancel(args)),
+    );
+
+    server.registerTool(
+        "mojito_drop_complete",
+        {
+            description: [
+                "Force-complete a partially imported vendor drop (POST /api/drops/complete/{dropId}).",
+                "This is the core server call used by `mojito drop-complete`. It clears the drop's partiallyImported flag so the drop is treated as fully imported.",
+                "Synchronous: no request body and no pollable task. A successful call returns empty JSON (null). Unlike cancel, this does not wait on a task.",
+                "Requires dropId (from mojito_drop_list). Completing a drop that was never partially imported succeeds but may leave the flag unchanged (server behavior).",
+                "WARNING: Completing changes drop state on the selected instance. Confirm drop id and environment; prefer mojito-dev while experimenting.",
+            ].join(" "),
+            inputSchema: {
+                dropId: z
+                    .number()
+                    .int()
+                    .positive()
+                    .describe("Numeric drop id to force-complete (from mojito_drop_list)."),
+            },
+        },
+        async (args) => jsonResult(await client.dropComplete(args)),
+    );
+
     // --- Text units ---
 
     server.registerTool(
