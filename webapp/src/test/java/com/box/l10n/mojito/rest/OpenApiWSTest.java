@@ -68,8 +68,7 @@ public class OpenApiWSTest extends WSTestBase {
     ResponseEntity<String> response =
         authenticatedRestTemplate
             .getRestTemplate()
-            .getForEntity(
-                authenticatedRestTemplate.getURIForResource("/api-docs"), String.class);
+            .getForEntity(authenticatedRestTemplate.getURIForResource("/api-docs"), String.class);
     assertEquals(200, response.getStatusCodeValue());
     return objectMapper.readTree(response.getBody());
   }

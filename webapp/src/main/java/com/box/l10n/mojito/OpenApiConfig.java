@@ -25,8 +25,7 @@ import org.springframework.core.MethodParameter;
 @Configuration
 public class OpenApiConfig {
 
-  static final String EPOCH_MILLIS_DESCRIPTION =
-      "Epoch milliseconds since 1970-01-01T00:00:00Z";
+  static final String EPOCH_MILLIS_DESCRIPTION = "Epoch milliseconds since 1970-01-01T00:00:00Z";
 
   @Bean
   public PropertyCustomizer zonedDateTimeEpochMillisPropertyCustomizer() {
